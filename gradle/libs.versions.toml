@@ -1,5 +1,5 @@
 [versions]
-jdk = "11"
+jdk = "23"
 
 agp = "8.7.3"
 android-compileSdk = "35"
