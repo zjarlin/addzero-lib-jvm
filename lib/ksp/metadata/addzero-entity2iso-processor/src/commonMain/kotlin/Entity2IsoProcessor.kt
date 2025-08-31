@@ -1,6 +1,6 @@
-import com.addzero.kmp.context.SettingContext
-import com.addzero.kmp.entity.analysis.model.EntityMetadata
-import com.addzero.kmp.entity.analysis.processor.BaseJimmerProcessor
+import com.addzero.context.SettingContext
+import com.addzero.entity.analysis.model.EntityMetadata
+import com.addzero.entity.analysis.processor.BaseJimmerProcessor
 import com.google.devtools.ksp.processing.*
 import generator.IsoCodeGenerator
 import java.io.File

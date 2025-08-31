@@ -1,7 +1,13 @@
 [versions]
 jdk = "23"
-ksp = "2.2.10-2.0.2"
-kotlin = "2.2.10"
+#https://central.sonatype.com/artifact/org.jetbrains.kotlin.jvm/org.jetbrains.kotlin.jvm.gradle.plugin
+kotlin = "2.2.0"
+# https://central.sonatype.com/artifact/com.google.devtools.ksp/com.google.devtools.ksp.gradle.plugin
+ksp = "2.2.0-2.0.2"
+
+
+#ksp = "2.2.10-2.0.2"
+#kotlin = "2.2.10"
 agp = "8.11.0"
 android-compileSdk = "36"
 android-minSdk = "24"
@@ -19,6 +25,10 @@ kotlinx-serialization = "1.9.0"
 filekitCompose = "0.8.8"
 hutoolAll = "5.8.39"
 fastjson2Kotlin = "2.0.58"
+minio = "8.5.17"
+saToken = "1.44.0"
+fastexcel = "1.2.0"
+lazyPeopleHttp = "2.2.5"
 
 pinyin4j = "2.5.1"
 
@@ -41,11 +51,73 @@ h2 = "2.1.212"
 mysqlConnector = "8.0.33"
 kotlinpoetKsp = "2.2.0"
 jimmer = "0.9.106"
+springAi = "1.0.1"
+velocity = "1.7"
+xFileStorage = "2.3.0"
+jsonschemaGenerator = "4.38.0"
 
 kotlinxDatetime = "0.7.1-0.6.x-compat"
-ktorfitLib = "2.6.4"
+damengJdbc = "8.1.3.140"
+tomlj = "1.1.1"
+aspectjweaver = "1.9.24"
+flyway = "11.11.0"
+# Koin 版本
+koin = "4.1.0"
+koinAnnotations = "2.1.0"
+# UI 组件版本
+multiplatformMarkdownRenderer = "0.36.0-b02"
+composeDnd = "0.4.0"
+richeditorCompose = "1.0.0-rc11"
+navigationCompose = "2.9.0-beta03"
 
 [libraries]
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+lazy-people-http = { module = "io.github.ltttttttttttt:LazyPeopleHttp-lib", version.ref = "lazyPeopleHttp" }
+lazy-people-ksp = { module = "io.github.ltttttttttttt:LazyPeopleHttp", version.ref = "lazyPeopleHttp" }
+
+
+
+# Koin 依赖注入
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
+koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koinAnnotations" }
+# Koin KSP 编译器
+koin-ksp-compiler = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
+
+
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+
+aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjweaver" }
+
+tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
+
+dameng-jdbc-driver = { module = "com.dameng:DmJdbcDriver18", version.ref = "damengJdbc" }
+
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+
+spring-boot-starter-thymeleaf = { module = "org.springframework.boot:spring-boot-starter-thymeleaf" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
+
+
+jsonschema-generator = { module = "com.github.victools:jsonschema-generator", version.ref = "jsonschemaGenerator" }
+kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
+
+spring-ai-starter-mcp-server-webflux = { module = "org.springframework.ai:spring-ai-starter-mcp-server-webflux", version.ref = "springAi" }
+spring-ai-starter-model-ollama = { module = "org.springframework.ai:spring-ai-starter-model-ollama" }
+spring-ai-starter-vector-store-pgvector = { module = "org.springframework.ai:spring-ai-starter-vector-store-pgvector" }
+spring-ai-tika-document-reader = { module = "org.springframework.ai:spring-ai-tika-document-reader" }
+
+velocity = { module = "org.apache.velocity:velocity", version.ref = "velocity" }
+x-file-storage-spring = { module = "org.dromara.x-file-storage:x-file-storage-spring", version.ref = "xFileStorage" }
+
 byte-buddy = { module = "net.bytebuddy:byte-buddy" }
 
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
@@ -63,7 +135,7 @@ mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "m
 pinyin4j = { module = "com.belerweb:pinyin4j", version.ref = "pinyin4j" }
 postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 
-ktorfit-lib = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfitLib" }
+ktorfit-lib = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfitGradlePlugin" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
@@ -100,9 +172,15 @@ ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processin
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 gradlePlugin-android = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
-#gradlePlugin-ktorfit = { module = "de.jensklingenberg.ktorfit:de.jensklingenberg.ktorfit.gradle.plugin", version.ref = "ktorfitGradlePlugin" }
+gradlePlugin-ktorfit = { module = "de.jensklingenberg.ktorfit:de.jensklingenberg.ktorfit.gradle.plugin", version.ref = "ktorfitGradlePlugin" }
 
+minio = { module = "io.minio:minio", version.ref = "minio" }
+sa-token-spring-boot3-starter = { module = "cn.dev33:sa-token-spring-boot3-starter", version.ref = "saToken" }
+fastexcel = { module = "cn.idev.excel:fastexcel", version.ref = "fastexcel" }
 
+multiplatform-markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "multiplatformMarkdownRenderer" }
+compose-dnd = { module = "com.mohamedrejeb.dnd:compose-dnd", version.ref = "composeDnd" }
+richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditorCompose" }
 
 
 
@@ -122,7 +200,10 @@ gradlePlugin-kotlinSpring = { module = "org.jetbrains.kotlin.plugin.spring:org.j
 gradlePlugin-dependencyManagement = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "dependencyManagementPlugin" }
 gradlePlugin-springBoot = { module = "org.springframework.boot:org.springframework.boot.gradle.plugin", version.ref = "springBootGradlePlugin" }
 
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
+spring-ai-bom = { group = "org.springframework.ai", name = "spring-ai-bom", version.ref = "springAi" }
+spring-ai-deepseek = { group = "org.springframework.ai", name = "spring-ai-starter-model-deepseek", version.ref = "springAi" }
 
 
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

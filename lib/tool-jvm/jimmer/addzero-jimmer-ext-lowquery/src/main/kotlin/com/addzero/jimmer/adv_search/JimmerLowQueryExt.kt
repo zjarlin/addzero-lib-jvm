@@ -2,7 +2,12 @@ package com.addzero.jimmer.adv_search
 
 import cn.hutool.core.convert.Convert
 import cn.hutool.core.util.NumberUtil
-import com.addzero.kmp.entity.low_table.*
+import com.addzero.entity.low_table.EnumLogicOperator
+import com.addzero.entity.low_table.EnumSearchOperator
+import com.addzero.entity.low_table.EnumSortDirection
+import com.addzero.entity.low_table.StateSearch
+import com.addzero.entity.low_table.StateSort
+import com.addzero.entity.low_table.StateVo
 import com.addzero.util.isDateValue
 import org.babyfish.jimmer.View
 import org.babyfish.jimmer.sql.ast.LikeMode

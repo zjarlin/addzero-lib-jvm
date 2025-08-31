@@ -75,7 +75,7 @@ class MysqlDDLGenerator : DatabaseDDLGenerator() {
         .joinToString(System.lineSeparator()) {
 
             // 如果 databaseName 不为空，则拼接成 databaseName.tableEnglishName
-            val tableRef = if (databaseName.isBlank()) {
+            val tableRef = if (databaseName.isNullOrBlank()) {
                 JlStrUtil.makeSurroundWith(tableEnglishName, "`")
             } else {
                 "`$databaseName`.`$tableEnglishName`"

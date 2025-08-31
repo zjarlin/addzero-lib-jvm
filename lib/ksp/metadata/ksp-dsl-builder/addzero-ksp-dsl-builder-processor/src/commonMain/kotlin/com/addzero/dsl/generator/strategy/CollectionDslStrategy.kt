@@ -14,7 +14,7 @@ class CollectionDslStrategy : DslStrategy {
     override fun support(meta: DslMeta): Boolean {
         // 检查是否有泛型参数
         val hasTypeParams = meta.typeParameters.isNotEmpty()
-        
+
         // 检查是否是集合类型
         val isCollectionType = meta.constructor.any { param ->
             val typeName = param.fullTypeName
@@ -25,7 +25,7 @@ class CollectionDslStrategy : DslStrategy {
             typeName == "kotlin.collections.Map" ||
             typeName == "kotlin.collections.MutableMap"
         }
-        
+
         // 必须同时满足两个条件：
         // 1. 有泛型参数
         // 2. 是集合类型
@@ -44,7 +44,7 @@ class CollectionDslStrategy : DslStrategy {
         constructorArgs: String
     ): String {
         val outerClassChain = getOuterClassChain(meta)
-        
+
         // 获取并去重导入语句
         val imports = if (meta.isNested) {
             generateImports(meta) // 对于嵌套类，generateImports已经返回了嵌套类的导入
@@ -54,7 +54,7 @@ class CollectionDslStrategy : DslStrategy {
 
         // 构建构造函数参数列表（用于构建原始类）
         val constructorParamsList = meta.constructor.joinToString(", ") { it.name }
-        
+
         // 生成复数形式的DSL函数名
         val pluralFunctionName = generatePluralDslFunctionName(meta)
 
@@ -88,4 +88,4 @@ class CollectionDslStrategy : DslStrategy {
         |}
         |""".trimMargin()
     }
-} 
+}

@@ -1,4 +1,4 @@
-package com.addzero.kmp.processor
+package com.addzero.processor
 
 import cn.hutool.json.JSONUtil
 import com.addzero.autoddlstarter.context.DDLContext

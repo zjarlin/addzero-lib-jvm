@@ -1,4 +1,4 @@
-package com.addzero.kmp.annotation
+package com.addzero.annotation
 
 /**
  * 路由注解

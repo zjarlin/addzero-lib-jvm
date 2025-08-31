@@ -1,9 +1,6 @@
-import org.jetbrains.kotlin.gradle.internal.backend.common.serialization.metadata.DynamicTypeDeserializer.id
-
 plugins {
     `kotlin-dsl`
 }
-
 
 repositories {
     mavenLocal()
@@ -18,7 +15,7 @@ dependencies {
 //    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.3")
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
-//    implementation(libs.gradlePlugin.ktorfit)
+    implementation(libs.gradlePlugin.ktorfit)
     implementation(libs.gradlePlugin.android)
     implementation(libs.gradlePlugin.dokka)
     implementation(libs.gradlePlugin.jetbrainsCompose)

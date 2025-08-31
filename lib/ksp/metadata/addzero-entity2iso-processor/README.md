@@ -41,7 +41,7 @@ ksp {
     //同构体输出目录
     arg("isomorphicOutputDir", isomorphicOutputDir)
     //同构体生成的包
-    arg("isomorphicPackageName", "com.addzero.kmp.isomorphic")
+    arg("isomorphicPackageName", "com.addzero.isomorphic")
 
     //同构体类名后缀
     arg("isomorphicClassSuffix", "Iso")

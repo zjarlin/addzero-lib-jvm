@@ -18,20 +18,20 @@ fun getTemplate(
     simpleName: String
 ): String {
     val builderClassNameWithParams = "$builderClassName$fullGenericTypeParams"
-    
+
     // 构建构造函数参数列表
     val constructorParamsList = meta.constructor.joinToString(", ") { it.name }
-    
+
     // 获取外部类链
     val outerClassChain = getOuterClassChain(meta)
-    
+
     // 返回类型使用完整的引用路径
     val returnType = if (meta.isNested) {
         outerClassChain
     } else {
         simpleName
     }
-    
+
     return """
             |package ${meta.packageName}
             |$imports

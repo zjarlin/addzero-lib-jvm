@@ -1,7 +1,7 @@
 //package com.addzero.common.util.database
 //
 //import com.addzero.common.kt_util.makeSurroundWith
-//import com.addzero.kmp.anno.Shit
+//import com.addzero.anno.Shit
 //import com.zaxxer.hikari.HikariConfig
 //import com.zaxxer.hikari.HikariDataSource
 //import java.nio.file.Path

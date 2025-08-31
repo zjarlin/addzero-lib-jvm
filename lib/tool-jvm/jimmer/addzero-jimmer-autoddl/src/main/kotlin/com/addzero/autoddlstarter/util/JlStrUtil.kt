@@ -29,7 +29,7 @@ fun String.toBigCamelCase(): String {
 }
 
 fun CharSequence.removeAnyQuote(): String {
-    if (this.isBlank()) {
+    if (this.isNullOrBlank()) {
         return ""
     }
     return StrUtil.removeAny(this, "\"", "\\", "\\n", " ", System.lineSeparator())
@@ -119,7 +119,7 @@ object JlStrUtil {
      * @return 删除指定字符后的字符串
      */
     fun removeLastCharOccurrence(str: String, ch: Char): String {
-        if (str.isBlank()) {
+        if (str.isNullOrBlank()) {
             return ""
         }
 
@@ -158,7 +158,7 @@ object JlStrUtil {
 
 }
 
-fun String?.isBlank(): Boolean {
+fun String?.isNullOrBlank(): Boolean {
     if (this == null || this == "") {
         return true
     }
@@ -166,7 +166,7 @@ fun String?.isBlank(): Boolean {
 }
 
 fun String?.isNotBlank(): Boolean {
-    return !this.isBlank()
+    return !this.isNullOrBlank()
 }
 
 /**
@@ -202,7 +202,7 @@ fun String?.removeDuplicateSymbol(duplicateElement: String): String {
  * 扩展函数：清理多余的char
  */
 fun String?.removeDuplicateSymbol(symbol: Char): String {
-    if (this.isBlank()) {
+    if (this.isNullOrBlank()) {
         return ""
     }
     val sb = StringBuilder()
@@ -237,7 +237,7 @@ fun String.getPathFromRight(n: Int): String? {
 
 
 fun String?.lowerCase(): String {
-    if (this.isBlank()) {
+    if (this.isNullOrBlank()) {
         return ""
     }
     val lowerCase = this.lowerCase()

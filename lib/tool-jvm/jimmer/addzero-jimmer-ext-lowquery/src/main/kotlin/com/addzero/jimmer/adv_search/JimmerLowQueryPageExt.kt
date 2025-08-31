@@ -1,8 +1,8 @@
 package com.addzero.jimmer.adv_search
 
-import com.addzero.kmp.entity.low_table.StateSearch
-import com.addzero.kmp.entity.low_table.StateSort
-import com.addzero.kmp.entity.low_table.StateVo
+import com.addzero.entity.low_table.StateSearch
+import com.addzero.entity.low_table.StateSort
+import com.addzero.entity.low_table.StateVo
 import org.babyfish.jimmer.Page
 import org.babyfish.jimmer.View
 import org.babyfish.jimmer.sql.kt.KSqlClient

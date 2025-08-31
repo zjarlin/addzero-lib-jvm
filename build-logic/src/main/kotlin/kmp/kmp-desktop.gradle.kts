@@ -7,6 +7,7 @@ plugins {
 val libs = the<org.gradle.accessors.dm.LibrariesForLibs>()
 
 kotlin {
+    jvm()
     sourceSets {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -17,7 +18,7 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "io.gitee.zjarlin.addzero.MainKt"
+        mainClass = "com.addzero.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

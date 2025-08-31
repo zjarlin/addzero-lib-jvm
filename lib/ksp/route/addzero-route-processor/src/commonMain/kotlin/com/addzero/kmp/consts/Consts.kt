@@ -1,4 +1,4 @@
-package com.addzero.kmp.consts
+package com.addzero.consts
 
 
-const val GEN_PKG = "com.addzero.kmp.generated"
+const val GEN_PKG = "com.addzero.generated"

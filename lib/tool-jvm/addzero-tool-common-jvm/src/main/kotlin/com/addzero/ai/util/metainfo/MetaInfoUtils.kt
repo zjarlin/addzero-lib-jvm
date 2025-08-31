@@ -11,7 +11,7 @@ import java.lang.reflect.ParameterizedType
 object MetaInfoUtils {
 
     fun extractTableName(sql: String?): String? {
-        if (sql == null || sql.isBlank()) {
+        if (sql == null || sql.isNullOrBlank()) {
             return null
         }
         val regex = "(?i)from\\s+([a-zA-Z0-9_]+)".toRegex() // 定义正则表达式

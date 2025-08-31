@@ -24,7 +24,7 @@ class NonGenericCollectionDslStrategy : DslStrategy {
         }
         // 检查是否没有泛型参数
         val hasNoTypeParams = meta.typeParameters.isEmpty()
-        
+
         // 必须没有泛型参数且满足两个条件之一：
         // 1. 是集合类型
         // 2. 指定了genCollectionDslBuilder=true
@@ -43,7 +43,7 @@ class NonGenericCollectionDslStrategy : DslStrategy {
         constructorArgs: String
     ): String {
         val outerClassChain = getOuterClassChain(meta)
-        
+
         // 获取并去重导入语句
         val imports = if (meta.isNested) {
             generateImports(meta) // 对于嵌套类，generateImports已经返回了嵌套类的导入
@@ -53,7 +53,7 @@ class NonGenericCollectionDslStrategy : DslStrategy {
 
         // 构建构造函数参数列表（用于构建原始类）
         val constructorParamsList = meta.constructor.joinToString(", ") { it.name }
-        
+
         // 生成复数形式的DSL函数名
         val pluralFunctionName = generatePluralDslFunctionName(meta)
 
@@ -87,4 +87,4 @@ class NonGenericCollectionDslStrategy : DslStrategy {
         |}
         |""".trimMargin()
     }
-} 
+}

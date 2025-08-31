@@ -10,10 +10,10 @@ import java.io.File
  * 在项目刷新后自动收集所有模块的KSP配置并生成强类型的GradleSettingContext对象
  */
 class GradleKspConfigPlugin : Plugin<Project> {
-    
+
     override fun apply(project: Project) {
         project.logger.lifecycle("应用GradleKspConfigPlugin到项目: ${project.path}")
-        
+
         // 在项目评估后执行
         project.afterEvaluate {
             project.logger.lifecycle("项目评估完成: ${project.path}")
@@ -28,7 +28,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
             }
         }
     }
-    
+
     /**
      * 创建生成配置的任务
      */
@@ -41,10 +41,10 @@ class GradleKspConfigPlugin : Plugin<Project> {
                 generateGradleSettingContext(project)
             }
         }
-        
+
         project.logger.lifecycle("任务创建完成")
     }
-    
+
     /**
      * 生成GradleSettingContext对象
      */
@@ -52,37 +52,37 @@ class GradleKspConfigPlugin : Plugin<Project> {
         val rootProject = project.rootProject
         val generatedDir = File(rootProject.buildDir, "generated/kspconfig")
         generatedDir.mkdirs()
-        
+
         val outputFile = File(generatedDir, "GradleSettingContext.kt")
-        
+
         project.logger.lifecycle("开始收集模块配置")
         project.logger.lifecycle("根项目路径: ${rootProject.projectDir.absolutePath}")
         project.logger.lifecycle("生成目录路径: ${generatedDir.absolutePath}")
         project.logger.lifecycle("输出文件路径: ${outputFile.absolutePath}")
-        
+
         try {
             // 收集所有模块的KSP配置
             val moduleConfigs = collectModuleConfigs(rootProject)
-            
+
             project.logger.lifecycle("收集到的模块配置: $moduleConfigs")
             project.logger.lifecycle("模块配置数量: ${moduleConfigs.size}")
             project.logger.lifecycle("模块配置是否为空: ${moduleConfigs.isEmpty()}")
             project.logger.lifecycle("模块配置是否全部为空: ${moduleConfigs.all { it.value.isEmpty() }}")
-            
+
             // 生成Kotlin代码
             val code = generateKotlinCode(moduleConfigs)
-            
+
             project.logger.lifecycle("生成的代码长度: ${code.length}")
             project.logger.lifecycle("生成的代码预览: ${code.take(500)}")
-            
+
             outputFile.writeText(code)
-            
+
             // 打印生成的文件路径
             project.logger.lifecycle("Generated GradleSettingContext to: ${outputFile.absolutePath}")
         } catch (e: Exception) {
             project.logger.lifecycle("生成GradleSettingContext时出错: ${e.message}")
             e.printStackTrace()
-            
+
             // 即使出错也生成一个基本的文件
             try {
                 val fallbackCode = """
@@ -103,7 +103,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
                         }
                     }
                 """.trimIndent()
-                
+
                 outputFile.writeText(fallbackCode)
                 project.logger.lifecycle("生成了回退的GradleSettingContext到: ${outputFile.absolutePath}")
             } catch (fallbackException: Exception) {
@@ -112,19 +112,19 @@ class GradleKspConfigPlugin : Plugin<Project> {
             }
         }
     }
-    
+
     /**
      * 收集所有模块的KSP配置
      */
     private fun collectModuleConfigs(rootProject: Project): Map<String, Map<String, String>> {
         rootProject.logger.lifecycle("进入collectModuleConfigs方法")
         val moduleConfigs = mutableMapOf<String, Map<String, String>>()
-        
+
         try {
             rootProject.logger.lifecycle("开始遍历所有项目")
             rootProject.logger.lifecycle("根项目路径: ${rootProject.projectDir.absolutePath}")
             rootProject.logger.lifecycle("所有项目数量: ${rootProject.allprojects.size}")
-            
+
             // 使用allprojects方法遍历所有项目
             rootProject.allprojects.forEach { project ->
                 rootProject.logger.lifecycle("检查项目: ${project.path} (name: ${project.name})")
@@ -134,13 +134,13 @@ class GradleKspConfigPlugin : Plugin<Project> {
                 val kspOptions = getKspOptions(project)
                 rootProject.logger.lifecycle("KSP选项: $kspOptions")
                 rootProject.logger.lifecycle("KSP选项数量: ${kspOptions.size}")
-                
+
                 // 即使kspOptions为空，也添加到moduleConfigs中，以便调试
                 moduleConfigs[moduleName] = kspOptions
             }
-            
+
             rootProject.logger.lifecycle("收集到的模块配置数量: ${moduleConfigs.size}")
-            
+
             // 如果没有收集到任何配置，添加一些示例配置用于测试
             rootProject.logger.lifecycle("检查是否需要添加示例配置，当前配置数量: ${moduleConfigs.size}")
             rootProject.logger.lifecycle("moduleConfigs是否为空: ${moduleConfigs.isEmpty()}")
@@ -148,7 +148,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
             if (moduleConfigs.isEmpty() || moduleConfigs.all { it.value.isEmpty() }) {
                 rootProject.logger.lifecycle("添加示例配置")
                 moduleConfigs["BackendServer"] = mapOf(
-                    "apiClientPackageName" to "com.addzero.kmp.generated.api",
+                    "apiClientPackageName" to "com.addzero.generated.api",
                     "jimmerDtoDirs" to "src/main/kotlin",
                     "jimmerDtoDefaultNullableInputModifier" to "dynamic",
                     "jimmerDtoMutable" to "true"
@@ -165,12 +165,12 @@ class GradleKspConfigPlugin : Plugin<Project> {
             rootProject.logger.lifecycle("收集模块配置时出错: ${e.message}")
             e.printStackTrace()
         }
-        
+
         rootProject.logger.lifecycle("退出collectModuleConfigs方法，返回配置数量: ${moduleConfigs.size}")
         rootProject.logger.lifecycle("返回的配置: $moduleConfigs")
         return moduleConfigs
     }
-    
+
     /**
      * 获取模块名称（将路径中的特殊字符替换为合法的标识符）
      */
@@ -187,16 +187,16 @@ class GradleKspConfigPlugin : Plugin<Project> {
                 .takeIf { it.isNotEmpty() } ?: "unknown"
         }
     }
-    
+
     /**
      * 获取项目的KSP配置选项
      */
     private fun getKspOptions(project: Project): Map<String, String> {
         val kspOptions = mutableMapOf<String, String>()
-        
+
         project.logger.lifecycle("检查项目 ${project.name} 是否有KSP配置...")
         project.logger.lifecycle("项目路径: ${project.projectDir.absolutePath}")
-        
+
         // 检查项目是否应用了KSP相关插件
         val kspRelatedPlugins = listOf(
             "com.google.devtools.ksp",
@@ -207,7 +207,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
             "ksp4projectdir",
             "ksp4dict"
         )
-        
+
         var hasKspPlugin = false
         for (pluginId in kspRelatedPlugins) {
             if (project.plugins.hasPlugin(pluginId)) {
@@ -215,7 +215,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
                 hasKspPlugin = true
             }
         }
-        
+
         if (!hasKspPlugin) {
             project.logger.lifecycle("项目 ${project.name} 未应用KSP相关插件")
             // 检查所有已应用的插件
@@ -223,22 +223,22 @@ class GradleKspConfigPlugin : Plugin<Project> {
                 project.logger.lifecycle("项目 ${project.name} 应用的插件: ${plugin::class.java.name}")
             }
         }
-        
+
         // 查找ksp块中的参数
         try {
             // 查找项目中的ksp扩展
             val kspExtension = project.extensions.findByName("ksp")
             project.logger.lifecycle("直接查找ksp扩展: $kspExtension")
-            
+
             if (kspExtension != null) {
                 project.logger.lifecycle("找到ksp扩展对象: ${kspExtension::class.java.name}")
-                
+
                 // 尝试通过反射获取参数
                 try {
                     // 查找所有公共方法
                     val methods = kspExtension::class.java.methods
                     project.logger.lifecycle("ksp扩展对象的方法数量: ${methods.size}")
-                    
+
                     // 查找返回Map的方法
                     for (method in methods) {
                         if (method.returnType == Map::class.java && method.parameterCount == 0) {
@@ -257,12 +257,12 @@ class GradleKspConfigPlugin : Plugin<Project> {
                             }
                         }
                     }
-                    
+
                     // 如果上面的方法没有获取到参数，尝试直接访问属性
                     if (kspOptions.isEmpty()) {
                         val fields = kspExtension::class.java.declaredFields
                         project.logger.lifecycle("ksp扩展对象的字段数量: ${fields.size}")
-                        
+
                         for (field in fields) {
                             try {
                                 field.isAccessible = true
@@ -288,7 +288,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
             } else {
                 project.logger.lifecycle("未找到ksp扩展")
             }
-            
+
             // 如果通过扩展对象没有获取到参数，尝试直接解析build.gradle.kts文件
             if (kspOptions.isEmpty()) {
                 project.logger.lifecycle("通过扩展对象未获取到参数，尝试直接解析build.gradle.kts文件")
@@ -297,15 +297,15 @@ class GradleKspConfigPlugin : Plugin<Project> {
         } catch (e: Exception) {
             project.logger.lifecycle("获取KSP扩展对象时出错: ${e.message}")
             e.printStackTrace()
-            
+
             // 如果出现异常，尝试直接解析build.gradle.kts文件
             parseKspConfigFromFile(project, kspOptions)
         }
-        
+
         project.logger.lifecycle("项目 ${project.name} 的最终KSP配置: $kspOptions")
         return kspOptions
     }
-    
+
     /**
      * 直接解析build.gradle.kts文件获取KSP配置
      */
@@ -314,24 +314,24 @@ class GradleKspConfigPlugin : Plugin<Project> {
             val buildGradleFile = File(project.projectDir, "build.gradle.kts")
             project.logger.lifecycle("检查build.gradle.kts文件是否存在: ${buildGradleFile.exists()}")
             project.logger.lifecycle("build.gradle.kts文件路径: ${buildGradleFile.absolutePath}")
-            
+
             if (buildGradleFile.exists()) {
                 project.logger.lifecycle("解析build.gradle.kts文件: ${buildGradleFile.absolutePath}")
                 val buildGradleContent = buildGradleFile.readText()
                 project.logger.lifecycle("build.gradle.kts文件内容长度: ${buildGradleContent.length}")
-                
+
                 // 查找ksp块
                 val kspBlockRegex = Regex("ksp\\s*\\{([^}]*)\\}", RegexOption.DOT_MATCHES_ALL)
                 val kspBlockMatch = kspBlockRegex.find(buildGradleContent)
-                
+
                 if (kspBlockMatch != null) {
                     val kspBlockContent = kspBlockMatch.groupValues[1]
                     project.logger.lifecycle("找到ksp块内容: $kspBlockContent")
-                    
+
                     // 提取arg参数
                     val argRegex = Regex("arg\\s*\\(\"([^\"]+)\",\\s*\"([^\"]+)\"\\)")
                     val argMatches = argRegex.findAll(kspBlockContent)
-                    
+
                     argMatches.forEach { match ->
                         val key = match.groupValues[1]
                         val value = match.groupValues[2]
@@ -352,19 +352,19 @@ class GradleKspConfigPlugin : Plugin<Project> {
                     project.logger.lifecycle("找到了build.gradle文件: ${buildGradle.absolutePath}")
                     val buildGradleContent = buildGradle.readText()
                     project.logger.lifecycle("build.gradle文件内容长度: ${buildGradleContent.length}")
-                    
+
                     // 查找ksp块
                     val kspBlockRegex = Regex("ksp\\s*\\{([^}]*)\\}", RegexOption.DOT_MATCHES_ALL)
                     val kspBlockMatch = kspBlockRegex.find(buildGradleContent)
-                    
+
                     if (kspBlockMatch != null) {
                         val kspBlockContent = kspBlockMatch.groupValues[1]
                         project.logger.lifecycle("找到ksp块内容: $kspBlockContent")
-                        
+
                         // 提取arg参数
                         val argRegex = Regex("arg\\s*\\(\"([^\"]+)\",\\s*\"([^\"]+)\"\\)")
                         val argMatches = argRegex.findAll(kspBlockContent)
-                        
+
                         argMatches.forEach { match ->
                             val key = match.groupValues[1]
                             val value = match.groupValues[2]
@@ -386,7 +386,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
             e.printStackTrace()
         }
     }
-    
+
     /**
      * 生成Kotlin代码
      */
@@ -404,7 +404,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
         } else {
             moduleConfigs
         }
-        
+
         return buildString {
             appendLine("/**")
             appendLine(" * 自动生成的Gradle设置上下文")
@@ -413,14 +413,14 @@ class GradleKspConfigPlugin : Plugin<Project> {
             appendLine("@file:JvmName(\"GradleSettingContext\")")
             appendLine("object GradleSettingContext {")
             appendLine()
-            
+
             configsToUse.forEach { (moduleName, config) ->
                 val objectName = toPascalCase(moduleName)
                 appendLine("    /**")
                 appendLine("     * $moduleName 模块的KSP配置")
                 appendLine("     */")
                 appendLine("    object $objectName {")
-                
+
                 if (config.isEmpty()) {
                     appendLine("        // 该模块没有KSP配置")
                 } else {
@@ -431,15 +431,15 @@ class GradleKspConfigPlugin : Plugin<Project> {
                         appendLine("        const val $propertyName = \"${value.replace("\"", "\\\"")}\"")
                     }
                 }
-                
+
                 appendLine("    }")
                 appendLine()
             }
-            
+
             appendLine("}")
         }
     }
-    
+
     /**
      * 将键名转换为驼峰命名法
      */
@@ -448,13 +448,13 @@ class GradleKspConfigPlugin : Plugin<Project> {
         if (key.contains(Regex("[a-z][A-Z]"))) {
             return key.replaceFirstChar { it.lowercase() }
         }
-        
+
         // 否则按原来的逻辑处理
         // 确保生成合法的Kotlin标识符
         val cleanKey = key.replace(Regex("[^a-zA-Z0-9_]"), "_")
             .replace(Regex("_+"), "_")
             .replace(Regex("^_+|_+$"), "")
-        
+
         return cleanKey.split('_')
             .filter { it.isNotEmpty() }
             .mapIndexed { index, part ->
@@ -469,7 +469,7 @@ class GradleKspConfigPlugin : Plugin<Project> {
             .joinToString("")
             .takeIf { it.isNotEmpty() } ?: "unknown"
     }
-    
+
     /**
      * 将键名转换为帕斯卡命名法（首字母大写）
      */
@@ -478,13 +478,13 @@ class GradleKspConfigPlugin : Plugin<Project> {
         if (key.contains(Regex("[a-z][A-Z]"))) {
             return key.replaceFirstChar { it.uppercase() }
         }
-        
+
         // 否则按原来的逻辑处理
         // 确保生成合法的Kotlin标识符
         val cleanKey = key.replace(Regex("[^a-zA-Z0-9_]"), "_")
             .replace(Regex("_+"), "_")
             .replace(Regex("^_+|_+$"), "")
-        
+
         return cleanKey.split('_')
             .filter { it.isNotEmpty() }
             .joinToString("") { part ->

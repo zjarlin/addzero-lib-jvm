@@ -14,29 +14,29 @@ data class DslMeta(
     val isNested: Boolean,
     val isPrimary: Boolean,
     val dslFunctionName: String,
-    
+
     // 注解配置
     val genCollectionDslBuilder: Boolean,
     val customDslName: String,
     val removePrefix: String,
     val removeSuffix: String,
-    
+
     // 构造函数信息
     val constructor: List<ConstructorParameter>,
-    
+
     // 父类信息
     val parentClasses: List<ParentClassMeta> = emptyList(),
-    
+
     // 泛型参数信息
     val typeParameters: List<TypeParameter>,
     val simpleTypeParameters: List<String>,  // 新添加字段，存储简单泛型参数
-    
+
     // 属性信息
     val properties: List<KSPropertyDeclaration>,
-    
+
     // 类声明信息
     val classDeclaration: KSClassDeclaration,
-    
+
     // 导入信息
     val imports: List<String>
 )
@@ -101,17 +101,17 @@ internal fun KSFunctionDeclaration.toConstructorMeta(): List<ConstructorParamete
 private fun KSType.getFullTypeName(): String {
     val baseType = declaration.qualifiedName?.asString() ?: "Any"
     val nullableSuffix = if (isMarkedNullable) "?" else ""
-    
+
     // 如果没有泛型参数，直接返回基本类型
     if (arguments.isEmpty()) {
         return "$baseType$nullableSuffix"
     }
-    
+
     // 处理泛型参数
     val genericArgs = arguments.joinToString(", ") { arg ->
         arg.type?.resolve()?.getFullTypeName() ?: "Any"
     }
-    
+
     return "$baseType<$genericArgs>$nullableSuffix"
 }
 
@@ -120,10 +120,10 @@ private fun KSType.getFullTypeName(): String {
  */
 private fun KSValueParameter.toParameterMeta(): ParameterMeta {
     val resolvedType = type.resolve()
-    val baseTypeName = resolvedType.declaration.qualifiedName?.asString() 
+    val baseTypeName = resolvedType.declaration.qualifiedName?.asString()
         ?: throw IllegalStateException("Parameter type must have a qualified name")
     val fullTypeName = resolvedType.getFullTypeName()
-    
+
     return ParameterMeta(
         name = name?.asString() ?: throw IllegalStateException("Parameter must have a name"),
         type = baseTypeName,
@@ -146,12 +146,12 @@ internal fun KSTypeParameter.toTypeParameter(): TypeParameter {
         INVARIANT -> ""
         STAR -> "*"
     }
-    
+
     // 处理边界约束中的自引用类型参数
     val processedBounds = bounds.map { bound ->
         bound.replace("${name.asString()}.T", "T")
     }.filter { it != "kotlin.Any?" } // 移除 Any? 边界约束
-    
+
     return TypeParameter(
         name = name.asString(),
         bounds = processedBounds,
@@ -167,11 +167,11 @@ private fun KSValueParameter.toConstructorParameter(): ConstructorParameter {
     val fullTypeName = resolvedType.getFullTypeName()
     val isGeneric = resolvedType.declaration is KSTypeParameter
     val isNullable = resolvedType.isMarkedNullable
-    
+
     return ConstructorParameter(
         name = name?.asString() ?: throw IllegalStateException("Parameter must have a name"),
         fullTypeName = fullTypeName,
         isGeneric = isGeneric,
         isNullable = isNullable
     )
-} 
+}

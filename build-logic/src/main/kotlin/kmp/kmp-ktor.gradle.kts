@@ -1,5 +1,4 @@
 import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.kotlin.dsl.the
 
 plugins {
     id("kmp-lib")
@@ -14,6 +13,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
 
+
+            implementation(libs.logback)
 //            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
         }
 

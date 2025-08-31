@@ -1,4 +1,4 @@
-package com.addzero.kmp.core.network
+package com.addzero.core.network
 
 
 import io.ktor.client.*

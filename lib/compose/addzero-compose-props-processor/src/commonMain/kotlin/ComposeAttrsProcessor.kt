@@ -1,7 +1,7 @@
-package com.addzero.kmp.processor
+package com.addzero.processor
 
-import com.addzero.kmp.util.getCompleteTypeString
-import com.addzero.kmp.util.getSimplifiedTypeString
+import com.addzero.util.getCompleteTypeString
+import com.addzero.util.getSimplifiedTypeString
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
@@ -11,7 +11,7 @@ import com.google.devtools.ksp.validate
 
 private const val propsXd = "var"
 
-private const val COM_ADDZERO_KMP_GENERATED_ATTRS = "com.addzero.kmp.generated.attrs"
+private const val COM_ADDZERO_KMP_GENERATED_ATTRS = "com.addzero.generated.attrs"
 
 /**
  * Compose参数打包处理器
@@ -29,7 +29,7 @@ class ComposeAttrsProcessor(
 
         // 1. 查找所有带有@ComposeAssist注解的函数
         val assistAnnotatedFunctions = resolver
-            .getSymbolsWithAnnotation("com.addzero.kmp.annotation.ComposeAssist")
+            .getSymbolsWithAnnotation("com.addzero.annotation.ComposeAssist")
             .filterIsInstance<KSFunctionDeclaration>()
             .filter { it.validate() }
             .toList()
@@ -470,9 +470,9 @@ class $className$genericDeclaration(
 
         // 对于每个泛型参数，将全限定名简化为简单名
         genericParamNames.forEach { paramName ->
-            // 匹配类似 "com.addzero.kmp.demo.GenericDisplay.T" 的模式并替换为 "T"
+            // 匹配类似 "com.addzero.demo.GenericDisplay.T" 的模式并替换为 "T"
             simplified = simplified.replace(Regex("""[\w.]+\.$paramName\b"""), paramName)
-            // 也处理可能的其他格式，如 "com.addzero.kmp.demo.GenericDisplay.T?"
+            // 也处理可能的其他格式，如 "com.addzero.demo.GenericDisplay.T?"
             simplified = simplified.replace(Regex("""[\w.]+\.$paramName(\?)?"""), "$paramName$1")
         }
 
@@ -499,7 +499,7 @@ class $className$genericDeclaration(
     private fun simplifyGeneratedTypeString(typeString: String, genericParamNames: Set<String>): String {
         var simplified = typeString
 
-        // 移除泛型限定符，如 com.addzero.kmp.component.tree.AddTree.T -> T
+        // 移除泛型限定符，如 com.addzero.component.tree.AddTree.T -> T
         genericParamNames.forEach { paramName ->
             simplified = simplified.replace(Regex("""[\w.]+\.$paramName\b"""), paramName)
         }

@@ -40,15 +40,15 @@ fun generateImports(meta: DslMeta): String {
 fun generateNestedClassImports(meta: DslMeta): String {
     // 获取完整的嵌套类限定名
     val fullNestedClassImport = meta.qualifiedName
-    
+
     // 收集所有需要导入的类
     val imports = mutableSetOf(fullNestedClassImport)
-    
+
     // 如果有父类，也需要导入它们
     meta.parentClasses.forEach { parentClass ->
         imports.add(parentClass.qualifiedName)
     }
-    
+
     // 转换为导入语句
     return imports.joinToString("\n") { "import $it" }
 }
@@ -63,7 +63,7 @@ fun combineImports(vararg imports: String): String {
         .filter { it.startsWith("import ") }
         .distinct()
         .sorted()
-    
+
     return uniqueImports.joinToString("\n")
 }
 
@@ -98,7 +98,7 @@ fun generateRemainingProperties(meta: DslMeta, excludedParams: Set<String>): Str
                     // 替换所有的全限定泛型参数为简单形式
                     val pattern = "${meta.qualifiedName}.${typeParam.name}"
                     processed = processed.replace(pattern, typeParam.name)
-                    
+
                     // 替换其他可能的全限定形式（针对嵌套泛型）
                     val simpleName = typeParam.name
                     val regex = """([a-zA-Z0-9_.<>]+\.)$simpleName""".toRegex()
@@ -139,7 +139,7 @@ fun generateRemainingProperties(meta: DslMeta, excludedParams: Set<String>): Str
                         val listPattern = """^kotlin\.collections\.(Mutable)?List<.*>$""".toRegex()
                         val setPattern = """^kotlin\.collections\.(Mutable)?Set<.*>$""".toRegex()
                         val mapPattern = """^kotlin\.collections\.(Mutable)?Map<.*>$""".toRegex()
-                        
+
                         when {
                             listPattern.matches(typeName) -> "var ${param.name}: $processedTypeName = emptyList()"
                             setPattern.matches(typeName) -> "var ${param.name}: $processedTypeName = emptySet()"
@@ -162,7 +162,7 @@ fun getOuterClassChain(meta: DslMeta): String {
         // 非嵌套类，返回简单类名
         return meta.simpleName
     }
-    
+
     // 对于嵌套类，返回完整的引用路径（不包含包名）
     // 例如：Http.Body.Json
     return meta.qualifiedName.substringAfter("${meta.packageName}.")
@@ -178,9 +178,9 @@ fun generatePluralDslFunctionName(meta: DslMeta): String {
     // 处理特殊情况
     return when {
         singular.endsWith("s") -> "${singular}es" // bus -> buses, class -> classes
-        singular.endsWith("y") && !isVowel(singular[singular.length - 2]) -> 
+        singular.endsWith("y") && !isVowel(singular[singular.length - 2]) ->
             "${singular.substring(0, singular.length - 1)}ies" // city -> cities
-        singular.endsWith("x") || singular.endsWith("ch") || 
+        singular.endsWith("x") || singular.endsWith("ch") ||
                 singular.endsWith("sh") || singular.endsWith("z") -> "${singular}es"
         else -> "${singular}s" // 一般情况直接加s
     }
@@ -190,7 +190,7 @@ fun generatePluralDslFunctionName(meta: DslMeta): String {
  * 判断字符是否是元音字母
  */
 private fun isVowel(c: Char): Boolean {
-    return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || 
+    return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' ||
            c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U'
 }
 
@@ -236,7 +236,7 @@ class DslGenerator() {
                     // 替换所有的全限定泛型参数为简单形式
                     val pattern = "${meta.qualifiedName}.${typeParam.name}"
                     processed = processed.replace(pattern, typeParam.name)
-                    
+
                     // 替换其他可能的全限定形式（针对嵌套泛型）
                     val simpleName = typeParam.name
                     val regex = """([a-zA-Z0-9_.<>]+\.)$simpleName""".toRegex()
@@ -463,40 +463,40 @@ class GenericCollectionDslStrategy : DslStrategy {
         constructorArgs: String
     ): String {
         val outerClassChain = getOuterClassChain(meta)
-        
+
         // 获取并去重导入语句
         val imports = if (meta.isNested) {
             generateImports(meta) // 对于嵌套类，generateImports已经返回了嵌套类的导入
         } else {
             generateImports(meta)
         }
-        
+
         val simpleTypeParams = generateSimpleTypeParameters(meta)
 
         // 查找所有泛型参数名称
         val typeParamNames = meta.typeParameters.map { it.name }.toSet()
-        
+
         // 查找直接泛型类型参数（如 K、V 这样的参数类型）
         val directGenericParams = meta.constructor.filter { param ->
             // 检查参数类型是否是某个直接泛型类型（如 K，而不是 List<K>）
             typeParamNames.contains(param.fullTypeName.split('.').lastOrNull()) && !param.isNullable
         }
-        
+
         // 构建 Builder 类的构造函数参数列表
         val builderConstructorParams = directGenericParams.joinToString(", ") { param ->
             val simpleName = param.fullTypeName.split('.').lastOrNull() ?: param.fullTypeName
             "val ${param.name}: $simpleName"
         }
-        
+
         // 构建 DSL 函数参数列表（不带 val 关键字）
         val dslFunctionParams = directGenericParams.joinToString(", ") { param ->
             val simpleName = param.fullTypeName.split('.').lastOrNull() ?: param.fullTypeName
             "${param.name}: $simpleName"
         }
-        
+
         // 需要在 Builder 构造函数中传递的参数
         val builderConstructorArgs = directGenericParams.joinToString(", ") { it.name }
-        
+
         // 排除已在构造函数中的参数
         val excludedParamNames = directGenericParams.map { it.name }.toSet()
 
@@ -509,7 +509,7 @@ class GenericCollectionDslStrategy : DslStrategy {
         } else {
             meta.simpleName
         }
-        
+
         // 生成复数形式的DSL函数名
         val pluralFunctionName = generatePluralDslFunctionName(meta)
 
@@ -571,40 +571,40 @@ class GenericSimpleDslStrategy : DslStrategy {
         constructorArgs: String
     ): String {
         val outerClassChain = getOuterClassChain(meta)
-        
+
         // 获取并去重导入语句
         val imports = if (meta.isNested) {
             generateImports(meta) // 对于嵌套类，generateImports已经返回了嵌套类的导入
         } else {
             generateImports(meta)
         }
-        
+
         val simpleTypeParams = generateSimpleTypeParameters(meta)
 
         // 查找所有泛型参数名称
         val typeParamNames = meta.typeParameters.map { it.name }.toSet()
-        
+
         // 查找直接泛型类型参数（如 K、V 这样的参数类型）
         val directGenericParams = meta.constructor.filter { param ->
             // 检查参数类型是否是某个直接泛型类型（如 K，而不是 List<K>）
             typeParamNames.contains(param.fullTypeName.split('.').lastOrNull()) && !param.isNullable
         }
-        
+
         // 构建 Builder 类的构造函数参数列表
         val builderConstructorParams = directGenericParams.joinToString(", ") { param ->
             val simpleName = param.fullTypeName.split('.').lastOrNull() ?: param.fullTypeName
             "val ${param.name}: $simpleName"
         }
-        
+
         // 构建 DSL 函数参数列表（不带 val 关键字）
         val dslFunctionParams = directGenericParams.joinToString(", ") { param ->
             val simpleName = param.fullTypeName.split('.').lastOrNull() ?: param.fullTypeName
             "${param.name}: $simpleName"
         }
-        
+
         // 需要在 Builder 构造函数中传递的参数
         val builderConstructorArgs = directGenericParams.joinToString(", ") { it.name }
-        
+
         // 排除已在构造函数中的参数
         val excludedParamNames = directGenericParams.map { it.name }.toSet()
 

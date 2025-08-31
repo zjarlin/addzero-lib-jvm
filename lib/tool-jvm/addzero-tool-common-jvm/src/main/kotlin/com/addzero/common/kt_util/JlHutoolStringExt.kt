@@ -2,10 +2,8 @@ package com.addzero.common.kt_util
 
 import cn.hutool.core.convert.Convert
 import cn.hutool.core.io.FileUtil
-import cn.hutool.core.text.CharSequenceUtil
 import cn.hutool.core.util.NumberUtil
 import cn.hutool.core.util.StrUtil
-import java.util.regex.Pattern
 
 /**
  * 扩展函数：添加前后缀
@@ -40,32 +38,12 @@ fun String?.makeSurroundWithHtmlP(): String? {
     return StrUtil.addPrefixIfNot(this, "<p>").let { StrUtil.addSuffixIfNot(it, "</p>") }
 }
 
-/**
- * 扩展函数：检查是否包含中文
- */
-fun String?.containsChinese(): Boolean {
-    if (StrUtil.isBlank(this)) {
-        return false
-    }
-    val pattern = Pattern.compile("[\\u4e00-\\u9fa5]")
-    val matcher = pattern.matcher(this)
-    return matcher.find()
-}
-
-
-fun String?.cleanBlank(): String {
-    if (this.isNullOrBlank()) {
-        return ""
-    }
-    return StrUtil.cleanBlank(this)
-}
 
 fun String?.addPrefixIfNot(prefix: String): String {
     if (StrUtil.isBlank(this)) {
         return prefix
     }
     return StrUtil.addPrefixIfNot(this, prefix)
-
 }
 
 

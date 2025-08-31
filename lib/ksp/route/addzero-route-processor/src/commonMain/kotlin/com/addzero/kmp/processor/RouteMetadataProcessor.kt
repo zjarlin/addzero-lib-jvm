@@ -1,11 +1,11 @@
-package com.addzero.kmp.processor
+package com.addzero.processor
 
-import com.addzero.kmp.annotation.Route
-import com.addzero.kmp.consts.GEN_PKG
-import com.addzero.kmp.context.SettingContext
-import com.addzero.kmp.context.toSharedSourceDir
-import com.addzero.kmp.util.genCode
-import com.addzero.kmp.util.toUnderLineCase
+import com.addzero.annotation.Route
+import com.addzero.consts.GEN_PKG
+import com.addzero.context.SettingContext
+import com.addzero.context.toSharedSourceDir
+import com.addzero.util.genCode
+import com.addzero.util.toUnderLineCase
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -125,7 +125,7 @@ class RouteMetadataProcessor(
             |package $GEN_PKG
             |
             |import androidx.compose.runtime.Composable
-            |import com.addzero.kmp.annotation.Route
+            |import com.addzero.annotation.Route
 
             |
             |/**

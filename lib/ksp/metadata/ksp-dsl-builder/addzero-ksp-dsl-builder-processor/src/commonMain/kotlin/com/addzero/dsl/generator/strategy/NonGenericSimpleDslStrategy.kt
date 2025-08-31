@@ -42,7 +42,7 @@ class NonGenericSimpleDslStrategy : DslStrategy {
         constructorArgs: String
     ): String {
         val outerClassChain = getOuterClassChain(meta)
-        
+
         // 获取并去重导入语句
         val imports = if (meta.isNested) {
             generateImports(meta) // 对于嵌套类，generateImports已经返回了嵌套类的导入
@@ -52,7 +52,7 @@ class NonGenericSimpleDslStrategy : DslStrategy {
 
         // 构建构造函数参数列表（用于构建原始类）
         val constructorParamsList = meta.constructor.joinToString(", ") { it.name }
-        
+
         // 返回类型使用完整的引用路径
         val returnType = if (meta.isNested) {
             outerClassChain

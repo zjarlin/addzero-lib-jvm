@@ -1,7 +1,7 @@
 package generator
 
-import com.addzero.kmp.entity.analysis.model.EntityMetadata
-import com.addzero.kmp.entity.analysis.model.PropertyMetadata
+import com.addzero.entity.analysis.model.EntityMetadata
+import com.addzero.entity.analysis.model.PropertyMetadata
 import com.google.devtools.ksp.processing.KSPLogger
 
 /**

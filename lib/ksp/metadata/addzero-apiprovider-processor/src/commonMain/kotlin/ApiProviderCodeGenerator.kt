@@ -1,4 +1,5 @@
-import com.addzero.kmp.util.lowerFirst
+
+import com.addzero.util.lowerFirst
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -14,7 +15,7 @@ class ApiProviderCodeGenerator(
 ) {
 
     companion object {
-        private const val PACKAGE_NAME = "com.addzero.kmp.generated.api"
+        private const val PACKAGE_NAME = "com.addzero.generated.api"
         private const val PROVIDER_NAME = "ApiProvider"
     }
 
@@ -40,8 +41,8 @@ class ApiProviderCodeGenerator(
         // 构建完整的类内容
         val classContent = """
             package $PACKAGE_NAME
-            import com.addzero.kmp.core.network.AddHttpClient.ktorfit
-           import com.addzero.kmp.generated.api.* 
+            import com.addzero.core.network.AddHttpClient.ktorfit
+           import $PACKAGE_NAME.* 
             
             /**
              * 服务实例提供者

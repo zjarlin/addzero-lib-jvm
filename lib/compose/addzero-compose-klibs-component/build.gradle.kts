@@ -6,9 +6,9 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.lib.toolKmp.addzeroTool)
             implementation(projects.lib.compose.addzeroComposeModelComponent)
-            implementation("com.seanproctor:data-table-material3:0.11.4")
+//            implementation("com.seanproctor:data-table-material3:0.11.4")
 
-              implementation("io.github.aleksandar-stefanovic:composematerialdatatable:1.2.1")
+//           implementation("io.github.aleksandar-stefanovic:composematerialdatatable:1.2.1")
 
             implementation(libs.filekit.compose)
             implementation(libs.coil.compose)
@@ -19,11 +19,6 @@ kotlin {
     }
 }
 // build.gradle.kts
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}
 
 
 tasks {

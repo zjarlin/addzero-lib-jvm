@@ -16,7 +16,7 @@ class ModuleScanner(
             "build", "gradle", ".gradle", ".git", ".idea",
             "node_modules", "target", "out", "bin", ".settings",
             "src", "test", "main", "kotlin", "java", "resources",
-            "generated", "generated-sources", "generated-test-sources",
+            "generated-sources", "generated-test-sources",
             "buildSrc"  // Gradle保留名称，不能作为项目名称
         )
 
@@ -199,7 +199,7 @@ class ModuleScanner(
      */
     private fun isExcludedDir(dirName: String): Boolean {
         val allExcludedDirs = DEFAULT_EXCLUDED_DIRS + extension.customExcludedDirs
-        return allExcludedDirs.contains(dirName) || dirName.startsWith(".")
+        return allExcludedDirs.equals(dirName) || dirName.startsWith(".")
     }
 
     /**

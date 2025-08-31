@@ -1,8 +1,9 @@
-import Vars.jvmMainSourceDir
-import Vars.jvmMainKspBuildMetaDataDir
-import Vars.commonMainSourceDir
+
 import Vars.commonMainKspBuildMetaDataDir
+import Vars.commonMainSourceDir
+import Vars.jvmMainKspBuildMetaDataDir
 import Vars.jvmMainResourceDir
+import Vars.jvmMainSourceDir
 
 // 计算各模块目录（使用常量字符串）
 
@@ -29,6 +30,11 @@ val modelBuildDir = modelProject.projectDir.resolve(jvmMainKspBuildMetaDataDir).
 
 
 
+val generated4composeProject = project(":shared-compose")
+val generated4composeSourceDir= generated4composeProject.projectDir.resolve(commonMainSourceDir).absolutePath
+val generated4composeBuildDir = generated4composeProject.projectDir.resolve(commonMainKspBuildMetaDataDir).absolutePath
+
+
 
 plugins {
     id("com.google.devtools.ksp")
@@ -43,9 +49,9 @@ ksp {
     arg("sharedSourceDir", sharedSourceDir)
     arg("sharedBuildDir", sharedBuildDir)
     arg("modelSourceDir", modelSourceDir)
-
-
     arg("modelBuildDir", modelBuildDir)
+//    arg("generated4composeSourceDir", generated4composeSourceDir)
+//    arg("generated4composeBuildDir", generated4composeBuildDir)
 
 }
 

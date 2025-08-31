@@ -3,7 +3,7 @@ plugins {
     id("ksp4jdbc")
 }
 ksp {
-    arg("enumOutputPackage", "com.addzero.kmp.generated.enums")
+    arg("enumOutputPackage", "com.addzero.generated.enums")
     // 字典表配置（小驼峰命名）
     arg("dictTableName", "sys_dict")
     arg("dictIdColumn", "id")

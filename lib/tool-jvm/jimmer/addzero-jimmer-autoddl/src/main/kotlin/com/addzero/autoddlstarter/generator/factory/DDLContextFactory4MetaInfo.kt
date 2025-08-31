@@ -185,7 +185,7 @@ object DDLContextFactory4JavaMetaInfo {
         val createTime = settings.createTime
         val updateTime = settings.updateTime
 
-        if (colName.isBlank()) {
+        if (colName.isNullOrBlank()) {
             return false
         }
         val arrayOf = arrayOf(id, createBy, updateBy, createTime, updateTime)

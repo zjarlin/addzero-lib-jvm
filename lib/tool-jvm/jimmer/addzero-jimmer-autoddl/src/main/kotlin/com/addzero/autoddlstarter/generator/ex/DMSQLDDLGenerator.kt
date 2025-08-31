@@ -32,7 +32,7 @@ class DMSQLDDLGenerator : DatabaseDDLGenerator() {
         var (tableChineseName, tableEnglishName, databaseType, databaseName, dto) = ddlContext
         tableEnglishName = tableEnglishName.uppercase()
 
-        val tableRef = if (databaseName.isBlank()) {
+        val tableRef = if (databaseName.isNullOrBlank()) {
             JlStrUtil.makeSurroundWith(tableEnglishName.uppercase(), "\"")
         } else {
             "\"$databaseName\".\"${tableEnglishName.uppercase()}\""
@@ -91,7 +91,7 @@ class DMSQLDDLGenerator : DatabaseDDLGenerator() {
         val (tableChineseName, tableEnglishName, databaseType, databaseName, dto) = ddlContext
         val dmls = dto.joinToString(System.lineSeparator()) {
 
-            val tableRef = if (databaseName.isBlank()) {
+            val tableRef = if (databaseName.isNullOrBlank()) {
                 JlStrUtil.makeSurroundWith(tableEnglishName.uppercase(), "\"")
             } else {
                 "\"$databaseName\".\"${tableEnglishName.uppercase()}\""

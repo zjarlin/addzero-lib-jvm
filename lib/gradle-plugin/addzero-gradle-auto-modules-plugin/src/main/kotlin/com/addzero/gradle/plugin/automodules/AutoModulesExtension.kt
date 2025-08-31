@@ -45,21 +45,21 @@ open class AutoModulesExtension {
         rootModules = modules.toList()
         autoScan = false  // 手动指定根模块时禁用自动扫描
     }
-    
+
     /**
      * DSL 方法：启用或禁用全自动扫描
      */
     fun autoScan(enabled: Boolean) {
         autoScan = enabled
     }
-    
+
     /**
      * DSL 方法：设置排除模块
      */
     fun excludeModules(vararg modules: String) {
         excludeModules = modules.toList()
     }
-    
+
     /**
      * DSL 方法：添加自定义排除目录
      */

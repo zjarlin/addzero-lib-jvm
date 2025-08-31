@@ -11,7 +11,7 @@ kotlin {
         }
         jvmMain{
            dependencies {
-               implementation("org.apache.velocity:velocity:1.7")
+               implementation(libs.velocity)
 //               implementation("org.apache.velocity:velocity-engine-core:2.3")
            }
         }
