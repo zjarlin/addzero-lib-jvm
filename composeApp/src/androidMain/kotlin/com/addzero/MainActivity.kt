@@ -1,4 +1,4 @@
-package io.gitee.zjarlin.addzero
+package com.addzero
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

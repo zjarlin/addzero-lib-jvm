@@ -1,6 +1,7 @@
 package com.addzero
 
 import androidx.compose.runtime.Composable
+import com.addzero.component.toast.ToastListener
 import com.addzero.events.EventBusConsumer
 import com.addzero.events.emitEventBus
 import com.addzero.ui.auth.LoginScreen
@@ -28,7 +29,7 @@ fun App() {
 //        GradientThemeWrapper(themeType = currentTheme) {
             MainLayoutWithLogin()
 //        MainLayout()
-        com.addzero.component.toast.ToastListener()
+        ToastListener()
 //        }
     }
 }

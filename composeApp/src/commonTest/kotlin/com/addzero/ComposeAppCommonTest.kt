@@ -1,4 +1,4 @@
-package io.gitee.zjarlin.addzero
+package com.addzero
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

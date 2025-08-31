@@ -1,4 +1,4 @@
-package io.gitee.zjarlin.addzero
+package com.addzero
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport

@@ -22,7 +22,8 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "io.gitee.zjarlin.addzero"
+            packageName = Vars.packageName
+
             packageVersion = "1.0.0"
         }
     }
