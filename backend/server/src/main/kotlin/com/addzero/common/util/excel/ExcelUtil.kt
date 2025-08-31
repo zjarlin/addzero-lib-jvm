@@ -166,20 +166,23 @@ object ExcelUtil {
      * @param mapList 要导出的Map数据列表
      * @param savePath 保存路径（包含文件名）
      */
-    fun exportMapList(mapList: List<Map<String, Any>>, savePath: String) {
+    fun exportMapList(mapList: List<MutableMap<String, Any>?>, savePath: String) {
         if (mapList.isEmpty()) return
 
         val writer = EasyExcel.write(savePath).build()
         val sheet = EasyExcel.writerSheet("Sheet1").build()
 
         // 处理表头
-        val headers = mapList.first().keys.toList()
+        val headers = mapList.first()?.keys?.toList() ?: emptyList()
         val headerRow = mutableListOf<List<String>>()
         headerRow.add(headers)
         writer.write(headerRow, sheet)
 
         // 处理数据行
-        val dataRows = mapList.map { map -> map.values.toList() }
+        val dataRows = mapList.map { map ->
+            val values = map?.values?: emptyList()
+            values.toList()
+        }
         writer.write(dataRows, sheet)
 
         writer.finish()

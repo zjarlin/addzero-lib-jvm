@@ -1,14 +1,6 @@
 package com.addzero.addzero_common
 
-import com.addzero.mock.createMockDictItems
-import com.addzero.mock.createMockDictTypes
-import com.addzero.model.entity.SysDict
-import com.addzero.model.entity.SysDictItem
-import com.addzero.model.entity.by
-import com.addzero.model.entity.dictName
-import com.addzero.model.entity.fetchBy
-import com.addzero.model.entity.itemText
-import com.addzero.model.entity.sysDictItems
+import com.addzero.model.entity.*
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.babyfish.jimmer.sql.kt.ast.expression.`ilike?`
@@ -26,22 +18,6 @@ class 测试字典插入(
     val sql: KSqlClient,
 ) {
 
-    fun findItems(lng: Long): List<SysDictItem> {
-        val items = createMockDictItems()
-        val filter = items.filter { it.dictId == lng }.map {
-            SysDictItem {
-                itemText = it.itemText
-                itemValue = it.itemValue
-                description = it.description
-                sortOrder = it.sortOrder
-                status = it.status
-            }
-
-        }
-        return filter
-
-
-    }
 
     @Test
     fun 测试查询回收站字段() {
@@ -88,30 +64,6 @@ class 测试字典插入(
             setMode(SaveMode.NON_IDEMPOTENT_UPSERT)
         }
         println()
-
-
-    }
-
-
-    @Test
-    fun test() {
-
-        val createMockDictTypes = createMockDictTypes()
-
-
-        val map = createMockDictTypes.map {
-            val sysDict = SysDict {
-                dictName = it.dictName
-                dictCode = it.dictCode
-                description = it.description
-                sysDictItems = findItems(it.id)
-            }
-            sysDict
-        }
-
-
-
-        sql.saveEntities(map)
 
 
     }
