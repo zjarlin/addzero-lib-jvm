@@ -1,6 +1,7 @@
 [versions]
 jdk = "23"
-
+ksp = "2.2.10-2.0.2"
+kotlin = "2.2.10"
 agp = "8.11.0"
 android-compileSdk = "36"
 android-minSdk = "24"
@@ -15,11 +16,14 @@ composeHotReload = "1.0.0-beta04"
 composeMultiplatform = "1.8.2"
 junit = "4.13.2"
 kotlinx-serialization = "1.9.0"
+filekitCompose = "0.8.8"
+hutoolAll = "5.8.39"
+fastjson2Kotlin = "2.0.58"
 
+pinyin4j = "2.5.1"
 
+coil = "3.3.0"
 
-ksp = "2.2.10-2.0.2"
-kotlin = "2.2.10"
 kotlinx-coroutines = "1.10.2"
 ktor = "3.2.2"
 logback = "1.5.18"
@@ -28,8 +32,66 @@ dokkaGradlePlugin = "2.0.0"
 composeGradlePlugin = "1.8.2"
 gradleMavenPublishPlugin = "0.34.0"
 dependencyManagementPlugin = "1.1.7"
+snakeyaml = "2.4"
 springBootGradlePlugin = "3.5.5"
+postgresql = "42.7.7"
+
+ktorfitGradlePlugin = "2.6.4"
+h2 = "2.1.212"
+mysqlConnector = "8.0.33"
+kotlinpoetKsp = "2.2.0"
+jimmer = "0.9.106"
+
+kotlinxDatetime = "0.7.1-0.6.x-compat"
+ktorfitLib = "2.6.4"
+
 [libraries]
+byte-buddy = { module = "net.bytebuddy:byte-buddy" }
+
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+
+jimmer-spring-boot-starter = { module = "org.babyfish.jimmer:jimmer-spring-boot-starter", version.ref = "jimmer" }
+jimmer-sql-kotlin = { module = "org.babyfish.jimmer:jimmer-sql-kotlin", version.ref = "jimmer" }
+
+jimmer-ksp = { module = "org.babyfish.jimmer:jimmer-ksp", version.ref = "jimmer" }
+
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoetKsp" }
+
+h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
+mysql-connector-java = { module = "mysql:mysql-connector-java", version.ref = "mysqlConnector" }
+
+pinyin4j = { module = "com.belerweb:pinyin4j", version.ref = "pinyin4j" }
+postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+ktorfit-lib = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfitLib" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+
+
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
+
+spring-webmvc = { module = "org.springframework:spring-webmvc" }
+
+fastjson2-kotlin = { module = "com.alibaba.fastjson2:fastjson2-kotlin", version.ref = "fastjson2Kotlin" }
+
+hutool-all = { module = "cn.hutool:hutool-all", version.ref = "hutoolAll" }
+
+
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+
+filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCompose" }
+
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+
+
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 spring-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBootGradlePlugin" }
 
 ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
@@ -38,6 +100,12 @@ ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processin
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 gradlePlugin-android = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
+#gradlePlugin-ktorfit = { module = "de.jensklingenberg.ktorfit:de.jensklingenberg.ktorfit.gradle.plugin", version.ref = "ktorfitGradlePlugin" }
+
+
+
+
+
 #gradlePlugin-atomicFu = { module = "org.jetbrains.kotlinx:atomicfu-gradle-plugin", version.ref = "atomicfu" }
 gradlePlugin-composeCompiler = { module = "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
 gradlePlugin-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokkaGradlePlugin" }

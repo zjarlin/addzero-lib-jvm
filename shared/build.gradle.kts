@@ -2,10 +2,11 @@
 plugins {
 //    alias(libs.plugins.kotlinMultiplatform)
 //    alias(libs.plugins.androidLibrary)
-    id("kmp-android-lib")
-    id("kmp-wasm")
-    id("kmp-core")
-    id("kmp-test")
+    id("kmp-lib")
+//    id("kmp-android-lib")
+//    id("kmp-wasm")
+//    id("kmp-core")
+//    id("kmp-test")
 
 }
 
