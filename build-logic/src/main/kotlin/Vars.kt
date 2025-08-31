@@ -1,14 +1,6 @@
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
 object Vars {
-    const val myGroup = "io.gitee.zjarlin"
-    val authorName = myGroup.split(".").last()
-    val email = "$authorName@outlook.com"
-    val myVersion = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmm"))
-    val projName = "addzero"
 
-    const val projectDescription = "jimmer kmp"
+    const val projectDescription = "kmp+jimmer全栈脚手架"
 
     // 应用相关常量
     const val applicationId = "compileOptions.addzero.kmp"

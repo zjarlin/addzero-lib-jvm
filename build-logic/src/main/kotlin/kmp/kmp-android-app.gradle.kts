@@ -1,9 +1,9 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
-import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 val libs = the<org.gradle.accessors.dm.LibrariesForLibs>()
 
 plugins {
@@ -28,11 +28,11 @@ kotlin {
 }
 
 android {
-    namespace = "io.gitee.zjarlin.addzero"
+    namespace = Vars.packageName
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "io.gitee.zjarlin.addzero"
+        applicationId = Vars.applicationId
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

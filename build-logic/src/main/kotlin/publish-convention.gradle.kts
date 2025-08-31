@@ -1,4 +1,7 @@
 import java.time.LocalDate
+val group = project.property("group").toString()
+val authorName = group.split(".").last()
+val email = "$authorName@outlook.com"
 
 plugins {
     id("com.vanniktech.maven.publish")
@@ -19,7 +22,7 @@ mavenPublishing {
 
 
     pom {
-        name.set(Vars.projName)
+        name.set(project.name)
         description.set(Vars.projectDescription)
         inceptionYear.set(LocalDate.now().year.toString())
         url.set(Vars.gitBaseUrl)
@@ -30,12 +33,11 @@ mavenPublishing {
                 distribution.set(Vars.licenseUrl)
             }
         }
-
         developers {
             developer {
-                id.set(Vars.authorName)
-                name.set(Vars.authorName)
-                email.set(Vars.email)
+                id.set(authorName)
+                name.set(authorName)
+                email.set(email)
             }
         }
 

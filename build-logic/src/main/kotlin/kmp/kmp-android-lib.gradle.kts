@@ -24,7 +24,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.gitee.zjarlin.addzero"
+    namespace = Vars.packageName
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
