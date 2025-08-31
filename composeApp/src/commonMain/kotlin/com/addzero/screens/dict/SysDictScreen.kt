@@ -14,8 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.high_level.AddDoubleCardLayout
-import com.addzero.component.high_level.AddLazyList
-import com.addzero.component.search_bar.AddSearchBar
+import com.addzero.component.search.AddSearchBar
 import com.addzero.compose.icons.IconKeys
 import com.addzero.generated.forms.SysDictForm
 import com.addzero.generated.forms.SysDictItemForm
@@ -30,11 +29,11 @@ fun DictManagerScreen() {
     val vm = koinViewModel<SysDictViewModel>()
 
     // 使用双卡片布局
-    com.addzero.component.high_level.AddDoubleCardLayout(leftContent = {
+    AddDoubleCardLayout(leftContent = {
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
-            com.addzero.component.button.AddIconButton(
+            AddIconButton(
                 text = "添加字典",
             ) {
                 vm.showDictForm = true
@@ -43,7 +42,7 @@ fun DictManagerScreen() {
             // 在分割线下方添加间距
 //                HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
             // 搜索框
-            com.addzero.component.search_bar.AddSearchBar(
+            AddSearchBar(
                 keyword = vm.keyword,
                 onKeyWordChanged = { vm.keyword = it },
                 onSearch = { vm.onSearch() },
@@ -107,7 +106,7 @@ fun DictManagerScreen() {
                         }
                     }
 
-                    com.addzero.component.button.AddIconButton(
+                    AddIconButton(
                         text = "添加字典项",
                     ) { vm.onAddDictItem() }
                 }

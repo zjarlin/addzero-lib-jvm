@@ -3,7 +3,6 @@ package com.addzero
 import androidx.compose.runtime.Composable
 import com.addzero.component.toast.ToastListener
 import com.addzero.events.EventBusConsumer
-import com.addzero.events.emitEventBus
 import com.addzero.ui.auth.LoginScreen
 import com.addzero.ui.infra.MainLayout
 import com.addzero.ui.infra.theme.AppThemes
@@ -18,7 +17,7 @@ import org.koin.ksp.generated.defaultModule
 @Composable
 fun App() {
     InitKoin()
-    emitEventBus()
+//    emitEventBus()
     EventBusConsumer()
     val themeViewModel = koinViewModel<ThemeViewModel>()
     // 已登录时渲染主界面

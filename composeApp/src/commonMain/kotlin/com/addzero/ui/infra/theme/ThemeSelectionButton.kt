@@ -12,13 +12,12 @@ import com.addzero.component.button.AddIconButton
 @Composable
 fun ThemeSelectionButton() {
     var showThemeDialog by remember { mutableStateOf(false) }
-    com.addzero.component.button.AddIconButton(
+    AddIconButton(
         text = "选择主题",
         imageVector = Icons.Default.Palette,
     ) {
         showThemeDialog = true
     }
-
 
     if (showThemeDialog) {
         ThemeSelectionDialog(

@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.addzero.assist.api
+import com.addzero.component.toast.ToastManager
 import com.addzero.generated.api.ApiProvider
 import com.addzero.generated.isomorphic.SysDictIso
 import com.addzero.generated.isomorphic.SysDictItemIso
@@ -65,6 +66,7 @@ class SysDictViewModel : ViewModel() {
             val saveDict = ApiProvider.sysDictApi.saveDict(dict)
             selectedDict = saveDict
             onSearch()
+            ToastManager.info("保存成功")
         }
     }
 
@@ -74,6 +76,8 @@ class SysDictViewModel : ViewModel() {
             val saveDictItem = ApiProvider.sysDictApi.saveDictItem(item)
             showItemForm = false
             selectedDictItem = saveDictItem
+
+            ToastManager.info("保存成功")
             onSearch()
         }
 

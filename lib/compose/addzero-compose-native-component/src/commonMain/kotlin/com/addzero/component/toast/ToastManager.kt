@@ -41,7 +41,7 @@ object ToastManager {
      * 显示信息消息
      */
     suspend fun info(message: String) {
-        _messageFlow.emit(_root_ide_package_.com.addzero.component.toast.ToastMessage(message, _root_ide_package_.com.addzero.component.toast.MessageType.INFO))
+        _messageFlow.emit(ToastMessage(message, MessageType.INFO))
     }
 
 }
@@ -51,7 +51,7 @@ object ToastManager {
  */
 data class ToastMessage(
     val content: String,
-    val type: com.addzero.component.toast.MessageType
+    val type: MessageType
 )
 
 /**
@@ -60,18 +60,18 @@ data class ToastMessage(
 @Composable
 fun ToastListener() {
     var currentMessage by remember { mutableStateOf<String?>(null) }
-    var messageType by remember { mutableStateOf(_root_ide_package_.com.addzero.component.toast.MessageType.INFO) }
+    var messageType by remember { mutableStateOf(MessageType.INFO) }
 
     // 监听消息流
     LaunchedEffect(Unit) {
-        _root_ide_package_.com.addzero.component.toast.ToastManager.messageFlow.collect { toastMessage ->
+        ToastManager.messageFlow.collect { toastMessage ->
             currentMessage = toastMessage.content
             messageType = toastMessage.type
         }
     }
 
     // 显示Toast
-    _root_ide_package_.com.addzero.component.toast.AddMessageToast(
+    AddMessageToast(
         message = currentMessage,
         type = messageType,
         onDismiss = { currentMessage = null }

@@ -1,8 +1,7 @@
 plugins {
     id("kmp-lib")
     id("kmp-datetime")
-//    id("kmp-ktorfit")
-//    id("de.jensklingenberg.ktorfit") version "+"
+    id("kmp-json")
 
     id("ksp4jdbc")
     id("ksp4enum")

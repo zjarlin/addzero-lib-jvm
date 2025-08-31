@@ -32,7 +32,7 @@ fun EventBusConsumer() {
             when (status) {
                 OK -> {
                     if (message.isNotBlank()) {
-                        com.addzero.component.toast.ToastManager.info(message)
+                        ToastManager.info(message)
                     }
                 }
 
@@ -49,7 +49,7 @@ fun EventBusConsumer() {
 
                 Forbidden -> {
                     // 403 无权限，可弹出提示
-                    com.addzero.component.toast.ToastManager.error("无权限访问")
+                    ToastManager.error("无权限访问")
                 }
 
                 BadRequest -> {
@@ -74,7 +74,7 @@ fun EventBusConsumer() {
 
 private suspend fun show(message: String) {
     if (message.isNotBlank()) {
-        com.addzero.component.toast.ToastManager.warning(message)
+        ToastManager.warning(message)
     }
 }
 
