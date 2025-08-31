@@ -1,5 +1,4 @@
 plugins {
-//    id("kmp-core")
     id("org.jetbrains.kotlin.multiplatform")
     id("de.jensklingenberg.ktorfit")
 }

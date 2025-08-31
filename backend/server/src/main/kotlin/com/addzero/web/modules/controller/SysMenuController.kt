@@ -1,7 +1,6 @@
 package com.addzero.web.modules.controller
 
 import com.addzero.entity.sys.menu.SysMenuVO
-import com.addzero.mock.mockkSysMunu
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,8 +12,8 @@ class SysMenuController {
 
     @PostMapping("/getSysMenu")
     fun getAllMenu(@RequestBody params: Set<String>): Map<String, SysMenuVO> {
-        val defaultSysMenuVO = mockkSysMunu()
-        return defaultSysMenuVO
+        return emptyMap()
+//        return defaultSysMenuVO
     }
 
 

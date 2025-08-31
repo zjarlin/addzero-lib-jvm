@@ -50,7 +50,13 @@ object BeanUtil {
         "dictItemTableName" to dictItemTableName,
         "dictItemForeignKeyColumn" to dictItemForeignKeyColumn,
         "dictItemCodeColumn" to dictItemCodeColumn,
-        "dictItemNameColumn" to dictItemNameColumn
+        "dictItemNameColumn" to dictItemNameColumn,
+
+
+
+        "sharedComposeSourceDir" to sharedComposeSourceDir,
+        "sharedComposeBuildDir" to sharedComposeBuildDir
+
     )
 
     fun mapToBean(map: Map<String, String>): Settings = Settings(
@@ -101,7 +107,12 @@ object BeanUtil {
         dictItemTableName = map["dictItemTableName"] ?: "sys_dict_item",
         dictItemForeignKeyColumn = map["dictItemForeignKeyColumn"] ?: "dict_id",
         dictItemCodeColumn = map["dictItemCodeColumn"] ?: "item_value",
-        dictItemNameColumn = map["dictItemNameColumn"] ?: "item_text"
+        dictItemNameColumn = map["dictItemNameColumn"] ?: "item_text",
+
+        sharedComposeSourceDir = map["sharedComposeSourceDir"] ?: "",
+        sharedComposeBuildDir = map["sharedComposeBuildDir"] ?: "",
+
+
     )
 }
 

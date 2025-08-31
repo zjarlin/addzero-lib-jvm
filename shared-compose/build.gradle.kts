@@ -1,9 +1,10 @@
 plugins {
     id("kmp-lib")
     id("ksp4self")
+    id("kmp-ktorfit")
 }
 dependencies {
-    kspCommonMainMetadata(libs.lazy.people.ksp)
+    kspCommonMainMetadata(projects.lib.ksp.metadata.addzeroApiproviderProcessor)
 }
 
 
@@ -11,7 +12,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
 //            implementation("io.github.ltttttttttttt:LazyPeopleHttp-lib:+")
-            implementation(libs.lazy.people.http)
+
+            implementation(projects.shared)
             implementation(projects.lib.toolKmp.addzeroNetworkStarter)
         }
     }

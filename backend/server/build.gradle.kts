@@ -8,6 +8,8 @@ plugins {
     id("ksp4dict")
     id("ksp4projectdir")
     id("org.jetbrains.kotlin.plugin.noarg") version libs.versions.kotlin
+
+    id("ksp4controller2lazypeoplehttp")
 }
 
 noArg {
@@ -56,8 +58,8 @@ dependencies {
     ksp(projects.lib.ksp.jdbc2metadata.addzeroJdbc2controllerProcessor)
 
     // 阶段3: 依赖同构体的处理器
-//    ksp(projects.lib.ksp.metadata.addzeroController2apiProcessor)
-    ksp(projects.lib.ksp.metadata.addzeroController2lazyhttpProcessor)
+    ksp(projects.lib.ksp.metadata.addzeroController2apiProcessor)
+//    ksp(projects.lib.ksp.metadata.addzeroController2lazyhttpProcessor)
 
     // 阶段4: 控制器转 Iso2DataProvider（生成到 shared 编译目录）
     ksp(projects.lib.ksp.metadata.addzeroController2iso2dataproviderProcessor)

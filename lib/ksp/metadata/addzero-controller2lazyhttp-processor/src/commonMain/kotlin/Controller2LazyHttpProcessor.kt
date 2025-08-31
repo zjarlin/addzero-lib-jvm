@@ -36,7 +36,7 @@ class Controller2LazyHttpProcessor(
             options,
             Controller2LazyHttpSetting::class.java
         )
-        logger.info("tttttttttttt$toBean")
+        logger.warn("tttttttttttt$toBean")
 
 //        val options[]
 //       controller2LazyhttpPkg

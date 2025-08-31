@@ -5,6 +5,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.lib.ksp.common.addzeroKspSupport)
+            implementation(libs.hutool.all)
         }
     }
 }

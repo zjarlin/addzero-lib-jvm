@@ -17,6 +17,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.shared)
+            implementation(projects.sharedCompose)
 
             implementation(projects.lib.toolKmp.addzeroTool)
 

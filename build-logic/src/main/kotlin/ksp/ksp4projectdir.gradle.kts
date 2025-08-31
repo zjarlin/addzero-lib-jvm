@@ -29,10 +29,9 @@ val modelSourceDir = modelProject.projectDir.resolve(jvmMainSourceDir).absoluteP
 val modelBuildDir = modelProject.projectDir.resolve(jvmMainKspBuildMetaDataDir).absolutePath
 
 
-
-val generated4composeProject = project(":shared-compose")
-val generated4composeSourceDir= generated4composeProject.projectDir.resolve(commonMainSourceDir).absolutePath
-val generated4composeBuildDir = generated4composeProject.projectDir.resolve(commonMainKspBuildMetaDataDir).absolutePath
+val sharedComposeProject = project(":shared-compose")
+val sharedComposeSourceDir = sharedComposeProject.projectDir.resolve(commonMainSourceDir).absolutePath
+val sharedComposeBuildDir = sharedComposeProject.projectDir.resolve(commonMainKspBuildMetaDataDir).absolutePath
 
 
 
@@ -50,8 +49,8 @@ ksp {
     arg("sharedBuildDir", sharedBuildDir)
     arg("modelSourceDir", modelSourceDir)
     arg("modelBuildDir", modelBuildDir)
-//    arg("generated4composeSourceDir", generated4composeSourceDir)
-//    arg("generated4composeBuildDir", generated4composeBuildDir)
+    arg("sharedComposeSourceDir", sharedComposeSourceDir)
+    arg("sharedComposeBuildDir", sharedComposeBuildDir)
 
 }
 

@@ -149,7 +149,7 @@ class Controller2Iso2DataProviderProcessor(
         val packagePath = packageName.replace(".", "/")
 
         // 生成到 shared 源码目录，而不是 build 目录
-        val outputDir = File(SettingContext.settings.sharedSourceDir, packagePath)
+        val outputDir = File(SettingContext.settings.sharedComposeSourceDir, packagePath)
         outputDir.mkdirs()
 
         // 生成导入语句

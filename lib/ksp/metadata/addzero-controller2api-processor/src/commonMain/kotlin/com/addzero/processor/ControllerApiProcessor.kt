@@ -26,6 +26,16 @@ class ControllerApiProcessor(
     private val collectedControllers = mutableListOf<ControllerMetadata>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
+
+//        data class Controller2LazyHttpSetting(
+//            val controller2LazyhttpPkg: String = ""
+//        )
+//        val toBean = BeanUtil.toBean(options, Controller2LazyHttpSetting::class.java)
+//
+//        logger.warn("ttttt$toBean")
+
+
+
         SettingContext.initialize(options)
         logger.warn("解析Controller符号生成Ktorfit接口初始化配置: ${settings}")
 

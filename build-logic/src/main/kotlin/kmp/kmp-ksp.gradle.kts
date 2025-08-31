@@ -2,7 +2,6 @@ import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
-//    kotlin("plugin.serialization")
 }
 val libs = the<LibrariesForLibs>()
 

@@ -33,6 +33,13 @@ data class Settings(
     val serverBuildDir: String = "",
 
 
+   val sharedComposeSourceDir: String = "",
+   val sharedComposeBuildDir: String = "",
+
+
+
+
+
     val modelSourceDir: String = "",
     val modelBuildDir: String = "",
     val modelPackageName: String = "",
@@ -81,7 +88,7 @@ data class Settings(
     /**
      * API客户端输出目录（shared 源码目录）
      */
-    val apiClientOutputDir: String=sharedSourceDir.withPkg(apiClientPackageName)
+    val apiClientOutputDir: String=sharedComposeSourceDir.withPkg (apiClientPackageName)
 
     /**
      * 模型输出目录

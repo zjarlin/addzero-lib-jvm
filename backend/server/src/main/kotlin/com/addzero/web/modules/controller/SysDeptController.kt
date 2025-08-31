@@ -2,7 +2,6 @@ package com.addzero.web.modules.controller
 
 import com.addzero.common.consts.sql
 import com.addzero.generated.isomorphic.SysDeptIso
-import com.addzero.jdbc.meta.public.table.impl.ISysUserImpl
 import com.addzero.model.entity.SysDept
 import com.addzero.web.infra.jimmer.base.BaseTreeApi
 import com.addzero.web.infra.jimmer.toJimmerEntity
