@@ -9,20 +9,14 @@ import com.addzero.ui.infra.theme.AppThemes
 import com.addzero.ui.infra.theme.FollowSystemTheme
 import com.addzero.ui.infra.theme.ThemeViewModel
 import com.addzero.viewmodel.LoginViewModel
-import com.addzero.component.toast.ToastListener
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Module
 import org.koin.core.context.startKoin
-import org.koin.ksp.generated.module
+import org.koin.ksp.generated.defaultModule
 
-@Module
-@ComponentScan("com.addzero.kmp")
-class MyModule
 
 @Composable
 fun App() {
-    initKoin()
+    InitKoin()
     emitEventBus()
     EventBusConsumer()
     val themeViewModel = koinViewModel<ThemeViewModel>()
@@ -54,11 +48,11 @@ private fun MainLayoutWithLogin() {
 }
 
 @Composable
-private fun initKoin() {
+private fun InitKoin() {
     startKoin {
         printLogger()
         modules(
-            MyModule().module
+            defaultModule
         )
     }
 }

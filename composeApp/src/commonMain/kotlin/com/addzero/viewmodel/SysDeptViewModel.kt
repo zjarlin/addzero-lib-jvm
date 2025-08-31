@@ -5,8 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
+import com.addzero.generated.api.ApiProvider.sysDeptApi
 import com.addzero.generated.isomorphic.SysDeptIso
-import com.addzero.mock.sampleSysUserVos
+import com.addzero.generated.isomorphic.SysUserIso
 import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
@@ -16,7 +17,7 @@ class SysDeptViewModel(
     var showForm by mutableStateOf(false)
     var keyword by mutableStateOf("")
 
-    var users by mutableStateOf(sampleSysUserVos)
+    var users by mutableStateOf(emptyList<SysUserIso>())
 
 
     var deptVos by mutableStateOf(emptyList<SysDeptIso>())

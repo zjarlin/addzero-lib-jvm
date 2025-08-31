@@ -13,6 +13,7 @@ kotlin {
         commonMain.dependencies {
 //            implementation("io.github.ltttttttttttt:LazyPeopleHttp-lib:+")
 
+            implementation(projects.lib.toolKmp.addzeroTool)
             implementation(projects.shared)
             implementation(projects.lib.toolKmp.addzeroNetworkStarter)
         }

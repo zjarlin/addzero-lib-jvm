@@ -37,13 +37,13 @@ fun MainContent(navController: NavHostController) {
             color = androidx.compose.ui.graphics.Color.Transparent // 透明背景显示渐变
         ) {
             // 渲染导航内容
-            renderNavContent(navController)
+            RenderNavContent(navController)
         }
     }
 }
 
 @Composable
-fun renderNavContent(navController: NavHostController) {
+fun RenderNavContent(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = SettingContext4Compose.HOME_SCREEN,

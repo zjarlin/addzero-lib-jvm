@@ -2,8 +2,7 @@ package com.addzero.processor
 
 import com.addzero.annotation.Route
 import com.addzero.consts.GEN_PKG
-import com.addzero.context.SettingContext
-import com.addzero.context.toSharedSourceDir
+import com.addzero.context.*
 import com.addzero.util.genCode
 import com.addzero.util.toUnderLineCase
 import com.google.devtools.ksp.processing.*
@@ -188,17 +187,20 @@ class RouteMetadataProcessor(
 //            ).use { stream ->
 //                stream.write(routeKeysTemplate.toByteArray())
 //            }
+            val withPkg = SettingContext.settings.composeSourceDir.withPkg(GEN_PKG).withFileName(ROUTE_TABLE_NAME).withFileSuffix(".kt")
 
 
             logger.warn("开始生成路由表")
+            genCode(withPkg, routeTableTemplate)
+
             // 生成路由表文件
-            codeGenerator.createNewFile(
-                dependencies = Dependencies(true),
-                packageName = GEN_PKG,
-                fileName = ROUTE_TABLE_NAME
-            ).use { stream ->
-                stream.write(routeTableTemplate.toByteArray())
-            }
+//            codeGenerator.createNewFile(
+//                dependencies = Dependencies(true),
+//                packageName = GEN_PKG,
+//                fileName = ROUTE_TABLE_NAME
+//            ).use { stream ->
+//                stream.write(routeTableTemplate.toByteArray())
+//            }
 
         } catch (e: Exception) {
             logger.warn("Error generating route files: ${e.message}")

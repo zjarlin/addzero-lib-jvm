@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.addzero.generated.api.ApiProvider.sysFileApi
 import io.ktor.client.request.forms.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -30,7 +31,7 @@ class FileViewModel() : ViewModel() {
     private fun upload(file: MultiPartFormDataContent) {
         viewModelScope.launch {
             try {
-                val key = fileApi.upload(file) // 返回redis key
+                val key = sysFileApi.upload(file) // 返回redis key
                 currentKey = key
                 pollProgress(key)
             } catch (e: Exception) {
@@ -42,7 +43,8 @@ class FileViewModel() : ViewModel() {
     private fun download(fileId: String) {
         viewModelScope.launch {
             try {
-                val key = fileApi.download(fileId) // 伪代码: 假设有download接口返回redis key
+                val key = sysFileApi.download(fileId) // 伪代码:
+                // 假设有download接口返回redis key
                 currentKey = key
                 pollProgress(key)
             } catch (e: Exception) {
@@ -56,7 +58,7 @@ class FileViewModel() : ViewModel() {
         pollingJob = viewModelScope.launch {
             while (true) {
                 try {
-                    val res = fileApi.queryProgress(key) // 移除type参数，只用key
+                    val res = sysFileApi.queryProgress(key) // 移除type参数，只用key
 
                     val progress = res.progress
                     if (progress >= 1f) {

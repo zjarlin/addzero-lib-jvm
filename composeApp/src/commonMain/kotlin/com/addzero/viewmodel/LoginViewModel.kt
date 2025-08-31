@@ -5,11 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
-import com.addzero.component.toast.ToastManager
 import com.addzero.core.network.AddHttpClient
 import com.addzero.entity.CheckSignInput
 import com.addzero.entity.SecondLoginDTO
 import com.addzero.entity.SignInStatus
+import com.addzero.generated.api.ApiProvider.loginApi
+import com.addzero.generated.api.ApiProvider.sysUserCenterApi
 import com.addzero.generated.isomorphic.SysUserIso
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.ui.infra.model.navigation.RecentTabsManager

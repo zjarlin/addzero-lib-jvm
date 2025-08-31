@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.addzero.assist.api
+import com.addzero.generated.api.ApiProvider
 import com.addzero.generated.isomorphic.SysDictIso
 import com.addzero.generated.isomorphic.SysDictItemIso
 import kotlinx.coroutines.launch

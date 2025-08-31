@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
+import com.addzero.generated.api.ApiProvider.sysAiPromptApi
 import com.addzero.generated.isomorphic.SysAiPromptIso
 import org.koin.android.annotation.KoinViewModel
 

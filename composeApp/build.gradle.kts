@@ -3,8 +3,10 @@ import com.google.devtools.ksp.gradle.KspAATask
 plugins {
     id("kmp-app")
     id("kmp-koin")
+    id("kmp-json")
     alias(libs.plugins.composeHotReload)
     id("ksp4projectdir")
+    id("ksp4self")
 }
 
 dependencies {

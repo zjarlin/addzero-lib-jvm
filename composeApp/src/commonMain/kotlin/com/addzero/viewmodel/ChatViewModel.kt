@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
 import com.addzero.core.ext.nowLong
+import com.addzero.generated.api.ApiProvider.chatApi
 import org.koin.android.annotation.KoinViewModel
 
 /**
