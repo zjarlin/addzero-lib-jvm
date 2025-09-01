@@ -63,27 +63,14 @@ abstract class VlProcessor(
             logger.warn("没有收集到元数据，跳过代码生成")
             return
         }
-
-
-
         val templates = getTemplates()
-
-
-
         templates.forEach { temlateContext ->
             val path = temlateContext.templatePath
             temlateContext.fileNamePattern
-
             collectedMetadata.forEach { metadata ->
                 gencode(temlateContext, metadata)
-
-
             }
-
-
         }
-
-
     }
 
     fun gencode(temlateContext: TemlateContext, metadata: Ret) {
