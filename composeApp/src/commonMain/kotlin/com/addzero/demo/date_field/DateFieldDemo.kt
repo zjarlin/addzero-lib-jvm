@@ -1,4 +1,4 @@
-package com.addzero.component_demo.date_field
+package com.addzero.demo.date_field
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

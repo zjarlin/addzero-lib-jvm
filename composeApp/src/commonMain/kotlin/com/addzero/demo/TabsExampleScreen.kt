@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
+import com.addzero.component.high_level.AddTabs
+import com.addzero.component.high_level.CustomTabRow
+import com.addzero.component.high_level.TabItem
 import com.addzero.compose.icons.IconKeys
 
 
@@ -50,17 +53,17 @@ fun TabsExampleScreen() {
             // 创建标签项
             val tabs = remember {
                 listOf(
-                    com.addzero.component.high_level.TabItem("搜索结果") {
-                        SearchResultsContent()
+                    TabItem("搜索结果") {
+                        com.addzero.demo.SearchResultsContent()
                     },
-                    com.addzero.component.high_level.TabItem("收藏夹") {
-                        FavoritesContent()
+                    TabItem("收藏夹") {
+                        com.addzero.demo.FavoritesContent()
                     }
                 )
             }
 
             // 使用 AddTabs 组件
-            com.addzero.component.high_level.AddTabs(
+            AddTabs(
                 tabs = tabs,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -78,7 +81,7 @@ fun TabsExampleScreen() {
             var selectedTabIndex by remember { mutableIntStateOf(0) }
             val tabTitles = remember { listOf("最新", "热门", "推荐") }
 
-            com.addzero.component.high_level.CustomTabRow(
+            CustomTabRow(
                 tabs = tabTitles,
                 selectedTabIndex = selectedTabIndex,
                 onTabSelected = { selectedTabIndex = it }

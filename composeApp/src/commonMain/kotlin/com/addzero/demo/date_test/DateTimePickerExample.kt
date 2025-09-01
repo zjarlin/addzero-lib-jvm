@@ -1,4 +1,4 @@
-package com.addzero.component_demo.date_test
+package com.addzero.demo.date_test
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

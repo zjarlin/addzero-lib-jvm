@@ -1,4 +1,4 @@
-package com.addzero.component_demo.upload
+package com.addzero.demo.upload
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.form.file.AddMultiFilePicker
@@ -180,17 +181,17 @@ fun UploadManagerDemo() {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        StatCard(
+                        com.addzero.demo.upload.StatCard(
                             title = "进行中",
                             count = uploadManager.activeTasks.size,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        StatCard(
+                        com.addzero.demo.upload.StatCard(
                             title = "已完成",
                             count = uploadManager.completedTasks.size,
                             color = MaterialTheme.colorScheme.tertiary
                         )
-                        StatCard(
+                        com.addzero.demo.upload.StatCard(
                             title = "失败",
                             count = uploadManager.failedTasks.size,
                             color = MaterialTheme.colorScheme.error
@@ -218,7 +219,7 @@ fun UploadManagerDemo() {
 private fun StatCard(
     title: String,
     count: Int,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     modifier: Modifier = Modifier
 ) {
     Card(

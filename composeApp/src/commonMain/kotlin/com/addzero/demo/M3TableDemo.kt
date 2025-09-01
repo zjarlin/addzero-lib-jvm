@@ -1,4 +1,4 @@
-package com.addzero.component_demo//package com.addzero.demo
+package com.addzero.demo//package com.addzero.demo
 //
 //import androidx.compose.foundation.background
 //import androidx.compose.foundation.clickable

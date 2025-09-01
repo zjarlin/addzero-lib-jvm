@@ -1,8 +1,10 @@
-package com.addzero.component_demo.icon
+package com.addzero.demo.icon
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.addzero.annotation.Route
+import com.addzero.component.tree_command.AddTreeWithCommand
+import com.addzero.component.tree_command.TreeCommand
 import com.addzero.compose.icons.IconMap
 
 
@@ -17,7 +19,7 @@ data class SysIcon(
     val chineseName: String?,
     val iconType: String?,
     val nodeType: String = "图标",
-    val children: MutableList<SysIcon> = mutableListOf(),
+    val children: MutableList<com.addzero.demo.icon.SysIcon> = mutableListOf(),
     val imageVector: ImageVector? = null
 )
 
@@ -28,10 +30,10 @@ data class SysIcon(
 @Route("组件示例", "M3图标树")
 fun SysIconScreen() {
     // 构建图标树结构，以iconType作为一级节点
-    val iconTree = getSysIconTree()
+    val iconTree = com.addzero.demo.icon.getSysIconTree()
 
-    com.addzero.component.tree_command.AddTreeWithCommand(
-        commands = setOf(com.addzero.component.tree_command.TreeCommand.SEARCH),
+    AddTreeWithCommand(
+        commands = setOf(TreeCommand.SEARCH),
         getId = { it.id!! },
         getLabel = { it.name },
         getChildren = { it.children },
@@ -51,15 +53,15 @@ fun SysIconScreen() {
 }
 
 @Composable
-private fun getSysIconTree(): MutableList<SysIcon> {
-    val rootNodes = mutableListOf<SysIcon>()
+private fun getSysIconTree(): MutableList<com.addzero.demo.icon.SysIcon> {
+    val rootNodes = mutableListOf<com.addzero.demo.icon.SysIcon>()
 
     // 获取所有图标类型
     val iconTypes = IconMap.getAllTypes()
 
     // 为每种类型创建一级节点
     iconTypes.forEach { type ->
-        val typeNode = SysIcon(
+        val typeNode = com.addzero.demo.icon.SysIcon(
             id = type,
             parentId = null,
             name = type,
@@ -74,7 +76,7 @@ private fun getSysIconTree(): MutableList<SysIcon> {
 
         // 为每个图标创建二级节点
         iconsOfType.forEach { iconName ->
-            val iconNode = SysIcon(
+            val iconNode = com.addzero.demo.icon.SysIcon(
                 id = "$type:$iconName",
                 parentId = type,
                 name = iconName,

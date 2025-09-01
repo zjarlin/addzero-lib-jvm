@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +19,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.addzero.annotation.Route
+import com.addzero.component.card.AddCard
+import com.addzero.component.card.AddCards
+import com.addzero.component.card.MellumCardType
 
 /**
  * 🎨 JetBrains Mellum卡片使用示例
@@ -62,11 +65,11 @@ fun AddCardExample() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Koog Agent风格
-                com.addzero.component.card.AddCards.KoogAgentCard(
+                AddCards.KoogAgentCard(
                     onClick = { println("Koog Agent卡片被点击") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ProductCardContent(
+                    com.addzero.demo.ProductCardContent(
                         title = "Building Better Agents",
                         subtitle = "What's New in Koog 0.3.0",
                         icon = Icons.Default.Psychology,
@@ -75,11 +78,11 @@ fun AddCardExample() {
                 }
 
                 // Hackathon风格
-                com.addzero.component.card.AddCards.HackathonCard(
+                AddCards.HackathonCard(
                     onClick = { println("Hackathon卡片被点击") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ProductCardContent(
+                    com.addzero.demo.ProductCardContent(
                         title = "Google x JetBrains",
                         subtitle = "Hackathon '25",
                         icon = Icons.Default.Code,
@@ -88,11 +91,11 @@ fun AddCardExample() {
                 }
 
                 // Deploy Mellum风格
-                com.addzero.component.card.AddCards.DeployMellumCard(
+                AddCards.DeployMellumCard(
                     onClick = { println("Deploy Mellum卡片被点击") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    ProductCardContent(
+                    com.addzero.demo.ProductCardContent(
                         title = "Deploy JetBrains Mellum",
                         subtitle = "Your Way",
                         icon = Icons.Default.CloudUpload,
@@ -112,13 +115,13 @@ fun AddCardExample() {
             )
         }
 
-        items(com.addzero.component.card.MellumCardType.allTypes) { cardType ->
-            com.addzero.component.card.AddCard(
+        items(MellumCardType.allTypes) { cardType ->
+            AddCard(
                 onClick = { println("${cardType.name}卡片被点击") },
                 modifier = Modifier.fillMaxWidth(),
                 backgroundType = cardType
             ) {
-                SimpleCardContent(
+                com.addzero.demo.SimpleCardContent(
                     title = "${cardType.name} Card",
                     description = "这是${cardType.name}类型的卡片示例，展示了不同的渐变背景效果。"
                 )
@@ -139,12 +142,12 @@ fun AddCardExample() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 统计卡片
-                com.addzero.component.card.AddCard(
+                AddCard(
                     onClick = { println("统计卡片被点击") },
                     modifier = Modifier.weight(1f),
-                    backgroundType = com.addzero.component.card.MellumCardType.Purple
+                    backgroundType = MellumCardType.Purple
                 ) {
-                    StatCardContent(
+                    com.addzero.demo.StatCardContent(
                         value = "1,234",
                         label = "用户数量",
                         icon = Icons.Default.People,
@@ -153,12 +156,12 @@ fun AddCardExample() {
                 }
 
                 // 操作卡片
-                com.addzero.component.card.AddCard(
+                AddCard(
                     onClick = { println("操作卡片被点击") },
                     modifier = Modifier.weight(1f),
-                    backgroundType = com.addzero.component.card.MellumCardType.Blue
+                    backgroundType = MellumCardType.Blue
                 ) {
-                    ActionCardContent(
+                    com.addzero.demo.ActionCardContent(
                         title = "快速部署",
                         icon = Icons.Default.RocketLaunch,
                         action = "立即开始"

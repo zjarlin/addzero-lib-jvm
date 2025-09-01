@@ -1,4 +1,4 @@
-package com.addzero.component_demo.upload
+package com.addzero.demo.upload
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text

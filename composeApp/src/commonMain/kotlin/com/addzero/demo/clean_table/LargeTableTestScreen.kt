@@ -1,4 +1,4 @@
-package com.addzero.component_demo.clean_table
+package com.addzero.demo.clean_table
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,12 +24,12 @@ import com.addzero.annotation.Route
 @Route
 fun LargeTableTestScreen() {
     // 生成100行100列测试数据
-    val (testData, columns) = remember { generateLargeTestData(100, 100) }
+    val (testData, columns) = remember { com.addzero.demo.clean_table.generateLargeTestData(100, 100) }
 
     // 定义列宽
     val columnWidth = 120.dp
 
-    BidirectionalScrollTable(
+    com.addzero.demo.clean_table.BidirectionalScrollTable(
         data = testData,
         columns = columns,
         getId = { it.id },
@@ -56,7 +56,7 @@ fun LargeTableTestScreen() {
  * @param rowCount 行数
  * @param colCount 列数
  */
-fun generateLargeTestData(rowCount: Int, colCount: Int): Pair<List<TestRowData>, List<String>> {
+fun generateLargeTestData(rowCount: Int, colCount: Int): Pair<List<com.addzero.demo.clean_table.TestRowData>, List<String>> {
     // 生成列名 (Column1, Column2, ..., ColumnN)
     val columns = (1..colCount).map { "Column$it" }
 
@@ -67,7 +67,7 @@ fun generateLargeTestData(rowCount: Int, colCount: Int): Pair<List<TestRowData>,
             val colNum = colName.substring(6).toInt()
             colName to "R${rowId}C$colNum" // 格式如: R1C1, R1C2,... RnCn
         }
-        TestRowData(id = rowId, values = cellValues)
+        com.addzero.demo.clean_table.TestRowData(id = rowId, values = cellValues)
     }
 
     return Pair(rows, columns)

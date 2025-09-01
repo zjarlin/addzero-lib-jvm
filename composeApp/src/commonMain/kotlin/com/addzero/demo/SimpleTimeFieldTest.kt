@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card

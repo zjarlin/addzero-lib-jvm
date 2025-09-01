@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable

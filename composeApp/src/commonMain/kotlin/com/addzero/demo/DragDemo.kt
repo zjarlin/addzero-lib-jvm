@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,15 +23,15 @@ fun DragListDemo() {
     var items by remember {
         mutableStateOf(
             listOf(
-                DragItem(1, "A"),
-                DragItem(2, "B"),
-                DragItem(3, "C"),
-                DragItem(4, "D"),
-                DragItem(5, "E")
+                com.addzero.demo.DragItem(1, "A"),
+                com.addzero.demo.DragItem(2, "B"),
+                com.addzero.demo.DragItem(3, "C"),
+                com.addzero.demo.DragItem(4, "D"),
+                com.addzero.demo.DragItem(5, "E")
             )
         )
     }
-    val dndState = rememberDragAndDropState<DragItem>()
+    val dndState = rememberDragAndDropState<com.addzero.demo.DragItem>()
 
     DragAndDropContainer(state = dndState) {
         Column(

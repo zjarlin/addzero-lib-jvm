@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
+import com.addzero.component.card.MellumCardType
+import com.addzero.component.table.TableColumn
+import com.addzero.component.table.TableOriginal
 
 @Route
 @Composable
@@ -58,7 +61,7 @@ fun TableOriginalDebugTest() {
     // 定义表格列 - 使用自动宽度计算
     val columns = remember {
         listOf(
-            com.addzero.component.table.TableColumn<TestUser>(
+            TableColumn<TestUser>(
                 key = "name",
                 label = "姓名",
                 minWidth = 80.dp,
@@ -71,7 +74,7 @@ fun TableOriginalDebugTest() {
                     fontWeight = FontWeight.Medium
                 )
             },
-            com.addzero.component.table.TableColumn<TestUser>(
+            TableColumn<TestUser>(
                 key = "email",
                 label = "邮箱地址",
                 minWidth = 180.dp,
@@ -84,7 +87,7 @@ fun TableOriginalDebugTest() {
                     color = MaterialTheme.colorScheme.primary
                 )
             },
-            com.addzero.component.table.TableColumn<TestUser>(
+            TableColumn<TestUser>(
                 key = "age",
                 label = "年龄",
                 minWidth = 60.dp,
@@ -97,7 +100,7 @@ fun TableOriginalDebugTest() {
                     textAlign = TextAlign.Center
                 )
             },
-            com.addzero.component.table.TableColumn<TestUser>(
+            TableColumn<TestUser>(
                 key = "department",
                 label = "所属部门",
                 minWidth = 80.dp,
@@ -110,7 +113,7 @@ fun TableOriginalDebugTest() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
-            com.addzero.component.table.TableColumn<TestUser>(
+            TableColumn<TestUser>(
                 key = "salary",
                 label = "月薪资",
                 minWidth = 80.dp,
@@ -124,7 +127,7 @@ fun TableOriginalDebugTest() {
                     color = MaterialTheme.colorScheme.primary
                 )
             },
-            com.addzero.component.table.TableColumn<TestUser>(
+            TableColumn<TestUser>(
                 key = "status",
                 label = "工作状态",
                 minWidth = 80.dp,
@@ -178,11 +181,11 @@ fun TableOriginalDebugTest() {
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                com.addzero.component.table.TableOriginal(
+                TableOriginal(
                     columns = columns,
                     data = currentData,
                     modifier = Modifier.height(500.dp), // 增加高度以便看到垂直滚动
-                    headerCardType = com.addzero.component.card.MellumCardType.Dark,
+                    headerCardType = MellumCardType.Dark,
                     headerCornerRadius = 12.dp,
                     headerElevation = 4.dp,
                     showCheckbox = true,
@@ -299,11 +302,11 @@ fun TableOriginalDebugTest() {
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                com.addzero.component.table.TableOriginal(
+                TableOriginal(
                     columns = columns, // 显示所有列以测试水平滚动
                     data = testUsers.take(10),
                     modifier = Modifier.height(400.dp),
-                    headerCardType = com.addzero.component.card.MellumCardType.Light,
+                    headerCardType = MellumCardType.Light,
                     headerCornerRadius = 12.dp,
                     headerBar = {
                         Text(

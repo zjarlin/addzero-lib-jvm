@@ -1,4 +1,4 @@
-package com.addzero.component_demo.icon
+package com.addzero.demo.icon
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable

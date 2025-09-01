@@ -1,4 +1,4 @@
-package com.addzero.component_demo
+package com.addzero.demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -45,7 +45,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 按钮部分
-        SectionTitle("按钮")
+        com.addzero.demo.SectionTitle("按钮")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -100,7 +100,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 文本输入部分
-        SectionTitle("文本输入")
+        com.addzero.demo.SectionTitle("文本输入")
 
         var text1 by remember { mutableStateOf("") }
         var text2 by remember { mutableStateOf("") }
@@ -135,7 +135,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 选择控件部分
-        SectionTitle("选择控件")
+        com.addzero.demo.SectionTitle("选择控件")
 
         var checked1 by remember { mutableStateOf(false) }
         var checked2 by remember { mutableStateOf(true) }
@@ -197,7 +197,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 卡片部分
-        SectionTitle("卡片")
+        com.addzero.demo.SectionTitle("卡片")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -290,7 +290,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 进度指示器部分
-        SectionTitle("进度指示器")
+        com.addzero.demo.SectionTitle("进度指示器")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -318,7 +318,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 徽章部分
-        SectionTitle("徽章")
+        com.addzero.demo.SectionTitle("徽章")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
