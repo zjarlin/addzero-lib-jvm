@@ -1,9 +1,7 @@
 package com.addzero.generated.api
 
-import de.jensklingenberg.ktorfit.http.Body
-import de.jensklingenberg.ktorfit.http.GET
-import de.jensklingenberg.ktorfit.http.POST
-import de.jensklingenberg.ktorfit.http.Query
+import de.jensklingenberg.ktorfit.http.*
+import com.addzero.entity.VisionRequest
 
 /**
  * Ktorfit接口 - 由KSP自动生成

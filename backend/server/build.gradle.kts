@@ -1,5 +1,4 @@
 import com.google.devtools.ksp.gradle.KspAATask
-
 plugins {
 //    id("com.google.devtools.ksp")
     id("spring-convention")
@@ -11,15 +10,12 @@ plugins {
 
     id("ksp4controller2lazypeoplehttp")
 }
-
 noArg {
     annotation("com.addzero.common.anno.NoArg")
 }
 allOpen {
     annotation("com.addzero.common.anno.NoArg")
 }
-
-
 ksp {
     // 包名配置（小驼峰命名，outputDir 由扩展属性计算）
     arg("apiClientPackageName", "com.addzero.generated.api")
@@ -59,6 +55,8 @@ dependencies {
 
     // 阶段3: 依赖同构体的处理器
     ksp(projects.lib.ksp.metadata.addzeroController2apiProcessor)
+
+    //测试ksp
 //    ksp(projects.lib.ksp.metadata.addzeroController2lazyhttpProcessor)
 
     // 阶段4: 控制器转 Iso2DataProvider（生成到 shared 编译目录）

@@ -64,16 +64,6 @@ abstract class VlProcessor(
             return
         }
 
-        val string = options["serverSourceDir"]
-        val string1 = options["serverBuildDir"]
-        val string2 = options["composeSourceDir"]
-        val string3 = options["composeBuildDir"]
-        val string4 = options["sharedSourceDir"]
-        val string5 = options["sharedBuildDir"]
-        val string6 = options["modelSourceDir"]
-        val string7 = options["modelBuildDir"]
-
-
 
 
         val templates = getTemplates()

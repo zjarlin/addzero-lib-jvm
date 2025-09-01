@@ -1,5 +1,7 @@
 package com.addzero.context
 
+import kotlinx.serialization.Serializable
+
 fun String.withPkg(pkg: String): String {
     return "$this/${pkg.replace(".", "/")}"
 }
@@ -14,6 +16,7 @@ fun String.withFileSuffix(suffix: String): String {
 
 
 
+@Serializable
 data class Settings(
    val baseEntityPackage :String="",
     // 数据库相关配置

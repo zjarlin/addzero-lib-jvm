@@ -3,6 +3,7 @@ package com.addzero.processor
 import com.addzero.annotation.Route
 import com.addzero.consts.GEN_PKG
 import com.addzero.context.*
+import com.addzero.context.SettingContext
 import com.addzero.util.genCode
 import com.addzero.util.toUnderLineCase
 import com.google.devtools.ksp.processing.*
@@ -210,7 +211,9 @@ class RouteMetadataProcessor(
     private fun genSharedRouteKeys(routeItems: Set<Route>) {
         // 生成路由键对象
         val routeKeysTemplateIso = genRoutKeysTemplate(ROUTE_KEYS_NAME, routeItems)
-        genCode("${GEN_PKG.toSharedSourceDir()}/$ROUTE_KEYS_NAME.kt", routeKeysTemplateIso)
+        val sharedSourceDir = SettingContext.settings.sharedSourceDir
+        val withPkg = sharedSourceDir.withPkg(GEN_PKG).withFileName(ROUTE_KEYS_NAME).withFileSuffix(".kt")
+        genCode(withPkg, routeKeysTemplateIso)
     }
 
     private fun genRoutKeysTemplate(

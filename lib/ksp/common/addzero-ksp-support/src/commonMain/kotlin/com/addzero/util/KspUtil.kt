@@ -108,8 +108,6 @@ private fun KSType.isJimmerEntity(): Boolean {
 
 
 fun genCode(pathname: String, code: String, skipExistFile: Boolean = false) {
-//        val file = FileUtil.file(pathname)
-//        FileUtil.writeUtf8String(toJsonStr, file)
 
     val targetFile = File(pathname)
     targetFile.parentFile?.mkdirs()
