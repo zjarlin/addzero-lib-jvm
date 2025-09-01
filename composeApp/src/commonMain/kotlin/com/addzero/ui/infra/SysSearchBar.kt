@@ -119,7 +119,7 @@ fun AddSysRouteSearchBar(
                 )
             ) {
                 val allMenuItems = flattenMenuItems(MenuViewModel.menuItems)
-                val filteredItems = if (searchText.value.isNullOrBlank()) {
+                val filteredItems = if (searchText.value.isNullOrEmpty()) {
                     allMenuItems
                 } else {
                     allMenuItems.filter {

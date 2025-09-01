@@ -90,7 +90,7 @@ fun SysUserFormOriginal(
             AddPhoneField(
                 value = state.value.phone?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(phone = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(phone = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "手机号",
                 isRequired = false
@@ -100,7 +100,7 @@ fun SysUserFormOriginal(
             AddEmailField(
                 value = state.value.email?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(email = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(email = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 showCheckEmail = false,
                 label = "电子邮箱",
@@ -111,7 +111,7 @@ fun SysUserFormOriginal(
             AddUsernameField(
                 value = state.value.username?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(username = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(username = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "用户名",
                 isRequired = true
@@ -121,7 +121,7 @@ fun SysUserFormOriginal(
             AddPasswordField(
                 value = state.value.password?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(password = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(password = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "密码",
                 isRequired = true
@@ -131,7 +131,7 @@ fun SysUserFormOriginal(
             AddTextField(
                 value = state.value.avatar?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(avatar = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(avatar = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "头像",
                 isRequired = false
@@ -141,7 +141,7 @@ fun SysUserFormOriginal(
             AddTextField(
                 value = state.value.nickname?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(nickname = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(nickname = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "昵称",
                 isRequired = false
@@ -151,7 +151,7 @@ fun SysUserFormOriginal(
             AddTextField(
                 value = state.value.gender?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(gender = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(gender = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "性别",
                 isRequired = false

@@ -7,9 +7,8 @@ import cn.hutool.core.util.StrUtil
 import cn.hutool.extra.spring.SpringUtil
 import com.addzero.ai.util.ai.ai_abs_builder.AiUtil.Companion.buildStructureOutPutPrompt
 import com.addzero.constant.Promts
-import com.addzero.kt_util.JlStrUtil.cleanBlank
-import com.addzero.kt_util.addPrefixIfNot
-import com.addzero.kt_util.isNullOrBlank
+import com.addzero.util.str.JlStrUtil.cleanBlank
+import com.addzero.util.str.addPrefixIfNot
 import com.alibaba.fastjson2.toJSONString
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor
@@ -47,12 +46,12 @@ object AiCtx {
     ): StructureOutPutPrompt {
 
         val que = "{question}"
-        if (promptTemplate.isNullOrBlank() && formatJson.isNullOrBlank()) {
+        if (promptTemplate.isNullOrEmpty() && formatJson.isNullOrEmpty()) {
             val promptTemplate1 = promptTemplate.cleanBlank()
             val promptTemplate2 = StrUtil.addPrefixIfNot(promptTemplate1, que)
             return StructureOutPutPrompt(promptTemplate2, mapOf("question" to question))
         }
-        if (promptTemplate.isNullOrBlank() && !formatJson.isNullOrBlank()) {
+        if (promptTemplate.isNullOrEmpty() && !formatJson.isNullOrEmpty()) {
             val promptTemplate1 = promptTemplate.cleanBlank()
             val promptTemplate2 = StrUtil.addPrefixIfNot(promptTemplate1, que)
             return StructureOutPutPrompt(promptTemplate2, mapOf("question" to question))

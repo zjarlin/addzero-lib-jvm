@@ -1,4 +1,5 @@
-rootProject.name = "build-logic"
+//rootProject.name = "build-logic"
+rootProject.name = "buildSrc"
 
 dependencyResolutionManagement {
     versionCatalogs {

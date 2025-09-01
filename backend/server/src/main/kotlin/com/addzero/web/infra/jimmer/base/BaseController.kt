@@ -35,7 +35,7 @@ interface BaseController<E : Any> {
         @RequestBody commonTableDaTaInputDTO: CommonTableDaTaInputDTO
     ): Page<E> {
         val tableName = commonTableDaTaInputDTO.tableName
-        if (tableName.isNullOrBlank()) {
+        if (tableName.isNullOrEmpty()) {
             throw BizException("Table name is blank")
         }
         commonTableDaTaInputDTO.keyword

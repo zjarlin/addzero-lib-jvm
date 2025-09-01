@@ -52,7 +52,7 @@ fun filterBaseEneity(dDlRangeContext: DDlRangeContext): Boolean {
     val createTime = settings.createTime
     val updateTime = settings.updateTime
 
-    if (colName.isNullOrBlank()) {
+    if (colName.isNullOrEmpty()) {
         return false
     }
     val arrayOf = arrayOf(id, createBy, updateBy, createTime, updateTime)

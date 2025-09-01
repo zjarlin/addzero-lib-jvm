@@ -14,14 +14,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.addzero.component.form.text.AddEmailField
-import com.addzero.component.form.text.AddPasswordField
-import com.addzero.component.form.text.AddTextField
-import com.addzero.component.form.text.RemoteValidationConfig
 import com.addzero.core.validation.RegexEnum
 import com.addzero.entity.CheckSignInput
 import com.addzero.entity.CheckSignInput.USERNAME
-import com.addzero.kt_util.add
+import com.addzero.str.add
 import com.addzero.viewmodel.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
 

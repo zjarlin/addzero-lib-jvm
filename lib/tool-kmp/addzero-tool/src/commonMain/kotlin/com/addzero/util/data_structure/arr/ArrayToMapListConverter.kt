@@ -1,6 +1,6 @@
 package com.addzero.util.data_structure.arr
 
-import com.addzero.kt_util.add
+import com.addzero.str.add
 
 
 object ArrayToMapListConverter {

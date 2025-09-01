@@ -51,7 +51,7 @@ fun AddTimeField(
     // 解析时间的函数
     fun parseTime(text: String): LocalTime? {
         return try {
-            if (text.isNullOrBlank()) {
+            if (text.isNullOrEmpty()) {
                 null
             } else {
                 // 支持 "HH:mm" 格式

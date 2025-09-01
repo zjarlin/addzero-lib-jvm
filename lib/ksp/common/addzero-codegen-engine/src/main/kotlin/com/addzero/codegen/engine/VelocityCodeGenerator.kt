@@ -9,6 +9,8 @@ import org.apache.velocity.VelocityContext
 import org.apache.velocity.app.VelocityEngine
 import java.io.File
 import java.io.StringWriter
+import java.util.Locale
+import java.util.Locale.getDefault
 
 /**
  * 统一的 Velocity 代码生成引擎
@@ -251,7 +253,7 @@ class VelocityCodeGenerator(
      */
     object StringUtils {
         @JvmStatic
-        fun capitalize(str: String): String = str.capitalize()
+        fun capitalize(str: String): String = str.replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }
 
         @JvmStatic
         fun uncapitalize(str: String): String = str.replaceFirstChar { it.lowercase() }
@@ -260,7 +262,7 @@ class VelocityCodeGenerator(
         fun camelToSnake(str: String): String = str.replace(Regex("([a-z])([A-Z])"), "$1_$2").lowercase()
 
         @JvmStatic
-        fun snakeToCamel(str: String): String = str.split("_").joinToString("") { it.capitalize() }
+        fun snakeToCamel(str: String): String = str.split("_").joinToString("") { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() } }
 
         @JvmStatic
         fun isEmpty(str: String?): Boolean = str.isNullOrEmpty()

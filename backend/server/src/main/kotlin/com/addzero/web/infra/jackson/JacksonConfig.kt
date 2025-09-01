@@ -55,7 +55,7 @@ class JacksonConfig {
         @OptIn(ExperimentalTime::class)
         override fun deserialize(p: JsonParser, ctxt: DeserializationContext): KotlinxLocalDateTime {
             val text = p.text
-            return if (text.isNullOrBlank()) {
+            return if (text.isNullOrEmpty()) {
                 // 如果为空，返回当前时间作为默认值
                 kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
             } else {

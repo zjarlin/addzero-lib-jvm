@@ -82,7 +82,7 @@ fun SysFavoriteTabFormOriginal(
             AddTextField(
                 value = state.value.routeKey?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(routeKey = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(routeKey = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "routeKey",
                 isRequired = true

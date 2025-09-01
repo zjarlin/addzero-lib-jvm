@@ -183,7 +183,7 @@ object FieldConverter {
      * 检查字符串是否非空
      */
     fun isNotEmpty(str: String?): Boolean {
-        return !str.isNullOrBlank()
+        return !str.isNullOrEmpty()
     }
 
     /**

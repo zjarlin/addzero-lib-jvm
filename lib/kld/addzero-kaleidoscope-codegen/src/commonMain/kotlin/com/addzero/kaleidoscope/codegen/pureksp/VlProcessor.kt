@@ -22,7 +22,7 @@ typealias Ret = MutableMap<String, Any?>
  *
  * @param T 元数据类型
  */
-abstract class VlProcessor(
+abstract class VlProcessor<Ret>(
     protected val environment: SymbolProcessorEnvironment
 ) : SymbolProcessor {
 
@@ -30,7 +30,6 @@ abstract class VlProcessor(
     protected val templateEngine = VelocityTemplateEngine(environment)
 
     protected val options = environment.options
-
 
 
     /**
@@ -76,7 +75,7 @@ abstract class VlProcessor(
     fun gencode(temlateContext: TemlateContext, metadata: Ret) {
         val templatePath = temlateContext.templatePath
         val readContent:String = readContent(templatePath)
-        val vlprocessTemplate = templateEngine.vlprocessTemplate(readContent, metadata)
+        val vlprocessTemplate = templateEngine.vlprocessTemplate(readContent, metadata.toMap())
 
     }
 

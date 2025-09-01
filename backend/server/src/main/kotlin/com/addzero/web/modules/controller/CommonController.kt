@@ -23,7 +23,7 @@
 //    @PostMapping("/common/getTable")
 //    fun getTableData(@RequestBody commonTableDaTaInputDTO: CommonTableDaTaInputDTO): String {
 //        val tableName = commonTableDaTaInputDTO.tableName
-//        if (tableName.isNullOrBlank()) {
+//        if (tableName.isNullOrEmpty()) {
 //            throw BizException("Table name is blank")
 //        }
 //        commonTableDaTaInputDTO.keyword

@@ -5,7 +5,10 @@ import com.addzero.consts.GEN_PKG
 import com.addzero.context.*
 import com.addzero.context.SettingContext
 import com.addzero.util.genCode
-import com.addzero.util.toUnderLineCase
+import com.addzero.util.str.toUnderLineCase
+import com.addzero.util.str.withFileName
+import com.addzero.util.str.withFileSuffix
+import com.addzero.util.str.withPkg
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate

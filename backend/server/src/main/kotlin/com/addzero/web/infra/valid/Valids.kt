@@ -6,7 +6,7 @@ import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
 import com.addzero.common.util.metainfo.MetaInfoUtils
 import com.addzero.entity.Res
-import com.addzero.kt_util.addAll
+import com.addzero.str.addAll
 import com.addzero.web.infra.valid.entity.Des
 import com.addzero.web.infra.valid.entity.ValidVO
 import com.alibaba.fastjson2.JSON

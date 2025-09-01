@@ -58,7 +58,7 @@ fun SysDeptSysUserMappingFormOriginal(
             com.addzero.component.form.number.AddIntegerField(
                 value = state.value.sysDeptId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(sysDeptId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(sysDeptId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "sysDeptId",
                 isRequired = false
@@ -68,7 +68,7 @@ fun SysDeptSysUserMappingFormOriginal(
             com.addzero.component.form.number.AddIntegerField(
                 value = state.value.sysUserId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(sysUserId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(sysUserId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "sysUserId",
                 isRequired = false

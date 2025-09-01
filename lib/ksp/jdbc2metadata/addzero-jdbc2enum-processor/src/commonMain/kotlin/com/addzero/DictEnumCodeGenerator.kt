@@ -5,6 +5,7 @@ import com.addzero.util.PinYin4JUtils
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import java.io.File
+import java.util.Locale.getDefault
 
 /**
  * 字典枚举代码生成器
@@ -145,7 +146,7 @@ class DictEnumCodeGenerator(
             if (index == 0 && !capitalizeFirst) {
                 word.lowercase()
             } else {
-                word.capitalize()
+                word.replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }
             }
         }.joinToString("")
     }
@@ -178,7 +179,7 @@ class DictEnumCodeGenerator(
      */
     private fun toEnumEntryName(desc: String, code: String): String {
         // 如果描述为空，则直接使用code
-        if (desc.isNullOrBlank()) {
+        if (desc.isNullOrEmpty()) {
             return PinYin4JUtils.sanitize(code)
         }
 

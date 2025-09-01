@@ -1,18 +1,7 @@
 package com.addzero.context
 
+import com.addzero.util.str.withPkg
 import kotlinx.serialization.Serializable
-
-fun String.withPkg(pkg: String): String {
-    return "$this/${pkg.replace(".", "/")}"
-}
-
-fun String.withFileName(fileName: String): String {
-    return "$this/$fileName"
-}
-
-fun String.withFileSuffix(suffix: String): String {
-    return "$this$suffix"
-}
 
 
 

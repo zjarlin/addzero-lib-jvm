@@ -86,7 +86,7 @@ fun SysAiPromptFormOriginal(
             AddTextField(
                 value = state.value.title?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(title = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(title = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "title",
                 isRequired = true
@@ -96,7 +96,7 @@ fun SysAiPromptFormOriginal(
             AddTextField(
                 value = state.value.content?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(content = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(content = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "content",
                 isRequired = true
@@ -106,7 +106,7 @@ fun SysAiPromptFormOriginal(
             AddTextField(
                 value = state.value.category?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(category = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(category = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "category",
                 isRequired = true
@@ -116,7 +116,7 @@ fun SysAiPromptFormOriginal(
             AddTextField(
                 value = state.value.tags?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(tags = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(tags = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "tags",
                 isRequired = false

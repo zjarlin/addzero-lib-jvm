@@ -26,7 +26,7 @@ class JdbcService(
     @Tool(description = "查询数据库表结构信息，包括列名、数据类型、约束等详细信息")
     fun queryTableStructure(tableName: String = ""): String {
         return try {
-            if (tableName.isNullOrBlank()) {
+            if (tableName.isNullOrEmpty()) {
                 // 查询所有表
                 val tables = jdbcClient.sql(
                     """
@@ -181,7 +181,7 @@ class JdbcService(
     @Tool(description = "根据列名查询该列存在于哪些表中，支持精确匹配和模糊匹配")
     fun findTablesByColumn(columnName: String, exactMatch: Boolean = false): String {
         return try {
-            if (columnName.isNullOrBlank()) {
+            if (columnName.isNullOrEmpty()) {
                 return "请提供要查询的列名"
             }
 

@@ -159,7 +159,7 @@ private fun DeptUserList(vm: SysDeptViewModel, modifier: Modifier = Modifier) {
                     items(vm.users.size) { index ->
                         val user = vm.users[index]
                         ListItem(leadingContent = {
-                            if (!user.avatar.isNullOrBlank()) {
+                            if (!user.avatar.isNullOrEmpty()) {
                                 AsyncImage(
                                     model = user.avatar,
                                     contentDescription = "头像",

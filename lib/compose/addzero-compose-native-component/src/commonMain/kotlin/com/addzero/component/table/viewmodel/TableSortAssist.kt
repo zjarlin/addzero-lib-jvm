@@ -1,9 +1,8 @@
 package com.addzero.component.table.viewmodel
 
-import com.addzero.component.table.clean.AddCleanTableViewModel
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSort
-import com.addzero.kt_util.removeIf
+import com.addzero.str.removeIf
 
 
 // 排序状态集合

@@ -84,7 +84,7 @@ fun JdbcTableMetadataAttachFormOriginal(
             AddIntegerField(
                 value = state.value.jdbcTableMetadataId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(jdbcTableMetadataId = if (it.isNullOrBlank()) 0L else it.parseObjectByKtx())
+                    state.value = state.value.copy(jdbcTableMetadataId = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
                 label = "jdbcTableMetadataId",
                 isRequired = true
@@ -101,7 +101,7 @@ fun JdbcTableMetadataAttachFormOriginal(
             AddIntegerField(
                 value = state.value.rowheight?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(rowheight = if (it.isNullOrBlank()) 0L else it.parseObjectByKtx())
+                    state.value = state.value.copy(rowheight = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
                 label = "行高",
                 isRequired = true

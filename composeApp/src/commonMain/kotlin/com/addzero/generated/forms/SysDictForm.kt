@@ -85,7 +85,7 @@ fun SysDictFormOriginal(
             AddTextField(
                 value = state.value.dictName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(dictName = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(dictName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "字典名称",
                 isRequired = true
@@ -95,7 +95,7 @@ fun SysDictFormOriginal(
             AddTextField(
                 value = state.value.dictCode?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(dictCode = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(dictCode = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "字典编码",
                 isRequired = true
@@ -105,7 +105,7 @@ fun SysDictFormOriginal(
             AddTextField(
                 value = state.value.description?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(description = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(description = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "描述",
                 isRequired = false

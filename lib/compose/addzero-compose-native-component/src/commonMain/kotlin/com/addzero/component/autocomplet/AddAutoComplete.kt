@@ -84,7 +84,7 @@ fun <T> AddAutoComplete(
 
     // 过滤建议列表
     val filteredSuggestions = remember(inputValue.text, suggestions) {
-        if (inputValue.text.isNullOrBlank()) {
+        if (inputValue.text.isNullOrEmpty()) {
             suggestions.take(maxSuggestions)
         } else {
             suggestions.filter {

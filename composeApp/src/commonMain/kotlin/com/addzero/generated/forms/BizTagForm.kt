@@ -83,7 +83,7 @@ fun BizTagFormOriginal(
             AddTextField(
                 value = state.value.name?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(name = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(name = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "标签名称",
                 isRequired = true
@@ -93,7 +93,7 @@ fun BizTagFormOriginal(
             AddTextField(
                 value = state.value.description?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(description = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(description = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "标签描述",
                 isRequired = false

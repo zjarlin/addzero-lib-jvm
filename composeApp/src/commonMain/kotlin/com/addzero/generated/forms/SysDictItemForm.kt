@@ -87,7 +87,7 @@ fun SysDictItemFormOriginal(
             AddTextField(
                 value = state.value.itemText?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(itemText = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(itemText = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "字典项文本",
                 isRequired = true
@@ -97,7 +97,7 @@ fun SysDictItemFormOriginal(
             AddTextField(
                 value = state.value.itemValue?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(itemValue = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(itemValue = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "字典项值",
                 isRequired = true
@@ -107,7 +107,7 @@ fun SysDictItemFormOriginal(
             AddTextField(
                 value = state.value.description?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(description = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(description = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "描述",
                 isRequired = false
@@ -117,7 +117,7 @@ fun SysDictItemFormOriginal(
             AddIntegerField(
                 value = state.value.sortOrder?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(sortOrder = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(sortOrder = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "排序",
                 isRequired = false
@@ -127,7 +127,7 @@ fun SysDictItemFormOriginal(
             AddIntegerField(
                 value = state.value.status?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(status = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(status = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "状态（1启用0不启用）",
                 isRequired = false

@@ -87,7 +87,7 @@ fun InternalCitysFormOriginal(
             AddTextField(
                 value = state.value.cityId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(cityId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(cityId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🏷️城市标识码外部系统或国际标准使用的城市代码，可能包含：-ISO城市代码-天气API城市代码-时区标识符-自定义城市编码示例值：-CN_BJ_001(北京)-US_NY_001(纽约)-JP_TK_001(东京)-GB_LN_001(伦敦)",
                 isRequired = false
@@ -97,7 +97,7 @@ fun InternalCitysFormOriginal(
             AddTextField(
                 value = state.value.cityName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(cityName = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(cityName = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🏙️城市中文名称城市的中文显示名称，用于：-中文界面显示-中文搜索功能-本地化用户体验示例值：-北京(中国首都)-纽约(美国城市)-东京(日本首都)-伦敦(英国首都)",
                 isRequired = false
@@ -107,7 +107,7 @@ fun InternalCitysFormOriginal(
             AddTextField(
                 value = state.value.countryName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(countryName = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(countryName = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🌏国家名称城市所属国家的中文名称，用于：-地理位置层级显示-按国家分组查询-国际化地址格式示例值：-中国-美国-日本-英国-法国",
                 isRequired = false
@@ -117,7 +117,7 @@ fun InternalCitysFormOriginal(
             AddTextField(
                 value = state.value.continents?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(continents = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(continents = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🌍所属大洲城市所在的大洲名称，用于：-全球地理位置分类-时区计算辅助-地理统计分析标准大洲名称：-亚洲(Asia)-欧洲(Europe)-北美洲(NorthAmerica)-南美洲(SouthAmerica)-非洲(Africa)-大洋洲(Oceania)-南极洲(Antarctica)",
                 isRequired = false
@@ -127,7 +127,7 @@ fun InternalCitysFormOriginal(
             AddTextField(
                 value = state.value.english?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(english = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(english = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🔤英文名称城市的英文名称，用于：-国际化界面显示-英文搜索功能-API数据交换-多语言支持示例值：-Beijing(北京)-NewYork(纽约)-Tokyo(东京)-London(伦敦)-Paris(巴黎)",
                 isRequired = false
@@ -137,7 +137,7 @@ fun InternalCitysFormOriginal(
             AddTextField(
                 value = state.value.pinyin?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(pinyin = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(pinyin = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🔤拼音中文城市名称的拼音表示，用于：-拼音搜索功能-城市列表排序-输入法联想-音译标准化示例值：-beijing(北京)-shanghai(上海)-guangzhou(广州)-shenzhen(深圳)注意：对于非中文城市，此字段可能为空或包含音译拼音",
                 isRequired = false

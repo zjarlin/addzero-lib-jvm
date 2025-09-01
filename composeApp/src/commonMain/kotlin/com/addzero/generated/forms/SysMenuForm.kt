@@ -86,7 +86,7 @@ fun SysMenuFormOriginal(
             AddIntegerField(
                 value = state.value.parentId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(parentId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(parentId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "父节点ID",
                 isRequired = false
@@ -96,7 +96,7 @@ fun SysMenuFormOriginal(
             AddTextField(
                 value = state.value.title?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(title = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(title = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "路由标题",
                 isRequired = false
@@ -106,7 +106,7 @@ fun SysMenuFormOriginal(
             AddTextField(
                 value = state.value.routePath?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(routePath = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(routePath = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "路由地址",
                 isRequired = false
@@ -116,7 +116,7 @@ fun SysMenuFormOriginal(
             AddTextField(
                 value = state.value.icon?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(icon = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(icon = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "图标",
                 isRequired = false
@@ -126,7 +126,7 @@ fun SysMenuFormOriginal(
             AddMoneyField(
                 value = state.value.order?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(order = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(order = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "排序",
                 isRequired = false,

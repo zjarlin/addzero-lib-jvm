@@ -4,8 +4,8 @@ import com.addzero.context.SettingContext
 import com.addzero.entity.JdbcColumnMetadata
 import com.addzero.entity.JdbcTableMetadata
 import com.addzero.util.TypeMapper.mapToKotlinType
-import com.addzero.util.toBigCamelCase
-import com.addzero.util.toLowCamelCase
+import com.addzero.util.str.toBigCamelCase
+import com.addzero.util.str.toLowCamelCase
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import java.io.File

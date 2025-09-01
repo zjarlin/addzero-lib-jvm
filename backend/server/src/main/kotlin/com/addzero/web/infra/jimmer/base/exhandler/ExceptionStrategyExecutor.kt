@@ -25,7 +25,7 @@ fun fixCol(extractTableName: String?, extractColumnNames: String?): String {
 }
 
 fun extractColumnNames(sql: String?): String {
-    if (sql.isNullOrBlank()) {
+    if (sql.isNullOrEmpty()) {
         return ""
     }
     val subBetween = StrUtil.subBetween(sql, "ERROR: column tb_1_.", " does not exist")

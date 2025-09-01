@@ -112,7 +112,7 @@ fun BizDotfilesFormOriginal(
             AddTextField(
                 value = state.value.defType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(defType = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(defType = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "定义类型alias=aliasexport=exportfunction=functionsh=shvar=var",
                 isRequired = true
@@ -122,7 +122,7 @@ fun BizDotfilesFormOriginal(
             AddTextField(
                 value = state.value.name?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(name = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(name = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "名称",
                 isRequired = true
@@ -132,7 +132,7 @@ fun BizDotfilesFormOriginal(
             AddTextField(
                 value = state.value.value?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(value = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(value = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "值",
                 isRequired = true
@@ -142,7 +142,7 @@ fun BizDotfilesFormOriginal(
             AddTextField(
                 value = state.value.describtion?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(describtion = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(describtion = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "注释",
                 isRequired = false
@@ -152,7 +152,7 @@ fun BizDotfilesFormOriginal(
             AddTextField(
                 value = state.value.status?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(status = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(status = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "状态1=启用0=未启用",
                 isRequired = true
@@ -162,7 +162,7 @@ fun BizDotfilesFormOriginal(
             AddUrlField(
                 value = state.value.fileUrl?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(fileUrl = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(fileUrl = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "文件地址",
                 isRequired = false
@@ -172,7 +172,7 @@ fun BizDotfilesFormOriginal(
             AddTextField(
                 value = state.value.location?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(location = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(location = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "文件位置",
                 isRequired = false

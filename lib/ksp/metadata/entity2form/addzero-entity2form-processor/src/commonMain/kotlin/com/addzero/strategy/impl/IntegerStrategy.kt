@@ -37,7 +37,7 @@ object IntegerStrategy : FormStrategy {
             |            AddIntegerField(
             |                value = state.value.$name?.toString() ?: "",
             |                onValueChange = {
-            |                    state.value = state.value.copy($name = if (it.isNullOrBlank()) $defaultValue else it.parseObjectByKtx())
+            |                    state.value = state.value.copy($name = if (it.isNullOrEmpty()) $defaultValue else it.parseObjectByKtx())
             |                },
             |                label = $label,
             |                isRequired = $isRequired

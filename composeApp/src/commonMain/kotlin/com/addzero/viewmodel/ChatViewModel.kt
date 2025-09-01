@@ -40,7 +40,7 @@ class ChatViewModel : ViewModel() {
      */
     fun sendMessage(input: String? = null) {
         val msg = input ?: chatInput
-        if (msg.isNullOrBlank()) return
+        if (msg.isNullOrEmpty()) return
 
         // 生成消息ID
         val messageId = generateMessageId()

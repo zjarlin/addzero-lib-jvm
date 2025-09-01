@@ -68,7 +68,7 @@ fun AddDateField(
 
                 // 尝试解析为 LocalDate
                 val parsedDate = try {
-                    if (newText.isNullOrBlank()) {
+                    if (newText.isNullOrEmpty()) {
                         null
                     } else {
                         LocalDate.parse(newText)
@@ -79,7 +79,7 @@ fun AddDateField(
                 }
 
                 // 只有成功解析或为空时才更新外部值
-                if (newText.isNullOrBlank() || parsedDate != null) {
+                if (newText.isNullOrEmpty() || parsedDate != null) {
                     onValueChange(parsedDate)
                 }
             },

@@ -12,9 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.addzero.component.form.number.AddDecimalField
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.kt_util.containsAnyIgnoreCase
+import com.addzero.util.str.containsAnyIgnoreCase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

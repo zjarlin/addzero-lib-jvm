@@ -79,7 +79,7 @@ fun AddTextField(
         val errors = mutableListOf<String>()
 
         // 1. 检查必填
-        if (isRequired && input.isNullOrBlank()) {
+        if (isRequired && input.isNullOrEmpty()) {
             errors.add("${label}为必填项")
         }
 
@@ -147,7 +147,7 @@ fun AddTextField(
                     val errors = mutableListOf<String>()
 
                     // 只检查必填和长度，不做复杂校验
-                    if (isRequired && finalValue.isNullOrBlank()) {
+                    if (isRequired && finalValue.isNullOrEmpty()) {
                         errors.add("${label}为必填项")
                     }
                     if (maxLength != null && finalValue.length > maxLength) {

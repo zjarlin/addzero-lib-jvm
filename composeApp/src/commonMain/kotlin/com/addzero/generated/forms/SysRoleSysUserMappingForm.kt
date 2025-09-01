@@ -58,7 +58,7 @@ fun SysRoleSysUserMappingFormOriginal(
             com.addzero.component.form.number.AddIntegerField(
                 value = state.value.sysRoleId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(sysRoleId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(sysRoleId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "sysRoleId",
                 isRequired = false
@@ -68,7 +68,7 @@ fun SysRoleSysUserMappingFormOriginal(
             com.addzero.component.form.number.AddIntegerField(
                 value = state.value.sysUserId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(sysUserId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(sysUserId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "sysUserId",
                 isRequired = false

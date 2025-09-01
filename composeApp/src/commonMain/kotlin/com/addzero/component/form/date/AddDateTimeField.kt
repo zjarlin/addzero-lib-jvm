@@ -76,7 +76,7 @@ fun AddDateTimeField(
 
                 // 尝试解析为 LocalDateTime
                 val parsedDateTime = try {
-                    if (newText.isNullOrBlank()) {
+                    if (newText.isNullOrEmpty()) {
                         null
                     } else {
                         // 支持 "yyyy-MM-dd HH:mm" 格式
@@ -104,7 +104,7 @@ fun AddDateTimeField(
                 }
 
                 // 只有成功解析或为空时才更新外部值
-                if (newText.isNullOrBlank() || parsedDateTime != null) {
+                if (newText.isNullOrEmpty() || parsedDateTime != null) {
                     onValueChange(parsedDateTime)
                 }
             },

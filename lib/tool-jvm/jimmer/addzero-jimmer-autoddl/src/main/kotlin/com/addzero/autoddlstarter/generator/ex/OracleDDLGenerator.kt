@@ -31,7 +31,7 @@ override val selfMappingTypeTable: Map<String, String>
         var (tableChineseName, tableEnglishName, databaseType, databaseName, dto) = ddlContext
         tableEnglishName = tableEnglishName.uppercase()
 
-        val tableRef = if (databaseName.isNullOrBlank()) {
+        val tableRef = if (databaseName.isNullOrEmpty()) {
             JlStrUtil.makeSurroundWith(tableEnglishName.uppercase(), "\"")
         } else {
             "\"$databaseName\".\"${tableEnglishName.uppercase()}\""
@@ -98,7 +98,7 @@ override val selfMappingTypeTable: Map<String, String>
         val dmls = dto
         .joinToString(System.lineSeparator()) {
 
-            val tableRef = if (databaseName.isNullOrBlank()) {
+            val tableRef = if (databaseName.isNullOrEmpty()) {
                 JlStrUtil.makeSurroundWith(tableEnglishName.uppercase(), "\"")
             } else {
                 "\"$databaseName\".\"${tableEnglishName.uppercase()}\""

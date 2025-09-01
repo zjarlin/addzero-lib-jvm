@@ -106,7 +106,7 @@ fun SysWeatherFormOriginal(
             AddIntegerField(
                 value = state.value.highTemp?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(highTemp = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(highTemp = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "最高温度(摄氏度)",
                 isRequired = false
@@ -116,7 +116,7 @@ fun SysWeatherFormOriginal(
             AddIntegerField(
                 value = state.value.lowTemp?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(lowTemp = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(lowTemp = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "最低温度(摄氏度)",
                 isRequired = false
@@ -126,7 +126,7 @@ fun SysWeatherFormOriginal(
             AddTextField(
                 value = state.value.amCondition?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(amCondition = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(amCondition = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "上午天气状况",
                 isRequired = false
@@ -136,7 +136,7 @@ fun SysWeatherFormOriginal(
             AddTextField(
                 value = state.value.pmCondition?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(pmCondition = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(pmCondition = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "下午天气状况",
                 isRequired = false
@@ -146,7 +146,7 @@ fun SysWeatherFormOriginal(
             AddTextField(
                 value = state.value.wind?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(wind = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(wind = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "风力风向信息",
                 isRequired = false
@@ -156,7 +156,7 @@ fun SysWeatherFormOriginal(
             AddIntegerField(
                 value = state.value.aqi?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(aqi = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(aqi = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "空气质量指数",
                 isRequired = false
@@ -166,7 +166,7 @@ fun SysWeatherFormOriginal(
             AddTextField(
                 value = state.value.areaId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(areaId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(areaId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "地区ID",
                 isRequired = false
@@ -176,7 +176,7 @@ fun SysWeatherFormOriginal(
             AddTextField(
                 value = state.value.areaType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(areaType = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(areaType = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "地区类型",
                 isRequired = false
@@ -186,7 +186,7 @@ fun SysWeatherFormOriginal(
             AddTextField(
                 value = state.value.week?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(week = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(week = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "星期信息(格式:YYYY-MM-DD周X)",
                 isRequired = false

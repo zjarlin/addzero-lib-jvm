@@ -1,5 +1,5 @@
 
-import com.addzero.util.lowerFirst
+import com.addzero.util.str.lowerFirst
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger

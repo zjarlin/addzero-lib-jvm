@@ -43,7 +43,7 @@ class BaiduTranslator : ITranslator {
             .execute()
 
         val responseBody = response.body()
-        if (response.status != 200 || responseBody.isNullOrBlank()) {
+        if (response.status != 200 || responseBody.isNullOrEmpty()) {
             throw RuntimeException("Translation failed: ${response.status}")
         }
 

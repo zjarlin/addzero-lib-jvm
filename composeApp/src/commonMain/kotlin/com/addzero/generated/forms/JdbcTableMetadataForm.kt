@@ -86,7 +86,7 @@ fun JdbcTableMetadataFormOriginal(
             AddTextField(
                 value = state.value.tableName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(tableName = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(tableName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "tableName",
                 isRequired = true
@@ -96,7 +96,7 @@ fun JdbcTableMetadataFormOriginal(
             AddTextField(
                 value = state.value.schemaName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(schemaName = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(schemaName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "schemaName",
                 isRequired = true
@@ -106,7 +106,7 @@ fun JdbcTableMetadataFormOriginal(
             AddTextField(
                 value = state.value.tableType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(tableType = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(tableType = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "tableType",
                 isRequired = true
@@ -116,7 +116,7 @@ fun JdbcTableMetadataFormOriginal(
             AddTextField(
                 value = state.value.remarks?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(remarks = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(remarks = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "remarks",
                 isRequired = false

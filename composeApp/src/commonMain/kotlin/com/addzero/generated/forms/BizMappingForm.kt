@@ -59,7 +59,7 @@ fun BizMappingFormOriginal(
             com.addzero.component.form.number.AddIntegerField(
                 value = state.value.fromId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(fromId = if (it.isNullOrBlank()) 0L else it.parseObjectByKtx())
+                    state.value = state.value.copy(fromId = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
                 label = "fromId",
                 isRequired = true
@@ -69,7 +69,7 @@ fun BizMappingFormOriginal(
             com.addzero.component.form.number.AddIntegerField(
                 value = state.value.toId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(toId = if (it.isNullOrBlank()) 0L else it.parseObjectByKtx())
+                    state.value = state.value.copy(toId = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
                 label = "toId",
                 isRequired = true
@@ -79,7 +79,7 @@ fun BizMappingFormOriginal(
             com.addzero.component.form.text.AddTextField(
                 value = state.value.mappingType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(mappingType = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(mappingType = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "mappingType",
                 isRequired = true

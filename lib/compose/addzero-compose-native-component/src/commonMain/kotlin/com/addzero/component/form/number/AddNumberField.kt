@@ -102,7 +102,7 @@ private fun validateNumber(
     minValue: Double?
 ): Pair<Boolean, String> {
     // 空值检查
-    if (value.isNullOrBlank()) {
+    if (value.isNullOrEmpty()) {
         return if (isRequired) {
             false to "此字段为必填项"
         } else {

@@ -401,7 +401,7 @@ class ExcelTemplateDesignerViewModel : ViewModel() {
      * 保存当前设计为JSON模板
      */
     fun saveAsJsonTemplate(templateName: String) {
-        if (templateName.isNullOrBlank()) {
+        if (templateName.isNullOrEmpty()) {
             errorMessage = "模板名称不能为空"
             return
         }

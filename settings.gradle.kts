@@ -1,7 +1,7 @@
 
 rootProject.name = "addzero"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-includeBuild("build-logic")
+//includeBuild("build-logic")
 
 pluginManagement {
     repositories {

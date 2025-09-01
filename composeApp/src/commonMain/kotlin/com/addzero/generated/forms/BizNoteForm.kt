@@ -87,7 +87,7 @@ fun BizNoteFormOriginal(
             AddTextField(
                 value = state.value.title?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(title = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(title = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "标题",
                 isRequired = true
@@ -97,7 +97,7 @@ fun BizNoteFormOriginal(
             AddTextField(
                 value = state.value.content?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(content = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(content = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "内容",
                 isRequired = true
@@ -107,7 +107,7 @@ fun BizNoteFormOriginal(
             AddTextField(
                 value = state.value.type?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(type = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(type = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "类型1=markdown2=pdf3=word4=excel@return笔记类型",
                 isRequired = false
@@ -140,7 +140,7 @@ fun BizNoteFormOriginal(
             AddTextField(
                 value = state.value.path?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(path = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(path = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "笔记的路径@return笔记路径",
                 isRequired = false
@@ -150,7 +150,7 @@ fun BizNoteFormOriginal(
             AddUrlField(
                 value = state.value.fileUrl?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(fileUrl = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(fileUrl = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "笔记关联的文件链接（可选）。",
                 isRequired = false

@@ -12,7 +12,7 @@
 //class PsqlNotExistStrategy : AutoAddColStrategy {
 //    override fun canHandle(message: String?, causeMessage: String?): Boolean {
 //        fun isValidErrorMessage(errorMessage: String?): Boolean {
-//            if (errorMessage.isNullOrBlank()) {
+//            if (errorMessage.isNullOrEmpty()) {
 //                return false
 //            }
 //            // 定义正则表达式

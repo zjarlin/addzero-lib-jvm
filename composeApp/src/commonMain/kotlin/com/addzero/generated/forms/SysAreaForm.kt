@@ -85,7 +85,7 @@ fun SysAreaFormOriginal(
             AddIntegerField(
                 value = state.value.parentId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(parentId = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(parentId = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "上级",
                 isRequired = false
@@ -95,7 +95,7 @@ fun SysAreaFormOriginal(
             AddTextField(
                 value = state.value.nodeType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(nodeType = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(nodeType = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "1省,2市,3区",
                 isRequired = false
@@ -105,7 +105,7 @@ fun SysAreaFormOriginal(
             AddTextField(
                 value = state.value.name?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(name = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(name = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "name",
                 isRequired = false
@@ -115,7 +115,7 @@ fun SysAreaFormOriginal(
             AddTextField(
                 value = state.value.areaCode?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(areaCode = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(areaCode = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "区域编码",
                 isRequired = false

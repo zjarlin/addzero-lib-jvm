@@ -1,6 +1,8 @@
 package com.addzero.util
 
 import com.addzero.context.SettingContext
+import com.addzero.util.str.containsAny
+import com.addzero.util.str.toLowCamelCase
 
 fun filterBaseEntity(colName: String): Boolean {
     val settings = SettingContext.settings
@@ -10,7 +12,7 @@ fun filterBaseEntity(colName: String): Boolean {
     val createTime = settings.createTime
     val updateTime = settings.updateTime
 
-    if (colName.isNullOrBlank()) {
+    if (colName.isNullOrEmpty()) {
         return false
     }
     val arrayOf = arrayOf(id, createBy, updateBy, createTime, updateTime)

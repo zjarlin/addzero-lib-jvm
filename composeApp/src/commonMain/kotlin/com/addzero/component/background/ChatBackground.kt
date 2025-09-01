@@ -149,7 +149,7 @@ private fun ImageBackground(
     alpha: Float = 1f,
     modifier: Modifier = Modifier
 ) {
-    if (!imageUrl.isNullOrBlank()) {
+    if (!imageUrl.isNullOrEmpty()) {
         AsyncImage(
             model = imageUrl,
             contentDescription = "聊天背景",

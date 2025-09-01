@@ -86,7 +86,7 @@ fun SysRoleFormOriginal(
             AddTextField(
                 value = state.value.roleCode?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(roleCode = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(roleCode = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "角色编码",
                 isRequired = true
@@ -96,7 +96,7 @@ fun SysRoleFormOriginal(
             AddTextField(
                 value = state.value.roleName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(roleName = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(roleName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "角色名称",
                 isRequired = true
@@ -113,7 +113,7 @@ fun SysRoleFormOriginal(
             AddTextField(
                 value = state.value.status?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(status = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(status = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "角色状态",
                 isRequired = true

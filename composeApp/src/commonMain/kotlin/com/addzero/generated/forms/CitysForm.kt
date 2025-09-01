@@ -87,7 +87,7 @@ fun CitysFormOriginal(
             AddTextField(
                 value = state.value.areaId?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(areaId = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(areaId = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "🗺️地区ID外部系统（如天气API、地图API等）使用的地区标识符。用于与第三方服务进行数据交互和关联。示例值：-57073(洛阳)-54511(北京)-58367(上海)",
                 isRequired = true
@@ -97,7 +97,7 @@ fun CitysFormOriginal(
             AddTextField(
                 value = state.value.pinyin?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(pinyin = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(pinyin = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🔤完整拼音城市名称的完整拼音表示，用于：-拼音搜索功能-城市列表排序-输入法联想示例值：-luoyang(洛阳)-beijing(北京)-shanghai(上海)",
                 isRequired = false
@@ -107,7 +107,7 @@ fun CitysFormOriginal(
             AddTextField(
                 value = state.value.py?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(py = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(py = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🅰️拼音简写城市名称拼音的首字母缩写，用于：-快速检索和过滤-城市选择器的字母索引-移动端快速定位示例值：-ly(洛阳)-bj(北京)-sh(上海)",
                 isRequired = false
@@ -117,7 +117,7 @@ fun CitysFormOriginal(
             AddTextField(
                 value = state.value.areaName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(areaName = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(areaName = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🏘️地区名称具体的地区、区县或城市名称，是最精确的地理位置描述。通常用于地址显示和精确定位。示例值：-洛阳(河南省洛阳市)-朝阳区(北京市朝阳区)-浦东新区(上海市浦东新区)",
                 isRequired = false
@@ -127,7 +127,7 @@ fun CitysFormOriginal(
             AddTextField(
                 value = state.value.cityName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(cityName = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(cityName = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🏙️城市名称所属城市的完整名称，包含市字后缀。用于行政区划层级显示和城市级别的数据统计。示例值：-洛阳市-北京市-上海市",
                 isRequired = false
@@ -137,7 +137,7 @@ fun CitysFormOriginal(
             AddTextField(
                 value = state.value.provinceName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(provinceName = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(provinceName = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "🗾省份名称所属省份、直辖市或自治区的名称。用于省级行政区划显示和地理位置的层级结构。示例值：-河南省-北京市(直辖市)-上海市(直辖市)-广西壮族自治区",
                 isRequired = false

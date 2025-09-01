@@ -85,7 +85,7 @@ fun SysDeptFormOriginal(
             AddTextField(
                 value = state.value.name?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(name = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(name = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "部门名称",
                 isRequired = true

@@ -19,7 +19,7 @@ fun String?.makeSurroundWith(fix: String?): String? {
 
 
 fun String?.join(conjun: String? = System.lineSeparator(), other: String?): String {
-    if (this.isNullOrBlank()) {
+    if (this.isNullOrEmpty()) {
         return ""
     }
     val join = StrUtil.join(conjun, this, other)

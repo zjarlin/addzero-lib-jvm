@@ -91,7 +91,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddTextField(
                 value = state.value.columnName?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(columnName = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(columnName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "columnName",
                 isRequired = true
@@ -101,7 +101,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddIntegerField(
                 value = state.value.jdbcType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(jdbcType = if (it.isNullOrBlank()) 0L else it.parseObjectByKtx())
+                    state.value = state.value.copy(jdbcType = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
                 label = "jdbcType",
                 isRequired = true
@@ -111,7 +111,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddTextField(
                 value = state.value.columnType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(columnType = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(columnType = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "columnType",
                 isRequired = true
@@ -121,7 +121,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddIntegerField(
                 value = state.value.columnLength?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(columnLength = if (it.isNullOrBlank()) 0L else it.parseObjectByKtx())
+                    state.value = state.value.copy(columnLength = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
                 label = "columnLength",
                 isRequired = true
@@ -138,7 +138,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddTextField(
                 value = state.value.nullableFlag?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(nullableFlag = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(nullableFlag = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "nullableFlag",
                 isRequired = true
@@ -148,7 +148,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddTextField(
                 value = state.value.remarks?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(remarks = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(remarks = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "remarks",
                 isRequired = false
@@ -158,7 +158,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddTextField(
                 value = state.value.defaultValue?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(defaultValue = if (it.isNullOrBlank()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(defaultValue = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
                 label = "defaultValue",
                 isRequired = false
@@ -168,7 +168,7 @@ fun JdbcColumnMetadataFormOriginal(
             AddTextField(
                 value = state.value.primaryKeyFlag?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(primaryKeyFlag = if (it.isNullOrBlank()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(primaryKeyFlag = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
                 label = "primaryKey",
                 isRequired = true

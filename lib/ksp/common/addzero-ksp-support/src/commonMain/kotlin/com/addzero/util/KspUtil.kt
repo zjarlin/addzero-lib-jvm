@@ -1,6 +1,8 @@
 package com.addzero.util
 
-import com.addzero.util.JlStrUtil.makeSurroundWith
+import com.addzero.util.str.makeSurroundWith
+import com.addzero.util.str.removeAnyQuote
+import com.addzero.util.str.toUnderLineCase
 import com.google.devtools.ksp.symbol.*
 import java.io.File
 
@@ -18,7 +20,6 @@ val KSPropertyDeclaration.firstTypeArgumentKSClassDeclaration: KSClassDeclaratio
             null
         }
     }
-
 
 val KSPropertyDeclaration.name: String
     get() = this.simpleName.asString()
@@ -324,13 +325,13 @@ fun guessTableName(ktClass: KSClassDeclaration): String {
         it.shortName.asString() == "Table" || it.annotationType.resolve().declaration.qualifiedName?.asString() == "org.babyfish.jimmer.sql.Table"
     }
     val tableNameFromAnn = tableAnn?.arguments?.firstOrNull { it.name?.asString() == "name" }?.value as? String?:""
-    if (!tableNameFromAnn.isNullOrBlank()) {
+    if (!tableNameFromAnn.isNullOrEmpty()) {
         return tableNameFromAnn
     }
 
     // 2. 尝试从KDoc注释中提取@table标签
     val doc = ktClass.docString?:""
-    if (!doc.isNullOrBlank()) {
+    if (!doc.isNullOrEmpty()) {
         // 支持 @table 表名 或 @table:表名
         val regex = Regex("@table[:：]?\\s*([\\w_]+)")
         val match = regex.find(doc)

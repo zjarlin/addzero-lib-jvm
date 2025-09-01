@@ -137,13 +137,13 @@ fun guessTableName(ktClass: KSClassDeclaration): String {
         ?.arguments
         ?.firstOrNull { it.name?.asString() == "name" }
         ?.value as? String
-    if (!tableNameFromAnn.isNullOrBlank()) {
+    if (!tableNameFromAnn.isNullOrEmpty()) {
         return tableNameFromAnn
     }
 
     // 2. 尝试从KDoc注释中提取@table标签
     val doc = ktClass.docString
-    if (!doc.isNullOrBlank()) {
+    if (!doc.isNullOrEmpty()) {
         // 支持 @table 表名 或 @table:表名
         val regex = Regex("@table[:：]?\\s*([\\w_]+)")
         val match = regex.find(doc)

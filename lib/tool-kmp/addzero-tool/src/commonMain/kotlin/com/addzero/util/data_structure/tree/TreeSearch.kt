@@ -54,7 +54,7 @@ object TreeSearch {
         getKeyFun: (T) -> String,
         key: String
     ) {
-        if (key.isNullOrBlank()) return
+        if (key.isNullOrEmpty()) return
 
         trees.removeAll { node ->
             !sonIsContainsStr(node, getChildrenFun, getKeyFun, key)
@@ -142,7 +142,7 @@ object TreeSearch {
         getKeyFun: (T) -> String,
         key: String
     ) {
-        if (key.isNullOrBlank()) return
+        if (key.isNullOrEmpty()) return
 
         trees.removeAll { node ->
             !sonAndFatherIsContains(node, getChildrenFun, getKeyFun, key)

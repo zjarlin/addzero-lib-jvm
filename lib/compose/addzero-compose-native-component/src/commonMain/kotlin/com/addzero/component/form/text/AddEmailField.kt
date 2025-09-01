@@ -127,7 +127,7 @@ fun AddEmailField(
     }
 
     fun reSend() {
-        if (localValue.isNullOrBlank()) {
+        if (localValue.isNullOrEmpty()) {
             errorMessages += "邮箱前缀不能为空"
             return
         }

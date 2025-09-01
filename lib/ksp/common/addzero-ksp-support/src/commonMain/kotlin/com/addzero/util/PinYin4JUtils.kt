@@ -26,7 +26,7 @@ object PinYin4JUtils {
      * @return 合法的变量名称
      */
     fun sanitize(input: String, defaultName: String = "CODE"): String {
-        if (input.isNullOrBlank()) {
+        if (input.isNullOrEmpty()) {
             return defaultName.uppercase()
         }
 

@@ -3,7 +3,7 @@ package com.addzero.processor
 import com.addzero.context.SettingContext
 import com.addzero.entity.JdbcTableMetadata
 import com.addzero.util.JdbcMetadataExtractor
-import com.addzero.util.toBigCamelCase
+import com.addzero.util.str.toBigCamelCase
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver

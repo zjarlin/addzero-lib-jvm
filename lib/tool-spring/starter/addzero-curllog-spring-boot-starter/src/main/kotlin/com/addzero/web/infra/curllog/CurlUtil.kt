@@ -6,9 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpMethod
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
-import java.util.regex.Pattern
 import java.util.stream.Collectors
-import kotlin.collections.iterator
 
 /**
  * @author zjarlin
@@ -88,7 +86,7 @@ object CurlUtil {
                 } else {
 //                    Class<?> aClass = arg.getClass();
 //                    boolean assignableFrom = MultipartFile.class.isAssignableFrom(aClass);
-                    val requestBody: String = JSON.toJSONString(arg)
+                    val requestBody = JSON.toJSONString(arg)
                     if (requestBody != null && !requestBody.isEmpty()) {
                         val str = escapeQuotes(requestBody)
                         //                        String str = escapeQuotes(requestBody);

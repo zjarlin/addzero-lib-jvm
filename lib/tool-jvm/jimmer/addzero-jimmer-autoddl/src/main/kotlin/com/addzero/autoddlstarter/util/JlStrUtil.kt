@@ -29,7 +29,7 @@ fun String.toBigCamelCase(): String {
 }
 
 fun CharSequence.removeAnyQuote(): String {
-    if (this.isNullOrBlank()) {
+    if (this.isNullOrEmpty()) {
         return ""
     }
     return StrUtil.removeAny(this, "\"", "\\", "\\n", " ", System.lineSeparator())
@@ -96,7 +96,7 @@ object JlStrUtil {
      * @return 清理后的字符串
      */
     fun String?.cleanBlank(): String {
-        if (this.isNullOrBlank()) return ""
+        if (this.isNullOrEmpty()) return ""
 
         return this.trim()
             .replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
@@ -119,7 +119,7 @@ object JlStrUtil {
      * @return 删除指定字符后的字符串
      */
     fun removeLastCharOccurrence(str: String, ch: Char): String {
-        if (str.isNullOrBlank()) {
+        if (str.isNullOrEmpty()) {
             return ""
         }
 
@@ -158,7 +158,7 @@ object JlStrUtil {
 
 }
 
-fun String?.isNullOrBlank(): Boolean {
+fun String?.isNullOrEmpty(): Boolean {
     if (this == null || this == "") {
         return true
     }
@@ -166,7 +166,7 @@ fun String?.isNullOrBlank(): Boolean {
 }
 
 fun String?.isNotBlank(): Boolean {
-    return !this.isNullOrBlank()
+    return !this.isNullOrEmpty()
 }
 
 /**
@@ -202,7 +202,7 @@ fun String?.removeDuplicateSymbol(duplicateElement: String): String {
  * 扩展函数：清理多余的char
  */
 fun String?.removeDuplicateSymbol(symbol: Char): String {
-    if (this.isNullOrBlank()) {
+    if (this.isNullOrEmpty()) {
         return ""
     }
     val sb = StringBuilder()
@@ -237,7 +237,7 @@ fun String.getPathFromRight(n: Int): String? {
 
 
 fun String?.lowerCase(): String {
-    if (this.isNullOrBlank()) {
+    if (this.isNullOrEmpty()) {
         return ""
     }
     val lowerCase = this.lowerCase()
@@ -253,7 +253,7 @@ fun String?.lowerCase(): String {
  * @return 添加前缀后的字符串
  */
 fun String?.addPrefixIfNot(prefix: String, ignoreCase: Boolean = false): String {
-    if (this.isNullOrBlank()) return prefix
+    if (this.isNullOrEmpty()) return prefix
 
     return if (ignoreCase) {
         if (this.startsWith(prefix, ignoreCase = true)) this else prefix + this

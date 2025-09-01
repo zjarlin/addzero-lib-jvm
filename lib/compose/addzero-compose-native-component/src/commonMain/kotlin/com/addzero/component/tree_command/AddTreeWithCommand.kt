@@ -282,7 +282,7 @@ private fun <T> filterTreeItems(
     getChildren: (T) -> List<T>
 ): List<T> {
     val lowerQuery = query.trim().lowercase()
-    if (lowerQuery.isNullOrBlank()) return items
+    if (lowerQuery.isNullOrEmpty()) return items
 
     return items.filter { item ->
         // 节点标签匹配
