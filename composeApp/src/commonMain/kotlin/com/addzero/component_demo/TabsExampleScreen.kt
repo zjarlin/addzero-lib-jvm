@@ -1,4 +1,4 @@
-package com.addzero.demo
+package com.addzero.component_demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,9 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
-import com.addzero.component.high_level.AddTabs
-import com.addzero.component.high_level.CustomTabRow
-import com.addzero.component.high_level.TabItem
 import com.addzero.compose.icons.IconKeys
 
 

@@ -1,4 +1,4 @@
-package com.addzero.demo
+package com.addzero.component_demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape

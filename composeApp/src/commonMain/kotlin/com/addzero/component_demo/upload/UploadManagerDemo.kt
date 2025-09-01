@@ -1,4 +1,4 @@
-package com.addzero.demo.upload
+package com.addzero.component_demo.upload
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

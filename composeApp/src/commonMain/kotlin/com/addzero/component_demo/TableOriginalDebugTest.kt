@@ -1,4 +1,4 @@
-package com.addzero.demo
+package com.addzero.component_demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,9 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
-import com.addzero.component.table.TableColumn
-import com.addzero.component.table.TableOriginal
-import com.addzero.component.card.MellumCardType
 
 @Route
 @Composable

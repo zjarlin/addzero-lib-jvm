@@ -1,4 +1,4 @@
-package com.addzero.demo
+package com.addzero.component_demo
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,9 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.addzero.annotation.Route
-import com.addzero.component.card.AddCard
-import com.addzero.component.card.AddCards
-import com.addzero.component.card.MellumCardType
 
 /**
  * 🎨 JetBrains Mellum卡片使用示例

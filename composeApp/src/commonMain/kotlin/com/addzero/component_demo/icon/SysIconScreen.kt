@@ -1,10 +1,8 @@
-package com.addzero.demo.icon
+package com.addzero.component_demo.icon
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.addzero.annotation.Route
-import com.addzero.component.tree_command.AddTreeWithCommand
-import com.addzero.component.tree_command.TreeCommand
 import com.addzero.compose.icons.IconMap
 
 

@@ -30,11 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.addzero.component.button.AddIconButton
 import com.addzero.component.card.AddCard
-import com.addzero.component.card.MellumCardType
-import com.addzero.component.high_level.AddMultiColumnContainer
-import com.addzero.demo.ProductCardContent
 import com.addzero.generated.isomorphic.SysAiPromptIso
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.settings.SettingContext4Compose.AI_AVATAR_1
@@ -601,18 +597,19 @@ private fun PromptCard(
     )
 
     Box {
-        com.addzero.component.card.AddCard(
+        AddCard(
             onClick = onSelected,
             backgroundType = com.addzero.component.card.MellumCardType.Light,
             padding = 16.dp,
             modifier = Modifier.fillMaxWidth().hoverable(interactionSource)
         ) {
-            ProductCardContent(
-                title = prompt.title,
-                subtitle = getPromptSubtitle(prompt.content),
-                icon = getPromptIcon(prompt.content),
-                description = prompt.content
-            )
+            Text(prompt.title)
+//            ProductCardContent(
+//                title = prompt.title,
+//                subtitle = getPromptSubtitle(prompt.content),
+//                icon = getPromptIcon(prompt.content),
+//                description = prompt.content
+//            )
         }
 
         // 悬浮提示框 - 显示完整内容
