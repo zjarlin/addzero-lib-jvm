@@ -1,16 +1,36 @@
 package com.addzero.generated.forms
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.date.AddDateField
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.text.AddTextField
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.addzero.component.high_level.AddMultiColumnContainer
+import com.addzero.component.drawer.AddDrawer
+import com.addzero.component.form.*
+import com.addzero.component.form.number.AddMoneyField
+import com.addzero.component.form.number.AddNumberField
+import com.addzero.component.form.number.AddIntegerField
+import com.addzero.component.form.number.AddDecimalField
+import com.addzero.component.form.number.AddPercentageField
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.form.text.AddPasswordField
+import com.addzero.component.form.text.AddEmailField
+import com.addzero.component.form.text.AddPhoneField
+import com.addzero.component.form.text.AddUrlField
+import com.addzero.component.form.text.AddUsernameField
+import com.addzero.component.form.text.AddIdCardField
+import com.addzero.component.form.text.AddBankCardField
+import com.addzero.component.form.date.AddDateField
+import com.addzero.component.form.date.DateType
+import com.addzero.component.form.switch.AddSwitchField
+import com.addzero.component.form.selector.AddGenericSingleSelector
+import com.addzero.component.form.selector.AddGenericMultiSelector
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.generated.isomorphic.SysWeatherIso
+import com.addzero.core.validation.RegexEnum
+import com.addzero.generated.isomorphic.*
+import com.addzero.generated.forms.dataprovider.Iso2DataProvider
+            import com.addzero.generated.enums.*
 
 
 /**
@@ -71,12 +91,12 @@ fun SysWeatherFormOriginal(
             AddDateField(
                 value = state.value.date,
                 onValueChange = {
-                    if (it == null) {
-                        state.value = state.value
-                    } else {
-                        state.value = state.value.copy(date = it!!)
-
-                    }
+                if(it==null){
+                    state.value = state.value
+                }else{
+                    state.value = state.value.copy(date = it!!)
+                
+                }
                 },
                 label = "日期",
                 isRequired = true,
@@ -233,12 +253,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("date")
                 renderMap.remove("date")
             }
-
             render != null -> {
                 hiddenFields.remove("date")
                 renderMap["date"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("date")
                 renderMap.remove("date")
@@ -267,12 +285,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("highTemp")
                 renderMap.remove("highTemp")
             }
-
             render != null -> {
                 hiddenFields.remove("highTemp")
                 renderMap["highTemp"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("highTemp")
                 renderMap.remove("highTemp")
@@ -301,12 +317,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("lowTemp")
                 renderMap.remove("lowTemp")
             }
-
             render != null -> {
                 hiddenFields.remove("lowTemp")
                 renderMap["lowTemp"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("lowTemp")
                 renderMap.remove("lowTemp")
@@ -335,12 +349,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("amCondition")
                 renderMap.remove("amCondition")
             }
-
             render != null -> {
                 hiddenFields.remove("amCondition")
                 renderMap["amCondition"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("amCondition")
                 renderMap.remove("amCondition")
@@ -369,12 +381,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("pmCondition")
                 renderMap.remove("pmCondition")
             }
-
             render != null -> {
                 hiddenFields.remove("pmCondition")
                 renderMap["pmCondition"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("pmCondition")
                 renderMap.remove("pmCondition")
@@ -403,12 +413,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("wind")
                 renderMap.remove("wind")
             }
-
             render != null -> {
                 hiddenFields.remove("wind")
                 renderMap["wind"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("wind")
                 renderMap.remove("wind")
@@ -437,12 +445,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("aqi")
                 renderMap.remove("aqi")
             }
-
             render != null -> {
                 hiddenFields.remove("aqi")
                 renderMap["aqi"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("aqi")
                 renderMap.remove("aqi")
@@ -471,12 +477,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("areaId")
                 renderMap.remove("areaId")
             }
-
             render != null -> {
                 hiddenFields.remove("areaId")
                 renderMap["areaId"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("areaId")
                 renderMap.remove("areaId")
@@ -505,12 +509,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("areaType")
                 renderMap.remove("areaType")
             }
-
             render != null -> {
                 hiddenFields.remove("areaType")
                 renderMap["areaType"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("areaType")
                 renderMap.remove("areaType")
@@ -539,12 +541,10 @@ class SysWeatherFormDsl(
                 hiddenFields.add("week")
                 renderMap.remove("week")
             }
-
             render != null -> {
                 hiddenFields.remove("week")
                 renderMap["week"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("week")
                 renderMap.remove("week")

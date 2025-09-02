@@ -1,15 +1,36 @@
 package com.addzero.generated.forms
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.selector.AddGenericSingleSelector
-import com.addzero.component.form.text.AddTextField
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.addzero.component.high_level.AddMultiColumnContainer
+import com.addzero.component.drawer.AddDrawer
+import com.addzero.component.form.*
+import com.addzero.component.form.number.AddMoneyField
+import com.addzero.component.form.number.AddNumberField
+import com.addzero.component.form.number.AddIntegerField
+import com.addzero.component.form.number.AddDecimalField
+import com.addzero.component.form.number.AddPercentageField
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.form.text.AddPasswordField
+import com.addzero.component.form.text.AddEmailField
+import com.addzero.component.form.text.AddPhoneField
+import com.addzero.component.form.text.AddUrlField
+import com.addzero.component.form.text.AddUsernameField
+import com.addzero.component.form.text.AddIdCardField
+import com.addzero.component.form.text.AddBankCardField
+import com.addzero.component.form.date.AddDateField
+import com.addzero.component.form.date.DateType
+import com.addzero.component.form.switch.AddSwitchField
+import com.addzero.component.form.selector.AddGenericSingleSelector
+import com.addzero.component.form.selector.AddGenericMultiSelector
 import com.addzero.core.ext.parseObjectByKtx
+import com.addzero.core.validation.RegexEnum
+import com.addzero.generated.isomorphic.*
 import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-import com.addzero.generated.isomorphic.SysDictIso
-import com.addzero.generated.isomorphic.SysDictItemIso
+            import com.addzero.generated.enums.*
 
 
 /**
@@ -132,8 +153,8 @@ fun SysDictItemFormOriginal(
                 dataProvider = { dataList },
                 getId = { it.id ?: 0L },
                 getLabel = { it.dictName ?: "" },
-
-                )
+                
+            )
         }
     )
 
@@ -196,12 +217,10 @@ class SysDictItemFormDsl(
                 hiddenFields.add("itemText")
                 renderMap.remove("itemText")
             }
-
             render != null -> {
                 hiddenFields.remove("itemText")
                 renderMap["itemText"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("itemText")
                 renderMap.remove("itemText")
@@ -230,12 +249,10 @@ class SysDictItemFormDsl(
                 hiddenFields.add("itemValue")
                 renderMap.remove("itemValue")
             }
-
             render != null -> {
                 hiddenFields.remove("itemValue")
                 renderMap["itemValue"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("itemValue")
                 renderMap.remove("itemValue")
@@ -264,12 +281,10 @@ class SysDictItemFormDsl(
                 hiddenFields.add("description")
                 renderMap.remove("description")
             }
-
             render != null -> {
                 hiddenFields.remove("description")
                 renderMap["description"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("description")
                 renderMap.remove("description")
@@ -298,12 +313,10 @@ class SysDictItemFormDsl(
                 hiddenFields.add("sortOrder")
                 renderMap.remove("sortOrder")
             }
-
             render != null -> {
                 hiddenFields.remove("sortOrder")
                 renderMap["sortOrder"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("sortOrder")
                 renderMap.remove("sortOrder")
@@ -332,12 +345,10 @@ class SysDictItemFormDsl(
                 hiddenFields.add("status")
                 renderMap.remove("status")
             }
-
             render != null -> {
                 hiddenFields.remove("status")
                 renderMap["status"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("status")
                 renderMap.remove("status")
@@ -366,12 +377,10 @@ class SysDictItemFormDsl(
                 hiddenFields.add("sysDict")
                 renderMap.remove("sysDict")
             }
-
             render != null -> {
                 hiddenFields.remove("sysDict")
                 renderMap["sysDict"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("sysDict")
                 renderMap.remove("sysDict")

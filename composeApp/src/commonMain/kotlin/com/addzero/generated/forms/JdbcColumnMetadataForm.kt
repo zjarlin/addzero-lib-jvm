@@ -1,16 +1,36 @@
 package com.addzero.generated.forms
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.selector.AddGenericSingleSelector
-import com.addzero.component.form.switch.AddSwitchField
-import com.addzero.component.form.text.AddTextField
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.addzero.component.high_level.AddMultiColumnContainer
+import com.addzero.component.drawer.AddDrawer
+import com.addzero.component.form.*
+import com.addzero.component.form.number.AddMoneyField
+import com.addzero.component.form.number.AddNumberField
+import com.addzero.component.form.number.AddIntegerField
+import com.addzero.component.form.number.AddDecimalField
+import com.addzero.component.form.number.AddPercentageField
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.form.text.AddPasswordField
+import com.addzero.component.form.text.AddEmailField
+import com.addzero.component.form.text.AddPhoneField
+import com.addzero.component.form.text.AddUrlField
+import com.addzero.component.form.text.AddUsernameField
+import com.addzero.component.form.text.AddIdCardField
+import com.addzero.component.form.text.AddBankCardField
+import com.addzero.component.form.date.AddDateField
+import com.addzero.component.form.date.DateType
+import com.addzero.component.form.switch.AddSwitchField
+import com.addzero.component.form.selector.AddGenericSingleSelector
+import com.addzero.component.form.selector.AddGenericMultiSelector
 import com.addzero.core.ext.parseObjectByKtx
+import com.addzero.core.validation.RegexEnum
+import com.addzero.generated.isomorphic.*
 import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-import com.addzero.generated.isomorphic.JdbcColumnMetadataIso
-import com.addzero.generated.isomorphic.JdbcTableMetadataIso
+            import com.addzero.generated.enums.*
 
 
 /**
@@ -174,8 +194,8 @@ fun JdbcColumnMetadataFormOriginal(
                 dataProvider = { dataList },
                 getId = { it.id ?: 0L },
                 getLabel = { it.tableName ?: "" },
-
-                )
+                
+            )
         }
     )
 
@@ -238,12 +258,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("columnName")
                 renderMap.remove("columnName")
             }
-
             render != null -> {
                 hiddenFields.remove("columnName")
                 renderMap["columnName"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("columnName")
                 renderMap.remove("columnName")
@@ -272,12 +290,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("jdbcType")
                 renderMap.remove("jdbcType")
             }
-
             render != null -> {
                 hiddenFields.remove("jdbcType")
                 renderMap["jdbcType"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("jdbcType")
                 renderMap.remove("jdbcType")
@@ -306,12 +322,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("columnType")
                 renderMap.remove("columnType")
             }
-
             render != null -> {
                 hiddenFields.remove("columnType")
                 renderMap["columnType"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("columnType")
                 renderMap.remove("columnType")
@@ -340,12 +354,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("columnLength")
                 renderMap.remove("columnLength")
             }
-
             render != null -> {
                 hiddenFields.remove("columnLength")
                 renderMap["columnLength"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("columnLength")
                 renderMap.remove("columnLength")
@@ -374,12 +386,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("nullableBoolean")
                 renderMap.remove("nullableBoolean")
             }
-
             render != null -> {
                 hiddenFields.remove("nullableBoolean")
                 renderMap["nullableBoolean"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("nullableBoolean")
                 renderMap.remove("nullableBoolean")
@@ -408,12 +418,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("nullableFlag")
                 renderMap.remove("nullableFlag")
             }
-
             render != null -> {
                 hiddenFields.remove("nullableFlag")
                 renderMap["nullableFlag"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("nullableFlag")
                 renderMap.remove("nullableFlag")
@@ -442,12 +450,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("remarks")
                 renderMap.remove("remarks")
             }
-
             render != null -> {
                 hiddenFields.remove("remarks")
                 renderMap["remarks"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("remarks")
                 renderMap.remove("remarks")
@@ -476,12 +482,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("defaultValue")
                 renderMap.remove("defaultValue")
             }
-
             render != null -> {
                 hiddenFields.remove("defaultValue")
                 renderMap["defaultValue"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("defaultValue")
                 renderMap.remove("defaultValue")
@@ -510,12 +514,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("primaryKeyFlag")
                 renderMap.remove("primaryKeyFlag")
             }
-
             render != null -> {
                 hiddenFields.remove("primaryKeyFlag")
                 renderMap["primaryKeyFlag"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("primaryKeyFlag")
                 renderMap.remove("primaryKeyFlag")
@@ -544,12 +546,10 @@ class JdbcColumnMetadataFormDsl(
                 hiddenFields.add("table")
                 renderMap.remove("table")
             }
-
             render != null -> {
                 hiddenFields.remove("table")
                 renderMap["table"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("table")
                 renderMap.remove("table")

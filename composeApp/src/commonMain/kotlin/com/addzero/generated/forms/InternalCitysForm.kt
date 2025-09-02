@@ -1,14 +1,36 @@
 package com.addzero.generated.forms
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.text.AddTextField
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.addzero.component.high_level.AddMultiColumnContainer
+import com.addzero.component.drawer.AddDrawer
+import com.addzero.component.form.*
+import com.addzero.component.form.number.AddMoneyField
+import com.addzero.component.form.number.AddNumberField
+import com.addzero.component.form.number.AddIntegerField
+import com.addzero.component.form.number.AddDecimalField
+import com.addzero.component.form.number.AddPercentageField
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.form.text.AddPasswordField
+import com.addzero.component.form.text.AddEmailField
+import com.addzero.component.form.text.AddPhoneField
+import com.addzero.component.form.text.AddUrlField
+import com.addzero.component.form.text.AddUsernameField
+import com.addzero.component.form.text.AddIdCardField
+import com.addzero.component.form.text.AddBankCardField
+import com.addzero.component.form.date.AddDateField
+import com.addzero.component.form.date.DateType
+import com.addzero.component.form.switch.AddSwitchField
+import com.addzero.component.form.selector.AddGenericSingleSelector
+import com.addzero.component.form.selector.AddGenericMultiSelector
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.generated.isomorphic.InternalCitysIso
+import com.addzero.core.validation.RegexEnum
+import com.addzero.generated.isomorphic.*
+import com.addzero.generated.forms.dataprovider.Iso2DataProvider
+            import com.addzero.generated.enums.*
 
 
 /**
@@ -182,12 +204,10 @@ class InternalCitysFormDsl(
                 hiddenFields.add("cityId")
                 renderMap.remove("cityId")
             }
-
             render != null -> {
                 hiddenFields.remove("cityId")
                 renderMap["cityId"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("cityId")
                 renderMap.remove("cityId")
@@ -216,12 +236,10 @@ class InternalCitysFormDsl(
                 hiddenFields.add("cityName")
                 renderMap.remove("cityName")
             }
-
             render != null -> {
                 hiddenFields.remove("cityName")
                 renderMap["cityName"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("cityName")
                 renderMap.remove("cityName")
@@ -250,12 +268,10 @@ class InternalCitysFormDsl(
                 hiddenFields.add("countryName")
                 renderMap.remove("countryName")
             }
-
             render != null -> {
                 hiddenFields.remove("countryName")
                 renderMap["countryName"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("countryName")
                 renderMap.remove("countryName")
@@ -284,12 +300,10 @@ class InternalCitysFormDsl(
                 hiddenFields.add("continents")
                 renderMap.remove("continents")
             }
-
             render != null -> {
                 hiddenFields.remove("continents")
                 renderMap["continents"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("continents")
                 renderMap.remove("continents")
@@ -318,12 +332,10 @@ class InternalCitysFormDsl(
                 hiddenFields.add("english")
                 renderMap.remove("english")
             }
-
             render != null -> {
                 hiddenFields.remove("english")
                 renderMap["english"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("english")
                 renderMap.remove("english")
@@ -352,12 +364,10 @@ class InternalCitysFormDsl(
                 hiddenFields.add("pinyin")
                 renderMap.remove("pinyin")
             }
-
             render != null -> {
                 hiddenFields.remove("pinyin")
                 renderMap["pinyin"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("pinyin")
                 renderMap.remove("pinyin")

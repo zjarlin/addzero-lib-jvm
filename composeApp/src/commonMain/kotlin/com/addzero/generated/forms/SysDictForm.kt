@@ -110,7 +110,7 @@ fun SysDictFormOriginal(
                 getId = { it.id ?: 0L },
                 getLabel = { it.itemText ?: "" },
 
-                )
+            )
         }
     )
 
@@ -173,12 +173,10 @@ class SysDictFormDsl(
                 hiddenFields.add("dictName")
                 renderMap.remove("dictName")
             }
-
             render != null -> {
                 hiddenFields.remove("dictName")
                 renderMap["dictName"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("dictName")
                 renderMap.remove("dictName")
@@ -207,12 +205,10 @@ class SysDictFormDsl(
                 hiddenFields.add("dictCode")
                 renderMap.remove("dictCode")
             }
-
             render != null -> {
                 hiddenFields.remove("dictCode")
                 renderMap["dictCode"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("dictCode")
                 renderMap.remove("dictCode")
@@ -241,12 +237,10 @@ class SysDictFormDsl(
                 hiddenFields.add("description")
                 renderMap.remove("description")
             }
-
             render != null -> {
                 hiddenFields.remove("description")
                 renderMap["description"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("description")
                 renderMap.remove("description")
@@ -275,12 +269,10 @@ class SysDictFormDsl(
                 hiddenFields.add("sysDictItems")
                 renderMap.remove("sysDictItems")
             }
-
             render != null -> {
                 hiddenFields.remove("sysDictItems")
                 renderMap["sysDictItems"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("sysDictItems")
                 renderMap.remove("sysDictItems")

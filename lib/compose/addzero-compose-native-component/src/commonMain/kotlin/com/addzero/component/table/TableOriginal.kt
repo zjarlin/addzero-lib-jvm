@@ -1,18 +1,14 @@
 package com.addzero.component.table
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material3.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -20,403 +16,264 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.addzero.component.card.AddCard
 import com.addzero.component.card.MellumCardType
-import kotlin.math.max
 
 /**
- * 表格列定义
- */
-data class TableColumn<T>(
-    val key: String,
-    val label: String,
-    val width: Dp? = null, // null表示自动计算宽度
-    val minWidth: Dp = 80.dp,
-    val maxWidth: Dp = 300.dp,
-    val sortable: Boolean = false,
-    val headerContent: (@Composable () -> Unit)? = null,
-    val cellContent: @Composable (item: T) -> Unit
-)
-
-/**
- * 计算列宽度
+ * 转置表格组件 - 香烟垂直排列模式，简化统一架构
+ * 使用统一的CigaretteColumn组件，支持大数据量和多字段
  */
 @Composable
-private fun <T> calculateColumnWidths(
-    columns: List<com.addzero.component.table.TableColumn<T>>,
+fun <T, C> TableOriginal(
+    columns: List<C>,
     data: List<T>,
-    textMeasurer: TextMeasurer
-): List<Dp> {
-    val density = LocalDensity.current
-
-    return columns.map { column ->
-        if (column.width != null) {
-            column.width
-        } else {
-            // 计算表头文字宽度
-            val headerWidth = with(density) {
-                textMeasurer.measure(
-                    text = column.label,
-                    style = MaterialTheme.typography.titleSmall
-                ).size.width.toDp()
-            }
-
-            // 估算数据内容宽度（取前几行样本）
-            val sampleData = data.take(5)
-            val maxContentWidth = if (sampleData.isNotEmpty()) {
-                sampleData.maxOfOrNull { item ->
-                    // 这里简化处理，实际应该根据cellContent渲染结果计算
-                    with(density) {
-                        textMeasurer.measure(
-                            text = item.toString().take(20), // 简化处理
-                            style = MaterialTheme.typography.bodyMedium
-                        ).size.width.toDp()
-                    }
-                } ?: 0.dp
-            } else 0.dp
-
-            // 取较大值，但限制在最小最大宽度范围内
-            val calculatedWidth = max(headerWidth.value + 32, maxContentWidth.value + 16).dp
-            calculatedWidth.coerceIn(column.minWidth, column.maxWidth)
-        }
-    }
-}
-
-/**
- * 原始表格组件 - 确保表头和数据列完美对齐
- */
-@Composable
-fun <T> TableOriginal(
-    columns: List<com.addzero.component.table.TableColumn<T>>,
-    data: List<T>,
+    getColumnKey: (C) -> String,
+    getColumnLabel: @Composable (C) -> Unit,
+    getCellContent: @Composable (item: T, column: C) -> Unit,
     modifier: Modifier = Modifier,
-    // 可选插槽
-    headerBar: @Composable () -> Unit = {},
-    showCheckbox: Boolean = false,
-    onItemChecked: ((T, Boolean) -> Unit)? = null,
-    checkedItems: Set<T> = emptySet(),
-    onHeaderSort: ((String) -> Unit)? = null,
-    headerActions: @Composable () -> Unit = {},
-    selectContent: @Composable () -> Unit = {},
-    pagination: @Composable () -> Unit = {},
-    emptyContent: @Composable () -> Unit = { _root_ide_package_.com.addzero.component.table.DefaultEmptyContent() },
+    slots: TableSlots<T> = TableSlots(),
+    getColumnWidth: (C) -> Dp? = { null },
+    getColumnMinWidth: (C) -> Dp = { 80.dp },
+    getColumnMaxWidth: (C) -> Dp = { 300.dp },
+    // 每行操作按钮
+    rowActions: (@Composable (item: T, index: Int) -> Unit)? = null,
     // AddCard 样式配置
-    headerCardType: com.addzero.component.card.MellumCardType = _root_ide_package_.com.addzero.component.card.MellumCardType.Companion.Light,
+    headerCardType: MellumCardType = MellumCardType.Light,
     headerCornerRadius: Dp = 12.dp,
     headerElevation: Dp = 2.dp
 ) {
-    val horizontalScrollState = rememberScrollState()
     val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
 
     // 计算列宽度
-    val columnWidths = _root_ide_package_.com.addzero.component.table.calculateColumnWidths(columns, data, textMeasurer)
-
-    Column(modifier = modifier) {
-        // 表格头部使用 AddCard - 固定不滚动
-        _root_ide_package_.com.addzero.component.card.AddCard(
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-            backgroundType = headerCardType,
-            cornerRadius = headerCornerRadius,
-            elevation = headerElevation,
-            padding = 0.dp
-        ) {
-            Column {
-                // 头部栏
-                if (headerBar != {}) {
-                    Box(modifier = Modifier.padding(16.dp)) {
-                        headerBar()
-                    }
+    val columnWidths = columns.associate { column ->
+        getColumnKey(column) to run {
+            getColumnWidth(column) ?: run {
+                val headerWidth = with(density) {
+                    textMeasurer.measure(
+                        text = getColumnKey(column),
+                        style = MaterialTheme.typography.titleSmall
+                    ).size.width.toDp()
                 }
 
-                // 表头
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 固定列（复选框和序号）- 不滚动
-                    _root_ide_package_.com.addzero.component.table.FixedHeaderColumn(
-                        showCheckbox = showCheckbox,
-                        allChecked = data.isNotEmpty() && checkedItems.containsAll(data),
-                        onAllCheckedChange = { isChecked ->
-                            data.forEach { item ->
-                                onItemChecked?.invoke(item, isChecked)
-                            }
+                val sampleData = data.take(3)
+                val maxContentWidth = if (sampleData.isNotEmpty()) {
+                    sampleData.maxOfOrNull {
+                        with(density) {
+                            textMeasurer.measure(
+                                text = it.toString().take(15),
+                                style = MaterialTheme.typography.bodyMedium
+                            ).size.width.toDp()
                         }
-                    )
+                    } ?: 0.dp
+                } else 0.dp
 
-                    // 可滚动的列
+                val calculatedWidth = maxOf(headerWidth.value + 32, maxContentWidth.value + 16, 80f).dp
+                calculatedWidth.coerceIn(getColumnMinWidth(column), getColumnMaxWidth(column))
+            }
+        }
+    }
+
+    // 共享滚动状态
+    val sharedScrollState = rememberLazyListState()
+
+    Column(modifier = modifier) {
+        // 固定头部栏
+        slots.headerBar?.let { headerBar ->
+            AddCard(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth(),
+                backgroundType = headerCardType,
+                cornerRadius = headerCornerRadius,
+                elevation = headerElevation,
+                padding = 16.dp
+            ) {
+                headerBar()
+            }
+        }
+
+        // 固定选择区域
+        slots.selectContent?.invoke()
+
+        // 表格主体
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                // 序号列 - 固定
+                CigaretteColumn(
+                    width = 80.dp,
+                    headerContent = {
+                        Text(
+                            "#",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    data = data,
+                    scrollState = sharedScrollState,
+                    cellContent = { _, index ->
+                        Text(
+                            "${index + 1}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    headerCardType = headerCardType,
+                    headerCornerRadius = headerCornerRadius,
+                    headerElevation = headerElevation,
+                    modifier = Modifier
+                )
+
+                // 数据列 - 当字段少时拉伸填满，字段多时可滚动
+                if (columns.size <= 5) {
+                    // 字段较少时：使用Row平均分配空间，填满边界
                     Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .horizontalScroll(horizontalScrollState),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        columns.forEachIndexed { index, column ->
-                            _root_ide_package_.com.addzero.component.table.TableHeaderCell(
-                                column = column,
-                                width = columnWidths[index],
-                                onSort = if (column.sortable) {
-                                    { onHeaderSort?.invoke(column.key) }
-                                } else null
+                        columns.forEach { column ->
+                            CigaretteColumn(
+                                width = 0.dp, // 让Column内部使用weight分配空间
+                                modifier = Modifier.weight(1f),
+                                headerContent = { getColumnLabel(column) },
+                                data = data,
+                                scrollState = sharedScrollState,
+                                cellContent = { item, _ ->
+                                    getCellContent(item, column)
+                                },
+                                headerCardType = headerCardType,
+                                headerCornerRadius = headerCornerRadius,
+                                headerElevation = headerElevation
                             )
                         }
                     }
+                } else {
+                    // 字段较多时：使用LazyRow水平滚动
+                    LazyRow(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        itemsIndexed(columns) { _, column ->
+                            CigaretteColumn(
+                                width = columnWidths[getColumnKey(column)] ?: 100.dp,
+                                headerContent = { getColumnLabel(column) },
+                                data = data,
+                                scrollState = sharedScrollState,
+                                cellContent = { item, _ ->
+                                    getCellContent(item, column)
+                                },
+                                headerCardType = headerCardType,
+                                headerCornerRadius = headerCornerRadius,
+                                headerElevation = headerElevation,
+                                modifier = Modifier
+                            )
+                        }
+                    }
+                }
 
-                    // 操作列 - 固定不滚动
-                    _root_ide_package_.com.addzero.component.table.ActionHeaderColumn(headerActions)
+                // 操作列 - 固定
+                rowActions?.let { actions ->
+                    CigaretteColumn(
+                        width = 120.dp,
+                        headerContent = {
+                            Text(
+                                "操作",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                textAlign = TextAlign.Center
+                            )
+                        },
+                        data = data,
+                        scrollState = sharedScrollState,
+                        cellContent = { item, index ->
+                            actions(item, index)
+                        },
+                        headerCardType = headerCardType,
+                        headerCornerRadius = headerCornerRadius,
+                        headerElevation = headerElevation,
+                        modifier = Modifier
+                    )
                 }
             }
         }
 
-        // 选择内容区域
-        selectContent()
+        // 固定分页区域
+        slots.pagination?.invoke()
+    }
+}
 
-        // 表格内容 - 可垂直滚动
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+/**
+ * 统一的香烟列组件 - 所有列都使用相同结构，支持拉伸填满
+ */
+@Composable
+private fun <T> CigaretteColumn(
+    width: Dp,
+    headerContent: @Composable () -> Unit,
+    data: List<T>,
+    scrollState: LazyListState,
+    cellContent: @Composable (item: T, index: Int) -> Unit,
+    headerCardType: MellumCardType,
+    headerCornerRadius: Dp,
+    headerElevation: Dp,
+    modifier: Modifier = Modifier // 支持外部modifier，用于weight拉伸
+) {
+    val sizeModifier = if (width > 0.dp) {
+        modifier.width(width).fillMaxHeight()
+    } else {
+        modifier.fillMaxHeight() // width=0时使用外部的weight
+    }
+    
+    Surface(
+        modifier = sizeModifier,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp,
+        shadowElevation = 1.dp
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // 烟嘴 - 固定表头
+            AddCard(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                backgroundType = headerCardType,
+                cornerRadius = headerCornerRadius,
+                elevation = headerElevation,
+                padding = 0.dp
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    headerContent()
+                }
+            }
+
+            // 烟身 - 同步滚动的数据区域
             LazyColumn(
-                modifier = Modifier.fillMaxWidth()
+                state = scrollState,
+                modifier = Modifier.fillMaxWidth().weight(1f)
             ) {
                 if (data.isEmpty()) {
                     item {
-                        emptyContent()
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "无数据",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 } else {
-                    itemsIndexed(items = data) { index, item ->
-                        _root_ide_package_.com.addzero.component.table.TableRow(
-                            item = item,
-                            index = index,
-                            columns = columns,
-                            columnWidths = columnWidths,
-                            showCheckbox = showCheckbox,
-                            isChecked = checkedItems.contains(item),
-                            onCheckedChange = { isChecked ->
-                                onItemChecked?.invoke(item, isChecked)
-                            },
-                            horizontalScrollState = horizontalScrollState
-                        )
-
-                        if (index < data.size - 1) {
-                            HorizontalDivider(
-                                modifier = Modifier,
-                                thickness = DividerDefaults.Thickness,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                            )
+                    itemsIndexed(data) { index, item ->
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            cellContent(item, index)
                         }
                     }
                 }
             }
         }
-
-        // 分页控件
-        pagination()
-    }
-}
-
-@Composable
-private fun <T> TableHeaderCell(
-    column: com.addzero.component.table.TableColumn<T>,
-    width: Dp,
-    onSort: (() -> Unit)? = null
-) {
-    // 表头单元格与数据行卡片内部布局保持一致
-    Box(
-        modifier = Modifier
-            .width(width)
-            .fillMaxHeight()
-            .padding(horizontal = 8.dp), // 与数据行卡片内部间距一致
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            // 自定义头部内容或默认文本
-            if (column.headerContent != null) {
-                column.headerContent.invoke()
-            } else {
-                Text(
-                    text = column.label,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // 排序按钮
-            if (onSort != null) {
-                IconButton(
-                    onClick = onSort,
-                    modifier = Modifier.size(20.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Sort,
-                        contentDescription = "排序",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun <T> TableRow(
-    item: T,
-    index: Int,
-    columns: List<com.addzero.component.table.TableColumn<T>>,
-    columnWidths: List<Dp>,
-    showCheckbox: Boolean,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    horizontalScrollState: androidx.compose.foundation.ScrollState
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 固定列（复选框和序号）- 不滚动
-        _root_ide_package_.com.addzero.component.table.FixedDataColumn(
-            index = index,
-            showCheckbox = showCheckbox,
-            isChecked = isChecked,
-            onCheckedChange = onCheckedChange
-        )
-
-        // 整行数据作为一个"烟头"卡片
-        Surface(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp, vertical = 2.dp),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp,
-            shadowElevation = 1.dp
-        ) {
-            // 可滚动的数据列 - 在卡片内部水平排列
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(horizontalScrollState)
-                    .padding(horizontal = 12.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                columns.forEachIndexed { columnIndex, column ->
-                    Box(
-                        modifier = Modifier
-                            .width(columnWidths[columnIndex])
-                            .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        column.cellContent(item)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FixedHeaderColumn(
-    showCheckbox: Boolean,
-    allChecked: Boolean,
-    onAllCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .width(120.dp)
-            .fillMaxHeight()
-            .padding(start = 16.dp, end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (showCheckbox) {
-            Checkbox(
-                checked = allChecked,
-                onCheckedChange = onAllCheckedChange
-            )
-        }
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .width(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "#",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-@Composable
-private fun FixedDataColumn(
-    index: Int,
-    showCheckbox: Boolean,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .width(120.dp)
-            .padding(start = 16.dp, end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (showCheckbox) {
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = onCheckedChange
-            )
-        }
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .width(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "${index + 1}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
-
-@Composable
-private fun ActionHeaderColumn(
-    headerActions: @Composable () -> Unit
-) {
-    Box(
-        modifier = Modifier.padding(8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        headerActions()
-    }
-}
-
-@Composable
-private fun DefaultEmptyContent() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "没有数据",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }

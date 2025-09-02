@@ -18,6 +18,7 @@ object RouteKeys {
     const val SYS_ICON_SCREEN = "com.addzero.demo.icon.SysIconScreen"
     const val WE_CHAT_ICON = "/component/wechatIcon"
     const val DRAG_LIST_DEMO = "com.addzero.demo.DragListDemo"
+    const val TABLE_PERFORMANCE_COMPARISON = "com.addzero.demo.TablePerformanceComparison"
     const val TEST_PICKER = "com.addzero.demo.upload.TestPicker"
     const val UPLOAD_MANAGER_DEMO = "com.addzero.demo.upload.UploadManagerDemo"
     const val TEST_DIRECTORY_PICKER = "com.addzero.demo.upload.TestDirectoryPicker"

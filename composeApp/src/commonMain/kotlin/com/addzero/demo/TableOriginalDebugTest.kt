@@ -16,13 +16,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.card.MellumCardType
-import com.addzero.component.table.TableColumn
 import com.addzero.component.table.TableOriginal
+import com.addzero.component.table.TableSlots
+import com.addzero.core.ext.toMap
+import kotlinx.serialization.Serializable
 
 @Route
 @Composable
 fun TableOriginalDebugTest() {
-    // 测试数据模型
+    // 测试数据模型 - 添加@Serializable注解
+    @Serializable
     data class TestUser(
         val id: Int,
         val name: String,
@@ -33,122 +36,114 @@ fun TableOriginalDebugTest() {
         val status: String
     )
 
-    // 生成大量测试数据以便测试垂直滚动
+    // 列配置模型 - 泛型C，增强配置能力
+    data class ColumnConfig(
+        val key: String,
+        val label: String,
+        val color: Color? = null,
+        val textStyle: androidx.compose.ui.text.TextStyle? = null,
+        val fontWeight: FontWeight? = null,
+        val textAlign: TextAlign? = null,
+        val formatter: ((Any?) -> String)? = null, // 值格式化器
+        val colorResolver: ((Any?) -> Color)? = null // 动态颜色解析器
+    )
+
+    // 生成测试数据
     val testUsers = remember {
-        val names = listOf("张三", "李四", "王五", "赵六", "钱七", "孙八", "周九", "吴十", "郑十一", "王十二", "冯十三", "陈十四", "褚十五", "卫十六", "蒋十七", "沈十八", "韩十九", "杨二十")
-        val departments = listOf("技术部", "产品部", "设计部", "市场部", "人事部", "财务部", "运营部", "客服部", "法务部", "行政部")
-        val statuses = listOf("在职", "离职", "试用期", "实习")
-        val domains = listOf("example.com", "company.com", "work.cn", "office.net")
+        val names = listOf("张三", "李四", "王五", "赵六", "钱七")
+        val departments = listOf("技术部", "产品部", "设计部")
+        val statuses = listOf("在职", "试用期", "实习")
 
-        (1..50).map { i ->
-            val name = names[i % names.size] + if (i > names.size) "${i}" else ""
-            val department = departments[i % departments.size]
-            val status = statuses[i % statuses.size]
-            val domain = domains[i % domains.size]
-            val email = "${name.lowercase().replace("十", "shi")}${i}@${domain}"
-            val age = 22 + (i % 20)
-            val salary = 8000.0 + (i % 30) * 1000 + (i % 7) * 500
-
-            TestUser(i, name, email, age, department, salary, status)
+        (1..15).map { i ->
+            TestUser(
+                id = i,
+                name = names[i % names.size] + if (i > names.size) "$i" else "",
+                email = "${names[i % names.size].lowercase()}$i@example.com",
+                age = 22 + (i % 15),
+                department = departments[i % departments.size],
+                salary = 8000.0 + (i % 20) * 1000,
+                status = statuses[i % statuses.size]
+            )
         }
     }
 
-    // 状态管理
-    var checkedItems by remember { mutableStateOf(setOf<TestUser>()) }
-    var sortColumn by remember { mutableStateOf("") }
-    var currentData by remember { mutableStateOf(testUsers) }
+    // 性能优化：使用derivedStateOf预计算所有用户的Map，避免在渲染时重复转换
+    val userMapsCache by remember {
+        derivedStateOf {
+            testUsers.associateWith { user -> user.toMap() }
+        }
+    }
 
-    // 定义表格列 - 使用自动宽度计算
-    val columns = remember {
-        listOf(
-            TableColumn<TestUser>(
-                key = "name",
-                label = "姓名",
-                minWidth = 80.dp,
-                maxWidth = 150.dp,
-                sortable = true
-            ) { user ->
-                Text(
-                    text = user.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            },
-            TableColumn<TestUser>(
-                key = "email",
-                label = "邮箱地址",
-                minWidth = 180.dp,
-                maxWidth = 280.dp,
-                sortable = true
-            ) { user ->
-                Text(
-                    text = user.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            TableColumn<TestUser>(
-                key = "age",
-                label = "年龄",
-                minWidth = 60.dp,
-                maxWidth = 80.dp,
-                sortable = true
-            ) { user ->
-                Text(
-                    text = "${user.age}岁",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-            },
-            TableColumn<TestUser>(
-                key = "department",
-                label = "所属部门",
-                minWidth = 80.dp,
-                maxWidth = 100.dp,
-                sortable = true
-            ) { user ->
-                Text(
-                    text = user.department,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            TableColumn<TestUser>(
-                key = "salary",
-                label = "月薪资",
-                minWidth = 80.dp,
-                maxWidth = 120.dp,
-                sortable = true
-            ) { user ->
-                Text(
-                    text = user.salary.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            TableColumn<TestUser>(
-                key = "status",
-                label = "工作状态",
-                minWidth = 80.dp,
-                maxWidth = 100.dp,
-                sortable = true
-            ) { user ->
-                val statusColor = when (user.status) {
+    // 定义列配置 - 使用配置驱动的方式
+    val columns = listOf(
+        ColumnConfig(
+            "name", "姓名", 
+            color = Color(0xFF1976D2),
+            fontWeight = FontWeight.Medium
+        ),
+        ColumnConfig(
+            "email", "邮箱", 
+            color = Color(0xFF7B1FA2),
+            textStyle = MaterialTheme.typography.bodySmall
+        ),
+        ColumnConfig(
+            "age", "年龄",
+            textAlign = TextAlign.Center,
+            formatter = { "${it}岁" }
+        ),
+        ColumnConfig(
+            "department", "部门",
+            color = Color.Gray
+        ),
+        ColumnConfig(
+            "salary", "薪资",
+            color = Color(0xFF4CAF50),
+            fontWeight = FontWeight.Bold,
+            formatter = { value ->
+                val doubleValue = value.toString().toDoubleOrNull()
+                if (doubleValue != null) "¥${doubleValue.toInt()}" else value.toString()
+            }
+        ),
+        ColumnConfig(
+            "status", "状态",
+            fontWeight = FontWeight.Medium,
+            formatter = { value -> value.toString() },
+            colorResolver = { value ->
+                when (value.toString()) {
                     "在职" -> Color(0xFF4CAF50)
                     "试用期" -> Color(0xFFFF9800)
                     "实习" -> Color(0xFF2196F3)
                     else -> Color(0xFFF44336)
                 }
-                Text(
-                    text = user.status,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = statusColor,
-                    fontWeight = FontWeight.Medium
-                )
             }
         )
-    }
+    )
+
+    // 插槽配置
+    val tableSlots = TableSlots<TestUser>(
+        headerBar = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "员工管理系统 (${testUsers.size}人)",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Button(
+                    onClick = { /* 添加 */ },
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("添加")
+                }
+            }
+        },
+// headerActions 移除，因为现在每行都有操作按钮
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -159,161 +154,84 @@ fun TableOriginalDebugTest() {
         item {
             Column {
                 Text(
-                    text = "TableOriginal 调试测试",
+                    text = "TableOriginal 香烟排列测试",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "每行数据作为一个整体烟头卡片渲染，字段在卡片内水平展开",
+                    text = "转置LazyRow渲染，每列作为香烟垂直排列",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // 测试1：深色表头表格（完整功能 + 垂直滚动）
         item {
             Column {
                 Text(
-                    text = "测试1：深色表头表格（整行烟头卡片 + 字段水平展开）",
+                    text = "基本表格示例",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 TableOriginal(
                     columns = columns,
-                    data = currentData,
-                    modifier = Modifier.height(500.dp), // 增加高度以便看到垂直滚动
+                    data = testUsers,
+                    getColumnKey = { it.key },
+                    getColumnLabel = { config ->
+                        Text(
+                            text = config.label,
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = config.color ?: Color.Black
+                        )
+                    },
+                    getCellContent = { user, config ->
+                        // 性能优化：O1时间复杂度从缓存Map中获取值，避免重复序列化
+                        val userMap = userMapsCache[user] ?: emptyMap()
+                        val rawValue = userMap[config.key]
+                        
+                        // 使用formatter格式化值
+                        val displayValue = config.formatter?.invoke(rawValue) ?: rawValue.toString()
+                        
+                        // 使用colorResolver动态计算颜色，避免硬编码if-else
+                        val textColor = config.colorResolver?.invoke(rawValue) 
+                            ?: config.color 
+                            ?: Color.Unspecified
+                        
+                        // 完全配置驱动的通用渲染
+                        Text(
+                            text = displayValue,
+                            style = config.textStyle ?: MaterialTheme.typography.bodyMedium,
+                            color = textColor,
+                            fontWeight = config.fontWeight,
+                            textAlign = config.textAlign ?: TextAlign.Start
+                        )
+                    },
+                    modifier = Modifier.height(500.dp),
+                    slots = tableSlots,
+                    // 每行操作按钮 - 修复操作列问题
+                    rowActions = { user, index ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            IconButton(
+                                onClick = { /* 编辑用户 $user */ },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(Icons.Default.Edit, "编辑", Modifier.size(16.dp))
+                            }
+                            IconButton(
+                                onClick = { /* 删除用户 $user */ },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(Icons.Default.Delete, "删除", Modifier.size(16.dp))
+                            }
+                        }
+                    },
                     headerCardType = MellumCardType.Dark,
                     headerCornerRadius = 12.dp,
-                    headerElevation = 4.dp,
-                    showCheckbox = true,
-                    checkedItems = checkedItems,
-                    onItemChecked = { item, isChecked ->
-                        checkedItems = if (isChecked) {
-                            checkedItems + item
-                        } else {
-                            checkedItems - item
-                        }
-                    },
-                    onHeaderSort = { columnKey ->
-                        sortColumn = columnKey
-                        currentData = when (columnKey) {
-                            "name" -> currentData.sortedBy { it.name }
-                            "age" -> currentData.sortedBy { it.age }
-                            "salary" -> currentData.sortedByDescending { it.salary }
-                            "department" -> currentData.sortedBy { it.department }
-                            "status" -> currentData.sortedBy { it.status }
-                            else -> currentData
-                        }
-                    },
-                    headerBar = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "员工列表 (${currentData.size}人)",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(
-                                    onClick = { /* 添加用户 */ },
-                                    modifier = Modifier.height(32.dp)
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("添加", style = MaterialTheme.typography.labelMedium)
-                                }
-                            }
-                        }
-                    },
-                    headerActions = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            IconButton(onClick = { /* 编辑 */ }) {
-                                Icon(Icons.Default.Edit, contentDescription = "编辑", modifier = Modifier.size(16.dp))
-                            }
-                            IconButton(onClick = { /* 删除 */ }) {
-                                Icon(Icons.Default.Delete, contentDescription = "删除", modifier = Modifier.size(16.dp))
-                            }
-                        }
-                    },
-                    selectContent = {
-                        if (checkedItems.isNotEmpty()) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "已选择 ${checkedItems.size} 项",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        TextButton(onClick = { checkedItems = emptySet() }) {
-                                            Text("清除选择")
-                                        }
-                                        Button(onClick = { /* 批量操作 */ }) {
-                                            Text("批量删除")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    pagination = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "显示 ${currentData.size} 条记录",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                )
-            }
-        }
-
-        // 测试2：浅色表头表格（简化版）
-        item {
-            Column {
-                Text(
-                    text = "测试2：浅色表头表格（整行烟头卡片 + 水平滚动）",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                TableOriginal(
-                    columns = columns, // 显示所有列以测试水平滚动
-                    data = testUsers.take(10),
-                    modifier = Modifier.height(400.dp),
-                    headerCardType = MellumCardType.Light,
-                    headerCornerRadius = 12.dp,
-                    headerBar = {
-                        Text(
-                            text = "简化版员工表（测试水平滚动）",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+                    headerElevation = 4.dp
                 )
             }
         }

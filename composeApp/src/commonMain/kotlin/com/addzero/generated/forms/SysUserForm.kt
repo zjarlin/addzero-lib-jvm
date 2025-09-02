@@ -1,15 +1,36 @@
 package com.addzero.generated.forms
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.selector.AddGenericMultiSelector
-import com.addzero.component.form.text.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.addzero.component.high_level.AddMultiColumnContainer
+import com.addzero.component.drawer.AddDrawer
+import com.addzero.component.form.*
+import com.addzero.component.form.number.AddMoneyField
+import com.addzero.component.form.number.AddNumberField
+import com.addzero.component.form.number.AddIntegerField
+import com.addzero.component.form.number.AddDecimalField
+import com.addzero.component.form.number.AddPercentageField
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.form.text.AddPasswordField
+import com.addzero.component.form.text.AddEmailField
+import com.addzero.component.form.text.AddPhoneField
+import com.addzero.component.form.text.AddUrlField
+import com.addzero.component.form.text.AddUsernameField
+import com.addzero.component.form.text.AddIdCardField
+import com.addzero.component.form.text.AddBankCardField
+import com.addzero.component.form.date.AddDateField
+import com.addzero.component.form.date.DateType
+import com.addzero.component.form.switch.AddSwitchField
+import com.addzero.component.form.selector.AddGenericSingleSelector
+import com.addzero.component.form.selector.AddGenericMultiSelector
 import com.addzero.core.ext.parseObjectByKtx
+import com.addzero.core.validation.RegexEnum
+import com.addzero.generated.isomorphic.*
 import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-import com.addzero.generated.isomorphic.SysDeptIso
-import com.addzero.generated.isomorphic.SysRoleIso
-import com.addzero.generated.isomorphic.SysUserIso
+            import com.addzero.generated.enums.*
 
 
 /**
@@ -156,7 +177,7 @@ fun SysUserFormOriginal(
                 dataProvider = { dataList },
                 getId = { it.id ?: 0L },
                 getLabel = { it.name ?: "" },
-                getChildren = { it.children ?: emptyList() }
+                getChildren = { it.children?:emptyList() }
             )
         },
         SysUserFormProps.roles to {
@@ -179,8 +200,8 @@ fun SysUserFormOriginal(
                 dataProvider = { dataList },
                 getId = { it.id ?: 0L },
                 getLabel = { it.roleName ?: "" },
-
-                )
+                
+            )
         }
     )
 
@@ -243,12 +264,10 @@ class SysUserFormDsl(
                 hiddenFields.add("phone")
                 renderMap.remove("phone")
             }
-
             render != null -> {
                 hiddenFields.remove("phone")
                 renderMap["phone"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("phone")
                 renderMap.remove("phone")
@@ -277,12 +296,10 @@ class SysUserFormDsl(
                 hiddenFields.add("email")
                 renderMap.remove("email")
             }
-
             render != null -> {
                 hiddenFields.remove("email")
                 renderMap["email"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("email")
                 renderMap.remove("email")
@@ -311,12 +328,10 @@ class SysUserFormDsl(
                 hiddenFields.add("username")
                 renderMap.remove("username")
             }
-
             render != null -> {
                 hiddenFields.remove("username")
                 renderMap["username"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("username")
                 renderMap.remove("username")
@@ -345,12 +360,10 @@ class SysUserFormDsl(
                 hiddenFields.add("password")
                 renderMap.remove("password")
             }
-
             render != null -> {
                 hiddenFields.remove("password")
                 renderMap["password"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("password")
                 renderMap.remove("password")
@@ -379,12 +392,10 @@ class SysUserFormDsl(
                 hiddenFields.add("avatar")
                 renderMap.remove("avatar")
             }
-
             render != null -> {
                 hiddenFields.remove("avatar")
                 renderMap["avatar"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("avatar")
                 renderMap.remove("avatar")
@@ -413,12 +424,10 @@ class SysUserFormDsl(
                 hiddenFields.add("nickname")
                 renderMap.remove("nickname")
             }
-
             render != null -> {
                 hiddenFields.remove("nickname")
                 renderMap["nickname"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("nickname")
                 renderMap.remove("nickname")
@@ -447,12 +456,10 @@ class SysUserFormDsl(
                 hiddenFields.add("gender")
                 renderMap.remove("gender")
             }
-
             render != null -> {
                 hiddenFields.remove("gender")
                 renderMap["gender"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("gender")
                 renderMap.remove("gender")
@@ -481,12 +488,10 @@ class SysUserFormDsl(
                 hiddenFields.add("depts")
                 renderMap.remove("depts")
             }
-
             render != null -> {
                 hiddenFields.remove("depts")
                 renderMap["depts"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("depts")
                 renderMap.remove("depts")
@@ -515,12 +520,10 @@ class SysUserFormDsl(
                 hiddenFields.add("roles")
                 renderMap.remove("roles")
             }
-
             render != null -> {
                 hiddenFields.remove("roles")
                 renderMap["roles"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("roles")
                 renderMap.remove("roles")
