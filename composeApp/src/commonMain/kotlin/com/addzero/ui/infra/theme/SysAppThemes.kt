@@ -28,7 +28,7 @@ data class GradientConfig(
  */
 @Deprecated(
     message = "改用字典",
-    replaceWith =ReplaceWith("EnumSysTheme")
+    replaceWith = ReplaceWith("EnumSysTheme")
 )
 enum class AppThemeType {
     LIGHT_DEFAULT,

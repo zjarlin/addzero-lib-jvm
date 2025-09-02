@@ -20,9 +20,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.addzero.component.text.BeautifulText
 import com.addzero.generated.isomorphic.SysFavoriteTabIso
-import com.addzero.settings.SettingContext4Compose
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
 import com.addzero.ui.infra.model.menu.MenuViewModel
 import com.addzero.ui.infra.theme.ThemeViewModel

@@ -55,7 +55,7 @@ class SysDictViewModel : ViewModel() {
             val result = ApiProvider.sysDictApi.querydict(keyword)
             dicts = result
             if (selectedDict == null) {
-            selectedDict = dicts.firstOrNull()
+                selectedDict = dicts.firstOrNull()
             }
         }
     }

@@ -9,8 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.addzero.component.button.AddButton
-import com.addzero.component.high_level.AddLazyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

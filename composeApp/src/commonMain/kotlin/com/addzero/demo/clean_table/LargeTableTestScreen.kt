@@ -85,7 +85,7 @@ data class TestRowData(
  * 双向滚动表格组件
  */
 @Composable
-fun <T,C> BidirectionalScrollTable(
+fun <T, C> BidirectionalScrollTable(
     data: List<T>,
     columns: List<C>,
     modifier: Modifier = Modifier,

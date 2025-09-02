@@ -1,36 +1,16 @@
 package com.addzero.generated.forms
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.addzero.component.high_level.AddMultiColumnContainer
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.*
-import com.addzero.component.form.number.AddMoneyField
-import com.addzero.component.form.number.AddNumberField
 import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.number.AddDecimalField
-import com.addzero.component.form.number.AddPercentageField
+import com.addzero.component.form.number.AddMoneyField
 import com.addzero.component.form.text.AddTextField
-import com.addzero.component.form.text.AddPasswordField
-import com.addzero.component.form.text.AddEmailField
-import com.addzero.component.form.text.AddPhoneField
-import com.addzero.component.form.text.AddUrlField
-import com.addzero.component.form.text.AddUsernameField
-import com.addzero.component.form.text.AddIdCardField
-import com.addzero.component.form.text.AddBankCardField
-import com.addzero.component.form.date.AddDateField
-import com.addzero.component.form.date.DateType
-import com.addzero.component.form.switch.AddSwitchField
-import com.addzero.component.form.selector.AddGenericSingleSelector
-import com.addzero.component.form.selector.AddGenericMultiSelector
+import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.core.validation.RegexEnum
-import com.addzero.generated.isomorphic.*
-import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-            import com.addzero.generated.enums.*
+import com.addzero.generated.isomorphic.SysMenuIso
 
 
 /**
@@ -194,10 +174,12 @@ class SysMenuFormDsl(
                 hiddenFields.add("parentId")
                 renderMap.remove("parentId")
             }
+
             render != null -> {
                 hiddenFields.remove("parentId")
                 renderMap["parentId"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("parentId")
                 renderMap.remove("parentId")
@@ -226,10 +208,12 @@ class SysMenuFormDsl(
                 hiddenFields.add("title")
                 renderMap.remove("title")
             }
+
             render != null -> {
                 hiddenFields.remove("title")
                 renderMap["title"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("title")
                 renderMap.remove("title")
@@ -258,10 +242,12 @@ class SysMenuFormDsl(
                 hiddenFields.add("routePath")
                 renderMap.remove("routePath")
             }
+
             render != null -> {
                 hiddenFields.remove("routePath")
                 renderMap["routePath"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("routePath")
                 renderMap.remove("routePath")
@@ -290,10 +276,12 @@ class SysMenuFormDsl(
                 hiddenFields.add("icon")
                 renderMap.remove("icon")
             }
+
             render != null -> {
                 hiddenFields.remove("icon")
                 renderMap["icon"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("icon")
                 renderMap.remove("icon")
@@ -322,10 +310,12 @@ class SysMenuFormDsl(
                 hiddenFields.add("order")
                 renderMap.remove("order")
             }
+
             render != null -> {
                 hiddenFields.remove("order")
                 renderMap["order"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("order")
                 renderMap.remove("order")

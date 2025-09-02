@@ -1,11 +1,13 @@
 package com.addzero.component.table
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,45 +19,41 @@ import com.addzero.component.drawer.AddDrawer
 import com.addzero.component.dropdown.AddDropdownSelector
 import com.addzero.component.form.DynamicFormItem
 import com.addzero.component.high_level.AddTooltipBox
-import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.component.table.clean.AddCleanTableViewModel
 import com.addzero.component.table.pagination.AddTablePagination
-import com.addzero.component.table.row.TableRowImpl
 import com.addzero.component.table.viewmodel.*
 import com.addzero.entity.low_table.EnumLogicOperator
 import com.addzero.entity.low_table.EnumSearchOperator
 import com.addzero.entity.low_table.EnumSortDirection
-import kotlin.collections.plus
 
 @Composable
-context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<T>) fun <T> RenderButtons() {
+context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderButtons() {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         tableViewModel.buttonSlot()
         // 多选模式按钮
-        _root_ide_package_.com.addzero.component.button.AddIconButton(
-            text = if (tableViewModel.enableEditMode) "退出多选" else "多选",
-            imageVector = if (tableViewModel.enableEditMode) Icons.Default.Deselect else Icons.Default.SelectAll
+        AddIconButton(
+            text = if (tableViewModel.enableEditMode) "退出多选" else "多选", imageVector = if (tableViewModel.enableEditMode) Icons.Default.Deselect else Icons.Default.SelectAll
         ) {
             tableViewModel.enableEditMode = !tableViewModel.enableEditMode
         }
         // 新增按钮
-        _root_ide_package_.com.addzero.component.button.AddIconButton(
+        AddIconButton(
             text = "新增"
         ) {
             tableViewModel.onSaveClick()
         }
 
         // 导入按钮
-        _root_ide_package_.com.addzero.component.button.AddIconButton(
+        AddIconButton(
             text = "导入", imageVector = Icons.Default.UploadFile
         ) {
             tableViewModel.onImportClick()
         }
 
         // 导出按钮
-        _root_ide_package_.com.addzero.component.button.AddIconButton(
+        AddIconButton(
             text = "导出", imageVector = Icons.Default.DownloadForOffline
         ) {
             tableViewModel.onExportClick()
@@ -66,23 +64,19 @@ context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel
 
 
 @Composable
-context(addCleanTableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<*>)
-fun <C> RenderSort(column: C, getColumnKey: (C) -> String) {
+context(addCleanTableViewModel: AddCleanTableViewModel<*>) fun <C> RenderSort(column: C, getColumnKey: (C) -> String) {
     val columnKey = getColumnKey(column)
-    val sortDirection = _root_ide_package_.com.addzero.assist.getSortDirection(columnKey, addCleanTableViewModel._sortState)
+    val sortDirection = getSortDirection(columnKey, addCleanTableViewModel._sortState)
     val (text, icon) = when (sortDirection) {
         EnumSortDirection.ASC -> "升序" to Icons.Default.ArrowUpward
         EnumSortDirection.DESC -> "降序" to Icons.Default.ArrowDownward
         else -> "默认" to Icons.AutoMirrored.Filled.Sort
     }
 
-    _root_ide_package_.com.addzero.component.button.AddIconButton(
-        text = text,
-        imageVector = icon,
-        tint = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.size(16.dp)
+    AddIconButton(
+        text = text, imageVector = icon, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp)
     ) {
-        _root_ide_package_.com.addzero.component.table.viewmodel.changeSorting(columnKey)
+        changeSorting(columnKey)
     }
 }
 
@@ -153,11 +147,11 @@ fun <C> RenderSort(column: C, getColumnKey: (C) -> String) {
 //}
 
 @Composable
-context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<T>) private fun <T> RenderAdvSearchDrawer() {
+context(tableViewModel: AddCleanTableViewModel<T>) private fun <T> RenderAdvSearchDrawer() {
     if (!tableViewModel.showAdvancedSearch) {
         return
     }
-    _root_ide_package_.com.addzero.component.drawer.AddDrawer(
+    AddDrawer(
         visible = tableViewModel.showFieldAdvSearch,
         title = "高级搜索",
         onClose = { tableViewModel.showFieldAdvSearch = false },
@@ -169,13 +163,12 @@ context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel
     ) {
         Column {
             // 逻辑操作符下拉选择
-            _root_ide_package_.com.addzero.component.dropdown.AddDropdownSelector(
+            AddDropdownSelector(
                 title = "逻辑符",
                 options = EnumLogicOperator.entries,
                 getLabel = { it.displayName },
                 onValueChange = {
-                    tableViewModel._currentStateSearch =
-                        tableViewModel._currentStateSearch.copy(logicType = it ?: EnumLogicOperator.AND)
+                    tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(logicType = it ?: EnumLogicOperator.AND)
                 },
             )
 
@@ -183,24 +176,17 @@ context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel
 
 
             // 操作符下拉选择
-            _root_ide_package_.com.addzero.component.dropdown.AddDropdownSelector(
-                title = "操作符",
-                options = EnumSearchOperator.entries,
-                getLabel = { it.displayName },
-                initialValue = EnumSearchOperator.LIKE,
-                onValueChange = {
-                    tableViewModel._currentStateSearch =
-                        tableViewModel._currentStateSearch.copy(operator = it ?: EnumSearchOperator.LIKE)
-                })
+            AddDropdownSelector(title = "操作符", options = EnumSearchOperator.entries, getLabel = { it.displayName }, initialValue = EnumSearchOperator.LIKE, onValueChange = {
+                tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(operator = it ?: EnumSearchOperator.LIKE)
+            })
 
             Spacer(modifier = Modifier.height(12.dp))
 
 
             // 输入框
-            _root_ide_package_.com.addzero.component.form.DynamicFormItem(
+            DynamicFormItem(
                 value = tableViewModel._currentStateSearch.columnValue, onValueChange = {
-                    tableViewModel._currentStateSearch =
-                        tableViewModel._currentStateSearch.copy(columnValue = it)
+                    tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(columnValue = it)
 
                 }, title = tableViewModel.currentColumnLabel, kmpType = tableViewModel.currentColumnKmpType.toString()
             )
@@ -209,7 +195,7 @@ context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel
 
 
 
-            _root_ide_package_.com.addzero.component.button.AddIconButton(
+            AddIconButton(
                 text = "清除条件", imageVector = Icons.Default.Close,
                 onClick = { tableViewModel._filterStateMap.toMutableMap().remove(tableViewModel.currentColumnKey) },
             )
@@ -218,27 +204,19 @@ context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel
 }
 
 @Composable
-context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<T>) private fun <T> RenderPagination() {
+context(tableViewModel: AddCleanTableViewModel<T>) private fun <T> RenderPagination() {
 
     if (tableViewModel.showPagination) {
-        _root_ide_package_.com.addzero.component.table.pagination.AddTablePagination(
-            statePagination = tableViewModel._pageState,
-            enablePagination = true,
-            onPageSizeChange = {
-                _root_ide_package_.com.addzero.component.table.viewmodel.setPageSize(it)
-            },
-            onGoFirstPage = {
-                _root_ide_package_.com.addzero.component.table.viewmodel.goToFirstPage()
+        AddTablePagination(
+            statePagination = tableViewModel._pageState, enablePagination = true, onPageSizeChange = {
+                setPageSize(it)
+            }, onGoFirstPage = {
+                goToFirstPage()
                 tableViewModel.queryPage()
-            },
-            onPreviousPage = { _root_ide_package_.com.addzero.component.table.viewmodel.goToPreviousPage() },
-            onGoToPage = { _root_ide_package_.com.addzero.component.table.viewmodel.goToPage(it) },
-            onNextPage = { _root_ide_package_.com.addzero.component.table.viewmodel.goToNextPage() },
-            onGoLastPage = {
-                _root_ide_package_.com.addzero.component.table.viewmodel.goToLastPage()
+            }, onPreviousPage = { goToPreviousPage() }, onGoToPage = { goToPage(it) }, onNextPage = { goToNextPage() }, onGoLastPage = {
+                goToLastPage()
                 tableViewModel.queryPage()
-            },
-            cardType = _root_ide_package_.com.addzero.component.card.MellumCardType.Companion.Light,
+            }, cardType = MellumCardType.Light,
             //是否开启分页
             compactMode = true
         )
@@ -246,19 +224,14 @@ context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel
 }
 
 
-
-
 @Composable
-context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<T>)
-private fun <T> RenderSelectContent() {
+context(tableViewModel: AddCleanTableViewModel<T>) private fun <T> RenderSelectContent() {
     if (tableViewModel.enableEditMode && tableViewModel._selectedItemIds.isNotEmpty()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically
         ) {
 
-            _root_ide_package_.com.addzero.component.button.AddIconButton(text = "清除已选择的", imageVector = Icons.Default.Close) {
+            AddIconButton(text = "清除已选择的", imageVector = Icons.Default.Close) {
                 tableViewModel._selectedItemIds = emptySet()
             }
 
@@ -278,23 +251,19 @@ private fun <T> RenderSelectContent() {
 }
 
 @Composable
-context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<T>)
-fun <T> RenderCheckbox() {
+context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderCheckbox() {
     if (!tableViewModel.enableEditMode) {
         return
     }
     val pageIds = tableViewModel.currentPageIds
-    _root_ide_package_.com.addzero.component.high_level.AddTooltipBox("全选") {
+    AddTooltipBox("全选") {
         Box(
-            modifier = Modifier.padding(horizontal = 4.dp).width(40.dp),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.padding(horizontal = 4.dp).width(40.dp), contentAlignment = Alignment.Center
         ) {
             Checkbox(
-                checked = _root_ide_package_.com.addzero.component.table.viewmodel.isPageAllSelected(pageIds),
-                onCheckedChange = {
-                    _root_ide_package_.com.addzero.component.table.viewmodel.togglePageSelection(pageIds = pageIds)
-                }
-            )
+                checked = isPageAllSelected(pageIds), onCheckedChange = {
+                    togglePageSelection(pageIds = pageIds)
+                })
         }
     }
 }

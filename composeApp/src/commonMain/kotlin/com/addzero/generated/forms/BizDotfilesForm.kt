@@ -1,36 +1,18 @@
 package com.addzero.generated.forms
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.addzero.component.high_level.AddMultiColumnContainer
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.*
-import com.addzero.component.form.number.AddMoneyField
-import com.addzero.component.form.number.AddNumberField
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.number.AddDecimalField
-import com.addzero.component.form.number.AddPercentageField
-import com.addzero.component.form.text.AddTextField
-import com.addzero.component.form.text.AddPasswordField
-import com.addzero.component.form.text.AddEmailField
-import com.addzero.component.form.text.AddPhoneField
-import com.addzero.component.form.text.AddUrlField
-import com.addzero.component.form.text.AddUsernameField
-import com.addzero.component.form.text.AddIdCardField
-import com.addzero.component.form.text.AddBankCardField
-import com.addzero.component.form.date.AddDateField
-import com.addzero.component.form.date.DateType
-import com.addzero.component.form.switch.AddSwitchField
-import com.addzero.component.form.selector.AddGenericSingleSelector
 import com.addzero.component.form.selector.AddGenericMultiSelector
+import com.addzero.component.form.selector.AddGenericSingleSelector
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.form.text.AddUrlField
+import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.core.validation.RegexEnum
-import com.addzero.generated.isomorphic.*
-import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-            import com.addzero.generated.enums.*
+import com.addzero.generated.enums.EnumShellPlatforms
+import com.addzero.generated.isomorphic.BizDotfilesIso
 
 
 /**
@@ -94,9 +76,9 @@ fun BizDotfilesFormOriginal(
                 dataProvider = { emptyList<String>() }, // 需要根据具体类型提供数据
                 getId = { it.toString() },
                 getLabel = { it.toString() },
-                
-                
-            )
+
+
+                )
         },
         BizDotfilesFormProps.osStructure to {
             AddGenericSingleSelector(
@@ -239,10 +221,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("osType")
                 renderMap.remove("osType")
             }
+
             render != null -> {
                 hiddenFields.remove("osType")
                 renderMap["osType"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("osType")
                 renderMap.remove("osType")
@@ -271,10 +255,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("osStructure")
                 renderMap.remove("osStructure")
             }
+
             render != null -> {
                 hiddenFields.remove("osStructure")
                 renderMap["osStructure"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("osStructure")
                 renderMap.remove("osStructure")
@@ -303,10 +289,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("defType")
                 renderMap.remove("defType")
             }
+
             render != null -> {
                 hiddenFields.remove("defType")
                 renderMap["defType"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("defType")
                 renderMap.remove("defType")
@@ -335,10 +323,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("name")
                 renderMap.remove("name")
             }
+
             render != null -> {
                 hiddenFields.remove("name")
                 renderMap["name"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("name")
                 renderMap.remove("name")
@@ -367,10 +357,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("value")
                 renderMap.remove("value")
             }
+
             render != null -> {
                 hiddenFields.remove("value")
                 renderMap["value"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("value")
                 renderMap.remove("value")
@@ -399,10 +391,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("describtion")
                 renderMap.remove("describtion")
             }
+
             render != null -> {
                 hiddenFields.remove("describtion")
                 renderMap["describtion"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("describtion")
                 renderMap.remove("describtion")
@@ -431,10 +425,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("status")
                 renderMap.remove("status")
             }
+
             render != null -> {
                 hiddenFields.remove("status")
                 renderMap["status"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("status")
                 renderMap.remove("status")
@@ -463,10 +459,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("fileUrl")
                 renderMap.remove("fileUrl")
             }
+
             render != null -> {
                 hiddenFields.remove("fileUrl")
                 renderMap["fileUrl"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("fileUrl")
                 renderMap.remove("fileUrl")
@@ -495,10 +493,12 @@ class BizDotfilesFormDsl(
                 hiddenFields.add("location")
                 renderMap.remove("location")
             }
+
             render != null -> {
                 hiddenFields.remove("location")
                 renderMap["location"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("location")
                 renderMap.remove("location")

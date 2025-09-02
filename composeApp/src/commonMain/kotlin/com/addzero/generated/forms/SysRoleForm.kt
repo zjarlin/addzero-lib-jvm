@@ -1,36 +1,15 @@
 package com.addzero.generated.forms
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.*
-import com.addzero.component.form.number.AddMoneyField
-import com.addzero.component.form.number.AddNumberField
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.number.AddDecimalField
-import com.addzero.component.form.number.AddPercentageField
-import com.addzero.component.form.text.AddTextField
-import com.addzero.component.form.text.AddPasswordField
-import com.addzero.component.form.text.AddEmailField
-import com.addzero.component.form.text.AddPhoneField
-import com.addzero.component.form.text.AddUrlField
-import com.addzero.component.form.text.AddUsernameField
-import com.addzero.component.form.text.AddIdCardField
-import com.addzero.component.form.text.AddBankCardField
-import com.addzero.component.form.date.AddDateField
-import com.addzero.component.form.date.DateType
-import com.addzero.component.form.switch.AddSwitchField
-import com.addzero.component.form.selector.AddGenericSingleSelector
 import com.addzero.component.form.selector.AddGenericMultiSelector
+import com.addzero.component.form.switch.AddSwitchField
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.core.validation.RegexEnum
-import com.addzero.generated.isomorphic.*
 import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-            import com.addzero.generated.enums.*
+import com.addzero.generated.isomorphic.SysRoleIso
+import com.addzero.generated.isomorphic.SysUserIso
 
 
 /**
@@ -139,8 +118,8 @@ fun SysRoleFormOriginal(
                 dataProvider = { dataList },
                 getId = { it.id ?: 0L },
                 getLabel = { it.email ?: "" },
-                
-            )
+
+                )
         }
     )
 
@@ -203,10 +182,12 @@ class SysRoleFormDsl(
                 hiddenFields.add("roleCode")
                 renderMap.remove("roleCode")
             }
+
             render != null -> {
                 hiddenFields.remove("roleCode")
                 renderMap["roleCode"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("roleCode")
                 renderMap.remove("roleCode")
@@ -235,10 +216,12 @@ class SysRoleFormDsl(
                 hiddenFields.add("roleName")
                 renderMap.remove("roleName")
             }
+
             render != null -> {
                 hiddenFields.remove("roleName")
                 renderMap["roleName"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("roleName")
                 renderMap.remove("roleName")
@@ -267,10 +250,12 @@ class SysRoleFormDsl(
                 hiddenFields.add("systemFlag")
                 renderMap.remove("systemFlag")
             }
+
             render != null -> {
                 hiddenFields.remove("systemFlag")
                 renderMap["systemFlag"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("systemFlag")
                 renderMap.remove("systemFlag")
@@ -299,10 +284,12 @@ class SysRoleFormDsl(
                 hiddenFields.add("status")
                 renderMap.remove("status")
             }
+
             render != null -> {
                 hiddenFields.remove("status")
                 renderMap["status"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("status")
                 renderMap.remove("status")
@@ -331,10 +318,12 @@ class SysRoleFormDsl(
                 hiddenFields.add("sysUsers")
                 renderMap.remove("sysUsers")
             }
+
             render != null -> {
                 hiddenFields.remove("sysUsers")
                 renderMap["sysUsers"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("sysUsers")
                 renderMap.remove("sysUsers")

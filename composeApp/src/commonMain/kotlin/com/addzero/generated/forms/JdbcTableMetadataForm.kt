@@ -1,36 +1,14 @@
 package com.addzero.generated.forms
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.*
-import com.addzero.component.form.number.AddMoneyField
-import com.addzero.component.form.number.AddNumberField
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.number.AddDecimalField
-import com.addzero.component.form.number.AddPercentageField
-import com.addzero.component.form.text.AddTextField
-import com.addzero.component.form.text.AddPasswordField
-import com.addzero.component.form.text.AddEmailField
-import com.addzero.component.form.text.AddPhoneField
-import com.addzero.component.form.text.AddUrlField
-import com.addzero.component.form.text.AddUsernameField
-import com.addzero.component.form.text.AddIdCardField
-import com.addzero.component.form.text.AddBankCardField
-import com.addzero.component.form.date.AddDateField
-import com.addzero.component.form.date.DateType
-import com.addzero.component.form.switch.AddSwitchField
-import com.addzero.component.form.selector.AddGenericSingleSelector
 import com.addzero.component.form.selector.AddGenericMultiSelector
+import com.addzero.component.form.text.AddTextField
+import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.core.validation.RegexEnum
-import com.addzero.generated.isomorphic.*
 import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-            import com.addzero.generated.enums.*
+import com.addzero.generated.isomorphic.JdbcColumnMetadataIso
+import com.addzero.generated.isomorphic.JdbcTableMetadataIso
 
 
 /**
@@ -142,8 +120,8 @@ fun JdbcTableMetadataFormOriginal(
                 dataProvider = { dataList },
                 getId = { it.id ?: 0L },
                 getLabel = { it.columnName ?: "" },
-                
-            )
+
+                )
         }
     )
 
@@ -206,10 +184,12 @@ class JdbcTableMetadataFormDsl(
                 hiddenFields.add("tableName")
                 renderMap.remove("tableName")
             }
+
             render != null -> {
                 hiddenFields.remove("tableName")
                 renderMap["tableName"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("tableName")
                 renderMap.remove("tableName")
@@ -238,10 +218,12 @@ class JdbcTableMetadataFormDsl(
                 hiddenFields.add("schemaName")
                 renderMap.remove("schemaName")
             }
+
             render != null -> {
                 hiddenFields.remove("schemaName")
                 renderMap["schemaName"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("schemaName")
                 renderMap.remove("schemaName")
@@ -270,10 +252,12 @@ class JdbcTableMetadataFormDsl(
                 hiddenFields.add("tableType")
                 renderMap.remove("tableType")
             }
+
             render != null -> {
                 hiddenFields.remove("tableType")
                 renderMap["tableType"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("tableType")
                 renderMap.remove("tableType")
@@ -302,10 +286,12 @@ class JdbcTableMetadataFormDsl(
                 hiddenFields.add("remarks")
                 renderMap.remove("remarks")
             }
+
             render != null -> {
                 hiddenFields.remove("remarks")
                 renderMap["remarks"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("remarks")
                 renderMap.remove("remarks")
@@ -334,10 +320,12 @@ class JdbcTableMetadataFormDsl(
                 hiddenFields.add("columns")
                 renderMap.remove("columns")
             }
+
             render != null -> {
                 hiddenFields.remove("columns")
                 renderMap["columns"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("columns")
                 renderMap.remove("columns")

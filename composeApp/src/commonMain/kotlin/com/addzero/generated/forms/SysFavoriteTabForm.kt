@@ -1,36 +1,14 @@
 package com.addzero.generated.forms
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.addzero.component.high_level.AddMultiColumnContainer
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.form.*
-import com.addzero.component.form.number.AddMoneyField
-import com.addzero.component.form.number.AddNumberField
-import com.addzero.component.form.number.AddIntegerField
-import com.addzero.component.form.number.AddDecimalField
-import com.addzero.component.form.number.AddPercentageField
 import com.addzero.component.form.text.AddTextField
-import com.addzero.component.form.text.AddPasswordField
-import com.addzero.component.form.text.AddEmailField
-import com.addzero.component.form.text.AddPhoneField
-import com.addzero.component.form.text.AddUrlField
-import com.addzero.component.form.text.AddUsernameField
-import com.addzero.component.form.text.AddIdCardField
-import com.addzero.component.form.text.AddBankCardField
-import com.addzero.component.form.date.AddDateField
-import com.addzero.component.form.date.DateType
-import com.addzero.component.form.switch.AddSwitchField
-import com.addzero.component.form.selector.AddGenericSingleSelector
-import com.addzero.component.form.selector.AddGenericMultiSelector
+import com.addzero.component.high_level.AddMultiColumnContainer
 import com.addzero.core.ext.parseObjectByKtx
-import com.addzero.core.validation.RegexEnum
-import com.addzero.generated.isomorphic.*
-import com.addzero.generated.forms.dataprovider.Iso2DataProvider
-            import com.addzero.generated.enums.*
+import com.addzero.generated.isomorphic.SysFavoriteTabIso
 
 
 /**
@@ -149,10 +127,12 @@ class SysFavoriteTabFormDsl(
                 hiddenFields.add("routeKey")
                 renderMap.remove("routeKey")
             }
+
             render != null -> {
                 hiddenFields.remove("routeKey")
                 renderMap["routeKey"] = { render(state) }
             }
+
             else -> {
                 hiddenFields.remove("routeKey")
                 renderMap.remove("routeKey")

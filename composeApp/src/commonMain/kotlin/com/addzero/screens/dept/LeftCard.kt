@@ -2,9 +2,6 @@ package com.addzero.screens.dept
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import com.addzero.component.button.AddIconButton
-import com.addzero.component.search_bar.AddSearchBar
-import com.addzero.component.tree.AddTree
 import com.addzero.generated.isomorphic.SysDeptIso
 import com.addzero.viewmodel.SysDeptViewModel
 

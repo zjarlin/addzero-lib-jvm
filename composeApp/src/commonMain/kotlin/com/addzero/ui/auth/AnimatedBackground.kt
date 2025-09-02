@@ -4,7 +4,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,9 +46,6 @@ fun AnimatedBackground(
         colorScheme.secondaryContainer.copy(alpha = 0.4f),
         colorScheme.tertiary.copy(alpha = 0.5f)
     )
-
-
-
 
 
     // Animate gradient angle
