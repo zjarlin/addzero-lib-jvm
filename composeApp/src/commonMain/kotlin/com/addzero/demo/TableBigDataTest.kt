@@ -16,8 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.button.AddEditDeleteButton
-import com.addzero.component.table.TableOriginal
-import com.addzero.component.table.TableSlots
+import com.addzero.component.table.original.TableOriginal
+import com.addzero.component.table.original.TableSlots
 import com.addzero.core.ext.toMap
 import kotlinx.serialization.Serializable
 

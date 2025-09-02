@@ -1,4 +1,4 @@
-package com.addzero.component.table
+package com.addzero.component.table.original
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.addzero.component.card.AddCard
 import com.addzero.component.card.MellumCardType
+import kotlinx.coroutines.delay
 
 /**
  * 表格组件 - 单一LazyColumn行虚拟化架构
@@ -141,7 +142,7 @@ private fun <T, C> rememberAsyncColumnWidths(
         key3 = params.config
     ) {
         // 异步计算列宽，不阻塞主线程
-        kotlinx.coroutines.delay(1) // 让出主线程
+        delay(1) // 让出主线程
 
         val calculatedWidths = params.columns.associate { column ->
             params.getColumnKey(column) to run {
@@ -181,7 +182,7 @@ private fun <T, C> rememberAsyncColumnWidths(
 @Composable
 private fun rememberVisibleItemsInfo(
     scrollState: LazyListState
-): State<List<androidx.compose.foundation.lazy.LazyListItemInfo>> {
+): State<List<LazyListItemInfo>> {
     return remember {
         derivedStateOf {
             scrollState.layoutInfo.visibleItemsInfo

@@ -96,7 +96,7 @@ fun AddSearchBar(
             supportingText = null // 移除底部提示文本以保持高度一致
         )
 
-        _root_ide_package_.com.addzero.component.button.AddIconButton(text = "刷新", imageVector = Icons.Default.Refresh, onClick = onSearch)
+        AddIconButton(text = "刷新", imageVector = Icons.Default.Refresh, onClick = onSearch)
         rightSloat()
     }
 }

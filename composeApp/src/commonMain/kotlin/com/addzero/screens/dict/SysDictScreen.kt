@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.high_level.AddDoubleCardLayout
-import com.addzero.component.search.AddSearchBar
+import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.compose.icons.IconKeys
 import com.addzero.generated.forms.SysDictForm
 import com.addzero.generated.forms.SysDictItemForm

@@ -1,4 +1,4 @@
-package com.addzero.component.table
+package com.addzero.component.table.original
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
