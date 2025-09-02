@@ -179,6 +179,7 @@ fun TableOriginalDebugTest() {
                     columns = columns,
                     data = testUsers,
                     getColumnKey = { it.key },
+                    getRowId = { it.id },
                     getColumnLabel = { config ->
                         Text(
                             text = config.label,

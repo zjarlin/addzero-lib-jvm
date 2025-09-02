@@ -213,6 +213,7 @@ fun TableBigDataTest() {
                 columns = bigColumns,
                 data = bigDataSet,
                 getColumnKey = { it.key },
+                getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
                 getColumnLabel = { config ->
                     Text(
                         text = config.label,
