@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.addzero.component.card.AddCard
 import com.addzero.component.card.MellumCardType
+import com.addzero.core.ext.toMap
 import kotlinx.coroutines.delay
 
 /**
@@ -28,27 +29,52 @@ import kotlinx.coroutines.delay
  * 解决多LazyColumn滚动不同步问题，支持大数据量和多字段
  */
 @Composable
-fun <T, C> TableOriginal(
+inline fun <reified T, C> TableOriginal(
     columns: List<C>,
     data: List<T>,
-    getColumnKey: (C) -> String,
-    getColumnLabel: @Composable (C) -> Unit,
-    getCellContent: @Composable (item: T, column: C) -> Unit,
-    getRowId: (T) -> Any,
+    noinline getColumnKey: (C) -> String,
+    noinline getColumnLabel: @Composable (C) -> Unit,
+    noinline getCellContent: @Composable ((item: T, column: C) -> Unit)?=null,
+    noinline getRowId: (T) -> Any,
     modifier: Modifier = Modifier,
     config: TableConfig<C> = TableConfig(),
     slots: TableSlots<T> = TableSlots()
 ) {
+    // 性能缓存 - 预计算Map转换
+    val dataMapsCache by remember {
+        derivedStateOf {
+            data.associateWith { it!!.toMap() }
+        }
+    }
+    val newCellConten by remember {
+        derivedStateOf {
+            getCellContent ?: @Composable { item, column ->
+                val itemMap = dataMapsCache[item] ?: emptyMap()
+                val columnKey = getColumnKey(column)
+                val value = itemMap[columnKey]
+                Text(
+                    text = value.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+
+            }
+        }
+    }
+
+
     val params = TableParams(
         columns = columns,
         data = data,
         getColumnKey = getColumnKey,
         getColumnLabel = getColumnLabel,
-        getCellContent = getCellContent,
+        getCellContent = newCellConten,
         getRowId = getRowId,
         config = config,
         slots = slots
     )
+
 
     val tableState = rememberTableState(params)
 
@@ -101,7 +127,7 @@ data class TableParams<T, C>(
 )
 
 @Composable
-private fun <T, C> rememberTableState(
+fun <T, C> rememberTableState(
     params: TableParams<T, C>
 ): TableState<T, C> {
     val horizontalScrollState = rememberScrollState()
@@ -194,7 +220,7 @@ private fun rememberVisibleItemsInfo(
  * 表格布局管理器 - 负责整体布局结构
  */
 @Composable
-private fun <T, C> TableLayout(
+fun <T, C> TableLayout(
     tableState: TableState<T, C>,
     params: TableParams<T, C>,
     modifier: Modifier = Modifier

@@ -1,4 +1,4 @@
-//package com.addzero.component.table
+//package com.addzero.component.table.biz
 //
 //import androidx.compose.foundation.layout.*
 //import androidx.compose.material.icons.Icons
@@ -7,19 +7,19 @@
 //import androidx.compose.material3.Checkbox
 //import androidx.compose.material3.MaterialTheme
 //import androidx.compose.material3.Text
-//import com.addzero.component.button.AddButton
 //import androidx.compose.runtime.Composable
 //import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Modifier
 //import androidx.compose.ui.unit.dp
-//import com.addzero.component.search_bar.AddSearchBar
 //import com.addzero.assist.getSortDirection
+//import com.addzero.component.button.AddButton
 //import com.addzero.component.button.AddIconButton
 //import com.addzero.component.card.MellumCardType
 //import com.addzero.component.drawer.AddDrawer
 //import com.addzero.component.dropdown.AddDropdownSelector
 //import com.addzero.component.form.DynamicFormItem
 //import com.addzero.component.high_level.AddTooltipBox
+//import com.addzero.component.search_bar.AddSearchBar
 //import com.addzero.component.table.clean.AddCleanTableViewModel
 //import com.addzero.component.table.original.TableConfig
 //import com.addzero.component.table.original.TableOriginal
@@ -30,34 +30,6 @@
 //import com.addzero.entity.low_table.EnumSearchOperator
 //import com.addzero.entity.low_table.EnumSortDirection
 //
-//@Composable
-//fun <T,C>BizTable(
-//    columns: List<C>,
-//    data: List<T>,
-//    getColumnKey: (C) -> String,
-//    getColumnLabel: @Composable (C) -> Unit,
-//    getCellContent: @Composable (item: T, column: C) -> Unit,
-//    getRowId: (T) -> Any,
-//    modifier: Modifier = Modifier,
-//    config: TableConfig<C> = TableConfig(),
-//    slots: TableSlots<T> = TableSlots()
-//): Unit {
-//
-//    slots.apply {
-//
-//    }
-//    TableOriginal<T,C>(
-//        columns = columns,
-//        data = data,
-//        getColumnKey = getColumnKey,
-//        getColumnLabel = getColumnLabel,
-//        getCellContent = getCellContent,
-//        getRowId = getRowId,
-//        modifier = modifier,
-//        config = config,
-//        slots = slots
-//    )
-//}
 //
 //@Composable
 //context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderButtons() {
@@ -67,7 +39,8 @@
 //        tableViewModel.buttonSlot()
 //        // 多选模式按钮
 //        AddIconButton(
-//            text = if (tableViewModel.enableEditMode) "退出多选" else "多选", imageVector = if (tableViewModel.enableEditMode) Icons.Default.Deselect else Icons.Default.SelectAll
+//            text = if (tableViewModel.enableEditMode) "退出多选" else "多选",
+//            imageVector = if (tableViewModel.enableEditMode) Icons.Default.Deselect else Icons.Default.SelectAll
 //        ) {
 //            tableViewModel.enableEditMode = !tableViewModel.enableEditMode
 //        }
@@ -116,10 +89,10 @@
 // * 通用表格组件 - 对 TableOriginal 的高级封装
 // * 集成了搜索、排序、分页、多选等完整功能
 // */
-//
-//
 //@Composable
-//context(tableViewModel: AddCleanTableViewModel<T>)
+//context(
+//    getColumnKey: (C) -> String,
+//tableViewModel: AddCleanTableViewModel<T>)
 //fun <T> AddGenericTable(modifier: Modifier = Modifier) {
 //    val tableSlots = TableSlots<T>(
 //        topHeaderBar = {
@@ -153,6 +126,13 @@
 //                )
 //            }
 //        },
+//        rowCheckbox={
+//        val props = this
+//            //是否全选
+////            val allChecked1 = props.allChecked
+////            allChecked1
+//        },
+//
 //        bottomPagination = {
 //            RenderPagination()
 //        }
@@ -167,7 +147,7 @@
 //    TableOriginal(
 //        columns = tableViewModel.visibleColumns,
 //        data = tableViewModel.data,
-//        getColumnKey = { it.columnMetadata.columnName },
+//        getColumnKey = { it.co },
 //        getRowId = { tableViewModel.getIdFun(it) },
 //        getColumnLabel = { column ->
 //            Row(
@@ -219,7 +199,8 @@
 //                options = EnumLogicOperator.entries,
 //                getLabel = { it.displayName },
 //                onValueChange = {
-//                    tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(logicType = it ?: EnumLogicOperator.AND)
+//                    tableViewModel._currentStateSearch =
+//                        tableViewModel._currentStateSearch.copy(logicType = it ?: EnumLogicOperator.AND)
 //                },
 //            )
 //
@@ -227,9 +208,15 @@
 //
 //
 //            // 操作符下拉选择
-//            AddDropdownSelector(title = "操作符", options = EnumSearchOperator.entries, getLabel = { it.displayName }, initialValue = EnumSearchOperator.LIKE, onValueChange = {
-//                tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(operator = it ?: EnumSearchOperator.LIKE)
-//            })
+//            AddDropdownSelector(
+//                title = "操作符",
+//                options = EnumSearchOperator.entries,
+//                getLabel = { it.displayName },
+//                initialValue = EnumSearchOperator.LIKE,
+//                onValueChange = {
+//                    tableViewModel._currentStateSearch =
+//                        tableViewModel._currentStateSearch.copy(operator = it ?: EnumSearchOperator.LIKE)
+//                })
 //
 //            Spacer(modifier = Modifier.height(12.dp))
 //
@@ -259,15 +246,23 @@
 //
 //    if (tableViewModel.showPagination) {
 //        AddTablePagination(
-//            statePagination = tableViewModel._pageState, enablePagination = true, onPageSizeChange = {
+//            statePagination = tableViewModel._pageState,
+//            enablePagination = true,
+//            onPageSizeChange = {
 //                setPageSize(it)
-//            }, onGoFirstPage = {
+//            },
+//            onGoFirstPage = {
 //                goToFirstPage()
 //                tableViewModel.queryPage()
-//            }, onPreviousPage = { goToPreviousPage() }, onGoToPage = { goToPage(it) }, onNextPage = { goToNextPage() }, onGoLastPage = {
+//            },
+//            onPreviousPage = { goToPreviousPage() },
+//            onGoToPage = { goToPage(it) },
+//            onNextPage = { goToNextPage() },
+//            onGoLastPage = {
 //                goToLastPage()
 //                tableViewModel.queryPage()
-//            }, cardType = MellumCardType.Light,
+//            },
+//            cardType = MellumCardType.Light,
 //            //是否开启分页
 //            compactMode = true
 //        )
@@ -279,7 +274,9 @@
 //context(tableViewModel: AddCleanTableViewModel<T>) private fun <T> RenderSelectContent() {
 //    if (tableViewModel.enableEditMode && tableViewModel._selectedItemIds.isNotEmpty()) {
 //        Row(
-//            modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically
+//            modifier = Modifier.fillMaxWidth().padding(8.dp),
+//            horizontalArrangement = Arrangement.End,
+//            verticalAlignment = Alignment.CenterVertically
 //        ) {
 //
 //            AddIconButton(text = "清除已选择的", imageVector = Icons.Default.Close) {

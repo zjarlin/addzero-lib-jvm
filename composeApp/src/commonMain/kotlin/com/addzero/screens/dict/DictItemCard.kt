@@ -3,8 +3,10 @@ package com.addzero.screens.dict
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,6 +14,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.addzero.component.button.AddEditDeleteButton
+import com.addzero.component.card.AddCard
 import com.addzero.generated.isomorphic.SysDictItemIso
 
 /**
@@ -30,13 +34,7 @@ fun DictItemCard(
 
     val statusText = if (dictItem.status == 1L) "启用" else "禁用"
 
-    Card(
-        modifier = Modifier.Companion.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        )
+    AddCard(
     ) {
         Row(
             modifier = Modifier.Companion
@@ -116,7 +114,7 @@ fun DictItemCard(
             }
 
             // 操作按钮
-            com.addzero.component.button.AddEditDeleteButton(
+            AddEditDeleteButton(
                 onEditClick = onEditClick, onDeleteClick = onDeleteClick,
             )
         }

@@ -65,7 +65,7 @@ private fun Color.luminance(): Float {
  */
 @Composable
 fun AddCard(
-    onClick: (() -> Unit)? = null,
+    onClick: (() -> Unit) = {},
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 16.dp,
     elevation: Dp = 4.dp,
@@ -106,11 +106,10 @@ fun AddCard(
         // 主卡片，尺寸保持不变
         Surface(
             modifier = Modifier.then(
-                if (onClick != null) {
                 Modifier.clickable(
                     interactionSource = interactionSource, indication = null
                 ) { onClick() }
-            } else Modifier),
+            ),
             shape = RoundedCornerShape(cornerRadius),
             tonalElevation = elevation,
             shadowElevation = elevation,
@@ -304,50 +303,4 @@ fun adaptiveMellumCardType(): MellumCardType {
  *
  * 提供一些常用的预设样式，方便快速使用
  */
-object AddCards {
 
-    /**
-     * Koog Agent风格卡片
-     */
-    @Composable
-    fun KoogAgentCard(
-        onClick: (() -> Unit)? = null, modifier: Modifier = Modifier, content: @Composable () -> Unit
-    ) {
-        AddCard(
-            onClick = onClick,
-            modifier = modifier,
-            backgroundType = MellumCardType.Purple,
-            content = content
-        )
-    }
-
-    /**
-     * Hackathon风格卡片
-     */
-    @Composable
-    fun HackathonCard(
-        onClick: (() -> Unit)? = null, modifier: Modifier = Modifier, content: @Composable () -> Unit
-    ) {
-        AddCard(
-            onClick = onClick,
-            modifier = modifier,
-            backgroundType = MellumCardType.Blue,
-            content = content
-        )
-    }
-
-    /**
-     * Deploy Mellum风格卡片
-     */
-    @Composable
-    fun DeployMellumCard(
-        onClick: (() -> Unit)? = null, modifier: Modifier = Modifier, content: @Composable () -> Unit
-    ) {
-        AddCard(
-            onClick = onClick,
-            modifier = modifier,
-            backgroundType = MellumCardType.Teal,
-            content = content
-        )
-    }
-}

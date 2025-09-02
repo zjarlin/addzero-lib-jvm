@@ -1,9 +1,12 @@
 plugins {
     id("kmp-component")
+    id("kmp-json")
 }
 kotlin {
     sourceSets {
         commonMain.dependencies {
+
+            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
             implementation(projects.lib.toolKmp.addzeroTool)
             api(projects.lib.compose.addzeroComposeModelComponent)
             api(projects.lib.toolJvm.jimmer.addzeroJimmerModelLowquery)

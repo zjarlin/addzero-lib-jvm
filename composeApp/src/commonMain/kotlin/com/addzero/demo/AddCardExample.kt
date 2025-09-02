@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.addzero.annotation.Route
 import com.addzero.component.card.AddCard
-import com.addzero.component.card.AddCards
 import com.addzero.component.card.MellumCardType
 
 /**
@@ -65,43 +64,46 @@ fun AddCardExample() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Koog Agent风格
-                AddCards.KoogAgentCard(
+                AddCard(
                     onClick = { println("Koog Agent卡片被点击") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    com.addzero.demo.ProductCardContent(
-                        title = "Building Better Agents",
-                        subtitle = "What's New in Koog 0.3.0",
-                        icon = Icons.Default.Psychology,
-                        description = "探索最新的AI Agent构建技术和最佳实践"
-                    )
-                }
+                    backgroundType = MellumCardType.Purple,
+                    content = {
+                        ProductCardContent(
+                            title = "Building Better Agents",
+                            subtitle = "What's New in Koog 0.3.0",
+                            icon = Icons.Default.Psychology,
+                            description = "探索最新的AI Agent构建技术和最佳实践"
+                        )
+                    }
+                )
 
                 // Hackathon风格
-                AddCards.HackathonCard(
+                AddCard(
                     onClick = { println("Hackathon卡片被点击") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    com.addzero.demo.ProductCardContent(
-                        title = "Google x JetBrains",
-                        subtitle = "Hackathon '25",
-                        icon = Icons.Default.Code,
-                        description = "参与全球开发者盛会，展示你的创新项目"
-                    )
-                }
+                    backgroundType = MellumCardType.Blue,
+                    content = {
+                        ProductCardContent(
+                            title = "Google x JetBrains",
+                            subtitle = "Hackathon '25",
+                            icon = Icons.Default.Code,
+                            description = "参与全球开发者盛会，展示你的创新项目"
+                        )
+                    }
+                )
 
                 // Deploy Mellum风格
-                AddCards.DeployMellumCard(
+                AddCard(
                     onClick = { println("Deploy Mellum卡片被点击") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    com.addzero.demo.ProductCardContent(
-                        title = "Deploy JetBrains Mellum",
-                        subtitle = "Your Way",
-                        icon = Icons.Default.CloudUpload,
-                        description = "灵活部署，随心所欲地管理你的开发环境"
-                    )
-                }
+                    backgroundType = MellumCardType.Teal,
+                    content = {
+                        ProductCardContent(
+                            title = "Deploy JetBrains Mellum",
+                            subtitle = "Your Way",
+                            icon = Icons.Default.CloudUpload,
+                            description = "灵活部署，随心所欲地管理你的开发环境"
+                        )
+                    }
+                )
             }
         }
 

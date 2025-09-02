@@ -7,20 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
 import com.addzero.component.table.model.AddCleanColumn
-import com.addzero.component.table.model.BaseCrudApi
-import com.addzero.component.table.viewmodel.StatePagination
-
-import com.addzero.component.toast.ToastManager
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSearch
 import com.addzero.entity.low_table.StateSort
 import com.addzero.entity.low_table.TableMetadata
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 class AddCleanTableViewModel<T>(
     val data: List<T>,
-    val columns: List<com.addzero.component.table.model.AddCleanColumn<T>>,
+    val columns: List<AddCleanColumn<T>>,
     val tableMetadata: TableMetadata= TableMetadata(),
     val getIdFun: (T) -> Any,
     val baseCrudApi: com.addzero.component.table.model.BaseCrudApi<T>?=null,

@@ -2,14 +2,10 @@ package com.addzero.demo
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,7 +14,6 @@ import com.addzero.annotation.Route
 import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.component.table.original.TableOriginal
 import com.addzero.component.table.original.TableSlots
-import com.addzero.core.ext.toMap
 import kotlinx.serialization.Serializable
 
 @Route
@@ -107,12 +102,6 @@ fun TableBigDataTest() {
         }
     }
 
-    // 性能缓存 - 预计算Map转换
-    val dataMapsCache by remember {
-        derivedStateOf {
-            bigDataSet.associateWith { it.toMap() }
-        }
-    }
 
     // 100列配置
     val bigColumns = remember {
@@ -193,22 +182,8 @@ fun TableBigDataTest() {
                 textAlign = config.textAlign ?: TextAlign.Start
             )
         },
-        getCellContent = { item, config ->
-            val itemMap = dataMapsCache[item] ?: emptyMap()
-            val value = itemMap[config.key] ?: ""
-
-            Text(
-                text = value.toString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = config.color ?: Color.Unspecified,
-                fontWeight = config.fontWeight,
-                textAlign = config.textAlign ?: TextAlign.Start,
-                maxLines = 1
-            )
-        },
-        modifier = Modifier.height(600.dp),
 //                config = tableConfig,
-        slots = tableSlots
+        slots = tableSlots,
     )
 
 
