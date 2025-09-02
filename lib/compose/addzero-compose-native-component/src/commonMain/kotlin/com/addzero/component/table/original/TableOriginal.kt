@@ -1,10 +1,8 @@
 package com.addzero.component.table.original
 
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -398,13 +396,19 @@ private fun <T, C> CompleteDataRow(
     rowActions: (@Composable (item: T, index: Int) -> Unit)?,
     horizontalScrollState: ScrollState
 ) {
+    val backgroundColor = if (index % 2 == 0) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    }
+
+    val dividerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
+            .fillMaxWidth().border(
+                border = BorderStroke(1.dp, dividerColor), shape = MaterialTheme.shapes.medium
+            ), color = backgroundColor, tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -424,7 +428,8 @@ private fun <T, C> CompleteDataRow(
                 Text(
                     "${index + 1}",
                     style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -455,7 +460,6 @@ private fun <T, C> CompleteDataRow(
         }
     }
 }
-
 /**
  * 固定序号列 - 通过监听主表格滚动偏移来同步显示
  */
@@ -683,6 +687,7 @@ private fun <T, C> TableScrollableContent(
                         rowActions = params.slots.rowActions,
                         horizontalScrollState = tableState.horizontalScrollState
                     )
+
                 }
             }
         }
