@@ -6,6 +6,7 @@ package com.addzero.generated
  */
 object RouteKeys {
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
+    const val TABLE_BIG_DATA_TEST = "com.addzero.demo.TableBigDataTest"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
     const val LARGE_TABLE_TEST_SCREEN = "com.addzero.demo.clean_table.LargeTableTestScreen"
@@ -18,7 +19,6 @@ object RouteKeys {
     const val SYS_ICON_SCREEN = "com.addzero.demo.icon.SysIconScreen"
     const val WE_CHAT_ICON = "/component/wechatIcon"
     const val DRAG_LIST_DEMO = "com.addzero.demo.DragListDemo"
-    const val TABLE_PERFORMANCE_COMPARISON = "com.addzero.demo.TablePerformanceComparison"
     const val TEST_PICKER = "com.addzero.demo.upload.TestPicker"
     const val UPLOAD_MANAGER_DEMO = "com.addzero.demo.upload.UploadManagerDemo"
     const val TEST_DIRECTORY_PICKER = "com.addzero.demo.upload.TestDirectoryPicker"

@@ -14,6 +14,7 @@ object RouteTable {
      */
     val allRoutes = mapOf(
         RouteKeys.RICH_TEXT_DEMO to  @Composable { com.addzero.demo.RichTextDemo() },
+        RouteKeys.TABLE_BIG_DATA_TEST to  @Composable { com.addzero.demo.TableBigDataTest() },
         RouteKeys.ADD_CARD_EXAMPLE to  @Composable { com.addzero.demo.AddCardExample() },
         RouteKeys.U_I_COMPONENTS_DEMO to  @Composable { com.addzero.demo.UIComponentsDemo() },
         RouteKeys.LARGE_TABLE_TEST_SCREEN to  @Composable { com.addzero.demo.clean_table.LargeTableTestScreen() },
@@ -26,7 +27,6 @@ object RouteTable {
         RouteKeys.SYS_ICON_SCREEN to  @Composable { com.addzero.demo.icon.SysIconScreen() },
         RouteKeys.WE_CHAT_ICON to  @Composable { com.addzero.demo.icon.WeChatIcon() },
         RouteKeys.DRAG_LIST_DEMO to  @Composable { com.addzero.demo.DragListDemo() },
-        RouteKeys.TABLE_PERFORMANCE_COMPARISON to  @Composable { com.addzero.demo.TablePerformanceComparison() },
         RouteKeys.TEST_PICKER to  @Composable { com.addzero.demo.upload.TestPicker() },
         RouteKeys.UPLOAD_MANAGER_DEMO to  @Composable { com.addzero.demo.upload.UploadManagerDemo() },
         RouteKeys.TEST_DIRECTORY_PICKER to  @Composable { com.addzero.demo.upload.TestDirectoryPicker() },
@@ -59,6 +59,7 @@ object RouteTable {
      */
     val allMeta = listOf(
         Route(value = "组件示例", title = "富文本", routePath = "com.addzero.demo.RichTextDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.RichTextDemo"),
+        Route(value = "", title = "TableBigDataTest", routePath = "com.addzero.demo.TableBigDataTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TableBigDataTest"),
         Route(value = "", title = "AddCardExample", routePath = "com.addzero.demo.AddCardExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.AddCardExample"),
         Route(value = "组件示例", title = "UI组件测试", routePath = "com.addzero.demo.UIComponentsDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UIComponentsDemo"),
         Route(value = "", title = "LargeTableTestScreen", routePath = "com.addzero.demo.clean_table.LargeTableTestScreen", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.clean_table.LargeTableTestScreen"),
@@ -71,7 +72,6 @@ object RouteTable {
         Route(value = "组件示例", title = "M3图标树", routePath = "com.addzero.demo.icon.SysIconScreen", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.icon.SysIconScreen"),
         Route(value = "组件示例", title = "微信图标", routePath = "/component/wechatIcon", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.icon.WeChatIcon"),
         Route(value = "组件示例", title = "拖拽列表", routePath = "com.addzero.demo.DragListDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.DragListDemo"),
-        Route(value = "", title = "TablePerformanceComparison", routePath = "com.addzero.demo.TablePerformanceComparison", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TablePerformanceComparison"),
         Route(value = "组件示例", title = "文件选择器", routePath = "com.addzero.demo.upload.TestPicker", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.upload.TestPicker"),
         Route(value = "组件示例", title = "上传管理器", routePath = "com.addzero.demo.upload.UploadManagerDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.upload.UploadManagerDemo"),
         Route(value = "组件示例", title = "文件夹选择器", routePath = "com.addzero.demo.upload.TestDirectoryPicker", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.upload.TestDirectoryPicker"),
