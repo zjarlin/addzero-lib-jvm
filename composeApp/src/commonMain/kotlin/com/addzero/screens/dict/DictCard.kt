@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.generated.isomorphic.SysDictIso
 
 /**
@@ -107,7 +108,7 @@ fun DictCard(
                     border = null
                 )
             }
-            com.addzero.component.button.AddEditDeleteButton(onEditClick = onEditClick, onDeleteClick = onDeleteClick)
+            AddEditDeleteButton(onEditClick = onEditClick, onDeleteClick = onDeleteClick)
 
             //编辑按钮
 //            AddIconButton(

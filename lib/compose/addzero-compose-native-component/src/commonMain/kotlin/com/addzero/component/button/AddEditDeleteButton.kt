@@ -22,13 +22,12 @@ fun AddEditDeleteButton(
 
 
         if (showEdit) {
-            _root_ide_package_.com.addzero.component.button.AddIconButton(text = "编辑", imageVector = Icons.Default.Edit, onClick = onEditClick)
-
+            AddIconButton(text = "编辑", imageVector = Icons.Default.Edit, onClick = onEditClick)
         }
 
         if (showDelete) {
 
-            _root_ide_package_.com.addzero.component.button.AddDeleteButton { onDeleteClick() }
+            AddDeleteButton { onDeleteClick() }
         }
 
         renderCustomActions()

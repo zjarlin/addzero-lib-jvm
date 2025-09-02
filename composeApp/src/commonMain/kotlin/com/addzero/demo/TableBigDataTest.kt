@@ -1,23 +1,21 @@
 package com.addzero.demo
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
-import com.addzero.component.button.AddIconButton
+import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.component.table.TableOriginal
 import com.addzero.component.table.TableSlots
 import com.addzero.core.ext.toMap
@@ -136,171 +134,82 @@ fun TableBigDataTest() {
     }
 
     val tableSlots = TableSlots<BigDataModel>(
-        topHeaderBar = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        "大数据量表格性能测试",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        "1000行 × 100字段 = 100000个单元格",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        "单一LazyColumn架构",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        "垂直滚动完全同步",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-        },
+//        topHeaderBar = {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Column {
+//                    Text(
+//                        "大数据量表格性能测试",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                    Text(
+//                        "1000行 × 100字段 = 100000个单元格",
+//                        style = MaterialTheme.typography.bodySmall,
+//                        color = MaterialTheme.colorScheme.onSurfaceVariant
+//                    )
+//                }
+//                Column(horizontalAlignment = Alignment.End) {
+//                    Text(
+//                        "单一LazyColumn架构",
+//                        style = MaterialTheme.typography.labelMedium,
+//                        color = MaterialTheme.colorScheme.primary
+//                    )
+//                    Text(
+//                        "垂直滚动完全同步",
+//                        style = MaterialTheme.typography.labelSmall,
+//                        color = MaterialTheme.colorScheme.secondary
+//                    )
+//                }
+//            }
+//        },
         rowActions = { item, index ->
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                AddIconButton(
-                    text = "编辑",
-                    imageVector = Icons.Default.Edit,
-                    modifier = Modifier.size(20.dp),
-                    onClick = { /* 编辑操作 */ }
-                )
-                AddIconButton(
-                    text = "删除",
-                    imageVector = Icons.Default.Delete,
-                    modifier = Modifier.size(20.dp),
-                    onClick = { /* 删除操作 */ }
+                AddEditDeleteButton(
+                    showDelete = true,
+                    showEdit = true,
+                    onEditClick = {},
+                    onDeleteClick = {},
                 )
             }
         }
     )
 
-//    val tableConfig = TableConfig<>(
-//        headerCardType = MellumCardType.Dark,
-//        headerCornerRadius = 8.dp,
-//        headerElevation = 6.dp
-//    )
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            Column {
-                Text(
-                    "TableOriginal 大数据量测试",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "测试单一LazyColumn架构在极端数据量下的表现",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        item {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "性能测试指标:",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text("✓ 垂直滚动流畅度", style = MaterialTheme.typography.bodySmall)
-                    Text("✓ 水平滚动同步性", style = MaterialTheme.typography.bodySmall)
-                    Text("✓ 初始渲染响应速度", style = MaterialTheme.typography.bodySmall)
-                    Text("✓ 内存占用稳定性", style = MaterialTheme.typography.bodySmall)
-                    Text("✓ 表头数据对齐精度", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-
-        item {
-            TableOriginal(
-                columns = bigColumns,
-                data = bigDataSet,
-                getColumnKey = { it.key },
-                getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
-                getColumnLabel = { config ->
-                    Text(
-                        text = config.label,
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = config.fontWeight ?: FontWeight.Medium
-                        ),
-                        color = config.color ?: Color.Black,
-                        textAlign = config.textAlign ?: TextAlign.Start
-                    )
-                },
-                getCellContent = { item, config ->
-                    val itemMap = dataMapsCache[item] ?: emptyMap()
-                    val value = itemMap[config.key] ?: ""
-
-                    Text(
-                        text = value.toString(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = config.color ?: Color.Unspecified,
-                        fontWeight = config.fontWeight,
-                        textAlign = config.textAlign ?: TextAlign.Start,
-                        maxLines = 1
-                    )
-                },
-                modifier = Modifier.height(600.dp),
-//                config = tableConfig,
-                slots = tableSlots
+    TableOriginal(
+        columns = bigColumns,
+        data = bigDataSet,
+        getColumnKey = { it.key },
+        getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
+        getColumnLabel = { config ->
+            Text(
+                text = config.label,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = config.fontWeight ?: FontWeight.Medium
+                ),
+                color = config.color ?: Color.Black,
+                textAlign = config.textAlign ?: TextAlign.Start
             )
-        }
+        },
+        getCellContent = { item, config ->
+            val itemMap = dataMapsCache[item] ?: emptyMap()
+            val value = itemMap[config.key] ?: ""
 
-        item {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "架构验证结果:",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+            Text(
+                text = value.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = config.color ?: Color.Unspecified,
+                fontWeight = config.fontWeight,
+                textAlign = config.textAlign ?: TextAlign.Start,
+                maxLines = 1
+            )
+        },
+        modifier = Modifier.height(600.dp),
+//                config = tableConfig,
+        slots = tableSlots
+    )
 
-                    Text("🎯 单一LazyColumn确保所有行垂直滚动完全同步", style = MaterialTheme.typography.bodySmall)
-                    Text("🎯 共享ScrollState确保表头数据行水平滚动同步", style = MaterialTheme.typography.bodySmall)
-                    Text("🎯 行虚拟化优化内存占用，支持无限数据量", style = MaterialTheme.typography.bodySmall)
-                    Text("🎯 derivedStateOf缓存Map转换避免重复序列化", style = MaterialTheme.typography.bodySmall)
-                    Text("🎯 固定列宽计算确保表头数据完美对齐", style = MaterialTheme.typography.bodySmall)
 
-                    Spacer(Modifier.height(8.dp))
-                    Divider()
-                    Spacer(Modifier.height(8.dp))
-
-                    Text(
-                        "对比香烟列架构的改进:",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text("❌ 香烟列架构: 多个LazyColumn滚动可能不同步", style = MaterialTheme.typography.bodySmall, color = Color.Red)
-                    Text("✅ 行虚拟化架构: 单一LazyColumn滚动完全同步", style = MaterialTheme.typography.bodySmall, color = Color.Blue)
-                }
-            }
-        }
-    }
 }
