@@ -3,14 +3,12 @@ package com.addzero.component.table
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -20,18 +18,23 @@ import androidx.compose.ui.unit.dp
  */
 data class TableSlots<T>(
     // 表头区域插槽
-    val headerBar: (@Composable () -> Unit)? = null,
-    val headerActions: (@Composable () -> Unit)? = null,
-    
-    // 数据操作插槽
-    val checkbox: (CheckboxSlotProps<T>.() -> @Composable () -> Unit)? = null,
-    val rowIndex: (RowIndexSlotProps.() -> @Composable () -> Unit)? = null,
-    val sorting: (SortingSlotProps.() -> @Composable () -> Unit)? = null,
-    
-    // 内容区域插槽
-    val selectContent: (@Composable () -> Unit)? = null,
-    val emptyContent: (@Composable () -> Unit)? = null,
-    val pagination: (@Composable () -> Unit)? = null
+    val topHeaderBar: (@Composable () -> Unit)? = null,
+    val topSelectionPanel: (@Composable () -> Unit)? = null,
+
+    // 行级操作插槽 - 支持事件处理
+    val rowActions: (@Composable (item: T, index: Int) -> Unit)? = null,
+    val rowCheckbox: (CheckboxSlotProps<T>.() -> @Composable (item: T, index: Int) -> Unit)? = null,
+
+    // 列级功能插槽
+    val columnSorting: (SortingSlotProps.() -> @Composable () -> Unit)? = null,
+    val columnFiltering: (@Composable () -> Unit)? = null,
+
+    // 状态区域插槽
+    val emptyStateContent: (@Composable () -> Unit)? = null,
+
+    // 底部区域插槽
+    val bottomPagination: (@Composable () -> Unit)? = null,
+    val bottomSummary: (@Composable (totalItems: Int) -> Unit)? = null
 )
 
 // 插槽属性定义
@@ -58,7 +61,7 @@ data class SortingSlotProps(
  * 默认插槽实现
  */
 object DefaultTableSlots {
-    
+
     @Composable
     fun <T> DefaultHeaderBar(
         title: String,
@@ -90,7 +93,7 @@ object DefaultTableSlots {
             )
         }
     }
-    
+
     @Composable
     fun DefaultHeaderActions(): @Composable () -> Unit = {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -102,7 +105,7 @@ object DefaultTableSlots {
             }
         }
     }
-    
+
     @Composable
     fun <T> DefaultCheckbox(): CheckboxSlotProps<T>.() -> @Composable () -> Unit = {
         {
@@ -114,7 +117,7 @@ object DefaultTableSlots {
             }
         }
     }
-    
+
     @Composable
     fun DefaultRowIndex(): RowIndexSlotProps.() -> @Composable () -> Unit = {
         {
@@ -129,7 +132,7 @@ object DefaultTableSlots {
             }
         }
     }
-    
+
     @Composable
     fun DefaultSorting(): SortingSlotProps.() -> @Composable () -> Unit = {
         {
@@ -147,7 +150,7 @@ object DefaultTableSlots {
             }
         }
     }
-    
+
     @Composable
     fun <T> DefaultSelectContent(
         checkedItems: Set<T>,
@@ -187,7 +190,7 @@ object DefaultTableSlots {
             }
         }
     }
-    
+
     @Composable
     fun DefaultEmptyContent(): @Composable () -> Unit = {
         Box(
@@ -204,7 +207,7 @@ object DefaultTableSlots {
             )
         }
     }
-    
+
     @Composable
     fun DefaultPagination(
         totalCount: Int,

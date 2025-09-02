@@ -10,7 +10,6 @@ object RouteKeys {
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
     const val LARGE_TABLE_TEST_SCREEN = "com.addzero.demo.clean_table.LargeTableTestScreen"
-    const val TABLE_ORIGINAL_DEBUG_TEST = "com.addzero.demo.TableOriginalDebugTest"
     const val TIME_PICKER_EXAMPLE = "com.addzero.demo.date_test.TimePickerExample"
     const val TIME_PICKER_FIELD_TEST = "com.addzero.demo.date_test.TimePickerFieldTest"
     const val DATE_PICKER_FIELD_TEST = "com.addzero.demo.date_test.DatePickerFieldTest"

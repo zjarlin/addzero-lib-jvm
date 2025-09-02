@@ -1,15 +1,14 @@
 package com.addzero.component.table
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -36,145 +35,249 @@ fun <T, C> TableOriginal(
     getCellContent: @Composable (item: T, column: C) -> Unit,
     getRowId: (T) -> Any,
     modifier: Modifier = Modifier,
-    slots: TableSlots<T> = TableSlots(),
-    getColumnWidth: (C) -> Dp? = { null },
-    getColumnMinWidth: (C) -> Dp = { 80.dp },
-    getColumnMaxWidth: (C) -> Dp = { 300.dp },
-    // 每行操作按钮
-    rowActions: (@Composable (item: T, index: Int) -> Unit)? = null,
-    // AddCard 样式配置
-    headerCardType: MellumCardType = MellumCardType.Light,
-    headerCornerRadius: Dp = 12.dp,
-    headerElevation: Dp = 2.dp
+    config: TableConfig<C> = TableConfig(),
+    slots: TableSlots<T> = TableSlots()
 ) {
+    val params = TableParams(
+        columns = columns,
+        data = data,
+        getColumnKey = getColumnKey,
+        getColumnLabel = getColumnLabel,
+        getCellContent = getCellContent,
+        getRowId = getRowId,
+        config = config,
+        slots = slots
+    )
+
+    val tableState = rememberTableState(params)
+
+    TableLayout(
+        tableState = tableState,
+        params = params,
+        modifier = modifier
+    )
+}
+
+/**
+ * 表格状态管理
+ */
+@Stable
+data class TableState<T, C>(
+    val columnWidths: State<Map<String, Dp>>,
+    val visibleItemsInfo: State<List<LazyListItemInfo>>,
+    val horizontalScrollState: ScrollState,
+    val verticalScrollState: LazyListState
+)
+
+/**
+ * 表格配置 - 统一管理所有配置项
+ */
+@Stable
+data class TableConfig<C>(
+    val getColumnWidth: (C) -> Dp? = { null },
+    val getColumnMinWidth: (C) -> Dp = { 80.dp },
+    val getColumnMaxWidth: (C) -> Dp = { 300.dp },
+    val headerCardType: MellumCardType = MellumCardType.Light,
+    val headerCornerRadius: Dp = 12.dp,
+    val headerElevation: Dp = 2.dp,
+    val enableVirtualization: Boolean = true,
+    val sampleSizeForWidthCalculation: Int = 3
+)
+
+/**
+ * 表格参数打包 - 解决组件拆分后参数传递冗余问题
+ */
+@Stable
+data class TableParams<T, C>(
+    val columns: List<C>,
+    val data: List<T>,
+    val getColumnKey: (C) -> String,
+    val getColumnLabel: @Composable (C) -> Unit,
+    val getCellContent: @Composable (item: T, column: C) -> Unit,
+    val getRowId: (T) -> Any,
+    val config: TableConfig<C>,
+    val slots: TableSlots<T>
+)
+
+@Composable
+private fun <T, C> rememberTableState(
+    params: TableParams<T, C>
+): TableState<T, C> {
+    val horizontalScrollState = rememberScrollState()
+    val verticalScrollState = rememberLazyListState()
+
+    // 异步列宽计算，避免阻塞主线程
+    val columnWidths = rememberAsyncColumnWidths(params)
+
+    // 共享可见项状态，避免重复计算
+    val visibleItemsInfo = rememberVisibleItemsInfo(verticalScrollState)
+
+    return remember(params.columns, params.data) {
+        TableState(
+            columnWidths = columnWidths,
+            visibleItemsInfo = visibleItemsInfo,
+            horizontalScrollState = horizontalScrollState,
+            verticalScrollState = verticalScrollState
+        )
+    }
+}
+
+/**
+ * 异步列宽计算，避免阻塞主线程
+ */
+@Composable
+private fun <T, C> rememberAsyncColumnWidths(
+    params: TableParams<T, C>
+): State<Map<String, Dp>> {
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
+    val titleStyle = MaterialTheme.typography.titleSmall
+    val bodyStyle = MaterialTheme.typography.bodyMedium
 
-    // 计算列宽度
-    val columnWidths = columns.associate { column ->
-        getColumnKey(column) to run {
-            getColumnWidth(column) ?: run {
-                val headerWidth = with(density) {
-                    textMeasurer.measure(
-                        text = getColumnKey(column),
-                        style = MaterialTheme.typography.titleSmall
-                    ).size.width.toDp()
+    return produceState(
+        initialValue = params.columns.associate { params.getColumnKey(it) to params.config.getColumnMinWidth(it) },
+        key1 = params.columns,
+        key2 = params.data,
+        key3 = params.config
+    ) {
+        // 异步计算列宽，不阻塞主线程
+        kotlinx.coroutines.delay(1) // 让出主线程
+
+        val calculatedWidths = params.columns.associate { column ->
+            params.getColumnKey(column) to run {
+                params.config.getColumnWidth(column) ?: run {
+                    val headerWidth = with(density) {
+                        textMeasurer.measure(
+                            text = params.getColumnKey(column),
+                            style = titleStyle
+                        ).size.width.toDp()
+                    }
+
+                    val sampleData = params.data.take(params.config.sampleSizeForWidthCalculation)
+                    val maxContentWidth = if (sampleData.isNotEmpty()) {
+                        sampleData.maxOfOrNull { item ->
+                            with(density) {
+                                textMeasurer.measure(
+                                    text = item.toString().take(15),
+                                    style = bodyStyle
+                                ).size.width.toDp()
+                            }
+                        } ?: 0.dp
+                    } else 0.dp
+
+                    val calculatedWidth = maxOf(headerWidth.value + 32, maxContentWidth.value + 16, 80f).dp
+                    calculatedWidth.coerceIn(params.config.getColumnMinWidth(column), params.config.getColumnMaxWidth(column))
                 }
-
-                val sampleData = data.take(3)
-                val maxContentWidth = if (sampleData.isNotEmpty()) {
-                    sampleData.maxOfOrNull {
-                        with(density) {
-                            textMeasurer.measure(
-                                text = it.toString().take(15),
-                                style = MaterialTheme.typography.bodyMedium
-                            ).size.width.toDp()
-                        }
-                    } ?: 0.dp
-                } else 0.dp
-
-                val calculatedWidth = maxOf(headerWidth.value + 32, maxContentWidth.value + 16, 80f).dp
-                calculatedWidth.coerceIn(getColumnMinWidth(column), getColumnMaxWidth(column))
             }
+        }
+
+        value = calculatedWidths
+    }
+}
+
+/**
+ * 共享可见项状态，避免重复计算
+ */
+@Composable
+private fun rememberVisibleItemsInfo(
+    scrollState: LazyListState
+): State<List<androidx.compose.foundation.lazy.LazyListItemInfo>> {
+    return remember {
+        derivedStateOf {
+            scrollState.layoutInfo.visibleItemsInfo
+        }
+    }
+}
+
+/**
+ * 表格布局管理器 - 负责整体布局结构
+ */
+@Composable
+private fun <T, C> TableLayout(
+    tableState: TableState<T, C>,
+    params: TableParams<T, C>,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        // 顶部插槽区域
+        TableTopSlots(params)
+
+        // 主表格内容区域
+        TableMainContent(
+            tableState = tableState,
+            params = params,
+            modifier = Modifier.weight(1f)
+        )
+
+        // 底部插槽区域
+        params.slots.bottomPagination?.invoke()
+        params.slots.bottomSummary?.invoke(params.data.size)
+    }
+}
+
+/**
+ * 顶部插槽渲染器
+ */
+@Composable
+private fun <T, C> TableTopSlots(
+    params: TableParams<T, C>
+) {
+    // 顶部标题栏
+    params.slots.topHeaderBar?.let { headerBar ->
+        AddCard(
+            onClick = {},
+            modifier = Modifier.fillMaxWidth(),
+            backgroundType = params.config.headerCardType,
+            cornerRadius = params.config.headerCornerRadius,
+            elevation = params.config.headerElevation,
+            padding = 16.dp
+        ) {
+            headerBar()
         }
     }
 
-    // 水平滚动状态 - 表头和数据行共享
-    val horizontalScrollState = rememberScrollState()
+    // 顶部选择面板
+    params.slots.topSelectionPanel?.invoke()
+}
 
-    // 垂直滚动状态 - 单一LazyColumn
-    val verticalScrollState = rememberLazyListState()
+/**
+ * 主表格内容区域 - 包含表头、数据行和固定列
+ */
+@Composable
+private fun <T, C> TableMainContent(
+    tableState: TableState<T, C>,
+    params: TableParams<T, C>,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.fillMaxWidth()) {
+        // 主内容滚动区域
+        TableScrollableContent(
+            tableState = tableState,
+            params = params
+        )
 
-    Column(modifier = modifier) {
-        // 固定头部栏
-        slots.headerBar?.let { headerBar ->
-            AddCard(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth(),
-                backgroundType = headerCardType,
-                cornerRadius = headerCornerRadius,
-                elevation = headerElevation,
-                padding = 16.dp
-            ) {
-                headerBar()
-            }
-        }
+        // 序号列固定遮罩
+        FixedIndexColumn(
+            verticalScrollState = tableState.verticalScrollState,
+            data = params.data,
+            headerCardType = params.config.headerCardType,
+            headerCornerRadius = params.config.headerCornerRadius,
+            headerElevation = params.config.headerElevation,
+            modifier = Modifier.align(Alignment.CenterStart).zIndex(1f)
+        )
 
-        // 固定选择区域
-        slots.selectContent?.invoke()
-
-        // 表格主体 - 单一LazyColumn + 固定列叠加架构
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // 主表格区域 - 单一LazyColumn确保滚动同步
-            Column(modifier = Modifier.fillMaxSize()) {
-                // 完整表头行
-                CompleteHeaderRow(
-                    columns = columns,
-                    columnWidths = columnWidths,
-                    getColumnKey = getColumnKey,
-                    getColumnLabel = getColumnLabel,
-                    hasRowActions = rowActions != null,
-                    headerCardType = headerCardType,
-                    headerCornerRadius = headerCornerRadius,
-                    headerElevation = headerElevation,
-                    horizontalScrollState = horizontalScrollState
-                )
-
-                // 完整数据行 - 单一LazyColumn确保垂直滚动同步
-                LazyColumn(
-                    state = verticalScrollState,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    if (data.isEmpty()) {
-                        item {
-                            (slots.emptyContent ?: DefaultTableSlots.DefaultEmptyContent())()
-                        }
-                    } else {
-                        itemsIndexed(
-                            items = data,
-                            key = { _, item -> getRowId(item) }
-                        ) { index, item ->
-                            CompleteDataRow(
-                                item = item,
-                                index = index,
-                                columns = columns,
-                                columnWidths = columnWidths,
-                                getColumnKey = getColumnKey,
-                                getCellContent = getCellContent,
-                                rowActions = rowActions,
-                                horizontalScrollState = horizontalScrollState
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 序号列固定遮罩 - 使用偏移同步
-            FixedIndexColumn(
-                verticalScrollState = verticalScrollState,
-                data = data,
-                headerCardType = headerCardType,
-                headerCornerRadius = headerCornerRadius,
-                headerElevation = headerElevation,
-                modifier = Modifier.align(Alignment.CenterStart).zIndex(1f)
+        // 操作列固定遮罩
+        params.slots.rowActions?.let { actions ->
+            FixedActionColumn(
+                verticalScrollState = tableState.verticalScrollState,
+                data = params.data,
+                rowActions = actions,
+                headerCardType = params.config.headerCardType,
+                headerCornerRadius = params.config.headerCornerRadius,
+                headerElevation = params.config.headerElevation,
+                modifier = Modifier.align(Alignment.CenterEnd).zIndex(1f)
             )
-
-            // 操作列固定遮罩 - 使用偏移同步
-            rowActions?.let { actions ->
-                FixedActionColumn(
-                    verticalScrollState = verticalScrollState,
-                    data = data,
-                    rowActions = actions,
-                    headerCardType = headerCardType,
-                    headerCornerRadius = headerCornerRadius,
-                    headerElevation = headerElevation,
-                    modifier = Modifier.align(Alignment.CenterEnd).zIndex(1f)
-                )
-            }
         }
-
-        // 固定分页区域
-        slots.pagination?.invoke()
     }
 }
 
@@ -191,7 +294,7 @@ private fun <C> CompleteHeaderRow(
     headerCardType: MellumCardType,
     headerCornerRadius: Dp,
     headerElevation: Dp,
-    horizontalScrollState: androidx.compose.foundation.ScrollState
+    horizontalScrollState: ScrollState
 ) {
     AddCard(
         onClick = {},
@@ -266,7 +369,7 @@ private fun <T, C> CompleteDataRow(
     getColumnKey: (C) -> String,
     getCellContent: @Composable (item: T, column: C) -> Unit,
     rowActions: (@Composable (item: T, index: Int) -> Unit)?,
-    horizontalScrollState: androidx.compose.foundation.ScrollState
+    horizontalScrollState: ScrollState
 ) {
     Surface(
         modifier = Modifier
@@ -331,7 +434,7 @@ private fun <T, C> CompleteDataRow(
  */
 @Composable
 private fun <T> FixedIndexColumn(
-    verticalScrollState: androidx.compose.foundation.lazy.LazyListState,
+    verticalScrollState: LazyListState,
     data: List<T>,
     headerCardType: MellumCardType,
     headerCornerRadius: Dp,
@@ -339,12 +442,10 @@ private fun <T> FixedIndexColumn(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    
-    // 监听滚动状态获取第一个可见项
+
+    // 监听滚动状态获取可见项信息
     val layoutInfo = verticalScrollState.layoutInfo
-    val firstVisibleIndex = layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0
-    val firstVisibleOffset = layoutInfo.visibleItemsInfo.firstOrNull()?.offset ?: 0
-    
+
     Surface(
         modifier = modifier
             .width(80.dp)
@@ -376,7 +477,7 @@ private fun <T> FixedIndexColumn(
                     )
                 }
             }
-            
+
             // 序号内容区域 - 根据主表格滚动位置动态渲染可见项
             Box(
                 modifier = Modifier
@@ -389,7 +490,7 @@ private fun <T> FixedIndexColumn(
                         val itemIndex = itemInfo.index
                         if (itemIndex < data.size) {
                             val itemOffset = with(density) { itemInfo.offset.toDp() }
-                            
+
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -425,7 +526,7 @@ private fun <T> FixedIndexColumn(
  */
 @Composable
 private fun <T> FixedActionColumn(
-    verticalScrollState: androidx.compose.foundation.lazy.LazyListState,
+    verticalScrollState: LazyListState,
     data: List<T>,
     rowActions: @Composable (item: T, index: Int) -> Unit,
     headerCardType: MellumCardType,
@@ -434,10 +535,10 @@ private fun <T> FixedActionColumn(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    
+
     // 监听滚动状态获取可见项信息
     val layoutInfo = verticalScrollState.layoutInfo
-    
+
     Surface(
         modifier = modifier
             .width(120.dp)
@@ -469,7 +570,7 @@ private fun <T> FixedActionColumn(
                     )
                 }
             }
-            
+
             // 操作内容区域 - 根据主表格滚动位置动态渲染可见项
             Box(
                 modifier = Modifier
@@ -482,7 +583,7 @@ private fun <T> FixedActionColumn(
                         val itemIndex = itemInfo.index
                         if (itemIndex < data.size) {
                             val itemOffset = with(density) { itemInfo.offset.toDp() }
-                            
+
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -503,6 +604,58 @@ private fun <T> FixedActionColumn(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 可滚动内容区域 - 包含表头和数据行
+ */
+@Composable
+private fun <T, C> TableScrollableContent(
+    tableState: TableState<T, C>,
+    params: TableParams<T, C>
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // 使用现有的CompleteHeaderRow
+        CompleteHeaderRow(
+            columns = params.columns,
+            columnWidths = tableState.columnWidths.value,
+            getColumnKey = params.getColumnKey,
+            getColumnLabel = params.getColumnLabel,
+            hasRowActions = params.slots.rowActions != null,
+            headerCardType = params.config.headerCardType,
+            headerCornerRadius = params.config.headerCornerRadius,
+            headerElevation = params.config.headerElevation,
+            horizontalScrollState = tableState.horizontalScrollState
+        )
+
+        // 使用现有的LazyColumn数据渲染
+        LazyColumn(
+            state = tableState.verticalScrollState,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (params.data.isEmpty()) {
+                item {
+                    (params.slots.emptyStateContent ?: DefaultTableSlots.DefaultEmptyContent())()
+                }
+            } else {
+                itemsIndexed(
+                    items = params.data,
+                    key = { _, item -> params.getRowId(item) }
+                ) { index, item ->
+                    CompleteDataRow(
+                        item = item,
+                        index = index,
+                        columns = params.columns,
+                        columnWidths = tableState.columnWidths.value,
+                        getColumnKey = params.getColumnKey,
+                        getCellContent = params.getCellContent,
+                        rowActions = params.slots.rowActions,
+                        horizontalScrollState = tableState.horizontalScrollState
+                    )
                 }
             }
         }

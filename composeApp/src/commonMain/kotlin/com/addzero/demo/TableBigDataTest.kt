@@ -6,7 +6,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
-import com.addzero.component.card.MellumCardType
+import com.addzero.component.button.AddIconButton
 import com.addzero.component.table.TableOriginal
 import com.addzero.component.table.TableSlots
 import com.addzero.core.ext.toMap
@@ -23,7 +26,7 @@ import kotlinx.serialization.Serializable
 @Route
 @Composable
 fun TableBigDataTest() {
-    
+
     // 大数据模型 - 100个字段
     @Serializable
     data class BigDataModel(
@@ -66,41 +69,41 @@ fun TableBigDataTest() {
             val fieldValues = fieldNames.map { fieldName ->
                 "${fieldName}_row${rowIndex}_data"
             }
-            
+
             BigDataModel(
-                field001 = fieldValues[0], field002 = fieldValues[1], field003 = fieldValues[2], 
-                field004 = fieldValues[3], field005 = fieldValues[4], field006 = fieldValues[5], 
-                field007 = fieldValues[6], field008 = fieldValues[7], field009 = fieldValues[8], 
-                field010 = fieldValues[9], field011 = fieldValues[10], field012 = fieldValues[11], 
-                field013 = fieldValues[12], field014 = fieldValues[13], field015 = fieldValues[14], 
-                field016 = fieldValues[15], field017 = fieldValues[16], field018 = fieldValues[17], 
-                field019 = fieldValues[18], field020 = fieldValues[19], field021 = fieldValues[20], 
-                field022 = fieldValues[21], field023 = fieldValues[22], field024 = fieldValues[23], 
-                field025 = fieldValues[24], field026 = fieldValues[25], field027 = fieldValues[26], 
-                field028 = fieldValues[27], field029 = fieldValues[28], field030 = fieldValues[29], 
-                field031 = fieldValues[30], field032 = fieldValues[31], field033 = fieldValues[32], 
-                field034 = fieldValues[33], field035 = fieldValues[34], field036 = fieldValues[35], 
-                field037 = fieldValues[36], field038 = fieldValues[37], field039 = fieldValues[38], 
-                field040 = fieldValues[39], field041 = fieldValues[40], field042 = fieldValues[41], 
-                field043 = fieldValues[42], field044 = fieldValues[43], field045 = fieldValues[44], 
-                field046 = fieldValues[45], field047 = fieldValues[46], field048 = fieldValues[47], 
-                field049 = fieldValues[48], field050 = fieldValues[49], field051 = fieldValues[50], 
-                field052 = fieldValues[51], field053 = fieldValues[52], field054 = fieldValues[53], 
-                field055 = fieldValues[54], field056 = fieldValues[55], field057 = fieldValues[56], 
-                field058 = fieldValues[57], field059 = fieldValues[58], field060 = fieldValues[59], 
-                field061 = fieldValues[60], field062 = fieldValues[61], field063 = fieldValues[62], 
-                field064 = fieldValues[63], field065 = fieldValues[64], field066 = fieldValues[65], 
-                field067 = fieldValues[66], field068 = fieldValues[67], field069 = fieldValues[68], 
-                field070 = fieldValues[69], field071 = fieldValues[70], field072 = fieldValues[71], 
-                field073 = fieldValues[72], field074 = fieldValues[73], field075 = fieldValues[74], 
-                field076 = fieldValues[75], field077 = fieldValues[76], field078 = fieldValues[77], 
-                field079 = fieldValues[78], field080 = fieldValues[79], field081 = fieldValues[80], 
-                field082 = fieldValues[81], field083 = fieldValues[82], field084 = fieldValues[83], 
-                field085 = fieldValues[84], field086 = fieldValues[85], field087 = fieldValues[86], 
-                field088 = fieldValues[87], field089 = fieldValues[88], field090 = fieldValues[89], 
-                field091 = fieldValues[90], field092 = fieldValues[91], field093 = fieldValues[92], 
-                field094 = fieldValues[93], field095 = fieldValues[94], field096 = fieldValues[95], 
-                field097 = fieldValues[96], field098 = fieldValues[97], field099 = fieldValues[98], 
+                field001 = fieldValues[0], field002 = fieldValues[1], field003 = fieldValues[2],
+                field004 = fieldValues[3], field005 = fieldValues[4], field006 = fieldValues[5],
+                field007 = fieldValues[6], field008 = fieldValues[7], field009 = fieldValues[8],
+                field010 = fieldValues[9], field011 = fieldValues[10], field012 = fieldValues[11],
+                field013 = fieldValues[12], field014 = fieldValues[13], field015 = fieldValues[14],
+                field016 = fieldValues[15], field017 = fieldValues[16], field018 = fieldValues[17],
+                field019 = fieldValues[18], field020 = fieldValues[19], field021 = fieldValues[20],
+                field022 = fieldValues[21], field023 = fieldValues[22], field024 = fieldValues[23],
+                field025 = fieldValues[24], field026 = fieldValues[25], field027 = fieldValues[26],
+                field028 = fieldValues[27], field029 = fieldValues[28], field030 = fieldValues[29],
+                field031 = fieldValues[30], field032 = fieldValues[31], field033 = fieldValues[32],
+                field034 = fieldValues[33], field035 = fieldValues[34], field036 = fieldValues[35],
+                field037 = fieldValues[36], field038 = fieldValues[37], field039 = fieldValues[38],
+                field040 = fieldValues[39], field041 = fieldValues[40], field042 = fieldValues[41],
+                field043 = fieldValues[42], field044 = fieldValues[43], field045 = fieldValues[44],
+                field046 = fieldValues[45], field047 = fieldValues[46], field048 = fieldValues[47],
+                field049 = fieldValues[48], field050 = fieldValues[49], field051 = fieldValues[50],
+                field052 = fieldValues[51], field053 = fieldValues[52], field054 = fieldValues[53],
+                field055 = fieldValues[54], field056 = fieldValues[55], field057 = fieldValues[56],
+                field058 = fieldValues[57], field059 = fieldValues[58], field060 = fieldValues[59],
+                field061 = fieldValues[60], field062 = fieldValues[61], field063 = fieldValues[62],
+                field064 = fieldValues[63], field065 = fieldValues[64], field066 = fieldValues[65],
+                field067 = fieldValues[66], field068 = fieldValues[67], field069 = fieldValues[68],
+                field070 = fieldValues[69], field071 = fieldValues[70], field072 = fieldValues[71],
+                field073 = fieldValues[72], field074 = fieldValues[73], field075 = fieldValues[74],
+                field076 = fieldValues[75], field077 = fieldValues[76], field078 = fieldValues[77],
+                field079 = fieldValues[78], field080 = fieldValues[79], field081 = fieldValues[80],
+                field082 = fieldValues[81], field083 = fieldValues[82], field084 = fieldValues[83],
+                field085 = fieldValues[84], field086 = fieldValues[85], field087 = fieldValues[86],
+                field088 = fieldValues[87], field089 = fieldValues[88], field090 = fieldValues[89],
+                field091 = fieldValues[90], field092 = fieldValues[91], field093 = fieldValues[92],
+                field094 = fieldValues[93], field095 = fieldValues[94], field096 = fieldValues[95],
+                field097 = fieldValues[96], field098 = fieldValues[97], field099 = fieldValues[98],
                 field100 = fieldValues[99]
             )
         }
@@ -133,7 +136,7 @@ fun TableBigDataTest() {
     }
 
     val tableSlots = TableSlots<BigDataModel>(
-        headerBar = {
+        topHeaderBar = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -164,8 +167,30 @@ fun TableBigDataTest() {
                     )
                 }
             }
+        },
+        rowActions = { item, index ->
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                AddIconButton(
+                    text = "编辑",
+                    imageVector = Icons.Default.Edit,
+                    modifier = Modifier.size(20.dp),
+                    onClick = { /* 编辑操作 */ }
+                )
+                AddIconButton(
+                    text = "删除",
+                    imageVector = Icons.Default.Delete,
+                    modifier = Modifier.size(20.dp),
+                    onClick = { /* 删除操作 */ }
+                )
+            }
         }
     )
+
+//    val tableConfig = TableConfig<>(
+//        headerCardType = MellumCardType.Dark,
+//        headerCornerRadius = 8.dp,
+//        headerElevation = 6.dp
+//    )
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -200,7 +225,7 @@ fun TableBigDataTest() {
                     )
                     Spacer(Modifier.height(8.dp))
                     Text("✓ 垂直滚动流畅度", style = MaterialTheme.typography.bodySmall)
-                    Text("✓ 水平滚动同步性", style = MaterialTheme.typography.bodySmall)  
+                    Text("✓ 水平滚动同步性", style = MaterialTheme.typography.bodySmall)
                     Text("✓ 初始渲染响应速度", style = MaterialTheme.typography.bodySmall)
                     Text("✓ 内存占用稳定性", style = MaterialTheme.typography.bodySmall)
                     Text("✓ 表头数据对齐精度", style = MaterialTheme.typography.bodySmall)
@@ -227,7 +252,7 @@ fun TableBigDataTest() {
                 getCellContent = { item, config ->
                     val itemMap = dataMapsCache[item] ?: emptyMap()
                     val value = itemMap[config.key] ?: ""
-                    
+
                     Text(
                         text = value.toString(),
                         style = MaterialTheme.typography.bodySmall,
@@ -238,26 +263,8 @@ fun TableBigDataTest() {
                     )
                 },
                 modifier = Modifier.height(600.dp),
-                slots = tableSlots,
-                rowActions = { item, index ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        IconButton(
-                            onClick = { /* 编辑操作 */ },
-                            modifier = Modifier.size(20.dp)
-                        ) {
-                            Icon(Icons.Default.Edit, "编辑", Modifier.size(14.dp))
-                        }
-                        IconButton(
-                            onClick = { /* 删除操作 */ },
-                            modifier = Modifier.size(20.dp)
-                        ) {
-                            Icon(Icons.Default.Delete, "删除", Modifier.size(14.dp))
-                        }
-                    }
-                },
-                headerCardType = MellumCardType.Dark,
-                headerCornerRadius = 8.dp,
-                headerElevation = 6.dp
+//                config = tableConfig,
+                slots = tableSlots
             )
         }
 
@@ -280,11 +287,11 @@ fun TableBigDataTest() {
                     Text("🎯 行虚拟化优化内存占用，支持无限数据量", style = MaterialTheme.typography.bodySmall)
                     Text("🎯 derivedStateOf缓存Map转换避免重复序列化", style = MaterialTheme.typography.bodySmall)
                     Text("🎯 固定列宽计算确保表头数据完美对齐", style = MaterialTheme.typography.bodySmall)
-                    
+
                     Spacer(Modifier.height(8.dp))
                     Divider()
                     Spacer(Modifier.height(8.dp))
-                    
+
                     Text(
                         "对比香烟列架构的改进:",
                         style = MaterialTheme.typography.titleSmall,
