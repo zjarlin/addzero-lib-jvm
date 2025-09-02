@@ -373,7 +373,7 @@ fun String.withFileName(fileName: String): String {
     return "$this/$fileName"
 }
 
-fun String.withFileSuffix(suffix: String): String {
+fun String.withFileSuffix(suffix: String=".kt"): String {
     return "$this$suffix"
 }
 

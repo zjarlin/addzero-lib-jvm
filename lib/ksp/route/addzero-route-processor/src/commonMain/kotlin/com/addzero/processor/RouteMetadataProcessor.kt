@@ -2,7 +2,6 @@ package com.addzero.processor
 
 import com.addzero.annotation.Route
 import com.addzero.consts.GEN_PKG
-import com.addzero.context.*
 import com.addzero.context.SettingContext
 import com.addzero.util.genCode
 import com.addzero.util.str.toUnderLineCase

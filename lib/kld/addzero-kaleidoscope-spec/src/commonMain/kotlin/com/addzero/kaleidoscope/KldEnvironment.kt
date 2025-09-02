@@ -1,5 +1,6 @@
 package com.addzero.kaleidoscope
 
+import com.addzero.kaleidoscope.core.KldLogger
 import com.addzero.kaleidoscope.core.KldWriter
 
 /**
@@ -17,6 +18,7 @@ interface KldEnvironment {
      */
     val options: Map<String, String>
 
+    val logger: KldLogger
     /**
      * 创建源文件
      *
@@ -31,27 +33,4 @@ interface KldEnvironment {
         vararg originatingElements: Any
     ): KldWriter
 
-    /**
-     * 记录信息日志
-     *
-     * @param message 日志消息
-     * @param element 相关元素（可选）
-     */
-    fun info(message: String, element: Any? = null)
-
-    /**
-     * 记录警告日志
-     *
-     * @param message 日志消息
-     * @param element 相关元素（可选）
-     */
-    fun warn(message: String, element: Any? = null)
-
-    /**
-     * 记录错误日志
-     *
-     * @param message 日志消息
-     * @param element 相关元素（可选）
-     */
-    fun error(message: String, element: Any? = null)
 }

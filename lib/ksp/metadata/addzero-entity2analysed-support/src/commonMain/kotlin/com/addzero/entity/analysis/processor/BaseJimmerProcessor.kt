@@ -50,7 +50,7 @@ abstract class BaseJimmerProcessor(
 
         // 查找所有 Jimmer 实体
         val entitySymbols = resolver
-            .getSymbolsWithAnnotation(getJimmerEntityAnnotation())
+            .getSymbolsWithAnnotation("org.babyfish.jimmer.sql.Entity")
             .filterIsInstance<KSClassDeclaration>()
 
         logger.warn("找到 ${entitySymbols.count()} 个 Jimmer 实体")
@@ -101,12 +101,6 @@ abstract class BaseJimmerProcessor(
      * 子类可以重写此方法来实现条件执行
      */
     protected open fun shouldProcess(): Boolean = true
-
-    /**
-     * 获取 Jimmer 实体注解
-     * 子类可以重写此方法来指定不同的注解
-     */
-    protected open fun getJimmerEntityAnnotation(): String = "org.babyfish.jimmer.sql.Entity"
 
     /**
      * 处理实体元数据

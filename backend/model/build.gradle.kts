@@ -10,6 +10,9 @@ plugins {
 dependencies {
     ksp(libs.jimmer.ksp)
 //    ksp(projects.lib.toolJvm.jimmer.addzeroJimmerAutoddl)
+
+//    ksp(projects.lib.kld.addzeroKldJimmer)
+
     ksp(projects.lib.ksp.jdbc2metadata.addzeroJdbc2entityProcessor)
     ksp(projects.lib.ksp.metadata.addzeroEntity2isoProcessor)
     ksp(projects.lib.ksp.metadata.entity2form.addzeroEntity2formProcessor)

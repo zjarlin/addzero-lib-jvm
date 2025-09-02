@@ -32,11 +32,23 @@ inline fun <reified T> Any.convertToByKtx(): T {
     return toJsonByKtx.parseObjectByKtx<T>()
 }
 
-
+// 非内联版本的 Bean 转 Map
+@OptIn(InternalSerializationApi::class)
+fun <T : Any> T.toMap(clazz: KClass<T>): Map<String, Any?> {
+    val jsonString = json.encodeToString(clazz.serializer(), this)
+    return json.parseToJsonElement(jsonString).jsonObject.toMap()
+}
 // Bean 转 Map
-inline fun <reified T> T.toMap(): Map<String, Any?> {
+inline fun <reified T:Any> T.toMap(): Map<String, Any?> {
     val jsonString = json.encodeToString(this)
     return json.parseToJsonElement(jsonString).jsonObject.toMap()
+}
+
+// 新增：使用 KClass 的 toBean 方法（非内联）
+@OptIn(InternalSerializationApi::class)
+fun <T : Any> Map<String, Any?>.toBean(clazz: KClass<T>): T {
+    val jsonElement = json.encodeToString(this)
+    return json.decodeFromString(clazz.serializer(), jsonElement)
 }
 
 // JsonObject 转 Map

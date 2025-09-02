@@ -1,6 +1,7 @@
 package com.addzero.kaleidoscope.apt
 
 import com.addzero.kaleidoscope.KldEnvironment
+import com.addzero.kaleidoscope.core.KldLogger
 import com.addzero.kaleidoscope.core.KldWriter
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.Element
@@ -15,6 +16,38 @@ class AptKldEnvironment(
 
     override val options: Map<String, String>
         get() = processingEnv.options
+    override val logger: KldLogger
+        get() = object : KldLogger {
+            override fun info(message: String, element: Any?) {
+                val aptElement = element as? Element
+                if (aptElement != null) {
+                    processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, message, aptElement)
+                } else {
+                    processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, message)
+                }
+
+            }
+
+            override fun warn(message: String, element: Any?) {
+                val aptElement = element as? Element
+                if (aptElement != null) {
+                    processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, message, aptElement)
+                } else {
+                    processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, message)
+                }
+
+            }
+
+            override fun error(message: String, element: Any?) {
+                val aptElement = element as? Element
+                if (aptElement != null) {
+                    processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, message, aptElement)
+                } else {
+                    processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, message)
+                }
+            }
+        }
+
 
     override fun createSourceFile(
         packageName: String,
@@ -38,30 +71,4 @@ class AptKldEnvironment(
         return AptKldWriter(javaFileObject.openWriter())
     }
 
-    override fun info(message: String, element: Any?) {
-        val aptElement = element as? Element
-        if (aptElement != null) {
-            processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, message, aptElement)
-        } else {
-            processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, message)
-        }
-    }
-
-    override fun warn(message: String, element: Any?) {
-        val aptElement = element as? Element
-        if (aptElement != null) {
-            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, message, aptElement)
-        } else {
-            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, message)
-        }
-    }
-
-    override fun error(message: String, element: Any?) {
-        val aptElement = element as? Element
-        if (aptElement != null) {
-            processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, message, aptElement)
-        } else {
-            processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, message)
-        }
-    }
 }

@@ -1,21 +1,19 @@
 plugins {
-    id("kmp-jvm")
+    id("kmp-ksp")
+    id("kmp-json")
 }
 
 kotlin {
-    jvm()
     sourceSets {
         commonMain {
             dependencies {
-//                implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
-                // 添加对Kaleidoscope KSP模块的依赖
-                implementation(projects.lib.kld.addzeroKaleidoscopeSpec)
-                implementation(projects.lib.toolKmp.addzeroToolStr)
+                implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+                implementation(projects.lib.kld.addzeroKaleidoscopeKsp)
+                implementation(projects.lib.kld.addzeroKaleidoscopeCodegen)
             }
         }
         jvmMain{
            dependencies {
-               implementation(libs.velocity)
                implementation(libs.hutool.all)
 //               implementation(libs.kotlin.reflect)
                // 添加对Kaleidoscope APT模块的依赖

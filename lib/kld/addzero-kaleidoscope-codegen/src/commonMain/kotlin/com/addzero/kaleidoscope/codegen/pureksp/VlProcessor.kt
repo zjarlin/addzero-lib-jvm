@@ -2,11 +2,12 @@ package com.addzero.kaleidoscope.codegen.pureksp
 
 import com.addzero.kaleidoscope.codegen.VelocityTemplateEngine
 import com.addzero.kaleidoscope.codegen.pureksp.jimmer.TemlateContext
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.processing.SymbolProcessor
-import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.validate
+import com.addzero.kaleidoscope.core.KldResolver
+import com.addzero.kaleidoscope.util.CodeUtil
+import com.addzero.util.str.withFileName
+import com.addzero.util.str.withFileSuffix
+import com.addzero.util.str.withPkg
+import java.io.File
 
 
 typealias Ret = MutableMap<String, Any?>
@@ -22,26 +23,26 @@ typealias Ret = MutableMap<String, Any?>
  *
  * @param T 元数据类型
  */
-abstract class VlProcessor<Ret>(
-    protected val environment: SymbolProcessorEnvironment
-) : SymbolProcessor {
-
-    protected val logger = environment.logger
-    protected val templateEngine = VelocityTemplateEngine(environment)
-
-    protected val options = environment.options
+abstract class KldCodeGenerator() {
 
 
     /**
      * 将元数据对象T转换为Velocity模板可用的Map
      */
-    protected abstract fun collectRet(resolver: Resolver): Sequence<Ret>
+    abstract fun singleFileFlag(): Boolean
+
 
 
     /**
      * 将元数据对象T转换为Velocity模板可用的Map
      */
-    protected abstract fun getTemplates(): List<TemlateContext>
+    abstract fun collectRet(resolver: KldResolver): Sequence<Ret>
+
+
+    /**
+     * 将元数据对象T转换为Velocity模板可用的Map
+     */
+    abstract fun getTemplateContexts(): List<TemlateContext>
 
     /**
      * 存储收集到的元数据
@@ -49,39 +50,49 @@ abstract class VlProcessor<Ret>(
     protected val collectedMetadata = mutableSetOf<Ret>()
 
 
-    override fun process(resolver: Resolver): List<KSAnnotated> {
-        val collectRet = collectRet(resolver)
-        collectedMetadata.addAll(collectRet)
-        val filterNot = resolver.getAllFiles().filterNot { it.validate() }.toList()
-        return filterNot
-    }
-
-
-    override fun finish() {
+    fun finish() {
+        println("tttttt收集到的元数据有：${collectedMetadata}")
         if (collectedMetadata.isEmpty()) {
-            logger.warn("没有收集到元数据，跳过代码生成")
             return
         }
-        val templates = getTemplates()
+//        list往单模板里塞
+//        t往模板里塞
+
+        val templates = getTemplateContexts()
         templates.forEach { temlateContext ->
             val path = temlateContext.templatePath
             temlateContext.fileNamePattern
-            collectedMetadata.forEach { metadata ->
-                gencode(temlateContext, metadata)
+
+
+            if (singleFileFlag()) {
+                collectedMetadata.forEach { metadata ->
+                    gencode(temlateContext, metadata)
+                }
+            } else {
+                val mapOf = mapOf("ret" to collectedMetadata) as Map<String, Any?>
+                gencode(temlateContext, mapOf)
             }
         }
     }
-
-    fun gencode(temlateContext: TemlateContext, metadata: Ret) {
+    fun gencode(temlateContext: TemlateContext, metadata: Map<String, Any?>) {
         val templatePath = temlateContext.templatePath
-        val readContent:String = readContent(templatePath)
-        val vlprocessTemplate = templateEngine.vlprocessTemplate(readContent, metadata.toMap())
+        val readContent: String = readContent(templatePath)
+        val generatedCode = VelocityTemplateEngine.vlprocessTemplate(readContent, metadata)
+
+        // 生成文件名和包名
+        val fileName = VelocityTemplateEngine.vlformat(temlateContext.fileNamePattern, metadata)
+        val packageName = VelocityTemplateEngine.vlformat(temlateContext.pkgPattern, metadata)
+
+        // 移除文件扩展名（如果有的话）
+        val fileNameWithoutExtension = fileName.substringBeforeLast(".")
+        CodeUtil.genCode(temlateContext.outputDir.withPkg(packageName).withFileName(fileName).withFileSuffix(), generatedCode)
 
     }
 
     fun readContent(templatePath: String): String {
-        TODO("Not yet implemented")
+//        FileU
+        val readWithUse = File(templatePath).reader().use { it.readText() }
+        return readWithUse
+
     }
-
-
 }

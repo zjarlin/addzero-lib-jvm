@@ -4,7 +4,6 @@ import com.addzero.util.str.makeSurroundWith
 import com.addzero.util.str.removeAnyQuote
 import com.addzero.util.str.toUnderLineCase
 import com.google.devtools.ksp.symbol.*
-import java.io.File
 
 val KSPropertyDeclaration.firstTypeArgumentKSClassDeclaration: KSClassDeclaration?
     get() {
@@ -107,20 +106,6 @@ private fun KSType.isJimmerEntity(): Boolean {
     }
 }
 
-
-fun genCode(pathname: String, code: String, skipExistFile: Boolean = false) {
-
-    val targetFile = File(pathname)
-    targetFile.parentFile?.mkdirs()
-    if (skipExistFile) {
-        if (targetFile.exists()) {
-            return
-        }
-
-    }
-    targetFile.writeText(code)
-
-}
 
 // 扩展 KSPropertyDeclaration，判断属性是否为枚举类型
 fun KSPropertyDeclaration.isEnumProperty(): Boolean {

@@ -1,28 +1,22 @@
 package com.addzero.kaleidoscope.codegen
 
-import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import org.apache.velocity.VelocityContext
 import org.apache.velocity.app.VelocityEngine
 import org.apache.velocity.runtime.RuntimeConstants
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
 import java.io.StringWriter
 import java.time.LocalDateTime
-import kotlin.jvm.java
 
 /**
  * Velocity模板引擎实现
  *
  * 使用Apache Velocity引擎提供完整的模板处理功能
  */
-class VelocityTemplateEngine(
-    private val environment: SymbolProcessorEnvironment
-) {
-    private val logger = environment.logger
-    private val velocityEngine: VelocityEngine
+object VelocityTemplateEngine {
+    // 初始化Velocity引擎
+    private val velocityEngine: VelocityEngine = VelocityEngine()
 
     init {
-        // 初始化Velocity引擎
-        velocityEngine = VelocityEngine()
         velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath")
         velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader::class.java.name)
         velocityEngine.setProperty(RuntimeConstants.INPUT_ENCODING, "UTF-8")
@@ -54,9 +48,14 @@ class VelocityTemplateEngine(
             template.merge(velocityContext, writer)
             writer.toString()
         } catch (e: Exception) {
-            logger.error("处理模板时发生错误: ${e.message}")
-            "// 模板处理错误: ${e.message}\n"
+            errorMsg(e)
         }
+    }
+
+    private fun errorMsg(e: Exception): String {
+        val string1 = "处理模板时发生错误: ${e.message}"
+        println(string1)
+        return "// $string1"
     }
 
     /**
@@ -79,8 +78,8 @@ class VelocityTemplateEngine(
             velocityEngine.evaluate(velocityContext, writer, "inline-template", string)
             writer.toString()
         } catch (e: Exception) {
-            logger.error("处理模板内容时发生错误: ${e.message}")
-            "// 模板处理错误: ${e.message}\n"
+            errorMsg(e)
+
         }
     }
 }

@@ -17,9 +17,10 @@ data class KldAutoImportConfig(
 val DefaultKldAutoImportConfig by lazy {
     KldAutoImportConfig(
         blacklistPredicate = { qualifiedName ->
-            qualifiedName.startsWith("java.lang.") ||
-            qualifiedName.startsWith("kotlin.") ||
-            qualifiedName.startsWith("org.babyfish.jimmer.")
+            qualifiedName.startsWith("java.lang.")
+//            ||
+//            qualifiedName.startsWith("kotlin.") ||
+//            qualifiedName.startsWith("org.babyfish.jimmer.")
         }
     )
 }
