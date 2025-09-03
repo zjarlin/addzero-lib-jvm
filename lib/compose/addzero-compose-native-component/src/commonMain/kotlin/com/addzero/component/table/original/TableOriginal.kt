@@ -77,11 +77,19 @@ inline fun <reified T, C> TableOriginal(
 
     val tableState = rememberTableState(params)
 
-    TableLayout(
-        tableState = tableState,
-        params = params,
-        modifier = modifier
-    )
+    Column(modifier = modifier) {
+        // 顶部插槽区域
+        // 顶部标题栏
+        params.slots.topSlot
+        // 主表格内容区域
+        TableMainContent(
+            tableState = tableState,
+            params = params,
+            modifier = Modifier.weight(1f)
+        )
+        // 底部插槽区域
+        params.slots.bottomSlot()
+    }
 }
 
 /**
@@ -150,34 +158,10 @@ fun <T, C> rememberTableState(
 }
 
 /**
- * 表格布局管理器 - 负责整体布局结构
- */
-@Composable
-fun <T, C> TableLayout(
-    tableState: TableState<T, C>,
-    params: TableParams<T, C>,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        // 顶部插槽区域
-        // 顶部标题栏
-        params.slots.topSlot
-        // 主表格内容区域
-        TableMainContent(
-            tableState = tableState,
-            params = params,
-            modifier = Modifier.weight(1f)
-        )
-        // 底部插槽区域
-        params.slots.bottomSlot()
-    }
-}
-
-/**
  * 主表格内容区域 - 包含表头、数据行和固定列
  */
 @Composable
-private fun <T, C> TableMainContent(
+fun <T, C> TableMainContent(
     tableState: TableState<T, C>,
     params: TableParams<T, C>,
     modifier: Modifier = Modifier
