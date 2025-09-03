@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +48,16 @@ private fun Color.luminance(): Float {
     return 0.2126f * r + 0.7152f * g + 0.0722f * b
 }
 
+@Composable
+private fun getCardType(): MellumCardType {
+    val type = if (isSystemInDarkTheme()) {
+        MellumCardType.Dark
+    } else {
+        MellumCardType.Light
+    }
+    return type
+}
+
 /**
  * 🎨 卡片组件
  * - 清晰的渐变背景
@@ -70,12 +81,13 @@ fun AddCard(
     cornerRadius: Dp = 16.dp,
     elevation: Dp = 4.dp,
     padding: Dp = 20.dp,
-    backgroundType: MellumCardType = MellumCardType.Light,
+    backgroundType: MellumCardType = getCardType(),
     animationDuration: Int = 300,
     content: @Composable () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+
 
     // 荧光色边框动画
     val glowAlpha by animateFloatAsState(
