@@ -1,4 +1,4 @@
-package com.addzero.demo
+package com.addzero.demo.clean_table
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 
 @Route
 @Composable
-fun TableBigDataTest() {
+fun TableBigDataTest2() {
 
     // 大数据模型 - 100个字段
     @Serializable
@@ -152,7 +152,7 @@ fun TableBigDataTest() {
 //                }
 //            }
 //        },
-        actionSlot = {
+        rowActionSlot = {
                 AddEditDeleteButton(
                     showDelete = true,
                     showEdit = true,

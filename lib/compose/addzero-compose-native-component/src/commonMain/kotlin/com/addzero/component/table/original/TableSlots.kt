@@ -18,12 +18,12 @@ data class TableSlots<T>(
     // 表头区域插槽
     val topSlot: @Composable () -> Unit = {},
     // 行级操作插槽 - 支持事件处理
-    val actionSlot: @Composable () -> Unit = {},
+    val rowActionSlot: @Composable () -> Unit = {},
     val rowLeftSlot: @Composable () -> Unit = {},
 
     // 列级功能插槽
-    val columnLeftSlot: @Composable () -> Unit = {},
-    val columnRightSlot: @Composable () -> Unit = {},
+//    val columnLeftSlot: @Composable () -> Unit = {},
+//    val columnRightSlot: @Composable () -> Unit = {},
 
     // 状态区域插槽
     val emptyContentSlot: @Composable () -> Unit = {

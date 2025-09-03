@@ -25,9 +25,9 @@ import androidx.compose.ui.unit.dp
     columns: List<C>,
     columnWidths: Map<String, Dp>,
     getColumnKey: (C) -> String,
-    getCellContent: @Composable (item: T, column: C) -> Unit,
-    rowLeft: @Composable () -> Unit,
-    rowActions: @Composable () -> Unit,
+    getCellContent: @Composable ((item: T, column: C) -> Unit),
+    rowLeft: @Composable (() -> Unit),
+    actionSlot: @Composable (() -> Unit),
     horizontalScrollState: ScrollState
 ) {
     val backgroundColor = if (index % 2 == 0) {
@@ -39,27 +39,27 @@ import androidx.compose.ui.unit.dp
     val dividerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
 
     Surface(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .fillMaxWidth().border(
                 border = BorderStroke(1.dp, dividerColor), shape = MaterialTheme.shapes.medium
             ), color = backgroundColor, tonalElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
                 .horizontalScroll(horizontalScrollState)
                 .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.Companion.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
             rowLeft()
             // 序号列
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .width(80.dp)
                     .fillMaxHeight(),
-                contentAlignment = Alignment.Companion.Center
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     "${index + 1}",
@@ -72,16 +72,15 @@ import androidx.compose.ui.unit.dp
             // 数据列
             columns.forEach { column ->
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .width(columnWidths[getColumnKey(column)] ?: 100.dp)
                         .fillMaxHeight()
                         .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.Companion.CenterStart
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     getCellContent(item, column)
                 }
             }
-
             // 操作列
             Box(
                 modifier = Modifier
@@ -89,7 +88,7 @@ import androidx.compose.ui.unit.dp
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
-                rowActions()
+                actionSlot()
             }
         }
     }

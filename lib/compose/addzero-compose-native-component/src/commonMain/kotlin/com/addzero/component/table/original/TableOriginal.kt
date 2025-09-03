@@ -203,7 +203,7 @@ private fun <T, C> TableMainContent(
             FixedActionColumn(
                 verticalScrollState = tableState.verticalScrollState,
                 data = params.data,
-                rowActions = params.slots.actionSlot,
+                rowActions = params.slots.rowActionSlot,
                 headerCardType = params.config.headerCardType,
                 headerCornerRadius = params.config.headerCornerRadius,
                 headerElevation = params.config.headerElevation,
@@ -401,6 +401,9 @@ private fun <T, C> TableScrollableContent(
     tableState: TableState<T, C>,
     params: TableParams<T, C>
 ) {
+    val rowActionSlot = params.slots.rowActionSlot
+
+
     Column(modifier = Modifier.fillMaxSize()) {
         TableHeaderRow(
             params = params,
@@ -426,7 +429,7 @@ private fun <T, C> TableScrollableContent(
                         columnWidths = tableState.columnWidths.value,
                         getColumnKey = params.getColumnKey,
                         getCellContent = params.getCellContent,
-                        rowActions = params.slots.actionSlot,
+                        actionSlot = params.slots.rowActionSlot,
                         rowLeft = params.slots.rowLeftSlot,
                         horizontalScrollState = tableState.horizontalScrollState
                     )

@@ -61,9 +61,9 @@ fun <T, C> TableHeaderRow(
                         .padding(horizontal = 8.dp), contentAlignment = Alignment.CenterStart
                 ) {
                     Row {
-                        params.slots.columnLeftSlot()
+//                        params.slots.columnLeftSlot()
                         getColumnLabel(column)
-                        params.slots.columnRightSlot()
+//                        params.slots.columnRightSlot()
                     }
                 }
             }

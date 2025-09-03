@@ -14,9 +14,9 @@ object RouteTable {
      */
     val allRoutes = mapOf(
         RouteKeys.RICH_TEXT_DEMO to  @Composable { com.addzero.demo.RichTextDemo() },
-        RouteKeys.TABLE_BIG_DATA_TEST to  @Composable { com.addzero.demo.TableBigDataTest() },
         RouteKeys.ADD_CARD_EXAMPLE to  @Composable { com.addzero.demo.AddCardExample() },
         RouteKeys.U_I_COMPONENTS_DEMO to  @Composable { com.addzero.demo.UIComponentsDemo() },
+        RouteKeys.TABLE_BIG_DATA_TEST2 to  @Composable { com.addzero.demo.clean_table.TableBigDataTest2() },
         RouteKeys.LARGE_TABLE_TEST_SCREEN to  @Composable { com.addzero.demo.clean_table.LargeTableTestScreen() },
         RouteKeys.TIME_PICKER_EXAMPLE to  @Composable { com.addzero.demo.date_test.TimePickerExample() },
         RouteKeys.TIME_PICKER_FIELD_TEST to  @Composable { com.addzero.demo.date_test.TimePickerFieldTest() },
@@ -58,9 +58,9 @@ object RouteTable {
      */
     val allMeta = listOf(
         Route(value = "组件示例", title = "富文本", routePath = "com.addzero.demo.RichTextDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.RichTextDemo"),
-        Route(value = "", title = "TableBigDataTest", routePath = "com.addzero.demo.TableBigDataTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TableBigDataTest"),
         Route(value = "", title = "AddCardExample", routePath = "com.addzero.demo.AddCardExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.AddCardExample"),
         Route(value = "组件示例", title = "UI组件测试", routePath = "com.addzero.demo.UIComponentsDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UIComponentsDemo"),
+        Route(value = "", title = "TableBigDataTest2", routePath = "com.addzero.demo.clean_table.TableBigDataTest2", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.clean_table.TableBigDataTest2"),
         Route(value = "", title = "LargeTableTestScreen", routePath = "com.addzero.demo.clean_table.LargeTableTestScreen", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.clean_table.LargeTableTestScreen"),
         Route(value = "时间选择器示例", title = "TimePickerExample", routePath = "com.addzero.demo.date_test.TimePickerExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerExample"),
         Route(value = "组件示例", title = "时间选择器", routePath = "com.addzero.demo.date_test.TimePickerFieldTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerFieldTest"),

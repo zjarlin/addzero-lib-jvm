@@ -55,7 +55,9 @@ fun ResponsiveMainLayout(
 
 
     // 根据布局模式渲染不同的布局
-    when (config.layoutMode) {
+    val layoutMode =     config.layoutMode
+
+    when (layoutMode) {
         LayoutMode.SIDEBAR -> {
             // 桌面端：侧边栏布局
             SidebarLayout(

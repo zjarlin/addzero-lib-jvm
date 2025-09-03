@@ -6,9 +6,9 @@ package com.addzero.generated
  */
 object RouteKeys {
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
-    const val TABLE_BIG_DATA_TEST = "com.addzero.demo.TableBigDataTest"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
+    const val TABLE_BIG_DATA_TEST2 = "com.addzero.demo.clean_table.TableBigDataTest2"
     const val LARGE_TABLE_TEST_SCREEN = "com.addzero.demo.clean_table.LargeTableTestScreen"
     const val TIME_PICKER_EXAMPLE = "com.addzero.demo.date_test.TimePickerExample"
     const val TIME_PICKER_FIELD_TEST = "com.addzero.demo.date_test.TimePickerFieldTest"

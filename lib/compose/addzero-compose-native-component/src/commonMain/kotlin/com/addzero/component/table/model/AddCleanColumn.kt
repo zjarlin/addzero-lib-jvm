@@ -11,7 +11,7 @@ data class AddCleanColumn<T>(
     val getValueFun: (T) -> Any?, val setValueFun: T.(Any?) -> T, val columnMetadata: ColumnMetadata
 ) {
     var customFormRender: @Composable ((T) -> Unit) = { item ->
-        _root_ide_package_.com.addzero.component.form.DynamicFormItem(
+        DynamicFormItem(
             value = getValueFun(item), onValueChange = {
                 // 确保item不为null时才设置值
                 if (item != null) {
@@ -24,9 +24,6 @@ data class AddCleanColumn<T>(
     var customCellRender: @Composable ((T) -> Unit) = { item ->
         Text(getValueFun(item).toString())
     }
-
-
-
 
 }
 

@@ -7,20 +7,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
 import com.addzero.component.table.model.AddCleanColumn
+import com.addzero.component.table.model.BaseCrudApi
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSearch
 import com.addzero.entity.low_table.StateSort
-import com.addzero.entity.low_table.TableMetadata
 
 class AddCleanTableViewModel<T>(
     val data: List<T>,
     val columns: List<AddCleanColumn<T>>,
-    val tableMetadata: TableMetadata= TableMetadata(),
     val getIdFun: (T) -> Any,
-    val baseCrudApi: com.addzero.component.table.model.BaseCrudApi<T>?=null,
-    val buttonSlot: @Composable () -> Unit = {},
-    val actionSlot: @Composable () -> Unit = {},
+    val baseCrudApi: BaseCrudApi<T>?=null,
 ) : ViewModel() {
+    var buttonSlot: @Composable () -> Unit = {}
     //    -------------------------------------------选择---------------------------------------
     // 是否启用编辑模式（多选模式）
     var enableEditMode by mutableStateOf(false)
