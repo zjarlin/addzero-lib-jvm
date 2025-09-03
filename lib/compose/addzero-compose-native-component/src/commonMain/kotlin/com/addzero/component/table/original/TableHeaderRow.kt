@@ -32,14 +32,14 @@ import com.addzero.component.card.MellumCardType
     horizontalScrollState: ScrollState
 ) {
     AddCard(
-        modifier = Modifier.Companion.fillMaxWidth().height(56.dp),
+        modifier = Modifier.fillMaxWidth().height(56.dp),
         backgroundType = headerCardType,
         cornerRadius = headerCornerRadius,
         elevation = headerElevation,
         padding = 0.dp
     ) {
         Row(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .horizontalScroll(horizontalScrollState)
                 .padding(horizontal = 8.dp),
@@ -47,15 +47,14 @@ import com.addzero.component.card.MellumCardType
         ) {
             // 序号列
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .width(80.dp)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Companion.Center
+                    .fillMaxHeight(), contentAlignment = Alignment.Center
             ) {
                 Text(
                     "#",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Companion.Bold),
-                    textAlign = TextAlign.Companion.Center
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -81,15 +80,14 @@ import com.addzero.component.card.MellumCardType
             // 操作列
             if (showActions) {
                 Box(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .width(120.dp)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Companion.Center
+                        .fillMaxHeight(), contentAlignment = Alignment.Center
                 ) {
                     Text(
                         "操作",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Companion.Bold),
-                        textAlign = TextAlign.Companion.Center
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
