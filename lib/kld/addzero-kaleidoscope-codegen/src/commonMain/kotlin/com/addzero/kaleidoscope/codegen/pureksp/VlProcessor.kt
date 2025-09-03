@@ -9,9 +9,7 @@ import com.addzero.util.str.withFileSuffix
 import com.addzero.util.str.withPkg
 import java.io.File
 
-
 typealias Ret = MutableMap<String, Any?>
-
 /**
  * 纯KSP实现的代码生成器基类
  *

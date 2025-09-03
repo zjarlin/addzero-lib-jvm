@@ -123,7 +123,7 @@ fun TableBigDataTest() {
     }
 
     val tableSlots = TableSlots<BigDataModel>(
-//        topHeaderBar = {
+//        topSlot = {
 //            Row(
 //                modifier = Modifier.fillMaxWidth(),
 //                horizontalArrangement = Arrangement.SpaceBetween,
@@ -155,7 +155,7 @@ fun TableBigDataTest() {
 //                }
 //            }
 //        },
-        rowActions = { item, index ->
+        actionSlot = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 AddEditDeleteButton(
                     showDelete = true,

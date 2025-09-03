@@ -106,7 +106,8 @@ data class TableConfig<C>(
     val headerCornerRadius: Dp = 12.dp,
     val headerElevation: Dp = 2.dp,
     val enableVirtualization: Boolean = true,
-    val sampleSizeForWidthCalculation: Int = 3
+    val sampleSizeForWidthCalculation: Int = 3,
+    val showActions: Boolean = false
 )
 
 /**
@@ -225,44 +226,17 @@ fun <T, C> TableLayout(
 ) {
     Column(modifier = modifier) {
         // 顶部插槽区域
-        TableTopSlots(params)
-
+        // 顶部标题栏
+        params.slots.topSlot
         // 主表格内容区域
         TableMainContent(
             tableState = tableState,
             params = params,
             modifier = Modifier.weight(1f)
         )
-
         // 底部插槽区域
-        params.slots.bottomPagination?.invoke()
-        params.slots.bottomSummary?.invoke(params.data.size)
+        params.slots.bottomSlot()
     }
-}
-
-/**
- * 顶部插槽渲染器
- */
-@Composable
-private fun <T, C> TableTopSlots(
-    params: TableParams<T, C>
-) {
-    // 顶部标题栏
-    params.slots.topHeaderBar?.let { headerBar ->
-        AddCard(
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-            backgroundType = params.config.headerCardType,
-            cornerRadius = params.config.headerCornerRadius,
-            elevation = params.config.headerElevation,
-            padding = 16.dp
-        ) {
-            headerBar()
-        }
-    }
-
-    // 顶部选择面板
-    params.slots.topSelectionPanel?.invoke()
 }
 
 /**
@@ -292,93 +266,15 @@ private fun <T, C> TableMainContent(
         )
 
         // 操作列固定遮罩
-        params.slots.rowActions?.let { actions ->
             FixedActionColumn(
                 verticalScrollState = tableState.verticalScrollState,
                 data = params.data,
-                rowActions = actions,
+                rowActions = params.slots.actionSlot,
                 headerCardType = params.config.headerCardType,
                 headerCornerRadius = params.config.headerCornerRadius,
                 headerElevation = params.config.headerElevation,
                 modifier = Modifier.align(Alignment.CenterEnd).zIndex(1f)
             )
-        }
-    }
-}
-
-/**
- * 完整表头行 - 包含序号列、数据列、操作列
- */
-@Composable
-private fun <C> CompleteHeaderRow(
-    columns: List<C>,
-    columnWidths: Map<String, Dp>,
-    getColumnKey: (C) -> String,
-    getColumnLabel: @Composable (C) -> Unit,
-    hasRowActions: Boolean,
-    headerCardType: MellumCardType,
-    headerCornerRadius: Dp,
-    headerElevation: Dp,
-    horizontalScrollState: ScrollState
-) {
-    AddCard(
-        onClick = {},
-        modifier = Modifier.fillMaxWidth().height(56.dp),
-        backgroundType = headerCardType,
-        cornerRadius = headerCornerRadius,
-        elevation = headerElevation,
-        padding = 0.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .horizontalScroll(horizontalScrollState)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 序号列
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "#",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            // 数据列
-            columns.forEach { column ->
-                Box(
-                    modifier = Modifier
-                        .width(columnWidths[getColumnKey(column)] ?: 100.dp)
-                        .fillMaxHeight()
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    getColumnLabel(column)
-                }
-            }
-
-            // 操作列
-            if (hasRowActions) {
-                Box(
-                    modifier = Modifier
-                        .width(120.dp)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "操作",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -392,8 +288,8 @@ private fun <T, C> CompleteDataRow(
     columns: List<C>,
     columnWidths: Map<String, Dp>,
     getColumnKey: (C) -> String,
-    getCellContent: @Composable (item: T, column: C) -> Unit,
-    rowActions: (@Composable (item: T, index: Int) -> Unit)?,
+    getCellContent: @Composable ((item: T, column: C) -> Unit),
+    rowActions: @Composable (() -> Unit),
     horizontalScrollState: ScrollState
 ) {
     val backgroundColor = if (index % 2 == 0) {
@@ -447,16 +343,14 @@ private fun <T, C> CompleteDataRow(
             }
 
             // 操作列
-            rowActions?.let { actions ->
                 Box(
                     modifier = Modifier
                         .width(120.dp)
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center
                 ) {
-                    actions(item, index)
+                    rowActions
                 }
-            }
         }
     }
 }
@@ -559,7 +453,7 @@ private fun <T> FixedIndexColumn(
 private fun <T> FixedActionColumn(
     verticalScrollState: LazyListState,
     data: List<T>,
-    rowActions: @Composable (item: T, index: Int) -> Unit,
+    rowActions: @Composable (() -> Unit),
     headerCardType: MellumCardType,
     headerCornerRadius: Dp,
     headerElevation: Dp,
@@ -630,7 +524,7 @@ private fun <T> FixedActionColumn(
                                         .padding(vertical = 2.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    rowActions(data[itemIndex], itemIndex)
+                                    rowActions()
                                 }
                             }
                         }
@@ -651,12 +545,12 @@ private fun <T, C> TableScrollableContent(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         // 使用现有的CompleteHeaderRow
-        CompleteHeaderRow(
+        TableHeaderRow(
             columns = params.columns,
             columnWidths = tableState.columnWidths.value,
             getColumnKey = params.getColumnKey,
             getColumnLabel = params.getColumnLabel,
-            hasRowActions = params.slots.rowActions != null,
+            showActions = params.config.showActions,
             headerCardType = params.config.headerCardType,
             headerCornerRadius = params.config.headerCornerRadius,
             headerElevation = params.config.headerElevation,
@@ -669,9 +563,7 @@ private fun <T, C> TableScrollableContent(
             modifier = Modifier.fillMaxSize()
         ) {
             if (params.data.isEmpty()) {
-                item {
-                    (params.slots.emptyStateContent ?: DefaultTableSlots.DefaultEmptyContent())()
-                }
+                item { params.slots.emptyContentSlot() }
             } else {
                 itemsIndexed(
                     items = params.data,
@@ -684,7 +576,7 @@ private fun <T, C> TableScrollableContent(
                         columnWidths = tableState.columnWidths.value,
                         getColumnKey = params.getColumnKey,
                         getCellContent = params.getCellContent,
-                        rowActions = params.slots.rowActions,
+                        rowActions = params.slots.actionSlot,
                         horizontalScrollState = tableState.horizontalScrollState
                     )
 

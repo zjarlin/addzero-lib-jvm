@@ -95,7 +95,7 @@
 //tableViewModel: AddCleanTableViewModel<T>)
 //fun <T> AddGenericTable(modifier: Modifier = Modifier) {
 //    val tableSlots = TableSlots<T>(
-//        topHeaderBar = {
+//        topSlot = {
 //            AddSearchBar(
 //                keyword = tableViewModel.keyword,
 //                onKeyWordChanged = { tableViewModel.keyword = it },
@@ -108,7 +108,7 @@
 //        topSelectionPanel = {
 //            RenderSelectContent()
 //        },
-//        rowActions = { item, index ->
+//        actionSlot = { item, index ->
 //            // 简化的行操作，使用基本的编辑删除按钮
 //            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
 //                AddIconButton(
@@ -126,14 +126,14 @@
 //                )
 //            }
 //        },
-//        rowCheckbox={
+//        rowLeftSlot={
 //        val props = this
 //            //是否全选
 ////            val allChecked1 = props.allChecked
 ////            allChecked1
 //        },
 //
-//        bottomPagination = {
+//        bottomSlot = {
 //            RenderPagination()
 //        }
 //    )
