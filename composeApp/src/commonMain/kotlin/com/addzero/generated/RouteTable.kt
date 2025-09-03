@@ -15,6 +15,7 @@ object RouteTable {
     val allRoutes = mapOf(
         RouteKeys.RICH_TEXT_DEMO to  @Composable { com.addzero.demo.RichTextDemo() },
         RouteKeys.ADD_CARD_EXAMPLE to  @Composable { com.addzero.demo.AddCardExample() },
+        RouteKeys.TABLE_DEMO to  @Composable { com.addzero.demo.TableDemo() },
         RouteKeys.U_I_COMPONENTS_DEMO to  @Composable { com.addzero.demo.UIComponentsDemo() },
         RouteKeys.TIME_PICKER_EXAMPLE to  @Composable { com.addzero.demo.date_test.TimePickerExample() },
         RouteKeys.TIME_PICKER_FIELD_TEST to  @Composable { com.addzero.demo.date_test.TimePickerFieldTest() },
@@ -57,6 +58,7 @@ object RouteTable {
     val allMeta = listOf(
         Route(value = "组件示例", title = "富文本", routePath = "com.addzero.demo.RichTextDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.RichTextDemo"),
         Route(value = "", title = "AddCardExample", routePath = "com.addzero.demo.AddCardExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.AddCardExample"),
+        Route(value = "组件示例", title = "测试表格", routePath = "com.addzero.demo.TableDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TableDemo"),
         Route(value = "组件示例", title = "UI组件测试", routePath = "com.addzero.demo.UIComponentsDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UIComponentsDemo"),
         Route(value = "时间选择器示例", title = "TimePickerExample", routePath = "com.addzero.demo.date_test.TimePickerExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerExample"),
         Route(value = "组件示例", title = "时间选择器", routePath = "com.addzero.demo.date_test.TimePickerFieldTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerFieldTest"),

@@ -419,4 +419,89 @@ fun String.toUnderLineCase(): String {
     return sb.toString()
 }
 
+/**
+ * 简化的 KMP 兼容字符串格式化函数
+ * 只支持 %.nf 格式的浮点数格式化
+ */
+fun String.kmpFormat(vararg args: Any?): String {
+    var result = this
+    var argIndex = 0
+
+    // 简单的 %.1f 替换
+    if (result.contains("%.1f") && argIndex < args.size) {
+        val value = args[argIndex++]
+        val formatted = when (value) {
+            is Double -> formatDouble(value, 1)
+            is Float -> formatDouble(value.toDouble(), 1)
+            is Number -> formatDouble(value.toDouble(), 1)
+            else -> value.toString()
+        }
+        result = result.replace("%.1f", formatted)
+    }
+
+    // 简单的 %.0f 替换
+    if (result.contains("%.0f") && argIndex < args.size) {
+        val value = args[argIndex++]
+        val formatted = when (value) {
+            is Double -> formatDouble(value, 0)
+            is Float -> formatDouble(value.toDouble(), 0)
+            is Number -> formatDouble(value.toDouble(), 0)
+            else -> value.toString()
+        }
+        result = result.replace("%.0f", formatted)
+    }
+
+    return result
+}
+
+/**
+ * 格式化双精度浮点数到指定小数位数
+ */
+private fun formatDouble(value: Double, decimals: Int): String {
+    if (decimals == 0) {
+        return kotlin.math.round(value).toLong().toString()
+    }
+
+    // 手动计算10的n次方，避免使用pow函数
+    var multiplier = 1.0
+    repeat(decimals) {
+        multiplier *= 10.0
+    }
+
+    val rounded = kotlin.math.round(value * multiplier) / multiplier
+
+    // 手动构建小数位数
+    val intPart = rounded.toLong()
+    val fracPart = kotlin.math.abs(rounded - intPart)
+
+    if (fracPart == 0.0) {
+        return "$intPart.${"0".repeat(decimals)}"
+    }
+
+    val fracStr = (fracPart * multiplier).toLong().toString().padStart(decimals, '0')
+    return "$intPart.$fracStr"
+}
+
+/**
+ * 便捷的数字格式化函数
+ */
+fun Double.formatDecimal(decimals: Int = 2): String {
+    return formatDouble(this, decimals)
+}
+
+fun Float.formatDecimal(decimals: Int = 2): String {
+    return formatDouble(this.toDouble(), decimals)
+}
+
+/**
+ * 格式化为货币显示（保留指定小数位，默认0位）
+ */
+fun Double.formatCurrency(decimals: Int = 0): String {
+    return formatDouble(this, decimals)
+}
+
+fun Float.formatCurrency(decimals: Int = 0): String {
+    return formatDouble(this.toDouble(), decimals)
+}
+
 

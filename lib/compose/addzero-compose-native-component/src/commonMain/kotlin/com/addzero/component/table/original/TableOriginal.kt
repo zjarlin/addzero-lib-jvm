@@ -14,11 +14,6 @@ import com.addzero.component.table.original.render.RenderFixedActionColumn
 import com.addzero.component.table.original.render.RenderFixedIndexColumn
 import com.addzero.component.table.original.render.RenderTableScrollableContent
 
-/**
- * 表格组件 - 简化版本，所有参数都通过ViewModel传递
- * 解决多LazyColumn滚动不同步问题，支持大数据量和多字段
- * 使用ViewModel统一管理所有状态，避免参数传递混乱
- */
 @Composable
 fun <T, C> TableOriginal(
     data: List<T>,
