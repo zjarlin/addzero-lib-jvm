@@ -1,7 +1,5 @@
 package com.addzero.demo
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -9,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.component.table.original.TableOriginal
@@ -156,14 +153,12 @@ fun TableBigDataTest() {
 //            }
 //        },
         actionSlot = {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 AddEditDeleteButton(
                     showDelete = true,
                     showEdit = true,
                     onEditClick = {},
                     onDeleteClick = {},
                 )
-            }
         }
     )
 

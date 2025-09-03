@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.addzero.component.table.header.column.RenderCell
 
 @Composable
 context(tableViewModel: com.addzero.component.table.clean.AddCleanTableViewModel<T>, horizontalScrollState: ScrollState) fun <T> TableRow(

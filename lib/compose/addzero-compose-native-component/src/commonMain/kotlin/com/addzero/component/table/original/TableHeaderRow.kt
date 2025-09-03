@@ -1,7 +1,6 @@
 package com.addzero.component.table.original
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -14,28 +13,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.addzero.component.card.AddCard
-import com.addzero.component.card.MellumCardType
 
 /**
  * 完整表头行 - 包含序号列、数据列、操作列
  */
 @Composable
- fun <C> TableHeaderRow(
-    columns: List<C>,
+fun <T, C> TableHeaderRow(
+    params: TableParams<T, C>,
     columnWidths: Map<String, Dp>,
-    getColumnKey: (C) -> String,
-    getColumnLabel: @Composable (C) -> Unit,
-    showActions: Boolean,
-    headerCardType: MellumCardType,
-    headerCornerRadius: Dp,
-    headerElevation: Dp,
     horizontalScrollState: ScrollState
 ) {
+    val getColumnKey = params.getColumnKey
+    val getColumnLabel = params.getColumnLabel
+    val showActions = params.config.showActions
     AddCard(
         modifier = Modifier.fillMaxWidth().height(56.dp),
-        backgroundType = headerCardType,
-        cornerRadius = headerCornerRadius,
-        elevation = headerElevation,
         padding = 0.dp
     ) {
         Row(
@@ -59,20 +51,19 @@ import com.addzero.component.card.MellumCardType
             }
 
             // 数据列
-            columns.forEach { column ->
+            params.columns.forEach { column ->
                 Box(
                     modifier = Modifier.Companion
                         .width(columnWidths[getColumnKey(column)] ?: 100.dp)
-                        .clickable(onClick = {
-                        })
+//                        .clickable(onClick = {
+//                        })
                         .fillMaxHeight()
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.Companion.CenterStart
+                        .padding(horizontal = 8.dp), contentAlignment = Alignment.CenterStart
                 ) {
                     Row {
-
+                        params.slots.columnLeftSlot()
                         getColumnLabel(column)
-
+                        params.slots.columnRightSlot()
                     }
                 }
             }

@@ -1,8 +1,9 @@
 package com.addzero.component.table.original
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -12,15 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.addzero.component.card.AddCard
 import com.addzero.component.card.MellumCardType
+import com.addzero.component.table.original.assist.rememberAsyncColumnWidths
+import com.addzero.component.table.original.assist.rememberVisibleItemsInfo
 import com.addzero.core.ext.toMap
-import kotlinx.coroutines.delay
 
 /**
  * 表格组件 - 单一LazyColumn行虚拟化架构
@@ -149,73 +150,6 @@ fun <T, C> rememberTableState(
 }
 
 /**
- * 异步列宽计算，避免阻塞主线程
- */
-@Composable
-private fun <T, C> rememberAsyncColumnWidths(
-    params: TableParams<T, C>
-): State<Map<String, Dp>> {
-    val textMeasurer = rememberTextMeasurer()
-    val density = LocalDensity.current
-    val titleStyle = MaterialTheme.typography.titleSmall
-    val bodyStyle = MaterialTheme.typography.bodyMedium
-
-    return produceState(
-        initialValue = params.columns.associate { params.getColumnKey(it) to params.config.getColumnMinWidth(it) },
-        key1 = params.columns,
-        key2 = params.data,
-        key3 = params.config
-    ) {
-        // 异步计算列宽，不阻塞主线程
-        delay(1) // 让出主线程
-
-        val calculatedWidths = params.columns.associate { column ->
-            params.getColumnKey(column) to run {
-                params.config.getColumnWidth(column) ?: run {
-                    val headerWidth = with(density) {
-                        textMeasurer.measure(
-                            text = params.getColumnKey(column),
-                            style = titleStyle
-                        ).size.width.toDp()
-                    }
-
-                    val sampleData = params.data.take(params.config.sampleSizeForWidthCalculation)
-                    val maxContentWidth = if (sampleData.isNotEmpty()) {
-                        sampleData.maxOfOrNull { item ->
-                            with(density) {
-                                textMeasurer.measure(
-                                    text = item.toString().take(15),
-                                    style = bodyStyle
-                                ).size.width.toDp()
-                            }
-                        } ?: 0.dp
-                    } else 0.dp
-
-                    val calculatedWidth = maxOf(headerWidth.value + 32, maxContentWidth.value + 16, 80f).dp
-                    calculatedWidth.coerceIn(params.config.getColumnMinWidth(column), params.config.getColumnMaxWidth(column))
-                }
-            }
-        }
-
-        value = calculatedWidths
-    }
-}
-
-/**
- * 共享可见项状态，避免重复计算
- */
-@Composable
-private fun rememberVisibleItemsInfo(
-    scrollState: LazyListState
-): State<List<LazyListItemInfo>> {
-    return remember {
-        derivedStateOf {
-            scrollState.layoutInfo.visibleItemsInfo
-        }
-    }
-}
-
-/**
  * 表格布局管理器 - 负责整体布局结构
  */
 @Composable
@@ -278,82 +212,6 @@ private fun <T, C> TableMainContent(
     }
 }
 
-/**
- * 完整数据行 - 包含序号列、数据列、操作列
- */
-@Composable
-private fun <T, C> CompleteDataRow(
-    item: T,
-    index: Int,
-    columns: List<C>,
-    columnWidths: Map<String, Dp>,
-    getColumnKey: (C) -> String,
-    getCellContent: @Composable ((item: T, column: C) -> Unit),
-    rowActions: @Composable (() -> Unit),
-    horizontalScrollState: ScrollState
-) {
-    val backgroundColor = if (index % 2 == 0) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    }
-
-    val dividerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth().border(
-                border = BorderStroke(1.dp, dividerColor), shape = MaterialTheme.shapes.medium
-            ), color = backgroundColor, tonalElevation = 0.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .horizontalScroll(horizontalScrollState)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 序号列
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "${index + 1}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            // 数据列
-            columns.forEach { column ->
-                Box(
-                    modifier = Modifier
-                        .width(columnWidths[getColumnKey(column)] ?: 100.dp)
-                        .fillMaxHeight()
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    getCellContent(item, column)
-                }
-            }
-
-            // 操作列
-                Box(
-                    modifier = Modifier
-                        .width(120.dp)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    rowActions
-                }
-        }
-    }
-}
 /**
  * 固定序号列 - 通过监听主表格滚动偏移来同步显示
  */
@@ -544,19 +402,11 @@ private fun <T, C> TableScrollableContent(
     params: TableParams<T, C>
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        // 使用现有的CompleteHeaderRow
         TableHeaderRow(
-            columns = params.columns,
+            params = params,
             columnWidths = tableState.columnWidths.value,
-            getColumnKey = params.getColumnKey,
-            getColumnLabel = params.getColumnLabel,
-            showActions = params.config.showActions,
-            headerCardType = params.config.headerCardType,
-            headerCornerRadius = params.config.headerCornerRadius,
-            headerElevation = params.config.headerElevation,
             horizontalScrollState = tableState.horizontalScrollState
         )
-
         // 使用现有的LazyColumn数据渲染
         LazyColumn(
             state = tableState.verticalScrollState,
@@ -577,6 +427,7 @@ private fun <T, C> TableScrollableContent(
                         getColumnKey = params.getColumnKey,
                         getCellContent = params.getCellContent,
                         rowActions = params.slots.actionSlot,
+                        rowLeft = params.slots.rowLeftSlot,
                         horizontalScrollState = tableState.horizontalScrollState
                     )
 
