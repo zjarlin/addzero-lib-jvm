@@ -29,7 +29,7 @@ package com.addzero.demo//package com.addzero.demo
 //        val tableMetadata = jdbcTableMetadataApi.getTableMetadata(tableName)
 //        tablemeta = tableMetadata.toMutableList()
 //        data = tree.toMutableList()
-//        val associateBy = tablemeta.flatMap { it.columns }.associateBy { it.columnName }
+//        val associateBy = tablemeta.flatMap { it.columnConfigs }.associateBy { it.columnName }
 //        map = associateBy.toMutableMap()
 //
 //
@@ -66,7 +66,7 @@ package com.addzero.demo//package com.addzero.demo
 //
 //    val addCleanTableViewModel = AddCleanTableViewModel(
 //        data = data,
-//        columns = mycolumns,
+//        columnConfigs = mycolumns,
 //        getIdFun = { it.id.toString() },
 //        baseCrudApi = null,
 //        tableMetadata = TableMetadata()

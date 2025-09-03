@@ -1,4 +1,4 @@
-package com.addzero.component.table.original
+package com.addzero.component.table.original.render
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
@@ -12,23 +12,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * 完整数据行 - 包含序号列、数据列、操作列
+ * 渲染完整数据行 - 使用细粒度参数
  */
 @Composable
- fun <T, C> CompleteDataRow(
+fun <T, C> RenderTableBodyRow(
     item: T,
     index: Int,
     columns: List<C>,
-    columnWidths: Map<String, Dp>,
-    getColumnKey: (C) -> String,
     getCellContent: @Composable ((item: T, column: C) -> Unit),
-    rowLeft: @Composable (() -> Unit),
-    actionSlot: @Composable (() -> Unit),
-    horizontalScrollState: ScrollState
+    horizontalScrollState: ScrollState,
+    rowLeftSlot: @Composable ((item: T, index: Int) -> Unit),
+    rowActionSlot: @Composable ((item: T) -> Unit)
 ) {
     val backgroundColor = if (index % 2 == 0) {
         MaterialTheme.colorScheme.surface
@@ -40,9 +37,13 @@ import androidx.compose.ui.unit.dp
 
     Surface(
         modifier = Modifier
-            .fillMaxWidth().border(
-                border = BorderStroke(1.dp, dividerColor), shape = MaterialTheme.shapes.medium
-            ), color = backgroundColor, tonalElevation = 0.dp
+            .fillMaxWidth()
+            .border(
+                border = BorderStroke(1.dp, dividerColor),
+                shape = MaterialTheme.shapes.medium
+            ),
+        color = backgroundColor,
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -52,8 +53,9 @@ import androidx.compose.ui.unit.dp
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 行左侧插槽（如复选框）
+            rowLeftSlot(item, index)
 
-            rowLeft()
             // 序号列
             Box(
                 modifier = Modifier
@@ -64,16 +66,16 @@ import androidx.compose.ui.unit.dp
                 Text(
                     "${index + 1}",
                     style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Companion.Center,
+                    textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             // 数据列
-            columns.forEach { column ->
+            columns.forEachIndexed { columnIndex, column ->
                 Box(
                     modifier = Modifier
-                        .width(columnWidths[getColumnKey(column)] ?: 100.dp)
+                        .width(150.dp) // 使用默认列宽
                         .fillMaxHeight()
                         .padding(horizontal = 8.dp),
                     contentAlignment = Alignment.CenterStart
@@ -88,8 +90,10 @@ import androidx.compose.ui.unit.dp
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
-                actionSlot()
+                rowActionSlot(item)
             }
         }
     }
 }
+
+

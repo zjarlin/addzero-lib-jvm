@@ -99,7 +99,7 @@
 //    )
 //
 //    TableOriginal(
-//        columns = tableViewModel.visibleColumns,
+//        columnConfigs = tableViewModel.visibleColumns,
 //        data = tableViewModel.data,
 //        getColumnKey = { it.co },
 //        getRowId = { tableViewModel.getIdFun(it) },
