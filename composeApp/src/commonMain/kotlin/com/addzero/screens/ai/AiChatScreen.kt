@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.addzero.component.button.AddIconButton
 import com.addzero.component.card.AddCard
 import com.addzero.generated.isomorphic.SysAiPromptIso
 import com.addzero.settings.SettingContext4Compose
@@ -183,8 +184,8 @@ private fun LabubuTopBar(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        com.addzero.component.button.AddIconButton(text = "新建聊天") { onNewChat() }
-        com.addzero.component.button.AddIconButton(text = "关闭", imageVector = Icons.Default.Close) { onClose() }
+        AddIconButton(text = "新建聊天") { onNewChat() }
+        AddIconButton(text = "关闭", imageVector = Icons.Default.Close) { onClose() }
     }
 }
 
@@ -268,10 +269,6 @@ private fun LabubuChatBubble(
                 ) {
 
                     Avatar()
-//                    Text(
-//                        text = "🤖",
-//                        fontSize = 16.sp
-//                    )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
             }
