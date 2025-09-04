@@ -1,4 +1,4 @@
-package com.addzero.ui.infra
+package com.addzero.constant
 
 import androidx.compose.ui.graphics.Color
 
@@ -37,10 +37,10 @@ object Colors {
     // ==================== 基础颜色 ====================
 
     /** 纯黑色 */
-    val Black = Color.Black
+    val Black = Color.Companion.Black
 
     /** 透明色 */
-    val Transparent = Color.Transparent
+    val Transparent = Color.Companion.Transparent
 
     // ==================== 主题颜色 ====================
 
@@ -246,22 +246,22 @@ object Colors {
     // ==================== 文本颜色 ====================
 
     /** 主要文本颜色 - 白色 */
-    val TextPrimary = Color.White
+    val TextPrimary = Color.Companion.White
 
     /** 次要文本颜色 - 80% 透明度白色 */
-    val TextSecondary = Color.White.copy(alpha = 0.8f)
+    val TextSecondary = Color.Companion.White.copy(alpha = 0.8f)
 
     /** 三级文本颜色 - 70% 透明度白色 */
-    val TextTertiary = Color.White.copy(alpha = 0.7f)
+    val TextTertiary = Color.Companion.White.copy(alpha = 0.7f)
 
     /** 四级文本颜色 - 60% 透明度白色 */
-    val TextQuaternary = Color.White.copy(alpha = 0.6f)
+    val TextQuaternary = Color.Companion.White.copy(alpha = 0.6f)
 
     /** 按钮文本颜色 - 黑色 */
-    val ButtonTextColor = Color.Black
+    val ButtonTextColor = Color.Companion.Black
 
     /** 按钮背景颜色 - 白色 */
-    val ButtonBackgroundColor = Color.White
+    val ButtonBackgroundColor = Color.Companion.White
 
     // ==================== 渐变主题方案颜色 ====================
 

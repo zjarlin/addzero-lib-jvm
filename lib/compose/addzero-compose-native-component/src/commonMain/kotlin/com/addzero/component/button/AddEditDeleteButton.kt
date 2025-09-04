@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import com.addzero.constant.Colors
 
 @Composable
 fun AddEditDeleteButton(
@@ -22,7 +23,12 @@ fun AddEditDeleteButton(
 
 
         if (showEdit) {
-            AddIconButton(text = "编辑", imageVector = Icons.Default.Edit, onClick = onEditClick)
+            AddIconButton(
+                text = "编辑",
+                imageVector = Icons.Default.Edit,
+                onClick = onEditClick,
+                tint = Colors.GlowBlue
+            )
         }
 
         if (showDelete) {

@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.addzero.ui.infra.Colors
+import com.addzero.constant.Colors
 
 /**
  * 渐变背景配置

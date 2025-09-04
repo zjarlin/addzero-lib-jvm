@@ -54,7 +54,7 @@ fun TableBigDataTest2() {
     // 生成1000行×100字段的大数据集
     val bigDataSet = remember {
         val fieldNames = (1..100).map { "field${it.toString().padStart(3, '0')}" }
-        (1..1000).map { rowIndex ->
+        (1..100).map { rowIndex ->
             val fieldValues = fieldNames.map { fieldName ->
                 "${fieldName}_row${rowIndex}_data"
             }
@@ -101,7 +101,7 @@ fun TableBigDataTest2() {
 
     // 100列配置
     val bigColumns = remember {
-        (1..100).map { index ->
+        (1..20).map { index ->
             ColumnConfig(
                 key = "field${index.toString().padStart(3, '0')}",
                 label = "字段$index",
@@ -130,6 +130,7 @@ fun TableBigDataTest2() {
         topSlot = {
             //一般渲染搜索区(搜索框,字段高级搜索)
         },
+
         bottomSlot = {
            //一般渲染分页控件
         },
