@@ -45,7 +45,13 @@ fun <C> RenderTableHeaderRow(
                 )
             }
             // 数据列
-            columns.forEach { column ->
+            columns
+                .sortedBy {
+                    val columnKey = getColumnKey(it)
+                    val columnConfig = columnConfigDict[columnKey]
+                    columnConfig?.order
+                }
+                .forEach { column ->
                 val columnKey = getColumnKey(column)
                 val columnConfig = columnConfigDict[columnKey]
                 Box(

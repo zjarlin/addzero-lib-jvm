@@ -13,6 +13,7 @@ import androidx.compose.ui.zIndex
 import com.addzero.component.table.original.render.RenderFixedActionColumn
 import com.addzero.component.table.original.render.RenderFixedIndexColumn
 import com.addzero.component.table.original.render.RenderTableScrollableContent
+import com.addzero.core.ext.toMap
 
 @Composable
 fun <T, C> TableOriginal(
@@ -36,9 +37,15 @@ fun <T, C> TableOriginal(
         }
     },
 
-    getCellContent: @Composable (item: T, column: C) -> Unit,
-    rowLeftSlot: @Composable (item: T, index: Int) -> Unit,
-    rowActionSlot: @Composable (item: T) -> Unit,
+    getCellContent: @Composable (item: T, column: C) -> Unit = { item, column ->
+        val toMap = item?.toMap()
+        val any = toMap?.get(getColumnKey(column))
+        val toString = any.toString()
+        Text(text = toString)
+    },
+    // 行左侧插槽（如复选框）
+    rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
+    rowActionSlot: @Composable (item: T) -> Unit={Text(text = "操作测试")},
     modifier: Modifier = Modifier
 ) {
     val rememberScrollState = rememberScrollState()

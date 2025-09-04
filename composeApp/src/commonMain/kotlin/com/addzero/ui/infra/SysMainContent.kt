@@ -11,7 +11,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.addzero.di.NavgationService
-import com.addzero.generated.RouteTable
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.ui.infra.theme.MainContentGradientBackground
 import com.addzero.ui.infra.theme.ThemeViewModel
