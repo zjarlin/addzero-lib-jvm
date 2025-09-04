@@ -16,16 +16,16 @@ import com.addzero.component.table.original.render.RenderTableScrollableContent
 import com.addzero.core.ext.toMap
 
 @Composable
-fun <T, C> TableOriginal(
+inline fun <reified T, C> TableOriginal(
     data: List<T>,
     columns: List<C>,
-    getColumnKey: (C) -> String,
-    getRowId: (T) -> Any,
+    noinline getColumnKey: (C) -> String,
+    noinline getRowId: (T) -> Any,
     columnConfigs: List<ColumnConfig>,
-    getColumnLabel: @Composable (C) -> Unit,
+    noinline getColumnLabel: @Composable (C) -> Unit,
     topSlot: @Composable () -> Unit = {},
     bottomSlot: @Composable () -> Unit = {},
-    emptyContentSlot: @Composable () -> Unit = {
+    noinline emptyContentSlot: @Composable () -> Unit = {
         Box(
             modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center
         ) {
@@ -37,15 +37,15 @@ fun <T, C> TableOriginal(
         }
     },
 
-    getCellContent: @Composable (item: T, column: C) -> Unit = { item, column ->
+    noinline getCellContent: @Composable (item: T, column: C) -> Unit = { item, column ->
         val toMap = item?.toMap()
         val any = toMap?.get(getColumnKey(column))
         val toString = any.toString()
         Text(text = toString)
     },
     // 行左侧插槽（如复选框）
-    rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
-    rowActionSlot: @Composable (item: T) -> Unit={Text(text = "操作测试")},
+    noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
+    noinline rowActionSlot: @Composable (item: T) -> Unit={Text(text = "操作测试")},
     modifier: Modifier = Modifier
 ) {
     val rememberScrollState = rememberScrollState()
