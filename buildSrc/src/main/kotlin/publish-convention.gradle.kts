@@ -1,25 +1,13 @@
 import java.time.LocalDate
-val group = project.property("group").toString()
-val authorName = group.split(".").last()
-val email = "$authorName@outlook.com"
 
 plugins {
     id("com.vanniktech.maven.publish")
 }
-// 使用 Vars 中的配置
 
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates(project.group.toString(), project.name, project.version.toString())
-
-//    val message = providers.gradleProperty("mavenCentralUsername").get()
-//    val message1 = providers.gradleProperty("mavenCentralPassword").get()
-//    val message2 = providers.gradleProperty("signingInMemoryKey").get()
-//    val message3 = providers.gradleProperty("signingInMemoryKeyId").get()
-//    val message4 = providers.gradleProperty("signingInMemoryKeyPassword").get()
-
-
 
     pom {
         name.set(project.name)
@@ -35,9 +23,9 @@ mavenPublishing {
         }
         developers {
             developer {
-                id.set(authorName)
-                name.set(authorName)
-                email.set(email)
+                id.set("zjarlin")
+                name.set("zjarlin")
+                email.set("zjarlin@outlook.com")
             }
         }
 
@@ -48,12 +36,3 @@ mavenPublishing {
         }
     }
 }
-// 替换之前的配置为以下内容
-// 等待任务图完全构建后再添加依赖关系
-//gradle.taskGraph.whenReady {
-//    tasks.withType<GenerateModuleMetadata>().configureEach {
-//        if (project.tasks.findByName("plainJavadocJar") != null) {
-//            dependsOn("plainJavadocJar")
-//        }
-//    }
-//}

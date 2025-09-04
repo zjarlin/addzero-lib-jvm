@@ -41,6 +41,7 @@ $env:EXCLUDE_TABLES = "flyway_schema_history,vector_store,*_mapping"
 ## tips :暂未验证postgres以外类型数据库的元数据分析兼容性,自行验证JdbcMetadataExtractor这个工具类("自行适配,要改预编译")
 ## tips :目前Server模块需要SpringAI db推荐用PGVECTOR 
 ## tips :数据库会在第一次启动后端时自动初始化
+## tips :目前这个项目在积极维护中,libs有一部分代码暂时没精力搞中央仓库让所有人通用(要抽配置),后续项目完善了考虑写文档说明libs每个库的作用,总之libs是作者懒到极致的封装体现!
 
 ## ✨ 核心特性
 
