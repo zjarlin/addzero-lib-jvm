@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,7 @@ fun AddEditDeleteButton(
                 text = "编辑",
                 imageVector = Icons.Default.Edit,
                 onClick = onEditClick,
-                tint = Colors.GlowBlue
+                tint = MaterialTheme.colorScheme.primary
             )
         }
 
