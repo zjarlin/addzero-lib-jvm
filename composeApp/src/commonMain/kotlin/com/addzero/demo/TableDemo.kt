@@ -117,7 +117,6 @@ fun TableBigDataTest2() {
         }
     }
 
-
     TableOriginal(
         columns = bigColumns,
         data = bigDataSet,
@@ -139,7 +138,9 @@ fun TableBigDataTest2() {
 //        emptyContentSlot = TODO(),
 //        getCellContent = TODO(),
 //        rowLeftSlot = TODO(),
-        rowActionSlot = null,
+        rowActionSlot = {
+
+        },
 //        modifier = TODO(),
     )
 

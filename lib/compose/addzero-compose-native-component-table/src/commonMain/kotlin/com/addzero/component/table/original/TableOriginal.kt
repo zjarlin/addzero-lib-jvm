@@ -9,10 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.addzero.component.table.original.entity.ColumnConfig
+import com.addzero.component.table.original.entity.TableLayoutConfig
 import com.addzero.component.table.original.render.RenderFixedActionColumn
 import com.addzero.component.table.original.render.RenderFixedIndexColumn
 import com.addzero.component.table.original.render.RenderTableScrollableContent
