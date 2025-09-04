@@ -241,31 +241,6 @@ class RouteMetadataProcessor(
         return routeKeysTemplate
     }
 
-    /**
-     * 安全创建文件，如果文件已存在则跳过
-     */
-    private fun createNewFileIfNeeded(
-        codeGenerator: CodeGenerator,
-        dependencies: Dependencies,
-        packageName: String,
-        fileName: String,
-        content: String
-    ) {
-        try {
-            codeGenerator.createNewFile(
-                dependencies = dependencies,
-                packageName = packageName,
-                fileName = fileName
-            ).use { stream ->
-                stream.write(content.toByteArray())
-            }
-            logger.info("Created file: $packageName.$fileName")
-        } catch (e: FileAlreadyExistsException) {
-            logger.info("File already exists: $packageName.$fileName, skipping generation")
-        } catch (e: Exception) {
-            logger.warn("Error creating file $packageName.$fileName: ${e.message}")
-        }
-    }
 }
 
 /**

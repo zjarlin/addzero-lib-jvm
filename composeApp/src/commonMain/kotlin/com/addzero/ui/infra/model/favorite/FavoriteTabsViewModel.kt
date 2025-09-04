@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.addzero.core.network.AddHttpClient
 import com.addzero.generated.RouteKeys
+import com.addzero.generated.RouteTable
 import com.addzero.generated.api.ApiProvider.sysFavoriteTabApi
 import com.addzero.generated.isomorphic.SysFavoriteTabIso
 import com.addzero.ui.infra.model.menu.MenuViewModel

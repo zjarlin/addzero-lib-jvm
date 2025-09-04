@@ -1,5 +1,6 @@
 package com.addzero
 
+import com.addzero.KspLoggerUtil.DEFAULT_TAG
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.KSPLogger
@@ -15,32 +16,27 @@ object KspCache {
     private val classCache = mutableMapOf<String, KSClassDeclaration>()
     private val functionCache = mutableMapOf<String, KSFunctionDeclaration>()
     private val propertyCache = mutableMapOf<String, KSPropertyDeclaration>()
-    
+
     fun getClass(resolver: Resolver, qualifiedName: String): KSClassDeclaration? {
         return classCache.getOrPut(qualifiedName) {
             resolver.getClassDeclarationByName(resolver.getKSNameFromString(qualifiedName)) ?: return null
         }
     }
-    
+
     fun getFunction(declaration: KSClassDeclaration, name: String): KSFunctionDeclaration? {
         val key = "${declaration.qualifiedName?.asString()}.${name}"
         return functionCache.getOrPut(key) {
             declaration.getDeclaredFunctions().find { it.simpleName.asString() == name } ?: return null
         }
     }
-    
+
     fun getProperty(declaration: KSClassDeclaration, name: String): KSPropertyDeclaration? {
         val key = "${declaration.qualifiedName?.asString()}.${name}"
         return propertyCache.getOrPut(key) {
             declaration.getDeclaredProperties().find { it.simpleName.asString() == name } ?: return null
         }
     }
-    
-    fun clear() {
-        classCache.clear()
-        functionCache.clear()
-        propertyCache.clear()
-    }
+
 }
 
 /**
@@ -92,7 +88,7 @@ fun KSClassDeclaration.getAllAnnotations(): Sequence<KSAnnotation> {
  * 检查类是否有指定的注解
  */
 fun KSClassDeclaration.hasAnnotation(annotationName: String): Boolean {
-    return annotations.any { 
+    return annotations.any {
         it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
         it.shortName.asString() == annotationName.substringAfterLast('.')
     }
@@ -102,7 +98,7 @@ fun KSClassDeclaration.hasAnnotation(annotationName: String): Boolean {
  * 获取类的特定注解
  */
 fun KSClassDeclaration.getAnnotationByName(annotationName: String): KSAnnotation? {
-    return annotations.find { 
+    return annotations.find {
         it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
         it.shortName.asString() == annotationName.substringAfterLast('.')
     }
@@ -119,7 +115,7 @@ fun KSFunctionDeclaration.getAllAnnotations(): Sequence<KSAnnotation> {
  * 检查函数是否有指定的注解
  */
 fun KSFunctionDeclaration.hasAnnotation(annotationName: String): Boolean {
-    return annotations.any { 
+    return annotations.any {
         it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
         it.shortName.asString() == annotationName.substringAfterLast('.')
     }
@@ -129,7 +125,7 @@ fun KSFunctionDeclaration.hasAnnotation(annotationName: String): Boolean {
  * 获取函数的特定注解
  */
 fun KSFunctionDeclaration.getAnnotationByName(annotationName: String): KSAnnotation? {
-    return annotations.find { 
+    return annotations.find {
         it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
         it.shortName.asString() == annotationName.substringAfterLast('.')
     }
@@ -146,7 +142,7 @@ fun KSPropertyDeclaration.getAllAnnotations(): Sequence<KSAnnotation> {
  * 检查属性是否有指定的注解
  */
 fun KSPropertyDeclaration.hasAnnotation(annotationName: String): Boolean {
-    return annotations.any { 
+    return annotations.any {
         it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
         it.shortName.asString() == annotationName.substringAfterLast('.')
     }
@@ -156,7 +152,7 @@ fun KSPropertyDeclaration.hasAnnotation(annotationName: String): Boolean {
  * 获取属性的特定注解
  */
 fun KSPropertyDeclaration.getAnnotationByName(annotationName: String): KSAnnotation? {
-    return annotations.find { 
+    return annotations.find {
         it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
         it.shortName.asString() == annotationName.substringAfterLast('.')
     }
@@ -252,17 +248,17 @@ fun KSPropertyDeclaration.getPropertyType(): KSType {
 fun KSType.getFullTypeName(): String {
     val baseType = declaration.qualifiedName?.asString() ?: "Any"
     val nullableSuffix = if (isMarkedNullable) "?" else ""
-    
+
     // 如果没有泛型参数，直接返回基本类型
     if (arguments.isEmpty()) {
         return "$baseType$nullableSuffix"
     }
-    
+
     // 处理泛型参数
     val genericArgs = arguments.joinToString(", ") { arg ->
         arg.type?.resolve()?.getFullTypeName() ?: "Any"
     }
-    
+
     return "$baseType<$genericArgs>$nullableSuffix"
 }
 
@@ -278,13 +274,13 @@ fun KSType.isNullable(): Boolean {
  */
 fun KSType.isPrimitive(): Boolean {
     val name = declaration.qualifiedName?.asString() ?: return false
-    return name == "kotlin.Int" || 
-           name == "kotlin.Long" || 
-           name == "kotlin.Double" || 
-           name == "kotlin.Float" || 
-           name == "kotlin.Boolean" || 
-           name == "kotlin.Char" || 
-           name == "kotlin.Byte" || 
+    return name == "kotlin.Int" ||
+           name == "kotlin.Long" ||
+           name == "kotlin.Double" ||
+           name == "kotlin.Float" ||
+           name == "kotlin.Boolean" ||
+           name == "kotlin.Char" ||
+           name == "kotlin.Byte" ||
            name == "kotlin.Short"
 }
 
@@ -301,7 +297,7 @@ fun KSType.isString(): Boolean {
  */
 fun KSType.isCollection(): Boolean {
     val name = declaration.qualifiedName?.asString() ?: return false
-    return name.startsWith("kotlin.collections.") && 
+    return name.startsWith("kotlin.collections.") &&
           (name.contains("List") || name.contains("Set") || name.contains("Map"))
 }
 
@@ -311,7 +307,7 @@ fun KSType.isCollection(): Boolean {
 object KspLoggerUtil {
     private const val DEFAULT_TAG = "[KSP-DSL-Builder]"
     private var logger: KSPLogger? = null
-    
+
     /**
      * 初始化日志工具
      * @param kspLogger KSP提供的日志对象
@@ -319,7 +315,7 @@ object KspLoggerUtil {
     fun init(kspLogger: KSPLogger) {
         logger = kspLogger
     }
-    
+
     /**
      * 打印信息日志
      * @param message 日志消息
@@ -328,7 +324,7 @@ object KspLoggerUtil {
     fun info(message: String, tag: String = DEFAULT_TAG) {
         logger?.info("$tag $message")
     }
-    
+
     /**
      * 打印警告日志
      * @param message 日志消息
@@ -337,7 +333,7 @@ object KspLoggerUtil {
     fun warn(message: String, tag: String = DEFAULT_TAG) {
         logger?.warn("$tag $message")
     }
-    
+
     /**
      * 打印错误日志
      * @param message 日志消息
@@ -346,7 +342,7 @@ object KspLoggerUtil {
     fun error(message: String, tag: String = DEFAULT_TAG) {
         logger?.error("$tag $message")
     }
-    
+
     /**
      * 打印调试日志（仅在调试模式下输出）
      * @param message 日志消息
@@ -355,7 +351,7 @@ object KspLoggerUtil {
     fun debug(message: String, tag: String = DEFAULT_TAG) {
         logger?.logging("$tag $message")
     }
-    
+
     /**
      * 打印异常日志
      * @param e 异常对象

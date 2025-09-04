@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import com.addzero.di.NavgationService
 import com.addzero.entity.sys.menu.EnumSysMenuType
 import com.addzero.entity.sys.menu.SysMenuVO
+import com.addzero.generated.RouteTable
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.util.data_structure.tree.List2TreeUtil
 
