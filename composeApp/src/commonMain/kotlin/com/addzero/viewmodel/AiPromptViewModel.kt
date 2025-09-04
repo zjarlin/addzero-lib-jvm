@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
 import com.addzero.generated.api.ApiProvider.sysAiPromptApi
 import com.addzero.generated.isomorphic.SysAiPromptIso
+import com.mikepenz.markdown.utils.MarkdownLogger.d
 import org.koin.android.annotation.KoinViewModel
 
 /**
@@ -22,13 +23,9 @@ import org.koin.android.annotation.KoinViewModel
 @KoinViewModel
 class AiPromptViewModel : ViewModel() {
     var prompts by mutableStateOf(emptyList<SysAiPromptIso>())
-
     init {
         loadPrompts()
-
-
     }
-
     /**
      * 加载所有提示词
      */
@@ -38,5 +35,4 @@ class AiPromptViewModel : ViewModel() {
             prompts = response
         }
     }
-
 }

@@ -12,8 +12,7 @@ object SettingContext4Compose {
     const val AI_AVATAR = "https://q0.itc.cn/q_70/images03/20250623/a3636c5c89234c41856ca35d5d91428f.jpeg"
 
     //    const val AI_AVATAR_1 = "https://c-ssl.dtstatic.com/uploads/blog/202407/08/LyS2zDOlfqNXvle.thumb.1000_0.jpeg"
-    const val AI_AVATAR_1 =
-        "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fsafe-img.xhscdn.com%2Fbw1%2F4f6ad1c2-abe2-4c57-98e5-cdd51e9b11b6%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fsafe-img.xhscdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1755090345&t=0c50823713ad3cc01a78ca5b74e87774"
+    const val AI_AVATAR_1 = "https://miaobi-lite.bj.bcebos.com/miaobi/5mao/b%275Yi65a6i5LyN5YWt5LiD5Zu%2B54mH5aS05YOPXzE3MzMxNzUwMDAuODE1OTQwMQ%3D%3D%27/0.png"
 
 
     val DEFAULT_THEME = EnumSysTheme.LAN_SE_LIANGSE

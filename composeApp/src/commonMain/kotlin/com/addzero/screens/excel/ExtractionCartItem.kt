@@ -1,5 +1,6 @@
 package com.addzero.screens.excel
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -28,7 +29,7 @@ fun ExtractionCartItem(
                 ExcelTemplateDesignerViewModel.ExtractionStatus.COMPLETED -> Color(0xFFD1FAE5)
                 ExcelTemplateDesignerViewModel.ExtractionStatus.FAILED -> Color(0xFFFEE2E2)
             }
-        ), border = androidx.compose.foundation.BorderStroke(
+        ), border = BorderStroke(
             1.dp, when (item.status) {
                 ExcelTemplateDesignerViewModel.ExtractionStatus.PENDING -> Color(0xFFD97706)
                 ExcelTemplateDesignerViewModel.ExtractionStatus.PROCESSING -> Color(0xFF3B82F6)

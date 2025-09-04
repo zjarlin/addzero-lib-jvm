@@ -31,7 +31,7 @@ fun AutoCompleteDemo() {
 
 
 
-            com.addzero.component.autocomplet.AddAutoComplete(
+            AddAutoComplete(
                 title = "水果",
                 suggestions = map,
 //                maxSuggestions = TODO(),
