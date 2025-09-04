@@ -21,7 +21,7 @@ inline fun <reified T, C> TableOriginal(
     columns: List<C>,
     noinline getColumnKey: (C) -> String,
     noinline getRowId: (T) -> Any,
-    columnConfigs: List<ColumnConfig>,
+    columnConfigs: List<ColumnConfig> = emptyList(),
     noinline getColumnLabel: @Composable (C) -> Unit,
     topSlot: @Composable () -> Unit = {},
     bottomSlot: @Composable () -> Unit = {},
