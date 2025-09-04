@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.component.card.AddCard
 import com.addzero.component.table.original.ColumnConfig
+import com.addzero.component.table.original.TableLayoutConfig
 
 /**
  * 渲染表头行 - 使用细粒度参数
@@ -23,27 +24,19 @@ fun <C> RenderTableHeaderRow(
     getColumnKey: (C) -> String,
     getColumnLabel: @Composable (C) -> Unit,
     horizontalScrollState: ScrollState,
-    columnConfigs: List<ColumnConfig>
+    columnConfigs: List<ColumnConfig>,
+    layoutConfig: TableLayoutConfig
 ) {
     val columnConfigDict = columnConfigs.associateBy { it.key }
     AddCard(
-        modifier = Modifier.fillMaxWidth().height(56.dp), padding = 0.dp
+        modifier = Modifier.fillMaxWidth().height(layoutConfig.headerHeightDp.dp), padding = 0.dp
     ) {
         Row(
             modifier = Modifier.fillMaxSize().horizontalScroll(state = horizontalScrollState)
                 .padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            // 序号列
-            Box(
-                modifier = Modifier.width(80.dp).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "#",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-            }
+            // 左侧为固定序号列预留占位，避免重复渲染
+            Spacer(modifier = Modifier.width(layoutConfig.indexColumnWidthDp.dp).fillMaxHeight())
             // 数据列
             columns
                 .sortedBy {
@@ -55,7 +48,7 @@ fun <C> RenderTableHeaderRow(
                 val columnKey = getColumnKey(column)
                 val columnConfig = columnConfigDict[columnKey]
                 Box(
-                    modifier = Modifier.width(columnConfig?.width?.dp ?: 100.dp).fillMaxHeight()
+                    modifier = Modifier.width((columnConfig?.width ?: layoutConfig.defaultColumnWidthDp).dp).fillMaxHeight()
                         .padding(horizontal = 8.dp), contentAlignment = Alignment.CenterStart
                 ) {
                     Row {
@@ -63,17 +56,8 @@ fun <C> RenderTableHeaderRow(
                     }
                 }
             }
-            // 操作列
-            Box(
-                modifier = Modifier.width(120.dp).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "操作",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center
-                )
-            }
+            // 右侧为固定操作列预留占位，避免重复渲染
+            Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
         }
     }
 }

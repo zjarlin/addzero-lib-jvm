@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.component.card.AddCard
+import com.addzero.component.table.original.TableLayoutConfig
 
 /**
  * 渲染固定序号列 - 使用细粒度参数
@@ -22,6 +23,7 @@ import com.addzero.component.card.AddCard
 fun <T> RenderFixedIndexColumn(
     verticalScrollState: LazyListState,
     data: List<T>,
+    layoutConfig: TableLayoutConfig,
     modifier: Modifier = Modifier.Companion
 ) {
     val density = LocalDensity.current
@@ -31,7 +33,7 @@ fun <T> RenderFixedIndexColumn(
 
     Surface(
         modifier = modifier
-            .width(80.dp)
+            .width(layoutConfig.indexColumnWidthDp.dp)
             .fillMaxHeight()
             .clipToBounds(),
         shape = MaterialTheme.shapes.medium,
@@ -41,7 +43,7 @@ fun <T> RenderFixedIndexColumn(
     ) {
         Column(modifier = Modifier.Companion.fillMaxSize()) {
             // 固定表头
-            AddCard() {
+            AddCard(modifier = Modifier.height(layoutConfig.headerHeightDp.dp), padding = 0.dp) {
                 Box(
                     modifier = Modifier.Companion.fillMaxSize(),
                     contentAlignment = Alignment.Companion.Center
@@ -70,7 +72,7 @@ fun <T> RenderFixedIndexColumn(
                             Surface(
                                 modifier = Modifier.Companion
                                     .fillMaxWidth()
-                                    .height(60.dp) // 56dp + 4dp padding
+                                    .height(layoutConfig.rowHeightDp.dp)
                                     .offset(y = itemOffset),
                                 shape = MaterialTheme.shapes.medium,
                                 color = MaterialTheme.colorScheme.surface,
@@ -78,8 +80,7 @@ fun <T> RenderFixedIndexColumn(
                             ) {
                                 Box(
                                     modifier = Modifier.Companion
-                                        .fillMaxSize()
-                                        .padding(vertical = 2.dp),
+                                        .fillMaxSize(),
                                     contentAlignment = Alignment.Companion.Center
                                 ) {
                                     Text(

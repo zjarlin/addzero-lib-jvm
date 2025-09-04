@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.addzero.component.table.original.ColumnConfig
+import com.addzero.component.table.original.TableLayoutConfig
 
 /**
  * 渲染完整数据行 - 使用细粒度参数
@@ -22,10 +24,13 @@ fun <T, C> RenderTableBodyRow(
     item: T,
     index: Int,
     columns: List<C>,
+    getColumnKey: (C) -> String,
+    columnConfigs: List<ColumnConfig>,
     getCellContent: @Composable ((item: T, column: C) -> Unit),
     horizontalScrollState: ScrollState,
     rowLeftSlot: @Composable ((item: T, index: Int) -> Unit),
-    rowActionSlot: @Composable ((item: T) -> Unit)
+    rowActionSlot: @Composable ((item: T) -> Unit),
+    layoutConfig: TableLayoutConfig
 ) {
     val backgroundColor = if (index % 2 == 0) {
         MaterialTheme.colorScheme.surface
@@ -34,6 +39,7 @@ fun <T, C> RenderTableBodyRow(
     }
 
     val dividerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+    val columnConfigDict = columnConfigs.associateBy { it.key }
 
     Surface(
         modifier = Modifier
@@ -48,7 +54,7 @@ fun <T, C> RenderTableBodyRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(layoutConfig.rowHeightDp.dp)
                 .horizontalScroll(horizontalScrollState)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -56,26 +62,16 @@ fun <T, C> RenderTableBodyRow(
             // 行左侧插槽（如复选框）
             rowLeftSlot(item, index)
 
-            // 序号列
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "${index + 1}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            // 左侧为固定序号列预留占位，避免重复渲染
+            Spacer(modifier = Modifier.width(layoutConfig.indexColumnWidthDp.dp).fillMaxHeight())
 
-            // 数据列
-            columns.forEachIndexed { columnIndex, column ->
+            // 数据列（按列配置宽度渲染）
+            columns.forEach { column ->
+                val columnKey = getColumnKey(column)
+                val columnConfig = columnConfigDict[columnKey]
                 Box(
                     modifier = Modifier
-                        .width(150.dp) // 使用默认列宽
+                        .width((columnConfig?.width ?: layoutConfig.defaultColumnWidthDp).dp)
                         .fillMaxHeight()
                         .padding(horizontal = 8.dp),
                     contentAlignment = Alignment.CenterStart
@@ -83,15 +79,9 @@ fun <T, C> RenderTableBodyRow(
                     getCellContent(item, column)
                 }
             }
-            // 操作列
-            Box(
-                modifier = Modifier
-                    .width(120.dp)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                rowActionSlot(item)
-            }
+
+            // 右侧为固定操作列预留占位，避免数据列遮挡操作表头
+            Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
         }
     }
 }

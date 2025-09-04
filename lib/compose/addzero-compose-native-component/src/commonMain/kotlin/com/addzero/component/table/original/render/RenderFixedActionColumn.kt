@@ -14,14 +14,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.component.card.AddCard
+import com.addzero.component.table.original.TableLayoutConfig
 
 /**
- * 渲染固定操作列 - 使用细粒度参数
+ * 渲染固定操作列 - 表头 + 行操作
  */
 @Composable
 fun <T> RenderFixedActionColumn(
     verticalScrollState: LazyListState,
     data: List<T>,
+    layoutConfig: TableLayoutConfig,
     modifier: Modifier = Modifier.Companion,
     rowActionSlot: @Composable (item: T) -> Unit,
 ) {
@@ -29,7 +31,7 @@ fun <T> RenderFixedActionColumn(
     val layoutInfo = verticalScrollState.layoutInfo
 
     Surface(
-        modifier = modifier.width(120.dp).fillMaxHeight().clipToBounds(),
+        modifier = modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight().clipToBounds(),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp,
@@ -37,7 +39,7 @@ fun <T> RenderFixedActionColumn(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 固定表头
-            AddCard {
+            AddCard(modifier = Modifier.height(layoutConfig.headerHeightDp.dp), padding = 0.dp) {
                 Box(
                     modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                 ) {
@@ -49,30 +51,21 @@ fun <T> RenderFixedActionColumn(
                 }
             }
 
-            // 操作内容区域 - 根据主表格滚动位置动态渲染可见项
-            Box(
-                modifier = Modifier.fillMaxSize().clipToBounds()
-            ) {
+            // 行操作内容（与主列表滚动同步）
+            Box(modifier = Modifier.fillMaxSize().clipToBounds()) {
                 if (data.isNotEmpty()) {
-                    // 只渲染可见的操作项，与主表格完全同步
-                    val visibleItemsInfo = layoutInfo.visibleItemsInfo
-                    visibleItemsInfo.forEachIndexed { _, itemInfo ->
-                        val itemIndex = itemInfo.index
-                        if (itemIndex < data.size) {
-                            val item = data[itemIndex]
-                            val itemOffset = with(density) { itemInfo.offset.toDp() }
+                    layoutInfo.visibleItemsInfo.forEach { itemInfo ->
+                        val index = itemInfo.index
+                        if (index < data.size) {
+                            val item = data[index]
+                            val y = with(density) { itemInfo.offset.toDp() }
                             Surface(
-                                modifier = Modifier.fillMaxWidth().height(60.dp) // 56dp + 4dp padding
-                                    .offset(y = itemOffset),
+                                modifier = Modifier.fillMaxWidth().height(layoutConfig.rowHeightDp.dp).offset(y = y),
                                 shape = MaterialTheme.shapes.medium,
                                 color = MaterialTheme.colorScheme.surface,
                                 tonalElevation = 1.dp
                             ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize().padding(vertical = 2.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    // 传递行数据和索引给操作插槽
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     rowActionSlot(item)
                                 }
                             }

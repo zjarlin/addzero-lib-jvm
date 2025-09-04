@@ -6,13 +6,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.addzero.component.table.original.render.RenderFixedActionColumn
 import com.addzero.component.table.original.render.RenderFixedIndexColumn
 import com.addzero.component.table.original.render.RenderTableScrollableContent
+import com.addzero.component.table.original.tools.rememberAddTableAutoWidth
 import com.addzero.core.ext.toMap
 
 @Composable
@@ -22,6 +26,7 @@ inline fun <reified T, C> TableOriginal(
     noinline getColumnKey: (C) -> String,
     noinline getRowId: (T) -> Any,
     columnConfigs: List<ColumnConfig> = emptyList(),
+    layoutConfig: TableLayoutConfig = TableLayoutConfig(),
     noinline getColumnLabel: @Composable (C) -> Unit,
     topSlot: @Composable () -> Unit = {},
     bottomSlot: @Composable () -> Unit = {},
@@ -45,12 +50,34 @@ inline fun <reified T, C> TableOriginal(
     },
     // 行左侧插槽（如复选框）
     noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
-    noinline rowActionSlot: @Composable (item: T) -> Unit={Text(text = "操作测试")},
+    noinline rowActionSlot: @Composable (item: T) -> Unit = { AddRowActionDefaults(it) },
     modifier: Modifier = Modifier
 ) {
     val rememberScrollState = rememberScrollState()
     val verticalScrollState = rememberLazyListState()
 
+    // 计算自适应列宽（可选）
+    val textStyleHeader = MaterialTheme.typography.titleSmall
+    val textStyleCell = MaterialTheme.typography.bodyMedium
+    val autoWidths = rememberAddTableAutoWidth(
+        data = data,
+        columns = columns,
+        getColumnKey = getColumnKey,
+        getCellText = { item, column ->
+            val m = item?.toMap()
+            (m?.get(getColumnKey(column)) ?: "").toString()
+        },
+        layoutConfig = layoutConfig,
+        headerTextStyle = textStyleHeader,
+        cellTextStyle = textStyleCell
+    )
+
+    val mergedColumnConfigs = remember(columnConfigs, autoWidths) {
+        if (autoWidths.isEmpty()) columnConfigs else columnConfigs.map { cfg ->
+            val w = autoWidths[cfg.key]
+            if (w != null) cfg.copy(width = w) else cfg
+        }
+    }
 
     // 使用ViewModel渲染表格
     Column(modifier = modifier) {
@@ -67,7 +94,8 @@ inline fun <reified T, C> TableOriginal(
                 getRowId = getRowId,
                 horizontalScrollState = rememberScrollState,
                 lazyListState = verticalScrollState,
-                columnConfigs = columnConfigs,
+                columnConfigs = mergedColumnConfigs,
+                layoutConfig = layoutConfig,
                 getColumnLabel = getColumnLabel,
                 emptyContentSlot = emptyContentSlot,
                 getCellContent = getCellContent,
@@ -79,14 +107,16 @@ inline fun <reified T, C> TableOriginal(
             RenderFixedIndexColumn(
                 verticalScrollState = verticalScrollState,
                 data = data,
+                layoutConfig = layoutConfig,
                 modifier = Modifier.align(Alignment.CenterStart).zIndex(1f)
             )
 
-            // 操作列固定遮罩 - 只需要滚动状态、数据和插槽
+            // 固定操作列（表头+每行按钮）
             RenderFixedActionColumn(
-                modifier = Modifier.align(Alignment.CenterEnd).zIndex(1f),
+                modifier = Modifier.align(Alignment.TopEnd).zIndex(1f),
                 verticalScrollState = verticalScrollState,
                 data = data,
+                layoutConfig = layoutConfig,
                 rowActionSlot = rowActionSlot
             )
         }
