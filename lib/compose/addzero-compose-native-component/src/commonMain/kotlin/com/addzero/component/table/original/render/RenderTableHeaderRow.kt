@@ -25,7 +25,8 @@ fun <C> RenderTableHeaderRow(
     getColumnLabel: @Composable (C) -> Unit,
     horizontalScrollState: ScrollState,
     columnConfigs: List<ColumnConfig>,
-    layoutConfig: TableLayoutConfig
+    layoutConfig: TableLayoutConfig,
+    showActionColumn: Boolean
 ) {
     val columnConfigDict = columnConfigs.associateBy { it.key }
     AddCard(
@@ -56,8 +57,10 @@ fun <C> RenderTableHeaderRow(
                     }
                 }
             }
-            // 右侧为固定操作列预留占位，避免重复渲染
-            Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
+            if (showActionColumn) {
+                // 右侧为固定操作列预留占位，避免重复渲染
+                Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
+            }
         }
     }
 }

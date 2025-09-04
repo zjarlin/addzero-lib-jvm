@@ -139,7 +139,7 @@ fun TableBigDataTest2() {
 //        emptyContentSlot = TODO(),
 //        getCellContent = TODO(),
 //        rowLeftSlot = TODO(),
-//        rowActionSlot = TODO(),
+        rowActionSlot = null,
 //        modifier = TODO(),
     )
 

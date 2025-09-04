@@ -50,7 +50,7 @@ inline fun <reified T, C> TableOriginal(
     },
     // 行左侧插槽（如复选框）
     noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
-    noinline rowActionSlot: @Composable (item: T) -> Unit = { AddRowActionDefaults(it) },
+    noinline rowActionSlot: (@Composable (item: T) -> Unit)? = { AddRowActionDefaults(it) },
     modifier: Modifier = Modifier
 ) {
     val rememberScrollState = rememberScrollState()
@@ -79,6 +79,8 @@ inline fun <reified T, C> TableOriginal(
         }
     }
 
+    val showFixedActionColumn = rowActionSlot != null
+
     // 使用ViewModel渲染表格
     Column(modifier = modifier) {
         // 顶部插槽区域
@@ -96,11 +98,12 @@ inline fun <reified T, C> TableOriginal(
                 lazyListState = verticalScrollState,
                 columnConfigs = mergedColumnConfigs,
                 layoutConfig = layoutConfig,
+                showActionColumn = showFixedActionColumn,
                 getColumnLabel = getColumnLabel,
                 emptyContentSlot = emptyContentSlot,
                 getCellContent = getCellContent,
                 rowLeftSlot = rowLeftSlot,
-                rowActionSlot = rowActionSlot
+                rowActionSlot = if (showFixedActionColumn) null else rowActionSlot
             )
 
             // 序号列固定遮罩 - 只需要滚动状态和数据
@@ -111,14 +114,15 @@ inline fun <reified T, C> TableOriginal(
                 modifier = Modifier.align(Alignment.CenterStart).zIndex(1f)
             )
 
-            // 固定操作列（表头+每行按钮）
-            RenderFixedActionColumn(
-                modifier = Modifier.align(Alignment.TopEnd).zIndex(1f),
-                verticalScrollState = verticalScrollState,
-                data = data,
-                layoutConfig = layoutConfig,
-                rowActionSlot = rowActionSlot
-            )
+            if (showFixedActionColumn) {
+                RenderFixedActionColumn(
+                    modifier = Modifier.align(Alignment.TopEnd).zIndex(1f),
+                    verticalScrollState = verticalScrollState,
+                    data = data,
+                    layoutConfig = layoutConfig,
+                    rowActionSlot = rowActionSlot!!
+                )
+            }
         }
 
         // 底部插槽区域

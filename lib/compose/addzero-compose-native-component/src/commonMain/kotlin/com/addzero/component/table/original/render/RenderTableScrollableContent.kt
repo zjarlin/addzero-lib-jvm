@@ -24,11 +24,12 @@ fun <T, C> RenderTableScrollableContent(
     lazyListState: LazyListState,
     columnConfigs: List<ColumnConfig>,
     layoutConfig: TableLayoutConfig,
+    showActionColumn: Boolean,
     getColumnLabel: @Composable (C) -> Unit,
     emptyContentSlot: @Composable () -> Unit,
     getCellContent: @Composable (item: T, column: C) -> Unit,
     rowLeftSlot: @Composable (item: T, index: Int) -> Unit,
-    rowActionSlot: @Composable (item: T) -> Unit
+    rowActionSlot: (@Composable (item: T) -> Unit)?
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         // 表头行 - 只需要列配置和表头配置
@@ -38,7 +39,8 @@ fun <T, C> RenderTableScrollableContent(
             getColumnLabel = getColumnLabel,
             horizontalScrollState = horizontalScrollState!!,
             columnConfigs = columnConfigs,
-            layoutConfig = layoutConfig
+            layoutConfig = layoutConfig,
+            showActionColumn = showActionColumn
         )
 
         // 使用现有的LazyColumn数据渲染
@@ -64,7 +66,8 @@ fun <T, C> RenderTableScrollableContent(
                         horizontalScrollState = horizontalScrollState,
                         rowLeftSlot = rowLeftSlot,
                         rowActionSlot = rowActionSlot,
-                        layoutConfig = layoutConfig
+                        layoutConfig = layoutConfig,
+                        showActionColumn = showActionColumn
                     )
                 }
             }
