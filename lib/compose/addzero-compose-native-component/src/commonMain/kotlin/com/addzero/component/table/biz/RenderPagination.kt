@@ -9,27 +9,26 @@ import com.addzero.component.table.viewmodel.*
 @Composable
 context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderPagination() {
 
-    if (tableViewModel.showPagination) {
-        AddTablePagination(
-            statePagination = tableViewModel._pageState,
-            enablePagination = true,
-            onPageSizeChange = {
-                setPageSize(it)
-            },
-            onGoFirstPage = {
-                goToFirstPage()
-                tableViewModel.queryPage()
-            },
-            onPreviousPage = { goToPreviousPage() },
-            onGoToPage = { goToPage(it) },
-            onNextPage = { goToNextPage() },
-            onGoLastPage = {
-                goToLastPage()
-                tableViewModel.queryPage()
-            },
-            cardType = MellumCardType.Light,
-            //是否开启分页
-            compactMode = true
-        )
-    }
+    if (!tableViewModel.showPagination) return
+    AddTablePagination(
+        statePagination = tableViewModel._pageState,
+        enablePagination = true,
+        onPageSizeChange = {
+            setPageSize(it)
+        },
+        onGoFirstPage = {
+            goToFirstPage()
+            tableViewModel.queryPage()
+        },
+        onPreviousPage = { goToPreviousPage() },
+        onGoToPage = { goToPage(it) },
+        onNextPage = { goToNextPage() },
+        onGoLastPage = {
+            goToLastPage()
+            tableViewModel.queryPage()
+        },
+        cardType = MellumCardType.Light,
+        //是否开启分页
+        compactMode = true
+    )
 }

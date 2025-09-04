@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.addzero.assist.api
 import com.addzero.component.table.model.AddCleanColumn
 import com.addzero.component.table.model.BaseCrudApi
+import com.addzero.component.table.viewmodel.StatePagination
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSearch
 import com.addzero.entity.low_table.StateSort
@@ -73,7 +74,7 @@ class AddCleanTableViewModel<T>(
     val visibleColumns = _columns
 
     // 分页状态
-    var _pageState by mutableStateOf(_root_ide_package_.com.addzero.component.table.viewmodel.StatePagination())
+    var _pageState by mutableStateOf(StatePagination())
     ////////////////////////////////////////增删改查事件
 
     fun onSearch() {

@@ -8,6 +8,7 @@ kotlin {
         commonMain.dependencies {
 
             implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+            api(projects.lib.compose.addzeroComposeNativeComponentTable)
             implementation(projects.lib.toolKmp.addzeroTool)
             api(projects.lib.compose.addzeroComposeModelComponent)
             api(projects.lib.toolJvm.jimmer.addzeroJimmerModelLowquery)

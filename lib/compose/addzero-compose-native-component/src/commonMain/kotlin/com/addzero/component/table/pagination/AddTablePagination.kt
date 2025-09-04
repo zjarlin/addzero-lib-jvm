@@ -19,9 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.addzero.component.card.AddCard
 import com.addzero.component.card.MellumCardType
-import com.addzero.component.dropdown.AddDropDown
 import com.addzero.component.table.viewmodel.StatePagination
 
 /**
@@ -48,7 +46,7 @@ import com.addzero.component.table.viewmodel.StatePagination
 @Composable
 fun AddTablePagination(
     modifier: Modifier = Modifier,
-    statePagination: com.addzero.component.table.viewmodel.StatePagination,
+    statePagination: StatePagination,
     pageSizeOptions: List<Int> = listOf(10, 20, 50, 100),
     enablePagination: Boolean,
     onPageSizeChange: (Int) -> Unit,
@@ -57,7 +55,7 @@ fun AddTablePagination(
     onGoToPage: (Int) -> Unit,
     onNextPage: () -> Unit,
     onGoLastPage: () -> Unit,
-    cardType: com.addzero.component.card.MellumCardType = _root_ide_package_.com.addzero.component.card.MellumCardType.Companion.Light,
+    cardType: MellumCardType = MellumCardType.Light,
     showPageSizeSelector: Boolean = true,
     showPageInfo: Boolean = true,
     compactMode: Boolean = false
@@ -81,14 +79,13 @@ fun AddTablePagination(
             ) {
                 // 页面信息
                 if (showPageInfo) {
-                    _root_ide_package_.com.addzero.component.table.pagination.PaginationInfo(
-                        statePagination = statePagination,
-                        compact = true
+                    PaginationInfo(
+                        statePagination = statePagination, compact = true
                     )
                 }
 
                 // 分页控制按钮
-                _root_ide_package_.com.addzero.component.table.pagination.PaginationControls(
+                PaginationControls(
                     statePagination = statePagination,
                     onGoFirstPage = onGoFirstPage,
                     onPreviousPage = onPreviousPage,
@@ -107,16 +104,15 @@ fun AddTablePagination(
             ) {
                 // 左侧：页面信息
                 if (showPageInfo) {
-                    _root_ide_package_.com.addzero.component.table.pagination.PaginationInfo(
-                        statePagination = statePagination,
-                        compact = false
+                    PaginationInfo(
+                        statePagination = statePagination, compact = false
                     )
                 } else {
                     Spacer(modifier = Modifier.width(1.dp))
                 }
 
                 // 中间：分页控制按钮
-                _root_ide_package_.com.addzero.component.table.pagination.PaginationControls(
+                PaginationControls(
                     statePagination = statePagination,
                     onGoFirstPage = onGoFirstPage,
                     onPreviousPage = onPreviousPage,
@@ -128,7 +124,7 @@ fun AddTablePagination(
 
                 // 右侧：页面大小选择器
                 if (showPageSizeSelector) {
-                    _root_ide_package_.com.addzero.component.table.pagination.PageSizeSelector(
+                    PageSizeSelector(
                         currentPageSize = statePagination.pageSize,
                         pageSizeOptions = pageSizeOptions,
                         onPageSizeChange = onPageSizeChange
@@ -146,8 +142,7 @@ fun AddTablePagination(
  */
 @Composable
 private fun PaginationInfo(
-    statePagination: com.addzero.component.table.viewmodel.StatePagination,
-    compact: Boolean
+    statePagination: StatePagination, compact: Boolean
 ) {
     val startItem = (statePagination.currentPage - 1) * statePagination.pageSize + 1
 
@@ -180,9 +175,7 @@ private fun PaginationInfo(
  */
 @Composable
 private fun PageSizeSelector(
-    currentPageSize: Int,
-    pageSizeOptions: List<Int>,
-    onPageSizeChange: (Int) -> Unit
+    currentPageSize: Int, pageSizeOptions: List<Int>, onPageSizeChange: (Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -200,8 +193,7 @@ private fun PageSizeSelector(
             )
         ) {
             Text(
-                text = "$currentPageSize 条/页",
-                style = MaterialTheme.typography.bodySmall
+                text = "$currentPageSize 条/页", style = MaterialTheme.typography.bodySmall
             )
         }
 
@@ -213,8 +205,7 @@ private fun PageSizeSelector(
                 onPageSizeChange(it)
                 expanded = false
             },
-            onDismissRequest = { expanded = false }
-        )
+            onDismissRequest = { expanded = false })
     }
 }
 
@@ -223,7 +214,7 @@ private fun PageSizeSelector(
  */
 @Composable
 private fun PaginationControls(
-    statePagination: com.addzero.component.table.viewmodel.StatePagination,
+    statePagination: StatePagination,
     onGoFirstPage: () -> Unit,
     onPreviousPage: () -> Unit,
     onGoToPage: (Int) -> Unit,
@@ -236,10 +227,8 @@ private fun PaginationControls(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 首页按钮
-        _root_ide_package_.com.addzero.component.table.pagination.PaginationButton(
-            onClick = onGoFirstPage,
-            enabled = statePagination.currentPage > 1,
-            compact = compact
+        PaginationButton(
+            onClick = onGoFirstPage, enabled = statePagination.currentPage > 1, compact = compact
         ) {
             Icon(
                 imageVector = Icons.Default.SkipPrevious,
@@ -249,10 +238,8 @@ private fun PaginationControls(
         }
 
         // 上一页按钮
-        _root_ide_package_.com.addzero.component.table.pagination.PaginationButton(
-            onClick = onPreviousPage,
-            enabled = statePagination.currentPage > 1,
-            compact = compact
+        PaginationButton(
+            onClick = onPreviousPage, enabled = statePagination.currentPage > 1, compact = compact
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
@@ -263,7 +250,7 @@ private fun PaginationControls(
 
         // 页码按钮
         if (!compact) {
-            _root_ide_package_.com.addzero.component.table.pagination.PageNumberButtons(
+            PageNumberButtons(
                 currentPage = statePagination.currentPage,
                 totalPages = statePagination.totalPages,
                 onGoToPage = onGoToPage
@@ -271,10 +258,8 @@ private fun PaginationControls(
         }
 
         // 下一页按钮
-        _root_ide_package_.com.addzero.component.table.pagination.PaginationButton(
-            onClick = onNextPage,
-            enabled = statePagination.currentPage < statePagination.totalPages,
-            compact = compact
+        PaginationButton(
+            onClick = onNextPage, enabled = statePagination.currentPage < statePagination.totalPages, compact = compact
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -284,7 +269,7 @@ private fun PaginationControls(
         }
 
         // 末页按钮
-        _root_ide_package_.com.addzero.component.table.pagination.PaginationButton(
+        PaginationButton(
             onClick = onGoLastPage,
             enabled = statePagination.currentPage < statePagination.totalPages,
             compact = compact
@@ -303,31 +288,22 @@ private fun PaginationControls(
  */
 @Composable
 private fun PaginationButton(
-    onClick: () -> Unit,
-    enabled: Boolean,
-    compact: Boolean,
-    content: @Composable () -> Unit
+    onClick: () -> Unit, enabled: Boolean, compact: Boolean, content: @Composable () -> Unit
 ) {
     val size = if (compact) 32.dp else 40.dp
 
     Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(
+        modifier = Modifier.size(size).clip(CircleShape).background(
                 if (enabled) {
                     LocalContentColor.current.copy(alpha = 0.1f)
                 } else {
                     LocalContentColor.current.copy(alpha = 0.05f)
                 }
-            )
-            .border(
+            ).border(
                 width = 1.dp,
                 color = LocalContentColor.current.copy(alpha = if (enabled) 0.2f else 0.1f),
                 shape = CircleShape
-            )
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
+            ).clickable(enabled = enabled) { onClick() }, contentAlignment = Alignment.Center
     ) {
         CompositionLocalProvider(
             LocalContentColor provides LocalContentColor.current.copy(
@@ -344,9 +320,7 @@ private fun PaginationButton(
  */
 @Composable
 private fun PageNumberButtons(
-    currentPage: Int,
-    totalPages: Int,
-    onGoToPage: (Int) -> Unit
+    currentPage: Int, totalPages: Int, onGoToPage: (Int) -> Unit
 ) {
     // 计算显示的页码范围
     val visiblePages = 5
@@ -356,33 +330,24 @@ private fun PageNumberButtons(
     val endPage = minOf(totalPages, startPage + visiblePages - 1)
 
     Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         // 显示页码按钮
         for (page in startPage..endPage) {
             val isCurrentPage = page == currentPage
 
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(
+                modifier = Modifier.size(32.dp).clip(CircleShape).background(
                         if (isCurrentPage) {
                             LocalContentColor.current.copy(alpha = 0.2f)
                         } else {
                             Color.Transparent
                         }
-                    )
-                    .border(
-                        width = if (isCurrentPage) 2.dp else 1.dp,
-                        color = LocalContentColor.current.copy(
+                    ).border(
+                        width = if (isCurrentPage) 2.dp else 1.dp, color = LocalContentColor.current.copy(
                             alpha = if (isCurrentPage) 0.6f else 0.2f
-                        ),
-                        shape = CircleShape
-                    )
-                    .clickable { onGoToPage(page) },
-                contentAlignment = Alignment.Center
+                        ), shape = CircleShape
+                    ).clickable { onGoToPage(page) }, contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = page.toString(),

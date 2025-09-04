@@ -23,15 +23,15 @@ fun DragListDemo() {
     var items by remember {
         mutableStateOf(
             listOf(
-                com.addzero.demo.DragItem(1, "A"),
-                com.addzero.demo.DragItem(2, "B"),
-                com.addzero.demo.DragItem(3, "C"),
-                com.addzero.demo.DragItem(4, "D"),
-                com.addzero.demo.DragItem(5, "E")
+                DragItem(1, "A"),
+                DragItem(2, "B"),
+                DragItem(3, "C"),
+                DragItem(4, "D"),
+                DragItem(5, "E")
             )
         )
     }
-    val dndState = rememberDragAndDropState<com.addzero.demo.DragItem>()
+    val dndState = rememberDragAndDropState<DragItem>()
 
     DragAndDropContainer(state = dndState) {
         Column(
