@@ -117,7 +117,7 @@ fun AddCardExample() {
             )
         }
 
-        items(MellumCardType.allTypes) { cardType ->
+        items(MellumCardType.entries) { cardType ->
             AddCard(
                 onClick = { println("${cardType.name}卡片被点击") },
                 modifier = Modifier.fillMaxWidth(),

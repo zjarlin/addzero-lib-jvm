@@ -167,104 +167,103 @@ fun AddCard(
  *
  * 定义不同的背景渐变样式，参考JetBrains产品的配色方案
  */
-data class MellumCardType(
-    val name: String,
+enum class MellumCardType(
+    val displayName: String,
     val backgroundBrush: Brush,
     val hoverColor: Color,
     val backgroundColor: Color,
     val borderColor: Color,
     val contentColor: Color
 ) {
+    Light(
+        displayName = "Light",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFFFFFFF),
+                Color(0xFFF8FAFC),
+                Color(0xFFE2E8F0)
+            )
+        ),
+        hoverColor = Color(0xFF3B82F6),
+        backgroundColor = Color(0xFFFFFFFF),
+        borderColor = Color(0xFFE2E8F0),
+        contentColor = Color(0xFF1E293B)
+    ),
+    Purple(
+        displayName = "Purple",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF2D1B69), Color(0xFF1A0E3D), Color(0xFF0F0A1F)
+            )
+        ),
+        hoverColor = Color(0xFF00D4FF),
+        backgroundColor = Color(0xFF2D1B69),
+        borderColor = Color(0xFF6B73FF),
+        contentColor = Color(0xFFFFFFFF)
+    ),
+    Blue(
+        displayName = "Blue",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF1E3A8A), Color(0xFF1E293B), Color(0xFF0F172A)
+            )
+        ),
+        hoverColor = Color(0xFF00FFFF),
+        backgroundColor = Color(0xFF1E3A8A),
+        borderColor = Color(0xFF3B82F6),
+        contentColor = Color(0xFFFFFFFF)
+    ),
+    Teal(
+        displayName = "Teal",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF134E4A), Color(0xFF1F2937), Color(0xFF111827)
+            )
+        ),
+        hoverColor = Color(0xFF00FF88),
+        backgroundColor = Color(0xFF134E4A),
+        borderColor = Color(0xFF14B8A6),
+        contentColor = Color(0xFFFFFFFF)
+    ),
+    Orange(
+        displayName = "Orange",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF9A3412), Color(0xFF7C2D12), Color(0xFF431407)
+            )
+        ),
+        hoverColor = Color(0xFFFF6600),
+        backgroundColor = Color(0xFF9A3412),
+        borderColor = Color(0xFFF97316),
+        contentColor = Color(0xFFFFFFFF)
+    ),
+    Dark(
+        displayName = "Dark",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF374151), Color(0xFF1F2937), Color(0xFF111827)
+            )
+        ),
+        hoverColor = Color(0xFFFFFFFF),
+        backgroundColor = Color(0xFF374151),
+        borderColor = Color(0xFF6B7280),
+        contentColor = Color(0xFFFFFFFF)
+    ),
+    Rainbow(
+        displayName = "Rainbow",
+        backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF8B5CF6), Color(0xFF3B82F6), Color(0xFF10B981), Color(0xFF1F2937)
+            )
+        ),
+        hoverColor = Color(0xFFFF00FF),
+        backgroundColor = Color(0xFF8B5CF6),
+        borderColor = Color(0xFF8B5CF6),
+        contentColor = Color(0xFFFFFFFF)
+    );
+
     companion object {
-        val Light = MellumCardType(
-            name = "Light",
-            backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFFFFFFFF),  // 纯白色
-                    Color(0xFFF8FAFC),  // 浅灰色
-                    Color(0xFFE2E8F0)   // 中灰色
-                )
-            ),
-            hoverColor = Color(0xFF3B82F6),
-            backgroundColor = Color(0xFFFFFFFF),
-            borderColor = Color(0xFFE2E8F0),
-            contentColor = Color(0xFF1E293B)  // 深色文字，确保对比度
-        )
-
-        val Purple = MellumCardType(
-            name = "Purple", backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF2D1B69), Color(0xFF1A0E3D), Color(0xFF0F0A1F)
-                )
-            ), hoverColor = Color(0xFF00D4FF),  // 青色荧光
-            backgroundColor = Color(0xFF2D1B69), borderColor = Color(0xFF6B73FF), contentColor = Color(0xFFFFFFFF)
-        )
-
-        val Blue = MellumCardType(
-            name = "Blue", backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF1E3A8A), Color(0xFF1E293B), Color(0xFF0F172A)
-                )
-            ), hoverColor = Color(0xFF00FFFF),  // 亮青色荧光
-            backgroundColor = Color(0xFF1E3A8A), borderColor = Color(0xFF3B82F6), contentColor = Color(0xFFFFFFFF)
-        )
-
-        val Teal = MellumCardType(
-            name = "Teal", backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF134E4A), Color(0xFF1F2937), Color(0xFF111827)
-                )
-            ), hoverColor = Color(0xFF00FF88),  // 荧光绿色
-            backgroundColor = Color(0xFF134E4A), borderColor = Color(0xFF14B8A6), contentColor = Color(0xFFFFFFFF)
-        )
-
-        val Orange = MellumCardType(
-            name = "Orange", backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF9A3412), Color(0xFF7C2D12), Color(0xFF431407)
-                )
-            ), hoverColor = Color(0xFFFF6600),  // 荧光橙色
-            backgroundColor = Color(0xFF9A3412), borderColor = Color(0xFFF97316), contentColor = Color(0xFFFFFFFF)
-        )
-
-        val Dark = MellumCardType(
-            name = "Dark", backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF374151), Color(0xFF1F2937), Color(0xFF111827)
-                )
-            ), hoverColor = Color(0xFFFFFFFF),  // 白色荧光
-            backgroundColor = Color(0xFF374151), borderColor = Color(0xFF6B7280), contentColor = Color(0xFFFFFFFF)
-        )
-
-        val Rainbow = MellumCardType(
-            name = "Rainbow", backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF8B5CF6), Color(0xFF3B82F6), Color(0xFF10B981), Color(0xFF1F2937)
-                )
-            ), hoverColor = Color(0xFFFF00FF),  // 荧光紫红色
-            backgroundColor = Color(0xFF8B5CF6), borderColor = Color(0xFF8B5CF6), contentColor = Color(0xFFFFFFFF)
-        )
-
-        /**
-         * 所有预设的卡片类型列表
-         */
-        val allTypes = listOf(Light, Purple, Blue, Teal, Orange, Dark, Rainbow)
-
-        /**
-         * 根据名称获取卡片类型
-         */
-        fun fromName(name: String): MellumCardType? {
-            return when (name) {
-                "Light" -> Light
-                "Purple" -> Purple
-                "Blue" -> Blue
-                "Teal" -> Teal
-                "Orange" -> Orange
-                "Dark" -> Dark
-                "Rainbow" -> Rainbow
-                else -> null
-            }
-        }
+        fun fromName(name: String): MellumCardType? = entries.firstOrNull { it.displayName == name || it.name == name }
     }
 }
 
@@ -280,33 +279,9 @@ fun adaptiveMellumCardType(): MellumCardType {
     val isDark = colorScheme.surface.luminance() < 0.5f
 
     return if (isDark) {
-        // 深色主题
-        MellumCardType(
-            name = "Adaptive Dark",
-            backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    colorScheme.surface, colorScheme.surfaceVariant, colorScheme.surfaceContainer
-                )
-            ),
-            hoverColor = colorScheme.primary,
-            backgroundColor = colorScheme.surface,
-            borderColor = colorScheme.outline,
-            contentColor = colorScheme.onSurface
-        )
+        MellumCardType.Dark
     } else {
-        // 浅色主题
-        MellumCardType(
-            name = "Adaptive Light",
-            backgroundBrush = Brush.linearGradient(
-                colors = listOf(
-                    colorScheme.surface, colorScheme.surfaceVariant, colorScheme.surfaceContainerHighest
-                )
-            ),
-            hoverColor = colorScheme.primary,
-            backgroundColor = colorScheme.surface,
-            borderColor = colorScheme.outline,
-            contentColor = colorScheme.onSurface
-        )
+        MellumCardType.Light
     }
 }
 
