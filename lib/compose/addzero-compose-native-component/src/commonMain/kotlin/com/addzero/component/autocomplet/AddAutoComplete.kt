@@ -219,9 +219,6 @@ fun <T> AddAutoComplete(
         }
     }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 
     // 返回当前状态对象
 //    return AutoCompleteState(

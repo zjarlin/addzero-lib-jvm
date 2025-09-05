@@ -14,7 +14,7 @@ import com.addzero.annotation.Route
 fun AutoCompleteDemo() {
     Column {
         (1..3).map { index ->
-            val map = listOf<String>(
+            val map = listOf(
                 "Apple",
                 "Banana",
                 "Cherry",
