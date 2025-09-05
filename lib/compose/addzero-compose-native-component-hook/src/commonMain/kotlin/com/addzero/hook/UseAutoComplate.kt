@@ -9,8 +9,8 @@ import com.addzero.web.ui.hooks.UseHook
 
 
 class UseAutoComplate<T>(
-    val title: String,
     val suggestions: List<T>,
+    val title: String,
     val getLabelFun: (T) -> String,
     val maxSuggestions: Int = 5,
     val initialValue: String = "",
