@@ -45,7 +45,7 @@ fun UIComponentsDemo() {
         HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
 
         // 按钮部分
-        com.addzero.demo.SectionTitle("按钮")
+        SectionTitle("按钮")
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -366,12 +366,3 @@ fun UIComponentsDemo() {
     }
 }
 
-@Composable
-private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(vertical = 8.dp)
-    )
-}

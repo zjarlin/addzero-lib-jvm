@@ -6,6 +6,7 @@ package com.addzero.generated
  */
 object RouteKeys {
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
+    const val BASE_SELECT_DEMO = "/component/baseSelect"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val TABLE_BIG_DATA_TEST2 = "com.addzero.demo.TableBigDataTest2"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
