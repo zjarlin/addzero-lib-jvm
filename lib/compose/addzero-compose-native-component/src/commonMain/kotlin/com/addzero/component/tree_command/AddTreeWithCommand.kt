@@ -16,8 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.component.tree.AddTree
-import com.addzero.component.tree.rememberTreeViewModel
-import com.addzero.component.tree.selection.CompleteSelectionResult
+import com.addzero.core.ext.toMap
 
 /**
  * 🚀 完全重构的支持命令的树组件 - 基于 TreeViewModel 架构
@@ -49,17 +48,21 @@ import com.addzero.component.tree.selection.CompleteSelectionResult
 @Composable
 fun <T> AddTreeWithCommand(
     items: List<T>,
-    getId: (T) -> Any,
+    getId: (T) -> Any = {
+        val toMap = it?.toMap()
+        val any = toMap?.get("id")
+        any.toString()
+    },
     getLabel: (T) -> String,
     getChildren: (T) -> List<T>,
     modifier: Modifier = Modifier,
     getNodeType: (T) -> String = { "" },
     getIcon: @Composable (node: T) -> ImageVector? = { null },
     initiallyExpandedIds: Set<Any> = emptySet(),
-    commands: Set<com.addzero.component.tree_command.TreeCommand> = setOf(_root_ide_package_.com.addzero.component.tree_command.TreeCommand.SEARCH),
+    commands: Set<TreeCommand> = setOf(TreeCommand.SEARCH),
     onNodeClick: (T) -> Unit = {},
     onNodeContextMenu: (T) -> Unit = {},
-    onCommandInvoke: (com.addzero.component.tree_command.TreeCommand, Any?) -> Unit = { _, _ -> },
+    onCommandInvoke: (TreeCommand, Any?) -> Unit = { _, _ -> },
     onSelectionChange: (List<T>) -> Unit = {},
     onCompleteSelectionChange: (com.addzero.component.tree.selection.CompleteSelectionResult) -> Unit = {},
     onItemsChanged: (List<T>) -> Unit = {},
@@ -73,17 +76,12 @@ fun <T> AddTreeWithCommand(
     // 🔧 配置 ViewModel
     LaunchedEffect(items, getId, getLabel, getChildren, autoEnableMultiSelect, multiSelectClickToToggle) {
         viewModel.configure(
-            getId = getId,
-            getLabel = getLabel,
-            getChildren = getChildren,
-            getNodeType = getNodeType,
-            getIcon = getIcon
+            getId = getId, getLabel = getLabel, getChildren = getChildren, getNodeType = getNodeType, getIcon = getIcon
         )
 
         // 🎯 配置多选行为
         viewModel.configureMultiSelect(
-            autoEnable = autoEnableMultiSelect,
-            clickToToggle = multiSelectClickToToggle
+            autoEnable = autoEnableMultiSelect, clickToToggle = multiSelectClickToToggle
         )
 
         viewModel.onNodeClick = onNodeClick
@@ -95,22 +93,22 @@ fun <T> AddTreeWithCommand(
     }
 
     // 🎮 命令处理函数
-    val handleCommand = { command: com.addzero.component.tree_command.TreeCommand ->
+    val handleCommand = { command: TreeCommand ->
         when (command) {
-            _root_ide_package_.com.addzero.component.tree_command.TreeCommand.SEARCH -> {
+            TreeCommand.SEARCH -> {
                 viewModel.toggleSearchBar()
             }
 
-            _root_ide_package_.com.addzero.component.tree_command.TreeCommand.MULTI_SELECT -> {
+            TreeCommand.MULTI_SELECT -> {
                 viewModel.updateMultiSelectMode(!viewModel.multiSelectMode)
             }
 
-            _root_ide_package_.com.addzero.component.tree_command.TreeCommand.EXPAND_ALL -> {
+            TreeCommand.EXPAND_ALL -> {
                 viewModel.expandAll()
                 onCommandInvoke(command, viewModel.expandedIds)
             }
 
-            _root_ide_package_.com.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL -> {
+            TreeCommand.COLLAPSE_ALL -> {
                 viewModel.collapseAll()
                 onCommandInvoke(command, null)
             }
@@ -127,11 +125,10 @@ fun <T> AddTreeWithCommand(
     Column(modifier = modifier) {
         // 🛠️ 工具栏（外部声明）
         if (commands.isNotEmpty()) {
-            _root_ide_package_.com.addzero.component.tree_command.CommandToolbar(
+            CommandToolbar(
                 commands = commands,
                 multiSelectMode = viewModel.multiSelectMode,
-                onCommandClick = { handleCommand(it) }
-            )
+                onCommandClick = { handleCommand(it) })
         }
 
         // 🔍 搜索栏（外部声明）
@@ -140,42 +137,36 @@ fun <T> AddTreeWithCommand(
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
-            _root_ide_package_.com.addzero.component.search_bar.AddSearchBar(
+            AddSearchBar(
                 keyword = viewModel.searchQuery,
                 onKeyWordChanged = { viewModel.updateSearchQuery(it) },
                 onSearch = {
                     // 🎯 搜索时自动展开包含匹配项的父节点
                     viewModel.performSearch()
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 placeholder = "搜索树节点..."
             )
         }
 
         // 🎮 展开/收起控制（外部声明）
-        if (_root_ide_package_.com.addzero.component.tree_command.TreeCommand.EXPAND_ALL in commands || _root_ide_package_.com.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL in commands) {
+        if (TreeCommand.EXPAND_ALL in commands || TreeCommand.COLLAPSE_ALL in commands) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (_root_ide_package_.com.addzero.component.tree_command.TreeCommand.EXPAND_ALL in commands) {
+                if (TreeCommand.EXPAND_ALL in commands) {
                     TextButton(
-                        onClick = { handleCommand(_root_ide_package_.com.addzero.component.tree_command.TreeCommand.EXPAND_ALL) }
-                    ) {
+                        onClick = { handleCommand(TreeCommand.EXPAND_ALL) }) {
                         Icon(Icons.Default.UnfoldMore, contentDescription = null)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("展开全部")
                     }
                 }
 
-                if (_root_ide_package_.com.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL in commands) {
+                if (TreeCommand.COLLAPSE_ALL in commands) {
                     TextButton(
-                        onClick = { handleCommand(_root_ide_package_.com.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL) }
-                    ) {
+                        onClick = { handleCommand(TreeCommand.COLLAPSE_ALL) }) {
                         Icon(Icons.Default.UnfoldLess, contentDescription = null)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("收起全部")
@@ -185,9 +176,8 @@ fun <T> AddTreeWithCommand(
         }
 
         // 🌳 树组件（完全基于 TreeViewModel）
-        _root_ide_package_.com.addzero.component.tree.AddTree(
-            viewModel = viewModel,
-            modifier = Modifier.weight(1f)
+        AddTree(
+            viewModel = viewModel, modifier = Modifier.weight(1f)
         )
 
         // 📊 底部状态栏（外部声明）
@@ -196,12 +186,11 @@ fun <T> AddTreeWithCommand(
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
-            _root_ide_package_.com.addzero.component.tree_command.SelectedItemsBar(
+            SelectedItemsBar(
                 onClearSelection = {
                     viewModel.updateMultiSelectMode(false)
                     onSelectionChange(emptyList())
-                }
-            )
+                })
         }
     }
 }
@@ -211,15 +200,12 @@ fun <T> AddTreeWithCommand(
  */
 @Composable
 private fun SearchBar(
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
+    searchQuery: String, onSearchQueryChange: (String) -> Unit
 ) {
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
         placeholder = { Text("搜索节点...") },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "搜索") },
         trailingIcon = {
@@ -248,14 +234,10 @@ private fun SelectedItemsBar(
     onClearSelection: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 2.dp
+        modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primaryContainer, tonalElevation = 2.dp
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -276,20 +258,19 @@ private fun SelectedItemsBar(
  * 递归过滤树节点
  */
 private fun <T> filterTreeItems(
-    items: List<T>,
-    query: String,
-    getLabel: (T) -> String,
-    getChildren: (T) -> List<T>
+    items: List<T>, query: String, getLabel: (T) -> String, getChildren: (T) -> List<T>
 ): List<T> {
     val lowerQuery = query.trim().lowercase()
-    if (lowerQuery.isNullOrEmpty()) return items
+    if (lowerQuery.isEmpty()) return items
 
     return items.filter { item ->
         // 节点标签匹配
         val matches = getLabel(item).lowercase().contains(lowerQuery)
 
         // 或者子节点中有匹配的
-        val childrenMatch = _root_ide_package_.com.addzero.component.tree_command.filterTreeItems(getChildren(item), query, getLabel, getChildren).isNotEmpty()
+        val childrenMatch = filterTreeItems(
+            getChildren(item), query, getLabel, getChildren
+        ).isNotEmpty()
 
         matches || childrenMatch
     }
@@ -299,9 +280,7 @@ private fun <T> filterTreeItems(
  * 获取树中所有节点的ID
  */
 private fun <T> getAllIds(
-    items: List<T>,
-    getId: (T) -> Any,
-    getChildren: (T) -> List<T>
+    items: List<T>, getId: (T) -> Any, getChildren: (T) -> List<T>
 ): Set<Any> {
     val result = mutableSetOf<Any>()
 

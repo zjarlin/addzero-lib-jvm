@@ -160,7 +160,7 @@ fun DictManagerScreen() {
 
 @Composable
 private fun RenderDictList(vm: SysDictViewModel) {
-    com.addzero.component.high_level.AddLazyList(
+    AddLazyList(
         modifier = Modifier.fillMaxSize(),
         items = vm.dicts,
         key = { it.id!! },

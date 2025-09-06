@@ -42,13 +42,13 @@ import com.addzero.component.search_bar.AddSearchBar
  */
 @Composable
 fun <T> AddTree(
-    viewModel: com.addzero.component.tree.TreeViewModel<T>,
+    viewModel: TreeViewModel<T>,
     modifier: Modifier = Modifier,
     compactMode: Boolean = false, // 🚀 紧凑模式：只显示图标，不显示文本
-    content: @Composable com.addzero.component.tree.TreeScope<T>.() -> Unit = {}
+    content: @Composable TreeScope<T>.() -> Unit = {}
 ) {
     // 🎯 创建树作用域
-    val treeScope = remember(viewModel) { _root_ide_package_.com.addzero.component.tree.TreeScopeImpl(viewModel) }
+    val treeScope = remember(viewModel) { TreeScopeImpl(viewModel) }
 
     Column(modifier = modifier) {
         // 🎨 自定义内容插槽（应该在外部声明）
@@ -56,10 +56,7 @@ fun <T> AddTree(
 
         // 🌳 树形结构渲染 - 使用 Surface 而不是 Box
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
             color = MaterialTheme.colorScheme.surface
         ) {
             Column {
@@ -67,11 +64,8 @@ fun <T> AddTree(
                 val items = viewModel.filteredItems
                 // 🚀 TODO: 对于大量数据，考虑使用 LazyColumn 和虚拟化
                 items.forEach { item ->
-                    _root_ide_package_.com.addzero.component.tree.TreeNodeRenderer(
-                        node = item,
-                        viewModel = viewModel,
-                        level = 0,
-                        compactMode = compactMode
+                    TreeNodeRenderer(
+                        node = item, viewModel = viewModel, level = 0, compactMode = compactMode
                     )
                 }
             }
@@ -83,7 +77,7 @@ fun <T> AddTree(
  * 🎭 树作用域 - 提供插槽化扩展能力
  */
 interface TreeScope<T> {
-    val viewModel: com.addzero.component.tree.TreeViewModel<T>
+    val viewModel: TreeViewModel<T>
 
     @Composable
     fun TopSlot(content: @Composable () -> Unit)
@@ -105,8 +99,8 @@ interface TreeScope<T> {
  * 🎭 树作用域实现
  */
 private class TreeScopeImpl<T>(
-    override val viewModel: com.addzero.component.tree.TreeViewModel<T>
-) : com.addzero.component.tree.TreeScope<T> {
+    override val viewModel: TreeViewModel<T>
+) : TreeScope<T> {
 
     @Composable
     override fun TopSlot(content: @Composable () -> Unit) {
@@ -116,8 +110,7 @@ private class TreeScopeImpl<T>(
     @Composable
     override fun ControlsSlot(content: @Composable () -> Unit) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface
+            modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface
         ) {
             content()
         }
@@ -132,16 +125,14 @@ private class TreeScopeImpl<T>(
     override fun SearchBar() {
         if (viewModel.showSearchBar) {
             // 🚀 使用现有的 AddSearchBar 组件，功能更丰富
-            _root_ide_package_.com.addzero.component.search_bar.AddSearchBar(
+            AddSearchBar(
                 keyword = viewModel.searchQuery,
                 onKeyWordChanged = { viewModel.updateSearchQuery(it) },
                 onSearch = {
                     // 🎯 执行搜索：自动展开包含匹配项的节点
                     viewModel.performSearch()
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 placeholder = "搜索树节点..."
             )
         }
@@ -150,18 +141,15 @@ private class TreeScopeImpl<T>(
     @Composable
     override fun ExpandCollapseControls() {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
             TextButton(
-                onClick = { viewModel.expandAll() }
-            ) {
+                onClick = { viewModel.expandAll() }) {
                 Text("展开全部")
             }
 
             TextButton(
-                onClick = { viewModel.collapseAll() }
-            ) {
+                onClick = { viewModel.collapseAll() }) {
                 Text("收起全部")
             }
         }
@@ -173,10 +161,7 @@ private class TreeScopeImpl<T>(
  */
 @Composable
 private fun <T> TreeNodeRenderer(
-    node: T,
-    viewModel: com.addzero.component.tree.TreeViewModel<T>,
-    level: Int,
-    compactMode: Boolean = false
+    node: T, viewModel: TreeViewModel<T>, level: Int, compactMode: Boolean = false
 ) {
     val nodeId = viewModel.getId(node)
     val isExpanded = viewModel.isExpanded(nodeId)
@@ -185,7 +170,7 @@ private fun <T> TreeNodeRenderer(
     val hasChildren = children.isNotEmpty()
 
     // 🎯 节点内容
-    _root_ide_package_.com.addzero.component.tree.TreeNodeContent(
+    TreeNodeContent(
         node = node,
         viewModel = viewModel,
         level = level,
@@ -194,17 +179,13 @@ private fun <T> TreeNodeRenderer(
         hasChildren = hasChildren,
         compactMode = compactMode,
         onToggleExpanded = { viewModel.toggleExpanded(nodeId) },
-        onClick = { viewModel.clickNode(node) }
-    )
+        onClick = { viewModel.clickNode(node) })
 
     // 🌿 子节点渲染
     if (hasChildren && isExpanded) {
         children.forEach { child ->
-            _root_ide_package_.com.addzero.component.tree.TreeNodeRenderer(
-                node = child,
-                viewModel = viewModel,
-                level = level + 1,
-                compactMode = compactMode
+            TreeNodeRenderer(
+                node = child, viewModel = viewModel, level = level + 1, compactMode = compactMode
             )
         }
     }
@@ -216,7 +197,7 @@ private fun <T> TreeNodeRenderer(
 @Composable
 private fun <T> TreeNodeContent(
     node: T,
-    viewModel: com.addzero.component.tree.TreeViewModel<T>,
+    viewModel: TreeViewModel<T>,
     level: Int,
     isExpanded: Boolean,
     isSelected: Boolean,
@@ -226,19 +207,14 @@ private fun <T> TreeNodeContent(
     onClick: () -> Unit
 ) {
     val nodeId = viewModel.getId(node)
-    val isItemSelected = viewModel.isItemSelected(nodeId)
+    viewModel.isItemSelected(nodeId)
 
     // 🎯 使用 Surface 而不是 Box，扁平化设计
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
+        modifier = Modifier.fillMaxWidth().padding(
                 start = if (compactMode) 6.dp else (level * 16 + 6).dp, // 🚀 紧凑模式下减少缩进
-                end = 6.dp,
-                top = 2.dp,
-                bottom = 2.dp
-            )
-            .let { modifier ->
+                end = 6.dp, top = 2.dp, bottom = 2.dp
+            ).let { modifier ->
                 // 🚀 紧凑模式下点击事件由 AddIconButton 处理，展开模式下使用 clickable
                 if (compactMode) {
                     modifier // 紧凑模式下不添加 clickable，避免重复处理
@@ -251,20 +227,15 @@ private fun <T> TreeNodeContent(
                         onClick() // 总是触发点击回调
                     }
                 }
-            },
-        shape = RectangleShape, // 🎨 扁平化设计，不使用圆角
-        tonalElevation = if (isSelected) 2.dp else 0.dp,
-        color = if (isSelected) {
+            }, shape = RectangleShape, // 🎨 扁平化设计，不使用圆角
+        tonalElevation = if (isSelected) 2.dp else 0.dp, color = if (isSelected) {
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
         } else {
             Color.Transparent
         }
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .padding(
+            modifier = Modifier.fillMaxWidth().height(40.dp).padding(
                     horizontal = if (compactMode) 4.dp else 12.dp, // 🚀 紧凑模式下减少水平内边距
                     vertical = 8.dp
                 ),
@@ -277,12 +248,10 @@ private fun <T> TreeNodeContent(
 
                 TriStateCheckbox(
                     state = when (selectionState) {
-                        _root_ide_package_.com.addzero.component.tree.selection.SelectionState.SELECTED -> ToggleableState.On
-                        _root_ide_package_.com.addzero.component.tree.selection.SelectionState.INDETERMINATE -> ToggleableState.Indeterminate
-                        _root_ide_package_.com.addzero.component.tree.selection.SelectionState.UNSELECTED -> ToggleableState.Off
-                    },
-                    onClick = { viewModel.toggleItemSelection(nodeId) }
-                )
+                        com.addzero.component.tree.selection.SelectionState.SELECTED -> ToggleableState.On
+                        com.addzero.component.tree.selection.SelectionState.INDETERMINATE -> ToggleableState.Indeterminate
+                        com.addzero.component.tree.selection.SelectionState.UNSELECTED -> ToggleableState.Off
+                    }, onClick = { viewModel.toggleItemSelection(nodeId) })
                 Spacer(modifier = Modifier.width(8.dp))
             }
 
@@ -292,7 +261,7 @@ private fun <T> TreeNodeContent(
             if (icon != null) {
                 if (compactMode) {
                     // 🚀 紧凑模式：使用 AddIconButton 提供 Tooltip 支持
-                    _root_ide_package_.com.addzero.component.button.AddIconButton(
+                    AddIconButton(
                         text = viewModel.getLabelCached(node),
                         imageVector = icon,
                         modifier = Modifier.size(32.dp),
@@ -378,25 +347,21 @@ fun <T> AddTree(
         // 🚀 默认使用 NodeType 推测图标
         val label = getLabel(node)
         val children = getChildren(node)
-        _root_ide_package_.com.addzero.component.tree.NodeType.Companion.guessIcon(label, children.isNotEmpty())
+        NodeType.guessIcon(label, children.isNotEmpty())
     },
     initiallyExpandedIds: Set<Any> = emptySet(),
     onNodeClick: (T) -> Unit = {},
     onNodeContextMenu: (T) -> Unit = {},
     onSelectionChange: (List<T>) -> Unit = {},
-    content: @Composable com.addzero.component.tree.TreeScope<T>.() -> Unit = {}
+    content: @Composable TreeScope<T>.() -> Unit = {}
 ) {
     // 🎯 创建和配置 ViewModel
-    val viewModel = _root_ide_package_.com.addzero.component.tree.rememberTreeViewModel<T>()
+    val viewModel = rememberTreeViewModel<T>()
 
     // 🔧 优化：使用新的配置方法
     LaunchedEffect(items, getId, getLabel, getChildren) {
         viewModel.configure(
-            getId = getId,
-            getLabel = getLabel,
-            getChildren = getChildren,
-            getNodeType = getNodeType,
-            getIcon = getIcon
+            getId = getId, getLabel = getLabel, getChildren = getChildren, getNodeType = getNodeType, getIcon = getIcon
         )
         viewModel.onNodeClick = onNodeClick
         viewModel.onNodeContextMenu = onNodeContextMenu
@@ -406,10 +371,7 @@ fun <T> AddTree(
     }
 
     // 🚀 渲染优化版树组件
-    _root_ide_package_.com.addzero.component.tree.AddTree(
-        viewModel = viewModel,
-        modifier = modifier,
-        compactMode = compactMode,
-        content = content
+    AddTree(
+        viewModel = viewModel, modifier = modifier, compactMode = compactMode, content = content
     )
 }
