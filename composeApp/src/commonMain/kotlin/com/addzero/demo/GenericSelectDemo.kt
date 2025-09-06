@@ -39,7 +39,7 @@ fun GenericSelectDemo() {
             placeholder = "请选择多个选项",
             selectMode = SelectMode.MULTIPLE
         )
-        UseAutoComplate(suggestions = listOf("选项1", "选项2", "选项3"), title = "自动补全", getLabelFun = { it }).render{}
+        UseAutoComplate(suggestions = listOf("选项1", "选项2", "选项3"), title = "自动补全", getLabelFun = { it }).Render{}
 
     }
 
