@@ -20,7 +20,6 @@ import com.addzero.entity.sys.menu.EnumSysMenuType
 import com.addzero.entity.sys.menu.SysMenuVO
 import com.addzero.generated.RouteKeys
 import com.addzero.ui.infra.theme.AppThemeType
-import com.addzero.ui.infra.theme.SidebarGradientBackground
 import com.addzero.ui.infra.theme.ThemeViewModel
 import com.addzero.util.str.isNotBlank
 import com.addzero.viewmodel.SysRouteViewModel
@@ -41,29 +40,10 @@ fun SideMenu() {
         modifier = Modifier
             .width(if (sysRouteViewModel.isExpand) 240.dp else 56.dp)
             .fillMaxHeight(),
-        color = when (currentTheme) {
-            AppThemeType.GRADIENT_RAINBOW,
-            AppThemeType.GRADIENT_SUNSET,
-            AppThemeType.GRADIENT_OCEAN,
-            AppThemeType.GRADIENT_FOREST,
-            AppThemeType.GRADIENT_AURORA,
-            AppThemeType.GRADIENT_NEON -> Color.Transparent
-
-            else -> MaterialTheme.colorScheme.surface
-        },
-        tonalElevation = if (currentTheme.isGradient()) 0.dp else 2.dp
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp
     ) {
-        // 如果是渐变主题，添加渐变背景
-        if (currentTheme.isGradient()) {
-            SidebarGradientBackground(
-                themeType = currentTheme,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                TreeContent()
-            }
-        } else {
-            TreeContent()
-        }
+        TreeContent()
     }
 }
 

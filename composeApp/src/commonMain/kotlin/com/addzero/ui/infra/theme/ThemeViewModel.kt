@@ -29,14 +29,6 @@ class ThemeViewModel : ViewModel() {
                 AppThemeType.DARK_BLUE -> AppThemeType.LIGHT_BLUE
                 AppThemeType.DARK_GREEN -> AppThemeType.LIGHT_GREEN
                 AppThemeType.DARK_PURPLE -> AppThemeType.LIGHT_PURPLE
-                // 渐变主题保持不变
-                AppThemeType.GRADIENT_RAINBOW,
-                AppThemeType.GRADIENT_SUNSET,
-                AppThemeType.GRADIENT_OCEAN,
-                AppThemeType.GRADIENT_FOREST,
-                AppThemeType.GRADIENT_AURORA,
-                AppThemeType.GRADIENT_NEON -> currentTheme
-
                 else -> AppThemeType.LIGHT_BLUE
             }
         } else {
@@ -46,14 +38,6 @@ class ThemeViewModel : ViewModel() {
                 AppThemeType.LIGHT_BLUE -> AppThemeType.DARK_BLUE
                 AppThemeType.LIGHT_GREEN -> AppThemeType.DARK_GREEN
                 AppThemeType.LIGHT_PURPLE -> AppThemeType.DARK_PURPLE
-                // 渐变主题保持不变
-                AppThemeType.GRADIENT_RAINBOW,
-                AppThemeType.GRADIENT_SUNSET,
-                AppThemeType.GRADIENT_OCEAN,
-                AppThemeType.GRADIENT_FOREST,
-                AppThemeType.GRADIENT_AURORA,
-                AppThemeType.GRADIENT_NEON -> currentTheme
-
                 else -> AppThemeType.DARK_BLUE
             }
         }

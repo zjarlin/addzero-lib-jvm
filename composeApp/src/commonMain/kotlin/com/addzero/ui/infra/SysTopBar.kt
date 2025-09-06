@@ -34,8 +34,6 @@ fun SysTopBar() {
     // 搜索框状态
     val isSearchOpen = remember { mutableStateOf(false) }
     val currentTheme = themeViewModel.currentTheme
-    //是否为渐变主题
-    val isGradientTheme = currentTheme.isGradient()
     // 上传管理器对话框状态
     var showUploadManager by remember { mutableStateOf(false) }
     TopAppBar(
@@ -68,21 +66,14 @@ fun SysTopBar() {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-
-                // 主题明暗切换按钮 - 仅在非渐变主题时显示
-                if (!isGradientTheme) {
-                    ThemeToggleButton()
-                    // 间距
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-
-                ThemeSelectionButton()
-
-
+                ThemeToggleButton()
                 // 间距
                 Spacer(modifier = Modifier.width(8.dp))
 
+                ThemeSelectionButton()
+
+                // 间距
+                Spacer(modifier = Modifier.width(8.dp))
 
                 // 全局搜索栏
                 AddSysRouteSearchBar(
@@ -90,7 +81,6 @@ fun SysTopBar() {
                 )
                 // 间距
                 Spacer(modifier = Modifier.width(8.dp))
-
 
                 // 用户中心
                 Box(modifier = Modifier.width(40.dp)) {

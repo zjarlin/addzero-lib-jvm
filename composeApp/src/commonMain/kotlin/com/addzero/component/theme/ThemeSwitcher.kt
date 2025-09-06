@@ -28,8 +28,6 @@ private fun ThemeItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val gradientConfig = AppThemes.getGradientConfig(theme)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -47,28 +45,13 @@ private fun ThemeItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 主题预览色块
-        if (gradientConfig != null && theme.isGradient()) {
-            // 渐变主题预览
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = gradientConfig.colors.take(3) // 只取前3个颜色
-                        )
-                    )
-            )
-        } else {
-            // 普通主题预览
-            val colorScheme = AppThemes.getColorScheme(theme)
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(colorScheme.primary)
-            )
-        }
+        val colorScheme = AppThemes.getColorScheme(theme)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(colorScheme.primary)
+        )
 
         Spacer(modifier = Modifier.width(12.dp))
 

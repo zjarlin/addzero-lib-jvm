@@ -21,9 +21,9 @@ fun AddMultiColumnContainer(
     modifier: Modifier = Modifier,
     horizontalGap: Int = 16,
     verticalGap: Int = 8,
-    items: List<@Composable () -> Unit>
+    items: List<(@Composable () -> Unit)?>
 ) {
-    val filter = items.filter { it != {} }
+    val filter = items.filter { it != null }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(howMuchColumn),
@@ -32,7 +32,8 @@ fun AddMultiColumnContainer(
         modifier = modifier
     ) {
         items(filter.size) { index ->
-            filter[index]()
+            val function = filter[index]
+            function?.let { it() }
         }
     }
 }

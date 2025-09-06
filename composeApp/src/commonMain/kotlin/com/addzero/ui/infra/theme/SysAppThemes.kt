@@ -38,15 +38,7 @@ enum class AppThemeType {
     LIGHT_GREEN,
     DARK_GREEN,
     LIGHT_PURPLE,
-    DARK_PURPLE,
-
-    // 新增炫彩主题
-    GRADIENT_RAINBOW,
-    GRADIENT_SUNSET,
-    GRADIENT_OCEAN,
-    GRADIENT_FOREST,
-    GRADIENT_AURORA,
-    GRADIENT_NEON;
+    DARK_PURPLE;
 
     /**
      * 获取主题名称
@@ -61,12 +53,6 @@ enum class AppThemeType {
             DARK_GREEN -> "绿色暗色"
             LIGHT_PURPLE -> "紫色亮色"
             DARK_PURPLE -> "紫色暗色"
-            GRADIENT_RAINBOW -> "彩虹渐变"
-            GRADIENT_SUNSET -> "日落渐变"
-            GRADIENT_OCEAN -> "海洋渐变"
-            GRADIENT_FOREST -> "森林渐变"
-            GRADIENT_AURORA -> "极光渐变"
-            GRADIENT_NEON -> "霓虹渐变"
         }
     }
 
@@ -75,14 +61,6 @@ enum class AppThemeType {
      */
     fun isDark(): Boolean {
         return this == DARK_DEFAULT || this == DARK_BLUE || this == DARK_GREEN || this == DARK_PURPLE
-    }
-
-    /**
-     * 是否为渐变主题
-     */
-    fun isGradient(): Boolean {
-        return this == GRADIENT_RAINBOW || this == GRADIENT_SUNSET || this == GRADIENT_OCEAN ||
-                this == GRADIENT_FOREST || this == GRADIENT_AURORA || this == GRADIENT_NEON
     }
 }
 
@@ -156,91 +134,6 @@ object AppThemes {
         onSecondary = Colors.Black
     )
 
-    // 炫彩渐变主题
-    private val GradientRainbowScheme = lightColorScheme(
-        primary = Colors.RainbowPink,
-        primaryContainer = Colors.RainbowContainer,
-        secondary = Colors.RainbowPurple,
-        secondaryContainer = Colors.GradientSurfaceContainer,
-        surface = Colors.GradientSurface,
-        surfaceContainer = Colors.GradientSurfaceContainer,
-        background = Colors.GradientBackground,
-        onPrimary = Color.White,
-        onSecondary = Color.White,
-        onSurface = Colors.GradientOnSurface,
-        onBackground = Colors.GradientOnBackground
-    )
-
-    private val GradientSunsetScheme = lightColorScheme(
-        primary = Colors.SunsetOrangeRed,
-        primaryContainer = Colors.SunsetContainer,
-        secondary = Colors.SunsetOrange,
-        secondaryContainer = Colors.GradientSurfaceContainer,
-        surface = Colors.GradientSurface,
-        surfaceContainer = Colors.GradientSurfaceContainer,
-        background = Colors.GradientBackground,
-        onPrimary = Color.White,
-        onSecondary = Color.White,
-        onSurface = Colors.GradientOnSurface,
-        onBackground = Colors.GradientOnBackground
-    )
-
-    private val GradientOceanScheme = lightColorScheme(
-        primary = Colors.OceanDeepBlue,
-        primaryContainer = Colors.OceanContainer,
-        secondary = Colors.OceanCyan,
-        secondaryContainer = Colors.GradientSurfaceContainer,
-        surface = Colors.GradientSurface,
-        surfaceContainer = Colors.GradientSurfaceContainer,
-        background = Colors.GradientBackground,
-        onPrimary = Color.White,
-        onSecondary = Color.White,
-        onSurface = Colors.GradientOnSurface,
-        onBackground = Colors.GradientOnBackground
-    )
-
-    private val GradientForestScheme = lightColorScheme(
-        primary = Colors.ForestDarkGreen,
-        primaryContainer = Colors.ForestContainer,
-        secondary = Colors.ForestGreen,
-        secondaryContainer = Colors.ForestContainer,
-        surface = Colors.GradientSurface,
-        surfaceContainer = Colors.ForestContainer,
-        background = Colors.GradientBackground,
-        onPrimary = Color.White,
-        onSecondary = Color.White,
-        onSurface = Colors.GradientOnSurface,
-        onBackground = Colors.GradientOnBackground
-    )
-
-    private val GradientAuroraScheme = lightColorScheme(
-        primary = Colors.AuroraPurple,
-        primaryContainer = Colors.AuroraContainer,
-        secondary = Colors.AuroraGreen,
-        secondaryContainer = Colors.ForestContainer,
-        surface = Colors.GradientSurface,
-        surfaceContainer = Colors.GradientSurfaceContainer,
-        background = Colors.GradientBackground,
-        onPrimary = Color.White,
-        onSecondary = Colors.Black,
-        onSurface = Colors.GradientOnSurface,
-        onBackground = Colors.GradientOnBackground
-    )
-
-    private val GradientNeonScheme = lightColorScheme(
-        primary = Colors.NeonRed,
-        primaryContainer = Colors.NeonContainer,
-        secondary = Colors.NeonCyan,
-        secondaryContainer = Colors.GradientSurfaceContainer,
-        surface = Colors.NeonSurface,
-        surfaceContainer = Colors.NeonSurfaceContainer,
-        background = Colors.NeonBackground,
-        onPrimary = Color.White,
-        onSecondary = Colors.Black,
-        onSurface = Color.White,
-        onBackground = Color.White
-    )
-
     /**
      * 根据主题类型获取对应的颜色方案
      */
@@ -254,12 +147,6 @@ object AppThemes {
             AppThemeType.DARK_GREEN -> DarkGreenScheme
             AppThemeType.LIGHT_PURPLE -> LightPurpleScheme
             AppThemeType.DARK_PURPLE -> DarkPurpleScheme
-            AppThemeType.GRADIENT_RAINBOW -> GradientRainbowScheme
-            AppThemeType.GRADIENT_SUNSET -> GradientSunsetScheme
-            AppThemeType.GRADIENT_OCEAN -> GradientOceanScheme
-            AppThemeType.GRADIENT_FOREST -> GradientForestScheme
-            AppThemeType.GRADIENT_AURORA -> GradientAuroraScheme
-            AppThemeType.GRADIENT_NEON -> GradientNeonScheme
         }
     }
 
@@ -267,94 +154,6 @@ object AppThemes {
      * 获取渐变配置
      */
     fun getGradientConfig(themeType: AppThemeType): GradientConfig? {
-        return when (themeType) {
-            AppThemeType.GRADIENT_RAINBOW -> GradientConfig(
-                colors = listOf(
-                    Colors.RainbowPink,
-                    Colors.RainbowPurple,
-                    Colors.RainbowBlue,
-                    Colors.RainbowGreen,
-                    Colors.RainbowOrange,
-                    Colors.RainbowRed
-                )
-            )
-
-            AppThemeType.GRADIENT_SUNSET -> GradientConfig(
-                colors = listOf(
-                    Colors.SunsetOrangeRed,
-                    Colors.SunsetOrange,
-                    Colors.SunsetLightOrange,
-                    Colors.SunsetYellow
-                )
-            )
-
-            AppThemeType.GRADIENT_OCEAN -> GradientConfig(
-                colors = listOf(
-                    Colors.OceanDeepBlue,
-                    Colors.OceanCyan,
-                    Colors.OceanLightCyan,
-                    Colors.OceanVeryLightCyan
-                )
-            )
-
-            AppThemeType.GRADIENT_FOREST -> GradientConfig(
-                colors = listOf(
-                    Colors.ForestDarkGreen,
-                    Colors.ForestGreen,
-                    Colors.ForestLightGreen,
-                    Colors.ForestVeryLightGreen
-                )
-            )
-
-            AppThemeType.GRADIENT_AURORA -> GradientConfig(
-                colors = listOf(
-                    Colors.AuroraPurple,
-                    Colors.AuroraGreen,
-                    Colors.AuroraCyan,
-                    Colors.AuroraPink
-                )
-            )
-
-            AppThemeType.GRADIENT_NEON -> GradientConfig(
-                colors = listOf(
-                    Colors.NeonRed,
-                    Colors.NeonPink,
-                    Colors.NeonCyan,
-                    Colors.NeonGreen
-                )
-            )
-
-            else -> null
-        }
-    }
-}
-
-/**
- * 渐变背景组件
- */
-@Composable
-fun GradientBackground(
-    gradientConfig: GradientConfig,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = gradientConfig.colors,
-                    start = androidx.compose.ui.geometry.Offset(
-                        gradientConfig.startX,
-                        gradientConfig.startY
-                    ),
-                    end = androidx.compose.ui.geometry.Offset(
-                        gradientConfig.endX,
-                        gradientConfig.endY
-                    )
-                )
-            )
-    ) {
-        content()
+        return null
     }
 }
