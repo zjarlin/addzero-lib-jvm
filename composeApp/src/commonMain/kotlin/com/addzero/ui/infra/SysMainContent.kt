@@ -10,9 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.addzero.annotation.Route
-import com.addzero.di.NavgationService
-import com.addzero.generated.RouteKeys
+import com.addzero.di.NavgationViewModel
 import com.addzero.generated.RouteTable
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.ui.infra.theme.MainContentGradientBackground
@@ -56,5 +54,5 @@ fun RenderNavContent(navController: NavHostController) {
             }
         }
     }
-    NavgationService.initialize(navController)
+    NavgationViewModel.initialize(navController)
 }

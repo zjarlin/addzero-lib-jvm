@@ -15,10 +15,12 @@ import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
  * @param getRouteTitle 获取路由标题的函数，根据路由路径返回标题
  */
 @Composable
+context(
+    recentViewModel: RecentTabsManagerViewModel,
+)
 fun NavigationObserver(
     navController: NavController,
     getRouteTitle: (String) -> String,
-    recentViewModel: RecentTabsManagerViewModel
 ) {
     val currentOnDestinationChangedListener = remember {
         NavController.OnDestinationChangedListener { controller, destination, arguments ->

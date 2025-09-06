@@ -44,7 +44,7 @@ fun EventBusConsumer() {
 
                     show(message)
                     // 401 未登录/Token失效，跳转登录页
-//                    NavgationService.navigate(RouteKeys.LOGIN_SCREEN)
+//                    NavgationViewModel.navigate(RouteKeys.LOGIN_SCREEN)
                 }
 
                 Forbidden -> {

@@ -4,7 +4,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.addzero.di.NavgationService
+import com.addzero.di.NavgationViewModel
 import com.addzero.entity.sys.menu.EnumSysMenuType
 import com.addzero.entity.sys.menu.SysMenuVO
 import com.addzero.generated.RouteKeys
@@ -16,8 +16,7 @@ object MenuViewModel {
 
     fun updateRoute(string: String) {
         currentRoute = string
-
-        NavgationService.navigate(currentRoute)
+        NavgationViewModel.navigate(currentRoute)
     }
 
     //默认展开

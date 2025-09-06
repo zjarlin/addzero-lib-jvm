@@ -3,7 +3,7 @@ package com.addzero.di
 import androidx.navigation.NavHostController
 import com.addzero.generated.RouteKeys
 
-object NavgationService {
+object NavgationViewModel {
     private lateinit var navController: NavHostController
 
     fun initialize(controller: NavHostController) {
