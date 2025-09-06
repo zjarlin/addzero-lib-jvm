@@ -29,6 +29,7 @@ kotlin {
 
             // 组件库依赖
             implementation(projects.lib.compose.addzeroComposeNativeComponent)
+            implementation(projects.lib.compose.addzeroComposeNativeComponentHook)
 
             // 原来的 FileKit 依赖现在由 klibs-component 模块提供
             implementation(libs.filekit.compose)

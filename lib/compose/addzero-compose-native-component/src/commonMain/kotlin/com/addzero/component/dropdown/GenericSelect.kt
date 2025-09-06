@@ -30,6 +30,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
+ * 选择模式枚举
+ */
+enum class SelectMode {
+    SINGLE,  // 单选
+    MULTIPLE // 多选
+}
+
+/**
  * 泛型选择框选项作用域
  * @param T 数据类型
  */
@@ -50,9 +58,12 @@ class SelectScope<T> internal constructor(
  * 泛型选择框组件
  * @param T 数据类型
  * @param modifier 修饰符
- * @param value 当前选中的项目
+ * @param value 当前选中的项目（单选模式）
+ * @param values 当前选中的项目列表（多选模式）
  * @param items 选择项列表
- * @param onValueChange 选择项目的回调
+ * @param onValueChange 选择项目的回调（单选模式）
+ * @param onValuesChange 选择项目的回调（多选模式）
+ * @param selectMode 选择模式（单选或多选）
  * @param label 标签提供函数 (T) -> String
  * @param placeholder 占位符文本
  * @param enabled 是否启用组件
@@ -72,8 +83,11 @@ class SelectScope<T> internal constructor(
 fun <T> Select(
     modifier: Modifier = Modifier,
     value: T? = null,
+    values: List<T> = emptyList(),
     items: List<T> = emptyList(),
-    onValueChange: (T) -> Unit,
+    onValueChange: ((T) -> Unit)? = null,
+    onValuesChange: ((List<T>) -> Unit)? = null,
+    selectMode: SelectMode = SelectMode.SINGLE,
     label: (T) -> String = { it.toString() },
     placeholder: String = "请选择",
     enabled: Boolean = true,
@@ -113,8 +127,14 @@ fun <T> Select(
     // 文本颜色
     val textColor = when {
         !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        value != null -> MaterialTheme.colorScheme.onSurface
+        (selectMode == SelectMode.SINGLE && value != null) || (selectMode == SelectMode.MULTIPLE && values.isNotEmpty()) -> MaterialTheme.colorScheme.onSurface
         else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    }
+
+    // 显示文本
+    val displayText = when (selectMode) {
+        SelectMode.SINGLE -> value?.let { label(it) } ?: placeholder
+        SelectMode.MULTIPLE -> if (values.isEmpty()) placeholder else values.joinToString(", ") { label(it) }
     }
 
     Column(modifier = modifier) {
@@ -130,7 +150,7 @@ fun <T> Select(
                 )
                 .semantics {
                     role = Role.DropdownList
-                    contentDescription = "选择框，当前选择：${value?.let { label(it) } ?: placeholder}"
+                    contentDescription = "选择框，当前选择：$displayText"
                 },
             shape = shape,
             color = backgroundColor,
@@ -154,10 +174,10 @@ fun <T> Select(
 
                     // 显示文本
                     Text(
-                        text = value?.let { label(it) } ?: placeholder,
+                        text = displayText,
                         style = MaterialTheme.typography.bodyLarge,
                         color = textColor,
-                        fontWeight = if (value != null) FontWeight.Medium else FontWeight.Normal,
+                        fontWeight = if ((selectMode == SelectMode.SINGLE && value != null) || (selectMode == SelectMode.MULTIPLE && values.isNotEmpty())) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
@@ -207,7 +227,10 @@ fun <T> Select(
             ) {
                 LazyColumn {
                     items(items) { item ->
-                        val isSelected = value?.let { it == item } ?: false
+                        val isSelected = when (selectMode) {
+                            SelectMode.SINGLE -> value?.let { it == item } ?: false
+                            SelectMode.MULTIPLE -> values.contains(item)
+                        }
                         val scope = remember(item, isSelected) {
                             SelectScope(item, isSelected, label, showCheckIcon)
                         }
@@ -218,8 +241,20 @@ fun <T> Select(
                                 .clickable(
                                     enabled = enabled,
                                     onClick = {
-                                        onValueChange(item)
-                                        isExpanded = false
+                                        when (selectMode) {
+                                            SelectMode.SINGLE -> {
+                                                onValueChange?.invoke(item)
+                                                isExpanded = false
+                                            }
+                                            SelectMode.MULTIPLE -> {
+                                                val newValues = if (isSelected) {
+                                                    values.filter { it != item }
+                                                } else {
+                                                    values + item
+                                                }
+                                                onValuesChange?.invoke(newValues)
+                                            }
+                                        }
                                     }
                                 ),
                             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent

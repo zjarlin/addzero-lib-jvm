@@ -33,7 +33,7 @@ interface UseHook<T : UseHook<T>> {
         get() = {}
 
     @Composable
-    fun Render(block: @Composable T.() -> Unit) {
+    fun render(block: @Composable T.() -> Unit) {
         val state = rememberState()
 
         // 使用DisposableEffect确保在组件离开组合时调用dispose方法

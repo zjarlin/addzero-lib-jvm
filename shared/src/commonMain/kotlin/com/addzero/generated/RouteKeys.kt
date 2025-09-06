@@ -7,12 +7,11 @@ import com.addzero.annotation.Route
  * 请勿手动修改此文件
  */
 object RouteKeys {
-    const val SELECT_DEMO2 = "/component/select2"
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val TABLE_BIG_DATA_TEST2 = "com.addzero.demo.TableBigDataTest2"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
-    const val SELECT_DEMO = "/component/select"
+    const val GENERIC_SELECT_DEMO = "/component/genericSelect"
     const val TIME_PICKER_EXAMPLE = "com.addzero.demo.date_test.TimePickerExample"
     const val TIME_PICKER_FIELD_TEST = "com.addzero.demo.date_test.TimePickerFieldTest"
     const val DATE_PICKER_FIELD_TEST = "com.addzero.demo.date_test.DatePickerFieldTest"
@@ -47,12 +46,11 @@ object RouteKeys {
      * 所有路由元数据
      */
     val allMeta = listOf(
-        Route(value = "组件示例", title = "Select选择框2", routePath = "/component/select2", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.SelectDemo2"),
         Route(value = "组件示例", title = "富文本", routePath = "com.addzero.demo.RichTextDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.RichTextDemo"),
         Route(value = "", title = "AddCardExample", routePath = "com.addzero.demo.AddCardExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.AddCardExample"),
         Route(value = "", title = "TableBigDataTest2", routePath = "com.addzero.demo.TableBigDataTest2", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TableBigDataTest2"),
         Route(value = "组件示例", title = "UI组件测试", routePath = "com.addzero.demo.UIComponentsDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UIComponentsDemo"),
-        Route(value = "组件示例", title = "Select选择框", routePath = "/component/select", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.SelectDemo"),
+        Route(value = "组件示例", title = "GenericSelect组件", routePath = "/component/genericSelect", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.GenericSelectDemo"),
         Route(value = "时间选择器示例", title = "TimePickerExample", routePath = "com.addzero.demo.date_test.TimePickerExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerExample"),
         Route(value = "组件示例", title = "时间选择器", routePath = "com.addzero.demo.date_test.TimePickerFieldTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerFieldTest"),
         Route(value = "组件示例", title = "日期选择器", routePath = "com.addzero.demo.date_test.DatePickerFieldTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.DatePickerFieldTest"),
