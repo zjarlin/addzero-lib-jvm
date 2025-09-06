@@ -1,10 +1,8 @@
 package com.addzero.component.dropdown
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,9 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -34,25 +30,30 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * 选择项数据模型
- * @param title 显示标题
- * @param value 实际值
- * @param enabled 是否启用
+ * 泛型选择框选项作用域
+ * @param T 数据类型
  */
-data class SelectItemModel(
-    val title: String,
-    val value: Any,
-    val enabled: Boolean = true
-)
+class SelectScope<T> internal constructor(
+    val item: T,
+    val isSelected: Boolean,
+    val labelProvider: (T) -> String,
+    val showCheckIcon: Boolean
+) {
+    /**
+     * 获取项目的标签文本
+     */
+    fun label(): String = labelProvider(item)
+
+}
 
 /**
- * 增强的基础选择框组件
+ * 泛型选择框组件
+ * @param T 数据类型
  * @param modifier 修饰符
- * @param isExpanded 是否展开下拉列表
- * @param selectedItem 当前选中的项目
+ * @param value 当前选中的项目
  * @param items 选择项列表
- * @param onToggle 切换展开状态的回调
- * @param onItemSelected 选择项目的回调
+ * @param onValueChange 选择项目的回调
+ * @param label 标签提供函数 (T) -> String
  * @param placeholder 占位符文本
  * @param enabled 是否启用组件
  * @param isError 是否显示错误状态
@@ -64,16 +65,16 @@ data class SelectItemModel(
  * @param contentPadding 内容内边距
  * @param maxDropdownHeight 下拉列表最大高度
  * @param showCheckIcon 是否显示选中图标
+ * @param itemContent 自定义选项内容渲染
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BaseSelect(
+fun <T> Select(
     modifier: Modifier = Modifier,
-    isExpanded: Boolean,
-    selectedItem: SelectItemModel? = null,
-    items: List<SelectItemModel> = emptyList(),
-    onToggle: () -> Unit,
-    onItemSelected: (SelectItemModel) -> Unit,
+    value: T? = null,
+    items: List<T> = emptyList(),
+    onValueChange: (T) -> Unit,
+    label: (T) -> String = { it.toString() },
     placeholder: String = "请选择",
     enabled: Boolean = true,
     isError: Boolean = false,
@@ -84,8 +85,14 @@ fun BaseSelect(
     borderWidth: Dp = 1.dp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
     maxDropdownHeight: Dp = 200.dp,
-    showCheckIcon: Boolean = true
+    showCheckIcon: Boolean = true,
+    itemContent: @Composable SelectScope<T>.() -> Unit = {
+        DefaultItem()
+    }
 ) {
+    // 内部管理展开状态
+    var isExpanded by remember { mutableStateOf(false) }
+
     // 动画状态
     val arrowRotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
@@ -106,7 +113,7 @@ fun BaseSelect(
     // 文本颜色
     val textColor = when {
         !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        selectedItem != null -> MaterialTheme.colorScheme.onSurface
+        value != null -> MaterialTheme.colorScheme.onSurface
         else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     }
 
@@ -117,13 +124,13 @@ fun BaseSelect(
                 .fillMaxWidth()
                 .clickable(
                     enabled = enabled,
-                    onClick = onToggle,
+                    onClick = { isExpanded = !isExpanded },
                     interactionSource = interactionSource,
                     indication = null
                 )
                 .semantics {
                     role = Role.DropdownList
-                    contentDescription = "选择框，当前选择：${selectedItem?.title ?: placeholder}"
+                    contentDescription = "选择框，当前选择：${value?.let { label(it) } ?: placeholder}"
                 },
             shape = shape,
             color = backgroundColor,
@@ -147,10 +154,10 @@ fun BaseSelect(
 
                     // 显示文本
                     Text(
-                        text = selectedItem?.title ?: placeholder,
+                        text = value?.let { label(it) } ?: placeholder,
                         style = MaterialTheme.typography.bodyLarge,
                         color = textColor,
-                        fontWeight = if (selectedItem != null) FontWeight.Medium else FontWeight.Normal,
+                        fontWeight = if (value != null) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
@@ -182,99 +189,80 @@ fun BaseSelect(
         }
 
         Spacer(modifier = Modifier.height(4.dp))
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxDropdownHeight),
-            shape = shape,
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 2.dp,
 
-            content = {
-                // 下拉列表
-                AnimatedVisibility(
-                    visible = isExpanded,
-                    enter = expandVertically(animationSpec = tween(200)),
-                    exit = shrinkVertically(animationSpec = tween(200)),
-                    content = {
+        // 下拉列表
+        AnimatedVisibility(
+            visible = isExpanded && items.isNotEmpty(),
+            enter = expandVertically(animationSpec = tween(200)),
+            exit = shrinkVertically(animationSpec = tween(200)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = maxDropdownHeight),
+                shape = shape,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 2.dp
+            ) {
+                LazyColumn {
+                    items(items) { item ->
+                        val isSelected = value?.let { it == item } ?: false
+                        val scope = remember(item, isSelected) {
+                            SelectScope(item, isSelected, label, showCheckIcon)
+                        }
 
-                        LazyColumn {
-                            items(items) { item ->
-                                SelectItem(
-                                    item = item,
-                                    isSelected = selectedItem?.value == item.value,
-                                    onItemClick = {
-                                        if (item.enabled) {
-                                            onItemSelected(item)
-                                        }
-                                    },
-                                    showCheckIcon = showCheckIcon,
-                                    contentPadding = contentPadding
-                                )
-                            }
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    enabled = enabled,
+                                    onClick = {
+                                        onValueChange(item)
+                                        isExpanded = false
+                                    }
+                                ),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent
+                        ) {
+                            scope.itemContent()
                         }
                     }
-                )
+                }
             }
-        )
+        }
     }
 }
 
 /**
- * 选择项组件
+ * 默认选项渲染组件
  */
 @Composable
-private fun SelectItem(
-    item: SelectItemModel,
-    isSelected: Boolean,
-    onItemClick: () -> Unit,
-    showCheckIcon: Boolean,
-    contentPadding: PaddingValues
-) {
-    val backgroundColor = when {
-        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        else -> Color.Transparent
-    }
+private fun <T> SelectScope<T>.DefaultItem() {
+    val textColor = MaterialTheme.colorScheme.onSurface
 
-    val textColor = when {
-        !item.enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        isSelected -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    Surface(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                enabled = item.enabled,
-                onClick = onItemClick
-            ),
-        color = backgroundColor
+            .padding(16.dp, 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(contentPadding),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
+        Text(
+            text = label(),
+            style = MaterialTheme.typography.bodyLarge,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
 
-            if (showCheckIcon && isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "已选中",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+        if (showCheckIcon && isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "已选中",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
