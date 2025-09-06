@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.addzero.annotation.ComposeAssist
 import com.addzero.component.table.original.entity.ColumnConfig
 import com.addzero.component.table.original.entity.TableLayoutConfig
 import com.addzero.component.table.original.render.RenderFixedActionColumn
@@ -20,6 +21,7 @@ import com.addzero.component.table.original.tools.rememberAddTableAutoWidth
 import com.addzero.core.ext.toMap
 
 @Composable
+@ComposeAssist
 inline fun <reified T, C> TableOriginal(
     data: List<T>,
     columns: List<C>,
