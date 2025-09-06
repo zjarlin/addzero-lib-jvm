@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import com.addzero.di.NavgationViewModel
 import com.addzero.screens.ai.AiChatScreen
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 import com.addzero.ui.infra.model.menu.SideMenu
 import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import com.addzero.ui.infra.navigation.NavigationObserver
@@ -25,7 +25,7 @@ import com.addzero.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-context(navgationViewModel: NavgationViewModel, recentTabsManagerViewModel: RecentTabsManagerViewModel, themeViewModel: ThemeViewModel, chatViewModel: ChatViewModel, menuViewModel: MenuViewModel, favouriteTabsViewModel: FavoriteTabsViewModel) fun MainLayout() {
+context(navgationViewModel: NavgationViewModel, recentTabsManagerViewModel: RecentTabsManagerViewModel, themeViewModel: ThemeViewModel, chatViewModel: ChatViewModel, sysRouteViewModel: SysRouteViewModel, favouriteTabsViewModel: FavoriteTabsViewModel) fun MainLayout() {
     // 添加导航观察器
     NavigationObserver()
     // 根据布局模式渲染不同的布局

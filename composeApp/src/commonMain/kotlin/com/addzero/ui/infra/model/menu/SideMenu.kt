@@ -23,6 +23,7 @@ import com.addzero.ui.infra.theme.AppThemeType
 import com.addzero.ui.infra.theme.SidebarGradientBackground
 import com.addzero.ui.infra.theme.ThemeViewModel
 import com.addzero.util.str.isNotBlank
+import com.addzero.viewmodel.SysRouteViewModel
 
 /**
  * 侧边菜单组件
@@ -31,14 +32,14 @@ import com.addzero.util.str.isNotBlank
  * 使用AddTree组件实现菜单树渲染
  */
 @Composable
-context(menuViewModel: MenuViewModel, themeViewModel: ThemeViewModel)
+context(sysRouteViewModel: SysRouteViewModel, themeViewModel: ThemeViewModel)
 fun SideMenu() {
     val currentTheme = themeViewModel.currentTheme
 
     // 🚀 纯粹的 AddTree 组件，使用 Surface 控制大小和样式
     Surface(
         modifier = Modifier
-            .width(if (menuViewModel.isExpand) 240.dp else 56.dp)
+            .width(if (sysRouteViewModel.isExpand) 240.dp else 56.dp)
             .fillMaxHeight(),
         color = when (currentTheme) {
             AppThemeType.GRADIENT_RAINBOW,
@@ -70,13 +71,13 @@ fun SideMenu() {
  * 🚀 纯粹的树组件内容
  */
 @Composable
-context(menuViewModel: MenuViewModel)
+context(sysRouteViewModel: SysRouteViewModel)
 private fun TreeContent() {
     // 🎯 使用新的 TreeViewModel API
     val viewModel = rememberTreeViewModel<SysMenuVO>()
 
     // 配置 ViewModel
-    LaunchedEffect(menuViewModel.menuItems) {
+    LaunchedEffect(sysRouteViewModel.menuItems) {
         viewModel.configure(
             getId = { it.path },
             getLabel = { it.title },
@@ -87,12 +88,12 @@ private fun TreeContent() {
             // 处理菜单项点击
             if (selectedMenu.enumSysMenuType == EnumSysMenuType.SCREEN && selectedMenu.children.isEmpty()) {
                 // 如果是页面类型且没有子项，才进行导航
-                menuViewModel.updateRoute(selectedMenu.path)
+                sysRouteViewModel.updateRoute(selectedMenu.path)
             }
             // 注意：折叠/展开状态由AddTree内部管理，这里不需要手动处理
         }
         viewModel.setItems(
-            menuViewModel.menuItems,
+            sysRouteViewModel.menuItems,
             setOf(RouteKeys.HOME_SCREEN)
         )
     }
@@ -100,7 +101,7 @@ private fun TreeContent() {
     com.addzero.component.tree.AddTree(
         viewModel = viewModel,
         modifier = Modifier.fillMaxSize(),
-        compactMode = !menuViewModel.isExpand // 🚀 传递收起状态，启用紧凑模式
+        compactMode = !sysRouteViewModel.isExpand // 🚀 传递收起状态，启用紧凑模式
     )
 }
 

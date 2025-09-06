@@ -16,7 +16,7 @@ import com.addzero.component.upload_manager.UploadManagerUI
 import com.addzero.di.NavgationViewModel
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
 import com.addzero.ui.infra.model.menu.MenuLayoutToggleButton
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 import com.addzero.ui.infra.model.menu.SysUserCenterScreen
 import com.addzero.ui.infra.theme.ThemeSelectionButton
 import com.addzero.ui.infra.theme.ThemeToggleButton
@@ -29,7 +29,7 @@ import com.addzero.viewmodel.ChatViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-context(menuViewModel: MenuViewModel, favoriteViewModel: FavoriteTabsViewModel, themeViewModel: ThemeViewModel, chatViewModel: ChatViewModel, navgationViewModel: NavgationViewModel)
+context(sysRouteViewModel: SysRouteViewModel, favoriteViewModel: FavoriteTabsViewModel, themeViewModel: ThemeViewModel, chatViewModel: ChatViewModel, navgationViewModel: NavgationViewModel)
 fun SysTopBar() {
     // 搜索框状态
     val isSearchOpen = remember { mutableStateOf(false) }
@@ -53,8 +53,8 @@ fun SysTopBar() {
             ) {
                 // 导航栏横纵切换按钮（点击时切换侧边栏展开状态）
                 MenuLayoutToggleButton(
-                    isExpanded = menuViewModel.isExpand,
-                    onToggle = { menuViewModel.isExpand = !menuViewModel.isExpand })
+                    isExpanded = sysRouteViewModel.isExpand,
+                    onToggle = { sysRouteViewModel.isExpand = !sysRouteViewModel.isExpand })
 
                 // 间距
                 Spacer(modifier = Modifier.width(8.dp))

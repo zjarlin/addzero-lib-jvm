@@ -33,7 +33,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //import androidx.compose.ui.window.Popup
 //import androidx.navigation.NavController
 //import com.addzero.ui.infra.model.menu.MenuNode
-//import com.addzero.ui.infra.model.menu.MenuViewModel
+//import com.addzero.viewmodel.SysRouteViewModel
 //
 ///**
 // * 菜单项组件
@@ -41,14 +41,14 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 // * @param item 菜单节点
 // * @param navController 导航控制器
 // * @param navHostInitialized 导航图是否已初始化
-// * @param MenuViewModel 菜单视图模型
+// * @param SysRouteViewModel 菜单视图模型
 // */
 //@Composable
 //fun MenuItemComponent(
 //    item: MenuNode,
 //    navController: NavController,
 //    navHostInitialized: Boolean,
-//    MenuViewModel: MenuViewModel
+//    SysRouteViewModel: SysRouteViewModel
 //) {
 //    // 仅对非叶子节点维护折叠状态
 //    var isExpanded by remember { mutableStateOf(true) }
@@ -61,7 +61,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //    Column {
 //        Box {
 //            // 悬浮提示 - 当菜单折叠且鼠标悬浮时显示
-//            if (!MenuViewModel.isExpanded && isHovered) {
+//            if (!SysRouteViewModel.isExpanded && isHovered) {
 //                MenuTooltip(item.title)
 //            }
 //
@@ -69,7 +69,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //                item = item,
 //                isExpanded = isExpanded,
 //                interactionSource = interactionSource,
-//                MenuViewModel = MenuViewModel,
+//                SysRouteViewModel = SysRouteViewModel,
 //                navController = navController,
 //                navHostInitialized = navHostInitialized,
 //                onExpandToggle = { isExpanded = !isExpanded }
@@ -82,7 +82,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //                children = item.children,
 //                navController = navController,
 //                navHostInitialized = navHostInitialized,
-//                MenuViewModel = MenuViewModel
+//                SysRouteViewModel = SysRouteViewModel
 //            )
 //        }
 //
@@ -98,7 +98,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //    item: MenuNode,
 //    isExpanded: Boolean,
 //    interactionSource: MutableInteractionSource,
-//    MenuViewModel: MenuViewModel,
+//    SysRouteViewModel: SysRouteViewModel,
 //    navController: NavController,
 //    navHostInitialized: Boolean,
 //    onExpandToggle: () -> Unit
@@ -107,7 +107,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //        onClick = {
 //            if (item.leafFlag) {
 //                // 叶子节点 - 执行导航
-//                MenuViewModel.updateRoute(item.path)
+//                SysRouteViewModel.updateRoute(item.path)
 //                // 使用NavController导航，仅当导航图已初始化时
 //                if (navHostInitialized) {
 //                    try {
@@ -129,7 +129,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //            .hoverable(interactionSource), // 使用hoverable修饰符检测悬浮
 //        interactionSource = interactionSource,
 //        colors = ButtonDefaults.textButtonColors(
-//            containerColor = if (item.path == MenuViewModel.currentRoute)
+//            containerColor = if (item.path == SysRouteViewModel.currentRoute)
 //                MaterialTheme.colorScheme.primaryContainer
 //            else
 //                MaterialTheme.colorScheme.surface
@@ -138,7 +138,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //        MenuButtonContent(
 //            item = item,
 //            isExpanded = isExpanded,
-//            MenuViewModel = MenuViewModel
+//            SysRouteViewModel = SysRouteViewModel
 //        )
 //    }
 //}
@@ -150,7 +150,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //private fun MenuButtonContent(
 //    item: MenuNode,
 //    isExpanded: Boolean,
-//    MenuViewModel: MenuViewModel
+//    SysRouteViewModel: SysRouteViewModel
 //) {
 //    Row(
 //        horizontalArrangement = Arrangement.SpaceBetween,
@@ -165,16 +165,16 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //            Icon(
 //                imageVector = item.icon ?: Icons.Default.ExpandMore,
 //                contentDescription = item.title, // 添加内容描述，便于访问性
-//                tint = if (item.path == MenuViewModel.currentRoute)
+//                tint = if (item.path == SysRouteViewModel.currentRoute)
 //                    MaterialTheme.colorScheme.primary
 //                else
 //                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
 //                // 设置图标大小，当菜单收起时使用较大尺寸
-//                modifier = Modifier.size(if (!MenuViewModel.isExpanded) 24.dp else 20.dp)
+//                modifier = Modifier.size(if (!SysRouteViewModel.isExpanded) 24.dp else 20.dp)
 //            )
 //
 //            // 只在展开状态下显示文本
-//            if (MenuViewModel.isExpanded) {
+//            if (SysRouteViewModel.isExpanded) {
 //                Text(
 //                    text = item.title,
 //                    style = MaterialTheme.typography.bodyLarge,
@@ -184,7 +184,7 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //        }
 //
 //        // 为非叶子节点显示展开/折叠图标
-//        if (!item.leafFlag && MenuViewModel.isExpanded) {
+//        if (!item.leafFlag && SysRouteViewModel.isExpanded) {
 //            Icon(
 //                imageVector = if (isExpanded)
 //                    Icons.Default.ExpandLess else
@@ -226,11 +226,11 @@ package com.addzero.ui.infra.model.menu//package com.addzero.ui.infra.menu
 //    children: List<MenuNode>,
 //    navController: NavController,
 //    navHostInitialized: Boolean,
-//    MenuViewModel: MenuViewModel
+//    SysRouteViewModel: SysRouteViewModel
 //) {
 //    Column(modifier = Modifier.padding(start = 16.dp)) {
 //        children.forEach { child ->
-//            MenuItemComponent(child, navController, navHostInitialized, MenuViewModel)
+//            MenuItemComponent(child, navController, navHostInitialized, SysRouteViewModel)
 //        }
 //    }
 //}

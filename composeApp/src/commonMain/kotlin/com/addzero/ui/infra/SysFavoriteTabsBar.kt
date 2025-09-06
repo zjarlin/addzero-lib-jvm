@@ -21,17 +21,17 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import com.addzero.generated.isomorphic.SysFavoriteTabIso
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 
 /**
  * 常用标签页栏组件
  * 显示在顶部栏中的常用页面快捷访问
  */
 @Composable
-context(menuViewModel: MenuViewModel, favoriteViewModel: FavoriteTabsViewModel)
+context(sysRouteViewModel: SysRouteViewModel, favoriteViewModel: FavoriteTabsViewModel)
 fun FavoriteTabsBar(modifier: Modifier = Modifier) {
     val favoriteTabs = favoriteViewModel.favoriteTabs
-    val currentRoute = menuViewModel.currentRoute
+    val currentRoute = sysRouteViewModel.currentRoute
     if (favoriteTabs.isEmpty() && !favoriteViewModel.isLoading) {
         return
     }
@@ -101,7 +101,7 @@ fun FavoriteTabsBar(modifier: Modifier = Modifier) {
                     tab = tab,
                     isActive = currentRoute == tab.routeKey,
                     onClick = {
-                        menuViewModel.updateRoute(tab.routeKey)
+                        sysRouteViewModel.updateRoute(tab.routeKey)
                     },
                     onRemove = {
                         favoriteViewModel.removeFromFavorites(tab.routeKey)

@@ -5,7 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.addzero.di.NavgationViewModel
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 
 /**
@@ -18,7 +18,7 @@ import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 context(
     recentViewModel: RecentTabsManagerViewModel,
     navgationViewModel: NavgationViewModel,
-    menuViewModel:MenuViewModel
+    sysRouteViewModel:SysRouteViewModel
 )
 fun NavigationObserver( ) {
     val navController = navgationViewModel.getNavController()
@@ -34,7 +34,7 @@ fun NavigationObserver( ) {
 
 
             // 获取路由标题
-            val title = menuViewModel.getRouteTitleByKey(route)
+            val title = sysRouteViewModel.getRouteTitleByKey(route)
 
             // 将路由添加到标签页管理器
             recentViewModel.addOrActivateTab(route, title)

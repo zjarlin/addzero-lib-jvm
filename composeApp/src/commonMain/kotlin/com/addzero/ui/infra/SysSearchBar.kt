@@ -35,7 +35,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.addzero.di.NavgationViewModel
 import com.addzero.entity.sys.menu.SysMenuVO
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -50,7 +50,7 @@ import kotlinx.coroutines.launch
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-context(menuViewModel: MenuViewModel, navgationViewModel: NavgationViewModel )
+context(sysRouteViewModel: SysRouteViewModel, navgationViewModel: NavgationViewModel )
 fun AddSysRouteSearchBar(
     modifier: Modifier = Modifier,
     isSearchOpen: MutableState<Boolean>? = null
@@ -120,7 +120,7 @@ fun AddSysRouteSearchBar(
                     usePlatformDefaultWidth = false // 不使用平台默认宽度，使用我们自定义的宽度
                 )
             ) {
-                val allMenuItems = flattenMenuItems(menuViewModel.menuItems)
+                val allMenuItems = flattenMenuItems(sysRouteViewModel.menuItems)
                 val filteredItems = if (searchText.value.isNullOrEmpty()) {
                     allMenuItems
                 } else {

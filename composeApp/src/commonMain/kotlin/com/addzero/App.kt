@@ -7,7 +7,7 @@ import com.addzero.events.EventBusConsumer
 import com.addzero.ui.auth.LoginScreen
 import com.addzero.ui.infra.MainLayout
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import com.addzero.ui.infra.theme.AppThemes
 import com.addzero.ui.infra.theme.FollowSystemTheme
@@ -49,7 +49,7 @@ private fun MainLayoutWithLogin() {
             with(koinViewModel<RecentTabsManagerViewModel>()) {
                 with(koinViewModel<ThemeViewModel>()) {
                     with(koinViewModel<ChatViewModel>()) {
-                        with(koinViewModel<MenuViewModel>()) {
+                        with(koinViewModel<SysRouteViewModel>()) {
                             with(koinViewModel<FavoriteTabsViewModel>()) {
                                 MainLayout()
                             }

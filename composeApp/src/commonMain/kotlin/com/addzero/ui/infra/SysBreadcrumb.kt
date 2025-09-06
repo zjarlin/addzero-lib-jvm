@@ -12,16 +12,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.addzero.di.NavgationViewModel
 import com.addzero.generated.RouteTable
-import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.viewmodel.SysRouteViewModel
 
 /**
  * 面包屑导航组件
  */
 @Composable
-context(navgationViewModel: NavgationViewModel,menuViewModel: MenuViewModel)
+context(navgationViewModel: NavgationViewModel,sysRouteViewModel: SysRouteViewModel)
 fun SysBreadcrumb(
 ) {
-    val currentRoute = menuViewModel.currentRoute
+    val currentRoute = sysRouteViewModel.currentRoute
 
     val navController = navgationViewModel.getNavController()
     val breadcrumbs = remember(currentRoute) {
@@ -48,7 +48,7 @@ fun SysBreadcrumb(
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                            menuViewModel.updateRoute(breadcrumbItem.route)
+                            sysRouteViewModel.updateRoute(breadcrumbItem.route)
                         }
                     }
                 })
@@ -74,9 +74,9 @@ private data class BreadcrumbItem(
 )
 
 // 根据当前路由生成面包屑项列表
-context(menuViewModel: MenuViewModel)
+context(sysRouteViewModel: SysRouteViewModel)
 private fun getBreadcrumbs(currentRoute: String): List<BreadcrumbItem> {
-    val cacleBreadcrumb = menuViewModel.cacleBreadcrumb
+    val cacleBreadcrumb = sysRouteViewModel.cacleBreadcrumb
     return cacleBreadcrumb.map {
         BreadcrumbItem(
             title = it.title, route = it.path, isActive = it.path == currentRoute

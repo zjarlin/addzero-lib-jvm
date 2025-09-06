@@ -1,4 +1,4 @@
-package com.addzero.ui.infra.model.menu
+package com.addzero.viewmodel
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -14,7 +14,7 @@ import com.addzero.util.data_structure.tree.List2TreeUtil
 import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
-class MenuViewModel() : ViewModel() {
+class SysRouteViewModel() : ViewModel() {
     fun updateRoute(string: String) {
         currentRoute = string
         NavgationViewModel.navigate(currentRoute)
