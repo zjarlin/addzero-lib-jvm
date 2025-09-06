@@ -55,6 +55,42 @@ class SelectScope<T> internal constructor(
 }
 
 /**
+ * 多选模式下显示选中项的组件
+ */
+@Composable
+private fun <T> SelectedItemsDisplay(
+    values: List<T>,
+    label: (T) -> String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        values.forEach { item ->
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.padding(2.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = label(item),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
  * 泛型选择框组件
  * @param T 数据类型
  * @param modifier 修饰符
@@ -131,12 +167,6 @@ fun <T> Select(
         else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     }
 
-    // 显示文本
-    val displayText = when (selectMode) {
-        SelectMode.SINGLE -> value?.let { label(it) } ?: placeholder
-        SelectMode.MULTIPLE -> if (values.isEmpty()) placeholder else values.joinToString(", ") { label(it) }
-    }
-
     Column(modifier = modifier) {
         // 主选择框
         Surface(
@@ -150,7 +180,12 @@ fun <T> Select(
                 )
                 .semantics {
                     role = Role.DropdownList
-                    contentDescription = "选择框，当前选择：$displayText"
+                    contentDescription = "选择框，当前选择：${
+                        when (selectMode) {
+                            SelectMode.SINGLE -> value?.let { label(it) } ?: placeholder
+                            SelectMode.MULTIPLE -> if (values.isEmpty()) placeholder else "${values.size} 项已选择"
+                        }
+                    }"
                 },
             shape = shape,
             color = backgroundColor,
@@ -173,15 +208,38 @@ fun <T> Select(
                     }
 
                     // 显示文本
-                    Text(
-                        text = displayText,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = textColor,
-                        fontWeight = if ((selectMode == SelectMode.SINGLE && value != null) || (selectMode == SelectMode.MULTIPLE && values.isNotEmpty())) FontWeight.Medium else FontWeight.Normal,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        when (selectMode) {
+                            SelectMode.SINGLE -> {
+                                Text(
+                                    text = value?.let { label(it) } ?: placeholder,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = textColor,
+                                    fontWeight = if (value != null) FontWeight.Medium else FontWeight.Normal,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            SelectMode.MULTIPLE -> {
+                                if (values.isEmpty()) {
+                                    Text(
+                                        text = placeholder,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = textColor,
+                                        fontWeight = FontWeight.Normal,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                } else {
+                                    SelectedItemsDisplay(
+                                        values = values,
+                                        label = label,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // 箭头图标
