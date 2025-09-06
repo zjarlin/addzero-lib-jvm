@@ -24,7 +24,10 @@ inline fun <reified T, C> TableOriginal(
     data: List<T>,
     columns: List<C>,
     noinline getColumnKey: (C) -> String,
-    noinline getRowId: (T) -> Any,
+    noinline getRowId: (T) -> Any = {
+        val toMap = it?.toMap()
+        toMap?.get("id") ?: ""
+    },
     columnConfigs: List<ColumnConfig> = emptyList(),
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
     noinline getColumnLabel: @Composable (C) -> Unit,
@@ -50,7 +53,7 @@ inline fun <reified T, C> TableOriginal(
     },
     // 行左侧插槽（如复选框）
     noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
-    noinline rowActionSlot: (@Composable (item: T) -> Unit)? =null,
+    noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val rememberScrollState = rememberScrollState()
