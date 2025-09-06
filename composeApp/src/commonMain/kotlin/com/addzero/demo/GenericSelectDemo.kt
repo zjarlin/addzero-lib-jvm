@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
 import com.addzero.component.dropdown.Select
 import com.addzero.component.dropdown.SelectMode
+import com.addzero.component.text.BlueText
 
 /**
  * GenericSelect组件演示页面
@@ -46,7 +47,7 @@ fun GenericSelectDemo() {
         HorizontalDivider()
 
         // 单选模式
-        SectionTitle("单选模式")
+        BlueText("单选模式")
 
         var selectedSingle by remember { mutableStateOf<String?>(null) }
 
@@ -69,7 +70,7 @@ fun GenericSelectDemo() {
         )
 
         // 多选模式
-        SectionTitle("多选模式")
+        BlueText("多选模式")
 
         var selectedMultiple by remember { mutableStateOf<List<String>>(emptyList()) }
 

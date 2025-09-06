@@ -21,6 +21,7 @@ object RouteKeys {
     const val WE_CHAT_ICON = "/component/wechatIcon"
     const val DRAG_LIST_DEMO = "com.addzero.demo.DragListDemo"
     const val USE_SELECT_DEMO = "/hook/useSelect"
+    const val TEXT_COMPONENTS_DEMO = "/component/text"
     const val TEST_PICKER = "com.addzero.demo.upload.TestPicker"
     const val UPLOAD_MANAGER_DEMO = "com.addzero.demo.upload.UploadManagerDemo"
     const val TEST_DIRECTORY_PICKER = "com.addzero.demo.upload.TestDirectoryPicker"
@@ -61,6 +62,7 @@ object RouteKeys {
         Route(value = "组件示例", title = "微信图标", routePath = "/component/wechatIcon", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.icon.WeChatIcon"),
         Route(value = "组件示例", title = "拖拽列表", routePath = "com.addzero.demo.DragListDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.DragListDemo"),
         Route(value = "组件示例", title = "UseSelect Hook", routePath = "/hook/useSelect", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UseSelectDemo"),
+        Route(value = "组件示例", title = "文本组件", routePath = "/component/text", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TextComponentsDemo"),
         Route(value = "组件示例", title = "文件选择器", routePath = "com.addzero.demo.upload.TestPicker", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.upload.TestPicker"),
         Route(value = "组件示例", title = "上传管理器", routePath = "com.addzero.demo.upload.UploadManagerDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.upload.UploadManagerDemo"),
         Route(value = "组件示例", title = "文件夹选择器", routePath = "com.addzero.demo.upload.TestDirectoryPicker", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.upload.TestDirectoryPicker"),
