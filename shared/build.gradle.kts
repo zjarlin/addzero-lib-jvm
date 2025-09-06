@@ -21,6 +21,7 @@ kotlin {
 
             implementation(libs.kotlinx.datetime)
 
+            implementation(projects.lib.ksp.route.addzeroRouteCore)
             implementation(projects.lib.toolKmp.addzeroTool)
             implementation(projects.lib.toolSpring.starter.addzeroDictTransCore)
             implementation(projects.lib.compose.addzeroComposeModelComponent)

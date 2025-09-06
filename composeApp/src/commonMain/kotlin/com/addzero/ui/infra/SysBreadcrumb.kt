@@ -1,91 +1,74 @@
 package com.addzero.ui.infra
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.addzero.generated.RouteTable
 import com.addzero.ui.infra.model.menu.MenuViewModel
 
 /**
- * 面包屑组件
- * @param currentRouteRefPath 当前路由路径
- * @param navController 导航控制器（可选）
+ * 面包屑导航组件
  */
 @Composable
-fun Breadcrumb(
-    currentRouteRefPath: String,
-    navController: NavController? = null
+fun SysBreadcrumb(
+    currentRoute: String,
+    navController: NavController? = null,
+    onNavigate: ((String) -> Unit)? = null
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        tonalElevation = 1.dp
+    val breadcrumbs = remember(currentRoute) {
+        getBreadcrumbs(currentRoute)
+    }
+
+    // 面包屑导航
+    Row(
+        modifier = Modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // 获取导航状态
-            val backStackEntryState = navController?.currentBackStackEntryAsState()
-            val currentRoute = backStackEntryState?.value?.destination?.route ?: currentRouteRefPath
-
-            // 生成面包屑项
-            val breadcrumbs = getBreadcrumbs(currentRoute)
-
-            // 渲染面包屑
-            breadcrumbs.forEachIndexed { index, breadcrumbItem ->
-                // 面包屑文本
-                renderBreadcrumbs(breadcrumbItem, navController)
-
-                // 如果不是最后一项，添加箭头分隔符
-                if (index < breadcrumbs.size - 1) {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        breadcrumbs.forEachIndexed { index, breadcrumbItem ->
+            // 面包屑项文本
+            Text(
+                text = breadcrumbItem.title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (breadcrumbItem.isActive) FontWeight.Bold else FontWeight.Normal,
+                color = if (breadcrumbItem.isActive)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.clickable(enabled = !breadcrumbItem.isActive && navController != null) {
+                    // 如果不是当前活动项且有导航控制器，则导航到对应路由
+                    if (!breadcrumbItem.isActive && navController != null) {
+                        if (RouteTable.allRoutes.containsKey(breadcrumbItem.route)) {
+                            navController.navigate(breadcrumbItem.route) {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                            MenuViewModel.updateRoute(breadcrumbItem.route)
+                        }
+                    }
                 }
+            )
+
+            // 分隔符（除了最后一个项）
+            if (index < breadcrumbs.size - 1) {
+                Text(
+                    modifier = Modifier.clickable(
+                        onClick = { onNavigate?.let { it(breadcrumbItem.route) } }
+                    ),
+                    text = "/",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline
+                )
             }
         }
     }
-}
-
-@Composable
-private fun renderBreadcrumbs(breadcrumbItem: BreadcrumbItem, navController: NavController?) {
-    Text(
-        text = breadcrumbItem.title,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = if (breadcrumbItem.isActive) FontWeight.Bold else FontWeight.Normal,
-        color = if (breadcrumbItem.isActive)
-            MaterialTheme.colorScheme.primary
-        else
-            MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.clickable(enabled = !breadcrumbItem.isActive && navController != null) {
-            // 如果不是当前活动项且有导航控制器，则导航到对应路由
-            if (!breadcrumbItem.isActive && navController != null) {
-                if (RouteTable.allRoutes.containsKey(breadcrumbItem.route)) {
-                    navController.navigate(breadcrumbItem.route) {
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                    MenuViewModel.updateRoute(breadcrumbItem.route)
-                }
-            }
-        }
-    )
 }
 
 // 面包屑项数据类

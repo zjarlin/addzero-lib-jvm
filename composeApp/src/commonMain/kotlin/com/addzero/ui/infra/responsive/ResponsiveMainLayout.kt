@@ -1,6 +1,7 @@
 package com.addzero.ui.infra.responsive
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -11,11 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.addzero.screens.ai.AiChatScreen
 import com.addzero.ui.infra.AddRecentTabs
-import com.addzero.ui.infra.Breadcrumb
 import com.addzero.ui.infra.MainContent
+import com.addzero.ui.infra.SysBreadcrumb
 import com.addzero.ui.infra.SysTopBar
 import com.addzero.ui.infra.model.menu.MenuViewModel
 import com.addzero.ui.infra.model.menu.SideMenu
@@ -55,7 +57,7 @@ fun ResponsiveMainLayout(
 
 
     // 根据布局模式渲染不同的布局
-    val layoutMode =     config.layoutMode
+    val layoutMode = config.layoutMode
 
     when (layoutMode) {
         LayoutMode.SIDEBAR -> {
@@ -89,7 +91,7 @@ fun ResponsiveMainLayout(
  */
 @Composable
 private fun SidebarLayout(
-    navController: androidx.navigation.NavHostController,
+    navController: NavHostController,
     vm: RecentTabsManager,
     chatViewModel: ChatViewModel,
     showChatBot: Boolean,
@@ -117,9 +119,12 @@ private fun SidebarLayout(
                 modifier = Modifier.weight(1f)
             ) {
                 // 面包屑导航
-                Breadcrumb(
-                    currentRouteRefPath = MenuViewModel.currentRoute,
-                    navController = navController
+                SysBreadcrumb(
+                    navController = navController,
+                    onNavigate = {
+                        navController.navigate(it)
+                    },
+                    currentRoute = MenuViewModel.currentRoute
                 )
 
                 // 最近访问标签页
@@ -138,11 +143,11 @@ private fun SidebarLayout(
                 visible = showChatBot,
                 enter = slideInHorizontally(
                     initialOffsetX = { it },
-                    animationSpec = androidx.compose.animation.core.tween(300)
+                    animationSpec = tween(300)
                 ),
                 exit = slideOutHorizontally(
                     targetOffsetX = { it },
-                    animationSpec = androidx.compose.animation.core.tween(300)
+                    animationSpec = tween(300)
                 )
             ) {
                 AiChatScreen()
@@ -156,7 +161,7 @@ private fun SidebarLayout(
  */
 @Composable
 private fun TopbarLayout(
-    navController: androidx.navigation.NavHostController,
+    navController: NavHostController,
     vm: RecentTabsManager,
     chatViewModel: ChatViewModel,
     showChatBot: Boolean,
@@ -185,12 +190,12 @@ private fun TopbarLayout(
                 .padding(paddingValues)
         ) {
             // 面包屑导航（移动端可选）
-            if (config.screenSize != ScreenSize.MOBILE) {
-                Breadcrumb(
-                    currentRouteRefPath = MenuViewModel.currentRoute,
-                    navController = navController
-                )
-            }
+//            if (config.screenSize != ScreenSize.MOBILE) {
+//                Breadcrumb(
+//                    currentRouteRefPath = MenuViewModel.currentRoute,
+//                    navController = navController
+//                )
+//            }
 
             // 最近访问标签页
             AddRecentTabs(
@@ -205,24 +210,24 @@ private fun TopbarLayout(
                 MainContent(navController = navController)
 
                 // AI聊天界面（移动端使用覆盖模式）
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = showChatBot,
-                    enter = slideInVertically(
-                        initialOffsetY = { it },
-                        animationSpec = androidx.compose.animation.core.tween(300)
-                    ) + fadeIn(),
-                    exit = slideOutVertically(
-                        targetOffsetY = { it },
-                        animationSpec = androidx.compose.animation.core.tween(300)
-                    ) + fadeOut()
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        tonalElevation = 8.dp
-                    ) {
-                        AiChatScreen()
-                    }
-                }
+//                AnimatedVisibility(
+//                    visible = showChatBot,
+//                    enter = slideInVertically(
+//                        initialOffsetY = { it },
+//                        animationSpec = tween(300)
+//                    ) + fadeIn(),
+//                    exit = slideOutVertically(
+//                        targetOffsetY = { it },
+//                        animationSpec = tween(300)
+//                    ) + fadeOut()
+//                ) {
+//                    Surface(
+//                        modifier = Modifier.fillMaxSize(),
+//                        tonalElevation = 8.dp
+//                    ) {
+//                        AiChatScreen()
+//                    }
+//                }
             }
         }
     }

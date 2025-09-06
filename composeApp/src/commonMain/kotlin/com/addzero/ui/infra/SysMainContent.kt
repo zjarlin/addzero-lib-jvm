@@ -10,7 +10,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.addzero.annotation.Route
 import com.addzero.di.NavgationService
+import com.addzero.generated.RouteKeys
 import com.addzero.generated.RouteTable
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.ui.infra.theme.MainContentGradientBackground
@@ -18,9 +20,7 @@ import com.addzero.ui.infra.theme.ThemeViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * 主内容区组件
- *
- * @param navController 导航控制器
+ * 渲染导航内容
  */
 @Composable
 fun MainContent(navController: NavHostController) {

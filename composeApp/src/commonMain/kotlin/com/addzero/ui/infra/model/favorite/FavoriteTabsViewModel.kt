@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.addzero.annotation.Route
 import com.addzero.core.network.AddHttpClient
 import com.addzero.generated.RouteKeys
 import com.addzero.generated.RouteTable
@@ -54,7 +55,7 @@ class FavoriteTabsViewModel : ViewModel() {
                 // 调用后台API获取常用路由键
                 val favoriteRouteKeys = sysFavoriteTabApi.topFavoriteRoutes(5)
 
-                val associateBy = RouteTable.allMeta.associateBy { it.routePath }
+                val associateBy = RouteKeys.allMeta.associateBy { it.routePath }
                 // 将路由键转换为标签页对象
                 val tabs = favoriteRouteKeys.mapNotNull { routeKey ->
                     val route = associateBy[routeKey]

@@ -17,7 +17,7 @@ fun SelectDemo2() {
         listOf("选项A", "选项B", "选项C", "选项D")
     }
 
-    var exception by mutableStateOf(false)
+    var exception by mutableStateOf(true)
     AddDropDown(
         options = customItems,
         expanded = exception,

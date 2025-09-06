@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import com.addzero.di.NavgationService
 import com.addzero.entity.sys.menu.EnumSysMenuType
 import com.addzero.entity.sys.menu.SysMenuVO
-import com.addzero.generated.RouteTable
+import com.addzero.generated.RouteKeys
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.util.data_structure.tree.List2TreeUtil
 
@@ -31,7 +31,7 @@ object MenuViewModel {
      * 使用 derivedStateOf 确保只有当 currentRoute 变化时才重新计算
      */
     val currentRouteMetadata by derivedStateOf {
-        RouteTable.allMeta.find { it.routePath == currentRoute }
+        RouteKeys.allMeta.find { it.routePath == currentRoute }
     }
 
     /**
@@ -130,7 +130,7 @@ object MenuViewModel {
     }
 
     private fun getAllSysMenu(): List<SysMenuVO> {
-        var allMeta = RouteTable.allMeta
+        var allMeta = RouteKeys.allMeta
 
 
         val visualNode = allMeta.filter { it.value.isNotBlank() }.map { it.value }.distinct().map {
@@ -169,7 +169,7 @@ object MenuViewModel {
      * 使用 derivedStateOf 缓存路由映射，避免重复查找
      */
     private val routeMetadataMap by derivedStateOf {
-        RouteTable.allMeta.associateBy { it.routePath }
+        RouteKeys.allMeta.associateBy { it.routePath }
     }
 
     /**
