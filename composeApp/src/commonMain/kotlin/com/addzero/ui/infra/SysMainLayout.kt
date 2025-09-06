@@ -43,7 +43,7 @@ context(navgationViewModel: NavgationViewModel, recentTabsManagerViewModel: Rece
                 modifier = Modifier.weight(1f)
             ) {
                 // 面包屑导航
-                SysBreadcrumb()
+//                SysBreadcrumb()
 
                 // 最近访问标签页
                 AddRecentTabs()
