@@ -148,24 +148,6 @@ class RouteMetadataProcessor(
             |    )
             |
             |    /**
-            |     * 所有路由元数据
-            |     */
-            |    val allMeta = listOf(
-            |        ${
-            routeItems.joinToString(",\n        ") {
-                "Route(" +
-                        "value = \"${it.value}\", " +
-                        "title = \"${it.title}\", " +
-                        "routePath = \"${it.routePath}\", " +
-                        "icon = \"${it.icon}\", " +
-                        "order = ${it.order}, " +
-                        "qualifiedName = \"${it.qualifiedName}\"" +
-                        ")"
-            }
-        }
-            |    )
-            |
-            |    /**
             |     * 根据路由键获取对应的Composable函数
             |     */
             |    operator fun get(routeKey: String): @Composable () -> Unit {
@@ -211,8 +193,44 @@ class RouteMetadataProcessor(
     }
 
     private fun genSharedRouteKeys(routeItems: Set<Route>) {
-        // 生成路由键对象
-        val routeKeysTemplateIso = genRoutKeysTemplate(ROUTE_KEYS_NAME, routeItems)
+        // 生成路由键对象，包含allMeta
+        val routeKeysTemplateIso = """
+            |package $GEN_PKG
+            |
+            |import com.addzero.annotation.Route
+            |
+            |/**
+            | * 路由键
+            | * 请勿手动修改此文件
+            | */
+            |object $ROUTE_KEYS_NAME {
+            |    ${
+            routeItems.joinToString("\n    ") {
+                val key = it.simpleName.toUnderLineCase().uppercase()
+                "const val $key = \"${it.routePath}\""
+            }
+        }
+            |
+            |    /**
+            |     * 所有路由元数据
+            |     */
+            |    val allMeta = listOf(
+            |        ${
+                routeItems.joinToString(",\n        ") {
+                    "Route(" +
+                            "value = \"${it.value}\", " +
+                            "title = \"${it.title}\", " +
+                            "routePath = \"${it.routePath}\", " +
+                            "icon = \"${it.icon}\", " +
+                            "order = ${it.order}, " +
+                            "qualifiedName = \"${it.qualifiedName}\"" +
+                            ")"
+                }
+            }
+            |    )
+            |}
+            |""".trimMargin()
+            
         val sharedSourceDir = SettingContext.settings.sharedSourceDir
         val withPkg = sharedSourceDir.withPkg(GEN_PKG).withFileName(ROUTE_KEYS_NAME).withFileSuffix(".kt")
         genCode(withPkg, routeKeysTemplateIso)
@@ -224,6 +242,8 @@ class RouteMetadataProcessor(
     ): String {
         val routeKeysTemplate = """
                 |package $GEN_PKG
+                |
+                |import com.addzero.annotation.Route
                 |
                 |/**
                 | * 路由键
