@@ -116,7 +116,8 @@ private fun <T> SelectedItemsDisplay(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T> Select(
+fun <T> AddSelect(
+    title:String ="",
     modifier: Modifier = Modifier,
     value: T? = null,
     values: List<T> = emptyList(),
@@ -125,7 +126,7 @@ fun <T> Select(
     onValuesChange: ((List<T>) -> Unit)? = null,
     selectMode: SelectMode = SelectMode.SINGLE,
     label: (T) -> String = { it.toString() },
-    placeholder: String = "请选择",
+    placeholder: String = "请选择$title",
     enabled: Boolean = true,
     isError: Boolean = false,
     errorMessage: String? = null,

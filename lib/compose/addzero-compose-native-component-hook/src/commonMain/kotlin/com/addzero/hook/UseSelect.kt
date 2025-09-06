@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.addzero.component.dropdown.Select
+import com.addzero.component.dropdown.AddSelect
 import com.addzero.component.dropdown.SelectMode
 import com.addzero.web.ui.hooks.UseHook
 
@@ -28,16 +28,16 @@ class UseSelect<T>(
     val initialValue: T? = null,
     val initialValues: List<T> = emptyList()
 ) : UseHook<UseSelect<T>> {
-    
+
     // 单选模式下的选中值
     var selectedValue by mutableStateOf(initialValue)
-    
+
     // 多选模式下的选中值列表
     var selectedValues by mutableStateOf(initialValues)
-    
+
     override val render: @Composable (() -> Unit)
         get() = {
-            Select(
+            AddSelect(
                 modifier = modifier,
                 value = selectedValue,
                 values = selectedValues,

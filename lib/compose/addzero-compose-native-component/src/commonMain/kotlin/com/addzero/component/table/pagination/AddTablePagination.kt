@@ -16,10 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.addzero.component.card.MellumCardType
+import com.addzero.component.dropdown.AddSelect
+import com.addzero.component.dropdown.SelectMode
 import com.addzero.component.table.viewmodel.StatePagination
 
 /**
@@ -124,10 +125,12 @@ fun AddTablePagination(
 
                 // 右侧：页面大小选择器
                 if (showPageSizeSelector) {
-                    PageSizeSelector(
-                        currentPageSize = statePagination.pageSize,
-                        pageSizeOptions = pageSizeOptions,
-                        onPageSizeChange = onPageSizeChange
+                    AddSelect(
+                        value = statePagination.pageSize,
+                        items = pageSizeOptions,
+                        onValueChange = onPageSizeChange,
+                        placeholder = "${statePagination.pageSize} 条 / 页 ",
+                        selectMode = SelectMode.SINGLE
                     )
                 } else {
                     Spacer(modifier = Modifier.width(1.dp))
@@ -167,45 +170,6 @@ private fun PaginationInfo(
                 color = LocalContentColor.current.copy(alpha = 0.6f)
             )
         }
-    }
-}
-
-/**
- * 页面大小选择器
- */
-@Composable
-private fun PageSizeSelector(
-    currentPageSize: Int, pageSizeOptions: List<Int>, onPageSizeChange: (Int) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.height(36.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = LocalContentColor.current.copy(alpha = 0.8f)
-            ),
-            border = ButtonDefaults.outlinedButtonBorder.copy(
-                brush = SolidColor(
-                    LocalContentColor.current.copy(alpha = 0.3f)
-                )
-            )
-        ) {
-            Text(
-                text = "$currentPageSize 条/页", style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        _root_ide_package_.com.addzero.component.dropdown.AddDropDown(
-            options = pageSizeOptions,
-            expanded = expanded,
-            getLabel = { "$it 条 / 页 " },
-            onOptionSelected = {
-                onPageSizeChange(it)
-                expanded = false
-            },
-            onDismissRequest = { expanded = false })
     }
 }
 
@@ -294,16 +258,16 @@ private fun PaginationButton(
 
     Box(
         modifier = Modifier.size(size).clip(CircleShape).background(
-                if (enabled) {
-                    LocalContentColor.current.copy(alpha = 0.1f)
-                } else {
-                    LocalContentColor.current.copy(alpha = 0.05f)
-                }
-            ).border(
-                width = 1.dp,
-                color = LocalContentColor.current.copy(alpha = if (enabled) 0.2f else 0.1f),
-                shape = CircleShape
-            ).clickable(enabled = enabled) { onClick() }, contentAlignment = Alignment.Center
+            if (enabled) {
+                LocalContentColor.current.copy(alpha = 0.1f)
+            } else {
+                LocalContentColor.current.copy(alpha = 0.05f)
+            }
+        ).border(
+            width = 1.dp,
+            color = LocalContentColor.current.copy(alpha = if (enabled) 0.2f else 0.1f),
+            shape = CircleShape
+        ).clickable(enabled = enabled) { onClick() }, contentAlignment = Alignment.Center
     ) {
         CompositionLocalProvider(
             LocalContentColor provides LocalContentColor.current.copy(
@@ -338,16 +302,16 @@ private fun PageNumberButtons(
 
             Box(
                 modifier = Modifier.size(32.dp).clip(CircleShape).background(
-                        if (isCurrentPage) {
-                            LocalContentColor.current.copy(alpha = 0.2f)
-                        } else {
-                            Color.Transparent
-                        }
-                    ).border(
-                        width = if (isCurrentPage) 2.dp else 1.dp, color = LocalContentColor.current.copy(
-                            alpha = if (isCurrentPage) 0.6f else 0.2f
-                        ), shape = CircleShape
-                    ).clickable { onGoToPage(page) }, contentAlignment = Alignment.Center
+                    if (isCurrentPage) {
+                        LocalContentColor.current.copy(alpha = 0.2f)
+                    } else {
+                        Color.Transparent
+                    }
+                ).border(
+                    width = if (isCurrentPage) 2.dp else 1.dp, color = LocalContentColor.current.copy(
+                        alpha = if (isCurrentPage) 0.6f else 0.2f
+                    ), shape = CircleShape
+                ).clickable { onGoToPage(page) }, contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = page.toString(),

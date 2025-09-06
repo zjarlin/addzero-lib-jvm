@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.drawer.AddDrawer
-import com.addzero.component.dropdown.AddDropdownSelector
+import com.addzero.component.dropdown.AddSelect
 import com.addzero.component.form.DynamicFormItem
 import com.addzero.component.table.clean.AddCleanTableViewModel
 import com.addzero.entity.low_table.EnumLogicOperator
@@ -32,32 +32,34 @@ context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderAdvSearchDrawer
         },
     ) {
         Column {
-            // 逻辑操作符下拉选择
-            AddDropdownSelector(
+
+
+            AddSelect(
                 title = "逻辑符",
-                options = EnumLogicOperator.entries,
-                getLabel = { it.displayName },
+                value = tableViewModel._currentStateSearch.logicType,
+                items = EnumLogicOperator.entries,
                 onValueChange = {
-                    tableViewModel._currentStateSearch =
-                        tableViewModel._currentStateSearch.copy(logicType = it ?: EnumLogicOperator.AND)
+                    tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(logicType = it)
                 },
             )
 
-            Spacer(modifier = Modifier.Companion.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+
+            AddSelect(
+                title = "操作符",
+                value = tableViewModel._currentStateSearch.operator,
+                items = EnumSearchOperator.entries,
+                onValueChange = {
+                    tableViewModel._currentStateSearch = tableViewModel._currentStateSearch.copy(operator = it)
+                },
+            )
 
 
             // 操作符下拉选择
-            AddDropdownSelector(
-                title = "操作符",
-                options = EnumSearchOperator.entries,
-                getLabel = { it.displayName },
-                initialValue = EnumSearchOperator.LIKE,
-                onValueChange = {
-                    tableViewModel._currentStateSearch =
-                        tableViewModel._currentStateSearch.copy(operator = it ?: EnumSearchOperator.LIKE)
-                })
 
-            Spacer(modifier = Modifier.Companion.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
 
             // 输入框
@@ -68,7 +70,7 @@ context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderAdvSearchDrawer
                 }, title = tableViewModel.currentColumnLabel, kmpType = tableViewModel.currentColumnKmpType.toString()
             )
 
-            Spacer(modifier = Modifier.Companion.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
 
 
