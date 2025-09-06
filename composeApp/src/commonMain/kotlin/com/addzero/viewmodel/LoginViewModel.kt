@@ -13,7 +13,7 @@ import com.addzero.generated.api.ApiProvider.loginApi
 import com.addzero.generated.api.ApiProvider.sysUserCenterApi
 import com.addzero.generated.isomorphic.SysUserIso
 import com.addzero.settings.SettingContext4Compose
-import com.addzero.ui.infra.model.navigation.RecentTabsManager
+import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -28,7 +28,7 @@ private const val defaultUsername = "admin"
 class LoginViewModel : ViewModel(), KoinComponent {
 
     // 注入最近标签页管理器
-    private val recentTabsManager: RecentTabsManager by inject()
+    private val recentTabsManagerViewModel: RecentTabsManagerViewModel by inject()
 
     var singinStatus: SignInStatus by mutableStateOf(
         SignInStatus.None
@@ -111,7 +111,7 @@ class LoginViewModel : ViewModel(), KoinComponent {
             AddHttpClient.setToken(null)
 
             // 清空最近的标签页
-            recentTabsManager.clear()
+            recentTabsManagerViewModel.clear()
         }
     }
 

@@ -14,7 +14,7 @@ import org.koin.android.annotation.KoinViewModel
  * 用于管理用户最近访问的页面，以标签页形式展示
  */
 @KoinViewModel
-class RecentTabsManager : ViewModel() {
+class RecentTabsManagerViewModel : ViewModel() {
     private val MAX_TABS = 10 // 最大保存的标签页数量
     private val MAX_CLOSED_TABS = 20 // 最大保存的已关闭标签页数量
 
@@ -28,9 +28,9 @@ class RecentTabsManager : ViewModel() {
     private val _closedTabs = mutableStateListOf<TabInfo>()
 
     // 供外部访问的视图
-    val tabs: List<TabInfo> get() = _tabs
-    val currentTabIndex: Int get() = _currentTabIndex
-    val currentTab: TabInfo? get() = if (_currentTabIndex >= 0 && _currentTabIndex < _tabs.size) _tabs[_currentTabIndex] else null
+    val tabs = _tabs
+    val currentTabIndex = _currentTabIndex
+    val currentTab = if (_currentTabIndex >= 0 && _currentTabIndex < _tabs.size) _tabs[_currentTabIndex] else null
 
     /**
      * 添加或激活一个标签页

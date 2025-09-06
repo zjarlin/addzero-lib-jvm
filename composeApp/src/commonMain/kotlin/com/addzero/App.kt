@@ -37,11 +37,8 @@ fun App() {
 private fun MainLayoutWithLogin() {
     val loginViewModel = koinViewModel<LoginViewModel>()
     if (loginViewModel.currentToken == null
-//        && AddHttpClient .getCurrentToken()==null
     ) {
-        // 未登录时只渲染登录页
         LoginScreen()
-//            LoginUtil.cleanViewModel()
     } else {
         MainLayout()
     }

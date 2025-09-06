@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
-import com.addzero.ui.infra.model.navigation.RecentTabsManager
+import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 
 /**
  * 导航观察器
@@ -18,7 +18,7 @@ import com.addzero.ui.infra.model.navigation.RecentTabsManager
 fun NavigationObserver(
     navController: NavController,
     getRouteTitle: (String) -> String,
-    recentViewModel: RecentTabsManager
+    recentViewModel: RecentTabsManagerViewModel
 ) {
     val currentOnDestinationChangedListener = remember {
         NavController.OnDestinationChangedListener { controller, destination, arguments ->

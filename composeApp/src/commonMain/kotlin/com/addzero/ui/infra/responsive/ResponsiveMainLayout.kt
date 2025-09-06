@@ -4,16 +4,10 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.addzero.screens.ai.AiChatScreen
 import com.addzero.ui.infra.AddRecentTabs
 import com.addzero.ui.infra.MainContent
@@ -21,78 +15,16 @@ import com.addzero.ui.infra.SysBreadcrumb
 import com.addzero.ui.infra.SysTopBar
 import com.addzero.ui.infra.model.menu.MenuViewModel
 import com.addzero.ui.infra.model.menu.SideMenu
-import com.addzero.ui.infra.model.navigation.RecentTabsManager
-import com.addzero.ui.infra.navigation.NavigationObserver
+import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import com.addzero.viewmodel.ChatViewModel
-import org.koin.compose.viewmodel.koinViewModel
-
-/**
- * 🚀 响应式主布局组件
- *
- * 根据屏幕尺寸自动切换侧边栏和顶部导航栏布局
- */
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun ResponsiveMainLayout(
-    forceLayoutMode: LayoutMode? = null
-) {
-    val navController = rememberNavController()
-    val vm = koinViewModel<RecentTabsManager>()
-    val chatViewModel = koinViewModel<ChatViewModel>()
-
-    // 获取响应式配置
-    val config = rememberResponsiveConfig(forceLayoutMode)
-
-    // 添加导航观察器
-    NavigationObserver(
-        recentViewModel = vm,
-        navController = navController,
-        getRouteTitle = { route ->
-            MenuViewModel.getRouteTitleByKey(route)
-        }
-    )
-
-    // 搜索框状态
-    val isSearchOpen = remember { mutableStateOf(false) }
-
-
-    // 根据布局模式渲染不同的布局
-    val layoutMode = config.layoutMode
-
-    when (layoutMode) {
-        LayoutMode.SIDEBAR -> {
-            // 桌面端：侧边栏布局
-            SidebarLayout(
-                navController = navController,
-                vm = vm,
-                chatViewModel = chatViewModel,
-                showChatBot = chatViewModel.showChatBot,
-                isSearchOpen = isSearchOpen,
-                config = config
-            )
-        }
-
-        LayoutMode.TOPBAR -> {
-            // 移动端：顶部导航栏布局
-            TopbarLayout(
-                navController = navController,
-                vm = vm,
-                chatViewModel = chatViewModel,
-                showChatBot = chatViewModel.showChatBot,
-                isSearchOpen = isSearchOpen,
-                config = config
-            )
-        }
-    }
-}
 
 /**
  * 🖥️ 侧边栏布局（桌面端）
  */
 @Composable
-private fun SidebarLayout(
+fun SidebarLayout(
     navController: NavHostController,
-    vm: RecentTabsManager,
+    vm: RecentTabsManagerViewModel,
     chatViewModel: ChatViewModel,
     showChatBot: Boolean,
     isSearchOpen: MutableState<Boolean>,
@@ -160,9 +92,9 @@ private fun SidebarLayout(
  * 📱 顶部导航栏布局（移动端）
  */
 @Composable
-private fun TopbarLayout(
+fun TopbarLayout(
     navController: NavHostController,
-    vm: RecentTabsManager,
+    vm: RecentTabsManagerViewModel,
     chatViewModel: ChatViewModel,
     showChatBot: Boolean,
     isSearchOpen: MutableState<Boolean>,

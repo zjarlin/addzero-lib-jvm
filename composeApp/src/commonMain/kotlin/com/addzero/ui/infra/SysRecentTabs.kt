@@ -17,7 +17,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.addzero.ui.infra.model.navigation.RecentTabsManager
+import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import com.addzero.ui.infra.model.navigation.TabInfo
 
 /**
@@ -38,7 +38,7 @@ fun AddRecentTabs(
     navController: NavController,
     modifier: Modifier = Modifier,
     listenShortcuts: Boolean = true,
-    recentViewModel: RecentTabsManager
+    recentViewModel: RecentTabsManagerViewModel
 ) {
     val tabs = recentViewModel.tabs
     val currentTabIndex = recentViewModel.currentTabIndex
