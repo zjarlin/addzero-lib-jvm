@@ -4,9 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.addzero.component.high_level.AddMultiColumnContainer
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -50,24 +48,24 @@ fun ThemeSelectionDialog(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ) {
-                    items(allThemes) { theme ->
-                        ThemeItem(
-                            themeType = theme,
-                            isSelected = theme == currentTheme,
-                            onClick = {
-                                themeViewModel.setTheme(theme)
-                                onDismiss()
-                            }
-                        )
+                AddMultiColumnContainer(
+                    items = allThemes.map {
+                        @Composable {
+                            ThemeItem(
+                                themeType = it,
+                                isSelected = it == currentTheme,
+                                onClick = {
+                                    themeViewModel.setTheme(it)
+                                    onDismiss()
+                                }
+                            )
+                        }
                     }
-                }
+                )
+
+
+
+
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
