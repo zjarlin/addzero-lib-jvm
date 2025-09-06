@@ -11,9 +11,10 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.navigation.NavController
 import com.addzero.component.upload_manager.GlobalUploadManager
 import com.addzero.component.upload_manager.UploadManagerUI
+import com.addzero.di.NavgationViewModel
+import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
 import com.addzero.ui.infra.model.menu.MenuLayoutToggleButton
 import com.addzero.ui.infra.model.menu.MenuViewModel
 import com.addzero.ui.infra.model.menu.SysUserCenterScreen
@@ -21,51 +22,39 @@ import com.addzero.ui.infra.theme.ThemeSelectionButton
 import com.addzero.ui.infra.theme.ThemeToggleButton
 import com.addzero.ui.infra.theme.ThemeViewModel
 import com.addzero.viewmodel.ChatViewModel
-import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * 顶部导航栏组件
  *
- * @param navController 导航控制器
- * @param isSearchOpen 搜索框是否打开的状态
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun SysTopBar(
-    navController: NavController,
-    isSearchOpen: MutableState<Boolean>? = null
-) {
-    val chatViewModel = koinViewModel<ChatViewModel>()
-    val themeViewModel = koinViewModel<ThemeViewModel>()
+context(menuViewModel: MenuViewModel, favoriteViewModel: FavoriteTabsViewModel, themeViewModel: ThemeViewModel, chatViewModel: ChatViewModel, navgationViewModel: NavgationViewModel)
+fun SysTopBar() {
+    // 搜索框状态
+    val isSearchOpen = remember { mutableStateOf(false) }
     val currentTheme = themeViewModel.currentTheme
     //是否为渐变主题
     val isGradientTheme = currentTheme.isGradient()
-
     // 上传管理器对话框状态
     var showUploadManager by remember { mutableStateOf(false) }
-
     TopAppBar(
         title = {
             // 居中显示常用标签页
             Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
             ) {
-                FavoriteTabsBar(navController = navController)
+                FavoriteTabsBar()
             }
-        },
-        navigationIcon = {
-
+        }, navigationIcon = {
 
             Row(
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier
+                horizontalArrangement = Arrangement.Start, modifier = Modifier
             ) {
                 // 导航栏横纵切换按钮（点击时切换侧边栏展开状态）
                 MenuLayoutToggleButton(
-                    isExpanded = MenuViewModel.isExpand,
-                    onToggle = { MenuViewModel.isExpand = !MenuViewModel.isExpand }
-                )
+                    isExpanded = menuViewModel.isExpand,
+                    onToggle = { menuViewModel.isExpand = !menuViewModel.isExpand })
 
                 // 间距
                 Spacer(modifier = Modifier.width(8.dp))
@@ -75,8 +64,7 @@ fun SysTopBar(
 
             }
 
-        },
-        actions = {
+        }, actions = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -98,7 +86,6 @@ fun SysTopBar(
 
                 // 全局搜索栏
                 AddSysRouteSearchBar(
-                    navController = navController,
                     isSearchOpen = isSearchOpen
                 )
                 // 间距
@@ -122,21 +109,17 @@ fun SysTopBar(
                         badge = {
                             Badge {
                                 Text(
-                                    text = activeTasksCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall
+                                    text = activeTasksCount.toString(), style = MaterialTheme.typography.labelSmall
                                 )
                             }
-                        }
-                    ) {
+                        }) {
                         com.addzero.component.button.AddIconButton(
-                            text = "上传管理器",
-                            imageVector = Icons.Default.CloudUpload
+                            text = "上传管理器", imageVector = Icons.Default.CloudUpload
                         ) { showUploadManager = true }
                     }
                 } else {
                     com.addzero.component.button.AddIconButton(
-                        text = "上传管理器",
-                        imageVector = Icons.Default.CloudUpload
+                        text = "上传管理器", imageVector = Icons.Default.CloudUpload
                     ) { showUploadManager = true }
                 }
 
@@ -151,8 +134,7 @@ fun SysTopBar(
                     chatViewModel.showChatBot = !chatViewModel.showChatBot
                 }
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
+        }, colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
@@ -161,13 +143,9 @@ fun SysTopBar(
     // 上传管理器对话框
     if (showUploadManager) {
         Dialog(
-            onDismissRequest = { showUploadManager = false }
-        ) {
+            onDismissRequest = { showUploadManager = false }) {
             Card(
-                modifier = Modifier
-                    .width(800.dp)
-                    .height(600.dp),
-                colors = CardDefaults.cardColors(
+                modifier = Modifier.width(800.dp).height(600.dp), colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import com.addzero.component.button.AddIconButton
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -16,11 +17,11 @@ import org.koin.compose.viewmodel.koinViewModel
  * 点击时切换明暗主题
  */
 @Composable
+context(themeViewModel:ThemeViewModel)
 fun ThemeToggleButton() {
-    val themeViewModel = koinViewModel<ThemeViewModel>()
     val isDarkMode = themeViewModel.isDarkMode
     val rotationAngle by animateFloatAsState(targetValue = if (isDarkMode) 180f else 0f)
-    com.addzero.component.button.AddIconButton(
+    AddIconButton(
         text = if (isDarkMode) "切换到亮色模式" else "切换到暗色模式",
         imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
         modifier = Modifier.rotate(rotationAngle),

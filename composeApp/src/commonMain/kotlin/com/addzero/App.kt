@@ -2,12 +2,17 @@ package com.addzero
 
 import androidx.compose.runtime.Composable
 import com.addzero.component.toast.ToastListener
+import com.addzero.di.NavgationViewModel
 import com.addzero.events.EventBusConsumer
 import com.addzero.ui.auth.LoginScreen
 import com.addzero.ui.infra.MainLayout
+import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
+import com.addzero.ui.infra.model.menu.MenuViewModel
+import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import com.addzero.ui.infra.theme.AppThemes
 import com.addzero.ui.infra.theme.FollowSystemTheme
 import com.addzero.ui.infra.theme.ThemeViewModel
+import com.addzero.viewmodel.ChatViewModel
 import com.addzero.viewmodel.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
@@ -40,7 +45,24 @@ private fun MainLayoutWithLogin() {
     ) {
         LoginScreen()
     } else {
-        MainLayout()
+        with(NavgationViewModel) {
+            with(koinViewModel<RecentTabsManagerViewModel>()) {
+                with(koinViewModel<ThemeViewModel>()) {
+                    with(koinViewModel<ChatViewModel>()) {
+                        with(koinViewModel<MenuViewModel>()) {
+                            with(koinViewModel<FavoriteTabsViewModel>()) {
+                                MainLayout()
+                            }
+                        }
+                    }
+
+                }
+
+
+            }
+
+        }
+
     }
 }
 

@@ -10,17 +10,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.addzero.ui.infra.model.menu.MenuViewModel.isExpand
 
 /**
  * 导航栏横纵切换按钮
  * 点击时切换菜单的展开/折叠状态
  */
 @Composable
+context(menuViewModel: MenuViewModel)
 fun MenuLayoutToggleButton(
     modifier: Modifier = Modifier,
-    isExpanded: Boolean = isExpand,
-    onToggle: () -> Unit = { isExpand = !isExpand }
+    isExpanded: Boolean = menuViewModel.isExpand,
+    onToggle: () -> Unit = { menuViewModel.isExpand = !menuViewModel.isExpand }
 ) {
     IconButton(
         onClick = onToggle,

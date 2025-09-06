@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import com.addzero.di.NavgationViewModel
 import com.addzero.ui.infra.model.navigation.RecentTabsManagerViewModel
 import com.addzero.ui.infra.model.navigation.TabInfo
 
@@ -28,18 +28,17 @@ import com.addzero.ui.infra.model.navigation.TabInfo
  * - Cmd+W: 关闭当前标签页
  * - Cmd+Shift+T: 恢复最近关闭的标签页
  *
- * @param navController 导航控制器
  * @param modifier 修饰符
  * @param listenShortcuts 是否监听快捷键事件，默认为true
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
+context(navgationViewModel: NavgationViewModel, recentViewModel: RecentTabsManagerViewModel)
 fun AddRecentTabs(
-    navController: NavController,
     modifier: Modifier = Modifier,
     listenShortcuts: Boolean = true,
-    recentViewModel: RecentTabsManagerViewModel
 ) {
+    val navController = navgationViewModel.getNavController()
     val tabs = recentViewModel.tabs
     val currentTabIndex = recentViewModel.currentTabIndex
 

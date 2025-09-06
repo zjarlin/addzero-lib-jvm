@@ -4,21 +4,21 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import com.addzero.di.NavgationViewModel
 import com.addzero.entity.sys.menu.EnumSysMenuType
 import com.addzero.entity.sys.menu.SysMenuVO
 import com.addzero.generated.RouteKeys
 import com.addzero.settings.SettingContext4Compose
 import com.addzero.util.data_structure.tree.List2TreeUtil
+import org.koin.android.annotation.KoinViewModel
 
-object MenuViewModel {
-
-
+@KoinViewModel
+class MenuViewModel() : ViewModel() {
     fun updateRoute(string: String) {
         currentRoute = string
         NavgationViewModel.navigate(currentRoute)
     }
-
     //默认展开
     var isExpand by mutableStateOf(true)
     var currentRoute by mutableStateOf(SettingContext4Compose.HOME_SCREEN)

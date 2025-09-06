@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import com.addzero.di.NavgationViewModel
 import com.addzero.generated.RouteTable
 import com.addzero.ui.infra.model.menu.MenuViewModel
 
@@ -18,19 +18,19 @@ import com.addzero.ui.infra.model.menu.MenuViewModel
  * 面包屑导航组件
  */
 @Composable
+context(navgationViewModel: NavgationViewModel,menuViewModel: MenuViewModel)
 fun SysBreadcrumb(
-    currentRoute: String,
-    navController: NavController? = null,
-    onNavigate: ((String) -> Unit)? = null
 ) {
+    val currentRoute = menuViewModel.currentRoute
+
+    val navController = navgationViewModel.getNavController()
     val breadcrumbs = remember(currentRoute) {
         getBreadcrumbs(currentRoute)
     }
 
     // 面包屑导航
     Row(
-        modifier = Modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         breadcrumbs.forEachIndexed { index, breadcrumbItem ->
             // 面包屑项文本
@@ -38,34 +38,31 @@ fun SysBreadcrumb(
                 text = breadcrumbItem.title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (breadcrumbItem.isActive) FontWeight.Bold else FontWeight.Normal,
-                color = if (breadcrumbItem.isActive)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.clickable(enabled = !breadcrumbItem.isActive && navController != null) {
+                color = if (breadcrumbItem.isActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.clickable(enabled = !breadcrumbItem.isActive) {
                     // 如果不是当前活动项且有导航控制器，则导航到对应路由
-                    if (!breadcrumbItem.isActive && navController != null) {
+                    if (!breadcrumbItem.isActive) {
                         if (RouteTable.allRoutes.containsKey(breadcrumbItem.route)) {
                             navController.navigate(breadcrumbItem.route) {
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                            MenuViewModel.updateRoute(breadcrumbItem.route)
+                            menuViewModel.updateRoute(breadcrumbItem.route)
                         }
                     }
-                }
-            )
+                })
 
             // 分隔符（除了最后一个项）
             if (index < breadcrumbs.size - 1) {
                 Text(
                     modifier = Modifier.clickable(
-                        onClick = { onNavigate?.let { it(breadcrumbItem.route) } }
-                    ),
+                    onClick = {
+                        navgationViewModel.navigate(breadcrumbItem.route)
+                    }),
                     text = "/",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                    color = MaterialTheme.colorScheme.outline)
             }
         }
     }
@@ -73,19 +70,16 @@ fun SysBreadcrumb(
 
 // 面包屑项数据类
 private data class BreadcrumbItem(
-    val title: String,
-    val route: String,
-    val isActive: Boolean = false
+    val title: String, val route: String, val isActive: Boolean = false
 )
 
 // 根据当前路由生成面包屑项列表
+context(menuViewModel: MenuViewModel)
 private fun getBreadcrumbs(currentRoute: String): List<BreadcrumbItem> {
-    val cacleBreadcrumb = MenuViewModel.cacleBreadcrumb
+    val cacleBreadcrumb = menuViewModel.cacleBreadcrumb
     return cacleBreadcrumb.map {
         BreadcrumbItem(
-            title = it.title,
-            route = it.path,
-            isActive = it.path == currentRoute
+            title = it.title, route = it.path, isActive = it.path == currentRoute
         )
     }
 

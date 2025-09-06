@@ -19,37 +19,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.addzero.generated.isomorphic.SysFavoriteTabIso
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
 import com.addzero.ui.infra.model.menu.MenuViewModel
-import com.addzero.ui.infra.theme.ThemeViewModel
-import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * 常用标签页栏组件
  * 显示在顶部栏中的常用页面快捷访问
  */
 @Composable
-fun FavoriteTabsBar(
-    navController: NavController,
-    modifier: Modifier = Modifier
-) {
-    val favoriteViewModel = koinViewModel<FavoriteTabsViewModel>()
+context(menuViewModel: MenuViewModel, favoriteViewModel: FavoriteTabsViewModel)
+fun FavoriteTabsBar(modifier: Modifier = Modifier) {
     val favoriteTabs = favoriteViewModel.favoriteTabs
-    val currentRoute = MenuViewModel.currentRoute
-//    ThemeViewModel
-
-    val themeViewModel = koinViewModel<ThemeViewModel>()
-
+    val currentRoute = menuViewModel.currentRoute
     if (favoriteTabs.isEmpty() && !favoriteViewModel.isLoading) {
-        // 如果没有常用标签页，显示应用名称
-//        BeautifulText(
-//            text = SettingContext4Compose.APP_NAME,
-//        )
         return
     }
-
     // 星星动画效果
     val infiniteTransition = rememberInfiniteTransition(label = "star_animation")
 
@@ -116,7 +101,7 @@ fun FavoriteTabsBar(
                     tab = tab,
                     isActive = currentRoute == tab.routeKey,
                     onClick = {
-                        MenuViewModel.updateRoute(tab.routeKey)
+                        menuViewModel.updateRoute(tab.routeKey)
                     },
                     onRemove = {
                         favoriteViewModel.removeFromFavorites(tab.routeKey)

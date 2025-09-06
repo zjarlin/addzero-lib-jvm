@@ -14,16 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.addzero.component.tree.rememberTreeViewModel
 import com.addzero.compose.icons.IconMap
 import com.addzero.entity.sys.menu.EnumSysMenuType
 import com.addzero.entity.sys.menu.SysMenuVO
 import com.addzero.generated.RouteKeys
-import com.addzero.ui.infra.model.menu.MenuViewModel.isExpand
 import com.addzero.ui.infra.theme.AppThemeType
 import com.addzero.ui.infra.theme.SidebarGradientBackground
 import com.addzero.ui.infra.theme.ThemeViewModel
 import com.addzero.util.str.isNotBlank
-import org.koin.compose.viewmodel.koinViewModel
 
 /**
  * 侧边菜单组件
@@ -32,15 +31,14 @@ import org.koin.compose.viewmodel.koinViewModel
  * 使用AddTree组件实现菜单树渲染
  */
 @Composable
+context(menuViewModel: MenuViewModel, themeViewModel: ThemeViewModel)
 fun SideMenu() {
-    val themeViewModel = koinViewModel<ThemeViewModel>()
-
     val currentTheme = themeViewModel.currentTheme
 
     // 🚀 纯粹的 AddTree 组件，使用 Surface 控制大小和样式
     Surface(
         modifier = Modifier
-            .width(if (isExpand) 240.dp else 56.dp)
+            .width(if (menuViewModel.isExpand) 240.dp else 56.dp)
             .fillMaxHeight(),
         color = when (currentTheme) {
             AppThemeType.GRADIENT_RAINBOW,
@@ -72,12 +70,13 @@ fun SideMenu() {
  * 🚀 纯粹的树组件内容
  */
 @Composable
+context(menuViewModel: MenuViewModel)
 private fun TreeContent() {
     // 🎯 使用新的 TreeViewModel API
-    val viewModel = com.addzero.component.tree.rememberTreeViewModel<SysMenuVO>()
+    val viewModel = rememberTreeViewModel<SysMenuVO>()
 
     // 配置 ViewModel
-    LaunchedEffect(MenuViewModel.menuItems) {
+    LaunchedEffect(menuViewModel.menuItems) {
         viewModel.configure(
             getId = { it.path },
             getLabel = { it.title },
@@ -88,12 +87,12 @@ private fun TreeContent() {
             // 处理菜单项点击
             if (selectedMenu.enumSysMenuType == EnumSysMenuType.SCREEN && selectedMenu.children.isEmpty()) {
                 // 如果是页面类型且没有子项，才进行导航
-                MenuViewModel.updateRoute(selectedMenu.path)
+                menuViewModel.updateRoute(selectedMenu.path)
             }
             // 注意：折叠/展开状态由AddTree内部管理，这里不需要手动处理
         }
         viewModel.setItems(
-            MenuViewModel.menuItems,
+            menuViewModel.menuItems,
             setOf(RouteKeys.HOME_SCREEN)
         )
     }
@@ -101,7 +100,7 @@ private fun TreeContent() {
     com.addzero.component.tree.AddTree(
         viewModel = viewModel,
         modifier = Modifier.fillMaxSize(),
-        compactMode = !isExpand // 🚀 传递收起状态，启用紧凑模式
+        compactMode = !menuViewModel.isExpand // 🚀 传递收起状态，启用紧凑模式
     )
 }
 

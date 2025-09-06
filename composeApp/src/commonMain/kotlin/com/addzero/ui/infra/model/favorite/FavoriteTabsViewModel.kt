@@ -5,10 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.addzero.annotation.Route
 import com.addzero.core.network.AddHttpClient
 import com.addzero.generated.RouteKeys
-import com.addzero.generated.RouteTable
 import com.addzero.generated.api.ApiProvider.sysFavoriteTabApi
 import com.addzero.generated.isomorphic.SysFavoriteTabIso
 import com.addzero.ui.infra.model.menu.MenuViewModel
@@ -22,7 +20,7 @@ import org.koin.android.annotation.KoinViewModel
  * 管理用户的常用路由标签页
  */
 @KoinViewModel
-class FavoriteTabsViewModel : ViewModel() {
+class FavoriteTabsViewModel(private val menuViewModel: MenuViewModel) : ViewModel() {
 
     // HTTP客户端
     private val httpClient = AddHttpClient.httpclient
@@ -59,7 +57,7 @@ class FavoriteTabsViewModel : ViewModel() {
                 // 将路由键转换为标签页对象
                 val tabs = favoriteRouteKeys.mapNotNull { routeKey ->
                     val route = associateBy[routeKey]
-                    val menu = MenuViewModel.getRouteByKey(routeKey)
+                    val menu = menuViewModel.getRouteByKey(routeKey)
                     menu?.let {
                         SysFavoriteTabIso(
                             routeKey = routeKey,
@@ -85,7 +83,7 @@ class FavoriteTabsViewModel : ViewModel() {
     fun addToFavorites(routeKey: String) {
         viewModelScope.launch {
             try {
-                val menu = MenuViewModel.getRouteByKey(routeKey)
+                val menu = menuViewModel.getRouteByKey(routeKey)
                 if (menu != null && !favoriteTabs.any { it.routeKey == routeKey }) {
                     val newTab = SysFavoriteTabIso(
                         routeKey = routeKey,
@@ -140,7 +138,7 @@ class FavoriteTabsViewModel : ViewModel() {
         )
 
         val tabs = defaultRouteKeys.mapIndexedNotNull { index, routeKey ->
-            val menu = MenuViewModel.getRouteByKey(routeKey)
+            val menu = menuViewModel.getRouteByKey(routeKey)
             menu?.let {
                 SysFavoriteTabIso(
                     routeKey = routeKey,
