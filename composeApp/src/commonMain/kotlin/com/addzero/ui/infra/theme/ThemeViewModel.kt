@@ -13,8 +13,8 @@ import org.koin.android.annotation.KoinViewModel
  */
 @KoinViewModel
 class ThemeViewModel : ViewModel() {
-    // 当前主题类型，默认为彩虹渐变主题来测试渐变效果
-    var currentTheme by mutableStateOf(AppThemeType.GRADIENT_OCEAN)
+    // 当前主题类型，默认为蓝色亮色主题
+    var currentTheme by mutableStateOf(AppThemeType.LIGHT_BLUE)
         private set
 
     val isDarkMode: Boolean
