@@ -52,12 +52,12 @@ class FavoriteTabsViewModel : ViewModel() {
                 errorMessage = null
 
                 // 调用后台API获取常用路由键
-                var favoriteRouteKeys = sysFavoriteTabApi.topFavoriteRoutes(5)
+                val favoriteRouteKeys = sysFavoriteTabApi.topFavoriteRoutes(5)
 
-                var associateBy = RouteTable.allMeta.associateBy { it.routePath }
+                val associateBy = RouteTable.allMeta.associateBy { it.routePath }
                 // 将路由键转换为标签页对象
                 val tabs = favoriteRouteKeys.mapNotNull { routeKey ->
-                    var route = associateBy[routeKey]
+                    val route = associateBy[routeKey]
                     val menu = MenuViewModel.getRouteByKey(routeKey)
                     menu?.let {
                         SysFavoriteTabIso(

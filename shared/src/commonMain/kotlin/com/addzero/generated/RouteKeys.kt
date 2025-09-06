@@ -5,11 +5,12 @@ package com.addzero.generated
  * 请勿手动修改此文件
  */
 object RouteKeys {
+    const val SELECT_DEMO2 = "/component/select"
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
-    const val BASE_SELECT_DEMO = "/component/baseSelect"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val TABLE_BIG_DATA_TEST2 = "com.addzero.demo.TableBigDataTest2"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
+    const val SELECT_DEMO = "/component/select"
     const val TIME_PICKER_EXAMPLE = "com.addzero.demo.date_test.TimePickerExample"
     const val TIME_PICKER_FIELD_TEST = "com.addzero.demo.date_test.TimePickerFieldTest"
     const val DATE_PICKER_FIELD_TEST = "com.addzero.demo.date_test.DatePickerFieldTest"

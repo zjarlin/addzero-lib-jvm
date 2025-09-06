@@ -7,7 +7,7 @@ package com.addzero.annotation
 @Target(
     AnnotationTarget.CLASS,
     AnnotationTarget.FUNCTION,
-    AnnotationTarget.PROPERTY
+//    AnnotationTarget.PROPERTY
 )
 @Retention(AnnotationRetention.SOURCE)
 annotation class Route(

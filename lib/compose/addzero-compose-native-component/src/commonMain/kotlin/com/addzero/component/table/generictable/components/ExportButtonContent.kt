@@ -1,17 +1,10 @@
 package com.addzero.component.table.generictable.components
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.addzero.component.button.AddIconButton
 import com.addzero.component.dropdown.AddDropDown
-import com.addzero.component.high_level.AddTooltipBox
 import com.addzero.entity.low_table.EnumExportType
 import com.addzero.entity.low_table.ExportParam
 
@@ -44,23 +37,18 @@ fun ExportButtonContent(
     }
 
 
-    _root_ide_package_.com.addzero.component.high_level.AddTooltipBox(string1) {
-        IconButton(onClick = onExportButtonClick) {
-            Icon(
-                imageVector = Icons.Default.FileDownload,
-                contentDescription = string1
-            )
-        }
-        _root_ide_package_.com.addzero.component.dropdown.AddDropDown(
-            options = EnumExportType.entries,
-            expanded = showExportMenu,
-            getLabel = { it.name },
-            onOptionSelected = {},
-            onDismissRequest = onDismissDropDownMenu
-        )
-
+    AddIconButton(string1, imageVector = Icons.Default.FileDownload) {
+        onExportButtonClick()
     }
 
-
+    AddDropDown(
+        options = EnumExportType.entries,
+        expanded = showExportMenu,
+        getLabel = { it.name },
+        onOptionSelected = {},
+        onDismissRequest = onDismissDropDownMenu
+    )
 }
+
+
 
