@@ -341,33 +341,62 @@ fun KSPropertyDeclaration.hasAnno(string: String): Boolean {
  */
 fun KSType.getCompleteTypeString(): String {
     return buildString {
-        // 处理函数类型的注解（如 @Composable）
-        val annotations = this@getCompleteTypeString.annotations.toList()
-        if (annotations.isNotEmpty()) {
-            val annotationStrings = annotations.map { annotation ->
-                val shortName = annotation.shortName.asString()
-                val args = annotation.arguments
-                if (args.isNotEmpty()) {
-                    val argString = args.joinToString(", ") { arg ->
-                        "${arg.name?.asString() ?: ""}=${arg.value}"
-                    }
-                    "[$shortName($argString)]"
-                } else {
-                    "[$shortName]"
-                }
-            }
-            append(annotationStrings.joinToString(" "))
-            append(" ")
-        }
-
         // 获取基础类型名称
         val declaration = this@getCompleteTypeString.declaration
         val baseTypeName = declaration.qualifiedName?.asString() ?: declaration.simpleName.asString()
 
         // 处理函数类型
         if (baseTypeName.startsWith("kotlin.Function")) {
-            append(buildFunctionTypeString())
+            // 对于函数类型，先处理注解
+            val annotations = this@getCompleteTypeString.annotations.toList()
+            if (annotations.isNotEmpty()) {
+                val annotationStrings = annotations.map { annotation ->
+                    val shortName = annotation.shortName.asString()
+                    val args = annotation.arguments
+                    if (args.isNotEmpty()) {
+                        val argString = args.joinToString(", ") { arg ->
+                            "${arg.name?.asString() ?: ""}=${arg.value}"
+                        }
+                        "[$shortName($argString)]"
+                    } else {
+                        "[$shortName]"
+                    }
+                }
+                append(annotationStrings.joinToString(" "))
+                append(" ")
+            }
+            
+            // 构建函数类型字符串
+            val functionTypeString = buildFunctionTypeString()
+            
+            // 处理可空性 - 对于函数类型，可空性标记应该包裹整个函数类型
+            if (this@getCompleteTypeString.isMarkedNullable) {
+                append("(")
+                append(functionTypeString)
+                append(")?")
+            } else {
+                append(functionTypeString)
+            }
         } else {
+            // 对于非函数类型，处理注解
+            val annotations = this@getCompleteTypeString.annotations.toList()
+            if (annotations.isNotEmpty()) {
+                val annotationStrings = annotations.map { annotation ->
+                    val shortName = annotation.shortName.asString()
+                    val args = annotation.arguments
+                    if (args.isNotEmpty()) {
+                        val argString = args.joinToString(", ") { arg ->
+                            "${arg.name?.asString() ?: ""}=${arg.value}"
+                        }
+                        "[$shortName($argString)]"
+                    } else {
+                        "[$shortName]"
+                    }
+                }
+                append(annotationStrings.joinToString(" "))
+                append(" ")
+            }
+            
             append(baseTypeName)
 
             // 处理泛型参数
@@ -384,11 +413,11 @@ fun KSType.getCompleteTypeString(): String {
                 })
                 append(">")
             }
-        }
 
-        // 处理可空性
-        if (this@getCompleteTypeString.isMarkedNullable) {
-            append("?")
+            // 处理可空性
+            if (this@getCompleteTypeString.isMarkedNullable) {
+                append("?")
+            }
         }
     }
 }

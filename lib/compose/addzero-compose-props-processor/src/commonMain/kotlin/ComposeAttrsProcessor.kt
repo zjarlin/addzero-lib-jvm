@@ -338,7 +338,7 @@ class ComposeAttrsProcessor(
 
         // 生成Widget辅助函数
         val widgetFunctionCode =
-            generateWidgetFunction(functionName, className, parameters, genericParameters, packageName)
+            generateWidgetFunction(functionName, className, parameters, genericParameters, packageName, function)
 
         return """
 package $packageName
@@ -395,8 +395,12 @@ $widgetFunctionCode
                 simplifyTypeString(param.type.getQualifiedTypeString(), genericParamNames)
             }
 
-            val cleanTypeString = typeString.removeSuffix("?")
-            val finalTypeString = if (param.isNullable) "$cleanTypeString?" else cleanTypeString
+            // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
+            val finalTypeString = if (param.isNullable && !typeString.endsWith("?") && !typeString.matches(Regex("""\(.*\)\?"""))) {
+                "$typeString?"
+            } else {
+                typeString
+            }
 
             "${param.name}: $finalTypeString$defaultValue"
         }
@@ -404,8 +408,12 @@ $widgetFunctionCode
         // 生成MutableState属性声明
         val stateProperties = parameters.joinToString("\n    ") { param ->
             val baseTypeString = simplifyTypeString(param.type.getQualifiedTypeString(), genericParamNames)
-            val cleanTypeString = baseTypeString.removeSuffix("?")
-            val finalTypeString = if (param.isNullable) "$cleanTypeString?" else cleanTypeString
+            // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
+            val finalTypeString = if (param.isNullable && !baseTypeString.endsWith("?") && !baseTypeString.matches(Regex("""\(.*\)\?"""))) {
+                "$baseTypeString?"
+            } else {
+                baseTypeString
+            }
 
             "private val _${param.name} = mutableStateOf(${param.name})"
         }
@@ -428,8 +436,12 @@ $widgetFunctionCode
                 simplifyTypeString(param.type.getQualifiedTypeString(), genericParamNames)
             }
 
-            val cleanTypeString = typeString.removeSuffix("?")
-            val finalTypeString = if (param.isNullable) "$cleanTypeString?" else cleanTypeString
+            // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
+            val finalTypeString = if (param.isNullable && !typeString.endsWith("?") && !typeString.matches(Regex("""\(.*\)\?"""))) {
+                "$typeString?"
+            } else {
+                typeString
+            }
 
             """var ${param.name}: $finalTypeString
         get() = _${param.name}.value
@@ -584,19 +596,22 @@ class $className$genericDeclaration(
         suffix: String
     ): String {
         val paramList = parameters.joinToString(",\n    ") { param ->
+            // 获取真实的默认值
             val defaultValue = if (param.hasDefaultValue) {
-                when {
-                    param.isNullable -> " = null"
-                    param.type.declaration.simpleName.asString() == "String" -> " = \"\""
-                    param.type.declaration.simpleName.asString() == "Boolean" -> " = false"
-                    param.type.declaration.simpleName.asString() == "Int" -> " = 0"
-                    param.type.declaration.simpleName.asString() == "Float" -> " = 0f"
-                    param.type.declaration.simpleName.asString() == "Double" -> " = 0.0"
-                    else -> ""
-                }
+                getActualDefaultValue(param)
             } else ""
 
-            "${param.name}: ${param.type.getQualifiedTypeString()}$defaultValue"
+            // 使用完整的类型字符串，直接使用完整类型信息
+            val typeString = param.type.getQualifiedTypeString()
+            
+            // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
+            val finalTypeString = if (param.isNullable && !typeString.endsWith("?") && !typeString.matches(Regex("""\(.*\)\?"""))) {
+                "$typeString?"
+            } else {
+                typeString
+            }
+
+            "${param.name}: $finalTypeString$defaultValue"
         }
 
         val constructorArgs = parameters.joinToString(",\n        ") { param ->
@@ -625,18 +640,25 @@ fun ${functionName.lowercase()}${suffix}(
         className: String,
         parameters: List<ParameterInfo>,
         genericParameters: List<GenericParameterInfo>,
-        packageName: String
+        packageName: String,
+        function: KSFunctionDeclaration
     ): String {
+        // 获取原始函数的修饰符
+        val functionModifiers = function.modifiers
+        val isInline = com.google.devtools.ksp.symbol.Modifier.INLINE in functionModifiers
+
+        // 分析原始函数的泛型参数，检查是否有reified
+        val originalTypeParameters = function.typeParameters
+        val genericParamNamesWithReified = originalTypeParameters.map { typeParam ->
+            val name = typeParam.name.asString()
+            // 检查原始函数的泛型参数是否有reified修饰符
+            val isReified = typeParam.modifiers.any { it == com.google.devtools.ksp.symbol.Modifier.REIFIED }
+            if (isReified) "reified $name" else name
+        }
+
         // 生成泛型参数声明（放在fun后面）
-        val genericDeclaration = if (genericParameters.isNotEmpty()) {
-            val genericParams = genericParameters.joinToString(", ") { generic ->
-                if (generic.bounds.isNotEmpty()) {
-                    "${generic.name} : ${generic.bounds.joinToString(" & ")}"
-                } else {
-                    generic.name
-                }
-            }
-            "<$genericParams> "
+        val genericDeclaration = if (genericParamNamesWithReified.isNotEmpty()) {
+            "<${genericParamNamesWithReified.joinToString(", ")}> "
         } else ""
 
         // 生成参数传递
@@ -645,17 +667,27 @@ fun ${functionName.lowercase()}${suffix}(
         }
 
         // 生成State类型参数（只使用简单的泛型名）
-        val stateTypeParams = if (genericParameters.isNotEmpty()) {
-            "<${genericParameters.joinToString(", ") { it.name }}>"
+        val stateTypeParams = if (genericParamNamesWithReified.isNotEmpty()) {
+            val simpleNames = originalTypeParameters.map { it.name.asString() }
+            "<${simpleNames.joinToString(", ")}>"
         } else ""
+
+        // 构建函数修饰符字符串
+        val modifierString = if (isInline) "inline" else ""
+
+        // 构建函数声明
+        val functionDeclaration = if (modifierString.isNotEmpty()) {
+            "@Composable $modifierString fun ${genericDeclaration}${functionName}Widget"
+        } else {
+            "@Composable fun ${genericDeclaration}${functionName}Widget"
+        }
 
         return """
 /**
  * $functionName 的Widget辅助函数
  * 只接受打包好的State参数，自动展开所有属性
  */
-@Composable
-fun ${genericDeclaration}${functionName}Widget(
+$functionDeclaration(
     state: $className$stateTypeParams
 ) {
     $functionName(
@@ -710,10 +742,12 @@ fun ${genericDeclaration}${functionName}Widget(
                 simplifyTypeString(param.type.getQualifiedTypeString(), genericParamNames)
             }
 
-            // 移除KSP可能错误添加的可空性标记
-            val cleanTypeString = typeString.removeSuffix("?")
-            // 根据我们检测到的真实可空性添加?
-            val finalTypeString = if (param.isNullable) "$cleanTypeString?" else cleanTypeString
+            // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
+            val finalTypeString = if (param.isNullable && !typeString.endsWith("?") && !typeString.matches(Regex("""\(.*\)\?"""))) {
+                "$typeString?"
+            } else {
+                typeString
+            }
 
             "${param.name}: $finalTypeString$defaultValue"
         }
