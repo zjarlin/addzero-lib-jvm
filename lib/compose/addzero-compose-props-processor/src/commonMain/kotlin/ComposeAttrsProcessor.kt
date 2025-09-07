@@ -418,9 +418,9 @@ $widgetFunctionCode
             "private val _${param.name} = mutableStateOf(${param.name})"
         }
 
-        // 为不需要mutableStateOf包装的参数生成简单的属性存储
+        // 为不需要mutableStateOf包装的参数生成可变的属性存储
         val simpleProperties = parameters.filter { !needsMutableState(it) }.joinToString("\n    ") { param ->
-            "private val _${param.name} = ${param.name}"
+            "private var _${param.name} = ${param.name}"
         }
 
         // 合并所有属性声明
@@ -465,8 +465,9 @@ $widgetFunctionCode
         get() = _${param.name}.value
         set(value) { _${param.name}.value = value }"""
             } else {
-                """val ${param.name}: $finalTypeString
-        get() = ${param.name}"""
+                """var ${param.name}: $finalTypeString
+        get() = ${param.name}
+        set(value) { _${param.name} = value }"""
             }
         }
 
