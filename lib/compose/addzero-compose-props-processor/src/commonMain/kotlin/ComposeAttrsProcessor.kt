@@ -405,8 +405,8 @@ $widgetFunctionCode
             "${param.name}: $finalTypeString$defaultValue"
         }
 
-        // 生成MutableState属性声明
-        val stateProperties = parameters.joinToString("\n    ") { param ->
+        // 生成MutableState属性声明 - 只为需要响应式更新的参数生成
+        val stateProperties = parameters.filter { needsMutableState(it) }.joinToString("\n    ") { param ->
             val baseTypeString = simplifyTypeString(param.type.getQualifiedTypeString(), genericParamNames)
             // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
             val finalTypeString = if (param.isNullable && !baseTypeString.endsWith("?") && !baseTypeString.matches(Regex("""\(.*\)\?"""))) {
@@ -416,6 +416,22 @@ $widgetFunctionCode
             }
 
             "private val _${param.name} = mutableStateOf(${param.name})"
+        }
+
+        // 为不需要mutableStateOf包装的参数生成简单的属性存储
+        val simpleProperties = parameters.filter { !needsMutableState(it) }.joinToString("\n    ") { param ->
+            "private val _${param.name} = ${param.name}"
+        }
+
+        // 合并所有属性声明
+        val allStateProperties = if (simpleProperties.isNotEmpty()) {
+            if (stateProperties.isNotEmpty()) {
+                "$stateProperties\n    $simpleProperties"
+            } else {
+                simpleProperties
+            }
+        } else {
+            stateProperties
         }
 
         // 生成公开的var属性
@@ -443,9 +459,15 @@ $widgetFunctionCode
                 typeString
             }
 
-            """var ${param.name}: $finalTypeString
+            // 检查是否需要mutableStateOf包装
+            if (needsMutableState(param)) {
+                """var ${param.name}: $finalTypeString
         get() = _${param.name}.value
         set(value) { _${param.name}.value = value }"""
+            } else {
+                """val ${param.name}: $finalTypeString
+        get() = ${param.name}"""
+            }
         }
 
         // 生成泛型参数声明
@@ -467,7 +489,7 @@ $widgetFunctionCode
 class $className$genericDeclaration(
     $constructorParams
 ) {
-    $stateProperties
+    $allStateProperties
 
     $publicProperties
 }
@@ -603,7 +625,7 @@ class $className$genericDeclaration(
 
             // 使用完整的类型字符串，直接使用完整类型信息
             val typeString = param.type.getQualifiedTypeString()
-            
+
             // 对于函数类型，如果已经是可空的，就不需要再添加可空标记
             val finalTypeString = if (param.isNullable && !typeString.endsWith("?") && !typeString.matches(Regex("""\(.*\)\?"""))) {
                 "$typeString?"
@@ -1236,4 +1258,53 @@ class ComposeAttrsProcessorProvider : SymbolProcessorProvider {
             options = environment.options
         )
     }
+}
+
+/**
+ * 检查参数是否需要mutableStateOf包装
+ * 函数类型参数和某些Compose内置类型参数不需要响应式更新
+ */
+private fun needsMutableState(param: ParameterInfo): Boolean {
+    val type = param.type
+
+    // 获取类型名称
+    val typeName = type.declaration.qualifiedName?.asString() ?: type.declaration.simpleName.asString()
+
+    // 检查是否是函数类型
+    if (typeName.startsWith("kotlin.Function") ||
+        type.declaration.simpleName.asString().startsWith("Function")) {
+        return false
+    }
+
+    // 检查是否是Composable函数类型
+    if (type.annotations.any {
+        it.shortName.asString() == "Composable"
+    }) {
+        return false
+    }
+
+    // 检查是否是Compose内置类型，这些通常不需要响应式更新
+    val composeImmutableTypes = setOf(
+        "androidx.compose.ui.Modifier",
+        "androidx.compose.ui.graphics.Color",
+        "androidx.compose.ui.unit.Dp",
+        "androidx.compose.ui.unit.TextUnit",
+        "androidx.compose.ui.text.font.FontFamily",
+        "androidx.compose.ui.text.font.FontStyle",
+        "androidx.compose.ui.text.font.FontWeight",
+        "androidx.compose.ui.text.TextAlign",
+        "androidx.compose.ui.text.TextDecoration",
+        "androidx.compose.ui.graphics.Shape",
+        "androidx.compose.ui.graphics.Brush",
+        "androidx.compose.ui.graphics.Shadow",
+        "androidx.compose.ui.graphics.drawscope.DrawStyle",
+        "androidx.compose.ui.graphics.painter.Painter"
+    )
+
+    if (typeName in composeImmutableTypes) {
+        return false
+    }
+
+    // 其他参数默认需要mutableStateOf包装
+    return true
 }
