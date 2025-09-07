@@ -35,6 +35,16 @@ inline fun <reified T, C> TableOriginal(
     noinline getColumnLabel: @Composable (C) -> Unit,
     topSlot: @Composable () -> Unit = {},
     bottomSlot: @Composable () -> Unit = {},
+
+    noinline getCellContent: @Composable (item: T, column: C) -> Unit = { item, column ->
+        val toMap = item?.toMap()
+        val toString = toMap?.get(getColumnKey(column)).toString()
+        Text(text = toString)
+    },
+    // 行左侧插槽（如复选框）
+    noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
+    noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
+    modifier: Modifier = Modifier,
     noinline emptyContentSlot: @Composable () -> Unit = {
         Box(
             modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center
@@ -46,17 +56,6 @@ inline fun <reified T, C> TableOriginal(
             )
         }
     },
-
-    noinline getCellContent: @Composable (item: T, column: C) -> Unit = { item, column ->
-        val toMap = item?.toMap()
-        val any = toMap?.get(getColumnKey(column))
-        val toString = any.toString()
-        Text(text = toString)
-    },
-    // 行左侧插槽（如复选框）
-    noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
-    noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     val rememberScrollState = rememberScrollState()
     val verticalScrollState = rememberLazyListState()
