@@ -8,42 +8,63 @@ import androidx.compose.material.icons.filled.DownloadForOffline
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import com.addzero.component.button.AddIconButton
-import com.addzero.component.table.clean.AddCleanTableViewModel
 
 @Composable
-context(tableViewModel: AddCleanTableViewModel<T>) fun <T> RenderButtons() {
+context(tableButtonViewModel: TableButtonViewModel) fun RenderButtons(buttonSlot: @Composable () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        tableViewModel.buttonSlot()
+        buttonSlot()
         // 多选模式按钮
         AddIconButton(
-            text = if (tableViewModel.enableEditMode) "退出多选" else "多选",
-            imageVector = if (tableViewModel.enableEditMode) Icons.Default.Deselect else Icons.Default.SelectAll
+            text = if (tableButtonViewModel.editModeFlag) "退出多选" else "多选",
+            imageVector = if (tableButtonViewModel.editModeFlag) Icons.Default.Deselect else Icons.Default.SelectAll
         ) {
-            tableViewModel.enableEditMode = !tableViewModel.enableEditMode
+            tableButtonViewModel.editModeFlag = !tableButtonViewModel.editModeFlag
         }
         // 新增按钮
         AddIconButton(
             text = "新增"
         ) {
-            tableViewModel.onSaveClick()
+            tableButtonViewModel.onSaveClick()
         }
 
         // 导入按钮
         AddIconButton(
             text = "导入", imageVector = Icons.Default.UploadFile
         ) {
-            tableViewModel.onImportClick()
+            tableButtonViewModel.onImportClick()
         }
 
         // 导出按钮
         AddIconButton(
             text = "导出", imageVector = Icons.Default.DownloadForOffline
         ) {
-            tableViewModel.onExportClick()
+            tableButtonViewModel.onExportClick()
         }
     }
+}
+
+class TableButtonViewModel : ViewModel() {
+    var editModeFlag by mutableStateOf(false)
+
+
+    fun onSaveClick() {
+        TODO("Not yet implemented")
+    }
+
+    fun onImportClick() {
+        TODO("Not yet implemented")
+    }
+
+    fun onExportClick() {
+        TODO("Not yet implemented")
+    }
+
 }

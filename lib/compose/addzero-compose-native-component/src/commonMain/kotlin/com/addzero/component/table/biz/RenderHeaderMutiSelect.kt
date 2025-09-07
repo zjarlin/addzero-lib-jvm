@@ -1,4 +1,4 @@
-package com.addzero.component.table.header
+package com.addzero.component.table.biz
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
