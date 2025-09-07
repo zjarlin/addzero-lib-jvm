@@ -1,5 +1,4 @@
 package com.addzero.component.table.original
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -26,26 +25,27 @@ inline fun <reified T, C> TableOriginal(
     data: List<T>,
     columns: List<C>,
     noinline getColumnKey: (C) -> String,
-    noinline getRowId: (T) -> Any = {
-        val toMap = it?.toMap()
-        toMap?.get("id") ?: ""
-    },
+    noinline getRowId: ((T) -> Any)? = null,
     columnConfigs: List<ColumnConfig> = emptyList(),
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
     noinline getColumnLabel: @Composable (C) -> Unit,
-    topSlot: @Composable () -> Unit = {},
-    bottomSlot: @Composable () -> Unit = {},
-
-    noinline getCellContent: @Composable (item: T, column: C) -> Unit = { item, column ->
-        val toMap = item?.toMap()
-        val toString = toMap?.get(getColumnKey(column)).toString()
-        Text(text = toString)
-    },
+    noinline topSlot: (@Composable () -> Unit)? = null,
+    noinline bottomSlot: (@Composable () -> Unit)? = null,
+    noinline emptyContentSlot: (@Composable () -> Unit)? = null,
+    noinline getCellContent: (@Composable (item: T, column: C) -> Unit)? = null,
     // 行左侧插槽（如复选框）
-    noinline rowLeftSlot: @Composable (item: T, index: Int) -> Unit = { _, _ -> },
+    noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
-    modifier: Modifier = Modifier,
-    noinline emptyContentSlot: @Composable () -> Unit = {
+    modifier: Modifier = Modifier
+) {
+    // 设置默认值
+    val actualGetRowId = getRowId ?: {
+        val toMap = it?.toMap()
+        toMap?.get("id") ?: ""
+    }
+    val actualTopSlot = topSlot ?: {}
+    val actualBottomSlot = bottomSlot ?: {}
+    val actualEmptyContentSlot = emptyContentSlot ?: {
         Box(
             modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center
         ) {
@@ -55,8 +55,14 @@ inline fun <reified T, C> TableOriginal(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    },
-) {
+    }
+    val actualGetCellContent = getCellContent ?: { item, column ->
+        val toMap = item?.toMap()
+        val toString = toMap?.get(getColumnKey(column)).toString()
+        Text(text = toString)
+    }
+    val actualRowLeftSlot = rowLeftSlot ?: { _, _ -> }
+
     val rememberScrollState = rememberScrollState()
     val verticalScrollState = rememberLazyListState()
 
@@ -88,7 +94,7 @@ inline fun <reified T, C> TableOriginal(
     // 使用ViewModel渲染表格
     Column(modifier = modifier) {
         // 顶部插槽区域
-        topSlot()
+        actualTopSlot()
 
         // 主表格内容区域
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
@@ -97,16 +103,16 @@ inline fun <reified T, C> TableOriginal(
                 data = data,
                 columns = columns,
                 getColumnKey = getColumnKey,
-                getRowId = getRowId,
+                getRowId = actualGetRowId,
                 horizontalScrollState = rememberScrollState,
                 lazyListState = verticalScrollState,
                 columnConfigs = mergedColumnConfigs,
                 layoutConfig = layoutConfig,
                 showActionColumn = showFixedActionColumn,
                 getColumnLabel = getColumnLabel,
-                emptyContentSlot = emptyContentSlot,
-                getCellContent = getCellContent,
-                rowLeftSlot = rowLeftSlot,
+                emptyContentSlot = actualEmptyContentSlot,
+                getCellContent = actualGetCellContent,
+                rowLeftSlot = actualRowLeftSlot,
                 rowActionSlot = if (showFixedActionColumn) null else rowActionSlot
             )
 
@@ -130,8 +136,6 @@ inline fun <reified T, C> TableOriginal(
         }
 
         // 底部插槽区域
-        bottomSlot()
+        actualBottomSlot()
     }
 }
-
-
