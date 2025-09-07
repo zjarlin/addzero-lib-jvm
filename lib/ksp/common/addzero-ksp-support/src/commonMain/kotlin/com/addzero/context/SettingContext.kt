@@ -1,7 +1,7 @@
 package com.addzero.context
 
-import com.addzero.core.ext.toBean
-import com.addzero.core.ext.toMap
+import com.addzero.core.ext.map2bean
+import com.addzero.core.ext.bean2map
 import java.util.concurrent.atomic.AtomicReference
 
 object SettingContext {
@@ -11,10 +11,10 @@ object SettingContext {
         get() = settingsRef.get() ?: Settings()
 
     fun initialize(op: Map<String, String>) {
-        val toMap = settings.toMap()
+        val toMap = settings.bean2map()
         val map = toMap + op
 
-        val mapToBean = map.toBean<Settings>()
+        val mapToBean = map.map2bean<Settings>()
         settingsRef.compareAndSet(null, mapToBean)
     }
 }

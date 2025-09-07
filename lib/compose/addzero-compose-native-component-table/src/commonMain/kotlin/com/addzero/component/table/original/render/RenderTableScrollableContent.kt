@@ -29,7 +29,8 @@ fun <T, C> RenderTableScrollableContent(
     emptyContentSlot: @Composable () -> Unit,
     getCellContent: @Composable (item: T, column: C) -> Unit,
     rowLeftSlot: @Composable (item: T, index: Int) -> Unit,
-    rowActionSlot: (@Composable (item: T) -> Unit)?
+    rowActionSlot: (@Composable (item: T) -> Unit)?,
+    columnRightSlot: @Composable ((C) -> Unit)
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         // 表头行 - 只需要列配置和表头配置
@@ -40,7 +41,8 @@ fun <T, C> RenderTableScrollableContent(
             horizontalScrollState = horizontalScrollState!!,
             columnConfigs = columnConfigs,
             layoutConfig = layoutConfig,
-            showActionColumn = showActionColumn
+            showActionColumn = showActionColumn,
+            columnRightSlot = columnRightSlot
         )
 
         // 使用现有的LazyColumn数据渲染

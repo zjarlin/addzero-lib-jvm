@@ -20,11 +20,11 @@
 //        val result: TomlParseResult = org.tomlj.Toml.parse(source)
 //
 //
-//        val versions = result.getTable("versions")?.toMap()
-//        val toMap = result.getTable("plugins")?.toMap()
-//        val plugins = recurMap(toMap)
-//        val bundles = result.getTable("bundles")?.toMap()
-//        val libraries = result.getTable("libraries")?.toMap()
+//        val versions = result.getTable("versions")?.bean2map()
+//        val bean2map = result.getTable("plugins")?.bean2map()
+//        val plugins = recurMap(bean2map)
+//        val bundles = result.getTable("bundles")?.bean2map()
+//        val libraries = result.getTable("libraries")?.bean2map()
 ////        VersionCatalogDTO(
 ////            versions = buildVersions(versions),
 ////            libraries = buildLibraries(libraries),
@@ -43,8 +43,8 @@
 //            val key = it.key
 //            val columnValue = it.columnValue
 //            if (columnValue is TomlTable) {
-//                val toMap = columnValue.toMap()
-//                val mapOf = mapOf(key to toMap)
+//                val bean2map = columnValue.bean2map()
+//                val mapOf = mapOf(key to bean2map)
 //                recurMap(mapOf)
 //            }
 //            it

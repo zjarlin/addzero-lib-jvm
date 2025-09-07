@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.addzero.component.form.file.formatFileSize
+import com.addzero.component.form.text.AddIconText
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PlatformFiles
@@ -122,7 +123,7 @@ fun AddFileUploadDrawer(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 说明区域
-            com.addzero.component.form.text.AddIconText(showFlag = showDescription, describe = description)
+            AddIconText(showFlag = showDescription, describe = description)
 
             // 模板下载区域
             Surface(

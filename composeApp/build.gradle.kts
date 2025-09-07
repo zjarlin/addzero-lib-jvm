@@ -3,10 +3,12 @@ import com.google.devtools.ksp.gradle.KspAATask
 plugins {
     id("kmp-app")
     id("kmp-koin")
-    id("kmp-json")
+    id("kmp-json-withtool")
     alias(libs.plugins.composeHotReload)
     id("ksp4projectdir")
     id("ksp4self")
+    id("addzero-component")
+
 }
 
 dependencies {
@@ -25,7 +27,6 @@ kotlin {
 
 
             implementation(projects.lib.toolKmp.addzeroNetworkStarter)
-            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
 
             // 组件库依赖
             implementation(projects.lib.compose.addzeroComposeNativeComponent)

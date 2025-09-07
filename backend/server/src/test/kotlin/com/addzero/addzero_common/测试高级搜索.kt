@@ -1,7 +1,5 @@
 package com.addzero.addzero_common
 
-import com.addzero.entity.low_table.EnumSearchOperator.*
-import com.addzero.entity.low_table.StateSearch
 import com.addzero.model.entity.SysUser
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.junit.jupiter.api.Test

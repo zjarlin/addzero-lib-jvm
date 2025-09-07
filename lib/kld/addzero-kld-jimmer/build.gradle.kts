@@ -1,13 +1,13 @@
 plugins {
     id("kmp-ksp")
-    id("kmp-json")
+    id("kmp-json-withtool")
 }
 
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+//                implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
                 implementation(projects.lib.kld.addzeroKaleidoscopeKsp)
                 implementation(projects.lib.kld.addzeroKaleidoscopeCodegen)
             }

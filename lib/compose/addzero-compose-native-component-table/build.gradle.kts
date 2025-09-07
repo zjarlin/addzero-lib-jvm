@@ -1,18 +1,20 @@
 
 plugins {
     id("kmp-component")
-    id("kmp-json")
+    id("kmp-json-withtool")
 //    id("kmp-koin")
-    id("ksp4self")
+//    id("ksp4self")
 }
-dependencies {
-    kspCommonMainMetadata(projects.lib.compose.addzeroComposePropsProcessor)
-}
+//dependencies {
+//    kspCommonMainMetadata(projects.lib.compose.addzeroComposePropsProcessor)
+//}
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+            implementation(projects.lib.compose.addzeroComposeNativeComponentCard)
+//            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
             implementation(projects.lib.compose.addzeroComposePropsAnnotations)
+           api (projects.lib.compose.addzeroComposeNativeComponentTableCore)
         }
     }
 }

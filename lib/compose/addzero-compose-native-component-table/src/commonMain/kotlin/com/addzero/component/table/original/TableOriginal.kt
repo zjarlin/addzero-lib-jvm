@@ -17,10 +17,10 @@ import com.addzero.component.table.original.render.RenderFixedActionColumn
 import com.addzero.component.table.original.render.RenderFixedIndexColumn
 import com.addzero.component.table.original.render.RenderTableScrollableContent
 import com.addzero.component.table.original.tools.rememberAddTableAutoWidth
-import com.addzero.core.ext.toMap
+import com.addzero.core.ext.bean2map
 
 @Composable
-@ComposeAssist
+//@ComposeAssist
 inline fun <reified T, C> TableOriginal(
     data: List<T>,
     columns: List<C>,
@@ -36,11 +36,12 @@ inline fun <reified T, C> TableOriginal(
     // 行左侧插槽（如复选框）
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    noinline columnRightSlot: @Composable ((C) -> Unit)?=null
 ) {
     // 设置默认值
     val actualGetRowId = getRowId ?: {
-        val toMap = it?.toMap()
+        val toMap = it?.bean2map()
         toMap?.get("id") ?: ""
     }
     val actualTopSlot = topSlot ?: {}
@@ -57,7 +58,7 @@ inline fun <reified T, C> TableOriginal(
         }
     }
     val actualGetCellContent = getCellContent ?: { item, column ->
-        val toMap = item?.toMap()
+        val toMap = item?.bean2map()
         val toString = toMap?.get(getColumnKey(column)).toString()
         Text(text = toString)
     }
@@ -74,7 +75,7 @@ inline fun <reified T, C> TableOriginal(
         columns = columns,
         getColumnKey = getColumnKey,
         getCellText = { item, column ->
-            val m = item?.toMap()
+            val m = item?.bean2map()
             (m?.get(getColumnKey(column)) ?: "").toString()
         },
         layoutConfig = layoutConfig,
@@ -113,7 +114,8 @@ inline fun <reified T, C> TableOriginal(
                 emptyContentSlot = actualEmptyContentSlot,
                 getCellContent = actualGetCellContent,
                 rowLeftSlot = actualRowLeftSlot,
-                rowActionSlot = if (showFixedActionColumn) null else rowActionSlot
+                rowActionSlot = if (showFixedActionColumn) null else rowActionSlot,
+                columnRightSlot = columnRightSlot?:{},
             )
 
             // 序号列固定遮罩 - 只需要滚动状态和数据

@@ -19,6 +19,7 @@ fun <C> RenderTableHeaderRow(
     columns: List<C>,
     getColumnKey: (C) -> String,
     getColumnLabel: @Composable (C) -> Unit,
+    columnRightSlot: @Composable (C) -> Unit ,
     horizontalScrollState: ScrollState,
     columnConfigs: List<ColumnConfig>,
     layoutConfig: TableLayoutConfig,
@@ -50,6 +51,7 @@ fun <C> RenderTableHeaderRow(
                 ) {
                     Row {
                         getColumnLabel(column)
+                        columnRightSlot(column)
                     }
                 }
             }

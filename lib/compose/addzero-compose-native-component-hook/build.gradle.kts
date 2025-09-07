@@ -1,13 +1,13 @@
 plugins {
     id("kmp-component")
-    id("kmp-json")
-//    id("kmp-koin")
+    id("kmp-json-withtool")
+//    id("addzero-component")
 }
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
-            api(projects.lib.compose.addzeroComposeNativeComponent)
+            implementation(projects.lib.compose.addzeroComposeNativeComponent)
+           implementation (projects.lib.compose.addzeroComposeNativeComponentSelect)
         }
     }
 }

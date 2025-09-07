@@ -4,7 +4,6 @@ import com.addzero.component.table.original.TableOriginal
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -119,14 +118,14 @@ fun TableBigDataTest2() {
     }
 
     TableOriginal(
-        columns = bigColumns,
         data = bigDataSet,
+        columns = bigColumns,
         getColumnKey = { it.key },
         getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
+        columnConfigs = listOf(),
         getColumnLabel = { config ->
             Text(text = config.label)
-        },
-        columnConfigs = listOf(), //这里可以传列宽,列排序,列隐藏...
+        }, //这里可以传列宽,列排序,列隐藏...
         topSlot = {
             //一般渲染搜索区(搜索框,字段高级搜索)
         },
@@ -159,8 +158,7 @@ fun TableBigDataTest2() {
                 onDeleteClick = {}
             )
 
-        },
-        modifier = Modifier,
+        }
     )
 
 
