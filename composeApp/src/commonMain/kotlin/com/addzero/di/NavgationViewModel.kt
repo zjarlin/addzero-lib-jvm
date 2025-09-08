@@ -18,7 +18,6 @@ object NavgationViewModel {
     @Composable
     fun Initialize(controller: NavHostController) {
         _navController = controller
-
         NavHost(
             navController = controller,
             startDestination = SettingContext4Compose.HOME_SCREEN,
