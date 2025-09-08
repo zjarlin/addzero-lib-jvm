@@ -1,4 +1,4 @@
-package com.addzero.component.table.biz
+package com.addzero.component.table.vm.koin
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -6,12 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.AddFun.getIdExt
 
-abstract class BizTableViewModel<T, C> : ViewModel() {
-    abstract fun onSearch()
+class BizTableViewModel<T> : ViewModel() {
 
     var keyword by mutableStateOf("")
     var _data by mutableStateOf(emptyList<T>())
-    val currentPageIds = _data.map {it.getIdExt}
+    val currentPageIds = _data.map { it.getIdExt }
+    fun onSearch() {
+
+    }
 
     fun onSaveClick() {
         TODO("Not yet implemented")
@@ -37,11 +39,11 @@ abstract class BizTableViewModel<T, C> : ViewModel() {
         TODO("Not yet implemented")
     }
 
-     fun onDeleteClick() {
+    fun onDeleteClick() {
         TODO("Not yet implemented")
     }
 
-     fun queryPage() {
+    fun queryPage() {
         TODO("Not yet implemented")
     }
 

@@ -84,6 +84,7 @@ tasks.withType<KspAATask>().configureEach {
 
     if (name != "kspCommonMainKotlinMetadata") {
         dependsOn("kspCommonMainKotlinMetadata")
+        dependsOn(":lib:compose:addzero-compose-native-component-table-pro:kspCommonMainKotlinMetadata")
     }
     if (name != "kspKotlin") {
         dependsOn(":backend:model:kspKotlin")

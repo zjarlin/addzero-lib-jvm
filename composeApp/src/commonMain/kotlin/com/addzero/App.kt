@@ -62,6 +62,7 @@ private fun InitKoin() {
         printLogger()
         modules(
             defaultModule
+//            , TableProModule().module
         )
     }
 }

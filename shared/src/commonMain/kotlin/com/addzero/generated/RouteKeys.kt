@@ -8,6 +8,7 @@ import com.addzero.annotation.Route
  */
 object RouteKeys {
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
+    const val TABLE_BIG_DATA_TEST3 = "com.addzero.demo.TableBigDataTest3"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val TABLE_BIG_DATA_TEST2 = "com.addzero.demo.TableBigDataTest2"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
@@ -47,6 +48,7 @@ object RouteKeys {
      */
     val allMeta = listOf(
         Route(value = "组件示例", title = "富文本", routePath = "com.addzero.demo.RichTextDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.RichTextDemo"),
+        Route(value = "", title = "TableBigDataTest3", routePath = "com.addzero.demo.TableBigDataTest3", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TableBigDataTest3"),
         Route(value = "", title = "AddCardExample", routePath = "com.addzero.demo.AddCardExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.AddCardExample"),
         Route(value = "", title = "TableBigDataTest2", routePath = "com.addzero.demo.TableBigDataTest2", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.TableBigDataTest2"),
         Route(value = "组件示例", title = "UI组件测试", routePath = "com.addzero.demo.UIComponentsDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UIComponentsDemo"),
