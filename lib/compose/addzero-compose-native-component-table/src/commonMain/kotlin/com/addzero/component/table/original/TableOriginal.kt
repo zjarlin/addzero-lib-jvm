@@ -1,4 +1,5 @@
 package com.addzero.component.table.original
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -10,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.addzero.annotation.ComposeAssist
 import com.addzero.component.table.original.entity.ColumnConfig
 import com.addzero.component.table.original.entity.TableLayoutConfig
 import com.addzero.component.table.original.render.RenderFixedActionColumn
@@ -26,9 +26,9 @@ inline fun <reified T, C> TableOriginal(
     columns: List<C>,
     noinline getColumnKey: (C) -> String,
     noinline getRowId: ((T) -> Any)? = null,
-    columnConfigs: List<ColumnConfig> = emptyList(),
+    columnConfigs: List<ColumnConfig> ,
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
-    noinline getColumnLabel: @Composable (C) -> Unit,
+    noinline getColumnLabel: (@Composable (C) -> Unit)? = null,
     noinline topSlot: (@Composable () -> Unit)? = null,
     noinline bottomSlot: (@Composable () -> Unit)? = null,
     noinline emptyContentSlot: (@Composable () -> Unit)? = null,
@@ -37,12 +37,19 @@ inline fun <reified T, C> TableOriginal(
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    noinline columnRightSlot: @Composable ((C) -> Unit)?=null
+    noinline columnRightSlot: @Composable ((C) -> Unit)? = null
 ) {
     // 设置默认值
     val actualGetRowId = getRowId ?: {
         val toMap = it?.bean2map()
         toMap?.get("id") ?: ""
+    }
+    val actualGetColumnLabel = getColumnLabel ?: { config ->
+        Text(
+            text = columnConfigs.find { it.key == getColumnKey(config) }?.comment.toString(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
     val actualTopSlot = topSlot ?: {}
     val actualBottomSlot = bottomSlot ?: {}
@@ -110,12 +117,12 @@ inline fun <reified T, C> TableOriginal(
                 columnConfigs = mergedColumnConfigs,
                 layoutConfig = layoutConfig,
                 showActionColumn = showFixedActionColumn,
-                getColumnLabel = getColumnLabel,
+                getColumnLabel = actualGetColumnLabel,
                 emptyContentSlot = actualEmptyContentSlot,
                 getCellContent = actualGetCellContent,
                 rowLeftSlot = actualRowLeftSlot,
                 rowActionSlot = if (showFixedActionColumn) null else rowActionSlot,
-                columnRightSlot = columnRightSlot?:{},
+                columnRightSlot = columnRightSlot ?: {},
             )
 
             // 序号列固定遮罩 - 只需要滚动状态和数据

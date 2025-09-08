@@ -122,10 +122,13 @@ fun TableBigDataTest2() {
         columns = bigColumns,
         getColumnKey = { it.key },
         getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
-        columnConfigs = listOf(),
+        columnConfigs =listOf(),
         getColumnLabel = { config ->
-            Text(text = config.label)
-        }, //这里可以传列宽,列排序,列隐藏...
+            Text(
+                text = config.label,
+                textAlign = TextAlign.Center
+            )
+        }, //这里可以传列宽,列排序,列隐藏... 美化一下列名,要居中显示
         topSlot = {
             //一般渲染搜索区(搜索框,字段高级搜索)
         },
