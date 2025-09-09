@@ -2,7 +2,8 @@ package com.addzero.component.table.biz
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Filter1
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,9 +24,12 @@ fun <C> RenderFilterButton(column: C, getColumnKey: (C) -> String) {
         return
     }
 
+    // 检查当前字段是否有过滤条件
+    val hasFilter = tableSortViewModel._filterStateMap.containsKey(columnKey)
+
     AddIconButton(
         text = "高级搜索",
-        imageVector = Icons.Default.Filter1,
+        imageVector = if (hasFilter) Icons.Default.FilterList else Icons.Default.FilterAlt,
         tint = MaterialTheme.colorScheme.primary,
         modifier = Modifier.size(16.dp)
     ) {
