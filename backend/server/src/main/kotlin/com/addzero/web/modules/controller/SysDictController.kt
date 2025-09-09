@@ -21,7 +21,7 @@ class SysDictController : BaseTreeApi<SysDict> {
     @GetMapping("/querydict")
 
     fun querydict(@RequestParam keyword: String): List<SysDict> {
-        throw BizException("dddddddddd")
+//        throw BizException("dddddddddd")
         val createQuery = sql.executeQuery(SysDict::class) {
             where(
                 or(
