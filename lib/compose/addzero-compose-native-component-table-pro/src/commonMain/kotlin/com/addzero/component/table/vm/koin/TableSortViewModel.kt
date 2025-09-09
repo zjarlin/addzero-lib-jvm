@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSort
 import com.addzero.str.removeIf
-import org.koin.android.annotation.KoinViewModel
 
 class TableSortViewModel : ViewModel() {
     var _sortState by mutableStateOf(
@@ -18,12 +17,12 @@ class TableSortViewModel : ViewModel() {
         )
     )
 
-   fun getSortDirection(columnKey: String): EnumSortDirection {
-    return _sortState.find {
-        it.columnKey ==
-                columnKey
-    }?.direction ?: EnumSortDirection.NONE
-}
+    fun getSortDirection(columnKey: String): EnumSortDirection {
+        return _sortState.find {
+            it.columnKey ==
+                    columnKey
+        }?.direction ?: EnumSortDirection.NONE
+    }
 
 
     fun changeSorting(columnKey: String) {

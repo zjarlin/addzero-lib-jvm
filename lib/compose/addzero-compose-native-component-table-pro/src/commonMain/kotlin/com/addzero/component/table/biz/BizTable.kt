@@ -9,7 +9,6 @@ import com.addzero.component.table.original.entity.ColumnConfig
 import com.addzero.component.table.original.entity.TableLayoutConfig
 import com.addzero.component.table.vm.TableFilterViewModel
 import com.addzero.component.table.vm.koin.*
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 inline fun <reified T, C> BizTable(

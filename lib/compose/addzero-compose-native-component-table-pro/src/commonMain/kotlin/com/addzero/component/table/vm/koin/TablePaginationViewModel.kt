@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.component.table.original.entity.StatePagination
-import org.koin.android.annotation.KoinViewModel
 
 class TablePaginationViewModel : ViewModel() {
     var showPagination by mutableStateOf(true)

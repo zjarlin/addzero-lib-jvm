@@ -4,15 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import org.koin.android.annotation.KoinViewModel
-import kotlin.collections.plus
 
 class TableSelectedViewModel<T> : ViewModel() {
     /** 编辑模式 */
 
     /** 选中的ids */
     var _selectedItemIds by mutableStateOf(setOf<Any>())
-
 
 
     /**
