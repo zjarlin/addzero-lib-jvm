@@ -8,17 +8,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.addzero.component.text.BlueText
+import com.addzero.compose.icons.IconMap
+import com.addzero.generated.RouteKeys
 import com.addzero.generated.isomorphic.SysFavoriteTabIso
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
 import com.addzero.viewmodel.SysRouteViewModel
@@ -87,6 +89,7 @@ fun FavoriteTabsBar(modifier: Modifier = Modifier) {
                 .rotate(leftStarRotation)
                 .scale(starScale)
         )
+        BlueText("常用标签页")
 
         Spacer(modifier = Modifier.width(8.dp))
 
@@ -180,28 +183,16 @@ private fun FavoriteTabItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-//            AddIconText()
-            // 图标
-//            if (tab.icon.isNotBlank()) {
-//                val iconData = IconMap[tab.icon]
-//                Icon(
-//                    imageVector = iconData.vector,
-//                    contentDescription = null,
-//                    tint = contentColor,
-//                    modifier = Modifier.size(16.dp)
-//                )
-//            }
 
-            // 标题
-//            Text(
-//                text = tab.title,
-//                color = contentColor,
-//                style = MaterialTheme.typography.labelMedium.copy(
-//                    fontWeight = if (isActive) FontWeight.Medium else FontWeight.Normal
-//                ),
-//                maxLines = 1,
-//                overflow = TextOverflow.Ellipsis
-//            )
+            Text(
+                text = RouteKeys.allMeta.find { it.routePath == tab.routeKey }?.title.toString(),
+                color = contentColor,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = if (isActive) FontWeight.Medium else FontWeight.Normal
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 
             // 移除按钮（仅在激活状态或鼠标悬停时显示）
             if (isActive) {
