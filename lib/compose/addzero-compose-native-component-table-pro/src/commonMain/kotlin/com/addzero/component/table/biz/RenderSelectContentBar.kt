@@ -11,16 +11,12 @@ import androidx.compose.ui.unit.dp
 import com.addzero.component.button.AddButton
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.table.vm.koin.BizTableViewModel
-import com.addzero.component.table.vm.koin.TableButtonViewModel
 import com.addzero.component.table.vm.koin.TableSelectedViewModel
 
 @Composable
-context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: BizTableViewModel<*>,
-
-    tablebuttonViewModel: TableButtonViewModel,
-)
+context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: BizTableViewModel<*>)
 fun <T> RenderSelectContent() {
-    if (tablebuttonViewModel.editModeFlag && tableSelectedViewModel._selectedItemIds.isNotEmpty()) {
+    if (bizTableViewModel.editModeFlag && tableSelectedViewModel._selectedItemIds.isNotEmpty()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
             horizontalArrangement = Arrangement.End,

@@ -19,22 +19,21 @@ import com.addzero.entity.low_table.EnumSearchOperator
 @Composable
 context(tableFilterViewModel: TableFilterViewModel<*>)
 fun RenderAdvSearchDrawer() {
-    if (!tableFilterViewModel.showFieldAdvSearch) {
+    if (!tableFilterViewModel.showFieldAdvSearchDrawer) {
         return
     }
     AddDrawer(
-        visible = tableFilterViewModel.showFieldAdvSearch,
+        visible = tableFilterViewModel.showFieldAdvSearchDrawer,
         title = "高级搜索",
-        onClose = { tableFilterViewModel.showFieldAdvSearch = false },
+        onClose = { tableFilterViewModel.showFieldAdvSearchDrawer = false },
         onSubmit = {
             tableFilterViewModel._filterStateMap = (tableFilterViewModel._filterStateMap + mapOf(
                 tableFilterViewModel.getCurrentColumnKey() to tableFilterViewModel._currentStateSearch
             )).toMutableMap()
+           tableFilterViewModel.showFieldAdvSearchDrawer=false
         },
     ) {
         Column {
-
-
             AddSelect(
                 title = "逻辑符",
                 value = tableFilterViewModel._currentStateSearch.logicType,

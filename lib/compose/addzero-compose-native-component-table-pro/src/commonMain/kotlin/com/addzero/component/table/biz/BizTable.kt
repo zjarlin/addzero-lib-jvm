@@ -29,19 +29,21 @@ inline fun <reified T, C> BizTable(
     modifier: Modifier = Modifier,
     noinline columnRightSlot: @Composable ((C) -> Unit)? = null, noinline buttonSlot: @Composable () -> Unit = {}
 ) {
-    val bizTableViewModel = BizTableViewModel<T>()
     val tableFilterViewModel = TableFilterViewModel(getColumnKey, columnConfigs)
     val tableSelectedViewModel = TableSelectedViewModel<T>()
-    val tableButtonViewModel = TableButtonViewModel()
+//    val tableButtonViewModel = TableButtonViewModel()
     val tablePaginationViewModel = TablePaginationViewModel()
     val tableSortViewModel = TableSortViewModel()
+    val bizTableViewModel = BizTableViewModel<T>()
+
     context(
         bizTableViewModel,
         tableFilterViewModel,
-        tableButtonViewModel,
+//        tableButtonViewModel,
         tablePaginationViewModel,
         tableSelectedViewModel,
         tableSortViewModel,
+        columnConfigs,
     ) {
         TableOriginal(
             data = data,
@@ -82,10 +84,14 @@ inline fun <reified T, C> BizTable(
             },
             modifier = modifier,
             columnRightSlot = columnRightSlot ?: {
-                RenderSort(it, getColumnKey)
-                RenderAdvSearchDrawer()
+                RenderSortButton(it, getColumnKey)
+                RenderFilterButton(it, getColumnKey)
             }
         )
+
+        //右侧的高级搜索面板
+        RenderAdvSearchDrawer()
+
 
     }
 

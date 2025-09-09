@@ -6,13 +6,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.AddFun.getIdExt
 
-class BizTableViewModel<T> : ViewModel() {
+class TableUiViewModel : ViewModel() {
+}
+
+class BizTableViewModel<T>() : ViewModel() {
+    /** 编辑模式 */
+
+    var editModeFlag by mutableStateOf(false)
 
     var keyword by mutableStateOf("")
     var _data by mutableStateOf(emptyList<T>())
     val currentPageIds = _data.map { it.getIdExt }
     fun onSearch() {
-
     }
 
     fun onSaveClick() {

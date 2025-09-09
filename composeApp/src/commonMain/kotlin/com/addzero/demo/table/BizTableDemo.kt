@@ -1,5 +1,6 @@
 package com.addzero.demo.table
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.addzero.annotation.Route
 import com.addzero.component.table.biz.BizTable
@@ -15,17 +16,15 @@ fun TableBigDataTest3() {
         columns = bigColumns,
         getColumnKey = { it.key },
 //        getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
-        columnConfigs = listOf(
-            ColumnConfig("field001", "字段1"),
-            ColumnConfig("field002", "字段2"),
-            ColumnConfig("field003", "字段3"),
-            ColumnConfig("field004", "字段4"),
-        ),
-//        getColumnLabel = TODO(),
-//        getColumnLabel = TODO(),
-//        getColumnLabel = { config ->
-//            Text(text = config.)
-//        },
+//        columnConfigs = listOf(
+//            ColumnConfig("field001", "字段1"),
+//            ColumnConfig("field002", "字段2"),
+//            ColumnConfig("field003", "字段3"),
+//            ColumnConfig("field004", "字段4"),
+//        ),
+        getColumnLabel = { config ->
+            Text(text = config.label)
+        },
 //        buttonSlot = {},
 //        topSlot = {
 //            //一般渲染搜索区(搜索框,字段高级搜索)

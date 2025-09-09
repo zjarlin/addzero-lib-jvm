@@ -11,10 +11,11 @@ data class ColumnConfig(
     /**
      * 列的唯一标识符
      */
-    val key: String="",
+    val key: String = "",
 
-    val comment: String="",
-    val kmpType: String="",
+    val comment: String = "",
+
+    val kmpType: String = "",
 
     /**
      * 列宽度（dp）
@@ -24,6 +25,10 @@ data class ColumnConfig(
     /**
      * 列顺序（用于排序）
      */
-    val order: Int = 0
+    val order: Int = 0,
+
+    val showFilter: Boolean = true,
+
+    val showSort: Boolean = true,
 )
 

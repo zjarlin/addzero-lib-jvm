@@ -22,7 +22,6 @@ class TableSelectedViewModel<T> : ViewModel() {
         return currentPageIds.isNotEmpty() && selectedPageIds.size == currentPageIds.size
     }
 
-//   context(addCleanTableViewModel: AddCleanTableViewModel<*>)
 
     fun togglePageSelection(
         pageIds: List<Any>

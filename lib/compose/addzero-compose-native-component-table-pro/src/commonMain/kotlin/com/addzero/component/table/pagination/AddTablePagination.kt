@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.addzero.component.card.AddCard
 import com.addzero.component.card.MellumCardType
 import com.addzero.component.dropdown.AddSelect
 import com.addzero.component.dropdown.SelectMode
@@ -63,7 +64,7 @@ fun AddTablePagination(
 ) {
     if (!enablePagination) return
 
-    _root_ide_package_.com.addzero.component.card.AddCard(
+    AddCard(
         modifier = modifier.fillMaxWidth(),
         backgroundType = cardType,
         cornerRadius = 12.dp,

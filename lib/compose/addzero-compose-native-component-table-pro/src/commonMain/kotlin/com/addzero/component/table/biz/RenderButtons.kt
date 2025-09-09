@@ -11,13 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.table.vm.koin.BizTableViewModel
-import com.addzero.component.table.vm.koin.TableButtonViewModel
 
 @Composable
-context(tableButtonViewModel: TableButtonViewModel
-
-, bizTableViewModel: BizTableViewModel<*>
-)
+context( bizTableViewModel: BizTableViewModel<*> )
 fun RenderButtons(buttonSlot: @Composable () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -25,10 +21,10 @@ fun RenderButtons(buttonSlot: @Composable () -> Unit) {
         buttonSlot()
         // 多选模式按钮
         AddIconButton(
-            text = if (tableButtonViewModel.editModeFlag) "退出多选" else "多选",
-            imageVector = if (tableButtonViewModel.editModeFlag) Icons.Default.Deselect else Icons.Default.SelectAll
+            text = if (bizTableViewModel.editModeFlag) "退出多选" else "多选",
+            imageVector = if (bizTableViewModel.editModeFlag) Icons.Default.Deselect else Icons.Default.SelectAll
         ) {
-            tableButtonViewModel.editModeFlag = !tableButtonViewModel.editModeFlag
+            bizTableViewModel.editModeFlag = !bizTableViewModel.editModeFlag
         }
         // 新增按钮
         AddIconButton(

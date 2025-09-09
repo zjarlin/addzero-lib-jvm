@@ -9,9 +9,8 @@ import com.addzero.entity.low_table.StateSearch
 
 class TableFilterViewModel<C>(private val getColumnKey: (C) -> String, columnConfigs: List<ColumnConfig>) :
     ViewModel() {
-    var showFieldAdvSearch by mutableStateOf(false)
+    var showFieldAdvSearchDrawer by mutableStateOf(false)
 
-    //    var showAdvancedSearch by mutableStateOf(false)
     var _filterStateMap by mutableStateOf(mapOf<String, StateSearch>())
     var _currentClickColumn by mutableStateOf(null as C?)
 

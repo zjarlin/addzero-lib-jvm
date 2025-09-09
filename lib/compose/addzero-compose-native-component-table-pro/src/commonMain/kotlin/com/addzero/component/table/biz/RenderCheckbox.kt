@@ -10,16 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.addzero.component.high_level.AddTooltipBox
 import com.addzero.component.table.vm.koin.BizTableViewModel
-import com.addzero.component.table.vm.koin.TableButtonViewModel
 import com.addzero.component.table.vm.koin.TableSelectedViewModel
 
 @Composable
-context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: BizTableViewModel<*>,
-    tablebuttonViewModel: TableButtonViewModel
+context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: BizTableViewModel<*>
 )
 
 fun <T> RenderCheckbox() {
-    if (!tablebuttonViewModel.editModeFlag) {
+    if (!bizTableViewModel.editModeFlag) {
         return
     }
     val pageIds = bizTableViewModel.currentPageIds

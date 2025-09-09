@@ -30,7 +30,7 @@ data class TestDataModel(
 
 data class TestColumn(
     val key: String,
-//    val label: String,
+    val label: String,
 //    val color: Color? = null,
 //    val fontWeight: FontWeight? = null,
 //    val textAlign: TextAlign? = null,
@@ -90,7 +90,7 @@ fun mockData(): Pair<List<TestDataModel>, List<TestColumn>> {
         (1..20).map { index ->
             TestColumn(
                 key = "field${index.toString().padStart(3, '0')}",
-//                label = "字段$index",
+                label = "字段$index",
 //                color = when (index % 5) {
 //                    0 -> Color(0xFF4CAF50)
 //                    1 -> Color(0xFF2196F3)
