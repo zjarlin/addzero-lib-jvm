@@ -48,7 +48,7 @@ inline fun <reified T, reified C> TableOriginal(
     val actualGetColumnLabel = getColumnLabel ?: { column ->
         val columnKey = getColumnKey(column)
         val comment = columnConfigs.find { it.key == columnKey }?.comment
-        val text = comment?.ifBlank { columnKey }?:columnKey
+        val text =( comment?.ifBlank { columnKey })?:columnKey
         Text(
             text = text, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
         )
