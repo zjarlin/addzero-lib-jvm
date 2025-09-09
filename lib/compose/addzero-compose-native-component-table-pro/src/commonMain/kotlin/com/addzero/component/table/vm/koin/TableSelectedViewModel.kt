@@ -6,8 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
 class TableSelectedViewModel<T> : ViewModel() {
-    /** 编辑模式 */
-
     /** 选中的ids */
     var _selectedItemIds by mutableStateOf(setOf<Any>())
 
@@ -18,7 +16,7 @@ class TableSelectedViewModel<T> : ViewModel() {
      * @return [Boolean]
      */
     fun isPageAllSelected(currentPageIds: List<Any>): Boolean {
-        val selectedPageIds = _selectedItemIds.map { it.toString() }.toSet().intersect(currentPageIds)
+        val selectedPageIds = _selectedItemIds.map { it.toString() }.toSet().intersect(currentPageIds.map { it.toString() }.toSet())
         return currentPageIds.isNotEmpty() && selectedPageIds.size == currentPageIds.size
     }
 
@@ -41,7 +39,7 @@ class TableSelectedViewModel<T> : ViewModel() {
     }
 
     fun selectPageItems(pageIds: List<Any>) {
-        _selectedItemIds + pageIds
+        _selectedItemIds = _selectedItemIds + pageIds
     }
 
 

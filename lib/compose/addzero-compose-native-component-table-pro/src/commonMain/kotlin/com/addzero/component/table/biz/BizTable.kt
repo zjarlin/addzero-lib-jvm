@@ -34,7 +34,9 @@ inline fun <reified T, reified C> BizTable(
 //    val tableButtonViewModel = TableButtonViewModel()
     val tablePaginationViewModel = TablePaginationViewModel()
     val tableSortViewModel = TableSortViewModel()
-    val bizTableViewModel = BizTableViewModel<T>()
+    val bizTableViewModel = BizTableViewModel<T>().apply {
+        _data = data
+    }
 
     context(
         bizTableViewModel,
@@ -69,7 +71,7 @@ inline fun <reified T, reified C> BizTable(
             emptyContentSlot = emptyContentSlot,
             getCellContent = getCellContent,
             rowLeftSlot = rowLeftSlot ?: { item, index ->
-                RenderCheckbox()
+                RenderCheckbox(item)
             },
             rowActionSlot = rowActionSlot ?: {
 

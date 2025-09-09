@@ -27,7 +27,6 @@ fun <T, C> RenderTableBodyRow(
     getCellContent: @Composable ((item: T, column: C) -> Unit),
     horizontalScrollState: ScrollState,
     rowLeftSlot: @Composable ((item: T, index: Int) -> Unit),
-    rowActionSlot: (@Composable ((item: T) -> Unit))?,
     layoutConfig: TableLayoutConfig,
     showActionColumn: Boolean
 ) {
@@ -60,10 +59,6 @@ fun <T, C> RenderTableBodyRow(
         ) {
             // 行左侧插槽（如复选框）
             rowLeftSlot(item, index)
-
-            // 左侧为固定序号列预留占位，避免重复渲染
-            Spacer(modifier = Modifier.width(layoutConfig.indexColumnWidthDp.dp).fillMaxHeight())
-
             // 数据列（按列配置宽度渲染）
             columns.forEach { column ->
                 val columnKey = getColumnKey(column)

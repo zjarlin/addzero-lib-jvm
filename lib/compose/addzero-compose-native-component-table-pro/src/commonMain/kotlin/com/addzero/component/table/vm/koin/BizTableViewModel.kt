@@ -1,5 +1,6 @@
 package com.addzero.component.table.vm.koin
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,13 +8,14 @@ import androidx.lifecycle.ViewModel
 import com.addzero.assist.AddFun.getIdExt
 
 class BizTableViewModel<T>() : ViewModel() {
-    /** 编辑模式 */
-
     var editModeFlag by mutableStateOf(false)
 
     var keyword by mutableStateOf("")
     var _data by mutableStateOf(emptyList<T>())
-    val currentPageIds = _data.map { it.getIdExt }
+    val currentPageIds by derivedStateOf {
+        _data.map { it.getIdExt }
+    }
+
     fun onSearch() {
     }
 

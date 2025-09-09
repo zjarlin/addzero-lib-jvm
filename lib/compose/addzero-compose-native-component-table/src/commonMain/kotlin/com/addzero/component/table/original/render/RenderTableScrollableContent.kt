@@ -29,7 +29,6 @@ fun <T, C> RenderTableScrollableContent(
     emptyContentSlot: @Composable () -> Unit,
     getCellContent: @Composable (item: T, column: C) -> Unit,
     rowLeftSlot: @Composable (item: T, index: Int) -> Unit,
-    rowActionSlot: (@Composable (item: T) -> Unit)?,
     columnRightSlot: @Composable ((C) -> Unit)
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -69,7 +68,6 @@ fun <T, C> RenderTableScrollableContent(
                         getCellContent = getCellContent,
                         horizontalScrollState = horizontalScrollState,
                         rowLeftSlot = rowLeftSlot,
-                        rowActionSlot = rowActionSlot,
                         layoutConfig = layoutConfig,
                         showActionColumn = showActionColumn
                     )

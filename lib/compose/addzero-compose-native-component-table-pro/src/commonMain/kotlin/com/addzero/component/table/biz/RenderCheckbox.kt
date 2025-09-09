@@ -1,14 +1,13 @@
 package com.addzero.component.table.biz
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.addzero.component.high_level.AddTooltipBox
 import com.addzero.component.table.vm.koin.BizTableViewModel
 import com.addzero.component.table.vm.koin.TableSelectedViewModel
 
@@ -16,19 +15,29 @@ import com.addzero.component.table.vm.koin.TableSelectedViewModel
 context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: BizTableViewModel<*>
 )
 
-fun <T> RenderCheckbox() {
+fun <T> RenderCheckbox(item: T) {
     if (!bizTableViewModel.editModeFlag) {
+        Box(modifier = Modifier.width(40.dp).fillMaxHeight())
         return
     }
-    val pageIds = bizTableViewModel.currentPageIds
-    AddTooltipBox("全选") {
-        Box(
-            modifier = Modifier.padding(horizontal = 4.dp).width(40.dp), contentAlignment = Alignment.Center
-        ) {
-            Checkbox(
-                checked = tableSelectedViewModel.isPageAllSelected(pageIds), onCheckedChange = {
-                    tableSelectedViewModel.togglePageSelection(pageIds = pageIds)
-                })
-        }
+
+    val itemId = item.hashCode() // 使用hashCode作为默认ID
+    val isChecked = tableSelectedViewModel._selectedItemIds.contains(itemId)
+
+    Box(
+        modifier = Modifier.width(40.dp).fillMaxHeight(),
+        contentAlignment = Alignment.Center
+    ) {
+        Checkbox(
+            checked = isChecked,
+            onCheckedChange = { checked ->
+                val pageIds = listOf(itemId)
+                if (checked) {
+                    tableSelectedViewModel.selectPageItems(pageIds)
+                } else {
+                    tableSelectedViewModel.unselectPageItems(pageIds)
+                }
+            }
+        )
     }
 }

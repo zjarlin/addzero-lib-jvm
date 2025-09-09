@@ -117,7 +117,6 @@ inline fun <reified T, reified C> TableOriginal(
                 emptyContentSlot = actualEmptyContentSlot,
                 getCellContent = actualGetCellContent,
                 rowLeftSlot = actualRowLeftSlot,
-                rowActionSlot = if (showFixedActionColumn) null else rowActionSlot,
                 columnRightSlot = columnRightSlot ?: {},
             )
 
