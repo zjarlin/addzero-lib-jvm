@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import com.addzero.component.toast.ToastListener
 import com.addzero.di.NavgationViewModel
 import com.addzero.events.EventBusConsumer
+import com.addzero.events.emitEventBus
 import com.addzero.ui.auth.LoginScreen
 import com.addzero.ui.infra.MainLayout
 import com.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
@@ -16,11 +17,13 @@ import com.addzero.viewmodel.LoginViewModel
 import com.addzero.viewmodel.SysRouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import org.koin.ksp.generated.defaultModule
 
 
 @Composable
 fun App() {
+
     InitKoin()
 //    emitEventBus()
     EventBusConsumer()
