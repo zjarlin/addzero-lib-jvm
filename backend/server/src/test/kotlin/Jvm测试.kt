@@ -1,9 +1,41 @@
 import com.addzero.common.util.excel.ExcelUtil
 import com.addzero.web.infra.jimmer.toMap
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import weatherutil.WeatherUtil
 
+//fun main() =
+
+fun log(message: Any?) {
+    println("[${Thread.currentThread().name}] $message")
+}
+
 class Jvm测试 {
+
+    @Test
+    fun test111() {
+        runBlocking<Unit> {
+            val channel = Channel<String>()
+            launch {
+                channel.send("A1")
+                channel.send("A2")
+                log("A done")
+            }
+            launch {
+                channel.send("B1")
+                log("B done")
+            }
+            launch {
+                repeat(3) {
+                    val x = channel.receive()
+                    log(x)
+                }
+            }
+        }
+    }
+
 
     @Test
     fun test1() {
@@ -19,14 +51,14 @@ class Jvm测试 {
     fun test2() {
 
         val flatMap = (7..12).flatMap {
-            val queryWeather = WeatherUtil.queryWeather("2023", it.toString(),
-                "57073", "2")
+            val queryWeather = WeatherUtil.queryWeather(
+                "2023", it.toString(), "57073", "2"
+            )
             queryWeather
         }
         val flatMap1 = (1..4).flatMap {
             val queryWeather = WeatherUtil.queryWeather(
-                "2024", it.toString(),
-                "57073", "2"
+                "2024", it.toString(), "57073", "2"
             )
             queryWeather
 

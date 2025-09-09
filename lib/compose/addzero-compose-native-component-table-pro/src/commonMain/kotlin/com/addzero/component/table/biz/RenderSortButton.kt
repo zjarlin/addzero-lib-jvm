@@ -13,6 +13,8 @@ import com.addzero.component.button.AddIconButton
 import com.addzero.component.table.original.entity.ColumnConfig
 import com.addzero.component.table.vm.koin.TableSortViewModel
 import com.addzero.entity.low_table.EnumSortDirection
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 
 @Composable
 context(tableSortViewModel: TableSortViewModel, columnConfigs: List<ColumnConfig>)
