@@ -1,6 +1,8 @@
 package com.addzero.demo.table
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextAlign
 import com.addzero.annotation.Route
 import com.addzero.component.table.biz.BizTable
 
@@ -20,12 +22,12 @@ fun TableBigDataTest3() {
 //            ColumnConfig("field003", "字段3"),
 //            ColumnConfig("field004", "字段4"),
 //        ),
-//        getColumnLabel = { config ->
-//            Text(
-//                text = config.label,
-//                textAlign = TextAlign.Center,
-//            )
-//        },
+        getColumnLabel = {
+            Text(
+                text = it.label,
+                textAlign = TextAlign.Center,
+            )
+        },
 //        buttonSlot = {},
 //        topSlot = {
 //            //一般渲染搜索区(搜索框,字段高级搜索)
