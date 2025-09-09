@@ -1,4 +1,4 @@
-package com.addzero.demo
+package com.addzero.demo.table
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

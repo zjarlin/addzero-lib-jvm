@@ -36,7 +36,7 @@ data class TableLayoutConfig(
 
 
     val indexColumnWidthDp: Float = 80f,
-    val actionColumnWidthDp: Float = 120f,
+    val actionColumnWidthDp: Float = 150f,
     // ui
     val headerHeightDp: Float = 56f,
     // ui

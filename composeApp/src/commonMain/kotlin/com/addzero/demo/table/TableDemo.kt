@@ -1,15 +1,9 @@
-package com.addzero.demo
+package com.addzero.demo.table
 
 import com.addzero.component.table.original.TableOriginal
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import com.addzero.annotation.Route
 import com.addzero.component.button.AddEditDeleteButton
-import kotlinx.serialization.Serializable
 
 @Route
 @Composable

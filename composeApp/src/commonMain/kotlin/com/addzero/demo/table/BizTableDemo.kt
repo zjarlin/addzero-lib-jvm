@@ -1,8 +1,9 @@
-package com.addzero.demo
+package com.addzero.demo.table
 
 import androidx.compose.runtime.Composable
 import com.addzero.annotation.Route
 import com.addzero.component.table.biz.AddBizTable
+import com.addzero.component.table.biz.BizTable
 import com.addzero.component.table.original.entity.ColumnConfig
 
 @Route
@@ -10,7 +11,7 @@ import com.addzero.component.table.original.entity.ColumnConfig
 fun TableBigDataTest3() {
     val (bigDataSet, bigColumns) = mockData()
 
-    AddBizTable(
+    BizTable(
         data = bigDataSet,
         columns = bigColumns,
         getColumnKey = { it.key },
