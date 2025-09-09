@@ -125,7 +125,7 @@ inline fun <reified T, reified C> TableOriginal(
                 verticalScrollState = verticalScrollState,
                 data = data,
                 layoutConfig = layoutConfig,
-                modifier = Modifier.align(Alignment.CenterStart).zIndex(-1f)
+                modifier = Modifier.align(Alignment.CenterStart).zIndex(-1f) // 恢复为负数，确保不遮挡行内容
             )
 
             if (showFixedActionColumn) {
@@ -134,7 +134,7 @@ inline fun <reified T, reified C> TableOriginal(
                     verticalScrollState = verticalScrollState,
                     data = data,
                     layoutConfig = layoutConfig,
-                    rowActionSlot = rowActionSlot
+                    rowActionSlot = rowActionSlot!!
                 )
             }
         }
