@@ -1,4 +1,4 @@
-package com.addzero.component.table.biz
+package com.addzero.component.table.biz.renders
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -10,16 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.addzero.component.button.AddIconButton
-import com.addzero.component.table.vm.koin.TableSortViewModel
 import com.addzero.entity.low_table.EnumSortDirection
 
 @Composable
-context(addCleanTableViewModel: TableSortViewModel)
-fun <C> RenderSort(column: C, getColumnKey: (C) -> String) {
-    val columnKey = getColumnKey(column)
-    val sortDirection = addCleanTableViewModel.getSortDirection(
-        columnKey
-    )
+fun RenderSort(
+    columnKey: String,
+    sortDirection: EnumSortDirection,
+    onSortChange: (String) -> Unit
+) {
     val (text, icon) = when (sortDirection) {
         EnumSortDirection.ASC -> "升序" to Icons.Default.ArrowUpward
         EnumSortDirection.DESC -> "降序" to Icons.Default.ArrowDownward
@@ -32,6 +30,6 @@ fun <C> RenderSort(column: C, getColumnKey: (C) -> String) {
         tint = MaterialTheme.colorScheme.primary,
         modifier = Modifier.size(16.dp)
     ) {
-        addCleanTableViewModel.changeSorting(columnKey)
+        onSortChange(columnKey)
     }
 }

@@ -10,9 +10,6 @@ import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.component.table.original.TableOriginal
 import com.addzero.component.table.original.entity.ColumnConfig
 import com.addzero.component.table.original.entity.TableLayoutConfig
-import com.addzero.component.table.vm.TableFilterViewModel
-import com.addzero.component.table.vm.koin.*
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 inline fun <reified T, C> BizTable(
@@ -31,66 +28,24 @@ inline fun <reified T, C> BizTable(
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    noinline columnRightSlot: @Composable ((C) -> Unit)? = null
-    , noinline buttonSlot: @Composable () -> Unit
+    noinline columnRightSlot: @Composable ((C) -> Unit)? = null,
+    noinline buttonSlot: @Composable () -> Unit
 ) {
-    val bizTableViewModel =BizTableViewModel<T>()
-    val tableFilterViewModel = TableFilterViewModel(getColumnKey, columnConfigs)
-    val tableSelectedViewModel = TableSelectedViewModel<T>()
-    context(
-        bizTableViewModel,
-        tableFilterViewModel,
-        koinViewModel<TableButtonViewModel>(),
-        koinViewModel<TablePaginationViewModel>(),
-        tableSelectedViewModel,
-        koinViewModel<TableSortViewModel>(),
-    ) {
-        TableOriginal(
-            data = data,
-            columns = columns,
-            getColumnKey = getColumnKey,
-            getRowId = getRowId,
-            columnConfigs = columnConfigs,
-            layoutConfig = layoutConfig,
-            getColumnLabel = getColumnLabel,
-            topSlot = topSlot ?: {
-                AddSearchBar(
-                    keyword = bizTableViewModel.keyword,
-                    onKeyWordChanged = { bizTableViewModel.keyword = it },
-                    onSearch = { bizTableViewModel.onSearch() },
-                    leftSloat = {
-                        RenderButtons(buttonSlot)
-                    })
-                RenderSelectContent()
-            },
-            bottomSlot = bottomSlot ?: {
-                RenderPagination()
-            },
-            emptyContentSlot = emptyContentSlot,
-            getCellContent = getCellContent,
-            rowLeftSlot = rowLeftSlot ?: { item, index ->
-                RenderCheckbox()
-            },
-            rowActionSlot = rowActionSlot ?: {
-                AddIconButton(
-                    text = "编辑", imageVector = Icons.Default.Edit, onClick = { bizTableViewModel.onEditClick() })
-
-                AddIconButton(
-                    text = "删除", imageVector = Icons.Default.Delete, onClick = {
-                        bizTableViewModel.onDeleteClick()
-                    }
-
-                )
-
-            },
-            modifier = modifier,
-            columnRightSlot = columnRightSlot ?: {
-                RenderSort(it, getColumnKey)
-                RenderAdvSearchDrawer()
-            }
-        )
-
-    }
-
-
+    TableOriginal(
+        data = data,
+        columns = columns,
+        getColumnKey = getColumnKey,
+        getRowId = getRowId,
+        columnConfigs = columnConfigs,
+        layoutConfig = layoutConfig,
+        getColumnLabel = getColumnLabel,
+        topSlot = topSlot,
+        bottomSlot = bottomSlot,
+        emptyContentSlot = emptyContentSlot,
+        getCellContent = getCellContent,
+        rowLeftSlot = rowLeftSlot,
+        rowActionSlot = rowActionSlot,
+        modifier = modifier,
+        columnRightSlot = columnRightSlot
+    )
 }
