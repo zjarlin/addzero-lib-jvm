@@ -38,8 +38,8 @@ fun <T> RenderFixedIndexColumn(
             .clipToBounds(),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp,
-        shadowElevation = 2.dp
+        tonalElevation = 6.dp, // 进一步增加海拔高度以提高可见性
+        shadowElevation = 4.dp
     ) {
         Column(modifier = Modifier.Companion.fillMaxSize()) {
             // 固定表头
@@ -51,16 +51,19 @@ fun <T> RenderFixedIndexColumn(
                     Text(
                         "#",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Companion.Bold),
-                        textAlign = TextAlign.Companion.Center
+                        textAlign = TextAlign.Companion.Center,
+                        color = MaterialTheme.colorScheme.primary // 使用主题主色
                     )
                 }
             }
 
             // 序号内容区域 - 根据主表格滚动位置动态渲染可见项
-            Box(
+            // Surface会自动处理文字颜色
+            Surface(
                 modifier = Modifier.Companion
                     .fillMaxSize()
-                    .clipToBounds()
+                    .clipToBounds(),
+                color = MaterialTheme.colorScheme.surface
             ) {
                 if (data.isNotEmpty()) {
                     // 只渲染可见的序号项，与主表格完全同步
@@ -68,27 +71,19 @@ fun <T> RenderFixedIndexColumn(
                         val itemIndex = itemInfo.index
                         if (itemIndex < data.size) {
                             val itemOffset = with(density) { itemInfo.offset.toDp() }
-
                             Surface(
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .fillMaxWidth()
                                     .height(layoutConfig.rowHeightDp.dp)
                                     .offset(y = itemOffset),
                                 shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.surface,
-                                tonalElevation = 1.dp
                             ) {
-                                Box(
-                                    modifier = Modifier.Companion
-                                        .fillMaxSize(),
-                                    contentAlignment = Alignment.Companion.Center
-                                ) {
-                                    Text(
-                                        "${itemIndex + 1}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Companion.Center
-                                    )
-                                }
+                                Text(
+                                    "${itemIndex + 1}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    textAlign = TextAlign.Center
+                                )
+
                             }
                         }
                     }
