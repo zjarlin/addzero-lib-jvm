@@ -2,8 +2,8 @@ package com.addzero.component.table.biz
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Filter1
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,7 +19,7 @@ fun <C> RenderFilterButton(column: C, getColumnKey: (C) -> String) {
 
     val columnKey = getColumnKey(column)
     val columnConfig = columnKey.findConfig()
-    val showSort = columnConfig?.showFilter?:true
+    val showSort = columnConfig?.showFilter ?: true
     if (!showSort) {
         return
     }
@@ -29,10 +29,11 @@ fun <C> RenderFilterButton(column: C, getColumnKey: (C) -> String) {
 
     AddIconButton(
         text = "高级搜索",
-        imageVector = if (hasFilter) Icons.Default.FilterList else Icons.Default.FilterAlt,
+        imageVector = if (hasFilter) Icons.Default.Filter1 else Icons.Default.FilterAlt,
         tint = MaterialTheme.colorScheme.primary,
         modifier = Modifier.size(16.dp)
     ) {
+        tableSortViewModel._currentClickColumn = column
         tableSortViewModel.showFieldAdvSearchDrawer = tableSortViewModel.showFieldAdvSearchDrawer.not()
     }
 }
