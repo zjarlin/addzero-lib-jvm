@@ -70,7 +70,7 @@ inline fun <reified T, reified C> BizTable(
             },
             emptyContentSlot = emptyContentSlot,
             getCellContent = getCellContent,
-            rowLeftSlot = rowLeftSlot ?: { item, index ->
+            rowLeftSlot = { item, index ->
                 RenderCheckbox(item)
             },
             rowActionSlot = rowActionSlot ?: {
@@ -80,14 +80,14 @@ inline fun <reified T, reified C> BizTable(
 
                         bizTableViewModel.onEditClick()
                     },
-                    { bizTableViewModel.onDeleteClick() }
+                    onDeleteClick = { bizTableViewModel.onDeleteClick() }
                 )
 
             },
             modifier = modifier,
-            columnRightSlot = columnRightSlot ?: {
-                RenderSortButton(it, getColumnKey)
-                RenderFilterButton(it, getColumnKey)
+            columnRightSlot = { column ->
+                RenderSortButton(column, getColumnKey)
+                RenderFilterButton(column, getColumnKey)
             }
         )
 

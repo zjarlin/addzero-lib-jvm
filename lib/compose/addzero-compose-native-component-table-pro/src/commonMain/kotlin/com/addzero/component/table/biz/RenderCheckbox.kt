@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.addzero.component.table.vm.koin.BizTableViewModel
 import com.addzero.component.table.vm.koin.TableSelectedViewModel
 
@@ -17,7 +18,7 @@ context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: Bi
 
 fun <T> RenderCheckbox(item: T) {
     if (!bizTableViewModel.editModeFlag) {
-        Box(modifier = Modifier.width(40.dp).fillMaxHeight())
+        Box(modifier = Modifier.width(40.dp).fillMaxHeight().zIndex(2f))
         return
     }
 
@@ -25,7 +26,7 @@ fun <T> RenderCheckbox(item: T) {
     val isChecked = tableSelectedViewModel._selectedItemIds.contains(itemId)
 
     Box(
-        modifier = Modifier.width(40.dp).fillMaxHeight(),
+        modifier = Modifier.width(40.dp).fillMaxHeight().zIndex(2f),
         contentAlignment = Alignment.Center
     ) {
         Checkbox(

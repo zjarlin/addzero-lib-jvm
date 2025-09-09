@@ -125,7 +125,7 @@ inline fun <reified T, reified C> TableOriginal(
                 verticalScrollState = verticalScrollState,
                 data = data,
                 layoutConfig = layoutConfig,
-                modifier = Modifier.align(Alignment.CenterStart).zIndex(1f)
+                modifier = Modifier.align(Alignment.CenterStart).zIndex(0f)
             )
 
             if (showFixedActionColumn) {
