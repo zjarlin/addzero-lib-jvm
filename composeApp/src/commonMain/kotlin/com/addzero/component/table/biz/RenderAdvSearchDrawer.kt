@@ -15,7 +15,6 @@ import com.addzero.component.form.DynamicFormItem
 import com.addzero.component.table.vm.TableFilterViewModel
 import com.addzero.entity.low_table.EnumLogicOperator
 import com.addzero.entity.low_table.EnumSearchOperator
-import kotlin.collections.plus
 
 @Composable
 context(tableFilterViewModel: TableFilterViewModel<*>)
@@ -29,7 +28,7 @@ fun RenderAdvSearchDrawer() {
         onClose = { tableFilterViewModel.showFieldAdvSearch = false },
         onSubmit = {
             tableFilterViewModel._filterStateMap = (tableFilterViewModel._filterStateMap + mapOf(
-                tableFilterViewModel.currentColumnKey to tableFilterViewModel._currentStateSearch
+                tableFilterViewModel.getCurrentColumnKey() to tableFilterViewModel._currentStateSearch
             )).toMutableMap()
         },
     ) {
@@ -41,7 +40,8 @@ fun RenderAdvSearchDrawer() {
                 value = tableFilterViewModel._currentStateSearch.logicType,
                 items = EnumLogicOperator.entries,
                 onValueChange = {
-                    tableFilterViewModel._currentStateSearch = tableFilterViewModel._currentStateSearch.copy(logicType = it)
+                    tableFilterViewModel._currentStateSearch =
+                        tableFilterViewModel._currentStateSearch.copy(logicType = it)
                 },
             )
 
@@ -54,7 +54,8 @@ fun RenderAdvSearchDrawer() {
                 value = tableFilterViewModel._currentStateSearch.operator,
                 items = EnumSearchOperator.entries,
                 onValueChange = {
-                    tableFilterViewModel._currentStateSearch = tableFilterViewModel._currentStateSearch.copy(operator = it)
+                    tableFilterViewModel._currentStateSearch =
+                        tableFilterViewModel._currentStateSearch.copy(operator = it)
                 },
             )
 
@@ -66,10 +67,14 @@ fun RenderAdvSearchDrawer() {
 
             // 输入框
             DynamicFormItem(
-                value = tableFilterViewModel._currentStateSearch.columnValue, onValueChange = {
-                    tableFilterViewModel._currentStateSearch = tableFilterViewModel._currentStateSearch.copy(columnValue = it)
+                value = tableFilterViewModel._currentStateSearch.columnValue,
+                onValueChange = {
+                    tableFilterViewModel._currentStateSearch =
+                        tableFilterViewModel._currentStateSearch.copy(columnValue = it)
 
-                }, title = tableFilterViewModel.currentColumnLabel, kmpType = tableFilterViewModel.currentColumnKmpType.toString()
+                },
+                title = tableFilterViewModel.currentColumnLabel,
+                kmpType = tableFilterViewModel.currentColumnKmpType.toString()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -78,7 +83,10 @@ fun RenderAdvSearchDrawer() {
 
             AddIconButton(
                 text = "清除条件", imageVector = Icons.Default.Close,
-                onClick = { tableFilterViewModel._filterStateMap.toMutableMap().remove(tableFilterViewModel.currentColumnKey) },
+                onClick = {
+                    tableFilterViewModel._filterStateMap.toMutableMap()
+                        .remove(tableFilterViewModel.getCurrentColumnKey())
+                },
             )
         }
     }

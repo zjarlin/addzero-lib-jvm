@@ -22,7 +22,7 @@ inline fun <reified T, C> BizTable(
     noinline getRowId: ((T) -> Any)? = null,
     columnConfigs: List<ColumnConfig> = emptyList(),
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
-    noinline getColumnLabel: @Composable (C) -> Unit,
+    noinline getColumnLabel: (@Composable (C) -> Unit)? = null,
     noinline topSlot: (@Composable () -> Unit)? = null,
     noinline bottomSlot: (@Composable () -> Unit)? = null,
     noinline emptyContentSlot: (@Composable () -> Unit)? = null,
@@ -32,7 +32,7 @@ inline fun <reified T, C> BizTable(
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
     noinline columnRightSlot: @Composable ((C) -> Unit)? = null
-    , noinline buttonSlot: @Composable () -> Unit
+    , noinline buttonSlot: @Composable () -> Unit={}
 ) {
     val bizTableViewModel =BizTableViewModel<T>()
     val tableFilterViewModel = TableFilterViewModel(getColumnKey, columnConfigs)
