@@ -8,8 +8,8 @@ plugins {
 val componentModules = rootProject.subprojects
     .filter { it.name.startsWith("addzero-compose-native-component-") &&
      it.name != "addzero-compose-native-component"
-            &&
-        it.name != "addzero-compose-native-component-table-pro"
+//            &&
+//        it.name != "addzero-compose-native-component-table-pro"
      }
     .map { it }
 //componentModules.forEach {

@@ -2,6 +2,7 @@ package com.addzero.demo
 
 import androidx.compose.runtime.Composable
 import com.addzero.annotation.Route
+import com.addzero.component.table.biz.AddBizTable
 import com.addzero.component.table.biz.BizTable
 import com.addzero.component.table.original.entity.ColumnConfig
 
@@ -10,7 +11,7 @@ import com.addzero.component.table.original.entity.ColumnConfig
 fun TableBigDataTest3() {
     val (bigDataSet, bigColumns) = mockData()
 
-    BizTable(
+    AddBizTable(
         data = bigDataSet,
         columns = bigColumns,
         getColumnKey = { it.key },
@@ -21,6 +22,8 @@ fun TableBigDataTest3() {
             ColumnConfig("field003", "字段3"),
             ColumnConfig("field004", "字段4"),
         ),
+//        getColumnLabel = TODO(),
+//        getColumnLabel = TODO(),
 //        getColumnLabel = { config ->
 //            Text(text = config.)
 //        },
