@@ -3,7 +3,6 @@ package com.addzero.demo
 import androidx.compose.runtime.Composable
 import com.addzero.annotation.Route
 import com.addzero.component.table.biz.AddBizTable
-import com.addzero.component.table.biz.BizTable
 import com.addzero.component.table.original.entity.ColumnConfig
 
 @Route

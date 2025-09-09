@@ -3,19 +3,11 @@ package com.addzero.component.table.biz
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.search_bar.AddSearchBar
-import com.addzero.component.table.biz.renders.RenderButtons
-import com.addzero.component.table.biz.renders.RenderCheckbox
-import com.addzero.component.table.biz.renders.RenderPagination
-import com.addzero.component.table.biz.renders.RenderSelectContent
-import com.addzero.component.table.biz.renders.RenderSort
+import com.addzero.component.table.biz.renders.*
 import com.addzero.component.table.original.TableOriginal
 import com.addzero.component.table.original.entity.ColumnConfig
 import com.addzero.component.table.original.entity.StatePagination
@@ -31,7 +23,7 @@ inline fun <reified T, C> AddBizTable(
     noinline getRowId: ((T) -> Any)? = null,
     columnConfigs: List<ColumnConfig> = emptyList(),
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
-    noinline getColumnLabel: (@Composable (C) -> Unit)?=null,
+    noinline getColumnLabel: (@Composable (C) -> Unit)? = null,
     noinline topSlot: (@Composable () -> Unit)? = null,
     noinline bottomSlot: (@Composable () -> Unit)? = null,
     noinline emptyContentSlot: (@Composable () -> Unit)? = null,
@@ -40,14 +32,6 @@ inline fun <reified T, C> AddBizTable(
     modifier: Modifier = Modifier,
     noinline columnRightSlot: @Composable ((C) -> Unit)? = null,
     noinline buttonSlot: @Composable () -> Unit = {},
-    // AddBizTable 特有参数
-    showPagination: Boolean = true,
-    showSearchBar: Boolean = true,
-    showBatchActions: Boolean = true,
-    showRowSelection: Boolean = true,
-    showDefaultRowActions: Boolean = true,
-    enableSorting: Boolean = true,
-    enableAdvancedSearch: Boolean = true
 ) {
     // 内部状态管理
     var keyword by remember { mutableStateOf("") }
@@ -56,11 +40,17 @@ inline fun <reified T, C> AddBizTable(
     var pageState by remember { mutableStateOf(StatePagination()) }
     var sortState by remember { mutableStateOf(mapOf<String, EnumSortDirection>()) }
     var filterStateMap by remember { mutableStateOf(mapOf<String, StateSearch>()) }
-    var showFieldAdvSearch by remember { mutableStateOf(false) }
     var currentColumnKey by remember { mutableStateOf("") }
-    var currentStateSearch by remember { mutableStateOf(StateSearch(
-        columnKey = currentColumnKey
-    )) }
+    var currentStateSearch by remember {
+        mutableStateOf(
+            StateSearch(
+                columnKey = currentColumnKey
+            )
+        )
+    }
+
+    var _tableConfig by remember { mutableStateOf(layoutConfig) }
+
 
     // 计算当前页的ID
     val currentPageIds = remember(data) {
@@ -79,7 +69,7 @@ inline fun <reified T, C> AddBizTable(
 
     // 默认的顶部插槽
     val defaultTopSlot: @Composable () -> Unit = {
-        if (showSearchBar) {
+        if (_tableConfig.showSearchBar) {
             AddSearchBar(
                 keyword = keyword,
                 onKeyWordChanged = { keyword = it },
@@ -97,7 +87,7 @@ inline fun <reified T, C> AddBizTable(
             )
         }
 
-        if (showBatchActions) {
+        if (_tableConfig.showBatchActions) {
             RenderSelectContent(
                 editModeFlag = editModeFlag,
                 selectedItemIds = selectedItemIds,
@@ -110,9 +100,9 @@ inline fun <reified T, C> AddBizTable(
 
     // 默认的底部插槽
     val defaultBottomSlot: @Composable () -> Unit = {
-        if (showPagination) {
+        if (_tableConfig.showPagination) {
             RenderPagination(
-                showPagination = showPagination,
+                showPagination = _tableConfig.showPagination,
                 pageState = pageState,
                 onPageSizeChange = {
                     pageState = pageState.copy(pageSize = it, currentPage = 1)
@@ -144,7 +134,7 @@ inline fun <reified T, C> AddBizTable(
 
     // 默认的行左侧插槽
     val defaultRowLeftSlot: @Composable (item: T, index: Int) -> Unit = { item, index ->
-        if (showRowSelection && editModeFlag) {
+        if (_tableConfig.showRowSelection && editModeFlag) {
             RenderCheckbox(
                 editModeFlag = editModeFlag,
                 isPageAllSelected = isPageAllSelected,
@@ -162,26 +152,26 @@ inline fun <reified T, C> AddBizTable(
     }
 
     // 默认的行操作插槽
-    val defaultRowActionSlot: @Composable (item: T) -> Unit = { item ->
-        if (showDefaultRowActions) {
-            AddIconButton(
-                text = "编辑",
-                imageVector = Icons.Default.Edit,
-                onClick = { /* 编辑逻辑 */ }
-            )
-            AddIconButton(
-                text = "删除",
-                imageVector = Icons.Default.Delete,
-                onClick = { /* 删除逻辑 */ }
-            )
-        } else {
-            rowActionSlot?.invoke(item)
-        }
-    }
+//    val defaultRowActionSlot: @Composable (item: T) -> Unit = { item ->
+//        if (_tableConfig.showDefaultRowActions) {
+//            AddIconButton(
+//                text = "编辑",
+//                imageVector = Icons.Default.Edit,
+//                onClick = { /* 编辑逻辑 */ }
+//            )
+//            AddIconButton(
+//                text = "删除",
+//                imageVector = Icons.Default.Delete,
+//                onClick = { /* 删除逻辑 */ }
+//            )
+//        } else {
+//            rowActionSlot?.invoke(item)
+//        }
+//    }
 
     // 默认的列右侧插槽
     val defaultColumnRightSlot: @Composable (C) -> Unit = { column ->
-        if (enableSorting) {
+        if (_tableConfig.enableSorting) {
             val columnKey = getColumnKey(column)
             RenderSort(
                 columnKey = columnKey,
@@ -213,7 +203,7 @@ inline fun <reified T, C> AddBizTable(
         emptyContentSlot = emptyContentSlot,
         getCellContent = getCellContent,
         rowLeftSlot = defaultRowLeftSlot,
-        rowActionSlot = if (rowActionSlot != null) rowActionSlot else defaultRowActionSlot,
+        rowActionSlot =  rowActionSlot,
         modifier = modifier,
         columnRightSlot = defaultColumnRightSlot
     )

@@ -19,3 +19,4 @@ captures
 .claude
 .kiro
 .vscode
+/composeApp/src/commonMain/kotlin/com/addzero/component/table.zip
