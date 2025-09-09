@@ -11,7 +11,7 @@ import com.addzero.component.table.vm.TableFilterViewModel
 import com.addzero.component.table.vm.koin.*
 
 @Composable
-inline fun <reified T, C> BizTable(
+inline fun <reified T, reified C> BizTable(
     data: List<T>,
     columns: List<C>,
     noinline getColumnKey: (C) -> String,

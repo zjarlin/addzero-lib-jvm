@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.addzero.component.table.original.entity.ColumnConfig
@@ -21,12 +22,12 @@ import com.addzero.core.ext.bean2map
 
 @Composable
 //@ComposeAssist
-inline fun <reified T, C> TableOriginal(
+inline fun <reified T, reified C> TableOriginal(
     data: List<T>,
     columns: List<C>,
     noinline getColumnKey: (C) -> String,
     noinline getRowId: ((T) -> Any)? = null,
-    columnConfigs: List<ColumnConfig> ,
+    columnConfigs: List<ColumnConfig>,
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
     noinline getColumnLabel: (@Composable (C) -> Unit)? = null,
     noinline topSlot: (@Composable () -> Unit)? = null,
@@ -44,11 +45,12 @@ inline fun <reified T, C> TableOriginal(
         val toMap = it?.bean2map()
         toMap?.get("id") ?: it.hashCode()
     }
-    val actualGetColumnLabel = getColumnLabel ?: { config ->
+    val actualGetColumnLabel = getColumnLabel ?: { column ->
+        val columnKey = getColumnKey(column)
+        val comment = columnConfigs.find { it.key == columnKey }?.comment
+        val text = comment?.ifBlank { columnKey }?:columnKey
         Text(
-            text = columnConfigs.find { it.key == getColumnKey(config) }?.comment.toString(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            text = text, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
         )
     }
     val actualTopSlot = topSlot ?: {}
@@ -78,16 +80,10 @@ inline fun <reified T, C> TableOriginal(
     val textStyleHeader = MaterialTheme.typography.titleSmall
     val textStyleCell = MaterialTheme.typography.bodyMedium
     val autoWidths = rememberAddTableAutoWidth(
-        data = data,
-        columns = columns,
-        getColumnKey = getColumnKey,
-        getCellText = { item, column ->
+        data = data, columns = columns, getColumnKey = getColumnKey, getCellText = { item, column ->
             val m = item?.bean2map()
             (m?.get(getColumnKey(column)) ?: "").toString()
-        },
-        layoutConfig = layoutConfig,
-        headerTextStyle = textStyleHeader,
-        cellTextStyle = textStyleCell
+        }, layoutConfig = layoutConfig, headerTextStyle = textStyleHeader, cellTextStyle = textStyleCell
     )
 
     val mergedColumnConfigs = remember(columnConfigs, autoWidths) {

@@ -6,9 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.assist.AddFun.getIdExt
 
-class TableUiViewModel : ViewModel() {
-}
-
 class BizTableViewModel<T>() : ViewModel() {
     /** 编辑模式 */
 
