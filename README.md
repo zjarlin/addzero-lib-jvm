@@ -903,7 +903,6 @@ fun UserFormOriginal(
     val finalItems = remember(renderMap) {
         defaultRenderMap
             .filterKeys { it !in renderMap }  // 未被DSL覆盖的字段
-            .plus(renderMap.filterValues { it != {} })  // 添加非隐藏的自定义字段
     }.values.toList()
 
     // 📱 多列自适应布局
