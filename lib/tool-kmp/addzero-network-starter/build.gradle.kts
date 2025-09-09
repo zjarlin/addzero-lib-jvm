@@ -1,5 +1,6 @@
 plugins {
     id("kmp-ktor")
+//    id("kmp-koin")
 }
 kotlin {
     sourceSets {
