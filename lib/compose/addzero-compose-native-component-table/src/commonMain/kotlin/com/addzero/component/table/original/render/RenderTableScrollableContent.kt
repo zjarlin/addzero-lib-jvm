@@ -55,7 +55,9 @@ fun <T, C> RenderTableScrollableContent(
             } else {
                 itemsIndexed(
                     items = data,
-                    key = { _, item -> getRowId(item) }
+                    key = { _, item ->
+                        getRowId(item)
+                    }
                 ) { index, item ->
                     // 数据行 - 只需要行相关的数据
                     RenderTableBodyRow(

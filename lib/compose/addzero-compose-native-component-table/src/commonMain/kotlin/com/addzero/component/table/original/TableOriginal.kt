@@ -42,7 +42,7 @@ inline fun <reified T, C> TableOriginal(
     // 设置默认值
     val actualGetRowId = getRowId ?: {
         val toMap = it?.bean2map()
-        toMap?.get("id") ?: ""
+        toMap?.get("id") ?: it.hashCode()
     }
     val actualGetColumnLabel = getColumnLabel ?: { config ->
         Text(

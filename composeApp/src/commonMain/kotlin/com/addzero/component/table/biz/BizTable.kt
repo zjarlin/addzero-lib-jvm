@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.component.button.AddIconButton
 import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.component.table.original.TableOriginal
@@ -31,10 +32,9 @@ inline fun <reified T, C> BizTable(
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    noinline columnRightSlot: @Composable ((C) -> Unit)? = null
-    , noinline buttonSlot: @Composable () -> Unit={}
+    noinline columnRightSlot: @Composable ((C) -> Unit)? = null, noinline buttonSlot: @Composable () -> Unit = {}
 ) {
-    val bizTableViewModel =BizTableViewModel<T>()
+    val bizTableViewModel = BizTableViewModel<T>()
     val tableFilterViewModel = TableFilterViewModel(getColumnKey, columnConfigs)
     val tableSelectedViewModel = TableSelectedViewModel<T>()
     context(
@@ -72,14 +72,13 @@ inline fun <reified T, C> BizTable(
                 RenderCheckbox()
             },
             rowActionSlot = rowActionSlot ?: {
-                AddIconButton(
-                    text = "编辑", imageVector = Icons.Default.Edit, onClick = { bizTableViewModel.onEditClick() })
 
-                AddIconButton(
-                    text = "删除", imageVector = Icons.Default.Delete, onClick = {
-                        bizTableViewModel.onDeleteClick()
-                    }
+                AddEditDeleteButton(
+                    showDelete = true, showEdit = true, onEditClick = {
 
+                        bizTableViewModel.onEditClick()
+                    },
+                    { bizTableViewModel.onDeleteClick() }
                 )
 
             },
