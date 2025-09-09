@@ -1,6 +1,7 @@
 package com.addzero.web.modules.controller
 
 import com.addzero.common.consts.sql
+import com.addzero.exp.BizException
 import com.addzero.model.entity.*
 import com.addzero.web.infra.jimmer.base.BaseTreeApi
 import kotlinx.coroutines.channels.Channel
@@ -20,6 +21,7 @@ class SysDictController : BaseTreeApi<SysDict> {
     @GetMapping("/querydict")
 
     fun querydict(@RequestParam keyword: String): List<SysDict> {
+        throw BizException("dddddddddd")
         val createQuery = sql.executeQuery(SysDict::class) {
             where(
                 or(

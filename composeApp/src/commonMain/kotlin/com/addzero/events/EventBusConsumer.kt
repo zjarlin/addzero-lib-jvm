@@ -16,7 +16,6 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-//@Single(createdAtStart = true)
 fun EventBusConsumer() {
     println("eventbus监听器消费者")
     val loginViewModel = koinViewModel<LoginViewModel>()
