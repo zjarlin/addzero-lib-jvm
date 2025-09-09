@@ -68,8 +68,7 @@ fun <T, C> RenderTableScrollableContent(
                         getCellContent = getCellContent,
                         horizontalScrollState = horizontalScrollState,
                         rowLeftSlot = rowLeftSlot,
-                        layoutConfig = layoutConfig,
-                        showActionColumn = showActionColumn
+                        layoutConfig = layoutConfig
                     )
                 }
             }

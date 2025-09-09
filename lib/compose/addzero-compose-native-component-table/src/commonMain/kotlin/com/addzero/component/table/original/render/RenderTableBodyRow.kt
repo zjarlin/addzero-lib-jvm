@@ -27,8 +27,7 @@ fun <T, C> RenderTableBodyRow(
     getCellContent: @Composable ((item: T, column: C) -> Unit),
     horizontalScrollState: ScrollState,
     rowLeftSlot: @Composable ((item: T, index: Int) -> Unit),
-    layoutConfig: TableLayoutConfig,
-    showActionColumn: Boolean
+    layoutConfig: TableLayoutConfig
 ) {
     val backgroundColor = if (index % 2 == 0) {
         MaterialTheme.colorScheme.surface
@@ -74,10 +73,10 @@ fun <T, C> RenderTableBodyRow(
                 }
             }
 
-            if (showActionColumn) {
-                // 右侧为固定操作列预留占位，避免数据列遮挡操作表头
-                Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
-            }
+//            if (showActionColumn) {
+//                 右侧为固定操作列预留占位，避免数据列遮挡操作表头
+//                Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
+//            }
         }
     }
 }

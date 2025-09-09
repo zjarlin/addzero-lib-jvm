@@ -46,17 +46,17 @@ fun TableBigDataTest2() {
 //                "field007"-> Text(text = row.field007)
 //            }
 //        },
-        rowLeftSlot = {row,index->
-//           一般是每一个左侧的复选框(开启多选模式)
-        },
-        rowActionSlot = {
-            //操作区(编辑和删除)
-            AddEditDeleteButton(
-                onEditClick = {},
-                onDeleteClick = {}
-            )
-
-        }
+//        rowLeftSlot = {row,index->
+////           一般是每一个左侧的复选框(开启多选模式)
+//        },
+//        rowActionSlot = {
+//            //操作区(编辑和删除)
+//            AddEditDeleteButton(
+//                onEditClick = {},
+//                onDeleteClick = {}
+//            )
+//
+//        }
     )
 
 
