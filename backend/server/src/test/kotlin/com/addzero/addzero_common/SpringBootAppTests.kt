@@ -1,7 +1,6 @@
 package com.addzero.addzero_common
 
 import com.addzero.model.entity.BizNote
-import com.addzero.model.entity.JdbcColumnMetadata
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
@@ -18,12 +17,6 @@ class SpringBootAppTests(
 
     //    @Autowired
 //    private lateinit var postgresMetadataService: PostgresMetadataService
-    @Test
-    fun testMeta() {
-        val declaredMemberProperties = JdbcColumnMetadata::class
-            .declaredMemberProperties
-
-    }
 
 
     @Test

@@ -15,6 +15,8 @@ kotlin {
 //            implementation("io.github.ltttttttttttt:LazyPeopleHttp-lib:+")
 
             implementation(projects.lib.toolKmp.addzeroTool)
+//            implementation(projects.lib.compose.addzeroComposeNativeComponentTableCore)
+            implementation(projects.lib.toolJvm.jimmer.addzeroJimmerModelLowquery)
             implementation(projects.shared)
             implementation(projects.lib.toolKmp.addzeroNetworkStarter)
         }

@@ -27,6 +27,7 @@ kotlin {
 
 
             implementation(projects.lib.toolKmp.addzeroNetworkStarter)
+            implementation(projects.lib.toolJvm.jimmer.addzeroJimmerModelLowquery)
 
             // 组件库依赖
             implementation(projects.lib.compose.addzeroComposeNativeComponent)
