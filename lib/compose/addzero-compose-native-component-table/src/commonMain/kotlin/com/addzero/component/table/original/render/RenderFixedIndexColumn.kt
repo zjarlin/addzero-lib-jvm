@@ -71,20 +71,26 @@ fun <T> RenderFixedIndexColumn(
                                     .offset(y = itemOffset),
                                 shape = MaterialTheme.shapes.medium,
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
+//                                Box(
+//                                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+//                                ) {
+//                                    Text(
+//                                        "${itemIndex + 1}",
+//                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+//                                        textAlign = TextAlign.Center
+//                                    )
 
 
-                                    Text(
-                                        "${itemIndex + 1}",
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                        textAlign = TextAlign.Center
-                                    )
+                                Text(
+                                    text = "${itemIndex + 1}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    textAlign = TextAlign.Center
+                                )
 
-                                }
+//                                }
 
                             }
                         }
