@@ -11,6 +11,7 @@ import com.addzero.component.table.original.entity.TableLayoutConfig
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSearch
 import com.addzero.entity.low_table.StateSort
+import kotlinx.coroutines.launch
 
 @Composable
 inline fun <reified T, reified C> BizTable(
@@ -52,6 +53,7 @@ inline fun <reified T, reified C> BizTable(
     var filterStateMap by remember { mutableStateOf(mapOf<String, StateSearch>()) }
     var currentStateSearch by remember { mutableStateOf(StateSearch()) }
     var currentClickColumn by remember { mutableStateOf(null as C?) }
+    val rememberCoroutineScope = rememberCoroutineScope()
 
     // 计算属性
     val currentPageIds by remember(data) {
@@ -92,64 +94,83 @@ inline fun <reified T, reified C> BizTable(
         layoutConfig = layoutConfig,
         getColumnLabel = getColumnLabel,
         topSlot = topSlot ?: {
-            AddSearchBar(
-                keyword = keyword,
-                onKeyWordChanged = { keyword = it },
-                onSearch = {
+            AddSearchBar(keyword = keyword, onKeyWordChanged = { keyword = it }, onSearch = {
+                rememberCoroutineScope.launch {
                     onSearch(keyword, filterState, sortState, pageState)
-                },
-                leftSloat = {
-                    RenderButtons(
-                        editModeFlag = editModeFlag,
-                        onEditModeChange = { editModeFlag = !editModeFlag },
-                        onSaveClick = { onSaveClick() },
-                        onImportClick = { onImportClick() },
-                        onExportClick = { onExportClick(keyword, filterState, sortState, pageState) },
-                        buttonSlot = buttonSlot
-                    )
                 }
-            )
+            }, leftSloat = {
+                RenderButtons(
+                    editModeFlag = editModeFlag,
+                    onEditModeChange = { editModeFlag = !editModeFlag },
+                    onSaveClick = {
+                        onSaveClick()
+                    },
+                    onImportClick = {
+                        rememberCoroutineScope.launch {
+                            onImportClick()
+                        }
+
+                    },
+                    onExportClick = {
+                        rememberCoroutineScope.launch {
+                            onExportClick(keyword, filterState, sortState, pageState)
+                        }
+
+
+                    },
+                    buttonSlot = buttonSlot
+                )
+            })
             RenderSelectContent(
                 editModeFlag = editModeFlag,
                 selectedItemIds = selectedItemIds,
                 onClearSelection = { selectedItemIds = emptySet() },
-                onBatchDelete = { onBatchDelete(selectedItemIds) },
-                onBatchExport = { onBatchExport(selectedItemIds) }
-            )
+                onBatchDelete = {
+
+                    rememberCoroutineScope.launch {
+
+                        onBatchDelete(selectedItemIds)
+                    }
+                },
+                onBatchExport = {
+
+                    rememberCoroutineScope.launch {
+
+                        onBatchExport(selectedItemIds)
+                    }
+                })
         },
         bottomSlot = bottomSlot ?: {
-            RenderPagination(
-                showPagination = showPagination,
-                pageState = pageState,
-                onPageSizeChange = {
-                    pageState = pageState.copy(pageSize = it, currentPage = 1)
-                },
-                onGoFirstPage = {
-                    pageState = pageState.copy(currentPage = 1)
+            RenderPagination(showPagination = showPagination, pageState = pageState, onPageSizeChange = {
+                pageState = pageState.copy(pageSize = it, currentPage = 1)
+            }, onGoFirstPage = {
+                pageState = pageState.copy(currentPage = 1)
+                rememberCoroutineScope.launch {
                     onSearch(keyword, filterState, sortState, pageState)
-
-                },
-                onPreviousPage = {
-                    if (pageState.hasPreviousPage) {
-                        pageState = pageState.copy(currentPage = pageState.currentPage - 1)
-                    }
-                },
-                onGoToPage = {
-                    if (it in 1..pageState.totalPages) {
-                        pageState = pageState.copy(currentPage = it)
-                    }
-                },
-                onNextPage = {
-                    if (pageState.hasNextPage) {
-                        pageState = pageState.copy(currentPage = pageState.currentPage + 1)
-                    }
-                },
-                onGoLastPage = {
-                    pageState = pageState.copy(currentPage = pageState.totalPages)
-                    onSearch(keyword, filterState, sortState, pageState)
-
                 }
-            )
+
+
+            }, onPreviousPage = {
+                if (pageState.hasPreviousPage) {
+                    pageState = pageState.copy(currentPage = pageState.currentPage - 1)
+                }
+            }, onGoToPage = {
+                if (it in 1..pageState.totalPages) {
+                    pageState = pageState.copy(currentPage = it)
+                }
+            }, onNextPage = {
+                if (pageState.hasNextPage) {
+                    pageState = pageState.copy(currentPage = pageState.currentPage + 1)
+                }
+            }, onGoLastPage = {
+                pageState = pageState.copy(currentPage = pageState.totalPages)
+                rememberCoroutineScope.launch {
+
+                    onSearch(keyword, filterState, sortState, pageState)
+                }
+
+
+            })
         },
         emptyContentSlot = emptyContentSlot,
         getCellContent = getCellContent,
@@ -168,16 +189,23 @@ inline fun <reified T, reified C> BizTable(
                     } else {
                         selectedItemIds.filter { it !in pageIds }.toSet()
                     }
-                }
-            )
+                })
         },
         rowActionSlot = rowActionSlot ?: { item ->
-            AddEditDeleteButton(
-                showDelete = true,
-                showEdit = true,
-                onEditClick = { onEditClick?.invoke(item) },
-                onDeleteClick = { onDeleteClick?.invoke(item) }
-            )
+            AddEditDeleteButton(showDelete = true, showEdit = true, onEditClick = {
+
+                rememberCoroutineScope.launch {
+
+                    onEditClick(item)
+                }
+
+            }, onDeleteClick = {
+
+                rememberCoroutineScope.launch {
+
+                    onDeleteClick(item)
+                }
+            })
         },
         modifier = modifier,
         columnRightSlot = columnRightSlot ?: { column ->
@@ -213,8 +241,7 @@ inline fun <reified T, reified C> BizTable(
 
                     // 更新排序状态
                     sortState = newSortState
-                }
-            )
+                })
 
             val hasFilter = filterStateMap.containsKey(columnKey)
             RenderFilterButton(
@@ -225,10 +252,8 @@ inline fun <reified T, reified C> BizTable(
                 onClick = {
                     currentClickColumn = column
                     showFieldAdvSearchDrawer = !showFieldAdvSearchDrawer
-                }
-            )
-        }
-    )
+                })
+        })
 
     // 右侧的高级搜索面板
     RenderAdvSearchDrawer(
