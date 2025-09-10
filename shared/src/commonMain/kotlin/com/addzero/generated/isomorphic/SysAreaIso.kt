@@ -18,6 +18,6 @@ data class SysAreaIso(
     val id: Long? = null,
     val updateBy: SysUserIso? = null,
     val createBy: SysUserIso? = null,
-    @Contextual val createTime: kotlinx.datetime.LocalDateTime = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+    @Contextual val createTime: kotlinx.datetime.LocalDateTime = kotlin.time.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()),
     @Contextual val updateTime: kotlinx.datetime.LocalDateTime? = null
 )

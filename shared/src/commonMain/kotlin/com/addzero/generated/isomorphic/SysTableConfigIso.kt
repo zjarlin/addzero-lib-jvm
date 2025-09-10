@@ -10,12 +10,17 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Contextual
 
 @Serializable
-data class SysMenuIso(
-    val parentId: Long? = null,
-    val title: String? = null,
-    val routePath: String? = null,
-    val icon: String? = null,
-    val order: Float? = null,
+data class SysTableConfigIso(
+    val routeKey: String = "",
+    val showPagination: Boolean = false,
+    val showSearchBar: Boolean = false,
+    val showBatchActions: Boolean = false,
+    val showRowSelection: Boolean = false,
+    val showDefaultRowActions: Boolean = false,
+    val enableSorting: Boolean = false,
+    val enableAdvancedSearch: Boolean = false,
+    val headerHeightDp: Float = 0f,
+    val rowHeightDp: Float = 0f,
     val id: Long? = null,
     val updateBy: SysUserIso? = null,
     val createBy: SysUserIso? = null,

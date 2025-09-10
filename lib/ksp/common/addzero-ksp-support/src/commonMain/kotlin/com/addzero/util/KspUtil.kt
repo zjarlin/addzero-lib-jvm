@@ -166,6 +166,9 @@ fun KSPropertyDeclaration.getSimpleTypeString(): String {
 
 
 fun KSPropertyDeclaration.defaultValue(): String {
+    if (this.name == "id") {
+        return "null"
+    }
     val type = this.type.resolve()
     val typeDecl = type.declaration
     val fullTypeName = type.declaration.qualifiedName?.asString() ?: ""
@@ -365,10 +368,10 @@ fun KSType.getCompleteTypeString(): String {
                 append(annotationStrings.joinToString(" "))
                 append(" ")
             }
-            
+
             // 构建函数类型字符串
             val functionTypeString = buildFunctionTypeString()
-            
+
             // 处理可空性 - 对于函数类型，可空性标记应该包裹整个函数类型
             if (this@getCompleteTypeString.isMarkedNullable) {
                 append("(")
@@ -396,7 +399,7 @@ fun KSType.getCompleteTypeString(): String {
                 append(annotationStrings.joinToString(" "))
                 append(" ")
             }
-            
+
             append(baseTypeName)
 
             // 处理泛型参数

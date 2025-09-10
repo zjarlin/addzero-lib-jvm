@@ -34,32 +34,34 @@ import com.addzero.generated.forms.dataprovider.Iso2DataProvider
 
 
 /**
- * JdbcTableMetadata 表单属性常量
+ * SysColumnConfig 表单属性常量
  */
-object JdbcTableMetadataFormProps {
-    const val tableName = "tableName"
-    const val schemaName = "schemaName"
-    const val tableType = "tableType"
-    const val remarks = "remarks"
-    const val columns = "columns"
+object SysColumnConfigFormProps {
+    const val columnKey = "columnKey"
+    const val columnComment = "columnComment"
+    const val kmpType = "kmpType"
+    const val sortOrder = "sortOrder"
+    const val showFilter = "showFilter"
+    const val showSort = "showSort"
+    const val routeKey = "routeKey"
 
     /**
      * 获取所有字段名列表（按默认顺序）
      */
     fun getAllFields(): List<String> {
-        return listOf(tableName, schemaName, tableType, remarks, columns)
+        return listOf(columnKey, columnComment, kmpType, sortOrder, showFilter, showSort, routeKey)
     }
 }
 
 @Composable
-fun JdbcTableMetadataForm(
-    state: MutableState<JdbcTableMetadataIso>,
+fun SysColumnConfigForm(
+    state: MutableState<SysColumnConfigIso>,
     visible: Boolean,
     title: String,
     onClose: () -> Unit,
     onSubmit: () -> Unit,
     confirmEnabled: Boolean = true,
-    dslConfig: JdbcTableMetadataFormDsl.() -> Unit = {}
+    dslConfig: SysColumnConfigFormDsl.() -> Unit = {}
 ) {
     AddDrawer(
         visible = visible,
@@ -68,81 +70,82 @@ fun JdbcTableMetadataForm(
         onSubmit = onSubmit,
         confirmEnabled = confirmEnabled,
     ) {
-        JdbcTableMetadataFormOriginal(state, dslConfig)
+        SysColumnConfigFormOriginal(state, dslConfig)
     }
 }
 
 @Composable
-fun JdbcTableMetadataFormOriginal(
-    state: MutableState<JdbcTableMetadataIso>,
-    dslConfig: JdbcTableMetadataFormDsl.() -> Unit = {}
+fun SysColumnConfigFormOriginal(
+    state: MutableState<SysColumnConfigIso>,
+    dslConfig: SysColumnConfigFormDsl.() -> Unit = {}
 ) {
     val renderMap = remember { mutableMapOf<String, @Composable () -> Unit>() }
-    val dsl = JdbcTableMetadataFormDsl(state, renderMap).apply(dslConfig)
+    val dsl = SysColumnConfigFormDsl(state, renderMap).apply(dslConfig)
 
     // 默认字段渲染映射（保持原有顺序）
     val defaultRenderMap = linkedMapOf<String, @Composable () -> Unit>(
-        JdbcTableMetadataFormProps.tableName to {
+        SysColumnConfigFormProps.columnKey to {
             AddTextField(
-                value = state.value.tableName?.toString() ?: "",
+                value = state.value.columnKey?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(tableName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(columnKey = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
-                label = "tableName",
+                label = "列唯一键",
                 isRequired = true
             )
         },
-        JdbcTableMetadataFormProps.schemaName to {
+        SysColumnConfigFormProps.columnComment to {
             AddTextField(
-                value = state.value.schemaName?.toString() ?: "",
+                value = state.value.columnComment?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(schemaName = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(columnComment = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
-                label = "schemaName",
+                label = "列描述",
                 isRequired = true
             )
         },
-        JdbcTableMetadataFormProps.tableType to {
+        SysColumnConfigFormProps.kmpType to {
             AddTextField(
-                value = state.value.tableType?.toString() ?: "",
+                value = state.value.kmpType?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(tableType = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(kmpType = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
-                label = "tableType",
+                label = "kmp类型",
                 isRequired = true
             )
         },
-        JdbcTableMetadataFormProps.remarks to {
-            AddTextField(
-                value = state.value.remarks?.toString() ?: "",
+        SysColumnConfigFormProps.sortOrder to {
+            AddIntegerField(
+                value = state.value.sortOrder?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(remarks = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(sortOrder = if (it.isNullOrEmpty()) 0L else it.parseObjectByKtx())
                 },
-                label = "remarks",
-                isRequired = false
+                label = "列排序",
+                isRequired = true
             )
         },
-        JdbcTableMetadataFormProps.columns to {
-            var dataList by remember { mutableStateOf<List<JdbcColumnMetadataIso>>(emptyList()) }
-
-            LaunchedEffect(Unit) {
-                try {
-                    val provider = Iso2DataProvider.isoToDataProvider[JdbcColumnMetadataIso::class]
-                    dataList = provider?.invoke("") as? List<JdbcColumnMetadataIso> ?: emptyList()
-                } catch (e: Exception) {
-                    println("加载 columns 数据失败: ${e.message}")
-                    dataList = emptyList()
-                }
-            }
-
-            AddGenericMultiSelector(
-                value = state.value.columns ?: emptyList(),
-                onValueChange = { state.value = state.value.copy(columns = it) },
-                placeholder = "columns",
-                dataProvider = { dataList },
-                getId = { it.id ?: 0L },
-                getLabel = { it.columnName ?: "" },
-                
+        SysColumnConfigFormProps.showFilter to {
+            AddSwitchField(
+                value = state.value.showFilter ?: false,
+                onValueChange = { state.value = state.value.copy(showFilter = it) },
+                label = "对该列启用过滤"
+            )
+        },
+        SysColumnConfigFormProps.showSort to {
+            AddSwitchField(
+                value = state.value.showSort ?: false,
+                onValueChange = { state.value = state.value.copy(showSort = it) },
+                label = "对该列启用排序"
+            )
+        },
+        SysColumnConfigFormProps.routeKey to {
+            AddTextField(
+                value = state.value.routeKey?.toString() ?: "",
+                onValueChange = {
+                    state.value = state.value.copy(routeKey = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                },
+                label = "路由键",
+                isRequired = true
             )
         }
     )
@@ -177,8 +180,8 @@ fun JdbcTableMetadataFormOriginal(
     )
 }
 
-class JdbcTableMetadataFormDsl(
-    val state: MutableState<JdbcTableMetadataIso>,
+class SysColumnConfigFormDsl(
+    val state: MutableState<SysColumnConfigIso>,
     private val renderMap: MutableMap<String, @Composable () -> Unit>
 ) {
     // 隐藏字段集合
@@ -191,162 +194,226 @@ class JdbcTableMetadataFormDsl(
     private val fieldOrderMap = mutableMapOf<String, Int>()
 
     /**
-     * 配置 tableName 字段
+     * 配置 columnKey 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun tableName(
+    fun columnKey(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<JdbcTableMetadataIso>) -> Unit)? = null
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("tableName")
-                renderMap.remove("tableName")
+                hiddenFields.add("columnKey")
+                renderMap.remove("columnKey")
             }
             render != null -> {
-                hiddenFields.remove("tableName")
-                renderMap["tableName"] = { render(state) }
+                hiddenFields.remove("columnKey")
+                renderMap["columnKey"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("tableName")
-                renderMap.remove("tableName")
+                hiddenFields.remove("columnKey")
+                renderMap.remove("columnKey")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("tableName", orderValue)
+            updateFieldOrder("columnKey", orderValue)
         }
     }
 
     /**
-     * 配置 schemaName 字段
+     * 配置 columnComment 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun schemaName(
+    fun columnComment(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<JdbcTableMetadataIso>) -> Unit)? = null
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("schemaName")
-                renderMap.remove("schemaName")
+                hiddenFields.add("columnComment")
+                renderMap.remove("columnComment")
             }
             render != null -> {
-                hiddenFields.remove("schemaName")
-                renderMap["schemaName"] = { render(state) }
+                hiddenFields.remove("columnComment")
+                renderMap["columnComment"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("schemaName")
-                renderMap.remove("schemaName")
+                hiddenFields.remove("columnComment")
+                renderMap.remove("columnComment")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("schemaName", orderValue)
+            updateFieldOrder("columnComment", orderValue)
         }
     }
 
     /**
-     * 配置 tableType 字段
+     * 配置 kmpType 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun tableType(
+    fun kmpType(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<JdbcTableMetadataIso>) -> Unit)? = null
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("tableType")
-                renderMap.remove("tableType")
+                hiddenFields.add("kmpType")
+                renderMap.remove("kmpType")
             }
             render != null -> {
-                hiddenFields.remove("tableType")
-                renderMap["tableType"] = { render(state) }
+                hiddenFields.remove("kmpType")
+                renderMap["kmpType"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("tableType")
-                renderMap.remove("tableType")
+                hiddenFields.remove("kmpType")
+                renderMap.remove("kmpType")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("tableType", orderValue)
+            updateFieldOrder("kmpType", orderValue)
         }
     }
 
     /**
-     * 配置 remarks 字段
+     * 配置 sortOrder 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun remarks(
+    fun sortOrder(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<JdbcTableMetadataIso>) -> Unit)? = null
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("remarks")
-                renderMap.remove("remarks")
+                hiddenFields.add("sortOrder")
+                renderMap.remove("sortOrder")
             }
             render != null -> {
-                hiddenFields.remove("remarks")
-                renderMap["remarks"] = { render(state) }
+                hiddenFields.remove("sortOrder")
+                renderMap["sortOrder"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("remarks")
-                renderMap.remove("remarks")
+                hiddenFields.remove("sortOrder")
+                renderMap.remove("sortOrder")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("remarks", orderValue)
+            updateFieldOrder("sortOrder", orderValue)
         }
     }
 
     /**
-     * 配置 columns 字段
+     * 配置 showFilter 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun columns(
+    fun showFilter(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<JdbcTableMetadataIso>) -> Unit)? = null
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("columns")
-                renderMap.remove("columns")
+                hiddenFields.add("showFilter")
+                renderMap.remove("showFilter")
             }
             render != null -> {
-                hiddenFields.remove("columns")
-                renderMap["columns"] = { render(state) }
+                hiddenFields.remove("showFilter")
+                renderMap["showFilter"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("columns")
-                renderMap.remove("columns")
+                hiddenFields.remove("showFilter")
+                renderMap.remove("showFilter")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("columns", orderValue)
+            updateFieldOrder("showFilter", orderValue)
+        }
+    }
+
+    /**
+     * 配置 showSort 字段
+     * @param hidden 是否隐藏该字段
+     * @param order 字段显示顺序（数值越小越靠前）
+     * @param render 自定义渲染函数
+     */
+    fun showSort(
+        hidden: Boolean = false,
+        order: Int? = null,
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
+    ) {
+        when {
+            hidden -> {
+                hiddenFields.add("showSort")
+                renderMap.remove("showSort")
+            }
+            render != null -> {
+                hiddenFields.remove("showSort")
+                renderMap["showSort"] = { render(state) }
+            }
+            else -> {
+                hiddenFields.remove("showSort")
+                renderMap.remove("showSort")
+            }
+        }
+
+        // 处理排序
+        order?.let { orderValue ->
+            updateFieldOrder("showSort", orderValue)
+        }
+    }
+
+    /**
+     * 配置 routeKey 字段
+     * @param hidden 是否隐藏该字段
+     * @param order 字段显示顺序（数值越小越靠前）
+     * @param render 自定义渲染函数
+     */
+    fun routeKey(
+        hidden: Boolean = false,
+        order: Int? = null,
+        render: (@Composable (MutableState<SysColumnConfigIso>) -> Unit)? = null
+    ) {
+        when {
+            hidden -> {
+                hiddenFields.add("routeKey")
+                renderMap.remove("routeKey")
+            }
+            render != null -> {
+                hiddenFields.remove("routeKey")
+                renderMap["routeKey"] = { render(state) }
+            }
+            else -> {
+                hiddenFields.remove("routeKey")
+                renderMap.remove("routeKey")
+            }
+        }
+
+        // 处理排序
+        order?.let { orderValue ->
+            updateFieldOrder("routeKey", orderValue)
         }
     }
 
@@ -372,7 +439,7 @@ class JdbcTableMetadataFormDsl(
     fun insertBefore(targetField: String, vararg newFields: String) {
         if (fieldOrder.isEmpty()) {
             // 如果没有自定义顺序，先初始化为默认顺序
-            fieldOrder.addAll(JdbcTableMetadataFormProps.getAllFields())
+            fieldOrder.addAll(SysColumnConfigFormProps.getAllFields())
         }
         val index = fieldOrder.indexOf(targetField)
         if (index >= 0) {
@@ -386,7 +453,7 @@ class JdbcTableMetadataFormDsl(
     fun insertAfter(targetField: String, vararg newFields: String) {
         if (fieldOrder.isEmpty()) {
             // 如果没有自定义顺序，先初始化为默认顺序
-            fieldOrder.addAll(JdbcTableMetadataFormProps.getAllFields())
+            fieldOrder.addAll(SysColumnConfigFormProps.getAllFields())
         }
         val index = fieldOrder.indexOf(targetField)
         if (index >= 0) {
@@ -403,7 +470,7 @@ class JdbcTableMetadataFormDsl(
         fieldOrderMap[fieldName] = orderValue
 
         // 重新计算字段顺序
-        val allFields = JdbcTableMetadataFormProps.getAllFields()
+        val allFields = SysColumnConfigFormProps.getAllFields()
         val sortedFields = allFields.sortedWith { field1, field2 ->
             val order1 = fieldOrderMap[field1] ?: Int.MAX_VALUE
             val order2 = fieldOrderMap[field2] ?: Int.MAX_VALUE
@@ -421,9 +488,9 @@ class JdbcTableMetadataFormDsl(
 }
 
 /**
- * 记住 JdbcTableMetadata 表单状态的便捷函数
+ * 记住 SysColumnConfig 表单状态的便捷函数
  */
 @Composable
-fun rememberJdbcTableMetadataFormState(current: JdbcTableMetadataIso? = null): MutableState<JdbcTableMetadataIso> {
-    return remember(current) { mutableStateOf(current ?: JdbcTableMetadataIso()) }
+fun rememberSysColumnConfigFormState(current: SysColumnConfigIso? = null): MutableState<SysColumnConfigIso> {
+    return remember(current) { mutableStateOf(current ?: SysColumnConfigIso()) }
 }

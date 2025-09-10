@@ -10,7 +10,6 @@ object RouteKeys {
     const val RICH_TEXT_DEMO = "com.addzero.demo.RichTextDemo"
     const val ADD_CARD_EXAMPLE = "com.addzero.demo.AddCardExample"
     const val U_I_COMPONENTS_DEMO = "com.addzero.demo.UIComponentsDemo"
-    const val TABLE_BIG_DATA_TEST3 = "com.addzero.demo.table.TableBigDataTest3"
     const val TABLE_BIG_DATA_TEST2 = "com.addzero.demo.table.TableBigDataTest2"
     const val TIME_PICKER_EXAMPLE = "com.addzero.demo.date_test.TimePickerExample"
     const val TIME_PICKER_FIELD_TEST = "com.addzero.demo.date_test.TimePickerFieldTest"
@@ -50,7 +49,6 @@ object RouteKeys {
         Route(value = "组件示例", title = "富文本", routePath = "com.addzero.demo.RichTextDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.RichTextDemo"),
         Route(value = "", title = "AddCardExample", routePath = "com.addzero.demo.AddCardExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.AddCardExample"),
         Route(value = "组件示例", title = "UI组件测试", routePath = "com.addzero.demo.UIComponentsDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.UIComponentsDemo"),
-        Route(value = "", title = "TableBigDataTest3", routePath = "com.addzero.demo.table.TableBigDataTest3", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.table.TableBigDataTest3"),
         Route(value = "", title = "TableBigDataTest2", routePath = "com.addzero.demo.table.TableBigDataTest2", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.table.TableBigDataTest2"),
         Route(value = "时间选择器示例", title = "TimePickerExample", routePath = "com.addzero.demo.date_test.TimePickerExample", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerExample"),
         Route(value = "组件示例", title = "时间选择器", routePath = "com.addzero.demo.date_test.TimePickerFieldTest", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.date_test.TimePickerFieldTest"),

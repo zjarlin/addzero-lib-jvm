@@ -4,6 +4,7 @@ import com.addzero.context.SettingContext
 import com.addzero.entity.JdbcColumnMetadata
 import com.addzero.entity.JdbcTableMetadata
 import com.addzero.util.TypeMapper.mapToKotlinType
+import com.addzero.util.filterBaseEntity
 import com.addzero.util.str.toBigCamelCase
 import com.addzero.util.str.toLowCamelCase
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -68,7 +69,7 @@ class JimmerEntityCodeGenerator(
         val imports = generateImports(table, true)
 
         // 生成属性（排除 id 字段，因为它在 BaseEntity 中已定义）
-        val filteredColumns = table.columns.filter { !isIdField(it.columnName) }
+        val filteredColumns = table.columns.filter { filterBaseEntity(it.columnName) }
 
         val properties = filteredColumns.joinToString("\n\n") { column ->
             generateProperty(column)

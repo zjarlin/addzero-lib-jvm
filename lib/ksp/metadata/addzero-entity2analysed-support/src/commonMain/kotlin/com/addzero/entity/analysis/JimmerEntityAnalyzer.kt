@@ -5,6 +5,7 @@ import com.addzero.entity.analysis.model.EnumMetadata
 import com.addzero.entity.analysis.model.PropertyMetadata
 import com.addzero.entity.analysis.model.TypeAnalysisResult
 import com.addzero.kaleidoscope.core.*
+import com.addzero.util.defaultValue
 import com.addzero.util.isJimmerEntity
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
@@ -371,7 +372,9 @@ class JimmerEntityAnalyzer(
                 null
             }
         } else null
-        val defaultValue = generateDefaultValue(type, isNullable, typeAnalysis, enumMetadata)
+        val defaultValue =prop.defaultValue
+
+//         generateDefaultValue(type, isNullable, typeAnalysis, enumMetadata)
 
         // 生成标签
         val label = generateLabel(name)

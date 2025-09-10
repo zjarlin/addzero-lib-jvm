@@ -21,6 +21,6 @@ data class SysUserIso(
     val gender: String? = null,
     val depts: List<SysDeptIso> = emptyList(),
     val roles: List<SysRoleIso> = emptyList(),
-    @Contextual val createTime: kotlinx.datetime.LocalDateTime = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+    @Contextual val createTime: kotlinx.datetime.LocalDateTime = kotlin.time.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()),
     @Contextual val updateTime: kotlinx.datetime.LocalDateTime? = null
 )
