@@ -28,10 +28,10 @@ fun RenderAdvSearchDrawer(
     getCurrentColumnKey: () -> String,
     filterStateMap: Map<String, StateSearch>
 ) {
-    if (!showFieldAdvSearchDrawer) {
-        return
-    }
-    
+//    if (!showFieldAdvSearchDrawer) {
+//        return
+//    }
+
     AddDrawer(
         visible = showFieldAdvSearchDrawer,
         title = "高级搜索",
@@ -85,8 +85,8 @@ fun RenderAdvSearchDrawer(
             AddIconButton(
                 text = "清除条件", imageVector = Icons.Default.Close,
                 onClick = {
-                    val newFilterStateMap = filterStateMap.toMutableMap().apply { 
-                        remove(getCurrentColumnKey()) 
+                    val newFilterStateMap = filterStateMap.toMutableMap().apply {
+                        remove(getCurrentColumnKey())
                     }
                     onFilterStateMapChange(newFilterStateMap)
                 },
