@@ -3,37 +3,31 @@ package com.addzero.component.table.biz
 import androidx.compose.runtime.Composable
 import com.addzero.component.card.MellumCardType
 import com.addzero.component.table.pagination.AddTablePagination
-import com.addzero.component.table.vm.koin.BizTableViewModel
-import com.addzero.component.table.vm.koin.TablePaginationViewModel
-
+import com.addzero.component.table.original.entity.StatePagination
 
 @Composable
-context(
-    tablePaginationViewModel: TablePaginationViewModel,
-    bizTableViewModel: BizTableViewModel<*>
-)
-fun RenderPagination() {
-
-    if (!tablePaginationViewModel.showPagination) return
+fun RenderPagination(
+    showPagination: Boolean,
+    pageState: StatePagination,
+    onPageSizeChange: (Int) -> Unit,
+    onGoFirstPage: () -> Unit,
+    onPreviousPage: () -> Unit,
+    onGoToPage: (Int) -> Unit,
+    onNextPage: () -> Unit,
+    onGoLastPage: () -> Unit
+) {
+    if (!showPagination) return
+    
     AddTablePagination(
-        statePagination = tablePaginationViewModel._pageState,
+        statePagination = pageState,
         enablePagination = true,
-        onPageSizeChange = {
-            tablePaginationViewModel.setPageSize(it)
-        },
-        onGoFirstPage = {
-            tablePaginationViewModel.goToFirstPage()
-            bizTableViewModel.queryPage()
-        },
-        onPreviousPage = { tablePaginationViewModel.goToPreviousPage() },
-        onGoToPage = { tablePaginationViewModel.goToPage(it) },
-        onNextPage = { tablePaginationViewModel.goToNextPage() },
-        onGoLastPage = {
-            tablePaginationViewModel.goToLastPage()
-            bizTableViewModel.queryPage()
-        },
+        onPageSizeChange = onPageSizeChange,
+        onGoFirstPage = onGoFirstPage,
+        onPreviousPage = onPreviousPage,
+        onGoToPage = onGoToPage,
+        onNextPage = onNextPage,
+        onGoLastPage = onGoLastPage,
         cardType = MellumCardType.Light,
-        //是否开启分页
         compactMode = true
     )
 }

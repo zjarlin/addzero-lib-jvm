@@ -9,16 +9,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.addzero.component.table.vm.koin.BizTableViewModel
-import com.addzero.component.table.vm.koin.TableSelectedViewModel
 
 @Composable
-context(tableSelectedViewModel: TableSelectedViewModel<T>, bizTableViewModel: BizTableViewModel<*>
-)
-
-fun <T> RenderCheckbox(item: T) {
-    val itemId = item.hashCode()
-    val isChecked = tableSelectedViewModel._selectedItemIds.contains(itemId)
+fun <T> RenderCheckbox(
+    item: T,
+    itemId: Any,
+    isSelected: Boolean,
+    editModeFlag: Boolean,
+    onSelectionChange: (Boolean) -> Unit
+) {
     Box(
         modifier = Modifier
             .width(80.dp)
@@ -26,20 +25,11 @@ fun <T> RenderCheckbox(item: T) {
             .zIndex(2f),
         contentAlignment = Alignment.Center
     ) {
-        if (bizTableViewModel.editModeFlag) {
+        if (editModeFlag) {
             Checkbox(
-                checked = isChecked,
-                onCheckedChange = { checked ->
-//                println("Checkbox clicked, checked: $checked")
-                    val pageIds = listOf(itemId)
-                    if (checked) {
-                        tableSelectedViewModel.selectPageItems(pageIds)
-                    } else {
-                        tableSelectedViewModel.unselectPageItems(pageIds)
-                    }
-                }
+                checked = isSelected,
+                onCheckedChange = onSelectionChange
             )
-
         }
     }
 }

@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class StateSearch(
-    val columnKey: String,
+    val columnKey: String="",
     val operator: EnumSearchOperator = EnumSearchOperator.EQ,
     @Contextual
     val columnValue: Any? = null,
