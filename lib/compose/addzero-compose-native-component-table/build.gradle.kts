@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.lib.compose.addzeroComposeNativeComponentCard)
+//            implementation(projects.lib.compose.addzeroComposeNativeComponent)
 //            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
             implementation(projects.lib.compose.addzeroComposePropsAnnotations)
            api (projects.lib.compose.addzeroComposeNativeComponentTableCore)
