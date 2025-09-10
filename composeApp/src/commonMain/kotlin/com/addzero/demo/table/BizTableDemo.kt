@@ -3,25 +3,29 @@ package com.addzero.demo.table
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.ViewModel
 import com.addzero.annotation.Route
-import com.addzero.component.table.biz.BizTable
+import com.addzero.component.table.biz.AddTable
+
+class AutoTableViewModel(routeKey: String) : ViewModel() {
+    init {
+        loadData()
+    }
+
+    private fun loadData() {
+        TODO("Not yet implemented")
+    }
+
+}
 
 @Route
 @Composable
 fun TableBigDataTest3() {
     val (bigDataSet, bigColumns) = mockData()
-
-    BizTable(
+    AddTable(
         data = bigDataSet,
         columns = bigColumns,
         getColumnKey = { it.key },
-//        getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
-//        columnConfigs = listOf(
-//            ColumnConfig("field001", "字段1"),
-//            ColumnConfig("field002", "字段2"),
-//            ColumnConfig("field003", "字段3"),
-//            ColumnConfig("field004", "字段4"),
-//        ),
         getColumnLabel = {
             Text(
                 text = it.label,

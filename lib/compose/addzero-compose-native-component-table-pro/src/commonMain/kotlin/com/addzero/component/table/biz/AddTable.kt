@@ -14,7 +14,7 @@ import com.addzero.entity.low_table.StateSort
 import kotlinx.coroutines.launch
 
 @Composable
-inline fun <reified T, reified C> BizTable(
+inline fun <reified T, reified C> AddTable(
     data: List<T>,
     columns: List<C>,
     noinline getColumnKey: (C) -> String,
