@@ -28,6 +28,37 @@ fun TableBigDataTest3() {
                 textAlign = TextAlign.Center,
             )
         },
+        onSearch = { _, _, _, _ ->
+            println("搜索")
+
+        },
+        onSaveClick = {
+            println("新增")
+        },
+        onImportClick = {
+
+            println("导入")
+        },
+        onExportClick = { _, _, _, _ ->
+            println("导出")
+
+
+        },
+
+        onBatchDelete = {
+            println("批量删除")
+
+        },
+        onBatchExport = {
+            println("批量导出")
+
+        },
+        onEditClick = {
+            println("编辑")
+        },
+        onDeleteClick = {
+            println("删了")
+        },
 //        buttonSlot = {},
 //        topSlot = {
 //            //一般渲染搜索区(搜索框,字段高级搜索)

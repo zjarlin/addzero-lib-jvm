@@ -1,16 +1,12 @@
 package com.addzero.component.table.biz
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.component.table.original.TableOriginal
 import com.addzero.component.table.original.entity.ColumnConfig
+import com.addzero.component.table.original.entity.StatePagination
 import com.addzero.component.table.original.entity.TableLayoutConfig
 import com.addzero.entity.low_table.EnumSortDirection
 import com.addzero.entity.low_table.StateSearch
@@ -33,44 +29,58 @@ inline fun <reified T, reified C> BizTable(
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    noinline columnRightSlot: @Composable ((C) -> Unit)? = null, 
-    noinline buttonSlot: @Composable () -> Unit = {}
+    noinline columnRightSlot: @Composable ((C) -> Unit)? = null,
+    noinline buttonSlot: @Composable () -> Unit = {},
+    // 新增的回调函数参数
+    noinline onSearch: ((String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit),
+    noinline onSaveClick: (() -> Unit),
+    noinline onImportClick: (() -> Unit),
+    noinline onExportClick: ((String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit),
+    noinline onBatchDelete: ((Set<Any>) -> Unit),
+    noinline onBatchExport: ((Set<Any>) -> Unit),
+    noinline onEditClick: ((T) -> Unit),
+    noinline onDeleteClick: ((T) -> Unit)
 ) {
     // 状态定义
     var keyword by remember { mutableStateOf("") }
     var editModeFlag by remember { mutableStateOf(false) }
     var selectedItemIds by remember { mutableStateOf(setOf<Any>()) }
     var showPagination by remember { mutableStateOf(true) }
-    var pageState by remember { mutableStateOf(com.addzero.component.table.original.entity.StatePagination()) }
+    var pageState by remember { mutableStateOf(StatePagination()) }
     var sortState by remember { mutableStateOf(setOf<StateSort>()) }
     var showFieldAdvSearchDrawer by remember { mutableStateOf(false) }
     var filterStateMap by remember { mutableStateOf(mapOf<String, StateSearch>()) }
     var currentStateSearch by remember { mutableStateOf(StateSearch()) }
     var currentClickColumn by remember { mutableStateOf(null as C?) }
-    
+
     // 计算属性
-    val currentPageIds by remember(data) { 
-        derivedStateOf { data.map { it.hashCode() } } 
+    val currentPageIds by remember(data) {
+        derivedStateOf { data.map { it.hashCode() } }
     }
-    
+
+
+    val filterState by remember {
+        derivedStateOf { filterStateMap.values.toSet() }
+    }
+
     val currentColumnKey by remember(currentClickColumn) {
-        derivedStateOf { 
+        derivedStateOf {
             if (currentClickColumn == null) "" else getColumnKey(currentClickColumn!!).ifBlank {
                 currentStateSearch.hashCode().toString()
             }
         }
     }
-    
+
     val currentColumnConfig by remember(currentColumnKey, columnConfigs) {
         derivedStateOf { columnConfigs.find { it.key == currentColumnKey } }
     }
-    
+
     val currentColumnLabel by remember(currentColumnConfig) {
         derivedStateOf { currentColumnConfig?.comment }
     }
-    
+
     val currentColumnKmpType by remember(currentColumnConfig) {
-        derivedStateOf { currentColumnConfig?.kmpType?.toString() }
+        derivedStateOf { currentColumnConfig?.kmpType }
     }
 
     TableOriginal(
@@ -85,14 +95,16 @@ inline fun <reified T, reified C> BizTable(
             AddSearchBar(
                 keyword = keyword,
                 onKeyWordChanged = { keyword = it },
-                onSearch = { /* TODO: 实现搜索逻辑 */ },
+                onSearch = {
+                    onSearch(keyword, filterState, sortState, pageState)
+                },
                 leftSloat = {
                     RenderButtons(
                         editModeFlag = editModeFlag,
                         onEditModeChange = { editModeFlag = !editModeFlag },
-                        onSaveClick = { /* TODO: 实现保存逻辑 */ },
-                        onImportClick = { /* TODO: 实现导入逻辑 */ },
-                        onExportClick = { /* TODO: 实现导出逻辑 */ },
+                        onSaveClick = { onSaveClick() },
+                        onImportClick = { onImportClick() },
+                        onExportClick = { onExportClick(keyword, filterState, sortState, pageState) },
                         buttonSlot = buttonSlot
                     )
                 }
@@ -101,39 +113,41 @@ inline fun <reified T, reified C> BizTable(
                 editModeFlag = editModeFlag,
                 selectedItemIds = selectedItemIds,
                 onClearSelection = { selectedItemIds = emptySet() },
-                onBatchDelete = { /* TODO: 实现批量删除逻辑 */ },
-                onBatchExport = { /* TODO: 实现批量导出逻辑 */ }
+                onBatchDelete = { onBatchDelete(selectedItemIds) },
+                onBatchExport = { onBatchExport(selectedItemIds) }
             )
         },
         bottomSlot = bottomSlot ?: {
             RenderPagination(
                 showPagination = showPagination,
                 pageState = pageState,
-                onPageSizeChange = { 
+                onPageSizeChange = {
                     pageState = pageState.copy(pageSize = it, currentPage = 1)
                 },
-                onGoFirstPage = { 
+                onGoFirstPage = {
                     pageState = pageState.copy(currentPage = 1)
-                    // TODO: 实现查询逻辑
+                    onSearch(keyword, filterState, sortState, pageState)
+
                 },
-                onPreviousPage = { 
+                onPreviousPage = {
                     if (pageState.hasPreviousPage) {
                         pageState = pageState.copy(currentPage = pageState.currentPage - 1)
                     }
                 },
-                onGoToPage = { 
+                onGoToPage = {
                     if (it in 1..pageState.totalPages) {
                         pageState = pageState.copy(currentPage = it)
                     }
                 },
-                onNextPage = { 
+                onNextPage = {
                     if (pageState.hasNextPage) {
                         pageState = pageState.copy(currentPage = pageState.currentPage + 1)
                     }
                 },
-                onGoLastPage = { 
+                onGoLastPage = {
                     pageState = pageState.copy(currentPage = pageState.totalPages)
-                    // TODO: 实现查询逻辑
+                    onSearch(keyword, filterState, sortState, pageState)
+
                 }
             )
         },
@@ -149,27 +163,27 @@ inline fun <reified T, reified C> BizTable(
                 editModeFlag = editModeFlag,
                 onSelectionChange = { checked ->
                     val pageIds = listOf(itemId)
-                    if (checked) {
-                        selectedItemIds = selectedItemIds + pageIds
+                    selectedItemIds = if (checked) {
+                        selectedItemIds + pageIds
                     } else {
-                        selectedItemIds = selectedItemIds.filter { it !in pageIds }.toSet()
+                        selectedItemIds.filter { it !in pageIds }.toSet()
                     }
                 }
             )
         },
-        rowActionSlot = rowActionSlot ?: {
+        rowActionSlot = rowActionSlot ?: { item ->
             AddEditDeleteButton(
-                showDelete = true, 
-                showEdit = true, 
-                onEditClick = { /* TODO: 实现编辑逻辑 */ },
-                onDeleteClick = { /* TODO: 实现删除逻辑 */ }
+                showDelete = true,
+                showEdit = true,
+                onEditClick = { onEditClick?.invoke(item) },
+                onDeleteClick = { onDeleteClick?.invoke(item) }
             )
         },
         modifier = modifier,
         columnRightSlot = columnRightSlot ?: { column ->
             val columnKey = getColumnKey(column)
             val sortDirection = sortState.find { it.columnKey == columnKey }?.direction ?: EnumSortDirection.NONE
-            
+
             RenderSortButton(
                 column = column,
                 getColumnKey = getColumnKey,
@@ -178,7 +192,6 @@ inline fun <reified T, reified C> BizTable(
                 onClick = {
                     // 查找当前是否已有该列的排序状态
                     val existingSort = sortState.find { it.columnKey == columnKey }
-                    println("【排序处理】列: $columnKey, 当前排序状态: ${existingSort?.direction ?: "NONE"}")
 
                     // 根据当前排序状态决定下一个状态
                     val newDirection = when (existingSort?.direction) {
@@ -186,7 +199,6 @@ inline fun <reified T, reified C> BizTable(
                         EnumSortDirection.DESC -> EnumSortDirection.NONE
                         else -> EnumSortDirection.ASC // null或NONE时设为ASC
                     }
-                    println("【排序处理】列: $columnKey, 新排序状态: $newDirection")
 
                     // 创建新的排序状态
                     val newSortState = sortState.toMutableSet()
@@ -203,7 +215,7 @@ inline fun <reified T, reified C> BizTable(
                     sortState = newSortState
                 }
             )
-            
+
             val hasFilter = filterStateMap.containsKey(columnKey)
             RenderFilterButton(
                 column = column,
