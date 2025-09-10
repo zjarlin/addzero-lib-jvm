@@ -17,8 +17,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TableLayoutConfig(
-
-
     // AddBizTable 特有参数
     val showPagination: Boolean = true,
     val showSearchBar: Boolean = true,
@@ -27,14 +25,6 @@ data class TableLayoutConfig(
     val showDefaultRowActions: Boolean = true,
     val enableSorting: Boolean = true,
     val enableAdvancedSearch: Boolean = true,
-
-
-
-
-
-
-
-
     val indexColumnWidthDp: Float = 80f,
     val actionColumnWidthDp: Float = 150f,
     // ui

@@ -2,6 +2,7 @@ package com.addzero.component.table.biz
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.addzero.assist.AddFun.getIdExt
 import com.addzero.component.button.AddEditDeleteButton
 import com.addzero.component.search_bar.AddSearchBar
 import com.addzero.component.table.original.TableOriginal
@@ -39,8 +40,8 @@ inline fun <reified T, reified C> AddTable(
     noinline onExportClick: ((String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit),
     noinline onBatchDelete: ((Set<Any>) -> Unit),
     noinline onBatchExport: ((Set<Any>) -> Unit),
-    noinline onEditClick: ((T) -> Unit),
-    noinline onDeleteClick: ((T) -> Unit)
+    noinline onEditClick: ((Any) -> Unit),
+    noinline onDeleteClick: ((Any) -> Unit)
 ) {
     // 状态定义
     var keyword by remember { mutableStateOf("") }
@@ -193,17 +194,14 @@ inline fun <reified T, reified C> AddTable(
         },
         rowActionSlot = rowActionSlot ?: { item ->
             AddEditDeleteButton(showDelete = true, showEdit = true, onEditClick = {
-
                 rememberCoroutineScope.launch {
-
-                    onEditClick(item)
+                    val any = getRowId?.invoke(item) ?: (item.getIdExt)
+                    onEditClick(any)
                 }
-
             }, onDeleteClick = {
-
                 rememberCoroutineScope.launch {
-
-                    onDeleteClick(item)
+                    val any = getRowId?.invoke(item) ?: (item.getIdExt)
+                    onDeleteClick(any)
                 }
             })
         },

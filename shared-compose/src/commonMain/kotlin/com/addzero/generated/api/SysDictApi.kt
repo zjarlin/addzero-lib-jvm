@@ -3,6 +3,8 @@ package com.addzero.generated.api
 import de.jensklingenberg.ktorfit.http.*
 import com.addzero.generated.isomorphic.SysDictIso
 import com.addzero.generated.isomorphic.SysDictItemIso
+import com.addzero.entity.PageResult
+import com.addzero.entity.low_table.CommonTableDaTaInputDTO
 
 /**
  * Ktorfit接口 - 由KSP自动生成
@@ -82,5 +84,85 @@ interface SysDictApi {
     @GET("/sysDict/tree")    suspend fun tree(
         @Query("keyword") keyword: kotlin.String
     ): kotlin.collections.List<com.addzero.generated.isomorphic.SysDictIso>
+
+/**
+ * page
+ * HTTP方法: POST
+ * 路径: /sysDict/page
+ * 参数:
+ *   - commonTableDaTaInputDTO: com.addzero.entity.low_table.CommonTableDaTaInputDTO (RequestBody)
+ * 返回类型: com.addzero.entity.PageResult<com.addzero.generated.isomorphic.SysDictIso>
+ */
+    @POST("/sysDict/page")    suspend fun page(
+        @Body commonTableDaTaInputDTO: com.addzero.entity.low_table.CommonTableDaTaInputDTO
+    ): com.addzero.entity.PageResult<com.addzero.generated.isomorphic.SysDictIso>
+
+/**
+ * save
+ * HTTP方法: POST
+ * 路径: /sysDict/save
+ * 参数:
+ *   - input: com.addzero.generated.isomorphic.SysDictIso (RequestBody)
+ * 返回类型: kotlin.Int
+ */
+    @POST("/sysDict/save")    suspend fun save(
+        @Body input: com.addzero.generated.isomorphic.SysDictIso
+    ): kotlin.Int
+
+/**
+ * edit
+ * HTTP方法: PUT
+ * 路径: /sysDict/update
+ * 参数:
+ *   - e: com.addzero.generated.isomorphic.SysDictIso (RequestBody)
+ * 返回类型: kotlin.Int
+ */
+    @PUT("/sysDict/update")    suspend fun edit(
+        @Body e: com.addzero.generated.isomorphic.SysDictIso
+    ): kotlin.Int
+
+/**
+ * deleteByIds
+ * HTTP方法: DELETE
+ * 路径: /sysDict/delete
+ * 参数:
+ *   - ids: kotlin.String (RequestParam)
+ * 返回类型: kotlin.Int
+ */
+    @DELETE("/sysDict/delete")    suspend fun deleteByIds(
+        @Query("ids") ids: kotlin.String
+    ): kotlin.Int
+
+/**
+ * saveBatch
+ * HTTP方法: POST
+ * 路径: /sysDict/saveBatch
+ * 参数:
+ *   - input: kotlin.collections.List<com.addzero.generated.isomorphic.SysDictIso> (RequestBody)
+ * 返回类型: kotlin.Int
+ */
+    @POST("/sysDict/saveBatch")    suspend fun saveBatch(
+        @Body input: kotlin.collections.List<com.addzero.generated.isomorphic.SysDictIso>
+    ): kotlin.Int
+
+/**
+ * findById
+ * HTTP方法: GET
+ * 路径: /sysDict/findById
+ * 参数:
+ *   - id: kotlin.String (Query)
+ * 返回类型: com.addzero.generated.isomorphic.SysDictIso
+ */
+    @GET("/sysDict/findById")    suspend fun findById(
+        @Query("id") id: kotlin.String
+    ): com.addzero.generated.isomorphic.SysDictIso
+
+/**
+ * loadTableConfig
+ * HTTP方法: GET
+ * 路径: /sysDict/loadTableConfig
+ * 返回类型: kotlin.Unit
+ */
+    @GET("/sysDict/loadTableConfig")    suspend fun loadTableConfig(): kotlin.Unit
 
 }

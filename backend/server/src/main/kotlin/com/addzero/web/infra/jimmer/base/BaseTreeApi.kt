@@ -1,6 +1,5 @@
 package com.addzero.web.infra.jimmer.base
 
-import cn.hutool.core.util.TypeUtil
 import com.addzero.common.consts.sql
 import com.addzero.web.infra.curllog.CurlLog
 import org.babyfish.jimmer.meta.ImmutableType
@@ -10,15 +9,14 @@ import org.babyfish.jimmer.sql.kt.ast.expression.isNull
 import org.babyfish.jimmer.sql.kt.ast.expression.or
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
-import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
+
 /**
  *任意位置的下拉框,需要配合Iso2DataProvider做下拉数据的提供者,然后jimmer实体中的关联关系就可以用这个下拉框展示
  */
-interface BaseTreeApi<E : Any> {
+interface BaseTreeApi<E : Any> : BaseGenericContext<E> {
 
-    // 获取 ObjectMapper 实例的方法，由实现类提供
-//    fun getObjectMapper(): ObjectMapper
+    val entityType get() = CLASS().kotlin
 
     /**
      * 通过反射查找实体类中带有 @LabelProp 注解的属性
@@ -27,10 +25,9 @@ interface BaseTreeApi<E : Any> {
      */
     fun findLabelPropInEntity(): String {
         return try {
-            val entityClass = CLASS()
 
             // 获取所有带有 @LabelProp 注解的属性
-            val labelProperties = entityClass.memberProperties.filter { property ->
+            val labelProperties = entityType.memberProperties.filter { property ->
                 property.annotations.any { annotation ->
                     annotation.annotationClass.simpleName == "LabelProp"
                 }
@@ -47,13 +44,13 @@ interface BaseTreeApi<E : Any> {
 
                 val labelFieldName = selectedProperty.name
                 if (labelProperties.size > 1) {
-                    println("BaseTreeApi: 找到多个 @LabelProp 标记的属性: ${entityClass.simpleName}, 选择: ${labelFieldName}")
+                    println("BaseTreeApi: 找到多个 @LabelProp 标记的属性: ${entityType.simpleName}, 选择: ${labelFieldName}")
                 } else {
-                    println("BaseTreeApi: 找到 @LabelProp 标记的属性: ${entityClass.simpleName}.${labelFieldName}")
+                    println("BaseTreeApi: 找到 @LabelProp 标记的属性: ${entityType.simpleName}.${labelFieldName}")
                 }
                 labelFieldName
             } else {
-                println("BaseTreeApi: 在 ${entityClass.simpleName} 中未找到 @LabelProp 标记的属性，使用默认值 'name'")
+                println("BaseTreeApi: 在 ${entityType.simpleName} 中未找到 @LabelProp 标记的属性，使用默认值 'name'")
                 "name"  // 默认使用 name 字段
             }
         } catch (e: Exception) {
@@ -71,7 +68,7 @@ interface BaseTreeApi<E : Any> {
         val keywordProp = findLabelPropInEntity()
 
         val immutableType = ImmutableType.get(
-            CLASS().java
+            CLASS()
         )
 
         // 判断是否为树形结构（是否有 children 字段）
@@ -91,16 +88,17 @@ interface BaseTreeApi<E : Any> {
             val prop = immutableType.getProp(CHILDREN)
             val parentProp = immutableType.getProp(PARENT)
 
-            sql.executeQuery(CLASS()) {
+            sql.executeQuery(entityType) {
                 val propExpression = table.get<String>(keywordProp)
                 val parentexpression = table.getAssociatedId<Long>(parentProp)
                 where(
                     or(
-                        propExpression `ilike?` keyword, table.exists<E>(prop) { propExpression `ilike?` keyword }
+                        propExpression `ilike?` keyword
+                        , table.exists<E>(prop) { propExpression `ilike?` keyword }
                     ), parentexpression.isNull()
 
                 )
-                val _fetcher = FetcherImpl(CLASS().java)
+                val _fetcher = FetcherImpl(CLASS())
                 select(
                     table.fetch(
                         _fetcher.allScalarFields().addRecursion(
@@ -111,14 +109,14 @@ interface BaseTreeApi<E : Any> {
             }
         } else {
             // 普通列表查询（非树形结构）
-            sql.executeQuery(CLASS()) {
+            sql.executeQuery(entityType) {
                 val propExpression = table.get<String>(keywordProp)
 
                 where(
                     propExpression `ilike?` keyword
                 )
 
-                val _fetcher = FetcherImpl(CLASS().java)
+                val _fetcher = FetcherImpl(CLASS())
                 select(
 
                     table.fetch(_fetcher.allScalarFields())
@@ -131,11 +129,6 @@ interface BaseTreeApi<E : Any> {
         return map
     }
 
-    fun CLASS(): KClass<E> {
-        val typeArgument = TypeUtil.getTypeArgument(this.javaClass, 0)
-        val type = typeArgument as Class<E>
-        return type.kotlin
-    }
 
 }
 

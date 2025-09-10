@@ -1,21 +1,15 @@
 package com.addzero.web.infra.jimmer.base
 
-import cn.hutool.core.util.TypeUtil
 import cn.hutool.extra.spring.SpringUtil
-import com.addzero.jimmer.adv_search.queryPage
+import com.addzero.entity.PageResult
 import com.addzero.entity.low_table.CommonTableDaTaInputDTO
-import com.addzero.entity.low_table.EnumLogicOperator
-import com.addzero.exp.BizException
-import com.addzero.web.infra.constant.RestConsts.deleteUrl
-import com.addzero.web.infra.constant.RestConsts.saveUrl
-import com.addzero.web.infra.constant.RestConsts.updateUrl
+import com.addzero.jimmer.adv_search.queryPage
 import org.babyfish.jimmer.Page
 import org.babyfish.jimmer.sql.kt.KSqlClient
 import org.springframework.web.bind.annotation.*
-import kotlin.collections.mutableSetOf
-import kotlin.reflect.KClass
 
-interface BaseController<E : Any> {
+interface BaseController<E : Any> :BaseGenericContext<E>{
+        val type get() = CLASS().kotlin
 
     //interface Noting
     val idName: String
@@ -29,52 +23,54 @@ interface BaseController<E : Any> {
 //        allScalarFields()
 //    }
 
+//    fun CLASS(): KClass<E> {
+//        val typeArgument = TypeUtil.getTypeArgument(this.javaClass, 0)
+//        val type = typeArgument as Class<E>
+//        return type.kotlin
+//    }
+
 
     @PostMapping("/page")
     fun page(
         @RequestBody commonTableDaTaInputDTO: CommonTableDaTaInputDTO
-    ): Page<E> {
-        val tableName = commonTableDaTaInputDTO.tableName
-        if (tableName.isNullOrEmpty()) {
-            throw BizException("Table name is blank")
-        }
-        commonTableDaTaInputDTO.keyword
+    ): PageResult<E> {
         val stateSorts = commonTableDaTaInputDTO.stateSorts
         val stateSearchForms = commonTableDaTaInputDTO.stateSearches
         val pageNo = commonTableDaTaInputDTO.pageNo
         val pageSize = commonTableDaTaInputDTO.pageSize
-        val associateBy = stateSearchForms.groupBy { it.logicType }
-        val andSearchCondition = associateBy[EnumLogicOperator.AND]
-        val orSearchCondition = associateBy[EnumLogicOperator.OR]
-//        val klass = entityMap[tableName]
-        val klass1 = CLASS()
-        val queryPage =sql. queryPage(
+        val queryPage = sql.queryPage<E>(
             sortStats = stateSorts,
             searchConditions = stateSearchForms,
-            entityClass = klass1,
+            entityClass =type,
             stateVos = mutableSetOf(),
             pageNo = pageNo,
             pageSize = pageSize,
         )
-//        val decodeFromString = json.decodeFromString<SpecPageResult<Map<String, JsonElement?>>>( toJsonByKtx )
-        return queryPage
+        val pageRes = queryPage.toPageResult()
+        return pageRes
     }
 
 
-    fun CLASS(): KClass<E> {
-        val typeArgument = TypeUtil.getTypeArgument(this.javaClass, 0)
-        val type = typeArgument as Class<E>
-        return type.kotlin
+    @PostMapping("/save")
+    fun save(@RequestBody input: E): Int {
+        val modifiedEntity = sql.save(input).totalAffectedRowCount
+        return modifiedEntity
     }
 
-//    @GetMapping(listAllUrl)
-//    fun list(
-//    ): List<Any> {
-//        val entityType = CLASS_E()
-//        val execute1 = sql.list(entityType)
-//        return execute1
-//    }
 
+    @PutMapping("/update")
+    fun edit(@RequestBody e: E): Int {
+        val update = sql.update(e).totalAffectedRowCount
+        return update
+    }
+
+
+
+    @DeleteMapping("/delete")
+    fun deleteByIds(@RequestParam vararg ids: String): Int {
+        val affectedRowCountMap = sql.deleteByIds(type, listOf(*ids)).totalAffectedRowCount
+        return affectedRowCountMap
+    }
 
     @PostMapping("/saveBatch")
     fun saveBatch(
@@ -87,27 +83,15 @@ interface BaseController<E : Any> {
 
     @GetMapping("/findById")
     fun findById(id: String): E? {
-        val byId = sql.findById(CLASS(), id)
+        val byId = sql.findById(type, id)
         return byId
     }
 
-    @DeleteMapping(deleteUrl)
-    fun deleteByIds(@RequestParam vararg ids: String): Int {
-        val affectedRowCountMap = sql.deleteByIds(CLASS(), listOf(*ids)).totalAffectedRowCount
-        return affectedRowCountMap
+    @GetMapping("/loadTableConfig")
+    fun loadTableConfig()  {
+
     }
 
-    @PostMapping(saveUrl)
-    fun save(@RequestBody input: E): Int {
-        val modifiedEntity = sql.save(input).totalAffectedRowCount
-        return modifiedEntity
-    }
-
-    @PutMapping(updateUrl)
-    fun edit(@RequestBody e: E): Int {
-        val update = sql.update(e).totalAffectedRowCount
-        return update
-    }
 
 
     companion object {
@@ -115,4 +99,8 @@ interface BaseController<E : Any> {
             SpringUtil.getBean(KSqlClient::class.java)
         }
     }
+}
+
+private fun <E> Page<E>.toPageResult(): PageResult<E> {
+    return PageResult(this.rows, this.totalRowCount, this.totalPageCount.toInt())
 }

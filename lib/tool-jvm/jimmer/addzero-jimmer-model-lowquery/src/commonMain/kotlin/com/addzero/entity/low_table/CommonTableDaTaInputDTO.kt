@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 data class CommonTableDaTaInputDTO(
     val pageNo: Int = 1,
     val pageSize: Int = 10,
-    val tableName: String,
     //关键词
     val keyword: String,
     //排序条件

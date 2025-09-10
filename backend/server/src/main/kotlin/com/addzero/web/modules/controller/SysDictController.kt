@@ -3,6 +3,7 @@ package com.addzero.web.modules.controller
 import com.addzero.common.consts.sql
 import com.addzero.exp.BizException
 import com.addzero.model.entity.*
+import com.addzero.web.infra.jimmer.base.BaseController
 import com.addzero.web.infra.jimmer.base.BaseTreeApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/sysDict")
-class SysDictController : BaseTreeApi<SysDict> {
+class SysDictController : BaseTreeApi<SysDict> , BaseController<SysDict> {
 
 
     @GetMapping("/querydict")

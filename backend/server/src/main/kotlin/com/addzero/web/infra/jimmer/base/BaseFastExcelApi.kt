@@ -13,7 +13,6 @@ import org.babyfish.jimmer.sql.kt.ast.query.specification.KSpecification
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.multipart.MultipartFile
-import kotlin.reflect.KClass
 
 
 public class ExcelDataListener<ExcelDTO>() : ReadListener<ExcelDTO> {
@@ -54,8 +53,7 @@ public class ExcelDataListener<ExcelDTO>() : ReadListener<ExcelDTO> {
     }
 }
 
-interface BaseFastExcelApi<T : Any, Spec : KSpecification<T>, ExcelWriteDTO : Any> {
-
+interface BaseFastExcelApi<T : Any, Spec : KSpecification<T>, ExcelWriteDTO : Any> : BaseGenericContext<T> {
 
     private val sql: KSqlClient get() = SpringUtil.getBean<KSqlClient>(KSqlClient::class.java)
 
@@ -78,10 +76,6 @@ interface BaseFastExcelApi<T : Any, Spec : KSpecification<T>, ExcelWriteDTO : An
             .map { toEntity(it) }
         val totalAffectedRowCount = sql.saveEntities(map).totalAffectedRowCount
         return totalAffectedRowCount
-    }
-
-    private fun CLASS(): KClass<T> {
-        return (TypeUtil.getTypeArgument(javaClass, 0) as Class<T>).kotlin
     }
 
 
