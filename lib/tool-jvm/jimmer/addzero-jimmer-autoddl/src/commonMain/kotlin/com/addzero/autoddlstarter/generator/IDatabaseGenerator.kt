@@ -1,6 +1,5 @@
 package com.addzero.autoddlstarter.generator
 
-import cn.hutool.core.util.StrUtil
 import com.addzero.autoddlstarter.generator.FieldPredicateUtil.isBigDecimalType
 import com.addzero.autoddlstarter.generator.FieldPredicateUtil.isBooleanType
 import com.addzero.autoddlstarter.generator.FieldPredicateUtil.isCharType
@@ -15,7 +14,7 @@ import com.addzero.autoddlstarter.generator.FieldPredicateUtil.isTimeType
 import com.addzero.autoddlstarter.generator.entity.FieldMapping
 import com.addzero.autoddlstarter.generator.entity.JavaFieldMetaInfo
 import com.addzero.autoddlstarter.context.DDlRangeContext
-import com.addzero.autoddlstarter.context.SettingContext
+import com.addzero.autoddlstarter.context.AutoDDLSettings
 import com.addzero.autoddlstarter.generator.consts.DbType.DM
 import com.addzero.autoddlstarter.generator.consts.DbType.H2
 import com.addzero.autoddlstarter.generator.consts.DbType.MYSQL
@@ -26,10 +25,10 @@ import com.addzero.autoddlstarter.generator.ex.H2SQLDDLGenerator
 import com.addzero.autoddlstarter.generator.ex.MysqlDDLGenerator
 import com.addzero.autoddlstarter.generator.ex.OracleDDLGenerator
 import com.addzero.autoddlstarter.generator.ex.PostgreSQLDDLGenerator
-import com.addzero.autoddlstarter.util.containsAny
-import com.addzero.autoddlstarter.util.ignoreCaseIn
-import com.addzero.autoddlstarter.util.ignoreCaseLike
-import com.addzero.autoddlstarter.util.toLowCamelCase
+import com.addzero.util.str.containsAny
+import com.addzero.util.str.ignoreCaseIn
+import com.addzero.util.str.ignoreCaseLike
+import com.addzero.util.str.toLowCamelCase
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -45,7 +44,7 @@ fun filterBaseEneity(dDlRangeContext: DDlRangeContext): Boolean {
 }
 
  fun filterBaseEntity(colName: String): Boolean {
-    val settings = SettingContext.settings
+    val settings = AutoDDLSettings.settings
     val id = settings.id
     val createBy = settings.createBy
     val updateBy = settings.updateBy
@@ -58,8 +57,9 @@ fun filterBaseEneity(dDlRangeContext: DDlRangeContext): Boolean {
     val arrayOf = arrayOf(id, createBy, updateBy, createTime, updateTime)
     val arrayOf1 = arrayOf.map { it.toLowCamelCase() }.toTypedArray()
     arrayOf(id, createBy, updateBy, createTime, updateTime)
-    val containsAny = StrUtil.containsAny(colName, *arrayOf)
-    val containsAny1 = StrUtil.containsAny(colName, *arrayOf1)
+    val containsAny = colName.containsAny(*arrayOf)
+
+    val containsAny1 =  colName.containsAny(*arrayOf1)
     val b = !(containsAny|| containsAny1)
     return b
 }
@@ -117,6 +117,7 @@ interface IDatabaseGenerator {
             }?.javaClassRef
             val containsAny = javaType.containsAny("Clob", "Object")
             val b = javaType ignoreCaseIn listOf("clob", "object")
+
             if (containsAny || b) {
                 return String::class.java.name
             }

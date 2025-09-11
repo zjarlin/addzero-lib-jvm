@@ -1,31 +1,32 @@
 package com.addzero.autoddlstarter.generator.ex
 
-import cn.hutool.core.util.StrUtil
+import com.addzero.autoddlstarter.context.AutoDDLSettings
+import com.addzero.autoddlstarter.context.DDLContext
 import com.addzero.autoddlstarter.generator.DatabaseDDLGenerator
 import com.addzero.autoddlstarter.generator.IDatabaseGenerator.Companion.fieldMappings
 import com.addzero.autoddlstarter.generator.entity.JavaFieldMetaInfo
 import com.addzero.autoddlstarter.generator.filterBaseEneity
-import com.addzero.autoddlstarter.context.DDLContext
-import com.addzero.autoddlstarter.context.SettingContext
-import com.addzero.autoddlstarter.util.JlStrUtil
+import com.addzero.util.str.JlStrUtil
+import com.addzero.util.str.makeSurroundWith
+import com.addzero.util.str.toUnderLineCase
 
 class H2SQLDDLGenerator : DatabaseDDLGenerator() {
     override val defaultStringType: String
-        get() ="VARCHAR"
-override val selfMappingTypeTable: Map<String, String>
-    get() = mapOf(
-        "String" to "VARCHAR",
-        "Int" to "INT",
-        "Long" to "BIGINT",
-        "Double" to "DOUBLE",
-        "Float" to "REAL",
-        "Boolean" to "BOOLEAN",
-        "LocalDateTime" to "TIMESTAMP",
-        "LocalDate" to "DATE",
-        "LocalTime" to "TIME",
-        "BigDecimal" to "DECIMAL",
-        "UUID" to "UUID"
-    )
+        get() = "VARCHAR"
+    override val selfMappingTypeTable: Map<String, String>
+        get() = mapOf(
+            "String" to "VARCHAR",
+            "Int" to "INT",
+            "Long" to "BIGINT",
+            "Double" to "DOUBLE",
+            "Float" to "REAL",
+            "Boolean" to "BOOLEAN",
+            "LocalDateTime" to "TIMESTAMP",
+            "LocalDate" to "DATE",
+            "LocalTime" to "TIME",
+            "BigDecimal" to "DECIMAL",
+            "UUID" to "UUID"
+        )
 
     override fun generateCreateTableDDL(ddlContext: DDLContext): String {
         val tableEnglishName = ddlContext.tableEnglishName
@@ -43,7 +44,7 @@ override val selfMappingTypeTable: Map<String, String>
 
         cols = JlStrUtil.removeLastCharOccurrence(cols, ',')
 
-        val settings = SettingContext.settings
+        val settings = AutoDDLSettings.settings
         val id = settings.id
         val createBy = settings.createBy
         val updateBy = settings.updateBy
@@ -90,12 +91,13 @@ $cols
 
             // 如果 databaseName 不为空，则拼接成 databaseName.tableEnglishName
             val tableRef = if (databaseName.isNullOrEmpty()) {
-                JlStrUtil.makeSurroundWith(tableEnglishName, "\"")
+                tableEnglishName.makeSurroundWith("\"")
             } else {
                 "\"$databaseName\".\"$tableEnglishName\""
             }
             // 生成 ALTER 语句以及字段注释
-            val upperCaseColName = StrUtil.toUnderlineCase(it.colName)
+
+            val upperCaseColName = it.colName.toUnderLineCase()
             """
             alter table $tableRef add column `$upperCaseColName` ${it.colType}${it.colLength};
             comment on column $tableRef.`$upperCaseColName` is '${it.colComment}';

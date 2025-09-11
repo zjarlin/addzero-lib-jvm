@@ -1,96 +1,96 @@
 package com.addzero.util.str
 
 
-    /**
-     * 清理字符串中的空白字符
-     * 包括：
-     * 1. 移除首尾空白字符
-     * 2. 将连续的空白字符替换为单个空格
-     * 3. 移除不可见字符
-     *
-     * @param str 要清理的字符串
-     * @return 清理后的字符串
-     */
-    fun String?.cleanBlank(): String {
-        if (this.isNullOrEmpty()) return ""
+/**
+ * 清理字符串中的空白字符
+ * 包括：
+ * 1. 移除首尾空白字符
+ * 2. 将连续的空白字符替换为单个空格
+ * 3. 移除不可见字符
+ *
+ * @param str 要清理的字符串
+ * @return 清理后的字符串
+ */
+fun String?.cleanBlank(): String {
+    if (this.isNullOrEmpty()) return ""
 
-        return this!!.trim()
-            .replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
-            .filter { it.isDefined() } // 移除不可见字符
+    return this!!.trim()
+        .replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
+        .filter { it.isDefined() } // 移除不可见字符
+}
+
+/**
+ * 判断字符是否可见
+ */
+private fun Char.isDefined(): Boolean {
+    return this.code in 32..126 || this.code in 0x4E00..0x9FFF
+}
+
+/**
+ * 删除字符串中最后一次出现的指定字符。
+ * 注意这和removeSuffixifnot有所不同(该方法只是移除最后一个字符,而不是最后出现的字符,例如如最后一个是空格就翻车了)
+ *
+ * @param str 字符串
+ * @param ch 要删除的字符
+ * @return 删除指定字符后的字符串
+ */
+fun removeLastCharOccurrence(str: String, ch: Char): String {
+    if (str.isNullOrEmpty()) {
+        return ""
     }
 
-    /**
-     * 判断字符是否可见
-     */
-    private fun Char.isDefined(): Boolean {
-        return this.code in 32..126 || this.code in 0x4E00..0x9FFF
+    val lastIndex = str.lastIndexOf(ch) // 获取指定字符最后一次出现的位置
+    return if (lastIndex != -1) {
+        // 如果找到了指定字符，则删除它
+        str.substring(0, lastIndex) + str.substring(lastIndex + 1)
+    } else {
+        // 如果没有找到指定字符，则返回原字符串
+        str!!
     }
+}
 
-    /**
-     * 删除字符串中最后一次出现的指定字符。
-     * 注意这和removeSuffixifnot有所不同(该方法只是移除最后一个字符,而不是最后出现的字符,例如如最后一个是空格就翻车了)
-     *
-     * @param str 字符串
-     * @param ch 要删除的字符
-     * @return 删除指定字符后的字符串
-     */
-    fun removeLastCharOccurrence(str: String, ch: Char): String {
-        if (str.isNullOrEmpty()) {
-            return ""
-        }
 
-        val lastIndex = str.lastIndexOf(ch) // 获取指定字符最后一次出现的位置
-        return if (lastIndex != -1) {
-            // 如果找到了指定字符，则删除它
-            str.substring(0, lastIndex) + str.substring(lastIndex + 1)
+fun <T> groupBySeparator(lines: List<T>, predicate: (T) -> Boolean): Map<T, List<T>> {
+    val separatorIndices = lines.indices.filter { predicate(lines[it]) }
+    return separatorIndices.mapIndexed { index, spe ->
+        val next = if (index + 1 < separatorIndices.size) {
+            separatorIndices[index + 1]
         } else {
-            // 如果没有找到指定字符，则返回原字符串
-            str!!
-        }
-    }
-
-
-    fun <T> groupBySeparator(lines: List<T>, predicate: (T) -> Boolean): Map<T, List<T>> {
-        val separatorIndices = lines.indices.filter { predicate(lines[it]) }
-        return separatorIndices.mapIndexed { index, spe ->
-            val next = if (index + 1 < separatorIndices.size) {
-                separatorIndices[index + 1]
-            } else {
-                lines.size // 如果没有下一个分隔符，取行的总数
-            }
-
-            val subList = lines.subList(spe + 1, next)
-            lines[spe] to subList // 使用 Pair 进行配对
-        }.toMap()
-    }
-
-
-    fun String.makeSurroundWith(fix: String): String {
-        val addPrefixIfNot = this.addPrefixIfNot(fix)
-        val addSuffixIfNot = addPrefixIfNot.addSuffixIfNot(fix)
-        return addSuffixIfNot
-
-    }
-
-
-    /**
-     * 如果字符串不以指定后缀结尾，则添加该后缀
-     *
-     * @param suffix 要添加的后缀
-     * @param ignoreCase 是否忽略大小写，默认为false
-     * @return 添加后缀后的字符串
-     */
-    fun String?.addSuffixIfNot(suffix: String, ignoreCase: Boolean = false): String {
-        if (this == null) {
-            return suffix
+            lines.size // 如果没有下一个分隔符，取行的总数
         }
 
-        return if (this.endsWith(suffix, ignoreCase)) {
-            this
-        } else {
-            this + suffix
-        }
+        val subList = lines.subList(spe + 1, next)
+        lines[spe] to subList // 使用 Pair 进行配对
+    }.toMap()
+}
+
+
+fun String.makeSurroundWith(fix: String): String {
+    val addPrefixIfNot = this.addPrefixIfNot(fix)
+    val addSuffixIfNot = addPrefixIfNot.addSuffixIfNot(fix)
+    return addSuffixIfNot
+
+}
+
+
+/**
+ * 如果字符串不以指定后缀结尾，则添加该后缀
+ *
+ * @param suffix 要添加的后缀
+ * @param ignoreCase 是否忽略大小写，默认为false
+ * @return 添加后缀后的字符串
+ */
+fun String?.addSuffixIfNot(suffix: String, ignoreCase: Boolean = false): String {
+    if (this == null) {
+        return suffix
     }
+
+    return if (this.endsWith(suffix, ignoreCase)) {
+        this
+    } else {
+        this + suffix
+    }
+}
 
 
 fun String?.isNotBlank(): Boolean {
@@ -190,22 +190,6 @@ fun String?.addPrefixIfNot(prefix: String, ignoreCase: Boolean = false): String 
     }
     return string
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**
@@ -360,9 +344,15 @@ object JlStrUtil {
     }
 
 
+    fun join(split: String, vararg testStrs: CharSequence): String {
+        if (testStrs.isEmpty()) {
+            return ""
+        }
+        return testStrs.joinToString(split)
+    }
+
+
 }
-
-
 
 
 fun String.withPkg(pkg: String): String {
@@ -373,7 +363,7 @@ fun String.withFileName(fileName: String): String {
     return "$this/$fileName"
 }
 
-fun String.withFileSuffix(suffix: String=".kt"): String {
+fun String.withFileSuffix(suffix: String = ".kt"): String {
     return "$this$suffix"
 }
 

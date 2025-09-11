@@ -1,13 +1,17 @@
 package com.addzero.processor
 
-import cn.hutool.json.JSONUtil
 import com.addzero.autoddlstarter.context.DDLContext
 import com.addzero.autoddlstarter.context.DDlRangeContext
-import com.addzero.autoddlstarter.context.SettingContext
+import com.addzero.autoddlstarter.context.AutoDDLSettings
+import com.addzero.autoddlstarter.context.Settings
 import com.addzero.autoddlstarter.generator.IDatabaseGenerator.Companion.getDatabaseDDLGenerator
 import com.addzero.autoddlstarter.generator.factory.DDLContextFactory4JavaMetaInfo
 import com.addzero.autoddlstarter.generator.factory.DDLContextFactory4JavaMetaInfo.createDDLContext4KtClass
-import com.addzero.autoddlstarter.util.*
+import com.addzero.core.ext.map2bean
+import com.addzero.util.genCode
+import com.addzero.util.getAnno
+import com.addzero.util.getArg
+import com.addzero.util.str.toUnderLineCase
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
@@ -27,8 +31,8 @@ class JimmerEntity2DDLProcessor(
 
     private fun handleManyToMany(entities: Sequence<KSClassDeclaration>) {
 
-        val dbType = SettingContext.settings.dbType
-        val idType = SettingContext.settings.idType
+        val dbType = AutoDDLSettings.settings.dbType
+        val idType = AutoDDLSettings.settings.idType
 
         val dict = mutableMapOf<String, KSPropertyDeclaration>()
 
@@ -90,8 +94,6 @@ class JimmerEntity2DDLProcessor(
             }
         }.flatMap { it.getAllProperties() }
         val size = youJoinTableDeClass.toList().size
-        println("既有mm又有jointable$size")
-
 
         youJoinTableDeClass.forEach {
             val anno1 = it.getAnno("JoinTable")
@@ -109,30 +111,11 @@ class JimmerEntity2DDLProcessor(
 
 
         }
-
-
-//    entities.map { en ->
-//
-//        val filter1 = en.getAllProperties().filter { property ->
-//            val anno = property.getAnno("ManyToMany")
-//            val bool = anno != null
-//            val arg = anno.getArg("mappedBy") != null
-//            bool && arg
-//        }.toList()
-//        println("有mappedBy的${filter1.size}")
-//        val filter = handleRet(filter1, dict, dbType, idType, ret)
-//
-//
-//
-//        filter
-//    }
-//        genCode("/Users/zjarlin/Downloads/AddzeroKmp/aaa.json", ret.toJson())
-
     }
 
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        SettingContext.initialize(environment.options)
+        AutoDDLSettings.settings = environment.options.map2bean<Settings>()
 
         val entities =
             resolver.getSymbolsWithAnnotation("org.babyfish.jimmer.sql.Entity").filterIsInstance<KSClassDeclaration>()
@@ -151,23 +134,22 @@ class JimmerEntity2DDLProcessor(
 
         val resourceDir = environment.options["serverResourceDir"] ?: throw IllegalArgumentException("autoddl模块资源目录(serverResourceDir)未设置，请在build.gradle.kts中配置")
 
-        val metaJsonSavePath = environment.options["metaJsonSavePath"] ?: "db/autoddl/meta"
+//        val metaJsonSavePath = environment.options["metaJsonSavePath"] ?: "db/autoddl/meta"
 
-        val metaJsonSaveName = environment.options["metaJsonSaveName"] ?: "jimmer_ddlcontext.json"
+//        val metaJsonSaveName = environment.options["metaJsonSaveName"] ?: "jimmer_ddlcontext.json"
 
-        val metaJsonFinalSavePath = "$resourceDir/$metaJsonSavePath/$metaJsonSaveName"
-        println("最终metajson生成路径为$metaJsonFinalSavePath")
+//        val metaJsonFinalSavePath = "$resourceDir/$metaJsonSavePath/$metaJsonSaveName"
+//        println("最终metajson生成路径为$metaJsonFinalSavePath")
 
         val sqlSavePath = environment.options["sqlSavePath"] ?: "db/autoddl"
 
-
-        val toJsonPrettyStr = JSONUtil.toJsonPrettyStr(ret)
-
-
-        genCode(metaJsonFinalSavePath, toJsonPrettyStr)
+//        val toJsonPrettyStr = JSONUtil.toJsonPrettyStr(ret)
 
 
-        val databaseDDLGenerator = getDatabaseDDLGenerator(SettingContext.settings.dbType)
+//        genCode(metaJsonFinalSavePath, toJsonPrettyStr)
+
+
+        val databaseDDLGenerator = getDatabaseDDLGenerator(AutoDDLSettings.settings.dbType)
 
         ret.forEachIndexed { index, context ->
             val tableEnglishName = context.tableEnglishName
@@ -235,8 +217,8 @@ private fun handleRet(
             else -> {
 
 
-                val zhongjianClassName = doubleMapping.sourceClass.simpleName.asString().toUnderlineCase()
-                val zuobianClassName = doubleMapping.targetClass?.simpleName?.asString().toUnderlineCase()
+                val zhongjianClassName = doubleMapping.sourceClass.simpleName.asString().toUnderLineCase()
+                val zuobianClassName = doubleMapping.targetClass?.simpleName?.asString()?.toUnderLineCase()
                 if (zhongjianClassName.isNotBlank() && zhongjianClassName.isNotBlank()) {
                     val defaultmmTableName = "${zuobianClassName}_${zhongjianClassName}_mapping"
                     val defaultFormId = "${zuobianClassName}_id"

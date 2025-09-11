@@ -1,23 +1,23 @@
 package com.addzero.autoddlstarter.generator.factory
 
-import cn.hutool.core.util.StrUtil
 import com.addzero.autoddlstarter.generator.IDatabaseGenerator.Companion.getDatabaseDDLGenerator
 import com.addzero.autoddlstarter.context.DDLContext
 import com.addzero.autoddlstarter.context.DDlRangeContext
-import com.addzero.autoddlstarter.context.SettingContext
-import com.addzero.autoddlstarter.util.getAnno
-import com.addzero.autoddlstarter.util.getArg
-import com.addzero.autoddlstarter.util.getArgFirstValue
-import com.addzero.autoddlstarter.util.guessTableName
-import com.addzero.autoddlstarter.util.hasAnno
-import com.addzero.autoddlstarter.util.isCollectionType
-import com.addzero.autoddlstarter.util.isCustomClassType
-import com.addzero.autoddlstarter.util.isNullableFlag
-import com.addzero.autoddlstarter.util.ktName
-import com.addzero.autoddlstarter.util.ktType
-import com.addzero.autoddlstarter.util.removeAnyQuote
-import com.addzero.autoddlstarter.util.toLowCamelCase
-import com.addzero.autoddlstarter.util.toUnderlineCase
+import com.addzero.autoddlstarter.context.AutoDDLSettings
+import com.addzero.util.getAnno
+import com.addzero.util.getArg
+import com.addzero.util.getArgFirstValue
+import com.addzero.util.guessTableName
+import com.addzero.util.hasAnno
+import com.addzero.util.isCollectionType
+import com.addzero.util.isCustomClassType
+import com.addzero.util.isNullableFlag
+import com.addzero.util.ktName
+import com.addzero.util.ktType
+import com.addzero.util.str.containsAny
+import com.addzero.util.str.removeAnyQuote
+import com.addzero.util.str.toLowCamelCase
+import com.addzero.util.str.toUnderLineCase
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 
@@ -27,7 +27,7 @@ object DDLContextFactory4JavaMetaInfo {
 
     fun createDDLContext4KtClass(
         ktClass: KSClassDeclaration,
-        databaseType: String = SettingContext.settings.dbType
+        databaseType: String = AutoDDLSettings.settings.dbType
     ): DDLContext {
 
         var (tableChineseName, tableEnglishName) = getClassMetaInfo4KtClass(ktClass)
@@ -67,7 +67,7 @@ object DDLContextFactory4JavaMetaInfo {
 
             val ktName = property.simpleName.asString()
 
-            val actColName = property.getAnno("Column").getArg("name") ?: ktName.toUnderlineCase()
+            val actColName = property.getAnno("Column").getArg("name") ?: ktName.toUnderLineCase()
 
             // 字段名
 //            val colName = property.simpleName.asString()
@@ -84,7 +84,6 @@ object DDLContextFactory4JavaMetaInfo {
             // 是否自增（假设有@AutoIncrement注解或@PrimaryKey(autoIncrement = true)）
             val isSelfIncreasing = property.getAnno("AutoIncrement").toString()
 
-
             val defaultDDlContext = DDlRangeContext(
                 colName = actColName.toString().removeAnyQuote(),
                 colType = ktType,
@@ -95,7 +94,6 @@ object DDLContextFactory4JavaMetaInfo {
                 nullableFlag = property.isNullableFlag(),
                 ktType = property.ktType(),
                 ktName = property.ktName()
-
             )
 
 
@@ -114,7 +112,7 @@ object DDLContextFactory4JavaMetaInfo {
                     } else {
 
                         return@map defaultDDlContext.copy(
-                            colName = property.ktName().toUnderlineCase() + "_id"
+                            colName = property.ktName().toUnderLineCase() + "_id"
                         )
                     }
 
@@ -165,7 +163,7 @@ object DDLContextFactory4JavaMetaInfo {
     }
 
     private fun handlerTypeMapping(it: DDlRangeContext): DDlRangeContext {
-        val databaseDDLGenerator = getDatabaseDDLGenerator(SettingContext.settings.dbType)
+        val databaseDDLGenerator = getDatabaseDDLGenerator(AutoDDLSettings.settings.dbType)
 
 
         val defaultStringType = databaseDDLGenerator.defaultStringType
@@ -178,7 +176,7 @@ object DDLContextFactory4JavaMetaInfo {
     }
 
     fun filterBaseEntity(colName: String): Boolean {
-        val settings = SettingContext.settings
+        val settings = AutoDDLSettings.settings
         val id = settings.id
         val createBy = settings.createBy
         val updateBy = settings.updateBy
@@ -191,8 +189,8 @@ object DDLContextFactory4JavaMetaInfo {
         val arrayOf = arrayOf(id, createBy, updateBy, createTime, updateTime)
         val arrayOf1 = arrayOf.map { it.toLowCamelCase() }.toTypedArray()
 
-        val containsAny = StrUtil.containsAny(colName, *arrayOf)
-        val containsAny1 = StrUtil.containsAny(colName, *arrayOf1)
+        val containsAny =colName.containsAny(*arrayOf)
+        val containsAny1 = colName.containsAny(*arrayOf1)
         val b = !(containsAny || containsAny1)
         return b
     }
