@@ -5,6 +5,7 @@ import com.addzero.kld.processing.KLResolver
 import com.addzero.kld.symbol.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.element.Element
 
 
 fun RoundEnvironment.toKldResolver(processingEnv: ProcessingEnvironment): KLResolver {
@@ -30,7 +31,9 @@ fun RoundEnvironment.toKldResolver(processingEnv: ProcessingEnvironment): KLReso
             val asSequence = roundEnv.getElementsAnnotatedWith(typeElement).asSequence()
             // TODO: 完成elemet到KLAnnotated
 
-            val map = asSequence.map { element -> element as KLAnnotated } // 简化映射
+            val map = asSequence.map { element ->
+           val kldAnnoted: KLAnnotated= element.toKld()
+            element as KLAnnotated } // 简化映射
 
             return map
         }
@@ -182,3 +185,4 @@ fun RoundEnvironment.toKldResolver(processingEnv: ProcessingEnvironment): KLReso
     }
 
 }
+
