@@ -14,19 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A type alias
+ * A Kotlin source file
  */
-interface KSTypeAlias : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration {
+interface KLFile : com.addzero.kld.symbol.KLDeclarationContainer,
+    com.addzero.kld.symbol.KLAnnotated {
     /**
-     * The name of the type alias
+     * The [com.addzero.kld.symbol.KLName] representation of this file's package.
      */
-    val name: com.google.devtools.ksp.com.addzero.kld.symbol.KSName
+    val packageName: com.addzero.kld.symbol.KLName
 
     /**
-     * The reference to the aliased type.
+     * File name of this source file.
      */
-    val type: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference
+    val fileName: String
+
+    /**
+     * Absolute path of this source file.
+     */
+    val filePath: String
 }

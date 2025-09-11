@@ -14,28 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * A reference to a callable entity, such as a function or a property.
  */
-interface KSCallableReference : com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement {
+interface KLCallableReference : com.addzero.kld.symbol.KLReferenceElement {
     /**
      * A reference to the type of its receiver.
      */
-    val receiverType: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference?
+    val receiverType: com.addzero.kld.symbol.KLTypeReference?
 
     /**
      * Parameters to this callable.
      */
-    val functionParameters: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSValueParameter>
+    val functionParameters: List<com.addzero.kld.symbol.KLValueParameter>
 
     /**
      * A reference to its return type.
      */
-    val returnType: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference
+    val returnType: com.addzero.kld.symbol.KLTypeReference
 
-    override fun <D, R> accept(visitor: com.google.devtools.ksp.com.addzero.kld.symbol.KSVisitor<D, R>, data: D): R {
+    override fun <D, R> accept(visitor: com.addzero.kld.symbol.KLVisitor<D, R>, data: D): R {
         return visitor.visitCallableReference(this, data)
     }
 }

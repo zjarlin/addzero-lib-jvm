@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * An application / reference to a user declared type such as class, interface and object.
  */
-interface KSClassifierReference : com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement {
+interface KLClassifierReference : com.addzero.kld.symbol.KLReferenceElement {
     /**
      * The outer class of an inner class.
      */
-    val qualifier: com.google.devtools.ksp.com.addzero.kld.symbol.KSClassifierReference?
+    val qualifier: com.addzero.kld.symbol.KLClassifierReference?
 
     /**
      * The text which appears in the reference. For example, it is "Int" in `val temperature: Int` or
@@ -31,7 +31,7 @@ interface KSClassifierReference : com.google.devtools.ksp.com.addzero.kld.symbol
      */
     fun referencedName(): String
 
-    override fun <D, R> accept(visitor: com.google.devtools.ksp.com.addzero.kld.symbol.KSVisitor<D, R>, data: D): R {
+    override fun <D, R> accept(visitor: com.addzero.kld.symbol.KLVisitor<D, R>, data: D): R {
         return visitor.visitClassifierReference(this, data)
     }
 }

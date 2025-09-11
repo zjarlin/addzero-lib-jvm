@@ -14,25 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A Kotlin source file
+ * A reference within a parenthesis
  */
-interface KSFile : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclarationContainer,
-    com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotated {
+interface KLParenthesizedReference : com.addzero.kld.symbol.KLReferenceElement {
     /**
-     * The [com.google.devtools.ksp.com.addzero.kld.symbol.KSName] representation of this file's package.
+     * The reference in this parenthesis
      */
-    val packageName: com.google.devtools.ksp.com.addzero.kld.symbol.KSName
-
-    /**
-     * File name of this source file.
-     */
-    val fileName: String
-
-    /**
-     * Absolute path of this source file.
-     */
-    val filePath: String
+    val element: com.addzero.kld.symbol.KLReferenceElement
 }

@@ -14,36 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * Instance of a constructor-call-like annotation.
  */
-interface KSAnnotation : com.google.devtools.ksp.com.addzero.kld.symbol.KSNode {
+interface KLAnnotation : com.addzero.kld.symbol.KLNode {
     /**
      * Reference to the type of the annotation class declaration.
      */
-    val annotationType: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference
+    val annotationType: com.addzero.kld.symbol.KLTypeReference
 
     /**
      * The arguments applied to the constructor call to construct this annotation.
      * Must be compile time constants.
-     * @see [com.google.devtools.ksp.com.addzero.kld.symbol.KSValueArgument] for operations on its values.
+     * @see [com.addzero.kld.symbol.KLValueArgument] for operations on its values.
      */
-    val arguments: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSValueArgument>
+    val arguments: List<com.addzero.kld.symbol.KLValueArgument>
 
     /**
      * The default values of the annotation members
      */
-    val defaultArguments: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSValueArgument>
+    val defaultArguments: List<com.addzero.kld.symbol.KLValueArgument>
 
     /**
      * Short name for this annotation, equivalent to the simple name of the declaration of the annotation class.
      */
-    val shortName: com.google.devtools.ksp.com.addzero.kld.symbol.KSName
+    val shortName: com.addzero.kld.symbol.KLName
 
     /**
      * Use site target of the annotation. Could be null if no annotation use site target is specified.
      */
-    val useSiteTarget: com.google.devtools.ksp.com.addzero.kld.symbol.AnnotationUseSiteTarget?
+    val useSiteTarget: com.addzero.kld.symbol.AnnotationUseSiteTarget?
 }

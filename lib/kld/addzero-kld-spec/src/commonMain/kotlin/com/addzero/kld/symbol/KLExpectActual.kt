@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  *  Classes, functions, properties and typealiases can be declared as `expect` in common modules and `actual` in platform modules.
  *
  *  See https://kotlinlang.org/docs/reference/platform-specific-declarations.html for more information.
  */
-interface KSExpectActual {
+interface KLExpectActual {
     /**
      * True if this is an `actual` implementation.
      */
@@ -37,12 +37,12 @@ interface KSExpectActual {
      *
      * @return a list of corresponding `actual` implementations, or an empty list if not applicable.
      */
-    fun findActuals(): Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration>
+    fun findActuals(): Sequence<com.addzero.kld.symbol.KLDeclaration>
 
     /**
      * Finds all corresponding `expect` declarations for `this`.
      *
      * @return a list of corresponding `expect` implementations, or an empty list if not applicable.
      */
-    fun findExpects(): Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration>
+    fun findExpects(): Sequence<com.addzero.kld.symbol.KLDeclaration>
 }

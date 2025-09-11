@@ -14,31 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A type parameter
+ * A type alias
  */
-interface KSTypeParameter : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration {
+interface KLTypeAlias : com.addzero.kld.symbol.KLDeclaration {
     /**
-     * Name of the type parameter
-     *
-     * For example, in `class Foo<T>`, the name value is "T"
+     * The name of the type alias
      */
-    val name: com.google.devtools.ksp.com.addzero.kld.symbol.KSName
+    val name: com.addzero.kld.symbol.KLName
 
     /**
-     * Declaration-site variance
+     * The reference to the aliased type.
      */
-    val variance: com.google.devtools.ksp.com.addzero.kld.symbol.Variance
-
-    /**
-     * True if it is reified, i.e., has the reified modifier.
-     */
-    val isReified: Boolean
-
-    /**
-     * Upper bounds of the type parameter.
-     */
-    val bounds: Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference>
+    val type: com.addzero.kld.symbol.KLTypeReference
 }

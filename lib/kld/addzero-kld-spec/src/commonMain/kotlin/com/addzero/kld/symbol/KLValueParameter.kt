@@ -14,21 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * A value parameter
  */
-interface KSValueParameter : com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotated {
+interface KLValueParameter : com.addzero.kld.symbol.KLAnnotated {
     /**
      * Name of the parameter
      */
-    val name: com.google.devtools.ksp.com.addzero.kld.symbol.KSName?
+    val name: com.addzero.kld.symbol.KLName?
 
     /**
      *  The reference to the type of the parameter.
      */
-    val type: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference
+    val type: com.addzero.kld.symbol.KLTypeReference
 
     /**
      * True if it is a vararg.

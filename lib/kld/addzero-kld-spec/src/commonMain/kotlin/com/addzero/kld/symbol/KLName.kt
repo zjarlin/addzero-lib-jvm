@@ -14,16 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * An application/reference to a type declared somewhere else.
- *
- * KSReferenceElement can specify, for example, a class, interface, or function, etc.
+ * Kotlin Symbol Processing's representation of names. Can be simple or qualified names.
  */
-interface KSReferenceElement : com.google.devtools.ksp.com.addzero.kld.symbol.KSNode {
+interface KLName {
     /**
-     * Type arguments in the type reference.
+     * String representation of the name.
      */
-    val typeArguments: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeArgument>
+    fun asString(): String
+
+    /**
+     * Qualifier of the name.
+     */
+    fun getQualifier(): String
+
+    /**
+     * If a qualified name, it is the last part. Otherwise it is the same as [asString]
+     */
+    fun getShortName(): String
 }

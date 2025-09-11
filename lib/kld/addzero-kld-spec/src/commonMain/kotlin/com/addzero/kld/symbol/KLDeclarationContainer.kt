@@ -14,9 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * Models `dynamic` type for Kotlin/JS.
+ * A declaration container can have a list of declarations declared in it.
  */
-interface KSDynamicReference : com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement
+interface KLDeclarationContainer : com.addzero.kld.symbol.KLNode {
+    /**
+     * Declarations that are lexically declared inside the current container.
+     */
+    val declarations: Sequence<com.addzero.kld.symbol.KLDeclaration>
+}

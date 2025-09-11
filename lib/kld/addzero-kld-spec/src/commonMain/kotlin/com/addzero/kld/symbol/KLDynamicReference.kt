@@ -14,19 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A type argument
+ * Models `dynamic` type for Kotlin/JS.
  */
-interface KSTypeArgument : com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotated {
-    /**
-     * The use-site variance, or namely type projection
-     */
-    val variance: com.google.devtools.ksp.com.addzero.kld.symbol.Variance
-
-    /**
-     * The reference to the type
-     */
-    val type: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference?
-}
+interface KLDynamicReference : com.addzero.kld.symbol.KLReferenceElement

@@ -14,24 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * Kotlin Symbol Processing's representation of names. Can be simple or qualified names.
+ * A [KSModifierListOwner] can have zero or more modifiers.
  */
-interface KSName {
+interface KLModifierListOwner : com.addzero.kld.symbol.KLNode {
     /**
-     * String representation of the name.
+     * The set of modifiers on this element.
      */
-    fun asString(): String
-
-    /**
-     * Qualifier of the name.
-     */
-    fun getQualifier(): String
-
-    /**
-     * If a qualified name, it is the last part. Otherwise it is the same as [asString]
-     */
-    fun getShortName(): String
+    val modifiers: Set<com.addzero.kld.symbol.Modifier>
 }

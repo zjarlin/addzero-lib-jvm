@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 sealed class Location
 
-data class FileLocation(val filePath: String, val lineNumber: Int) : com.google.devtools.ksp.com.addzero.kld.symbol.Location()
+data class FileLocation(val filePath: String, val lineNumber: Int) : com.addzero.kld.symbol.Location()
 
-object NonExistLocation : com.google.devtools.ksp.com.addzero.kld.symbol.Location()
+object NonExistLocation : com.addzero.kld.symbol.Location()

@@ -14,28 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * Models class-like declarations, including class, interface and object.
  */
-interface KSClassDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration,
-    com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclarationContainer {
+interface KLClassDeclaration : com.addzero.kld.symbol.KLDeclaration,
+    com.addzero.kld.symbol.KLDeclarationContainer {
 
     /**
      * The Kind of the class declaration.
      */
-    val classKind: com.google.devtools.ksp.com.addzero.kld.symbol.ClassKind
+    val classKind: com.addzero.kld.symbol.ClassKind
 
     /**
-     * Primary constructor of a class, secondary constructors can be obtained by filtering [com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclarationContainer.declarations].
+     * Primary constructor of a class, secondary constructors can be obtained by filtering [com.addzero.kld.symbol.KLDeclarationContainer.declarations].
      */
-    val primaryConstructor: com.google.devtools.ksp.com.addzero.kld.symbol.KSFunctionDeclaration?
+    val primaryConstructor: com.addzero.kld.symbol.KLFunctionDeclaration?
 
     /**
      * Sequence of supertypes of this class, containing both super class and implemented interfaces.
      */
-    val superTypes: Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference>
+    val superTypes: Sequence<com.addzero.kld.symbol.KLTypeReference>
 
     /**
      * Determine whether this class declaration is a companion object.
@@ -47,32 +47,32 @@ interface KSClassDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol.KS
      * @return a sequence of sealed subclasses of this class, if any.
      * Calling [getSealedSubclasses] requires type resolution which is expensive and should be avoided if possible.
      */
-    fun getSealedSubclasses(): Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSClassDeclaration>
+    fun getSealedSubclasses(): Sequence<com.addzero.kld.symbol.KLClassDeclaration>
 
     /**
      * Get all member functions of a class declaration, including declared and inherited.
      * @return Sequence of function declarations from the class members.
      * Calling [getAllFunctions] requires type resolution which is expensive and should be avoided if possible.
      */
-    fun getAllFunctions(): Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSFunctionDeclaration>
+    fun getAllFunctions(): Sequence<com.addzero.kld.symbol.KLFunctionDeclaration>
 
     /**
      * Get all member properties of a class declaration, including declared and inherited.
      * @return Sequence of properties declarations from the class members.
      * Calling [getAllProperties] requires type resolution which is expensive and should be avoided if possible.
      */
-    fun getAllProperties(): Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertyDeclaration>
+    fun getAllProperties(): Sequence<com.addzero.kld.symbol.KLPropertyDeclaration>
 
     /**
      * Create a type by applying a list of type arguments to this class' type parameters.
      * @param typeArguments List of Type arguments to be applied.
      * @return A type constructed from this class declaration with type parameters substituted with the type arguments.
      */
-    fun asType(typeArguments: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeArgument>): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun asType(typeArguments: List<com.addzero.kld.symbol.KLTypeArgument>): com.addzero.kld.symbol.KLType
 
     /**
      * If this is a generic class, return the type where the type argument is applied with star projection at use-site.
      * @return A type with all type parameters applied with star projection.
      */
-    fun asStarProjectedType(): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun asStarProjectedType(): com.addzero.kld.symbol.KLType
 }

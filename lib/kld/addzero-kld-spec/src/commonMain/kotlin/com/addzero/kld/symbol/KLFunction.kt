@@ -14,43 +14,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 /**
- * Holds the information for a [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunctionDeclaration] where type arguments are resolved as member
- * of a specific [com.google.devtools.ksp.com.addzero.kld.symbol.KSType].
+ * Holds the information for a [com.addzero.kld.symbol.KSFunctionDeclaration] where type arguments are resolved as member
+ * of a specific [com.addzero.kld.symbol.KSType].
  *
  * @see Resolver.asMemberOf
  */
-interface KSFunction {
+interface KLFunction {
     /**
      * The return type of the function. Note that this might be `null` if an error happened when
      * the type is resolved.
      *
-     * @see com.google.devtools.ksp.com.addzero.kld.symbol.KSFunctionDeclaration.returnType
+     * @see com.addzero.kld.symbol.KLFunctionDeclaration.returnType
      */
-    val returnType: com.google.devtools.ksp.com.addzero.kld.symbol.KSType?
+    val returnType: com.addzero.kld.symbol.KLType?
 
     /**
      * The types of the value parameters of the function. Note that this list might have `null`
      * values in it if the type of a parameter could not be resolved.
      *
-     * @see com.google.devtools.ksp.com.addzero.kld.symbol.KSFunctionDeclaration.parameters
+     * @see com.addzero.kld.symbol.KLFunctionDeclaration.parameters
      */
-    val parameterTypes: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSType?>
+    val parameterTypes: List<com.addzero.kld.symbol.KLType?>
 
     /**
      * The type parameters of the function.
      *
-     * @see com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration.typeParameters
+     * @see com.addzero.kld.symbol.KLDeclaration.typeParameters
      */
-    val typeParameters: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeParameter>
+    val typeParameters: List<com.addzero.kld.symbol.KLTypeParameter>
 
     /**
      * The receiver type of the function.
      *
-     * @see com.google.devtools.ksp.com.addzero.kld.symbol.KSFunctionDeclaration.extensionReceiver
+     * @see com.addzero.kld.symbol.KLFunctionDeclaration.extensionReceiver
      */
-    val extensionReceiverType: com.google.devtools.ksp.com.addzero.kld.symbol.KSType?
+    val extensionReceiverType: com.addzero.kld.symbol.KLType?
 
     /**
      * True if the compiler couldn't resolve the function.

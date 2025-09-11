@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A declaration container can have a list of declarations declared in it.
+ * Base class of every visitable program elements.
  */
-interface KSDeclarationContainer : com.google.devtools.ksp.com.addzero.kld.symbol.KSNode {
-    /**
-     * Declarations that are lexically declared inside the current container.
-     */
-    val declarations: Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration>
+interface KLNode {
+    val origin: com.addzero.kld.symbol.Origin
+    val location: com.addzero.kld.symbol.Location
+    val parent: com.addzero.kld.symbol.KLNode?
+    fun <D, R> accept(visitor: com.addzero.kld.symbol.KLVisitor<D, R>, data: D): R
 }

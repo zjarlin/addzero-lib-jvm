@@ -14,23 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A [KSTypeReference] combines a [com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement] with annotations and modifiers.
+ * A [KSTypeReference] combines a [com.addzero.kld.symbol.KSReferenceElement] with annotations and modifiers.
  */
-interface KSTypeReference : com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotated,
-    com.google.devtools.ksp.com.addzero.kld.symbol.KSModifierListOwner {
+interface KLTypeReference : com.addzero.kld.symbol.KLAnnotated,
+    com.addzero.kld.symbol.KLModifierListOwner {
 
     /**
      * Underlying element of this type reference, without annotations and modifiers.
      */
-    val element: com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement?
+    val element: com.addzero.kld.symbol.KLReferenceElement?
 
     /**
      * Resolves to the original declaration site.
      * @return A type resolved from this type reference.
      * Calling [resolve] is expensive and should be avoided if possible.
      */
-    fun resolve(): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun resolve(): com.addzero.kld.symbol.KLType
 }

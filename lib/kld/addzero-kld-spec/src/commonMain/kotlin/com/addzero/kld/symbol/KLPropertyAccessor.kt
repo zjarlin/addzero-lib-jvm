@@ -14,32 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * The common base of property getter and setter.
  * Note that annotation use-site targets such as @get: @set: is not copied to accessor's annotations attribute.
  * Use KSAnnotated.findAnnotationFromUseSiteTarget() to ensure annotations from parent is obtained.
  */
-interface KSPropertyAccessor : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclarationContainer,
-    com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotated,
-    com.google.devtools.ksp.com.addzero.kld.symbol.KSModifierListOwner {
+interface KLPropertyAccessor : com.addzero.kld.symbol.KLDeclarationContainer,
+    com.addzero.kld.symbol.KLAnnotated,
+    com.addzero.kld.symbol.KLModifierListOwner {
     /**
      * The owner of the property accessor.
      */
-    val receiver: com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertyDeclaration
+    val receiver: com.addzero.kld.symbol.KLPropertyDeclaration
 }
 
 /**
  * A property setter
  */
-interface KSPropertySetter : com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertyAccessor {
-    val parameter: com.google.devtools.ksp.com.addzero.kld.symbol.KSValueParameter
+interface KLPropertySetter : com.addzero.kld.symbol.KLPropertyAccessor {
+    val parameter: com.addzero.kld.symbol.KLValueParameter
 }
 
 /**
  * A property getter
  */
-interface KSPropertyGetter : com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertyAccessor {
-    val returnType: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference?
+interface KLPropertyGetter : com.addzero.kld.symbol.KLPropertyAccessor {
+    val returnType: com.addzero.kld.symbol.KLTypeReference?
 }

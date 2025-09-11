@@ -14,14 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * Base class of every visitable program elements.
+ * A type parameter
  */
-interface KSNode {
-    val origin: com.google.devtools.ksp.com.addzero.kld.symbol.Origin
-    val location: com.google.devtools.ksp.com.addzero.kld.symbol.Location
-    val parent: com.google.devtools.ksp.com.addzero.kld.symbol.KSNode?
-    fun <D, R> accept(visitor: com.google.devtools.ksp.com.addzero.kld.symbol.KSVisitor<D, R>, data: D): R
+interface KLTypeParameter : com.addzero.kld.symbol.KLDeclaration {
+    /**
+     * Name of the type parameter
+     *
+     * For example, in `class Foo<T>`, the name value is "T"
+     */
+    val name: com.addzero.kld.symbol.KLName
+
+    /**
+     * Declaration-site variance
+     */
+    val variance: com.addzero.kld.symbol.Variance
+
+    /**
+     * True if it is reified, i.e., has the reified modifier.
+     */
+    val isReified: Boolean
+
+    /**
+     * Upper bounds of the type parameter.
+     */
+    val bounds: Sequence<com.addzero.kld.symbol.KLTypeReference>
 }

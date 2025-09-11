@@ -14,15 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A symbol that can be annotated with annotations.
+ * An application/reference to a type declared somewhere else.
+ *
+ * KSReferenceElement can specify, for example, a class, interface, or function, etc.
  */
-interface KSAnnotated : com.google.devtools.ksp.com.addzero.kld.symbol.KSNode {
-
+interface KLReferenceElement : com.addzero.kld.symbol.KLNode {
     /**
-     * All annotations on this symbol.
+     * Type arguments in the type reference.
      */
-    val annotations: Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotation>
+    val typeArguments: List<com.addzero.kld.symbol.KLTypeArgument>
 }

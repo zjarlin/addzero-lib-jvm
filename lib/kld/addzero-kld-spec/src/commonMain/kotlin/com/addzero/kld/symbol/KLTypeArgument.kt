@@ -14,14 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A reference within a parenthesis
+ * A type argument
  */
-interface KSParenthesizedReference : com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement {
+interface KLTypeArgument : com.addzero.kld.symbol.KLAnnotated {
     /**
-     * The reference in this parenthesis
+     * The use-site variance, or namely type projection
      */
-    val element: com.google.devtools.ksp.com.addzero.kld.symbol.KSReferenceElement
+    val variance: com.addzero.kld.symbol.Variance
+
+    /**
+     * The reference to the type
+     */
+    val type: com.addzero.kld.symbol.KLTypeReference?
 }

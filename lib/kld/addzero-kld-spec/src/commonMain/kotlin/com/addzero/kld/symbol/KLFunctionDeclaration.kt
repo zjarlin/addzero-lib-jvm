@@ -14,24 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * A function definition
  *
- * Dispatch receiver can be obtained through [com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration.parentDeclaration].
+ * Dispatch receiver can be obtained through [com.addzero.kld.symbol.KSDeclaration.parentDeclaration].
  *
- * To obtain the function signature where type arguments are resolved as member of a given [com.google.devtools.ksp.com.addzero.kld.symbol.KSType],
+ * To obtain the function signature where type arguments are resolved as member of a given [com.addzero.kld.symbol.KSType],
  * use [Resolver.asMemberOf].
  *
  * @see KSFunctionType
  */
-interface KSFunctionDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration,
-    com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclarationContainer {
+interface KLFunctionDeclaration : com.addzero.kld.symbol.KLDeclaration,
+    com.addzero.kld.symbol.KLDeclarationContainer {
     /**
      * Kind of this function.
      */
-    val functionKind: com.google.devtools.ksp.com.addzero.kld.symbol.FunctionKind
+    val functionKind: com.addzero.kld.symbol.FunctionKind
 
     /**
      * Whether this function is abstract.
@@ -42,18 +42,18 @@ interface KSFunctionDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol
      * Extension receiver of this function
      * @see [https://kotlinlang.org/docs/reference/extensions.html#extension-functions]
      */
-    val extensionReceiver: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference?
+    val extensionReceiver: com.addzero.kld.symbol.KLTypeReference?
 
     /**
      * Return type of this function.
      * Can be null if an error occurred during resolution.
      */
-    val returnType: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference?
+    val returnType: com.addzero.kld.symbol.KLTypeReference?
 
     /**
-     * [value parameters][com.google.devtools.ksp.com.addzero.kld.symbol.KSValueParameter] of this function.
+     * [value parameters][com.addzero.kld.symbol.KLValueParameter] of this function.
      */
-    val parameters: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSValueParameter>
+    val parameters: List<com.addzero.kld.symbol.KLValueParameter>
 
     /**
      * Find the closest overridee of this function, if overriding.
@@ -79,10 +79,10 @@ interface KSFunctionDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol
      * to the current containing declaration is selected. If they are in the same level, the
      * function of the first specified interface (in source) will be returned.
      *
-     * @return [com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration] for the original declaration, if overriding, otherwise null.
+     * @return [com.addzero.kld.symbol.KLDeclaration] for the original declaration, if overriding, otherwise null.
      * Calling [findOverridee] is expensive and should be avoided if possible.
      */
-    fun findOverridee(): com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration?
+    fun findOverridee(): com.addzero.kld.symbol.KLDeclaration?
 
     /**
      * Returns the type of the [function] when it is viewed as member of the [containing] type.
@@ -95,20 +95,20 @@ interface KSFunctionDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol
      * val foo: Base<Int>
      * val bar: Base<String>
      * ```
-     * When `f()` is viewed as member of `foo`, this method will return a [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction] where
-     * the [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction.returnType] is `Int` and the parameter `t` is of type `Int?`.
-     * When `f()` is viewed as member of `bar`, this method will return a [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction]
-     * where the [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction.returnType] is `String` and the parameter `t` is of type `String?`.
+     * When `f()` is viewed as member of `foo`, this method will return a [com.addzero.kld.symbol.KLFunction] where
+     * the [com.addzero.kld.symbol.KLFunction.returnType] is `Int` and the parameter `t` is of type `Int?`.
+     * When `f()` is viewed as member of `bar`, this method will return a [com.addzero.kld.symbol.KLFunction]
+     * where the [com.addzero.kld.symbol.KLFunction.returnType] is `String` and the parameter `t` is of type `String?`.
      *
      * If the function has type parameters, they'll not be resolved and can be read from
-     * [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction.typeParameters].
+     * [com.addzero.kld.symbol.KLFunction.typeParameters].
      *
-     * If the substitution fails (e.g. if [containing] is an error type, a [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction] with [com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction.isError] `true`
+     * If the substitution fails (e.g. if [containing] is an error type, a [com.addzero.kld.symbol.KLFunction] with [com.addzero.kld.symbol.KLFunction.isError] `true`
      * is returned.
      *
      * @param containing The type that contains [function].
      * @throws IllegalArgumentException Throws [IllegalArgumentException] when [containing] does not contain [function]
      * or if the [function] is not declared in a class, object or interface.
      */
-    fun asMemberOf(containing: com.google.devtools.ksp.com.addzero.kld.symbol.KSType): com.google.devtools.ksp.com.addzero.kld.symbol.KSFunction
+    fun asMemberOf(containing: com.addzero.kld.symbol.KLType): com.addzero.kld.symbol.KLFunction
 }

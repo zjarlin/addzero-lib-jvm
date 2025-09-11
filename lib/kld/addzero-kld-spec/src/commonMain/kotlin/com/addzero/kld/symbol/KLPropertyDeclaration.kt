@@ -14,36 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * A property declaration, can also be used to denote a variable declaration.
  */
-interface KSPropertyDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration {
+interface KLPropertyDeclaration : com.addzero.kld.symbol.KLDeclaration {
 
     /**
      * Getter of the property.
-     * Note that when KSPropertyDeclaration is used to model a variable, getter is always null, as a variable can't have a getter.
+     * Note that when KLPropertyDeclaration is used to model a variable, getter is always null, as a variable can't have a getter.
      */
-    val getter: com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertyGetter?
+    val getter: com.addzero.kld.symbol.KLPropertyGetter?
 
     /**
      * Setter of the property.
-     * Note that when KSPropertyDeclaration is used to model a variable, setter is always null, as a variable can't have a setter.
+     * Note that when KLPropertyDeclaration is used to model a variable, setter is always null, as a variable can't have a setter.
      * If a property is immutable, setter is always null as well, as an immutable property can't have a setter.
      */
-    val setter: com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertySetter?
+    val setter: com.addzero.kld.symbol.KLPropertySetter?
 
     /**
      * Extension receiver if this declaration is an [extension property][https://kotlinlang.org/docs/reference/extensions.html#extension-properties].
-     * Dispatch receiver is [com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration.parentDeclaration], if any.
+     * Dispatch receiver is [com.addzero.kld.symbol.KLDeclaration.parentDeclaration], if any.
      */
-    val extensionReceiver: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference?
+    val extensionReceiver: com.addzero.kld.symbol.KLTypeReference?
 
     /**
      * The type of this declaration.
      */
-    val type: com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeReference
+    val type: com.addzero.kld.symbol.KLTypeReference
 
     /**
      * True if this property is mutable.
@@ -89,10 +89,10 @@ interface KSPropertyDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol
      * to the current containing declaration is selected. If they are in the same level, the
      * property of the first specified interface (in source) will be returned.
      *
-     * @return [KSPropertyDeclaration] for the overridden property, if overriding, otherwise null.
+     * @return [KLPropertyDeclaration] for the overridden property, if overriding, otherwise null.
      * Calling [findOverridee] is expensive and should be avoided if possible.
      */
-    fun findOverridee(): com.google.devtools.ksp.com.addzero.kld.symbol.KSPropertyDeclaration?
+    fun findOverridee(): com.addzero.kld.symbol.KLPropertyDeclaration?
 
     /**
      * Returns the type of the [property] when it is viewed as member of the [containing] type.
@@ -103,16 +103,16 @@ interface KSPropertyDeclaration : com.google.devtools.ksp.com.addzero.kld.symbol
      * val foo: Base<Int>
      * val bar: Base<String>
      * ```
-     * When `x` is viewed as member of `foo`, this method will return the [com.google.devtools.ksp.com.addzero.kld.symbol.KSType] for `Int`
-     * whereas when `x` is viewed as member of `bar`, this method will return the [com.google.devtools.ksp.com.addzero.kld.symbol.KSType]
+     * When `x` is viewed as member of `foo`, this method will return the [com.addzero.kld.symbol.KLType] for `Int`
+     * whereas when `x` is viewed as member of `bar`, this method will return the [com.addzero.kld.symbol.KLType]
      * representing `String`.
      *
-     * If the substitution fails (e.g. if [containing] is an error type, a [com.google.devtools.ksp.com.addzero.kld.symbol.KSType] with [com.google.devtools.ksp.com.addzero.kld.symbol.KSType.isError] `true` is
+     * If the substitution fails (e.g. if [containing] is an error type, a [com.addzero.kld.symbol.KLType] with [com.addzero.kld.symbol.KLType.isError] `true` is
      * returned.
      *
      * @param containing The type that contains [property]
      * @throws IllegalArgumentException Throws [IllegalArgumentException] when [containing] does not contain
      * [property] or if the [property] is not declared in a class, object or interface.
      */
-    fun asMemberOf(containing: com.google.devtools.ksp.com.addzero.kld.symbol.KSType): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun asMemberOf(containing: com.addzero.kld.symbol.KLType): com.addzero.kld.symbol.KLType
 }

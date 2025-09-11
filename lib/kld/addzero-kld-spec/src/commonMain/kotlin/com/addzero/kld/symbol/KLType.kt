@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * Represents a type in Kotlin's type system.
@@ -23,33 +23,33 @@ package com.google.devtools.ksp.com.addzero.kld.symbol
  * KSType is useful when doing type checking, finding the declaration, and so on. Some of the information,
  * such as type annotations and type arguments, are often available in the corresponding type reference without resolution.
  */
-interface KSType {
+interface KLType {
     /**
      * The declaration that generates this type.
      */
-    val declaration: com.google.devtools.ksp.com.addzero.kld.symbol.KSDeclaration
+    val declaration: com.addzero.kld.symbol.KLDeclaration
 
     /**
      * A type can be nullable, not nullable, or context-specific in the case of platform types.
      */
-    val nullability: com.google.devtools.ksp.com.addzero.kld.symbol.Nullability
+    val nullability: com.addzero.kld.symbol.Nullability
 
     /**
      * Type arguments to the type.
      */
-    val arguments: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeArgument>
+    val arguments: List<com.addzero.kld.symbol.KLTypeArgument>
 
     /**
      * Type annotations to the type.
      */
-    val annotations: Sequence<com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotation>
+    val annotations: Sequence<com.addzero.kld.symbol.KLAnnotation>
 
     /**
      * Check whether this type is assign-compatible from another type.
      *
      * @param: that the other type being checked.
      */
-    fun isAssignableFrom(that: com.google.devtools.ksp.com.addzero.kld.symbol.KSType): Boolean
+    fun isAssignableFrom(that: com.addzero.kld.symbol.KLType): Boolean
 
     /**
      * True if the type is a collection and can be both mutable and immutable, depending on the context.
@@ -67,22 +67,22 @@ interface KSType {
      * @param arguemnts New type arguments
      * @return A type with the arguments replaced.
      */
-    fun replace(arguments: List<com.google.devtools.ksp.com.addzero.kld.symbol.KSTypeArgument>): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun replace(arguments: List<com.addzero.kld.symbol.KLTypeArgument>): com.addzero.kld.symbol.KLType
 
     /**
      * Returns the star projection of the type.
      */
-    fun starProjection(): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun starProjection(): com.addzero.kld.symbol.KLType
 
     /**
      * Make the type nullable
      */
-    fun makeNullable(): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun makeNullable(): com.addzero.kld.symbol.KLType
 
     /**
      * Make the type not nullable
      */
-    fun makeNotNullable(): com.google.devtools.ksp.com.addzero.kld.symbol.KSType
+    fun makeNotNullable(): com.addzero.kld.symbol.KLType
 
     /**
      * True if the type is explicitly marked as nullable type, i.e. has question mark in type declaration.

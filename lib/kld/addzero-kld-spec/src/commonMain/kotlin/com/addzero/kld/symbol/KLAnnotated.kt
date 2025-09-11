@@ -14,14 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
- * A [KSModifierListOwner] can have zero or more modifiers.
+ * A symbol that can be annotated with annotations.
  */
-interface KSModifierListOwner : com.google.devtools.ksp.com.addzero.kld.symbol.KSNode {
+interface KLAnnotated : com.addzero.kld.symbol.KLNode {
+
     /**
-     * The set of modifiers on this element.
+     * All annotations on this symbol.
      */
-    val modifiers: Set<com.google.devtools.ksp.com.addzero.kld.symbol.Modifier>
+    val annotations: Sequence<com.addzero.kld.symbol.KLAnnotation>
 }

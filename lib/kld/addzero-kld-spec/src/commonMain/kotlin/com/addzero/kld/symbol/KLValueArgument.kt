@@ -14,20 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.ksp.com.addzero.kld.symbol
+package com.addzero.kld.symbol
 
 /**
  * A value argument to function / constructor calls.
  *
  * Currently, only appears in annotation arguments.
  */
-interface KSValueArgument : com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotated {
+interface KLValueArgument : com.addzero.kld.symbol.KLAnnotated {
     /**
      * The name for the named argument, or null otherwise.
      *
      * For example, in `ignore(name=123456)`, the name value is "name"
      */
-    val name: com.google.devtools.ksp.com.addzero.kld.symbol.KSName?
+    val name: com.addzero.kld.symbol.KLName?
 
     /**
      * True if it is a spread argument (i.e., has a "*" in front of the argument).
@@ -48,10 +48,10 @@ interface KSValueArgument : com.google.devtools.ksp.com.addzero.kld.symbol.KSAnn
      * * [Float];
      * * [Double];
      * * [String];
-     * * [com.google.devtools.ksp.com.addzero.kld.symbol.KSType] for annotation arguments of type [kotlin.reflect.KClass];
-     * * [com.google.devtools.ksp.com.addzero.kld.symbol.KSClassDeclaration] for annotation arguments of type [Enum] (in this case[com.google.devtools.ksp.com.addzero.kld.symbol.KSClassDeclaration.classKind]
-     *   equals to [com.google.devtools.ksp.com.addzero.kld.symbol.ClassKind.ENUM_CLASS]);
-     * * [com.google.devtools.ksp.com.addzero.kld.symbol.KSAnnotation] for embedded annotation arguments;
+     * * [com.addzero.kld.symbol.KLType] for annotation arguments of type [kotlin.reflect.KClass];
+     * * [com.addzero.kld.symbol.KLClassDeclaration] for annotation arguments of type [Enum] (in this case[com.addzero.kld.symbol.KLClassDeclaration.classKind]
+     *   equals to [com.addzero.kld.symbol.ClassKind.ENUM_CLASS]);
+     * * [com.addzero.kld.symbol.KLAnnotation] for embedded annotation arguments;
      * * [Array] of a possible type listed above.
      */
     val value: Any?
