@@ -14,25 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.addzero.kld.symbol
+package com.addzero.kld.processing
 
-/**
- * A Kotlin source file
- */
-interface KLFile : KLDeclarationContainer,
-    KLAnnotated {
-       /**
-     * The [com.addzero.kld.symbol.KLName] representation of this file's package.
-     */
-    val packageName: com.addzero.kld.symbol.KLName
+import com.addzero.kld.symbol.KLType
 
+
+interface KLBuiltIns {
     /**
-     * KLFile name of this source file.
+     * 常用标准库类型。对于其他类型，请使用 [KLResolver.getClassDeclarationByName]。
      */
-    val KLFileName: String
-
-    /**
-     * Absolute path of this source file.
-     */
-    val filePath: String
+    val anyType: KLType
+    val nothingType: KLType
+    val unitType: KLType
+    val numberType: KLType
+    val byteType: KLType
+    val shortType: KLType
+    val intType: KLType
+    val longType: KLType
+    val floatType: KLType
+    val doubleType: KLType
+    val charType: KLType
+    val booleanType: KLType
+    val stringType: KLType
+    val iterableType: KLType
+    val annotationType: KLType
+    val arrayType: KLType
 }

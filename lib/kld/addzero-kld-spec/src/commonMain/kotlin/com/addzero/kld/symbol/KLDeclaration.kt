@@ -44,7 +44,7 @@ interface KLDeclaration : com.addzero.kld.symbol.KLModifierListOwner,
 
     /**
      * Parent declaration of this declaration, i.e. the declaration that directly contains this declaration.
-     * File is not a declaration, so this property will be null for top level declarations.
+     * KLFile is not a declaration, so this property will be null for top level declarations.
      */
     val parentDeclaration: com.addzero.kld.symbol.KLDeclaration?
 

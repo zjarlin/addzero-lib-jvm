@@ -5,7 +5,7 @@
 ## 🚀 核心设计
 
 ### 核心思想
-- **KSP**: 使用 `KspKldResolver(resolver, environment)` 进行元数据抽取
+- **KSP**: 使用 `KspKldResolver(KLResolver, environment)` 进行元数据抽取
 - **APT**: 使用 `AptKldResolver(processingEnv, roundEnv)` 进行元数据抽取
 - **统一接口**: 所有元数据都从 `KldResolver` 获取
 - **专注元数据抽取**: 简化架构，直接使用适配器，只关心元数据获取
@@ -56,9 +56,9 @@ class MyKspProcessor(
     private val environment: SymbolProcessorEnvironment
 ) : SymbolProcessor {
     
-    override fun process(resolver: Resolver): List<KSAnnotated> {
+    override fun process(KLResolver: Resolver): List<KSAnnotated> {
         // 直接创建KldResolver
-        val kldResolver = KspKldResolver(resolver, environment)
+        val kldResolver = KspKldResolver(KLResolver, environment)
         
         // 元数据抽取
         kldResolver.getElementsAnnotatedWith("com.example.Entity").forEach { element ->
@@ -201,7 +201,7 @@ val result = kldResolver.safeExecute(
 ```kotlin
 // 安全的包声明获取
 KldCompatibility.safeGetPackageDeclaration(
-    resolver = kldResolver,
+    KLResolver = kldResolver,
     qualifiedName = "com.example",
     onSuccess = { packageElement ->
         // APT平台：正常处理包信息

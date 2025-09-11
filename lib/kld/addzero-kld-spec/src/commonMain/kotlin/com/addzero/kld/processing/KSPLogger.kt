@@ -14,25 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.addzero.kld.symbol
+package com.addzero.kld.processing
 
-/**
- * A Kotlin source file
- */
-interface KLFile : KLDeclarationContainer,
-    KLAnnotated {
-       /**
-     * The [com.addzero.kld.symbol.KLName] representation of this file's package.
-     */
-    val packageName: com.addzero.kld.symbol.KLName
+import com.addzero.kld.symbol.KLNode
 
-    /**
-     * KLFile name of this source file.
-     */
-    val KLFileName: String
+interface KSPLogger {
 
-    /**
-     * Absolute path of this source file.
-     */
-    val filePath: String
+    fun logging(message: String, symbol: KLNode? = null)
+    fun info(message: String, symbol: KLNode? = null)
+    fun warn(message: String, symbol: KLNode? = null)
+    fun error(message: String, symbol: KLNode? = null)
+
+    fun exception(e: Throwable)
 }
