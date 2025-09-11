@@ -12,7 +12,7 @@ kotlin {
             implementation(projects.lib.ksp.common.addzeroKspSupport)
 
 
-            implementation(projects.lib.kld.addzeroKaleidoscopeKsp)
+//            implementation(projects.lib.kld.addzeroKaleidoscopeKsp)
 
         }
 

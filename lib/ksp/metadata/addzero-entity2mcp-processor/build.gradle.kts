@@ -13,8 +13,6 @@ kotlin {
             implementation(projects.lib.ksp.metadata.addzeroEntity2analysedSupport)
 
 
-            //元编程ksp适配
-            implementation(projects.lib.kld.addzeroKaleidoscopeKsp)
 
         }
     }

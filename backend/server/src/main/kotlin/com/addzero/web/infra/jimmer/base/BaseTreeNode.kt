@@ -1,6 +1,7 @@
 package com.addzero.web.infra.jimmer.base
 
 import org.babyfish.jimmer.Formula
+import org.babyfish.jimmer.sql.Key
 import org.babyfish.jimmer.sql.ManyToOne
 import org.babyfish.jimmer.sql.OneToMany
 
