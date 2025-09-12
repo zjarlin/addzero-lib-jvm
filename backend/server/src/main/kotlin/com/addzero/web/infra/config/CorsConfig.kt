@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  * @date 2025/03/26
  * @constructor 创建[CorsConfig]
  */
-@Configuration // 一定不要忽略此注解
+@Configuration
 class CorsConfig : WebMvcConfigurer {
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**") // 所有接口

@@ -1,13 +1,20 @@
 package com.addzero.web.infra.config
 
 import cn.dev33.satoken.interceptor.SaInterceptor
+import cn.dev33.satoken.stp.StpInterface
 import cn.dev33.satoken.stp.StpUtil
+import com.addzero.common.consts.sql
+import com.addzero.model.entity.SysUser
+import com.addzero.model.entity.by
+import org.babyfish.jimmer.sql.kt.fetcher.newFetcher
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
+import org.springframework.stereotype.Component
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+
 
 @Configuration
 @EnableConfigurationProperties(SecurityProperties::class)
@@ -48,3 +55,36 @@ open class SaTokenConfig(
         }
     }
 }
+
+/**
+ * 自定义权限加载接口实现类
+ */
+@Component
+class StpInterfaceImpl : StpInterface {
+    val fetcher = newFetcher(SysUser::class).by {
+        roles {
+            roleCode()
+        }
+    }
+
+    /**
+     * 返回一个账号所拥有的权限码集合
+     */
+    override fun getPermissionList(loginId: Any?, loginType: String?): MutableList<String?> {
+        return TODO("提供返回值")
+    }
+
+    /**
+     * 返回一个账号所拥有的角色标识集合 (权限与角色可分开校验)
+     */
+    override fun getRoleList(loginId: Any?, loginType: String?): MutableList<String?> {
+        val findOneById = sql.findOneById(fetcher, loginId!!)
+        val map = findOneById.roles.map {
+            val roleCode = it.roleCode
+            roleCode
+        }
+        return map.toMutableList()
+
+    }
+}
+
