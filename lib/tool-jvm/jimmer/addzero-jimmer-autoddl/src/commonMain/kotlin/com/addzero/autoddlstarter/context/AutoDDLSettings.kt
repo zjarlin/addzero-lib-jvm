@@ -1,7 +1,6 @@
 package com.addzero.autoddlstarter.context
 
 import com.addzero.autoddlstarter.generator.consts.DbType
-import com.addzero.core.ext.map2bean
 import kotlinx.serialization.Serializable
 
 
