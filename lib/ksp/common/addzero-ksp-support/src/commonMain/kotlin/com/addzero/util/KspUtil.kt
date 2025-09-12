@@ -197,7 +197,7 @@ fun KSPropertyDeclaration.defaultValue(): String {
 }
 
 
-fun KSPropertyDeclaration.getAnno(annoShortName: String): KSAnnotation? {
+fun KSAnnotated.getAnno(annoShortName: String): KSAnnotation? {
     return this.annotations.find { it.shortName.asString() == annoShortName }
 }
 
@@ -319,7 +319,7 @@ fun KSPropertyDeclaration.isCollectionType(): Boolean {
 fun guessTableName(ktClass: KSClassDeclaration): String {
     // 1. 优先读取@Table注解
     val tableAnn = ktClass.annotations.firstOrNull {
-        it.shortName.asString() == "Table" || it.annotationType.resolve().declaration.qualifiedName?.asString() == "org.babyfish.jimmer.sql.Table"
+        it.shortName.asString() == "Table"
     }
     val tableNameFromAnn = tableAnn?.arguments?.firstOrNull { it.name?.asString() == "name" }?.value as? String?:""
     if (!tableNameFromAnn.isNullOrEmpty()) {

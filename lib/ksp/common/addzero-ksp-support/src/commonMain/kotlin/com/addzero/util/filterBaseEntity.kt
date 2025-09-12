@@ -12,7 +12,7 @@ fun filterBaseEntity(colName: String): Boolean {
     val createTime = settings.createTime
     val updateTime = settings.updateTime
 
-    if (colName.isNullOrEmpty()) {
+    if (colName.isEmpty()) {
         return false
     }
     val arrayOf = arrayOf(id, createBy, updateBy, createTime, updateTime)
