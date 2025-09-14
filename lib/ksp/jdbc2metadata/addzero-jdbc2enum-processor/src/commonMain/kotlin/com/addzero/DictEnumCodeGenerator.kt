@@ -2,6 +2,7 @@ package com.addzero
 
 import com.addzero.context.SettingContext.settings
 import com.addzero.util.PinYin4JUtils
+import com.addzero.util.str.isNotBlank
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import java.io.File
@@ -179,7 +180,11 @@ class DictEnumCodeGenerator(
      */
     private fun toEnumEntryName(desc: String, code: String): String {
         // 如果描述为空，则直接使用code
-        if (desc.isNullOrEmpty()) {
+        if (desc.isEmpty()) {
+            return PinYin4JUtils.sanitize(code)
+        }
+
+        if (code.isNotBlank()&&desc.isNotBlank()) {
             return PinYin4JUtils.sanitize(code)
         }
 

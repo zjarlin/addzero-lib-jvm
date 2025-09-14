@@ -10,8 +10,8 @@
             val code: String,
             val desc: String
         ) {
-            TINGYONG("0", "停用"),
-ZHENGCHANG("1", "正常");
+            __0("0", "停用"),
+__1("1", "正常");
             
             companion object {
                 /**

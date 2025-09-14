@@ -10,14 +10,14 @@
             val code: String,
             val desc: String
         ) {
-            LAN_SE_ANSE("DARK_BLUE", "蓝色暗色"),
-MO_REN_ANSE("DARK_DEFAULT", "默认暗色"),
-LU_SE_ANSE("DARK_GREEN", "绿色暗色"),
-ZI_SE_ANSE("DARK_PURPLE", "紫色暗色"),
-LAN_SE_LIANGSE("LIGHT_BLUE", "蓝色亮色"),
-MO_REN_LIANGSE("LIGHT_DEFAULT", "默认亮色"),
-LU_SE_LIANGSE("LIGHT_GREEN", "绿色亮色"),
-ZI_SE_LIANGSE("LIGHT_PURPLE", "紫色亮色");
+            DARK_BLUE("DARK_BLUE", "蓝色暗色"),
+DARK_DEFAULT("DARK_DEFAULT", "默认暗色"),
+DARK_GREEN("DARK_GREEN", "绿色暗色"),
+DARK_PURPLE("DARK_PURPLE", "紫色暗色"),
+LIGHT_BLUE("LIGHT_BLUE", "蓝色亮色"),
+LIGHT_DEFAULT("LIGHT_DEFAULT", "默认亮色"),
+LIGHT_GREEN("LIGHT_GREEN", "绿色亮色"),
+LIGHT_PURPLE("LIGHT_PURPLE", "紫色亮色");
             
             companion object {
                 /**

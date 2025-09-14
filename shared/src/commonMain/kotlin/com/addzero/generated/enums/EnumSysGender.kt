@@ -10,8 +10,8 @@
             val code: String,
             val desc: String
         ) {
-            NAN("1", "男"),
-NU("2", "女");
+            __1("1", "男"),
+__2("2", "女");
             
             companion object {
                 /**

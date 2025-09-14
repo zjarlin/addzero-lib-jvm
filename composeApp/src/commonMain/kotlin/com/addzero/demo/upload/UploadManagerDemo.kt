@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.addzero.annotation.Route
-import com.addzero.component.form.file.AddMultiFilePicker
-import com.addzero.component.form.file.PickedFile
-import com.addzero.component.form.file.USE_MOCK_FILE_UPLOAD
-import com.addzero.component.form.file.formatFileSize
+import com.addzero.component.file_picker.AddMultiFilePicker
+import com.addzero.component.file_picker.PickedFile
+import com.addzero.component.file_picker.USE_MOCK_FILE_UPLOAD
+import com.addzero.component.file_picker.formatFileSize
 import com.addzero.component.upload_manager.GlobalUploadManager
 import com.addzero.component.upload_manager.UploadManagerUI
 

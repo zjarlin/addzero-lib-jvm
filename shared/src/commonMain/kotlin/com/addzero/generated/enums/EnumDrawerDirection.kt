@@ -10,10 +10,10 @@
             val code: String,
             val desc: String
         ) {
-            CONG_DI_BU_HUA_CHU("BOTTOM", "从底部滑出"),
-CONG_ZUO_CE_HUA_CHU("LEFT", "从左侧滑出"),
-CONG_YOU_CE_HUA_CHU("RIGHT", "从右侧滑出"),
-CONG_DING_BU_HUA_CHU("TOP", "从顶部滑出");
+            BOTTOM("BOTTOM", "从底部滑出"),
+LEFT("LEFT", "从左侧滑出"),
+RIGHT("RIGHT", "从右侧滑出"),
+TOP("TOP", "从顶部滑出");
             
             companion object {
                 /**

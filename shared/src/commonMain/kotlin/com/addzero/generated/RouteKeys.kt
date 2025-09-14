@@ -26,7 +26,6 @@ object RouteKeys {
     const val IMAGE_LOAD = "com.addzero.demo.ImageLoad"
     const val DEPT_SELECTOR_EXAMPLE = "com.addzero.component.form.dept_selector.DeptSelectorExample"
     const val SINGLE_DEPT_SELECTOR_EXAMPLE = "com.addzero.component.form.dept_selector.SingleDeptSelectorExample"
-    const val FILE_PICKER_DEMO = "com.addzero.component.form.file.FilePickerDemo"
     const val AUTO_COMPLETE_DEMO = "com.addzero.component.autocomplet.AutoCompleteDemo"
     const val HOME_SCREEN = "/home"
     const val ROLE_LIST_SCREEN = "/system/role"
@@ -65,7 +64,6 @@ object RouteKeys {
         Route(value = "组件示例", title = "图片加载", routePath = "com.addzero.demo.ImageLoad", icon = "", order = 0.0, qualifiedName = "com.addzero.demo.ImageLoad"),
         Route(value = "", title = "DeptSelectorExample", routePath = "com.addzero.component.form.dept_selector.DeptSelectorExample", icon = "", order = 0.0, qualifiedName = "com.addzero.component.form.dept_selector.DeptSelectorExample"),
         Route(value = "", title = "SingleDeptSelectorExample", routePath = "com.addzero.component.form.dept_selector.SingleDeptSelectorExample", icon = "", order = 0.0, qualifiedName = "com.addzero.component.form.dept_selector.SingleDeptSelectorExample"),
-        Route(value = "", title = "FilePickerDemo", routePath = "com.addzero.component.form.file.FilePickerDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.component.form.file.FilePickerDemo"),
         Route(value = "组件示例", title = "自动完成", routePath = "com.addzero.component.autocomplet.AutoCompleteDemo", icon = "", order = 0.0, qualifiedName = "com.addzero.component.autocomplet.AutoCompleteDemo"),
         Route(value = "", title = "主页", routePath = "/home", icon = "Home", order = 0.0, qualifiedName = "com.addzero.screens.home.HomeScreen"),
         Route(value = "系统管理", title = "角色管理", routePath = "/system/role", icon = "Group", order = 0.0, qualifiedName = "com.addzero.screens.role.RoleListScreen"),

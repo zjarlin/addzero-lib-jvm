@@ -10,10 +10,10 @@
             val code: String,
             val desc: String
         ) {
-            SHANG_CHUAN_SHIBAI("FAILED", "上传失败"),
-KONG_XIAN_ZHUANG_TAI("IDLE", "空闲状态"),
-SHANG_CHUAN_CHENGGONG("SUCCESS", "上传成功"),
-SHANG_CHUANZHONG("UPLOADING", "上传中");
+            FAILED("FAILED", "上传失败"),
+IDLE("IDLE", "空闲状态"),
+SUCCESS("SUCCESS", "上传成功"),
+UPLOADING("UPLOADING", "上传中");
             
             companion object {
                 /**

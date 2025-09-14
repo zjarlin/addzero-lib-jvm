@@ -10,9 +10,9 @@
             val code: String,
             val desc: String
         ) {
-            MEI_TIAN_DING_SHI_ZHIXING("DAILY", "每天定时执行"),
-GU_DING_JIAN_GE_CHONG_FU_ZHIXING("FIXED_RATE", "固定间隔重复执行"),
-ZHI_XING_YICI("ONCE", "执行一次");
+            DAILY("DAILY", "每天定时执行"),
+FIXED_RATE("FIXED_RATE", "固定间隔重复执行"),
+ONCE("ONCE", "执行一次");
             
             companion object {
                 /**

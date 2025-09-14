@@ -10,8 +10,8 @@
             val code: String,
             val desc: String
         ) {
-            GUANBI("0", "关闭"),
-KAIQI("1", "开启");
+            __0("0", "关闭"),
+__1("1", "开启");
             
             companion object {
                 /**

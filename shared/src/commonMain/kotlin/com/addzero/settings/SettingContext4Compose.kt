@@ -15,7 +15,7 @@ object SettingContext4Compose {
     const val AI_AVATAR_1 = "https://miaobi-lite.bj.bcebos.com/miaobi/5mao/b%275Yi65a6i5LyN5YWt5LiD5Zu%2B54mH5aS05YOPXzE3MzMxNzUwMDAuODE1OTQwMQ%3D%3D%27/0.png"
 
 
-    val DEFAULT_THEME = EnumSysTheme.LAN_SE_LIANGSE
+    val DEFAULT_THEME = EnumSysTheme.LIGHT_BLUE
 
     const val BASE_URL = "http://localhost:12344"
 
