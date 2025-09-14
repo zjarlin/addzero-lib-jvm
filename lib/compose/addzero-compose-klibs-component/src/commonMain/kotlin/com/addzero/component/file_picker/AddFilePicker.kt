@@ -85,62 +85,6 @@ suspend fun mockQueryProgress(redisKey: String): MockFileUploadResponse {
 }
 
 @Composable
-fun FilePickerDemo(): Unit {
-    var useMock by remember { mutableStateOf(USE_MOCK_FILE_UPLOAD) }
-
-    var selectedFiles by remember { mutableStateOf(emptyList<PickedFile>()) }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // 模拟开关
-        Card {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("使用模拟上传：")
-                Switch(
-                    checked = useMock,
-                    onCheckedChange = {
-                        useMock = it
-                        USE_MOCK_FILE_UPLOAD = it
-                    }
-                )
-            }
-        }
-
-        // 文件选择器
-        AddMultiFilePicker(
-            onFilesSelected = { files ->
-                selectedFiles = files
-            },
-            showUploadManager = true
-        )
-
-        // 显示选中的文件信息
-        if (selectedFiles.isNotEmpty()) {
-            Card {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "最近选择的文件:",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    selectedFiles.forEach { file ->
-                        Text(
-                            text = "• ${file.name} (${formatFileSize(file.size)})",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun AddMultiFilePicker(
     modifier: Modifier = Modifier,
     onFilesSelected: (List<PickedFile>) -> Unit = {},
