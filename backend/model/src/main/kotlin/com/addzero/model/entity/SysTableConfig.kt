@@ -3,6 +3,7 @@ package com.addzero.model.entity
 import com.addzero.model.common.BaseEntity
 import org.babyfish.jimmer.sql.Column
 import org.babyfish.jimmer.sql.Entity
+import org.babyfish.jimmer.sql.OneToMany
 import org.babyfish.jimmer.sql.Table
 
 /**
@@ -13,7 +14,6 @@ import org.babyfish.jimmer.sql.Table
 @Entity
 @Table(name = "sys_table_config")
 interface SysTableConfig : BaseEntity {
-
     /**
      * 路由键
      */
@@ -73,4 +73,7 @@ interface SysTableConfig : BaseEntity {
      */
     @Column(name = "row_height_dp")
     val rowHeightDp: Float
+
+    @OneToMany(mappedBy = "tableConfig")
+    val columns: List<SysColumnConfig>
 }

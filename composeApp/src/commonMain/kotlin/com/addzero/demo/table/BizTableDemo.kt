@@ -26,7 +26,6 @@
 //    var _tableConfig by mutableStateOf(TableLayoutConfig())
 //    var _columnConfigs by mutableStateOf(listOf<ColumnConfig>())
 //    fun loadTableConfig() {
-//
 ////        sysDictApi.loadTableConfig(routeKey)
 //    }
 //

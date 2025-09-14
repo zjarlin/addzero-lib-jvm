@@ -1,9 +1,7 @@
 package com.addzero.model.entity
 
 import com.addzero.model.common.BaseEntity
-import org.babyfish.jimmer.sql.Column
-import org.babyfish.jimmer.sql.Entity
-import org.babyfish.jimmer.sql.Table
+import org.babyfish.jimmer.sql.*
 
 /**
  * SysColumnConfig
@@ -55,4 +53,9 @@ interface SysColumnConfig : BaseEntity {
      */
     @Column(name = "route_key")
     val routeKey: String
+
+
+    @ManyToOne
+    @JoinColumn(name = "table_id")
+    val tableConfig: SysTableConfig
 }
