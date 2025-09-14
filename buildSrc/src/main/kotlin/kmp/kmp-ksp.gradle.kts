@@ -10,7 +10,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.ksp.symbol.processing.api)
-
         }
     }
 }

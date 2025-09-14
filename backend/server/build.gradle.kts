@@ -1,4 +1,5 @@
 import com.google.devtools.ksp.gradle.KspAATask
+
 plugins {
 //    id("com.google.devtools.ksp")
     id("spring-convention")
@@ -9,6 +10,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.noarg") version libs.versions.kotlin
 
     id("ksp4controller2lazypeoplehttp")
+
 }
 noArg {
     annotation("com.addzero.common.anno.NoArg")
@@ -38,7 +40,8 @@ dependencies {
     implementation(projects.lib.toolJvm.jimmer.addzeroJimmerExtDynamicDatasource)
 
     //通用库
-    implementation(projects.lib.ksp.common.addzeroKspSupportJdbc)
+    implementation(projects.lib.toolJvm.addzeroToolJdbc)
+
     implementation(projects.lib.toolSpring.starter.addzeroCurllogSpringBootStarter)
 //    implementation(projects.lib.toolSpring.starter.addzeroDictTransSpringBootStarter)
     implementation(projects.lib.toolKmp.addzeroTool)

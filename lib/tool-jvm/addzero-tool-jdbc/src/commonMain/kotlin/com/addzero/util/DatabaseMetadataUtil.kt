@@ -1,12 +1,10 @@
 package com.addzero.util
 
-import com.addzero.entity.ForeignKeyMetadata
-import com.addzero.entity.JdbcColumnMetadata
-import com.addzero.entity.JdbcTableMetadata
-import com.addzero.entity.PrimaryKeyMetadata
-import java.security.MessageDigest
 import java.sql.Connection
 import java.sql.DatabaseMetaData
+import kotlin.collections.sortedWith
+import kotlin.text.format
+import kotlin.use
 
 object DatabaseMetadataUtil {
 
@@ -75,12 +73,12 @@ object DatabaseMetadataUtil {
                 val remarks = tablesResultSet.getString("REMARKS") ?: ""
 
                 // 获取表的列信息
-                val columns = DatabaseMetadataUtil.getColumnsMetadata(schema, connection, tableName)
+                val columns = getColumnsMetadata(schema, connection, tableName)
 
                 //                    val columns = getColumnsForTable(metaData, tableName, config)
 
                 // 获取表的主键信息
-                val primaryKeys = DatabaseMetadataUtil.getPrimaryKeysForTable(connection, tableName, schema = schema)
+                val primaryKeys = getPrimaryKeysForTable(connection, tableName, schema = schema)
 
                 // 标记主键列
                 columns.forEach { column ->

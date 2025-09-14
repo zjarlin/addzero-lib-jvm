@@ -33,7 +33,7 @@ kotlin {
             implementation(projects.lib.compose.addzeroComposeNativeComponent)
 
             //jdbc元数据抽取
-            implementation(projects.lib.ksp.common.addzeroKspSupportJdbc)
+//            implementation(projects.lib.ksp.common.addzeroKspSupportJdbc)
             implementation(projects.lib.compose.addzeroComposeNativeComponentHook)
 
             // 原来的 FileKit 依赖现在由 klibs-component 模块提供
