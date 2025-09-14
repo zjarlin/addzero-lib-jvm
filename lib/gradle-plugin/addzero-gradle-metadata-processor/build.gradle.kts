@@ -12,8 +12,8 @@ dependencies {
 gradlePlugin {
     plugins {
         create("gradleKspConfigPlugin") {
-            id = "io.gitee.zjarlin.gradle-ksp-rc"
-            implementationClass = "com.addzero.gradle.plugin.GradleKspConfigPlugin"
+            id = "site.addzero.gradle-ksp-rc"
+            implementationClass = "site.addzero.gradle.plugin.GradleKspConfigPlugin"
         }
     }
 }

@@ -4,7 +4,7 @@
 
 
 
-ksp("io.gitee.zjarlin:addzero-jimmer-ksp-autoddl:+")
+ksp("site.addzero:addzero-jimmer-ksp-autoddl:+")
 
 
 

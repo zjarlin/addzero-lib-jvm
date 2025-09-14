@@ -6,7 +6,7 @@ plugins {
 
 ksp {
     // 枚举生成配置（生成到 shared 编译目录）
-    arg("enumOutputPackage", "com.addzero.generated.enums")
+    arg("enumOutputPackage", "site.addzero.generated.enums")
     // 字典枚举处理器配置
     arg("dictTableName", "sys_dict")
     arg("dictIdColumn", "id")

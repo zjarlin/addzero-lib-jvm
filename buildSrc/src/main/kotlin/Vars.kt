@@ -5,14 +5,14 @@ object Vars {
     // 应用相关常量
     const val applicationId = "compileOptions.addzero.kmp"
     const val applicationNamespace = "compileOptions.addzero.kmp.component"
-    const val sharedNamespace = "com.addzero.shared"
+    const val sharedNamespace = "site.addzero.shared"
 
     // 应用主类
 
     //    const val packageName = "compileOptions.addzero.kmp"
 //    const val mainClass = "compileOptions.addzero.kmp.MainKt"
     // 包名和版本
-    const val packageName = "com.addzero"
+    const val packageName = "site.addzero"
 
     const val mainClass = "${packageName}.MainKt"
 

@@ -23,11 +23,11 @@ plugins {
 }
 
 commonMain.dependencies {
-    implementation("io.gitee.zjarlin:addzero-compose-props-annotations:+")
+    implementation("site.addzero:addzero-compose-props-annotations:+")
 }
 
 dependencies {
-    kspCommonMainMetadata("io.gitee.zjarlin:addzero-compose-props-processor:+")
+    kspCommonMainMetadata("site.addzero:addzero-compose-props-processor:+")
 }
 
 

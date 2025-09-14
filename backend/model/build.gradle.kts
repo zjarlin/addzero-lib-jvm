@@ -27,5 +27,5 @@ dependencies {
 }
 ksp {
 
-    arg("modelPackageName", "com.addzero.model.entity")
+    arg("modelPackageName", "site.addzero.model.entity")
 }

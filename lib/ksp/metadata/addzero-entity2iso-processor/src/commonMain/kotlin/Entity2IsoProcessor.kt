@@ -1,6 +1,6 @@
-import com.addzero.context.SettingContext
-import com.addzero.entity.analysis.model.EntityMetadata
-import com.addzero.entity.analysis.processor.BaseJimmerProcessor
+import site.addzero.context.SettingContext
+import site.addzero.entity.analysis.model.EntityMetadata
+import site.addzero.entity.analysis.processor.BaseJimmerProcessor
 import com.google.devtools.ksp.processing.*
 import generator.IsoCodeGenerator
 import java.io.File
@@ -24,7 +24,7 @@ class Entity2IsoProcessorProvider : SymbolProcessorProvider {
  * 专门负责生成同构体类，被 shared 模块依赖
  * 基于 BaseJimmerProcessor，使用统一的实体分析逻辑
  *
- * 生成目录：shared/src/commonMain/kotlin/com/addzero/kmp/isomorphic/
+ * 生成目录：shared/src/commonMain/kotlin/site/addzero/kmp/isomorphic/
  */
 class Entity2IsoProcessor(
     codeGenerator: CodeGenerator,

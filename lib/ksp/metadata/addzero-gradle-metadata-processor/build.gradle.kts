@@ -3,7 +3,7 @@ plugins {
     `java-gradle-plugin`
 }
 
-group = "com.addzero.gradle"
+group = "site.addzero.gradle"
 version = "1.0.0"
 
 repositories {
@@ -29,8 +29,8 @@ dependencies {
 gradlePlugin {
     plugins {
         create("gradleKspConfigPlugin") {
-            id = "com.addzero.gradle.ksp.config"
-            implementationClass = "com.addzero.gradle.plugin.GradleKspConfigPlugin"
+            id = "site.addzero.gradle.ksp.config"
+            implementationClass = "site.addzero.gradle.plugin.GradleKspConfigPlugin"
             displayName = "Gradle KSP Config Plugin"
             description = "Automatically generates strongly-typed configuration objects for KSP settings in all modules"
         }

@@ -1,4 +1,4 @@
-package com.addzero.gradle.plugin
+package site.addzero.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

@@ -4,7 +4,7 @@ plugins {
     id("publish-convention")
 }
 
-group = "io.gitee.zjarlin"
+group = "site.addzero"
 // 从根项目的gradle.properties读取版本号
 version = rootProject.version
 
@@ -26,8 +26,8 @@ dependencies {
 gradlePlugin {
     plugins {
         create("autoModulesPlugin") {
-            id = "io.gitee.zjarlin.auto-modules"
-            implementationClass = "com.addzero.gradle.plugin.automodules.AutoModulesPlugin"
+            id = "site.addzero.auto-modules"
+            implementationClass = "site.addzero.gradle.plugin.automodules.AutoModulesPlugin"
             displayName = "Auto Modules Plugin"
             description = "Automatically discover and include Gradle modules by scanning project directories"
         }

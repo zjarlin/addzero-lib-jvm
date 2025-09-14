@@ -2,7 +2,7 @@
 ```kotlin
 //add in your commonMain dependencies
 
-implementation("io.gitee.zjarlin:addzero-compose-native-component-table:+")
+implementation("site.addzero:addzero-compose-native-component-table:+")
 ```
 
 ## 使用方法

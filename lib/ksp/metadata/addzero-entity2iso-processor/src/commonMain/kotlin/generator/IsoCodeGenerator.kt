@@ -1,7 +1,7 @@
 package generator
 
-import com.addzero.entity.analysis.model.EntityMetadata
-import com.addzero.entity.analysis.model.PropertyMetadata
+import site.addzero.entity.analysis.model.EntityMetadata
+import site.addzero.entity.analysis.model.PropertyMetadata
 import com.google.devtools.ksp.processing.KSPLogger
 
 /**
@@ -136,6 +136,6 @@ class IsoCodeGenerator(private val logger: KSPLogger) {
     private fun isJimmerEntityByPackage(qualifiedType: String): Boolean {
         return qualifiedType.contains(".entity.") ||
                 qualifiedType.contains(".modules.") ||
-                qualifiedType.startsWith("com.addzero.web.modules.")
+                qualifiedType.startsWith("site.addzero.web.modules.")
     }
 }

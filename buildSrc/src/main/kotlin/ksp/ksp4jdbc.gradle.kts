@@ -47,7 +47,7 @@ ksp {
     arg("jdbcDriver", jdbcDriver)
     // 可选：指定要排除的表（逗号分隔）
     arg("excludeTables", excludeTables)
-    arg("baseEntityPackage", "com.addzero.model.common.BaseEntity")
+    arg("baseEntityPackage", "site.addzero.model.common.BaseEntity")
 
     println("jdbcUrl: $jdbcUrl")
     println("jdbcUsername: $jdbcUsername")

@@ -2,7 +2,9 @@ plugins {
     id("kmp-lib")
     id("ksp4self")
     id("kmp-ktorfit")
-//    id("kmp-koin")
+    id("addzero-component")
+    id("kmp-json-withtool")
+    id("kmp-datetime")
 }
 dependencies {
     kspCommonMainMetadata(projects.lib.ksp.metadata.addzeroApiproviderProcessor)

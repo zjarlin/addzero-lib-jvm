@@ -13,20 +13,20 @@ plugins {
 
 }
 noArg {
-    annotation("com.addzero.common.anno.NoArg")
+    annotation("site.addzero.common.anno.NoArg")
 }
 allOpen {
-    annotation("com.addzero.common.anno.NoArg")
+    annotation("site.addzero.common.anno.NoArg")
 }
 ksp {
     // 包名配置（小驼峰命名，outputDir 由扩展属性计算）
-    arg("apiClientPackageName", "com.addzero.generated.api")
+    arg("apiClientPackageName", "site.addzero.generated.api")
     arg("jimmer.dto.dirs", "src/main/kotlin")
     arg("jimmer.dto.defaultNullableInputModifier", "dynamic")
     arg("jimmer.dto.mutable", "true")
 }
 //springBoot {
-//    mainClass.set("com.addzero.SpringBootAppKt")
+//    mainClass.set("site.addzero.SpringBootAppKt")
 //}
 dependencies {
     implementation(libs.kotlinx.datetime)

@@ -52,9 +52,9 @@ $env:EXCLUDE_TABLES = "flyway_schema_history,vector_store,*_mapping"
 - **默认 Controller 生成** (Backend) - 标准化 CRUD 接口
 - **网络 API 自动生成** - 解析 Controller 符号，自动生成类型安全的网络调用
 - **同构体生成** (跨平台 Shared) - `SysUserIso` 等数据传输对象
-- **字典/枚举生成** (跨平台 Shared) - `com.addzero.generated.enums`
+- **字典/枚举生成** (跨平台 Shared) - `site.addzero.generated.enums`
 - **矢量图标管理** - `IconKeys` 常量 + `IconMap` 映射
-- **JDBC 元数据** (跨平台 Shared) - `com.addzero.jdbc.meta.jdbcMetadata`
+- **JDBC 元数据** (跨平台 Shared) - `site.addzero.jdbc.meta.jdbcMetadata`
 
 ### 🎨 **智能表单生成** - KSP 驱动的动态 UI
 
@@ -462,9 +462,9 @@ interface UserProfile {
 ```kotlin
 // build.gradle.kts
 ksp {
-    arg("entityPackage", "com.addzero.entity")
-    arg("formOutputPackage", "com.addzero.generated.forms")
-    arg("apiOutputPackage", "com.addzero.generated.api")
+    arg("entityPackage", "site.addzero.entity")
+    arg("formOutputPackage", "site.addzero.generated.forms")
+    arg("apiOutputPackage", "site.addzero.generated.api")
 }
 ```
 
@@ -1063,3 +1063,5 @@ fun renderNavContent(navController: NavHostController) {
 
 ## 常见问题:
 [ksp] java.lang.IllegalArgumentException: Error type '<ERROR TYPE:          检查controller入参或出参是否放在shared目录(因为客户端需要共享入参,出参实体)(通常为jimmer实体的同构体),然后删掉对应controller对应的api文件ksp重新生成即可
+Syntax error: Expecting an expression. 可能发生在多对一@ManyToOne  one的那一方没有可空? 导致预编译框架无法生成同构体默认值(可以说是bug,暂时不想修)
+Unresolved reference 'name'. 可能发生在生成表单时jimmer实体未指定注解@LabelProp 导致表单选择器组件不知道按什么关键词搜索 , ksp 默认搜索字段为name,此时应该去实体上加注解@LabelProp

@@ -3,7 +3,7 @@
 # 需要配合docker镜像做离线ocr
 doubao.key: ${DOUBAO_API_KEY:xxxxxxxx}
 ocr.ip: 192.168.0.110:8089
-pkg: com.addzero
+pkg: site.addzero
 controller:
   advice:
     path: ${pkg}

@@ -5,10 +5,17 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
     id("kmp-ksp")
 }
+
+
+
+
 kotlin {
     dependencies {
         implementation(projects.lib.toolJvm.addzeroToolJdbc)
+        api(projects.lib.kmp.model.addzeroToolModelJdbc)
     }
+
+
     sourceSets {
         jvmMain.dependencies {
             // JDBC相关依赖

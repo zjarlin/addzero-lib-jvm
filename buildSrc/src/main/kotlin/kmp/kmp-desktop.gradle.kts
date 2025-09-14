@@ -18,7 +18,7 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "com.addzero.MainKt"
+        mainClass = "site.addzero.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
