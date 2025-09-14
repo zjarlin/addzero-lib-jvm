@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.addzero.component.high_level.AddMultiColumnContainer
+import com.addzero.generated.enums.EnumSysTheme
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -55,7 +56,7 @@ fun ThemeSelectionDialog(
                                 themeType = it,
                                 isSelected = it == currentTheme,
                                 onClick = {
-                                    themeViewModel.setTheme(it)
+                                    themeViewModel.currentTheme = it
                                     onDismiss()
                                 }
                             )
@@ -85,7 +86,7 @@ fun ThemeSelectionDialog(
  */
 @Composable
 private fun ThemeItem(
-    themeType: AppThemeType,
+    themeType: EnumSysTheme,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -150,7 +151,7 @@ private fun ThemeItem(
         }
 
         Text(
-            text = themeType.getDisplayName(),
+            text = themeType.desc,
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp)

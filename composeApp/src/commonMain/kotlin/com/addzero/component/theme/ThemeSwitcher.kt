@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.addzero.ui.infra.theme.AppThemeType
+import com.addzero.generated.enums.EnumSysTheme
 import com.addzero.ui.infra.theme.AppThemes
 
 /**
@@ -24,7 +24,7 @@ import com.addzero.ui.infra.theme.AppThemes
  */
 @Composable
 private fun ThemeItem(
-    theme: AppThemeType,
+    theme: EnumSysTheme,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -57,7 +57,7 @@ private fun ThemeItem(
 
         // 主题名称
         Text(
-            text = theme.getDisplayName(),
+            text = theme.desc,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
             modifier = Modifier.weight(1f)

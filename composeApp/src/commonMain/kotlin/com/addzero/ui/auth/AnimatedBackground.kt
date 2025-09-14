@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import com.addzero.ui.infra.theme.AppThemeType
+import com.addzero.generated.enums.EnumSysTheme
 import com.addzero.ui.infra.theme.AppThemes
 import kotlin.math.PI
 import kotlin.math.cos
@@ -38,7 +38,7 @@ fun AnimatedBackground(
 //    )
 
 
-    val colorScheme = AppThemes.getColorScheme(AppThemeType.DARK_BLUE)
+    val colorScheme = AppThemes.getColorScheme(EnumSysTheme.DARK_BLUE)
     val colors = listOf(
         colorScheme.primary.copy(alpha = 0.7f),
         colorScheme.primaryContainer.copy(alpha = 0.6f),

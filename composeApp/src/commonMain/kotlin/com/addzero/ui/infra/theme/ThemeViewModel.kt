@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.addzero.generated.enums.EnumSysTheme
 import org.koin.android.annotation.KoinViewModel
 
 /**
@@ -13,9 +14,16 @@ import org.koin.android.annotation.KoinViewModel
  */
 @KoinViewModel
 class ThemeViewModel : ViewModel() {
+    /**
+     * 是否为暗色主题
+     */
+    fun EnumSysTheme.isDark(): Boolean {
+        return this == EnumSysTheme.DARK_DEFAULT || this == EnumSysTheme
+            .DARK_BLUE || this == EnumSysTheme.DARK_GREEN || this == EnumSysTheme.DARK_PURPLE
+    }
+
     // 当前主题类型，默认为蓝色亮色主题
-    var currentTheme by mutableStateOf(AppThemeType.LIGHT_BLUE)
-        private set
+    var currentTheme by mutableStateOf(EnumSysTheme.LIGHT_BLUE)
 
     val isDarkMode: Boolean
         get() = currentTheme.isDark()
@@ -25,31 +33,26 @@ class ThemeViewModel : ViewModel() {
         currentTheme = if (isDarkMode) {
             // 如果当前是暗色主题，切换为对应的亮色主题
             when (currentTheme) {
-                AppThemeType.DARK_DEFAULT -> AppThemeType.LIGHT_DEFAULT
-                AppThemeType.DARK_BLUE -> AppThemeType.LIGHT_BLUE
-                AppThemeType.DARK_GREEN -> AppThemeType.LIGHT_GREEN
-                AppThemeType.DARK_PURPLE -> AppThemeType.LIGHT_PURPLE
-                else -> AppThemeType.LIGHT_BLUE
+                EnumSysTheme.DARK_DEFAULT -> EnumSysTheme.LIGHT_DEFAULT
+                EnumSysTheme.DARK_BLUE -> EnumSysTheme.LIGHT_BLUE
+                EnumSysTheme.DARK_GREEN -> EnumSysTheme.LIGHT_GREEN
+                EnumSysTheme.DARK_PURPLE -> EnumSysTheme.LIGHT_PURPLE
+                else -> EnumSysTheme.LIGHT_BLUE
             }
         } else {
             // 如果当前是亮色主题，切换为对应的暗色主题
             when (currentTheme) {
-                AppThemeType.LIGHT_DEFAULT -> AppThemeType.DARK_DEFAULT
-                AppThemeType.LIGHT_BLUE -> AppThemeType.DARK_BLUE
-                AppThemeType.LIGHT_GREEN -> AppThemeType.DARK_GREEN
-                AppThemeType.LIGHT_PURPLE -> AppThemeType.DARK_PURPLE
-                else -> AppThemeType.DARK_BLUE
+                EnumSysTheme.LIGHT_DEFAULT -> EnumSysTheme.DARK_DEFAULT
+                EnumSysTheme.LIGHT_BLUE -> EnumSysTheme.DARK_BLUE
+                EnumSysTheme.LIGHT_GREEN -> EnumSysTheme.DARK_GREEN
+                EnumSysTheme.LIGHT_PURPLE -> EnumSysTheme.DARK_PURPLE
+                else -> EnumSysTheme.DARK_BLUE
             }
         }
     }
 
-    // 设置特定主题
-    fun setTheme(themeType: AppThemeType) {
-        currentTheme = themeType
-    }
-
     // 获取所有可用主题
-    fun getAllThemes(): List<AppThemeType> {
-        return AppThemeType.entries
+    fun getAllThemes(): List<EnumSysTheme> {
+        return EnumSysTheme.entries
     }
 }
