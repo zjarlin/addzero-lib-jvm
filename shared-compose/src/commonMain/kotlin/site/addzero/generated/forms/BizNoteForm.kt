@@ -113,20 +113,6 @@ fun BizNoteFormOriginal(
                 isRequired = false
             )
         },
-        BizNoteFormProps.tags to {
-            var dataList by remember { mutableStateOf<List<BizTagIso>>(emptyList()) }
-
-            LaunchedEffect(Unit) {
-                try {
-                    val provider = Iso2DataProvider.isoToDataProvider[BizTagIso::class]
-                    dataList = provider?.invoke("") as? List<BizTagIso> ?: emptyList()
-                } catch (e: Exception) {
-                    println("加载 tags 数据失败: ${e.message}")
-                    dataList = emptyList()
-                }
-            }
-
-        },
         BizNoteFormProps.path to {
             AddTextField(
                 value = state.value.path?.toString() ?: "",

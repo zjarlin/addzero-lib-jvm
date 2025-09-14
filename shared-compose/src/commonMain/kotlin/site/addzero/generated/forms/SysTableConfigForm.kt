@@ -1,15 +1,36 @@
 package site.addzero.generated.forms
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import site.addzero.component.drawer.AddDrawer
-import site.addzero.component.form.number.AddMoneyField
-import site.addzero.component.form.switch.AddSwitchField
-import site.addzero.component.form.text.AddTextField
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import site.addzero.component.high_level.AddMultiColumnContainer
+import site.addzero.component.drawer.AddDrawer
+import site.addzero.component.form.*
+import site.addzero.component.form.number.AddMoneyField
+import site.addzero.component.form.number.AddNumberField
+import site.addzero.component.form.number.AddIntegerField
+import site.addzero.component.form.number.AddDecimalField
+import site.addzero.component.form.number.AddPercentageField
+import site.addzero.component.form.text.AddTextField
+import site.addzero.component.form.text.AddPasswordField
+import site.addzero.component.form.text.AddEmailField
+import site.addzero.component.form.text.AddPhoneField
+import site.addzero.component.form.text.AddUrlField
+import site.addzero.component.form.text.AddUsernameField
+import site.addzero.component.form.text.AddIdCardField
+import site.addzero.component.form.text.AddBankCardField
+import site.addzero.component.form.date.AddDateField
+import site.addzero.component.form.date.DateType
+import site.addzero.component.form.switch.AddSwitchField
+import site.addzero.component.form.selector.AddGenericSingleSelector
+import site.addzero.component.form.selector.AddGenericMultiSelector
 import site.addzero.core.ext.parseObjectByKtx
+import site.addzero.core.validation.RegexEnum
+import site.addzero.generated.isomorphic.*
 import site.addzero.generated.forms.dataprovider.Iso2DataProvider
-import site.addzero.generated.isomorphic.SysColumnConfigIso
-import site.addzero.generated.isomorphic.SysTableConfigIso
+            import site.addzero.generated.enums.*
 
 
 /**
@@ -32,19 +53,7 @@ object SysTableConfigFormProps {
      * 获取所有字段名列表（按默认顺序）
      */
     fun getAllFields(): List<String> {
-        return listOf(
-            routeKey,
-            showPagination,
-            showSearchBar,
-            showBatchActions,
-            showRowSelection,
-            showDefaultRowActions,
-            enableSorting,
-            enableAdvancedSearch,
-            headerHeightDp,
-            rowHeightDp,
-            columns
-        )
+        return listOf(routeKey, showPagination, showSearchBar, showBatchActions, showRowSelection, showDefaultRowActions, enableSorting, enableAdvancedSearch, headerHeightDp, rowHeightDp, columns)
     }
 }
 
@@ -78,23 +87,6 @@ fun SysTableConfigFormOriginal(
     val dsl = SysTableConfigFormDsl(state, renderMap).apply(dslConfig)
 
     // 默认字段渲染映射（保持原有顺序）
-    val function = @Composable
-    fun() {
-        var dataList by remember { mutableStateOf<List<SysColumnConfigIso>>(emptyList()) }
-
-        LaunchedEffect(Unit) {
-            try {
-                val provider = Iso2DataProvider.isoToDataProvider[SysColumnConfigIso::class]
-                dataList = provider?.invoke("") as? List<SysColumnConfigIso> ?: emptyList()
-            } catch (e: Exception) {
-                println("加载 columns 数据失败: ${e.message}")
-                dataList = emptyList()
-            }
-        }
-        with(dataList) {
-            TODO("Not yet implemented")
-        }
-    }
     val defaultRenderMap = linkedMapOf<String, @Composable () -> Unit>(
         SysTableConfigFormProps.routeKey to {
             AddTextField(
@@ -159,8 +151,7 @@ fun SysTableConfigFormOriginal(
             AddMoneyField(
                 value = state.value.headerHeightDp?.toString() ?: "",
                 onValueChange = {
-                    state.value =
-                        state.value.copy(headerHeightDp = if (it.isNullOrEmpty()) 0f else it.parseObjectByKtx())
+                    state.value = state.value.copy(headerHeightDp = if (it.isNullOrEmpty()) 0f else it.parseObjectByKtx())
                 },
                 label = "表头高度",
                 isRequired = true,
@@ -178,7 +169,7 @@ fun SysTableConfigFormOriginal(
                 currency = "CNY"
             )
         },
-        SysTableConfigFormProps.columns to function
+
     )
 
     // 根据 DSL 配置计算最终要渲染的字段列表（保持顺序）
@@ -211,7 +202,6 @@ fun SysTableConfigFormOriginal(
     )
 }
 
-
 class SysTableConfigFormDsl(
     val state: MutableState<SysTableConfigIso>,
     private val renderMap: MutableMap<String, @Composable () -> Unit>
@@ -241,12 +231,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("routeKey")
                 renderMap.remove("routeKey")
             }
-
             render != null -> {
                 hiddenFields.remove("routeKey")
                 renderMap["routeKey"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("routeKey")
                 renderMap.remove("routeKey")
@@ -275,12 +263,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("showPagination")
                 renderMap.remove("showPagination")
             }
-
             render != null -> {
                 hiddenFields.remove("showPagination")
                 renderMap["showPagination"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("showPagination")
                 renderMap.remove("showPagination")
@@ -309,12 +295,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("showSearchBar")
                 renderMap.remove("showSearchBar")
             }
-
             render != null -> {
                 hiddenFields.remove("showSearchBar")
                 renderMap["showSearchBar"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("showSearchBar")
                 renderMap.remove("showSearchBar")
@@ -343,12 +327,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("showBatchActions")
                 renderMap.remove("showBatchActions")
             }
-
             render != null -> {
                 hiddenFields.remove("showBatchActions")
                 renderMap["showBatchActions"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("showBatchActions")
                 renderMap.remove("showBatchActions")
@@ -377,12 +359,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("showRowSelection")
                 renderMap.remove("showRowSelection")
             }
-
             render != null -> {
                 hiddenFields.remove("showRowSelection")
                 renderMap["showRowSelection"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("showRowSelection")
                 renderMap.remove("showRowSelection")
@@ -411,12 +391,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("showDefaultRowActions")
                 renderMap.remove("showDefaultRowActions")
             }
-
             render != null -> {
                 hiddenFields.remove("showDefaultRowActions")
                 renderMap["showDefaultRowActions"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("showDefaultRowActions")
                 renderMap.remove("showDefaultRowActions")
@@ -445,12 +423,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("enableSorting")
                 renderMap.remove("enableSorting")
             }
-
             render != null -> {
                 hiddenFields.remove("enableSorting")
                 renderMap["enableSorting"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("enableSorting")
                 renderMap.remove("enableSorting")
@@ -479,12 +455,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("enableAdvancedSearch")
                 renderMap.remove("enableAdvancedSearch")
             }
-
             render != null -> {
                 hiddenFields.remove("enableAdvancedSearch")
                 renderMap["enableAdvancedSearch"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("enableAdvancedSearch")
                 renderMap.remove("enableAdvancedSearch")
@@ -513,12 +487,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("headerHeightDp")
                 renderMap.remove("headerHeightDp")
             }
-
             render != null -> {
                 hiddenFields.remove("headerHeightDp")
                 renderMap["headerHeightDp"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("headerHeightDp")
                 renderMap.remove("headerHeightDp")
@@ -547,12 +519,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("rowHeightDp")
                 renderMap.remove("rowHeightDp")
             }
-
             render != null -> {
                 hiddenFields.remove("rowHeightDp")
                 renderMap["rowHeightDp"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("rowHeightDp")
                 renderMap.remove("rowHeightDp")
@@ -581,12 +551,10 @@ class SysTableConfigFormDsl(
                 hiddenFields.add("columns")
                 renderMap.remove("columns")
             }
-
             render != null -> {
                 hiddenFields.remove("columns")
                 renderMap["columns"] = { render(state) }
             }
-
             else -> {
                 hiddenFields.remove("columns")
                 renderMap.remove("columns")

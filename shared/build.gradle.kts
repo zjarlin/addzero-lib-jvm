@@ -1,23 +1,28 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec
-import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 plugins {
     id("kmp-lib")
     id("kmp-datetime")
     id("kmp-json")
-
     id("ksp4jdbc")
     id("ksp4enum")
     id("ksp4projectdir")
-    id("com.codingfeline.buildkonfig") version "+"
+    id("kmp-config")
 }
+
+
 
 buildkonfig {
     packageName = Vars.packageName
     // default config is required
-    defaultConfigs {
-        buildConfigField(FieldSpec.Type.STRING, "name", "value")
+    defaultConfigs("dev") {
+        buildConfigField(FieldSpec.Type.STRING, "name223", "value")
     }
+
+    defaultConfigs {
+        buildConfigField(FieldSpec.Type.STRING, "name1", "value1")
+    }
+
 
 //    targetConfigs {
 //        // names in create should be the same as target names you specified
@@ -31,8 +36,6 @@ buildkonfig {
 //        }
 //    }
 }
-
-
 
 
 

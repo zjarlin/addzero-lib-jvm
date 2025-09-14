@@ -23,5 +23,8 @@ dependencies {
     implementation(libs.gradlePlugin.kotlinSpring)
     implementation(libs.gradlePlugin.dependencyManagement)
     implementation(libs.gradlePlugin.springBoot)
-
+//    implementation(libs.com.codingfeline.buildkonfig.gradle.plugin)
+//    implementation(libs.com.codingfeline.buildkonfig.gradle.plugin1)
+       implementation(libs.gradleplugin.buildkonfig)
+//    implementation(libs.gradleplugin.buildKonfigCompiler)
 }

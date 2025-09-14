@@ -86,18 +86,6 @@ fun BizDotfilesFormOriginal(
 
     // 默认字段渲染映射（保持原有顺序）
     val defaultRenderMap = linkedMapOf<String, @Composable () -> Unit>(
-        BizDotfilesFormProps.osType to {
-            AddGenericMultiSelector(
-                value = state.value.osType ?: emptyList(),
-                onValueChange = { state.value = state.value.copy(osType = it) },
-                placeholder = "操作系统win=winlinux=linuxmac=macnull=不限",
-                dataProvider = { emptyList<String>() }, // 需要根据具体类型提供数据
-                getId = { it.toString() },
-                getLabel = { it.toString() },
-                
-                
-            )
-        },
         BizDotfilesFormProps.osStructure to {
             AddGenericSingleSelector(
                 value = state.value.osStructure,
