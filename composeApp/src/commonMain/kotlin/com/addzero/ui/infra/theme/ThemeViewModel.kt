@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.addzero.generated.enums.EnumSysTheme
+import com.addzero.settings.SettingContext4Compose
 import org.koin.android.annotation.KoinViewModel
 
 /**
@@ -23,7 +24,7 @@ class ThemeViewModel : ViewModel() {
     }
 
     // 当前主题类型，默认为蓝色亮色主题
-    var currentTheme by mutableStateOf(EnumSysTheme.LIGHT_BLUE)
+    var currentTheme by mutableStateOf(SettingContext4Compose.DEFAULT_THEME)
 
     val isDarkMode: Boolean
         get() = currentTheme.isDark()
