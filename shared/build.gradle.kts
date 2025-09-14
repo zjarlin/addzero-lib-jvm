@@ -1,4 +1,5 @@
-   import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import com.codingfeline.buildkonfig.compiler.FieldSpec
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 plugins {
     id("kmp-lib")
@@ -12,11 +13,10 @@ plugins {
 }
 
 buildkonfig {
-    packageName = "com.example.app"
-
+    packageName = Vars.packageName
     // default config is required
     defaultConfigs {
-        buildConfigField(STRING, "name", "value")
+        buildConfigField(FieldSpec.Type.STRING, "name", "value")
     }
 
 //    targetConfigs {
