@@ -69,8 +69,6 @@ class DictEnumCodeGenerator(
         // 构建枚举类内容
         val enumOutputPackage = settings.enumOutputPackage
         val enumOutputDir = settings.enumOutputDir
-//        logger.warn("枚举类输出目录为: $enumOutputDir")
-//        logger.warn("枚举输出包为: $enumOutputPackage")
         val enumContent = """
            package $enumOutputPackage
             /**
