@@ -72,8 +72,7 @@ class DictEnumCodeGenerator(
 //        logger.warn("枚举类输出目录为: $enumOutputDir")
 //        logger.warn("枚举输出包为: $enumOutputPackage")
         val enumContent = """
-            package $enumOutputPackage
-            
+           package $enumOutputPackage
             /**
              * ${dictMetadata.dictName}
              * 
@@ -85,28 +84,6 @@ class DictEnumCodeGenerator(
                 val desc: String
             ) {
                 ${generateEnumEntries(dictMetadata.items)};
-                
-                companion object {
-                    /**
-                     * 根据编码获取枚举值
-                     * 
-                     * @param code 编码
-                     * @return 对应的枚举值，如果不存在则返回null
-                     */
-                    fun fromCode(code: String): $fullEnumName? {
-                        return entries.find { it.code == code }
-                    }
-                    
-                    /**
-                     * 根据描述获取枚举值
-                     * 
-                     * @param desc 描述
-                     * @return 对应的枚举值，如果不存在则返回null
-                     */
-                    fun fromDesc(desc: String): $fullEnumName? {
-                        return entries.find { it.desc == desc }
-                    }
-                }
             }
         """.trimIndent()
 
@@ -184,7 +161,7 @@ class DictEnumCodeGenerator(
             return PinYin4JUtils.sanitize(code)
         }
 
-        if (code.isNotBlank()&&desc.isNotBlank()) {
+        if (code.isNotBlank() && desc.isNotBlank()) {
             return PinYin4JUtils.sanitize(code)
         }
 
@@ -212,3 +189,27 @@ class DictEnumCodeGenerator(
         return PinYin4JUtils.sanitize(code)
     }
 }
+
+private fun genTools(fullEnumName: String): String = """                
+    companion object {
+                    /**
+                     * 根据编码获取枚举值
+                     * 
+                     * @param code 编码
+                     * @return 对应的枚举值，如果不存在则返回null
+                     */
+                    fun fromCode(code: String): $fullEnumName? {
+                        return entries.find { it.code == code }
+                    }
+                    
+                    /**
+                     * 根据描述获取枚举值
+                     * 
+                     * @param desc 描述
+                     * @return 对应的枚举值，如果不存在则返回null
+                     */
+                    fun fromDesc(desc: String): $fullEnumName? {
+                        return entries.find { it.desc == desc }
+                    }
+                }
+"""
