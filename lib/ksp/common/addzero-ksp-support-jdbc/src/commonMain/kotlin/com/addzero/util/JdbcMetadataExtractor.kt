@@ -71,6 +71,10 @@ object JdbcMetadataExtractor {
         // 从KSP选项创建配置
         val config = fromKspOptions(kspOpntions)
 
+        return initAndGetJdbcMetaDataTables(config)
+    }
+
+    fun initAndGetJdbcMetaDataTables(config: JdbcConfig): List<JdbcTableMetadata> {
         // 测试数据库连接
         if (!testConnection(config)) {
             println("数据库连接失败，请检查配置")
@@ -156,9 +160,6 @@ object JdbcMetadataExtractor {
             it.equals(columnName, ignoreCase = true)
         }
     }
-
-
-
 
 
     /**
