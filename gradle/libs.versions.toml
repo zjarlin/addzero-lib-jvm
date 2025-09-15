@@ -78,6 +78,11 @@ navigationCompose = "2.9.0-rc01"
 [libraries]
 gradlePlugin-buildkonfig = { module = "com.codingfeline.buildkonfig:buildkonfig-gradle-plugin", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
 
+gradlePlugin-buildkonfig-cp = { module = "com.codingfeline.buildkonfig:buildkonfig-compiler", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
+
+
+
+
 
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 lazy-people-http = { module = "io.github.ltttttttttttt:LazyPeopleHttp-lib", version.ref = "lazyPeopleHttp" }
@@ -239,3 +244,4 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+konfig = { id = "com.codingfeline.buildkonfig", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }

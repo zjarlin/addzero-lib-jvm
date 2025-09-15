@@ -36,7 +36,6 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         val vname = libs.versions.android.biz.version.get()
-        println("tttttt$vname")
         versionName = vname
         versionCode = vname.toDouble().toInt()
     }

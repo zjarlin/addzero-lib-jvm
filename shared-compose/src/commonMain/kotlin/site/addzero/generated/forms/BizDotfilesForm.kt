@@ -86,6 +86,7 @@ fun BizDotfilesFormOriginal(
 
     // 默认字段渲染映射（保持原有顺序）
     val defaultRenderMap = linkedMapOf<String, @Composable () -> Unit>(
+BizDotfilesFormProps.osType to {},
         BizDotfilesFormProps.osStructure to {
             AddGenericSingleSelector(
                 value = state.value.osStructure,

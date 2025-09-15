@@ -1,5 +1,6 @@
 package site.addzero.settings
 
+import site.addzero.generated.RouteKeys
 import site.addzero.generated.enums.EnumSysTheme
 
 object SettingContext4Compose {
@@ -23,7 +24,7 @@ object SettingContext4Compose {
     填入正确的路由地址即可
     目前RouteKeys是自动生成的,没有放在shared共享目录,如果是自定义页面填入全限定名称
     */
-    const val HOME_SCREEN = "/home"
+    const val HOME_SCREEN = RouteKeys.HOME_SCREEN
 
 
 }

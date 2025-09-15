@@ -1,9 +1,9 @@
 package site.addzero.strategy.impl
 
-import site.addzero.strategy.FormStrategy
-import site.addzero.util.*
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import site.addzero.strategy.FormStrategy
+import site.addzero.util.*
 
 /**
  * 🎯 通用列表选择策略
@@ -77,7 +77,7 @@ object GenericListStrategy : FormStrategy {
             ?: throw IllegalStateException("无法获取实体类名")
 
         // 新逻辑：查找字段类型的属性中带有 @LabelProp 注解的属性
-        val labelField = findLabelPropInType(typeOrGenericClassDeclaration)?:return ""
+        val labelField = findLabelPropInType(typeOrGenericClassDeclaration)?: return    "${entityClassName}FormProps.$name to {}"
         val istree = typeOrGenericClassDeclaration.hasProperty("children")
         val simpleName = typeOrGenericClassDeclaration.simpleName.asString()
 

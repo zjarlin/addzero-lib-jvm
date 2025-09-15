@@ -1,4 +1,6 @@
+
 import com.google.devtools.ksp.gradle.KspAATask
+
 plugins {
     id("kmp-app")
     id("kmp-koin")
@@ -7,8 +9,9 @@ plugins {
     id("ksp4projectdir")
     id("ksp4self")
     id("addzero-component")
-
+    id("kmp-config")
 }
+
 
 dependencies {
     kspCommonMainMetadata(projects.lib.ksp.route.addzeroRouteProcessor)

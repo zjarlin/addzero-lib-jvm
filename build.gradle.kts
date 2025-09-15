@@ -1,5 +1,3 @@
-import com.codingfeline.buildkonfig.compiler.FieldSpec
-import com.codingfeline.buildkonfig.gradle.BuildKonfigExtension
 
 subprojects {
     if (

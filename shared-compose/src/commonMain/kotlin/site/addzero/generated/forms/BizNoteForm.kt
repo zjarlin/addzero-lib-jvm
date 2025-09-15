@@ -113,6 +113,7 @@ fun BizNoteFormOriginal(
                 isRequired = false
             )
         },
+BizNoteFormProps.tags to {},
         BizNoteFormProps.path to {
             AddTextField(
                 value = state.value.path?.toString() ?: "",

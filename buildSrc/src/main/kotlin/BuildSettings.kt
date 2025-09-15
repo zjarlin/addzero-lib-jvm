@@ -21,6 +21,11 @@ object BuildSettings {
     const val SOURCE_DIR_KMP = "src/commonMain/kotlin"
     const val SOURCE_DIR_JVM = "src/main/kotlin"
     const val RESOURCE_DIR_JVM = "src/main/resources"
+
+    const val test111111111: Int = 1
+    const val test1: Float = 1f
+    const val test2: Long = 1L
+    const val test3: Boolean = true
 }
 
 val BuildSettings.email: String

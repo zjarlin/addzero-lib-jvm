@@ -169,7 +169,7 @@ fun SysTableConfigFormOriginal(
                 currency = "CNY"
             )
         },
-
+SysTableConfigFormProps.columns to {}
     )
 
     // 根据 DSL 配置计算最终要渲染的字段列表（保持顺序）

@@ -4,8 +4,6 @@ import util.YmlUtil.replaceEnvInString
 plugins {
     id("com.google.devtools.ksp")
 }
-
-
    val serverProject = project(":backend:server")
    val serverResourceDir = serverProject.projectDir.resolve("src/main/resources").absolutePath
    val ymlPath = "${serverResourceDir}/application.yml"

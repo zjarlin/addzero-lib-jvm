@@ -9,7 +9,7 @@ plugins {
     id("ksp4projectdir")
     id("org.jetbrains.kotlin.plugin.noarg") version libs.versions.kotlin
 
-    id("ksp4controller2lazypeoplehttp")
+//    id("ksp4controller2lazypeoplehttp")
 
 }
 noArg {

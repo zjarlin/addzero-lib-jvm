@@ -62,7 +62,7 @@ object GenericSingleStrategy : FormStrategy {
             ?: throw IllegalStateException("无法获取实体类名")
 
         // 新逻辑：查找字段类型的属性中带有 @LabelProp 注解的属性,找不到就不生成了
-        val labelField = findLabelPropInType(typeOrGenericClassDeclaration) ?: return ""
+        val labelField = findLabelPropInType(typeOrGenericClassDeclaration) ?: return    "${entityClassName}FormProps.$name to {}"
 
         val simpleName = typeOrGenericClassDeclaration.simpleName.asString()
         val isoTypeName = "${simpleName}Iso"
