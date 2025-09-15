@@ -19,16 +19,39 @@ class KspBuddyPlugin : Plugin<Project> {
         val extension = project.extensions.create<KspBuddyExtension>("kspBuddy")
 
         // 创建生成脚本的任务
-        project.tasks.register<GenerateKspScriptTask>("generateKspScript") {
+        val generateTask = project.tasks.register<GenerateKspScriptTask>("generateKspScript") {
             description = "Generates KSP configuration script based on mustMap"
             group = "build"
 
-            // 设置输出文件路径
+            // 设置输出文件路径，使用模块名称作为文件名的一部分
             val generatedDir = File(project.rootProject.projectDir, "buildSrc/src/main/kotlin/generated")
-            outputFile = File(generatedDir, "ksp-config.gradle.kts")
+            val moduleName = getModuleName(project)
+            outputFile = File(generatedDir, "ksp-config4${moduleName}.gradle.kts")
 
             // 传递mustMap给任务
             mustMap.set(extension.mustMap)
+        }
+
+        // 在项目配置完成后自动生成配置文件
+        project.afterEvaluate {
+            // 只有当mustMap有配置时才生成
+            if (extension.mustMap.isPresent && extension.mustMap.get().isNotEmpty()) {
+                generateTask.get().generate()
+            }
+        }
+    }
+
+    /**
+     * 获取模块名称，用于生成文件名
+     */
+    private fun getModuleName(project: Project): String {
+        // 获取项目路径并转换为合适的文件名格式
+        val path = project.path
+        return if (path == ":") {
+            "root"
+        } else {
+            // 移除冒号并替换为连字符
+            path.substring(1).replace(":", "-")
         }
     }
 }

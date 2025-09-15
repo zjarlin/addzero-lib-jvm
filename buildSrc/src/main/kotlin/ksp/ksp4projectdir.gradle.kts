@@ -1,4 +1,4 @@
-import ksp.generateProjectDirConfigMap
+import util.generateProjectDirConfigMap
 
 
 plugins {

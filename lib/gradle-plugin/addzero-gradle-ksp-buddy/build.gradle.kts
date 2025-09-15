@@ -1,6 +1,7 @@
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
+//    id()
 }
 
 repositories {
@@ -13,6 +14,8 @@ dependencies {
 }
 
 val pluginName = project.name
+//BuildSettings
+
 
 gradlePlugin {
     plugins {
