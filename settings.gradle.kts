@@ -1,7 +1,7 @@
-
 rootProject.name = "addzero"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 //includeBuild("build-logic")
+includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
 
 pluginManagement {
     repositories {
@@ -144,7 +144,6 @@ autoIncludeModules(
         "lib"
     ),
     excludeModules = listOf(
-        // 可以在这里添加需要排除的模块
-        // 例如: "*test*", "lib:some-disabled-module"
+        "addzero-gradle-ksp-buddy"
     )
 )

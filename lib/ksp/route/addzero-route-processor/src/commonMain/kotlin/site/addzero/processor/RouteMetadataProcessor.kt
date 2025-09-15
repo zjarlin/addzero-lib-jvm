@@ -172,7 +172,7 @@ class RouteMetadataProcessor(
 //            ).use { stream ->
 //                stream.write(routeKeysTemplate.toByteArray())
 //            }
-//            val withPkg = SettingContext.settings.composeSourceDir.withPkg(GEN_PKG).withFileName(ROUTE_TABLE_NAME).withFileSuffix(".kt")
+//            val withPkg = SettingContext.settings.composeAppSourceDir.withPkg(GEN_PKG).withFileName(ROUTE_TABLE_NAME).withFileSuffix(".kt")
 
 
             logger.warn("开始生成路由表")
@@ -230,7 +230,7 @@ class RouteMetadataProcessor(
             |    )
             |}
             |""".trimMargin()
-            
+
         val sharedSourceDir = SettingContext.settings.sharedSourceDir
         val withPkg = sharedSourceDir.withPkg(GEN_PKG).withFileName(ROUTE_KEYS_NAME).withFileSuffix(".kt")
         genCode(withPkg, routeKeysTemplateIso)

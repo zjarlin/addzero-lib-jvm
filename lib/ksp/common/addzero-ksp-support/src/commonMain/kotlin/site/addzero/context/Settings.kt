@@ -15,16 +15,16 @@ data class Settings(
     val updateBy: String = "",
     val createTime: String = "",
     val updateTime: String = "",
-    val composeSourceDir: String = "",
-    val composeBuildDir: String = "",
+    val composeAppSourceDir: String = "",
+    val composeAppBuildDir: String = "",
     val sharedSourceDir: String = "",
     val sharedBuildDir: String = "",
-    val serverSourceDir: String = "",
-    val serverBuildDir: String = "",
+    val backendServerSourceDir: String = "",
+    val backendServerBuildDir: String = "",
     val sharedComposeSourceDir: String = "",
     val sharedComposeBuildDir: String = "",
-    val modelSourceDir: String = "",
-    val modelBuildDir: String = "",
+    val backendModelSourceDir: String = "",
+    val backendModelBuildDir: String = "",
     val modelPackageName: String = "",
     // 包名配置（小驼峰命名）
     val isomorphicPackageName: String = "site.addzero.generated.isomorphic",
@@ -77,7 +77,7 @@ data class Settings(
     /**
      * 从jdbc生成的模型输出目录
      */
-    val modelOutputDir: String = modelSourceDir.withPkg(modelPackageName)
+    val modelOutputDir: String = backendModelSourceDir.withPkg(modelPackageName)
 
 
 }

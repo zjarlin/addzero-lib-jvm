@@ -107,7 +107,7 @@ class McpServiceCodeGenerator(
             isoFullName = isoFullName,
             entityDescription = entityDescription
         )
-        val mcpdir = "${settings.serverSourceDir}/${
+        val mcpdir = "${settings.backendServerSourceDir}/${
             packageName.replace(
                 ".",
                 "/"

@@ -22,6 +22,8 @@ fun Project.generateProjectDirConfigMap(): Map<String, Map<String, String>> {
         .filter { !isBlacklisted(it, rootDir) } // 排除黑名单目录
 
     val configMap = mutableMapOf<String, Map<String, String>>()
+    
+    logger.lifecycle("开始扫描项目目录，共找到 ${allProjectDirs.size} 个潜在项目目录")
 
     allProjectDirs.forEach { projectDir ->
         val relativePath = getRelativePath(rootDir, projectDir)
@@ -49,7 +51,18 @@ fun Project.generateProjectDirConfigMap(): Map<String, Map<String, String>> {
         }
 
         configMap[moduleName] = moduleConfig
+        
+        // 打印调试信息
+        logger.lifecycle("处理项目: $relativePath")
+        logger.lifecycle("  模块名: $moduleName")
+        logger.lifecycle("  项目类型: ${if (isKmp) "KMP" else "JVM"}")
+        moduleConfig.forEach { (key, value) ->
+            logger.lifecycle("    $key = $value")
+        }
+        logger.lifecycle("") // 空行分隔不同模块
     }
+    
+    logger.lifecycle("项目目录配置生成完成，共处理 ${configMap.size} 个模块")
 
     return configMap
 }

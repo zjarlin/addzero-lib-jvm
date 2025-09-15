@@ -34,7 +34,7 @@ class ControllerProcessor(
     private fun generateFormFile(table: JdbcTableMetadata) {
         val tableName = table.tableName
         val entityName = tableName.toBigCamelCase()
-        val dir = SettingContext.settings.serverSourceDir
+        val dir = SettingContext.settings.backendServerSourceDir
         val controllerOutPackage = settings.controllerOutPackage
         val withPkg = dir.withPkg(controllerOutPackage)
         val className = "${entityName}Controller"
