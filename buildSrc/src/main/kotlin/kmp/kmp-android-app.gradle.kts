@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
+import BuildSettings.PACKAGE_NAME
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -28,15 +29,16 @@ kotlin {
 }
 
 android {
-    namespace = Vars.packageName
+    namespace = PACKAGE_NAME
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-
     defaultConfig {
-        applicationId = Vars.applicationId
+        applicationId = BuildSettings.Android.ANDROID_APP_ID
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        val vname = libs.versions.android.biz.version.get()
+        println("tttttt$vname")
+        versionName = vname
+        versionCode = vname.toDouble().toInt()
     }
     packaging {
         resources {
@@ -45,12 +47,12 @@ android {
         }
     }
     buildTypes {
-        getByName("release") {
+        getByName(BuildSettings.Android.BUILD_TYPE) {
             isMinifyEnabled = false
         }
     }
     compileOptions {
-    val toVersion = JavaVersion.toVersion(libs.versions.jdk.get())
+        val toVersion = JavaVersion.toVersion(libs.versions.jdk.get())
         sourceCompatibility = toVersion
         targetCompatibility = toVersion
     }

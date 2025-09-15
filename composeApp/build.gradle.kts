@@ -1,5 +1,4 @@
 import com.google.devtools.ksp.gradle.KspAATask
-
 plugins {
     id("kmp-app")
     id("kmp-koin")

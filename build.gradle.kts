@@ -1,3 +1,6 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec
+import com.codingfeline.buildkonfig.gradle.BuildKonfigExtension
+
 subprojects {
     if (
         name.contains("addzero")
@@ -17,3 +20,4 @@ subprojects {
 //    alias(libs.plugins.kotlinJvm) apply false
 //    alias(libs.plugins.kotlinMultiplatform) apply false
 //}
+

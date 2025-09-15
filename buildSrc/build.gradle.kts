@@ -1,7 +1,7 @@
+
 plugins {
     `kotlin-dsl`
 }
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -9,6 +9,7 @@ repositories {
     gradlePluginPortal()
 }
 dependencies {
+
     implementation(libs.snakeyaml)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradlePlugin.ktorfit)
@@ -24,7 +25,4 @@ dependencies {
     implementation(libs.gradlePlugin.dependencyManagement)
     implementation(libs.gradlePlugin.springBoot)
     implementation(libs.gradlePlugin.buildkonfig)
-//    implementation(libs.com.codingfeline.buildkonfig.gradle.plugin)
-//    implementation(libs.com.codingfeline.buildkonfig.gradle.plugin1)
-//    implementation(libs.gradleplugin.buildKonfigCompiler)
 }

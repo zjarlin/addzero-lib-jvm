@@ -1,9 +1,9 @@
 
-import Vars.commonMainKspBuildMetaDataDir
-import Vars.commonMainSourceDir
-import Vars.jvmMainKspBuildMetaDataDir
-import Vars.jvmMainResourceDir
-import Vars.jvmMainSourceDir
+import BuildSettings.KSP_BUILD_DIR_KMP
+import BuildSettings.SOURCE_DIR_KMP
+import BuildSettings.KSP_BUILD_DIR_JVM
+import BuildSettings.RESOURCE_DIR_JVM
+import BuildSettings.SOURCE_DIR_JVM
 
 // 计算各模块目录（使用常量字符串）
 
@@ -11,27 +11,27 @@ import Vars.jvmMainSourceDir
 val serverProject = project(":backend:server")
 val composeProject = project(":composeApp")
 val sharedProject = project(":shared")
-val serverSourceDir = serverProject.projectDir.resolve(jvmMainSourceDir).absolutePath
-val serverResourceDir = serverProject.projectDir.resolve(jvmMainResourceDir) .absolutePath
+val serverSourceDir = serverProject.projectDir.resolve(SOURCE_DIR_JVM).absolutePath
+val serverResourceDir = serverProject.projectDir.resolve(RESOURCE_DIR_JVM) .absolutePath
 
-val serverBuildDir = serverProject.projectDir.resolve(jvmMainKspBuildMetaDataDir).absolutePath
+val serverBuildDir = serverProject.projectDir.resolve(KSP_BUILD_DIR_JVM).absolutePath
 
 
-val composeSourceDir = composeProject.projectDir.resolve(commonMainSourceDir).absolutePath
-val composeBuildDir = composeProject.projectDir.resolve(commonMainKspBuildMetaDataDir).absolutePath
+val composeSourceDir = composeProject.projectDir.resolve(SOURCE_DIR_KMP).absolutePath
+val composeBuildDir = composeProject.projectDir.resolve(KSP_BUILD_DIR_KMP).absolutePath
 
-val sharedSourceDir = sharedProject.projectDir.resolve(commonMainSourceDir).absolutePath
-val sharedBuildDir = sharedProject.projectDir.resolve(commonMainKspBuildMetaDataDir).absolutePath
+val sharedSourceDir = sharedProject.projectDir.resolve(SOURCE_DIR_KMP).absolutePath
+val sharedBuildDir = sharedProject.projectDir.resolve(KSP_BUILD_DIR_KMP).absolutePath
 
 
 val modelProject = project(":backend:model")
-val modelSourceDir = modelProject.projectDir.resolve(jvmMainSourceDir).absolutePath
-val modelBuildDir = modelProject.projectDir.resolve(jvmMainKspBuildMetaDataDir).absolutePath
+val modelSourceDir = modelProject.projectDir.resolve(SOURCE_DIR_JVM).absolutePath
+val modelBuildDir = modelProject.projectDir.resolve(KSP_BUILD_DIR_JVM).absolutePath
 
 
 val sharedComposeProject = project(":shared-compose")
-val sharedComposeSourceDir = sharedComposeProject.projectDir.resolve(commonMainSourceDir).absolutePath
-val sharedComposeBuildDir = sharedComposeProject.projectDir.resolve(commonMainKspBuildMetaDataDir).absolutePath
+val sharedComposeSourceDir = sharedComposeProject.projectDir.resolve(SOURCE_DIR_KMP).absolutePath
+val sharedComposeBuildDir = sharedComposeProject.projectDir.resolve(KSP_BUILD_DIR_KMP).absolutePath
 
 
 

@@ -1,3 +1,6 @@
+import BuildSettings.AUTH_NAME
+import Disposable.LICENSE_NAME
+import Disposable.LICENSE_URL
 import java.time.LocalDate
 
 plugins {
@@ -11,28 +14,28 @@ mavenPublishing {
 
     pom {
         name.set(project.name)
-        description.set(Vars.projectDescription)
+        description.set(BuildSettings.PROJECT_DESCRIPTION)
         inceptionYear.set(LocalDate.now().year.toString())
-        url.set(Vars.gitBaseUrl)
+        url.set(BuildSettings.gitBaseUrl)
         licenses {
             license {
-                name.set(Vars.licenseName)
-                url.set(Vars.licenseUrl)
-                distribution.set(Vars.licenseUrl)
+                name.set(LICENSE_NAME)
+                url.set(LICENSE_URL)
+                distribution.set(LICENSE_URL)
             }
         }
         developers {
             developer {
-                id.set("zjarlin")
-                name.set("zjarlin")
-                email.set("zjarlin@outlook.com")
+                id.set(AUTH_NAME)
+                name.set(AUTH_NAME)
+                email.set(BuildSettings.email)
             }
         }
 
         scm {
-            connection.set("scm:git:git://${Vars.gitHost}/${Vars.gitRepoName}.git")
-            developerConnection.set("scm:git:ssh://${Vars.gitHost}/${Vars.gitRepoName}.git")
-            url.set(Vars.gitBaseUrl)
+            connection.set("scm:git:git://${BuildSettings.gitHost}/${BuildSettings.gitRepoName}.git")
+            developerConnection.set("scm:git:ssh://${BuildSettings.gitHost}/${BuildSettings.gitRepoName}.git")
+            url.set(BuildSettings.gitBaseUrl)
         }
     }
 }

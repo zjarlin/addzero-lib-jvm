@@ -24,7 +24,7 @@ kotlin {
 }
 
 android {
-    namespace = Vars.packageName
+    namespace = BuildSettings.PACKAGE_NAME
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

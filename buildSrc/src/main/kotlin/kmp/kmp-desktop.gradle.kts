@@ -18,11 +18,11 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "site.addzero.MainKt"
+        mainClass = BuildSettings.Desktop.MAIN_CLASS
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = Vars.packageName
+            packageName = BuildSettings.PACKAGE_NAME
 
             packageVersion = "1.0.0"
         }

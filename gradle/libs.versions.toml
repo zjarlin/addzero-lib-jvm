@@ -11,6 +11,9 @@ ksp = "2.2.20-2.0.2"
 kotlin = "2.2.20"
 #agp = "8.11.0"
 agp = "8.11.1"
+
+#本项目安卓应用版本定义
+android-biz-version = "1.0"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "35"
