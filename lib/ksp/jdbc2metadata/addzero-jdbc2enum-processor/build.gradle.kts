@@ -4,7 +4,7 @@ plugins {
 }
 
 kspBuddy {
-    mustMap.set(mapOf(
+    mustMap = mapOf(
         "enumOutputPackage" to "site.addzero.generated.enums",
         "dictTableName" to "sys_dict",
         "dictIdColumn" to "id",
@@ -14,7 +14,7 @@ kspBuddy {
         "dictItemForeignKeyColumn" to "dict_id",
         "dictItemCodeColumn" to "item_value",
         "dictItemNameColumn" to "item_text"
-    ))
+    )
 }
 
 kotlin {
