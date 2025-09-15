@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.automodules
+package site.addzero.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings

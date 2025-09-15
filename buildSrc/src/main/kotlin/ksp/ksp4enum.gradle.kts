@@ -2,8 +2,6 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-
-
 ksp {
     // 枚举生成配置（生成到 shared 编译目录）
     arg("enumOutputPackage", "site.addzero.generated.enums")

@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.automodules
+package site.addzero.gradle.plugin
 
 /**
  * 自动模块插件的扩展配置
