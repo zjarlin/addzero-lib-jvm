@@ -28,7 +28,7 @@ export EXCLUDE_TABLES=flyway_schema_history,vector_store,*_mapping
 ```
 or powershell (notepad $profile)
 
-``powershell`
+```shell
 $env:SERVER_HOST = "localhost"
 $env:DB_PORT = 5432
 $env:DATABASE_NAME ="postgres"
@@ -38,6 +38,7 @@ $env:JDBC_PASSWORD = "postgres"
 $env:EXCLUDE_TABLES = "flyway_schema_history,vector_store,*_mapping"
 
 ```
+
 ## tips :暂未验证postgres以外类型数据库的元数据分析兼容性,自行验证JdbcMetadataExtractor这个工具类("自行适配,要改预编译")
 ## tips :目前Server模块需要SpringAI db推荐用PGVECTOR 
 ## tips :数据库会在第一次启动后端时自动初始化
