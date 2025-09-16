@@ -1,6 +1,6 @@
 # KSP Buddy Plugin
 
-KSP Buddy是一个Gradle插件，用于简化KSP（Kotlin Symbol Processing）处理器的配置和使用。
+KSP Buddy是一个Gradle插件，使得KSP（Kotlin Symbol Processing）拥有强类型的传参体验
 
 ## 功能特性
 
