@@ -5,7 +5,7 @@ KSP Buddy是一个Gradle插件，用于简化KSP（Kotlin Symbol Processing）�
 ## 功能特性
 
 1. **自动生成KSP配置脚本**：根据配置的mustMap自动生成KSP配置脚本
-2. **可配置的生成路径**：可以自定义KSP预编译脚本的生成路径(也就是用户所需要传递的ksp参数,自动生成在build-logic(buildSrc) 目录下)
+2. **可配置的生成路径**：可以自定义KSP预编译脚本的生成路径(也就是用户所关心的他们需要传递哪些ksp参数, 自动生成在build-logic (buildSrc) 目录下) 诶☝️🤓这个是给使用ksp插件的人看的,库开发者关注mustMap就可以
 3. **SettingContext生成**：根据mustMap内容自动生成Settings数据类和SettingContext对象
 4. **生成文件位置**：生成的SettingContext和Settings类位于build目录下，避免污染源码
 5. **无序列化依赖**：生成的代码不依赖kotlinx.serialization库
@@ -19,7 +19,7 @@ KSP Buddy是一个Gradle插件，用于简化KSP（Kotlin Symbol Processing）�
 
 ```kotlin
 plugins {
-    id("ksp-buddy")
+    id("site.addzero.ksp-buddy") version "0.0.608"
 }
 ```
 
@@ -27,7 +27,7 @@ plugins {
 
 ```kotlin
 kspBuddy {
-    // 配置 KSP 参数
+    // 配置该库所需传递的 KSP 参数
     mustMap.set(
         mapOf(
             "enumOutputPackage" to "site.addzero.generated.enums",
@@ -65,7 +65,7 @@ kspBuddy {
 ### 3. 添加生成源码到编译路径（可选）
 
 为了让编译器能够找到生成的源码，需要手动将生成目录添加到源码路径中：
-
+KMP项目：
 ```kotlin
 kotlin {
     sourceSets {
@@ -95,7 +95,15 @@ kotlin {
 1. **KSP配置脚本**：在指定的输出目录中生成KSP配置脚本，文件名格式为`ksp-config4{moduleName}.gradle.kts`
 2. **Settings数据类**：在`build/generated/ksp-buddy`目录中生成Settings数据类，类的属性完全基于mustMap的内容，不包含序列化注解
 3. **SettingContext对象**：在`build/generated/ksp-buddy`目录中生成SettingContext对象，包含基于mustMap的初始化逻辑
-
-## 示例
-
-查看[示例模块](../demo/ksp-buddy-demo/build.gradle.kts)了解如何使用该插件。
+## Q: 为什么不直接在ksp源码中声明data class,而是要在kts脚本中声明map?
+## A: 借助gradle的强大的复合构建能力,我可以用循环创建map(例如扫描项目目录结构去生成一些路径传给ksp使用,还可以用kt逻辑去动态生成data class,比手敲data class快得多)
+## ps: 库暂不支持继承配置 : 例如父模块也同样启用了ksp-buddy插件,子模块配置并不会融合父模块的配置
+## 提醒: 请在process逻辑的第一行 
+```kotlin
+// 初始化设置上下文
+override fun process(resolver: Resolver): List<KSAnnotated> {
+    SettingContext.initialize(options)
+//     之后 ksp  logic就可以静态使用 SettingContext.settings
+    
+}
+```

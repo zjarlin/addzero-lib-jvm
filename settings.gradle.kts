@@ -1,12 +1,15 @@
 rootProject.name = "addzero"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
+//includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
 includeBuild("lib/gradle-plugin/addzero-gradle-auto-modules-plugin")
 includeBuild("build-logic")
 //includeBuild("lib/gradle-plugin/addzero-gradle-tool")
 
 pluginManagement {
+
     repositories {
+        mavenLocal()
+
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -22,7 +25,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-//        mavenLocal()
+        mavenLocal()
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -62,6 +65,7 @@ fun autoIncludeModules(
                     val pattern = exclude.replace("*", ".*")
                     modulePath.matches(Regex(pattern))
                 }
+
                 exclude.startsWith(":") -> modulePath == exclude.substring(1)
                 else -> modulePath.contains(exclude)
             }
@@ -131,7 +135,7 @@ autoIncludeModules(
         "lib"
     ),
     excludeModules = listOf(
-        "addzero-gradle-ksp-buddy",
+//        "addzero-gradle-ksp-buddy",
         "addzero-gradle-auto-modules-plugin",
         "build-logic"
     )

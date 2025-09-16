@@ -1,6 +1,7 @@
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
+    id("publish-convention")
 }
 
 repositories {
@@ -15,7 +16,7 @@ dependencies {
 gradlePlugin {
     plugins {
         create(project.name) {
-            id = "ksp-buddy"
+            id = "site.addzero.ksp-buddy"
             implementationClass = "site.addzero.gradle.plugin.kspbuddy.KspBuddyPlugin"
             displayName = "KSP Buddy Plugin"
         }
