@@ -5,7 +5,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.MapProperty
 import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.register
 import java.io.File
 
@@ -24,7 +23,7 @@ class KspBuddyPlugin : Plugin<Project> {
             group = "build"
 
             // 设置输出文件路径，使用模块名称作为文件名的一部分
-            val generatedDir = File(project.rootProject.projectDir, "buildSrc/src/main/kotlin/generated")
+            val generatedDir = File(project.rootProject.projectDir, "build-logic/src/main/kotlin/convention-plugins/generated")
             val moduleName = getModuleName(project)
             outputFile = File(generatedDir, "ksp-config4${moduleName}.gradle.kts")
 
@@ -53,19 +52,6 @@ class KspBuddyPlugin : Plugin<Project> {
             // 移除冒号并替换为连字符
             path.substring(1).replace(":", "-")
         }
-    }
-}
-
-/**
- * KspBuddy插件的扩展类，用于声明KSP处理器必须的上下文
- */
-open class KspBuddyExtension(project: Project) {
-    /**
-     * KSP处理器必须的上下文参数映射
-     * 来源可以是配置文件或直接声明
-     */
-    val mustMap: MapProperty<String, String> = project.objects.mapProperty<String, String>().apply {
-        convention(mapOf( ))
     }
 }
 
