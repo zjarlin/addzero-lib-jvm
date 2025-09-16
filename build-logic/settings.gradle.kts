@@ -1,5 +1,5 @@
-//rootProject.name = "build-logic"
-rootProject.name = "buildSrc"
+rootProject.name = "build-logic"
+//includeBuild("lib/gradle-plugin/addzero-gradle-tool")
 
 dependencyResolutionManagement {
     versionCatalogs {

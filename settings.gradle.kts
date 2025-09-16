@@ -1,7 +1,10 @@
 rootProject.name = "addzero"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 //includeBuild("build-logic")
-includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
+//includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
+//includeBuild("lib/gradle-plugin/addzero-gradle-auto-modules-plugin")
+includeBuild("build-logic")
+//includeBuild("lib/gradle-plugin/addzero-gradle-tool")
 
 pluginManagement {
     repositories {
@@ -12,18 +15,10 @@ pluginManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        mavenCentral {
-//            credentials {
-//                username = localProps.getProperty("sonaTokenUser")
-//                password = localProps.getProperty("sonaToken")
-//            }
-        }
+        mavenCentral()
         gradlePluginPortal()
         maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
     }
-}
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 dependencyResolutionManagement {
@@ -36,16 +31,9 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
-        mavenCentral {
-
-        }
+        mavenCentral()
     }
-
 }
-
-
-
-// 扩展函数：智能自动扫描gradle模块
 
 /**
  * 自动扫描并包含所有gradle模块
@@ -144,6 +132,9 @@ autoIncludeModules(
         "lib"
     ),
     excludeModules = listOf(
-        "addzero-gradle-ksp-buddy"
+        "addzero-gradle-ksp-buddy",
+        "addzero-gradle-auto-modules-plugin",
+        "build-logic"
     )
 )
+

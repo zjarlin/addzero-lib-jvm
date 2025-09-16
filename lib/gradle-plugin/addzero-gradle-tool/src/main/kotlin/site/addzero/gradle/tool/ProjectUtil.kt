@@ -1,27 +1,44 @@
-// buildSrc/src/main/kotlin/ksp/ProjectDirConfigExtension.kt
-package util
+package site.addzero.gradle.tool
 
-import BuildSettings.KSP_BUILD_DIR_JVM
-import BuildSettings.KSP_BUILD_DIR_KMP
-import BuildSettings.RESOURCE_DIR_JVM
-import BuildSettings.SOURCE_DIR_JVM
-import BuildSettings.SOURCE_DIR_KMP
 import org.gradle.api.Project
 import java.io.File
 
 // 定义黑名单目录列表
-private val BLACKLIST_DIRS = listOf("lib", "buildSrc")
+val BLACKLIST_DIRS = listOf("lib", "buildSrc")
+
+/**
+ * 项目目录配置数据类
+ * @property moduleName 模块名称
+ * @property sourceDir 源代码目录路径
+ * @property buildDir 构建输出目录路径
+ * @property resourceDir 资源文件目录路径（可为空）
+ */
+data class ProjectDirConfig(
+    val moduleName: String,
+    val sourceDir: String,
+    val buildDir: String,
+    val resourceDir: String?
+)
+
+/**
+ * 项目目录配置映射结果
+ * @property configs 模块名称到目录配置的映射
+ */
+data class ProjectDirConfigMapResult(
+    val configs: Map<String, ProjectDirConfig>
+)
 
 /**
  * 生成项目目录配置映射
+ * @return 包含所有项目模块目录配置的映射结果
  */
-fun Project.generateProjectDirConfigMap(): Map<String, Map<String, String>> {
+fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
     val rootDir = this.rootDir
     val allProjectDirs = findAllProjectDirs(rootDir)
         .filter { it != rootDir } // 排除根项目本身
         .filter { !isBlacklisted(it, rootDir) } // 排除黑名单目录
 
-    val configMap = mutableMapOf<String, Map<String, String>>()
+    val configMap = mutableMapOf<String, ProjectDirConfig>()
 
     logger.lifecycle("开始扫描项目目录，共找到 ${allProjectDirs.size} 个潜在项目目录")
 
@@ -42,29 +59,30 @@ fun Project.generateProjectDirConfigMap(): Map<String, Map<String, String>> {
         val buildDir = if (isKmp) KSP_BUILD_DIR_KMP else KSP_BUILD_DIR_JVM
         val resourceDir = if (isKmp) null else RESOURCE_DIR_JVM
 
-        val moduleConfig = mutableMapOf<String, String>()
-        moduleConfig["${moduleName}SourceDir"] = projectDir.resolve(sourceDir).absolutePath
-        moduleConfig["${moduleName}BuildDir"] = projectDir.resolve(buildDir).absolutePath
+        val projectConfig = ProjectDirConfig(
+            moduleName = moduleName,
+            sourceDir = projectDir.resolve(sourceDir).absolutePath,
+            buildDir = projectDir.resolve(buildDir).absolutePath,
+            resourceDir = resourceDir?.let { projectDir.resolve(it).absolutePath }
+        )
 
-        resourceDir?.let {
-            moduleConfig["${moduleName}ResourceDir"] = projectDir.resolve(it).absolutePath
-        }
-
-        configMap[moduleName] = moduleConfig
+        configMap[moduleName] = projectConfig
 
         // 打印调试信息
         logger.lifecycle("处理项目: $relativePath")
         logger.lifecycle("  模块名: $moduleName")
         logger.lifecycle("  项目类型: ${if (isKmp) "KMP" else "JVM"}")
-        moduleConfig.forEach { (key, value) ->
-            logger.lifecycle("    $key = $value")
+        logger.lifecycle("    ${moduleName}SourceDir = ${projectConfig.sourceDir}")
+        logger.lifecycle("    ${moduleName}BuildDir = ${projectConfig.buildDir}")
+        projectConfig.resourceDir?.let {
+            logger.lifecycle("    ${moduleName}ResourceDir = $it")
         }
         logger.lifecycle("") // 空行分隔不同模块
     }
 
     logger.lifecycle("项目目录配置生成完成，共处理 ${configMap.size} 个模块")
 
-    return configMap
+    return ProjectDirConfigMapResult(configMap)
 }
 
 // 手动计算相对路径（兼容低版本）
@@ -115,4 +133,16 @@ private fun String.toCamelCase(): String {
             part.replaceFirstChar { it.uppercase() }
         }
     }.joinToString("")
+}
+
+/**
+ * 判断是否为应排除的目录
+ */
+fun isExcludedDir(dirName: String): Boolean {
+    val excludedDirs = setOf(
+        "build", "gradle", ".gradle", ".git", ".idea",
+        "node_modules", "target", "out", "bin", ".settings",
+        "src", "test", "main", "kotlin", "java", "resources"
+    )
+    return excludedDirs.contains(dirName) || dirName.startsWith(".")
 }

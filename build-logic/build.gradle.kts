@@ -19,6 +19,7 @@ repositories {
 }
 dependencies {
 
+//    implementation(projects.buildLogic)
     implementation(libs.snakeyaml)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradlePlugin.ktorfit)
