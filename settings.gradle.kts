@@ -1,8 +1,7 @@
 rootProject.name = "addzero"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-//includeBuild("build-logic")
 includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
-//includeBuild("lib/gradle-plugin/addzero-gradle-auto-modules-plugin")
+includeBuild("lib/gradle-plugin/addzero-gradle-auto-modules-plugin")
 includeBuild("build-logic")
 //includeBuild("lib/gradle-plugin/addzero-gradle-tool")
 
