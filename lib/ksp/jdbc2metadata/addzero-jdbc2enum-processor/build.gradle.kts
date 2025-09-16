@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import com.android.build.gradle.internal.ide.dependencies.getProjectBuildTreePath
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import site.addzero.gradle.plugin.kspbuddy.SettingContextConfig
 
@@ -7,6 +8,8 @@ plugins {
     id("kmp-ksp")
     id("site.addzero.ksp-buddy") version "0.0.608"
 }
+val properties1 = properties
+println("tttt$properties")
 
 kspBuddy {
     // 配置 KSP 参数

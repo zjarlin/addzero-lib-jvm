@@ -55,7 +55,10 @@ class DictEnumCodeGenerator(
             }
         }
     }
-
+//    /**
+//     * 枚举输出目录（shared 编译目录）
+//     */
+//    val enumOutputDir: String = sharedSourceDir.withPkg(enumOutputPackage)
     /**
      * 生成单个枚举类
      *
