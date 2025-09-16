@@ -26,9 +26,9 @@ export JDBC_PASSWORD=postgres
 export EXCLUDE_TABLES=flyway_schema_history,vector_store,*_mapping
 
 ```
-or
+or powershell (notepad $profile)
 
-```shell
+``powershell`
 $env:SERVER_HOST = "localhost"
 $env:DB_PORT = 5432
 $env:DATABASE_NAME ="postgres"
