@@ -1,0 +1,27 @@
+{
+  "repositoryUrl": "https://github.com/yourusername/dotfiles.git",
+  "packages": [
+    "git",
+    "vim",
+    "curl",
+    "wget",
+    "htop",
+    "tree"
+  ],
+  "dotfiles": [
+    ".bashrc",
+    ".vimrc",
+    ".gitconfig",
+    ".tmux.conf"
+  ],
+  "packageManager": {
+    "command": "",
+    "installArgs": "install",
+    "syncArgs": "sync",
+    "updateArgs": "update"
+  },
+  "environmentVariables": {
+    "EDITOR": "vim",
+    "SHELL": "/bin/bash"
+  }
+}
