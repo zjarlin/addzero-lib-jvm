@@ -1,7 +1,7 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec
-import util.KonfigUtil.getProjectProperties
-import util.defByClass
-import util.defByMap
+import site.addzero.gradle.tool.KonfigUtil.getProjectProperties
+import site.addzero.gradle.tool.defByClass
+import site.addzero.gradle.tool.defByMap
 
 plugins {
     id("com.codingfeline.buildkonfig")

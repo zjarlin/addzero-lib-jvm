@@ -1,5 +1,5 @@
-import util.YmlUtil
-import util.YmlUtil.replaceEnvInString
+import site.addzero.gradle.tool.YmlUtil
+import site.addzero.gradle.tool.YmlUtil.replaceEnvInString
 
 plugins {
     id("com.google.devtools.ksp")

@@ -5,7 +5,7 @@ jdk = "24"
 #kotlin = "2.2.0"
 # https://central.sonatype.com/artifact/com.google.devtools.ksp/com.google.devtools.ksp.gradle.plugin
 #ksp = "2.2.0-2.0.2"
-
+addzeroVersion="0.0.608"
 
 ksp = "2.2.20-2.0.2"
 kotlin = "2.2.20"
@@ -76,10 +76,14 @@ richeditorCompose = "1.0.0-rc13"
 navigationCompose = "2.9.0-rc01"
 
 [libraries]
+
 gradlePlugin-buildkonfig = { module = "com.codingfeline.buildkonfig:buildkonfig-gradle-plugin", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
 
 gradlePlugin-buildkonfig-cp = { module = "com.codingfeline.buildkonfig:buildkonfig-compiler", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
 
+
+
+addzero-gradle-tool = { module = "site.addzero:addzero-gradle-tool", version.ref = "addzeroVersion" }
 
 
 
@@ -236,6 +240,7 @@ ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "kt
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 
 [plugins]
+addzeroPublish = { id = "site.addzero.publish-buddy", version.ref = "addzeroVersion" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

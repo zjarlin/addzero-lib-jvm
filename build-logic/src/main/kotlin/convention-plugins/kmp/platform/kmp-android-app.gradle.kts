@@ -34,6 +34,7 @@ android {
     defaultConfig {
         applicationId = BuildSettings.Android.ANDROID_APP_ID
         minSdk = libs.versions.android.minSdk.get().toInt()
+        //noinspection OldTargetApi
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         val vname = libs.versions.android.biz.version.get()
         versionName = vname

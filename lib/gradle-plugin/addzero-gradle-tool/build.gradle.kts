@@ -9,6 +9,11 @@ dependencies {
     implementation(libs.gradlePlugin.buildkonfig.cp)
     implementation(libs.snakeyaml)
 
+//    implementation(libs.gradlePlugin.jetbrainsCompose)
+    implementation(libs.gradlePlugin.composeCompiler)
+
+//    compileOnly(libs.gradlePlugin.kotlin)
+
 }
 
 

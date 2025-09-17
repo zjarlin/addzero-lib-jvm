@@ -1,0 +1,23 @@
+plugins {
+    `kotlin-dsl`
+    `java-gradle-plugin`
+}
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation(gradleApi())
+    implementation(libs.addzero.gradle.tool)
+}
+
+gradlePlugin {
+    plugins {
+        create(project.name) {
+            id = "site.addzero.modules-buddy"
+            implementationClass = "site.addzero.gradle.plugin.automodules.AutoModulesPlugin"
+        }
+    }
+}

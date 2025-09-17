@@ -9,7 +9,7 @@ import site.addzero.gradle.constant.Disposable.SOURCE_DIR_KMP
 import java.io.File
 
 // 定义黑名单目录列表
-val BLACKLIST_DIRS = listOf("lib", "buildSrc")
+val BLACKLIST_DIRS = listOf("buildSrc,", "build-logic")
 
 /**
  * 项目目录配置数据类
@@ -18,7 +18,7 @@ val BLACKLIST_DIRS = listOf("lib", "buildSrc")
  * @property buildDir 构建输出目录路径
  * @property resourceDir 资源文件目录路径（可为空）
  */
-data class ProjectDirConfig(
+data class ProjectModuleConfig(
     val moduleName: String,
     val sourceDir: String,
     val buildDir: String,
@@ -30,24 +30,43 @@ data class ProjectDirConfig(
  * @property configs 模块名称到目录配置的映射
  */
 data class ProjectDirConfigMapResult(
-    val configs: Map<String, ProjectDirConfig>
+    val configs: Map<String, ProjectModuleConfig>
 )
+
+
+
+fun Project.getProjectDirConfigMapWithOutLib(): MutableMap<String, String> {
+    val projectDirConfigMapResult = getProjectDirConfigMap(BLACKLIST_DIRS+listOf("lib"))
+    return projectDirConfigMapResult
+}
+
+
+fun Project.getProjectDirConfigMap(blackDir: List<String> = BLACKLIST_DIRS): MutableMap<String, String> {
+    val projectDirConfigMapResult = generateProjectDirConfigMap(blackDir)
+    val mutableMapOf = mutableMapOf<String, String>()
+    projectDirConfigMapResult.forEach { modelConfig ->
+        val moduleName = modelConfig.moduleName
+        mutableMapOf["${moduleName}SourceDir"] = modelConfig.sourceDir
+        mutableMapOf["${moduleName}BuildDir"] = modelConfig.buildDir
+        modelConfig.resourceDir?.let {
+            mutableMapOf["${moduleName}ResourceDir"] = it
+        }
+    }
+    return mutableMapOf
+}
+
 
 /**
  * 生成项目目录配置映射
  * @return 包含所有项目模块目录配置的映射结果
  */
-fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
-    val rootDir = this.rootDir
-    val allProjectDirs = findAllProjectDirs(rootDir)
+fun Project.generateProjectDirConfigMap(blackDir: List<String>): List<ProjectModuleConfig> {
+    val allProjectDirs = findAllProjectDirs()
         .filter { it != rootDir } // 排除根项目本身
-        .filter { !isBlacklisted(it, rootDir) } // 排除黑名单目录
-
-    val configMap = mutableMapOf<String, ProjectDirConfig>()
-
+        .filter { !isBlacklisted(it, rootDir, blackDir) } // 排除黑名单目录
     logger.lifecycle("开始扫描项目目录，共找到 ${allProjectDirs.size} 个潜在项目目录")
 
-    allProjectDirs.forEach { projectDir ->
+    val map = allProjectDirs.map { projectDir ->
         val relativePath = getRelativePath(rootDir, projectDir)
         val cleanPath = relativePath.replace(File.separator, "-")
         val moduleName = cleanPath.toCamelCase()
@@ -65,14 +84,14 @@ fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
 
         val resourceDir = if (isKmp) null else RESOURCE_DIR_JVM
 
-        val projectConfig = ProjectDirConfig(
+        val projectConfig = ProjectModuleConfig(
             moduleName = moduleName,
             sourceDir = projectDir.resolve(sourceDir).absolutePath,
             buildDir = projectDir.resolve(buildDir).absolutePath,
             resourceDir = resourceDir?.let { projectDir.resolve(it).absolutePath }
         )
 
-        configMap[moduleName] = projectConfig
+//        configMap[moduleName] = projectConfig
 
         // 打印调试信息
         logger.lifecycle("处理项目: $relativePath")
@@ -84,11 +103,11 @@ fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
             logger.lifecycle("    ${moduleName}ResourceDir = $it")
         }
         logger.lifecycle("") // 空行分隔不同模块
+        projectConfig
     }
+    logger.lifecycle("项目目录配置生成完成，共处理 ${map.size} 个模块")
 
-    logger.lifecycle("项目目录配置生成完成，共处理 ${configMap.size} 个模块")
-
-    return ProjectDirConfigMapResult(configMap)
+    return map
 }
 
 // 手动计算相对路径（兼容低版本）
@@ -103,26 +122,23 @@ private fun getRelativePath(rootDir: File, projectDir: File): String {
 }
 
 // 递归查找所有包含build.gradle.kts的项目目录
-private fun findAllProjectDirs(dir: File): List<File> {
+fun Project.findAllProjectDirs(dir: File = rootDir): List<File> {
     val result = mutableListOf<File>()
-
     if (File(dir, "build.gradle.kts").exists()) {
         result.add(dir)
     }
-
     dir.listFiles { file: File ->
         file.isDirectory
     }?.forEach { subDir ->
         result.addAll(findAllProjectDirs(subDir))
     }
-
     return result
 }
 
 // 检查目录是否在黑名单中
-private fun isBlacklisted(projectDir: File, rootDir: File): Boolean {
+private fun isBlacklisted(projectDir: File, rootDir: File, blackDir: List<String>): Boolean {
     val relativePath = getRelativePath(rootDir, projectDir)
-    return BLACKLIST_DIRS.any { blacklisted ->
+    return blackDir.any { blacklisted ->
         relativePath == blacklisted || relativePath.startsWith("$blacklisted${File.separator}")
     }
 }

@@ -1,7 +1,5 @@
 plugins {
     `java-library`
-    // 暂时移除发布相关插件
-    // id("publish-convention")
 }
 
 val libs = the<org.gradle.accessors.dm.LibrariesForLibs>()

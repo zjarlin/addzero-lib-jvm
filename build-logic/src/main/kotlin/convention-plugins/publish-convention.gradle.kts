@@ -7,10 +7,12 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
+val pjVersion = project.version.toString()
+println("ttttttttt$pjVersion")
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
-    coordinates(project.group.toString(), project.name, project.version.toString())
+    coordinates(project.group.toString(), project.name, pjVersion)
 
     pom {
         name.set(project.name)

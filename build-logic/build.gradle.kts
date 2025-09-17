@@ -3,12 +3,12 @@ plugins {
 }
 
 buildscript {
-  repositories {
-    gradlePluginPortal()
-  }
-  dependencies {
-    classpath(libs.gradlePlugin.buildkonfig)
-  }
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath(libs.gradlePlugin.buildkonfig)
+    }
 }
 
 repositories {
@@ -17,10 +17,12 @@ repositories {
     google()
     gradlePluginPortal()
 }
-dependencies {
 
-//    implementation(projects.buildLogic)
+dependencies {
+       implementation(libs.gradlePlugin.mavenPublish)
+
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+    implementation(libs.snakeyaml)
     implementation(libs.gradlePlugin.ktorfit)
     implementation(libs.gradlePlugin.android)
     implementation(libs.gradlePlugin.dokka)
@@ -35,7 +37,8 @@ dependencies {
     implementation(libs.gradlePlugin.springBoot)
     implementation(libs.gradlePlugin.buildkonfig)
     implementation(libs.gradlePlugin.buildkonfig.cp)
-    implementation(libs.snakeyaml)
+    implementation(libs.addzero.gradle.tool)
+
 //     implementation(libs.plugins.konfig)
 //    implementation(files("com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin:0.17.1"))
 //    com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin:0.17.1

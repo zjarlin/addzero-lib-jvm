@@ -1,15 +1,25 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
+val versionDate: String? = SimpleDateFormat("yyyy.MM.dd").format(Date())
+//project.version = format
+// 动态设置版本号
+version = versionDate.toString()
+// 或者使用setter方法
 subprojects {
     if (
         path.startsWith(":lib:") &&
         name.contains("addzero-")
     ) {
-//        apply(plugin = "publish-convention")
-//        apply(from = project(":build-logic").file("src/main/kotlin/convention-plugins/publish-convention.gradle.kts"))
-
+        apply(plugin = "site.addzero.publish-buddy")
     }
 }
 
 plugins {
+    id("site.addzero.publish-buddy") version "0.0.609"
+//        id("site.addzero.publish-buddy") version "0.0.608"
+
+//    alias(libs.plugins.addzeroPublish) apply false
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
     alias(libs.plugins.androidApplication) apply false
