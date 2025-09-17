@@ -1,6 +1,11 @@
 package site.addzero.gradle.tool
 
 import org.gradle.api.Project
+import site.addzero.gradle.constant.Disposable.KSP_BUILD_DIR_JVM
+import site.addzero.gradle.constant.Disposable.KSP_BUILD_DIR_KMP
+import site.addzero.gradle.constant.Disposable.RESOURCE_DIR_JVM
+import site.addzero.gradle.constant.Disposable.SOURCE_DIR_JVM
+import site.addzero.gradle.constant.Disposable.SOURCE_DIR_KMP
 import java.io.File
 
 // 定义黑名单目录列表
@@ -57,6 +62,7 @@ fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
 
         val sourceDir = if (isKmp) SOURCE_DIR_KMP else SOURCE_DIR_JVM
         val buildDir = if (isKmp) KSP_BUILD_DIR_KMP else KSP_BUILD_DIR_JVM
+
         val resourceDir = if (isKmp) null else RESOURCE_DIR_JVM
 
         val projectConfig = ProjectDirConfig(

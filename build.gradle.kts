@@ -1,11 +1,13 @@
-//subprojects {
-//    if (
-//        path.startsWith(":lib:") &&
-//        name.contains("addzero")
-//    ) {
+subprojects {
+    if (
+        path.startsWith(":lib:") &&
+        name.contains("addzero-")
+    ) {
 //        apply(plugin = "publish-convention")
-//    }
-//}
+//        apply(from = project(":build-logic").file("src/main/kotlin/convention-plugins/publish-convention.gradle.kts"))
+
+    }
+}
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times

@@ -1,3 +1,5 @@
+package site.addzero.gradle.constant
+
 /**
  * 一次性常量
  * @author zjarlin

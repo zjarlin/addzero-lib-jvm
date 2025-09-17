@@ -20,7 +20,6 @@ repositories {
 dependencies {
 
 //    implementation(projects.buildLogic)
-    implementation(libs.snakeyaml)
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradlePlugin.ktorfit)
     implementation(libs.gradlePlugin.android)
@@ -36,6 +35,7 @@ dependencies {
     implementation(libs.gradlePlugin.springBoot)
     implementation(libs.gradlePlugin.buildkonfig)
     implementation(libs.gradlePlugin.buildkonfig.cp)
+    implementation(libs.snakeyaml)
 //     implementation(libs.plugins.konfig)
 //    implementation(files("com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin:0.17.1"))
 //    com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin:0.17.1

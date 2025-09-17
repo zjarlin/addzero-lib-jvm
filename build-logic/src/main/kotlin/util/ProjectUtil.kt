@@ -1,5 +1,11 @@
 package util
 
+import Disposable.KSP_BUILD_DIR_JVM
+import Disposable.KSP_BUILD_DIR_KMP
+import Disposable.RESOURCE_DIR_JVM
+import Disposable.SOURCE_DIR_JVM
+
+import Disposable.SOURCE_DIR_KMP
 import org.gradle.api.Project
 import java.io.File
 
@@ -14,10 +20,7 @@ val BLACKLIST_DIRS = listOf("lib", "buildSrc")
  * @property resourceDir 资源文件目录路径（可为空）
  */
 data class ProjectDirConfig(
-    val moduleName: String,
-    val sourceDir: String,
-    val buildDir: String,
-    val resourceDir: String?
+    val moduleName: String, val sourceDir: String, val buildDir: String, val resourceDir: String?
 )
 
 /**
@@ -28,14 +31,30 @@ data class ProjectDirConfigMapResult(
     val configs: Map<String, ProjectDirConfig>
 )
 
+
+fun Project.getProjectDirConfigMap(): MutableMap<String, String> {
+    val projectDirConfigMapResult = generateProjectDirConfigMap()
+    val mutableMapOf = mutableMapOf<String, String>()
+
+    projectDirConfigMapResult.configs.forEach { (_, projectConfig) ->
+        mutableMapOf["${projectConfig.moduleName}SourceDir"] = projectConfig.sourceDir
+        mutableMapOf["${projectConfig.moduleName}BuildDir"] = projectConfig.buildDir
+
+        projectConfig.resourceDir?.let {
+            mutableMapOf["${projectConfig.moduleName}ResourceDir"] = it
+        }
+    }
+    return mutableMapOf
+
+}
+
 /**
  * 生成项目目录配置映射
  * @return 包含所有项目模块目录配置的映射结果
  */
 fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
     val rootDir = this.rootDir
-    val allProjectDirs = findAllProjectDirs(rootDir)
-        .filter { it != rootDir } // 排除根项目本身
+    val allProjectDirs = findAllProjectDirs(rootDir).filter { it != rootDir } // 排除根项目本身
         .filter { !isBlacklisted(it, rootDir) } // 排除黑名单目录
 
     val configMap = mutableMapOf<String, ProjectDirConfig>()
@@ -51,9 +70,10 @@ fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
         val buildContent = buildFile.readText()
 
         // 通过检查build文件内容判断是否为KMP项目
-        val isKmp = buildContent.contains("kotlinMultiplatform") ||
-                buildContent.contains("org.jetbrains.kotlin.multiplatform") ||
-                buildContent.contains("kmp-")
+        val isKmp =
+            buildContent.contains("kotlinMultiplatform") || buildContent.contains("org.jetbrains.kotlin.multiplatform") || buildContent.contains(
+                "kmp-"
+            )
 
         val sourceDir = if (isKmp) SOURCE_DIR_KMP else SOURCE_DIR_JVM
         val buildDir = if (isKmp) KSP_BUILD_DIR_KMP else KSP_BUILD_DIR_JVM
@@ -63,8 +83,7 @@ fun Project.generateProjectDirConfigMap(): ProjectDirConfigMapResult {
             moduleName = moduleName,
             sourceDir = projectDir.resolve(sourceDir).absolutePath,
             buildDir = projectDir.resolve(buildDir).absolutePath,
-            resourceDir = resourceDir?.let { projectDir.resolve(it).absolutePath }
-        )
+            resourceDir = resourceDir?.let { projectDir.resolve(it).absolutePath })
 
         configMap[moduleName] = projectConfig
 
@@ -140,25 +159,23 @@ private fun String.toCamelCase(): String {
  */
 fun isExcludedDir(dirName: String): Boolean {
     val excludedDirs = setOf(
-        "build", "gradle", ".gradle", ".git", ".idea",
-        "node_modules", "target", "out", "bin", ".settings",
-        "src", "test", "main", "kotlin", "java", "resources"
+        "build",
+        "gradle",
+        ".gradle",
+        ".git",
+        ".idea",
+        "node_modules",
+        "target",
+        "out",
+        "bin",
+        ".settings",
+        "src",
+        "test",
+        "main",
+        "kotlin",
+        "java",
+        "resources"
     )
     return excludedDirs.contains(dirName) || dirName.startsWith(".")
 }
 
-// BuildSettings 中的常量定义
-object BuildSettings {
-    const val SOURCE_DIR_JVM = "src/main/kotlin"
-    const val SOURCE_DIR_KMP = "src/commonMain/kotlin"
-    const val KSP_BUILD_DIR_JVM = "build/generated/ksp/src/main/kotlin"
-    const val KSP_BUILD_DIR_KMP = "build/generated/ksp/src/commonMain/kotlin"
-    const val RESOURCE_DIR_JVM = "src/main/resources"
-}
-
-// 常量定义
-val SOURCE_DIR_JVM = "src/main/kotlin"
-val SOURCE_DIR_KMP = "src/commonMain/kotlin"
-val KSP_BUILD_DIR_JVM = "build/generated/ksp/src/main/kotlin"
-val KSP_BUILD_DIR_KMP = "build/generated/ksp/src/commonMain/kotlin"
-val RESOURCE_DIR_JVM = "src/main/resources"

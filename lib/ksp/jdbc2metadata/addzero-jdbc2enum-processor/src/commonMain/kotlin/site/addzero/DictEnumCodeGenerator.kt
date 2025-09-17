@@ -1,10 +1,12 @@
 package site.addzero
 
-import site.addzero.context.SettingContext.settings
-import site.addzero.util.PinYin4JUtils
-import site.addzero.util.str.isNotBlank
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
+import site.addzero.context.SettingContext.settings
+import site.addzero.context.Settings
+import site.addzero.util.PinYin4JUtils
+import site.addzero.util.str.isNotBlank
+import site.addzero.util.str.withPkg
 import java.io.File
 import java.util.Locale.getDefault
 
@@ -55,10 +57,8 @@ class DictEnumCodeGenerator(
             }
         }
     }
-//    /**
-//     * 枚举输出目录（shared 编译目录）
-//     */
-//    val enumOutputDir: String = sharedSourceDir.withPkg(enumOutputPackage)
+
+
     /**
      * 生成单个枚举类
      *
