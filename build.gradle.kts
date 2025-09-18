@@ -2,8 +2,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 val versionDate: String? = SimpleDateFormat("yyyy.MM.dd").format(Date())
-//project.version = format
-// 动态设置版本号
 version = versionDate.toString()
 // 或者使用setter方法
 subprojects {
@@ -16,7 +14,7 @@ subprojects {
 }
 
 plugins {
-    id("site.addzero.publish-buddy") version "0.0.609"
+    id("site.addzero.publish-buddy") version "+"
 //        id("site.addzero.publish-buddy") version "0.0.608"
 
 //    alias(libs.plugins.addzeroPublish) apply false

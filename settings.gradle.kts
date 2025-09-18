@@ -1,12 +1,13 @@
+rootProject.name = "addzero"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+//includeBuild("build-logic")
+//includeBuild("lib/gradle-plugin/addzero-gradle-ksp-buddy")
+//includeBuild("lib/gradle-plugin/addzero-gradle-auto-modules-plugin")
 includeBuild("build-logic")
+//includeBuild("lib/gradle-plugin/addzero-gradle-tool")
 
 pluginManagement {
     repositories {
-        mavenLocal()
-        maven("https://repo.spring.io/milestone")
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        gradlePluginPortal()
-        mavenCentral()
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -14,12 +15,15 @@ pluginManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
     }
 }
+
 dependencyResolutionManagement {
     repositories {
-        mavenLocal()
-        mavenCentral()
+//        mavenLocal()
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -27,9 +31,9 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
+        mavenCentral()
     }
 }
-plugins {}
 
 /**
  * 自动扫描并包含所有gradle模块
@@ -37,7 +41,8 @@ plugins {}
  * @param excludeModules 排除的模块列表（支持路径匹配）
  */
 fun autoIncludeModules(
-    rootModules: List<String> = listOf("."), excludeModules: List<String> = emptyList()
+    rootModules: List<String> = listOf("."),
+    excludeModules: List<String> = emptyList()
 ) {
     val projectDir = rootProject.projectDir
     val foundModules = mutableSetOf<String>()
@@ -58,7 +63,6 @@ fun autoIncludeModules(
                     val pattern = exclude.replace("*", ".*")
                     modulePath.matches(Regex(pattern))
                 }
-
                 exclude.startsWith(":") -> modulePath == exclude.substring(1)
                 else -> modulePath.contains(exclude)
             }
@@ -93,6 +97,7 @@ fun scanForGradleModules(dir: File, relativePath: String, foundModules: MutableS
         val modulePath = if (relativePath == ".") "." else relativePath.replace("/", ":")
         foundModules.add(modulePath)
     }
+
     // 递归扫描子目录（跳过常见的非模块目录）
     dir.listFiles()?.forEach { subDir ->
         if (subDir.isDirectory && !isExcludedDir(subDir.name)) {
@@ -107,22 +112,9 @@ fun scanForGradleModules(dir: File, relativePath: String, foundModules: MutableS
  */
 fun isExcludedDir(dirName: String): Boolean {
     val excludedDirs = setOf(
-        "build",
-        "gradle",
-        ".gradle",
-        ".git",
-        ".idea",
-        "node_modules",
-        "target",
-        "out",
-        "bin",
-        ".settings",
-        "src",
-        "test",
-        "main",
-        "kotlin",
-        "java",
-        "resources"
+        "build", "gradle", ".gradle", ".git", ".idea",
+        "node_modules", "target", "out", "bin", ".settings",
+        "src", "test", "main", "kotlin", "java", "resources"
     )
     return excludedDirs.contains(dirName) || dirName.startsWith(".")
 }
@@ -133,14 +125,16 @@ fun isExcludedDir(dirName: String): Boolean {
 // 自动扫描所有gradle模块，只需指定根模块和排除的模块
 autoIncludeModules(
     rootModules = listOf(
-        "backend", "composeApp", "shared", "shared-compose", "lib"
-    ), excludeModules = listOf(
+        "backend",
+        "composeApp",
+        "shared",
+        "shared-compose",
+        "lib"
+    ),
+    excludeModules = listOf(
 //        "addzero-gradle-ksp-buddy",
 //        "addzero-gradle-auto-modules-plugin",
         "build-logic"
     )
 )
 
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
-rootProject.name = "addzero"

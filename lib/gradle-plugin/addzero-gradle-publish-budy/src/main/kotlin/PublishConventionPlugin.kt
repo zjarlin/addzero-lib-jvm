@@ -34,14 +34,15 @@ class PublishConventionPlugin : Plugin<Project> {
         // 创建扩展配置
         val extension = PublishPluginExtension.create(project)
         // 配置Maven发布
+        val version = SimpleDateFormat(
+            "yyyy.MM.dd", Locale.getDefault()
+        ).format(Date())
         project.extensions.configure<MavenPublishBaseExtension> {
             publishToMavenCentral(true)
             signAllPublications()
-            coordinates(project.group.toString(), project.name, project.version.toString().ifBlank {
-                SimpleDateFormat(
-                    "yyyy.MM.dd", Locale.getDefault()
-                ).format(Date())
-            })
+            coordinates(
+                project.group.toString(), project.name, version
+            )
 
             pom {
                 name.set(project.name)

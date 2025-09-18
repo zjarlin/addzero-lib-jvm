@@ -14,11 +14,10 @@ kotlin {
     macosArm64()
     mingwX64()
     linuxX64()
-    linuxArm64()
 
     dependencies {
         implementation(libs.kotlinx.coroutines.core)
-
+        implementation(libs.kotlinx.cli)
     }
 
 }
