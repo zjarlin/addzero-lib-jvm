@@ -1,6 +1,7 @@
-
 import com.google.devtools.ksp.gradle.KspAATask
 import org.apache.tools.ant.util.ScriptManager
+import site.addzero.gradle.constant.Disposable.SOURCE_DIR_KMP
+import java.io.File
 
 plugins {
     id("kmp-app")
@@ -77,6 +78,14 @@ kotlin {
 
 
         }
+
+        // 添加源代码集配置，使KSP能够访问依赖模块的源代码
+        commonMain {
+            val addzeroComposeNativeComponent = projects.lib.compose.addzeroComposeNativeComponent
+            val get = addzeroComposeNativeComponent.path
+            val resolve = File(get).resolve(SOURCE_DIR_KMP)
+            kotlin.srcDir(resolve.absolutePath)
+        }
     }
 }
 
@@ -99,8 +108,4 @@ tasks.withType<KspAATask>().configureEach {
         dependsOn(":backend:model:kspKotlin")
         dependsOn(":backend:server:kspKotlin")
     }
-
 }
-
-
-

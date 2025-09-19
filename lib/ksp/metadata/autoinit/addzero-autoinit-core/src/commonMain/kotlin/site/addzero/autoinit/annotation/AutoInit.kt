@@ -4,5 +4,5 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 
 // 标记需要自动初始化的函数
 @Target(FUNCTION)
-@Retention(AnnotationRetention.SOURCE)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class AutoInit
