@@ -21,7 +21,7 @@ import org.koin.ksp.generated.defaultModule
 
 @Composable
 fun App() {
-    InitKoin()
+    initKoin()
 
     MaterialTheme(
         colorScheme = AppThemes.getColorScheme(koinViewModel<ThemeViewModel>().currentTheme),
@@ -61,8 +61,8 @@ private fun MainLayoutWithLogin() {
     }
 }
 
-@Composable
-private fun InitKoin() {
+//@Composable
+private fun initKoin() {
     startKoin {
         printLogger()
         modules(

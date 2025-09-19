@@ -7,5 +7,4 @@ val libs = the<LibrariesForLibs>()
 
 dependencies {
     implementation(libs.kotlinx.serialization.json)
-
 }

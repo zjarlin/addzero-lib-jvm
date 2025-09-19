@@ -7,7 +7,7 @@ jdk = "24"
 #ksp = "2.2.0-2.0.2"
 addzeroVersion="0.0.608"
 
-ksp = "2.2.20-2.0.2"
+ksp = "2.2.20-2.0.3"
 kotlin = "2.2.20"
 #agp = "8.11.0"
 agp = "8.11.1"
@@ -247,7 +247,6 @@ ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "kt
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
 
 [plugins]
-addzeroPublish = { id = "site.addzero.publish-buddy", version.ref = "addzeroVersion" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
