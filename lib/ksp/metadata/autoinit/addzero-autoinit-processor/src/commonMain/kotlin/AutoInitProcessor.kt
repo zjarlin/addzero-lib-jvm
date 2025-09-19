@@ -42,10 +42,13 @@ class AutoInitProcessor(
             }
         }
 
-        // 3. 动态生成代码（只包含实际存在的函数类型）
-        generateAutoInitCode()
-
+        // 注意：不在process阶段生成代码，避免多轮处理时的覆盖问题
         return autoInitFunctions.filterNot { it.validate() }.toList()
+    }
+
+    override fun finish() {
+        // 在finish阶段生成代码，确保只生成一次
+        generateAutoInitCode()
     }
 
     // 提取函数信息（判断是否为挂起/Composable函数）
@@ -94,7 +97,7 @@ class AutoInitProcessor(
         val composableFunctions = functions.filter { it.isComposable }
 
         // 生成AutoInitContainer类（包含所有检测到的函数列表）
-        val fileSpec = FileSpec.builder("com.example.autoinit.generated", "AutoInitContainer")
+        val fileSpec = FileSpec.builder("site.addzero.autoinit.generated", "AutoInitContainer")
             .addType(
                 TypeSpec.objectBuilder("AutoInitContainer")
                     // 1. 普通函数列表（仅当存在时生成）
