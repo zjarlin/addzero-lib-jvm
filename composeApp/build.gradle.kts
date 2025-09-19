@@ -1,5 +1,6 @@
 
 import com.google.devtools.ksp.gradle.KspAATask
+import org.apache.tools.ant.util.ScriptManager
 
 plugins {
     id("kmp-app")
@@ -16,12 +17,14 @@ plugins {
 dependencies {
     kspCommonMainMetadata(projects.lib.ksp.route.addzeroRouteProcessor)
     kspCommonMainMetadata(projects.lib.compose.addzeroComposePropsProcessor)
+    kspCommonMainMetadata(projects.lib.ksp.metadata.autoinit.addzeroAutoinitProcessor)
 }
 
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.lib.ksp.metadata.autoinit.addzeroAutoinitCore)
             implementation(projects.shared)
             implementation(projects.sharedCompose)
 

@@ -1,4 +1,4 @@
-package com.addzero.di
+package site.addzero.di
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -9,8 +9,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.addzero.generated.RouteTable
-import com.addzero.settings.SettingContext4Compose
+import site.addzero.generated.RouteTable
+import site.addzero.settings.SettingContext4Compose
 
 object NavgationViewModel {
     private var _navController: NavHostController? = null

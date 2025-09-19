@@ -1,11 +1,15 @@
 package com.example.autoinit.ksp
 
-import com.example.autoinit.AutoInit
+import site.addzero.autoinit.annotation.AutoInit
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.ksp.writeTo
+
+private val LIST = ClassName("kotlin.collections", "List")
+private val UNIT = ClassName("kotlin", "Unit")
 
 class AutoInitProcessor(
     private val codeGenerator: CodeGenerator,
@@ -65,13 +69,19 @@ class AutoInitProcessor(
             annotationType == "androidx.compose.runtime.Composable"
         }
 
+        // 判断是否为挂起函数
+        val isSuspend = function.modifiers.any { it == Modifier.SUSPEND }
+
+        // 判断是否为伴生对象中的函数
+        val isStatic = function.parentDeclaration is KSClassDeclaration && (function.parentDeclaration as KSClassDeclaration).isCompanionObject
+
         functions.add(
             InitFunction(
                 className = parentClass.qualifiedName!!.asString(),
                 functionName = function.simpleName.asString(),
-                isSuspend = function.isSuspend,
+                isSuspend = isSuspend,
                 isComposable = isComposable,
-                isStatic = parentClass.isCompanionObject
+                isStatic = isStatic
             )
         )
     }
@@ -91,12 +101,9 @@ class AutoInitProcessor(
                     .apply {
                         if (regularFunctions.isNotEmpty()) {
                             addProperty(
-                                PropertySpec.builder("regularFunctions", List::class.java)
-                                    .addModifiers(KModifier.VAL)
-                                    .initializer(
-                                        "listOf(%L)",
-                                        regularFunctions.joinToCode()
-                                    )
+                                PropertySpec.builder("regularFunctions", LIST.parameterizedBy(ClassName("kotlin", "Function0").parameterizedBy(UNIT)))
+                                    .addModifiers(KModifier.PRIVATE)
+                                    .initializer(CodeBlock.of("listOf(%L)", regularFunctions.joinToCode()))
                                     .build()
                             )
                         }
@@ -105,12 +112,9 @@ class AutoInitProcessor(
                     .apply {
                         if (suspendFunctions.isNotEmpty()) {
                             addProperty(
-                                PropertySpec.builder("suspendFunctions", List::class.java)
-                                    .addModifiers(KModifier.VAL)
-                                    .initializer(
-                                        "listOf(%L)",
-                                        suspendFunctions.joinToCode()
-                                    )
+                                PropertySpec.builder("suspendFunctions", LIST.parameterizedBy(ClassName("kotlin", "Function0").parameterizedBy(UNIT)))
+                                    .addModifiers(KModifier.PRIVATE)
+                                    .initializer(CodeBlock.of("listOf(%L)", suspendFunctions.joinToCode()))
                                     .build()
                             )
                         }
@@ -124,12 +128,9 @@ class AutoInitProcessor(
                                     .build()
                             )
                             addProperty(
-                                PropertySpec.builder("composableFunctions", List::class.java)
-                                    .addModifiers(KModifier.VAL)
-                                    .initializer(
-                                        "listOf(%L)",
-                                        composableFunctions.joinToCode()
-                                    )
+                                PropertySpec.builder("composableFunctions", LIST.parameterizedBy(ClassName("kotlin", "Function0").parameterizedBy(UNIT)))
+                                    .addModifiers(KModifier.PRIVATE)
+                                    .initializer(CodeBlock.of("listOf(%L)", composableFunctions.joinToCode()))
                                     .build()
                             )
                         }
@@ -176,19 +177,25 @@ class AutoInitProcessor(
 
     // 工具方法：将函数列表转换为代码块
     private fun List<InitFunction>.joinToCode(): CodeBlock {
-        return CodeBlock.join(
-            this.map { func ->
+        if (this.isEmpty()) {
+            return CodeBlock.of("")
+        }
+
+        val codeBlocks = this.map { func ->
+            if (func.isStatic) {
+                // 对于伴生对象函数，直接使用类名调用
+                val className = ClassName.bestGuess(func.className.substringBefore(".Companion"))
+                CodeBlock.of("{ %T.${func.functionName}() }", className)
+            } else {
+                // 对于实例函数，需要创建实例再调用
                 val classType = ClassName.bestGuess(func.className)
-                // 处理实例函数/静态函数（伴生对象）
-                val callTarget = if (func.isStatic) {
-                    "${func.className}.Companion.${func.functionName}"
-                } else {
-                    "${classType.simpleName}().${func.functionName}"
-                }
-                CodeBlock.of("$callTarget")
-            },
-            ", "
-        )
+                CodeBlock.of("{ %T().${func.functionName}() }", classType)
+            }
+        }
+
+        return codeBlocks.reduce { acc, codeBlock ->
+            CodeBlock.of("%L, %L", acc, codeBlock)
+        }
     }
 }
 
