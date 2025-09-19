@@ -1,5 +1,6 @@
 package com.example.autoinit.ksp
 
+import com.example.autoinit.AutoInit
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
