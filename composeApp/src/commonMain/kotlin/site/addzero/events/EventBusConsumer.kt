@@ -19,7 +19,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 @Bean
 fun EventBusConsumer() {
-    println("eventbus监听器消费者")
     val loginViewModel = koinViewModel<LoginViewModel>()
 
     LaunchedEffect(Unit) {
