@@ -5,6 +5,10 @@ import androidx.compose.runtime.Composable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.context.startKoin
+import org.koin.ksp.generated.defaultModule
+import site.addzero.autoinit.annotation.AutoInit
 import site.addzero.component.toast.ToastListener
 import site.addzero.di.NavgationViewModel
 import site.addzero.events.EventBusConsumer
@@ -17,10 +21,6 @@ import site.addzero.ui.infra.theme.ThemeViewModel
 import site.addzero.viewmodel.ChatViewModel
 import site.addzero.viewmodel.LoginViewModel
 import site.addzero.viewmodel.SysRouteViewModel
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.context.startKoin
-import org.koin.ksp.generated.defaultModule
-import site.addzero.autoinit.annotation.AutoInit
 
 
 @Composable
@@ -48,30 +48,51 @@ fun Hello(): Unit {
     println("hello")
 
 }
+
 @AutoInit
 fun hello1(): Unit {
     println("hello1")
 
 }
+
 @AutoInit
-suspend fun hello2()= withContext(Dispatchers.Main) {
+suspend fun hello2() = withContext(Dispatchers.Main) {
     println("hello2")
 }
 
+@AutoInit
+class Hello6() {
+
+}
+
+@AutoInit
+object Hello5 {
+
+}
+
+fun main() {
+    val listOf = listOf(
+
+    Hello5
+    ,Hello6()
+    )
+    listOf.forEach {
+       it
+    }
+}
 
 
 @AutoInit
-suspend fun hello3()= {
+suspend fun hello3() = {
     println("hello3")
 }
 
 
 @AutoInit
 @Composable
-  fun Hello4(menuViewModel: ChatViewModel= koinInject<ChatViewModel>()) {
+fun Hello4(menuViewModel: ChatViewModel = koinInject<ChatViewModel>()) {
     println("hello3")
 }
-
 
 
 @Composable
