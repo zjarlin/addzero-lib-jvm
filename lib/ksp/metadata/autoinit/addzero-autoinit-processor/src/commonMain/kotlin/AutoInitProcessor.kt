@@ -4,22 +4,104 @@ import site.addzero.autoinit.annotation.AutoInit
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
-import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.ksp.writeTo
-
-private val LIST = ClassName("kotlin.collections", "List")
-private val UNIT = ClassName("kotlin", "Unit")
+import java.io.OutputStream
 
 // 存储函数信息的数据类
 private data class InitFunction(
+    val packageName: String?,     // 包名
     val className: String?,       // 类全名（顶层函数为null）
     val fileName: String,         // 文件名
-    val functionName: String,     // 函数名
+    val functionName: String?,    // 函数名（object/class为null）
     val isSuspend: Boolean,       // 是否挂起函数
     val isComposable: Boolean,    // 是否Composable函数
-    val isStatic: Boolean         // 是否静态函数（伴生对象中）
+    val isStatic: Boolean,        // 是否静态函数（伴生对象中）
+    val initType: InitType        // 初始化类型
 )
+
+// 初始化类型枚举
+private enum class InitType {
+    TOP_LEVEL_FUNCTION,  // 顶层函数
+    CLASS_INSTANCE,      // 类实例（无参构造函数）
+    OBJECT_INSTANCE,     // 对象实例
+    COMPANION_OBJECT     // 伴生对象
+}
+
+// 策略接口
+private interface CodeGenerationStrategy {
+    fun generateFunctionCall(function: InitFunction): String
+    fun generateExecuteMethod(functions: List<InitFunction>): String
+}
+
+// 定义函数类型的枚举，实现策略接口
+private enum class FunctionType(private val functionCallTemplate: String, private val isSuspend: Boolean, private val hasComposeAnnotation: Boolean) : CodeGenerationStrategy {
+    REGULAR("{ %s() }", false, false),
+    SUSPEND("suspend { %s() }", true, false),
+    COMPOSABLE("@androidx.compose.runtime.Composable { %s() }", false, true);
+
+    override fun generateFunctionCall(function: InitFunction): String {
+        return when (function.initType) {
+            InitType.TOP_LEVEL_FUNCTION -> {
+                // 使用文件的全限定名作为文件类名的基础
+                val filePackageName = function.packageName
+                val fileClassName = "${function.fileName}Kt"
+                val fullFileClassName = if (filePackageName != null) {
+                    "$filePackageName.$fileClassName"
+                } else {
+                    fileClassName
+                }
+
+                // 对于Composable函数，函数名首字母大写
+                val functionName = if (function.isComposable && function.functionName != null) {
+                    function.functionName.capitalizeFirstChar()
+                } else {
+                    function.functionName
+                }
+
+                functionCallTemplate.format("$fullFileClassName.${functionName}")
+            }
+            InitType.CLASS_INSTANCE -> {
+                // 为类实例调用
+                functionCallTemplate.format("${function.className}()")
+            }
+            InitType.OBJECT_INSTANCE -> {
+                // 为对象实例调用
+                functionCallTemplate.format(function.className!!)
+            }
+            InitType.COMPANION_OBJECT -> {
+                // 为伴生对象调用
+                val className = function.className?.substringBefore(".Companion")
+                functionCallTemplate.format(className!!)
+            }
+        }
+    }
+
+    override fun generateExecuteMethod(functions: List<InitFunction>): String {
+        val functionName = this.name.lowercase()
+        val suspendModifier = if (isSuspend) "suspend " else ""
+        val composeAnnotation = if (hasComposeAnnotation) "@androidx.compose.runtime.Composable\n    " else ""
+        // 更正方法名
+        val methodName = when (this) {
+            REGULAR -> "iocRegularStart"
+            SUSPEND -> "iocSuspendStart"
+            COMPOSABLE -> "IocComposeableStart"
+        }
+
+        return """
+    ${composeAnnotation}${suspendModifier}fun ${methodName}() {
+        ${functionName}Functions.forEach { it() }
+    }
+        """.trimIndent()
+    }
+
+    // 扩展函数，将字符串首字母大写
+    private fun String.capitalizeFirstChar(): String {
+        return if (this.isNotEmpty()) {
+            this[0].uppercaseChar() + this.substring(1)
+        } else {
+            this
+        }
+    }
+}
 
 class AutoInitProcessor(
     private val codeGenerator: CodeGenerator,
@@ -30,23 +112,32 @@ class AutoInitProcessor(
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.warn("AutoInitProcessor 开始处理...")
         System.out.println("AutoInitProcessor 开始处理...")
-        
-        // 1. 扫描所有带@AutoInit注解的函数
+
+        // 1. 扫描所有带@AutoInit注解的符号
         val autoInitAnnotationName = "site.addzero.autoinit.annotation.AutoInit"
         logger.warn("查找注解: $autoInitAnnotationName")
         System.out.println("查找注解: $autoInitAnnotationName")
-        
+
         val autoInitSymbols = resolver.getSymbolsWithAnnotation(autoInitAnnotationName)
         logger.warn("找到带@AutoInit注解的符号数量: ${autoInitSymbols.toList().size}")
         System.out.println("找到带@AutoInit注解的符号数量: ${autoInitSymbols.toList().size}")
-        
-        val autoInitFunctions = autoInitSymbols
-            .filterIsInstance<KSFunctionDeclaration>()
-        logger.warn("其中函数声明数量: ${autoInitFunctions.toList().size}")
-        System.out.println("其中函数声明数量: ${autoInitFunctions.toList().size}")
 
-        // 2. 提取函数信息
-        autoInitFunctions.forEach { function ->
+        // 2. 分别处理函数、类和对象
+        val functionDeclarations = autoInitSymbols.filterIsInstance<KSFunctionDeclaration>()
+        val classDeclarations = autoInitSymbols.filterIsInstance<KSClassDeclaration>()
+            .filter { it.classKind == ClassKind.CLASS }
+        val objectDeclarations = autoInitSymbols.filterIsInstance<KSClassDeclaration>()
+            .filter { it.classKind == ClassKind.OBJECT }
+
+        logger.warn("其中函数声明数量: ${functionDeclarations.toList().size}")
+        logger.warn("其中类声明数量: ${classDeclarations.toList().size}")
+        logger.warn("其中对象声明数量: ${objectDeclarations.toList().size}")
+        System.out.println("其中函数声明数量: ${functionDeclarations.toList().size}")
+        System.out.println("其中类声明数量: ${classDeclarations.toList().size}")
+        System.out.println("其中对象声明数量: ${objectDeclarations.toList().size}")
+
+        // 3. 提取函数信息
+        functionDeclarations.forEach { function ->
             try {
                 logger.warn("处理函数: ${function.simpleName.asString()}")
                 System.out.println("处理函数: ${function.simpleName.asString()}")
@@ -59,6 +150,34 @@ class AutoInitProcessor(
             }
         }
 
+        // 4. 提取类信息
+        classDeclarations.forEach { clazz ->
+            try {
+                logger.warn("处理类: ${clazz.simpleName.asString()}")
+                System.out.println("处理类: ${clazz.simpleName.asString()}")
+                extractClassInfo(clazz)
+                logger.warn("成功找到类: ${clazz.simpleName.asString()}")
+                System.out.println("成功找到类: ${clazz.simpleName.asString()}")
+            } catch (e: Exception) {
+                logger.error("处理类 ${clazz.simpleName} 失败: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+
+        // 5. 提取对象信息
+        objectDeclarations.forEach { obj ->
+            try {
+                logger.warn("处理对象: ${obj.simpleName.asString()}")
+                System.out.println("处理对象: ${obj.simpleName.asString()}")
+                extractObjectInfo(obj)
+                logger.warn("成功找到对象: ${obj.simpleName.asString()}")
+                System.out.println("成功找到对象: ${obj.simpleName.asString()}")
+            } catch (e: Exception) {
+                logger.error("处理对象 ${obj.simpleName} 失败: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+
         // 注意：不在process阶段生成代码，避免多轮处理时的覆盖问题
         logger.warn("AutoInitProcessor 处理完成")
         System.out.println("AutoInitProcessor 处理完成")
@@ -67,16 +186,16 @@ class AutoInitProcessor(
 
     override fun finish() {
         // 在finish阶段生成代码，确保只生成一次
-        logger.warn("总共收集到 ${functions.size} 个函数")
-        System.out.println("总共收集到 ${functions.size} 个函数")
+        logger.warn("总共收集到 ${functions.size} 个初始化项")
+        System.out.println("总共收集到 ${functions.size} 个初始化项")
         generateAutoInitCode()
     }
 
-    // 提取函数信息（判断是否为挂起/Composable函数）
+    // 提取函数信息
     private fun extractFunctionInfo(function: KSFunctionDeclaration) {
         logger.warn("开始提取函数信息: ${function.simpleName.asString()}")
         System.out.println("开始提取函数信息: ${function.simpleName.asString()}")
-        
+
         // 只处理无参函数或所有参数都有默认值的函数
         if (function.parameters.isNotEmpty() && function.parameters.any { !it.hasDefault }) {
             logger.warn("跳过带必需参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数或所有参数都有默认值的函数）")
@@ -86,10 +205,13 @@ class AutoInitProcessor(
 
         // 获取函数所在类（可为空，表示顶层函数）
         val parentClass = function.parentDeclaration as? KSClassDeclaration
-        
+
+        // 获取函数的包名（而不是文件所在的包名）
+        val packageName = function.packageName.asString().takeIf { it.isNotEmpty() }
+
         // 获取文件名
         val fileName = function.containingFile?.fileName?.removeSuffix(".kt") ?: "UnknownFile"
-        
+
         if (parentClass == null) {
             logger.warn("处理顶层函数: ${function.simpleName.asString()}")
             System.out.println("处理顶层函数: ${function.simpleName.asString()}")
@@ -116,144 +238,200 @@ class AutoInitProcessor(
         logger.warn("函数 ${function.simpleName} 是否为静态函数: $isStatic")
         System.out.println("函数 ${function.simpleName} 是否为静态函数: $isStatic")
 
+        val initType = if (parentClass == null) {
+            InitType.TOP_LEVEL_FUNCTION
+        } else if (isStatic) {
+            InitType.COMPANION_OBJECT
+        } else {
+            InitType.CLASS_INSTANCE
+        }
+
         val initFunction = InitFunction(
+            packageName = packageName,
             className = parentClass?.qualifiedName?.asString(),
             fileName = fileName,
             functionName = function.simpleName.asString(),
             isSuspend = isSuspend,
             isComposable = isComposable,
-            isStatic = isStatic
+            isStatic = isStatic,
+            initType = initType
         )
-        
+
         functions.add(initFunction)
         logger.warn("添加函数信息: $initFunction")
         System.out.println("添加函数信息: $initFunction")
     }
 
+    // 提取类信息（仅处理无参构造函数的类）
+    private fun extractClassInfo(clazz: KSClassDeclaration) {
+        logger.warn("开始提取类信息: ${clazz.simpleName.asString()}")
+        System.out.println("开始提取类信息: ${clazz.simpleName.asString()}")
+
+        // 检查是否有无参构造函数
+        val hasNoArgConstructor = clazz.getAllFunctions()
+            .filter { it.simpleName.asString() == "<init>" }
+            .any { constructor ->
+                constructor.parameters.isEmpty() || constructor.parameters.all { it.hasDefault }
+            }
+
+        if (!hasNoArgConstructor) {
+            logger.warn("跳过类 ${clazz.simpleName}（@AutoInit仅支持有无参构造函数的类）")
+            System.out.println("跳过类 ${clazz.simpleName}（@AutoInit仅支持有无参构造函数的类）")
+            return
+        }
+
+        // 获取类的包名
+        val packageName = clazz.packageName.asString().takeIf { it.isNotEmpty() }
+
+        // 获取文件名
+        val fileName = clazz.containingFile?.fileName?.removeSuffix(".kt") ?: "UnknownFile"
+
+        // 判断是否为Composable类（检查是否有Composable注解）
+        val isComposable = clazz.annotations.any { annotation ->
+            val annotationType = annotation.annotationType.resolve().declaration.qualifiedName?.asString()
+            annotationType == "androidx.compose.runtime.Composable"
+        }
+
+        val initFunction = InitFunction(
+            packageName = packageName,
+            className = clazz.qualifiedName?.asString(),
+            fileName = fileName,
+            functionName = null,
+            isSuspend = false,
+            isComposable = isComposable,
+            isStatic = false,
+            initType = InitType.CLASS_INSTANCE
+        )
+
+        functions.add(initFunction)
+        logger.warn("添加类信息: $initFunction")
+        System.out.println("添加类信息: $initFunction")
+    }
+
+    // 提取对象信息
+    private fun extractObjectInfo(obj: KSClassDeclaration) {
+        logger.warn("开始提取对象信息: ${obj.simpleName.asString()}")
+        System.out.println("开始提取对象信息: ${obj.simpleName.asString()}")
+
+        // 获取对象的包名
+        val packageName = obj.packageName.asString().takeIf { it.isNotEmpty() }
+
+        // 获取文件名
+        val fileName = obj.containingFile?.fileName?.removeSuffix(".kt") ?: "UnknownFile"
+
+        // 判断是否为Composable对象（检查是否有Composable注解）
+        val isComposable = obj.annotations.any { annotation ->
+            val annotationType = annotation.annotationType.resolve().declaration.qualifiedName?.asString()
+            annotationType == "androidx.compose.runtime.Composable"
+        }
+
+        val initFunction = InitFunction(
+            packageName = packageName,
+            className = obj.qualifiedName?.asString(),
+            fileName = fileName,
+            functionName = null,
+            isSuspend = false,
+            isComposable = isComposable,
+            isStatic = false,
+            initType = InitType.OBJECT_INSTANCE
+        )
+
+        functions.add(initFunction)
+        logger.warn("添加对象信息: $initFunction")
+        System.out.println("添加对象信息: $initFunction")
+    }
+
+    // 生成导入语句 - 只导入类和对象，不导入文件类中的函数
+    private fun generateImports(regularFunctions: List<InitFunction>, suspendFunctions: List<InitFunction>, composableFunctions: List<InitFunction>): Set<String> {
+        val imports = mutableSetOf<String>()
+        
+        // 添加 Compose 必需的导入
+        imports.add("androidx.compose.runtime.Composable")
+        
+        (regularFunctions + suspendFunctions + composableFunctions).forEach { func ->
+            when (func.initType) {
+                InitType.TOP_LEVEL_FUNCTION -> {
+                    // 顶层函数不需要导入，会在调用时使用全限定名
+                }
+                InitType.CLASS_INSTANCE, InitType.OBJECT_INSTANCE, InitType.COMPANION_OBJECT -> {
+                    // 类和对象导入类的全限定名
+                    if (func.className != null) {
+                        imports.add(func.className)
+                    }
+                }
+            }
+        }
+        return imports
+    }
+
     // 动态生成代码（只生成存在的函数类型）
     private fun generateAutoInitCode() {
-        logger.warn("开始生成代码，函数总数: ${functions.size}")
-        System.out.println("开始生成代码，函数总数: ${functions.size}")
-        
+        logger.warn("开始生成代码，初始化项总数: ${functions.size}")
+        System.out.println("开始生成代码，初始化项总数: ${functions.size}")
+
         // 按类型分组
         val regularFunctions = functions.filter { !it.isSuspend && !it.isComposable }
         val suspendFunctions = functions.filter { it.isSuspend && !it.isComposable }
         val composableFunctions = functions.filter { it.isComposable }
 
-        logger.warn("普通函数: ${regularFunctions.size}个")
-        logger.warn("挂起函数: ${suspendFunctions.size}个")
-        logger.warn("Composable函数: ${composableFunctions.size}个")
-        System.out.println("普通函数: ${regularFunctions.size}个")
-        System.out.println("挂起函数: ${suspendFunctions.size}个")
-        System.out.println("Composable函数: ${composableFunctions.size}个")
+        logger.warn("普通初始化项: ${regularFunctions.size}个")
+        logger.warn("挂起初始化项: ${suspendFunctions.size}个")
+        logger.warn("Composable初始化项: ${composableFunctions.size}个")
+        System.out.println("普通初始化项: ${regularFunctions.size}个")
+        System.out.println("挂起初始化项: ${suspendFunctions.size}个")
+        System.out.println("Composable初始化项: ${composableFunctions.size}个")
 
-        // 生成AutoInitContainer类（包含所有检测到的函数列表）
-        val fileSpec = FileSpec.builder("com.example.autoinit.generated", "AutoInitContainer")
-            .addType(
-                TypeSpec.objectBuilder("AutoInitContainer")
-                    // 1. 普通函数列表（仅当存在时生成）
-                    .apply {
-                        if (regularFunctions.isNotEmpty()) {
-                            addProperty(
-                                PropertySpec.builder("regularFunctions", LIST)
-                                    .addModifiers(KModifier.PRIVATE)
-                                    .initializer(CodeBlock.of("listOf(%L)", regularFunctions.joinToCode()))
-                                    .build()
-                            )
-                        }
-                    }
-                    // 2. 挂起函数列表（仅当存在时生成）
-                    .apply {
-                        if (suspendFunctions.isNotEmpty()) {
-                            addProperty(
-                                PropertySpec.builder("suspendFunctions", LIST)
-                                    .addModifiers(KModifier.PRIVATE)
-                                    .initializer(CodeBlock.of("listOf(%L)", suspendFunctions.joinToCode()))
-                                    .build()
-                            )
-                        }
-                    }
-                    // 3. Composable函数列表（仅当存在时生成）
-                    .apply {
-                        if (composableFunctions.isNotEmpty()) {
-                            addProperty(
-                                PropertySpec.builder("composableFunctions", LIST)
-                                    .addModifiers(KModifier.PRIVATE)
-                                    .initializer(CodeBlock.of("listOf(%L)", composableFunctions.joinToCode()))
-                                    .build()
-                            )
-                        }
-                    }
-                    // 4. 执行所有普通函数的方法
-                    .apply {
-                        if (regularFunctions.isNotEmpty()) {
-                            addFunction(
-                                FunSpec.builder("executeRegular")
-                                    .addStatement("regularFunctions.forEach { it() }")
-                                    .build()
-                            )
-                        }
-                    }
-                    // 5. 执行所有挂起函数的方法
-                    .apply {
-                        if (suspendFunctions.isNotEmpty()) {
-                            addFunction(
-                                FunSpec.builder("executeSuspend")
-                                    .addModifiers(KModifier.SUSPEND)
-                                    .addStatement("suspendFunctions.forEach { it() }")
-                                    .build()
-                            )
-                        }
-                    }
-                    // 6. 执行所有Composable函数的方法（仅当存在时生成）
-                    .apply {
-                        if (composableFunctions.isNotEmpty()) {
-                            addFunction(
-                                FunSpec.builder("ExecuteComposable")
-                                    .addAnnotation(ClassName("androidx.compose.runtime", "Composable"))
-                                    .addStatement("composableFunctions.forEach { it() }")
-                                    .build()
-                            )
-                        }
-                    }
-                    .build()
-            )
-            .build()
+        // 按类型分组
+        val functionGroups = mapOf(
+            FunctionType.REGULAR to regularFunctions,
+            FunctionType.SUSPEND to suspendFunctions,
+            FunctionType.COMPOSABLE to composableFunctions
+        )
+
+        // 生成导入语句
+        val imports = generateImports(regularFunctions, suspendFunctions, composableFunctions)
+        
+        // 生成函数列表代码
+        val functionListCode = FunctionType.values().joinToString("\n") { type ->
+            val functions = functionGroups[type] ?: emptyList()
+            if (functions.isNotEmpty()) {
+                val functionName = type.name.lowercase()
+                """
+                    |    private val ${functionName}Functions = listOf(
+                    |        ${functions.joinToString(",\n        ") { type.generateFunctionCall(it) }}
+                    |    )
+                    |
+                    |${type.generateExecuteMethod(functions)}
+                """.trimMargin()
+            } else {
+                ""
+            }
+        }.lines().filter { it.isNotBlank() }.joinToString("\n")
+
+        // 生成代码
+        val code = """
+            |package com.example.autoinit.generated
+            |
+            |${imports.joinToString("\n") { "import $it" }}
+            |
+            |public object AutoInitContainer {
+            |$functionListCode
+            |}
+        """.trimMargin()
 
         // 写入生成的代码
-        fileSpec.writeTo(codeGenerator, Dependencies.ALL_FILES)
+        val file = codeGenerator.createNewFile(Dependencies.ALL_FILES, "com.example.autoinit.generated", "AutoInitContainer", "kt")
+        file.write(code.toByteArray())
+        file.close()
+
         logger.warn("代码生成完成")
         System.out.println("代码生成完成")
     }
 
-    // 工具方法：将函数列表转换为代码块
-    private fun List<InitFunction>.joinToCode(): CodeBlock {
-        if (this.isEmpty()) {
-            return CodeBlock.of("")
-        }
-
-        val codeBlocks = this.map { func ->
-            if (func.isComposable) {
-                // Composable 函数需要在 @Composable 上下文中调用
-                CodeBlock.of("@androidx.compose.runtime.Composable { %L() }", func.functionName)
-            } else if (func.isSuspend) {
-                // 挂起函数需要在 suspend 块中调用
-                CodeBlock.of("suspend { %L() }", func.functionName)
-            } else if (func.isStatic) {
-                // 对于伴生对象函数，直接使用类名调用
-                CodeBlock.of("{ %L() }", func.functionName)
-            } else if (func.className != null) {
-                // 对于类中函数，需要创建实例再调用
-                CodeBlock.of("{ %L() }", func.functionName)
-            } else {
-                // 对于顶层函数，直接调用
-                CodeBlock.of("{ %L() }", func.functionName)
-            }
-        }
-
-        return codeBlocks.reduce { acc, codeBlock ->
-            CodeBlock.of("%L, %L", acc, codeBlock)
-        }
+    // 扩展函数用于向OutputStream写入字节数组
+    private fun OutputStream.write(bytes: ByteArray) {
+        this.write(bytes)
+        this.flush()
     }
 }
 
