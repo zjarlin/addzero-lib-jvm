@@ -2,7 +2,7 @@ package site.addzero.events
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import site.addzero.autoinit.annotation.AutoInit
+import site.addzero.ioc.annotation.Bean
 import site.addzero.component.toast.ToastManager
 import site.addzero.core.network.AddHttpClient
 import site.addzero.entity.Res
@@ -17,7 +17,7 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@AutoInit
+@Bean
 fun EventBusConsumer() {
     println("eventbus监听器消费者")
     val loginViewModel = koinViewModel<LoginViewModel>()

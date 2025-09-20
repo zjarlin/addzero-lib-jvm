@@ -8,7 +8,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.ksp.generated.defaultModule
-import site.addzero.autoinit.annotation.AutoInit
+import site.addzero.ioc.annotation.Bean
 import site.addzero.component.toast.ToastListener
 import site.addzero.di.NavgationViewModel
 import site.addzero.events.EventBusConsumer
@@ -43,35 +43,35 @@ fun App() {
     listOf.forEach { it() }
 }
 
-@AutoInit
+@Bean
 fun Hello(): Unit {
     println("hello")
 
 }
 
-@AutoInit
+@Bean
 fun hello1(): Unit {
     println("hello1")
 
 }
 
-//@AutoInit
-//suspend fun hello2() = withContext(Dispatchers.Main) {
-//    println("hello2")
-//}
+@Bean
+suspend fun hello2() = withContext(Dispatchers.Main) {
+    println("hello2")
+}
 
-//@AutoInit
-//suspend fun hello3() = {
-//    println("hello3")
-//}
+@Bean
+suspend fun hello3() = {
+    println("hello3")
+}
 
 
-@AutoInit
+@Bean
 class Hello6 {
 
 }
 
-@AutoInit
+@Bean
 object Hello5 {
 
 }
@@ -90,7 +90,7 @@ fun main() {
 
 
 
-@AutoInit
+@Bean
 @Composable
 fun Hello4(menuViewModel: ChatViewModel = koinInject<ChatViewModel>()) {
     println("hello3")

@@ -2,8 +2,13 @@ package com.example.autoinit.ksp
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
-import com.google.devtools.ksp.validate
+import site.addzero.ioc.annotation.Bean
 import java.io.OutputStream
+
+// 定义常量
+private const val ANNOTATION_NAME = "site.addzero.ioc.annotation.Bean"
+private const val GENERATED_PACKAGE = "site.addzero.ioc.generated"
+private const val CONTAINER_NAME = "IocContainer"
 
 // 存储函数信息的数据类
 private data class InitFunction(
@@ -33,7 +38,11 @@ private interface CodeGenerationStrategy {
 }
 
 // 定义函数类型的枚举，实现策略接口
-private enum class FunctionType(private val functionCallTemplate: String, private val isSuspend: Boolean, private val hasComposeAnnotation: Boolean) : CodeGenerationStrategy {
+private enum class FunctionType(
+    private val functionCallTemplate: String,
+    private val isSuspend: Boolean,
+    private val hasComposeAnnotation: Boolean
+) : CodeGenerationStrategy {
     REGULAR("{ %s() }", false, false),
     CLASS_INSTANCE("{ %s() }", false, false),
     OBJECT_INSTANCE("{ %s }", false, false),
@@ -59,15 +68,18 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
 
                 functionCallTemplate.format(fullFunctionName)
             }
+
             InitType.CLASS_INSTANCE -> {
                 // 为类实例调用，类实例化时需要括号，但只添加一次
                 val className = function.className!!
                 functionCallTemplate.format(className)
             }
+
             InitType.OBJECT_INSTANCE -> {
                 // 为对象实例调用，不需要括号
                 functionCallTemplate.format(function.className!!)
             }
+
             InitType.COMPANION_OBJECT -> {
                 // 为伴生对象调用
                 val className = function.className?.substringBefore(".Companion")
@@ -113,24 +125,25 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
     }
 }
 
-class AutoInitProcessor(
+class IocProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : SymbolProcessor {
     private val functions = mutableListOf<InitFunction>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        logger.warn("AutoInitProcessor 开始处理...")
-        System.out.println("AutoInitProcessor 开始处理...")
+        logger.warn("IocProcessor 开始处理...")
+        System.out.println("IocProcessor 开始处理...")
 
-        // 1. 扫描所有带@AutoInit注解的符号
-        val autoInitAnnotationName = "site.addzero.autoinit.annotation.AutoInit"
-        logger.warn("查找注解: $autoInitAnnotationName")
-        System.out.println("查找注解: $autoInitAnnotationName")
-
-        val autoInitSymbols = resolver.getSymbolsWithAnnotation(autoInitAnnotationName)
-        logger.warn("找到带@AutoInit注解的符号数量: ${autoInitSymbols.toList().size}")
-        System.out.println("找到带@AutoInit注解的符号数量: ${autoInitSymbols.toList().size}")
+        // 1. 扫描所有带@Bean注解的符号
+        logger.warn("查找注解: $ANNOTATION_NAME")
+        System.out.println("查找注解: $ANNOTATION_NAME")
+        val autoInitSymbols = resolver.getSymbolsWithAnnotation(
+            Bean::class
+                .qualifiedName!!
+        )
+        logger.warn("找到带@Bean注解的符号数量: ${autoInitSymbols.toList().size}")
+        System.out.println("找到带@Bean注解的符号数量: ${autoInitSymbols.toList().size}")
 
         // 2. 分别处理函数、类和对象
         val functionDeclarations = autoInitSymbols.filterIsInstance<KSFunctionDeclaration>()
@@ -189,8 +202,8 @@ class AutoInitProcessor(
         }
 
         // 注意：不在process阶段生成代码，避免多轮处理时的覆盖问题
-        logger.warn("AutoInitProcessor 处理完成")
-        System.out.println("AutoInitProcessor 处理完成")
+        logger.warn("IocProcessor 处理完成")
+        System.out.println("IocProcessor 处理完成")
         return emptyList()
     }
 
@@ -208,8 +221,8 @@ class AutoInitProcessor(
 
         // 只处理无参函数或所有参数都有默认值的函数
         if (function.parameters.isNotEmpty() && function.parameters.any { !it.hasDefault }) {
-            logger.warn("跳过带必需参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数或所有参数都有默认值的函数）")
-            System.out.println("跳过带必需参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数或所有参数都有默认值的函数）")
+            logger.warn("跳过带必需参数的函数 ${function.simpleName}（@Bean仅支持无参函数或所有参数都有默认值的函数）")
+            System.out.println("跳过带必需参数的函数 ${function.simpleName}（@Bean仅支持无参函数或所有参数都有默认值的函数）")
             return
         }
 
@@ -285,8 +298,8 @@ class AutoInitProcessor(
             }
 
         if (!hasNoArgConstructor) {
-            logger.warn("跳过类 ${clazz.simpleName}（@AutoInit仅支持有无参构造函数的类）")
-            System.out.println("跳过类 ${clazz.simpleName}（@AutoInit仅支持有无参构造函数的类）")
+            logger.warn("跳过类 ${clazz.simpleName}（@Bean仅支持有无参构造函数的类）")
+            System.out.println("跳过类 ${clazz.simpleName}（@Bean仅支持有无参构造函数的类）")
             return
         }
 
@@ -357,7 +370,11 @@ class AutoInitProcessor(
     }
 
     // 生成导入语句 - 只导入类和对象，不导入顶层函数所在文件的类（File-Class）
-    private fun generateImports(regularFunctions: List<InitFunction>, suspendFunctions: List<InitFunction>, composableFunctions: List<InitFunction>): Set<String> {
+    private fun generateImports(
+        regularFunctions: List<InitFunction>,
+        suspendFunctions: List<InitFunction>,
+        composableFunctions: List<InitFunction>
+    ): Set<String> {
         val imports = mutableSetOf<String>()
 
         // 添加 Compose 必需的导入
@@ -368,6 +385,7 @@ class AutoInitProcessor(
                 InitType.TOP_LEVEL_FUNCTION -> {
                     // 顶层函数：不进行任何导入，调用时使用包名+函数名全限定调用
                 }
+
                 InitType.CLASS_INSTANCE, InitType.OBJECT_INSTANCE, InitType.COMPANION_OBJECT -> {
                     // 仅对类、对象、伴生对象导入其全类名
                     func.className?.let { className ->
@@ -385,10 +403,14 @@ class AutoInitProcessor(
         System.out.println("开始生成代码，初始化项总数: ${functions.size}")
 
         // 按类型分组，包括新增的类实例和对象实例类型
-        val regularFunctions = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.TOP_LEVEL_FUNCTION }
-        val classInstances = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.CLASS_INSTANCE }
-        val objectInstances = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.OBJECT_INSTANCE }
-        val companionObjects = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.COMPANION_OBJECT }
+        val regularFunctions =
+            functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.TOP_LEVEL_FUNCTION }
+        val classInstances =
+            functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.CLASS_INSTANCE }
+        val objectInstances =
+            functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.OBJECT_INSTANCE }
+        val companionObjects =
+            functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.COMPANION_OBJECT }
         // 合并伴生对象到常规函数列表中，保持原有逻辑
         val allRegularFunctions = regularFunctions + companionObjects
         val suspendFunctions = functions.filter { it.isSuspend && !it.isComposable }
@@ -431,21 +453,25 @@ class AutoInitProcessor(
                         FunctionType.SUSPEND -> "collectSuspend"
                         FunctionType.COMPOSABLE -> "collectComposable"
                     }
-                    methodNames.add(when (type) {
-                        FunctionType.REGULAR -> "iocRegularStart"
-                        FunctionType.CLASS_INSTANCE -> "iocClassInstanceStart"
-                        FunctionType.OBJECT_INSTANCE -> "iocObjectInstanceStart"
-                        FunctionType.SUSPEND -> "iocSuspendStart"
-                        FunctionType.COMPOSABLE -> "IocComposeableStart"
-                    })
+                    methodNames.add(
+                        when (type) {
+                            FunctionType.REGULAR -> "iocRegularStart"
+                            FunctionType.CLASS_INSTANCE -> "iocClassInstanceStart"
+                            FunctionType.OBJECT_INSTANCE -> "iocObjectInstanceStart"
+                            FunctionType.SUSPEND -> "iocSuspendStart"
+                            FunctionType.COMPOSABLE -> "IocComposeableStart"
+                        }
+                    )
 
-                    append("""
+                    append(
+                        """
                         |    val ${functionName} = listOf(
                         |        ${functions.joinToString(",\n        ") { type.generateFunctionCall(it) }}
                         |    )
                         |
                         |${type.generateExecuteMethod(functions)}
-                    """.trimMargin())
+                    """.trimMargin()
+                    )
                     append("\n")
                 }
             }
@@ -476,26 +502,28 @@ class AutoInitProcessor(
                 else -> methodNames
             }
 
-            append("""
+            append(
+                """
                 |    ${allStartAnnotation}${allStartModifier}fun ${allStartMethodName}() {
                 |        ${allStartMethods.joinToString("\n        ") { "$it()" }}
                 |    }
-            """.trimMargin())
+            """.trimMargin()
+            )
         }
 
         // 生成代码
         val code = """
-            |package com.example.autoinit.generated
+            |package $GENERATED_PACKAGE
             |
             |${imports.joinToString("\n") { "import $it" }}
             |
-            |public object IocContainer {
+            |public object $CONTAINER_NAME {
             |$functionListCode
             |}
         """.trimMargin()
 
         // 写入生成的代码
-        val file = codeGenerator.createNewFile(Dependencies.ALL_FILES, "com.example.autoinit.generated", "AutoInitContainer", "kt")
+        val file = codeGenerator.createNewFile(Dependencies.ALL_FILES, GENERATED_PACKAGE, CONTAINER_NAME, "kt")
         file.write(code.toByteArray())
         file.close()
 
@@ -511,10 +539,10 @@ class AutoInitProcessor(
 }
 
 // 处理器提供者
-class AutoInitProcessorProvider : SymbolProcessorProvider {
+class IocProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-        System.out.println("创建 AutoInitProcessor 实例")
-        return AutoInitProcessor(
+        System.out.println("创建 IocProcessor 实例")
+        return IocProcessor(
             codeGenerator = environment.codeGenerator,
             logger = environment.logger
         )
