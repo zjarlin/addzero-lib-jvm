@@ -41,23 +41,21 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
     override fun generateFunctionCall(function: InitFunction): String {
         return when (function.initType) {
             InitType.TOP_LEVEL_FUNCTION -> {
-                // 使用文件的全限定名作为文件类名的基础
-                val filePackageName = function.packageName
-                val fileClassName = "${function.fileName}Kt"
-                val fullFileClassName = if (filePackageName != null) {
-                    "$filePackageName.$fileClassName"
-                } else {
-                    fileClassName
-                }
-
-                // 对于Composable函数，函数名首字母大写
+                // 使用函数的包名直接调用函数，不使用文件类名
+                val packageName = function.packageName
                 val functionName = if (function.isComposable && function.functionName != null) {
                     function.functionName.capitalizeFirstChar()
                 } else {
                     function.functionName
                 }
-
-                functionCallTemplate.format("$fullFileClassName.${functionName}")
+                
+                val fullFunctionName = if (packageName != null && functionName != null) {
+                    "$packageName.$functionName"
+                } else {
+                    functionName ?: ""
+                }
+                
+                functionCallTemplate.format(fullFunctionName)
             }
             InitType.CLASS_INSTANCE -> {
                 // 为类实例调用
@@ -341,22 +339,22 @@ class AutoInitProcessor(
         System.out.println("添加对象信息: $initFunction")
     }
 
-    // 生成导入语句 - 只导入类和对象，不导入文件类中的函数
+    // 生成导入语句 - 只导入类和对象，不导入顶层函数所在文件的类（File-Class）
     private fun generateImports(regularFunctions: List<InitFunction>, suspendFunctions: List<InitFunction>, composableFunctions: List<InitFunction>): Set<String> {
         val imports = mutableSetOf<String>()
-        
+
         // 添加 Compose 必需的导入
         imports.add("androidx.compose.runtime.Composable")
-        
+
         (regularFunctions + suspendFunctions + composableFunctions).forEach { func ->
             when (func.initType) {
                 InitType.TOP_LEVEL_FUNCTION -> {
-                    // 顶层函数不需要导入，会在调用时使用全限定名
+                    // 顶层函数：不进行任何导入，调用时使用包名+函数名全限定调用
                 }
                 InitType.CLASS_INSTANCE, InitType.OBJECT_INSTANCE, InitType.COMPANION_OBJECT -> {
-                    // 类和对象导入类的全限定名
-                    if (func.className != null) {
-                        imports.add(func.className)
+                    // 仅对类、对象、伴生对象导入其全类名
+                    func.className?.let { className ->
+                        imports.add(className)
                     }
                 }
             }
