@@ -1,18 +1,11 @@
 package site.addzero
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.ksp.generated.defaultModule
 import site.addzero.di.NavgationViewModel
-import site.addzero.ioc.annotation.Bean
 import site.addzero.ioc.generated.IocContainer
 import site.addzero.ui.auth.LoginScreen
 import site.addzero.ui.infra.MainLayout
@@ -28,7 +21,6 @@ import site.addzero.viewmodel.SysRouteViewModel
 @Composable
 fun App() {
     initKoin()
-
     MaterialTheme(
         colorScheme = AppThemes.getColorScheme(koinViewModel<ThemeViewModel>().currentTheme),
         shapes = MaterialTheme.shapes,
@@ -37,67 +29,7 @@ fun App() {
             MainLayoutWithLogin()
         },
     )
-    val scope = rememberCoroutineScope()
-
-//    val listOf = listOf(
-//        @Composable { EventBusConsumer() },
-//        @Composable { AddToastListener() },
-//    )
-//
-//    listOf.forEach { it() }
-
-
-    scope.launch {
-        IocContainer.iocAllStart()
-    }
-
-}
-
-@Bean
-fun Hello(): Unit {
-    println("hello")
-
-}
-
-@Bean
-fun hello1(): Unit {
-    println("hello1")
-
-}
-
-@Composable
-@Bean
-fun TestText(themeViewModel: ThemeViewModel = koinInject()): Unit {
-    Text("TestText")
-}
-
-
-@Bean
-suspend fun hello2() = withContext(Dispatchers.Main) {
-    println("hello2")
-}
-
-@Bean
-suspend fun hello3() = {
-    println("hello3")
-}
-
-
-@Bean
-class Hello6 {
-
-}
-
-@Bean
-object Hello5 {
-
-}
-
-
-@Bean
-@Composable
-fun Hello4(menuViewModel: ChatViewModel = koinInject<ChatViewModel>()) {
-    println("hello3")
+    IocContainer.IocAllStart()
 }
 
 

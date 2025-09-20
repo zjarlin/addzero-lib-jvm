@@ -1,9 +1,6 @@
-# IoC (控制反转) 处理器
-
-这是一个基于 Kotlin Symbol Processing (KSP) 的简易控制反转（Inversion of Control, IoC）处理器，用于自动收集和管理带有 `@Bean` 注解的函数、类和对象。
-
+# KMP-IOC
+这是一个KMP跨平台的简易IOC实现，用于自动收集和管理带有 `@Bean` 注解的函数、类和对象。
 ## 功能特性
-
 - 自动扫描项目中带有 `@Bean` 注解的函数、类和对象
 - 支持多种类型的初始化项：
   - 顶层函数
@@ -12,9 +9,7 @@
   - 伴生对象中的函数
 - 区分处理挂起函数（suspend）和可组合函数（@Composable）
 - 生成统一的容器对象用于初始化管理
-
 ## 使用方法
-
 1. 在需要自动管理的函数、类或对象上添加 `@Bean` 注解：
 
 ```kotlin
@@ -151,7 +146,7 @@ fun App() {
 
 
 
-## Suspend 与 Compose 函数冲突处理
+## Suspend 与 Compose 关键字冲突处理
 
 在处理初始化函数时，我们特别注意了挂起函数（suspend）和可组合函数（@Composable）之间的冲突问题：
 
@@ -169,8 +164,7 @@ fun App() {
    - 当只有 Compose 函数时，`IocAllStart()` 方法被标记为 `@Composable`
    - 当两者同时存在时，优先处理挂起函数，开发者需要在 Compose 环境中手动调用 Compose 初始化方法
 
-### 使用建议
-- 如果项目中只使用普通函数和对象，直接调用 `IocContainer.iocAllStart()`
-- 如果项目中包含挂起函数，使用 `suspend` 版本的 `IocContainer.iocAllStart()`,创建协程作用域包一下即可
-- 如果项目中包含 Compose 函数，在 Compose 上下文中调用 `IocContainer.IocAllStart()`
+### tips
+- 常规后台SpringBoot项目也可以用, 如果项目中包含挂起函数，注意创建协程作用域即可
+- 如果项目中同时包含 Compose 函数，和挂起函数,则 Compose 上下文需要手动调用IocComposeableStart,挂起容器的start依然会自动包含在iocAllStart中
 
