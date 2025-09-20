@@ -55,10 +55,16 @@ fun hello1(): Unit {
 
 }
 
-@AutoInit
-suspend fun hello2() = withContext(Dispatchers.Main) {
-    println("hello2")
-}
+//@AutoInit
+//suspend fun hello2() = withContext(Dispatchers.Main) {
+//    println("hello2")
+//}
+
+//@AutoInit
+//suspend fun hello3() = {
+//    println("hello3")
+//}
+
 
 @AutoInit
 class Hello6 {
@@ -82,10 +88,6 @@ fun main() {
 }
 
 
-@AutoInit
-suspend fun hello3() = {
-    println("hello3")
-}
 
 
 @AutoInit

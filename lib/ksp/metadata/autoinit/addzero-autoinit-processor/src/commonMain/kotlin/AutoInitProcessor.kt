@@ -51,13 +51,13 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
                 } else {
                     function.functionName
                 }
-                
+
                 val fullFunctionName = if (packageName != null && functionName != null) {
                     "$packageName.$functionName"
                 } else {
                     functionName ?: ""
                 }
-                
+
                 functionCallTemplate.format(fullFunctionName)
             }
             InitType.CLASS_INSTANCE -> {
@@ -79,11 +79,11 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
 
     override fun generateExecuteMethod(functions: List<InitFunction>): String {
         val functionName = when (this) {
-            REGULAR -> "regular"
-            CLASS_INSTANCE -> "classInstance"
-            OBJECT_INSTANCE -> "objectInstance"
-            SUSPEND -> "suspend"
-            COMPOSABLE -> "composable"
+            REGULAR -> "collectRegular"
+            CLASS_INSTANCE -> "collectClassInstance"
+            OBJECT_INSTANCE -> "collectObjectInstance"
+            SUSPEND -> "collectSuspend"
+            COMPOSABLE -> "collectComposable"
         }
         
         val suspendModifier = if (isSuspend) "suspend " else ""
@@ -94,12 +94,12 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
             CLASS_INSTANCE -> "iocClassInstanceStart"
             OBJECT_INSTANCE -> "iocObjectInstanceStart"
             SUSPEND -> "iocSuspendStart"
-            COMPOSABLE -> "iocComposeableStart"
+            COMPOSABLE -> "IocComposeableStart"  // 首字母大写以符合Composable函数命名规范
         }
 
         return """
     ${composeAnnotation}${suspendModifier}fun ${methodName}() {
-        ${functionName}Functions.forEach { it() }
+        ${functionName}.forEach { it() }
     }
         """.trimIndent()
     }
@@ -419,27 +419,65 @@ class AutoInitProcessor(
         val imports = generateImports(allRegularFunctions, suspendFunctions, composableFunctions)
         
         // 生成函数列表代码
-        val functionListCode = FunctionType.values().joinToString("\n") { type ->
-            val functions = functionGroups[type] ?: emptyList()
-            if (functions.isNotEmpty()) {
-                val functionName = when (type) {
-                    FunctionType.REGULAR -> "regular"
-                    FunctionType.CLASS_INSTANCE -> "classInstance"
-                    FunctionType.OBJECT_INSTANCE -> "objectInstance"
-                    FunctionType.SUSPEND -> "suspend"
-                    FunctionType.COMPOSABLE -> "composable"
+        val functionListCode = buildString {
+            val methodNames = mutableListOf<String>()
+            
+            FunctionType.values().forEach { type ->
+                val functions = functionGroups[type] ?: emptyList()
+                if (functions.isNotEmpty()) {
+                    val functionName = when (type) {
+                        FunctionType.REGULAR -> "collectRegular"
+                        FunctionType.CLASS_INSTANCE -> "collectClassInstance"
+                        FunctionType.OBJECT_INSTANCE -> "collectObjectInstance"
+                        FunctionType.SUSPEND -> "collectSuspend"
+                        FunctionType.COMPOSABLE -> "collectComposable"
+                    }
+                    methodNames.add(when (type) {
+                        FunctionType.REGULAR -> "iocRegularStart"
+                        FunctionType.CLASS_INSTANCE -> "iocClassInstanceStart"
+                        FunctionType.OBJECT_INSTANCE -> "iocObjectInstanceStart"
+                        FunctionType.SUSPEND -> "iocSuspendStart"
+                        FunctionType.COMPOSABLE -> "IocComposeableStart"
+                    })
+                    
+                    append("""
+                        |    val ${functionName} = listOf(
+                        |        ${functions.joinToString(",\n        ") { type.generateFunctionCall(it) }}
+                        |    )
+                        |
+                        |${type.generateExecuteMethod(functions)}
+                    """.trimMargin())
+                    append("\n")
                 }
-                """
-                    |    private val ${functionName}Functions = listOf(
-                    |        ${functions.joinToString(",\n        ") { type.generateFunctionCall(it) }}
-                    |    )
-                    |
-                    |${type.generateExecuteMethod(functions)}
-                """.trimMargin()
-            } else {
-                ""
             }
-        }.lines().filter { it.isNotBlank() }.joinToString("\n")
+            
+            // 添加iocAllStart方法，根据条件动态添加注解和关键字
+            val hasSuspend = suspendFunctions.isNotEmpty()
+            val hasComposable = composableFunctions.isNotEmpty()
+            
+            val allStartAnnotation = when {
+                hasSuspend -> ""
+                hasComposable -> "@androidx.compose.runtime.Composable\n    "
+                else -> ""
+            }
+            
+            val allStartModifier = when {
+                hasSuspend -> "suspend "
+                else -> ""
+            }
+            
+            val allStartMethods = when {
+                hasSuspend -> methodNames.filter { it != "IocComposeableStart" }
+                hasComposable && !hasSuspend -> methodNames
+                else -> methodNames
+            }
+            
+            append("""
+                |    ${allStartAnnotation}${allStartModifier}fun iocAllStart() {
+                |        ${allStartMethods.joinToString("\n        ") { "$it()" }}
+                |    }
+            """.trimMargin())
+        }
 
         // 生成代码
         val code = """
