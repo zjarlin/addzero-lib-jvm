@@ -466,6 +466,11 @@ class AutoInitProcessor(
                 else -> ""
             }
             
+            val allStartMethodName = when {
+                hasComposable && !hasSuspend -> "IocAllStart"  // Composable函数需要首字母大写
+                else -> "iocAllStart"
+            }
+            
             val allStartMethods = when {
                 hasSuspend -> methodNames.filter { it != "IocComposeableStart" }
                 hasComposable && !hasSuspend -> methodNames
@@ -473,7 +478,7 @@ class AutoInitProcessor(
             }
             
             append("""
-                |    ${allStartAnnotation}${allStartModifier}fun iocAllStart() {
+                |    ${allStartAnnotation}${allStartModifier}fun ${allStartMethodName}() {
                 |        ${allStartMethods.joinToString("\n        ") { "$it()" }}
                 |    }
             """.trimMargin())
@@ -485,7 +490,7 @@ class AutoInitProcessor(
             |
             |${imports.joinToString("\n") { "import $it" }}
             |
-            |public object AutoInitContainer {
+            |public object IocContainer {
             |$functionListCode
             |}
         """.trimMargin()
