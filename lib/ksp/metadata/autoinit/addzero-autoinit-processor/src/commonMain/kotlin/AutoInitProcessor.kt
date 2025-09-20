@@ -11,21 +11,20 @@ import com.squareup.kotlinpoet.ksp.writeTo
 private val LIST = ClassName("kotlin.collections", "List")
 private val UNIT = ClassName("kotlin", "Unit")
 
+// 存储函数信息的数据类
+private data class InitFunction(
+    val className: String?,       // 类全名（顶层函数为null）
+    val fileName: String,         // 文件名
+    val functionName: String,     // 函数名
+    val isSuspend: Boolean,       // 是否挂起函数
+    val isComposable: Boolean,    // 是否Composable函数
+    val isStatic: Boolean         // 是否静态函数（伴生对象中）
+)
+
 class AutoInitProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : SymbolProcessor {
-
-    // 存储函数信息的数据类
-    private data class InitFunction(
-        val className: String?,       // 类全名（顶层函数为null）
-        val fileName: String,         // 文件名
-        val functionName: String,     // 函数名
-        val isSuspend: Boolean,       // 是否挂起函数
-        val isComposable: Boolean,    // 是否Composable函数
-        val isStatic: Boolean         // 是否静态函数（伴生对象中）
-    )
-
     private val functions = mutableListOf<InitFunction>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -239,7 +238,10 @@ class AutoInitProcessor(
         }
 
         val codeBlocks = this.map { func ->
-            if (func.isStatic) {
+            if (func.isComposable) {
+                // Composable 函数需要在 @Composable 上下文中调用
+                CodeBlock.of("{ %T.%L() }", ClassName(func.className ?: "", func.fileName + "Kt"), func.functionName)
+            } else if (func.isStatic) {
                 // 对于伴生对象函数，直接使用类名调用
                 val className = ClassName.bestGuess(func.className?.substringBefore(".Companion") ?: "Unknown")
                 CodeBlock.of("{ %T.${func.functionName}() }", className)
