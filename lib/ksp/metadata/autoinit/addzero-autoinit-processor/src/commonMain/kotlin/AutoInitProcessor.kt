@@ -1,6 +1,5 @@
 package com.example.autoinit.ksp
 
-import site.addzero.autoinit.annotation.AutoInit
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -85,7 +84,7 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
             SUSPEND -> "collectSuspend"
             COMPOSABLE -> "collectComposable"
         }
-        
+
         val suspendModifier = if (isSuspend) "suspend " else ""
         val composeAnnotation = if (hasComposeAnnotation) "@androidx.compose.runtime.Composable\n    " else ""
         // 更正方法名，保持统一的命名规则
@@ -417,11 +416,11 @@ class AutoInitProcessor(
 
         // 生成导入语句
         val imports = generateImports(allRegularFunctions, suspendFunctions, composableFunctions)
-        
+
         // 生成函数列表代码
         val functionListCode = buildString {
             val methodNames = mutableListOf<String>()
-            
+
             FunctionType.values().forEach { type ->
                 val functions = functionGroups[type] ?: emptyList()
                 if (functions.isNotEmpty()) {
@@ -439,7 +438,7 @@ class AutoInitProcessor(
                         FunctionType.SUSPEND -> "iocSuspendStart"
                         FunctionType.COMPOSABLE -> "IocComposeableStart"
                     })
-                    
+
                     append("""
                         |    val ${functionName} = listOf(
                         |        ${functions.joinToString(",\n        ") { type.generateFunctionCall(it) }}
@@ -450,33 +449,33 @@ class AutoInitProcessor(
                     append("\n")
                 }
             }
-            
+
             // 添加iocAllStart方法，根据条件动态添加注解和关键字
             val hasSuspend = suspendFunctions.isNotEmpty()
             val hasComposable = composableFunctions.isNotEmpty()
-            
+
             val allStartAnnotation = when {
                 hasSuspend -> ""
                 hasComposable -> "@androidx.compose.runtime.Composable\n    "
                 else -> ""
             }
-            
+
             val allStartModifier = when {
                 hasSuspend -> "suspend "
                 else -> ""
             }
-            
+
             val allStartMethodName = when {
                 hasComposable && !hasSuspend -> "IocAllStart"  // Composable函数需要首字母大写
                 else -> "iocAllStart"
             }
-            
+
             val allStartMethods = when {
                 hasSuspend -> methodNames.filter { it != "IocComposeableStart" }
                 hasComposable && !hasSuspend -> methodNames
                 else -> methodNames
             }
-            
+
             append("""
                 |    ${allStartAnnotation}${allStartModifier}fun ${allStartMethodName}() {
                 |        ${allStartMethods.joinToString("\n        ") { "$it()" }}
