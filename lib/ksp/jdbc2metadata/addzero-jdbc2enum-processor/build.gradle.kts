@@ -1,14 +1,13 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
+//import site.addzero.gradle.tool.getProjectDirConfigMap
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import util.getProjectDirConfigMap
+import site.addzero.gradle.tool.getProjectDirConfigMapWithOutLib
 
 plugins {
     id("kmp-ksp")
-    id("site.addzero.ksp-buddy") version "0.0.608"
+    alias(libs.plugins.addzeroKspBuddy)
 }
-val projectDirConfigMap = getProjectDirConfigMap()
-
+val projectDirConfigMap = getProjectDirConfigMapWithOutLib()
 
 // 配置 KSP 参数
 val entries = mapOf(
@@ -42,6 +41,5 @@ kotlin {
     dependencies {
         implementation(projects.lib.ksp.common.addzeroKspSupportJdbc)
         implementation(projects.lib.ksp.common.addzeroKspSupport)
-
     }
 }

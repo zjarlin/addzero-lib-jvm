@@ -1,6 +1,4 @@
 import BuildSettings.AUTH_NAME
-import Disposable.LICENSE_NAME
-import Disposable.LICENSE_URL
 import java.time.LocalDate
 
 plugins {
@@ -21,9 +19,9 @@ mavenPublishing {
         url.set(BuildSettings.gitBaseUrl)
         licenses {
             license {
-                name.set(LICENSE_NAME)
-                url.set(LICENSE_URL)
-                distribution.set(LICENSE_URL)
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
         developers {

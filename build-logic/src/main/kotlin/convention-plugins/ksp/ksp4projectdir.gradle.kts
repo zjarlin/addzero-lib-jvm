@@ -1,5 +1,4 @@
-import util.getProjectDirConfigMap
-
+import site.addzero.gradle.tool.getProjectDirConfigMap
 plugins {
     id("com.google.devtools.ksp")
 }

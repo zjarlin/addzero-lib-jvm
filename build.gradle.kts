@@ -11,10 +11,9 @@ subprojects {
 }
 
 plugins {
-    id("site.addzero.publish-buddy") version "+"
-//        id("site.addzero.publish-buddy") version "0.0.608"
-
-//    alias(libs.plugins.addzeroPublish) apply false
+//    id("site.addzero.publish-buddy") version "+"
+//    gradlePluginPublishBuddy
+    alias(libs.plugins.addzeroPublishBuddy) apply false
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
     alias(libs.plugins.androidApplication) apply false

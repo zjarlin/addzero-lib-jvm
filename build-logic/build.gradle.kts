@@ -2,14 +2,14 @@ plugins {
     `kotlin-dsl`
 }
 
-buildscript {
-    repositories {
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath(libs.gradlePlugin.buildkonfig)
-    }
-}
+//buildscript {
+//    repositories {
+//        gradlePluginPortal()
+//    }
+//    dependencies {
+//        classpath(libs.gradlePlugin.buildkonfig)
+//    }
+//}
 
 repositories {
     mavenLocal()
@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.gradlePlugin.buildkonfig)
     implementation(libs.gradlePlugin.buildkonfig.cp)
     implementation(libs.addzero.gradle.tool)
+//    implementation(libs.gradlePluginKspBuddy)
+
 
 //     implementation(libs.plugins.konfig)
 //    implementation(files("com.codingfeline.buildkonfig:com.codingfeline.buildkonfig.gradle.plugin:0.17.1"))

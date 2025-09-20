@@ -7,6 +7,8 @@ import site.addzero.gradle.constant.Disposable.RESOURCE_DIR_JVM
 import site.addzero.gradle.constant.Disposable.SOURCE_DIR_JVM
 import site.addzero.gradle.constant.Disposable.SOURCE_DIR_KMP
 import java.io.File
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 // 定义黑名单目录列表
 val BLACKLIST_DIRS = listOf("buildSrc,", "build-logic")
@@ -33,6 +35,21 @@ data class ProjectDirConfigMapResult(
     val configs: Map<String, ProjectModuleConfig>
 )
 
+//fun Project.getProjectDirConfigMap(): MutableMap<String, String> {
+//    val projectDirConfigMapResult = generateProjectDirConfigMap()
+//    val mutableMapOf = mutableMapOf<String, String>()
+//
+//    projectDirConfigMapResult.forEach {
+//        mutableMapOf["${projectConfig.moduleName}SourceDir"] = projectConfig.sourceDir
+//        mutableMapOf["${projectConfig.moduleName}BuildDir"] = projectConfig.buildDir
+//
+//        projectConfig.resourceDir?.let {
+//            mutableMapOf["${projectConfig.moduleName}ResourceDir"] = it
+//        }
+//    }
+//    return mutableMapOf
+//
+//}
 
 
 fun Project.getProjectDirConfigMapWithOutLib(): MutableMap<String, String> {
