@@ -378,7 +378,6 @@ class IocProcessor(
         val imports = mutableSetOf<String>()
 
         // 添加 Compose 必需的导入
-        imports.add("androidx.compose.runtime.Composable")
 
         (regularFunctions + suspendFunctions + composableFunctions).forEach { func ->
             when (func.initType) {
