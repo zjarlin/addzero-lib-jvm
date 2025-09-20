@@ -200,64 +200,6 @@ interface PlatformStrategy {
 
 
 
-    /**
-     * 幂等地将软链接替换为其指向的真实文件/目录
-     * 特性：多次执行结果相同，非软链接路径不做处理
-     *
-     * @param linkPath 软链接路径
-     * @return 操作是否实际执行（true：执行了替换，false：无需操作）
-     */
-    fun undomvln(linkPath: String): Boolean {
-        val path = Paths.get(linkPath)
-        return undomvln(path)
-    }
-
-    /**
-     * 幂等地将软链接替换为其指向的真实文件/目录（Path重载）
-     */
-    @OptIn(ExperimentalPathApi::class)
-    fun undomvln(linkPath: Path): Boolean {
-        // 1. 检查路径是否存在
-        if (!linkPath.exists()) {
-            return false // 路径不存在，无需操作（幂等性保证）
-        }
-
-        // 2. 检查是否为软链接
-        if (!Files.isSymbolicLink(linkPath)) {
-            return false // 不是软链接，无需操作
-        }
-
-        // 3. 获取软链接指向的目标路径（绝对路径）
-        val targetPath = Files.readSymbolicLink(linkPath).toAbsolutePath()
-        if (!targetPath.exists()) {
-            System.err.println("错误：软链接指向的目标不存在 - $targetPath")
-        }
-
-        // 4. 创建临时目录用于中转（避免复制过程中冲突）
-        val tempDir = Files.createTempDirectory("symlink-replace-")
-        val tempTargetCopy = tempDir.resolve(targetPath.fileName)
-
-        try {
-            // 5. 复制目标文件/目录到临时位置
-            copyRecursively(targetPath, tempTargetCopy)
-
-            // 6. 删除原软链接
-            linkPath.deleteExisting()
-
-            // 7. 将临时复制的文件移动到原软链接位置
-            Files.move(
-                tempTargetCopy,
-                linkPath,
-                StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.ATOMIC_MOVE
-            )
-
-            return true
-        } finally {
-            // 清理临时目录
-            tempDir.deleteRecursively()
-        }
-    }
 
     /**
      * 递归复制文件/目录
