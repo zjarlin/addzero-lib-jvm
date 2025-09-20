@@ -77,10 +77,10 @@ class AutoInitProcessor(
         logger.warn("开始提取函数信息: ${function.simpleName.asString()}")
         System.out.println("开始提取函数信息: ${function.simpleName.asString()}")
         
-        // 只处理无参函数
-        if (function.parameters.isNotEmpty()) {
-            logger.warn("跳过带参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数）")
-            System.out.println("跳过带参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数）")
+        // 只处理无参函数或所有参数都有默认值的函数
+        if (function.parameters.isNotEmpty() && function.parameters.any { !it.hasDefault }) {
+            logger.warn("跳过带必需参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数或所有参数都有默认值的函数）")
+            System.out.println("跳过带必需参数的函数 ${function.simpleName}（@AutoInit仅支持无参函数或所有参数都有默认值的函数）")
             return
         }
 
@@ -155,7 +155,7 @@ class AutoInitProcessor(
                     .apply {
                         if (regularFunctions.isNotEmpty()) {
                             addProperty(
-                                PropertySpec.builder("regularFunctions", LIST.parameterizedBy(ClassName("kotlin", "Function0").parameterizedBy(UNIT)))
+                                PropertySpec.builder("regularFunctions", LIST)
                                     .addModifiers(KModifier.PRIVATE)
                                     .initializer(CodeBlock.of("listOf(%L)", regularFunctions.joinToCode()))
                                     .build()
@@ -166,7 +166,7 @@ class AutoInitProcessor(
                     .apply {
                         if (suspendFunctions.isNotEmpty()) {
                             addProperty(
-                                PropertySpec.builder("suspendFunctions", LIST.parameterizedBy(ClassName("kotlin", "Function0").parameterizedBy(UNIT)))
+                                PropertySpec.builder("suspendFunctions", LIST)
                                     .addModifiers(KModifier.PRIVATE)
                                     .initializer(CodeBlock.of("listOf(%L)", suspendFunctions.joinToCode()))
                                     .build()
@@ -176,13 +176,8 @@ class AutoInitProcessor(
                     // 3. Composable函数列表（仅当存在时生成）
                     .apply {
                         if (composableFunctions.isNotEmpty()) {
-                            // 生成Compose相关导入
-                            addAnnotation(
-                                AnnotationSpec.builder(ClassName("androidx.compose.runtime", "Composable"))
-                                    .build()
-                            )
                             addProperty(
-                                PropertySpec.builder("composableFunctions", LIST.parameterizedBy(ClassName("kotlin", "Function0").parameterizedBy(UNIT)))
+                                PropertySpec.builder("composableFunctions", LIST)
                                     .addModifiers(KModifier.PRIVATE)
                                     .initializer(CodeBlock.of("listOf(%L)", composableFunctions.joinToCode()))
                                     .build()
@@ -214,7 +209,7 @@ class AutoInitProcessor(
                     .apply {
                         if (composableFunctions.isNotEmpty()) {
                             addFunction(
-                                FunSpec.builder("executeComposable")
+                                FunSpec.builder("ExecuteComposable")
                                     .addAnnotation(ClassName("androidx.compose.runtime", "Composable"))
                                     .addStatement("composableFunctions.forEach { it() }")
                                     .build()
@@ -240,19 +235,19 @@ class AutoInitProcessor(
         val codeBlocks = this.map { func ->
             if (func.isComposable) {
                 // Composable 函数需要在 @Composable 上下文中调用
-                CodeBlock.of("{ %T.%L() }", ClassName(func.className ?: "", func.fileName + "Kt"), func.functionName)
+                CodeBlock.of("@androidx.compose.runtime.Composable { %L() }", func.functionName)
+            } else if (func.isSuspend) {
+                // 挂起函数需要在 suspend 块中调用
+                CodeBlock.of("suspend { %L() }", func.functionName)
             } else if (func.isStatic) {
                 // 对于伴生对象函数，直接使用类名调用
-                val className = ClassName.bestGuess(func.className?.substringBefore(".Companion") ?: "Unknown")
-                CodeBlock.of("{ %T.${func.functionName}() }", className)
+                CodeBlock.of("{ %L() }", func.functionName)
             } else if (func.className != null) {
                 // 对于类中函数，需要创建实例再调用
-                val classType = ClassName.bestGuess(func.className)
-                CodeBlock.of("{ %T().${func.functionName}() }", classType)
+                CodeBlock.of("{ %L() }", func.functionName)
             } else {
                 // 对于顶层函数，直接调用
-                val fileClass = ClassName("", func.fileName + "Kt")
-                CodeBlock.of("{ %T.${func.functionName}() }", fileClass)
+                CodeBlock.of("{ %L() }", func.functionName)
             }
         }
 

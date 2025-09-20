@@ -2,6 +2,9 @@ package site.addzero
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.koin.compose.koinInject
 import site.addzero.component.toast.ToastListener
 import site.addzero.di.NavgationViewModel
 import site.addzero.events.EventBusConsumer
@@ -17,6 +20,7 @@ import site.addzero.viewmodel.SysRouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.ksp.generated.defaultModule
+import site.addzero.autoinit.annotation.AutoInit
 
 
 @Composable
@@ -38,6 +42,36 @@ fun App() {
 
     listOf.forEach { it() }
 }
+
+@AutoInit
+fun Hello(): Unit {
+    println("hello")
+
+}
+@AutoInit
+fun hello1(): Unit {
+    println("hello1")
+
+}
+@AutoInit
+suspend fun hello2()= withContext(Dispatchers.Main) {
+    println("hello2")
+}
+
+
+
+@AutoInit
+suspend fun hello3()= {
+    println("hello3")
+}
+
+
+@AutoInit
+@Composable
+  fun Hello4(menuViewModel: ChatViewModel= koinInject<ChatViewModel>()) {
+    println("hello3")
+}
+
 
 
 @Composable
