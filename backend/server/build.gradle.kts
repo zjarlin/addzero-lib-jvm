@@ -1,4 +1,5 @@
 import com.google.devtools.ksp.gradle.KspAATask
+import site.addzero.gradle.constant.Disposable.KSP_BUILD_DIR_JVM
 
 plugins {
 //    id("com.google.devtools.ksp")
@@ -160,7 +161,7 @@ dependencies {
 // server/build.gradle.kts
 kotlin {
     sourceSets.main {
-        kotlin.srcDir("build/generated/ksp/main/kotlin")
+        kotlin.srcDir(KSP_BUILD_DIR_JVM)
     }
 
 }
