@@ -224,10 +224,10 @@ object TreeSearch {
         private val getPidFun: (T) -> String?,
         private val isRoot: (T) -> Boolean = { t -> getPidFun(t) == null }
     ) : Comparator<T> {
-        override fun compare(node1: T, node2: T): Int {
+        override fun compare(a: T, b: T): Int {
             return when {
-                isRoot(node1) && getPidFun(node2) != null -> -1
-                getPidFun(node1) != null && isRoot(node2) -> 1
+                isRoot(a) && getPidFun(b) != null -> -1
+                getPidFun(a) != null && isRoot(b) -> 1
                 else -> 0
             }
         }

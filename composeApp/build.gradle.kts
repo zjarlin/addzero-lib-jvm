@@ -7,7 +7,7 @@ plugins {
     id("kmp-json-withtool")
     alias(libs.plugins.composeHotReload)
     id("ksp4projectdir")
-    id("ksp4self")
+    id("kmp-ksp-plugin")
     id("addzero-component")
     id("kmp-config")
 }

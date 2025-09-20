@@ -20,6 +20,7 @@ repositories {
 
 dependencies {
        implementation(libs.gradlePlugin.mavenPublish)
+    implementation(libs.org.graalvm.buildtools.native.gradle.plugin)
 
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.snakeyaml)

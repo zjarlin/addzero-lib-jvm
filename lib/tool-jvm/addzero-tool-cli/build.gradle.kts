@@ -6,7 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("kmp-json")
     id("kmp-koin-core")
-    id("ksp4self")
+    id("kmp-ksp-plugin")
 }
 
 kotlin {

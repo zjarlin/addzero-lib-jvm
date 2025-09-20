@@ -1,14 +1,11 @@
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 
 val versionDate: String? = SimpleDateFormat("yyyy.MM.dd").format(Date())
 version = versionDate.toString()
 // 或者使用setter方法
 subprojects {
-    if (
-        path.startsWith(":lib:") &&
-        name.contains("addzero-")
-    ) {
+    if (path.startsWith(":lib:") && name.contains("addzero-")) {
         apply(plugin = "site.addzero.publish-buddy")
     }
 }

@@ -1,4 +1,6 @@
 [versions]
+addzeroToolIoVersion = "2025.09.20"
+addzeroIocCoreVersion = "2025.09.20"
 comCodingfelineBuildkonfigGradlePlugin = "0.17.1"
 jdk = "24"
 #https://central.sonatype.com/artifact/org.jetbrains.kotlin.jvm/org.jetbrains.kotlin.jvm.gradle.plugin
@@ -30,6 +32,7 @@ filekitCompose = "0.8.8"
 hutoolAll = "5.8.40"
 fastjson2Kotlin = "2.0.58"
 minio = "8.5.17"
+orgGraalvmBuildtoolsNativeGradlePluginVersion = "0.11.0"
 saToken = "1.44.0"
 fastexcel = "1.3.0"
 lazyPeopleHttp = "2.2.5"
@@ -83,6 +86,9 @@ clikt = "5.0.3"
 
 [libraries]
 
+addzero-ioc-core = { module = "site.addzero:addzero-ioc-core", version.ref = "addzeroIocCoreVersion" }
+addzero-ioc-processor = { module = "site.addzero:addzero-ioc-processor", version.ref = "addzeroToolIoVersion" }
+addzero-tool-io = { module = "site.addzero:addzero-tool-io", version.ref = "addzeroToolIoVersion" }
 gradlePlugin-buildkonfig = { module = "com.codingfeline.buildkonfig:buildkonfig-gradle-plugin", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
 
 gradlePlugin-buildkonfig-cp = { module = "com.codingfeline.buildkonfig:buildkonfig-compiler", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
@@ -117,6 +123,7 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 
 aspectjweaver = { module = "org.aspectj:aspectjweaver", version.ref = "aspectjweaver" }
 
+org-graalvm-buildtools-native-gradle-plugin = { module = "org.graalvm.buildtools.native:org.graalvm.buildtools.native.gradle.plugin", version.ref = "orgGraalvmBuildtoolsNativeGradlePluginVersion" }
 tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
 
 dameng-jdbc-driver = { module = "com.dameng:DmJdbcDriver18", version.ref = "damengJdbc" }

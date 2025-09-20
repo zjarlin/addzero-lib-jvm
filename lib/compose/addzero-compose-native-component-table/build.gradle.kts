@@ -3,7 +3,7 @@ plugins {
     id("kmp-component")
     id("kmp-json-withtool")
 //    id("kmp-koin")
-//    id("ksp4self")
+//    id("kmp-ksp-plugin")
 }
 //dependencies {
 //    kspCommonMainMetadata(projects.lib.compose.addzeroComposePropsProcessor)

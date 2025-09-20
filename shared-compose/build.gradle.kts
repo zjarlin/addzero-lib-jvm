@@ -1,6 +1,6 @@
 plugins {
     id("kmp-lib")
-    id("ksp4self")
+    id("kmp-ksp-plugin")
     id("kmp-ktorfit")
     id("addzero-component")
     id("kmp-json-withtool")
