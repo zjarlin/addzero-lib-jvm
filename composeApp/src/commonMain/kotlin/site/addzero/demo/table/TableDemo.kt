@@ -1,9 +1,10 @@
 package site.addzero.demo.table
 
-import site.addzero.component.table.original.TableOriginal
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextAlign
 import site.addzero.annotation.Route
-import site.addzero.component.button.AddEditDeleteButton
+import site.addzero.component.table.original.TableOriginal
 
 @Route
 @Composable
@@ -17,7 +18,7 @@ fun TableBigDataTest2() {
         columns = columns,
         getColumnKey = { it.key },
         getRowId = { "${it.field001}_${it.field002}" }, // 使用复合ID确保唯一性
-        columnConfigs =listOf(),
+        columnConfigs = listOf(),
 //        getColumnLabel = { config ->
 //            Text(
 //                text = config.label,
@@ -25,14 +26,14 @@ fun TableBigDataTest2() {
 //            )
 //        }, //这里可以传列宽,列排序,列隐藏... 美化一下列名,要居中显示
 //        topSlot = {
-            //一般渲染搜索区(搜索框,字段高级搜索)
+        //一般渲染搜索区(搜索框,字段高级搜索)
 //        },
 
 //        bottomSlot = {
-           //一般渲染分页控件
+        //一般渲染分页控件
 //        },
 //        emptyContentSlot = {
-           //当表格数据为空时,渲染自定义内容(可以是动画)
+        //当表格数据为空时,渲染自定义内容(可以是动画)
 //        },
 //        getCellContent = {row,col->
 //            //自定义渲染

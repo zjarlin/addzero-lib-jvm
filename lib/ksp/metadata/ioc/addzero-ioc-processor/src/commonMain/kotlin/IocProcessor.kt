@@ -491,10 +491,13 @@ class IocProcessor(
                 else -> ""
             }
 
-            val allStartMethodName = when {
-                hasComposable && !hasSuspend -> "IocAllStart"  // Composable函数需要首字母大写
-                else -> "iocAllStart"
-            }
+//            val allStartMethodName = when {
+//                hasComposable && !hasSuspend -> "IocAllStart"  // Composable函数需要首字母大写
+//                else -> "iocAllStart"
+//            }
+            // 保持方法名始终为小写的一致性
+            val allStartMethodName = "iocAllStart"
+
 
             val allStartMethods = when {
                 hasSuspend -> methodNames.filter { it != "IocComposeableStart" }

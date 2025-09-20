@@ -29,7 +29,7 @@ fun App() {
             MainLayoutWithLogin()
         },
     )
-    IocContainer.IocAllStart()
+    IocContainer.iocAllStart()
 }
 
 
