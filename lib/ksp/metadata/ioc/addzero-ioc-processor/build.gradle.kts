@@ -9,7 +9,7 @@ kotlin {
     dependencies {
 
         implementation(projects.lib.ksp.common.addzeroKspSupport)
-        implementation(projects.lib.ksp.metadata.autoinit.addzeroAutoinitCore)
+        implementation(projects.lib.ksp.metadata.ioc.addzeroIocCore)
     }
 
     sourceSets {

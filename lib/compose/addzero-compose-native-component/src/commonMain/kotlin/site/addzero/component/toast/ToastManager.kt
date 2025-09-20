@@ -1,7 +1,6 @@
 package site.addzero.component.toast
 
 import androidx.compose.runtime.*
-import site.addzero.ioc.annotation.Bean
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
@@ -59,8 +58,7 @@ data class ToastMessage(
  * Toast监听器组件，用于在UI层显示Toast消息
  */
 @Composable
-@Bean
-fun ToastListener() {
+fun AddToastListener() {
     var currentMessage by remember { mutableStateOf<String?>(null) }
     var messageType by remember { mutableStateOf(MessageType.INFO) }
 

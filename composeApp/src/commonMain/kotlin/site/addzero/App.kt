@@ -1,17 +1,19 @@
 package site.addzero
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.ksp.generated.defaultModule
-import site.addzero.ioc.annotation.Bean
-import site.addzero.component.toast.ToastListener
 import site.addzero.di.NavgationViewModel
-import site.addzero.events.EventBusConsumer
+import site.addzero.ioc.annotation.Bean
+import site.addzero.ioc.generated.IocContainer
 import site.addzero.ui.auth.LoginScreen
 import site.addzero.ui.infra.MainLayout
 import site.addzero.ui.infra.model.favorite.FavoriteTabsViewModel
@@ -35,12 +37,20 @@ fun App() {
             MainLayoutWithLogin()
         },
     )
-    val listOf = listOf(
-        @Composable { EventBusConsumer() },
-        @Composable { ToastListener() },
-    )
+    val scope = rememberCoroutineScope()
 
-    listOf.forEach { it() }
+//    val listOf = listOf(
+//        @Composable { EventBusConsumer() },
+//        @Composable { AddToastListener() },
+//    )
+//
+//    listOf.forEach { it() }
+
+
+    scope.launch {
+        IocContainer.iocAllStart()
+    }
+
 }
 
 @Bean
@@ -54,6 +64,13 @@ fun hello1(): Unit {
     println("hello1")
 
 }
+
+@Composable
+@Bean
+fun TestText(themeViewModel: ThemeViewModel = koinInject()): Unit {
+    Text("TestText")
+}
+
 
 @Bean
 suspend fun hello2() = withContext(Dispatchers.Main) {
@@ -75,19 +92,6 @@ class Hello6 {
 object Hello5 {
 
 }
-
-fun main() {
-    val listOf = listOf(
-
-    Hello5
-    ,Hello6()
-    )
-    listOf.forEach {
-       it
-    }
-}
-
-
 
 
 @Bean
