@@ -35,6 +35,8 @@ private interface CodeGenerationStrategy {
 // 定义函数类型的枚举，实现策略接口
 private enum class FunctionType(private val functionCallTemplate: String, private val isSuspend: Boolean, private val hasComposeAnnotation: Boolean) : CodeGenerationStrategy {
     REGULAR("{ %s() }", false, false),
+    CLASS_INSTANCE("{ %s() }", false, false),
+    OBJECT_INSTANCE("{ %s }", false, false),
     SUSPEND("suspend { %s() }", true, false),
     COMPOSABLE("@androidx.compose.runtime.Composable { %s() }", false, true);
 
@@ -63,7 +65,7 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
             }
             InitType.OBJECT_INSTANCE -> {
                 // 为对象实例调用，不需要括号
-                "{ ${function.className} }"
+                functionCallTemplate.format(function.className!!)
             }
             InitType.COMPANION_OBJECT -> {
                 // 为伴生对象调用
@@ -74,14 +76,23 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
     }
 
     override fun generateExecuteMethod(functions: List<InitFunction>): String {
-        val functionName = this.name.lowercase()
+        val functionName = when (this) {
+            REGULAR -> "regular"
+            CLASS_INSTANCE -> "classInstance"
+            OBJECT_INSTANCE -> "objectInstance"
+            SUSPEND -> "suspend"
+            COMPOSABLE -> "composable"
+        }
+        
         val suspendModifier = if (isSuspend) "suspend " else ""
         val composeAnnotation = if (hasComposeAnnotation) "@androidx.compose.runtime.Composable\n    " else ""
-        // 更正方法名
+        // 更正方法名，保持统一的命名规则
         val methodName = when (this) {
             REGULAR -> "iocRegularStart"
+            CLASS_INSTANCE -> "iocClassInstanceStart"
+            OBJECT_INSTANCE -> "iocObjectInstanceStart"
             SUSPEND -> "iocSuspendStart"
-            COMPOSABLE -> "IocComposeableStart"
+            COMPOSABLE -> "iocComposeableStart"
         }
 
         return """
@@ -367,105 +378,61 @@ class AutoInitProcessor(
         logger.warn("开始生成代码，初始化项总数: ${functions.size}")
         System.out.println("开始生成代码，初始化项总数: ${functions.size}")
 
-        // 按类型分组
-        val regularFunctions = functions.filter { !it.isSuspend && !it.isComposable }
+        // 按类型分组，包括新增的类实例和对象实例类型
+        val regularFunctions = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.TOP_LEVEL_FUNCTION }
+        val classInstances = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.CLASS_INSTANCE }
+        val objectInstances = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.OBJECT_INSTANCE }
+        val companionObjects = functions.filter { !it.isSuspend && !it.isComposable && it.initType == InitType.COMPANION_OBJECT }
+        // 合并伴生对象到常规函数列表中，保持原有逻辑
+        val allRegularFunctions = regularFunctions + companionObjects
         val suspendFunctions = functions.filter { it.isSuspend && !it.isComposable }
         val composableFunctions = functions.filter { it.isComposable }
 
-        logger.warn("普通初始化项: ${regularFunctions.size}个")
+        logger.warn("普通初始化项: ${allRegularFunctions.size}个")
+        logger.warn("类实例初始化项: ${classInstances.size}个")
+        logger.warn("对象实例初始化项: ${objectInstances.size}个")
         logger.warn("挂起初始化项: ${suspendFunctions.size}个")
         logger.warn("Composable初始化项: ${composableFunctions.size}个")
-        System.out.println("普通初始化项: ${regularFunctions.size}个")
+        System.out.println("普通初始化项: ${allRegularFunctions.size}个")
+        System.out.println("类实例初始化项: ${classInstances.size}个")
+        System.out.println("对象实例初始化项: ${objectInstances.size}个")
         System.out.println("挂起初始化项: ${suspendFunctions.size}个")
         System.out.println("Composable初始化项: ${composableFunctions.size}个")
 
         // 按类型分组
         val functionGroups = mapOf(
-            FunctionType.REGULAR to regularFunctions,
+            FunctionType.REGULAR to allRegularFunctions,
+            FunctionType.CLASS_INSTANCE to classInstances,
+            FunctionType.OBJECT_INSTANCE to objectInstances,
             FunctionType.SUSPEND to suspendFunctions,
             FunctionType.COMPOSABLE to composableFunctions
         )
 
         // 生成导入语句
-        val imports = generateImports(regularFunctions, suspendFunctions, composableFunctions)
-        
-        // 将regularFunctions进一步分为类和对象
-        val regularClasses = regularFunctions.filter { it.initType == InitType.CLASS_INSTANCE }
-        val regularObjects = regularFunctions.filter { it.initType == InitType.OBJECT_INSTANCE }
-        val otherRegularFunctions = regularFunctions.filter { it.initType != InitType.CLASS_INSTANCE && it.initType != InitType.OBJECT_INSTANCE }
+        val imports = generateImports(allRegularFunctions, suspendFunctions, composableFunctions)
         
         // 生成函数列表代码
-        val functionListCode = buildString {
-            // 添加其他常规函数（顶层函数、伴生对象等）
-            if (otherRegularFunctions.isNotEmpty()) {
-                append("""
-                    |    private val regularFunctions = listOf(
-                    |        ${otherRegularFunctions.joinToString(",\n        ") { FunctionType.REGULAR.generateFunctionCall(it) }}
+        val functionListCode = FunctionType.values().joinToString("\n") { type ->
+            val functions = functionGroups[type] ?: emptyList()
+            if (functions.isNotEmpty()) {
+                val functionName = when (type) {
+                    FunctionType.REGULAR -> "regular"
+                    FunctionType.CLASS_INSTANCE -> "classInstance"
+                    FunctionType.OBJECT_INSTANCE -> "objectInstance"
+                    FunctionType.SUSPEND -> "suspend"
+                    FunctionType.COMPOSABLE -> "composable"
+                }
+                """
+                    |    private val ${functionName}Functions = listOf(
+                    |        ${functions.joinToString(",\n        ") { type.generateFunctionCall(it) }}
                     |    )
                     |
-                    |    fun iocRegularStart() {
-                    |        regularFunctions.forEach { it() }
-                    |    }
-                """.trimMargin())
-                append("\n")
+                    |${type.generateExecuteMethod(functions)}
+                """.trimMargin()
+            } else {
+                ""
             }
-            
-            // 添加类实例
-            if (regularClasses.isNotEmpty()) {
-                append("""
-                    |    private val classInstances = listOf(
-                    |        ${regularClasses.joinToString(",\n        ") { FunctionType.REGULAR.generateFunctionCall(it) }}
-                    |    )
-                    |
-                    |    fun initClassInstances() {
-                    |        classInstances.forEach { it() }
-                    |    }
-                """.trimMargin())
-                append("\n")
-            }
-            
-            // 添加对象实例
-            if (regularObjects.isNotEmpty()) {
-                append("""
-                    |    private val objectInstances = listOf(
-                    |        ${regularObjects.joinToString(",\n        ") { FunctionType.REGULAR.generateFunctionCall(it) }}
-                    |    )
-                    |
-                    |    fun initObjectInstances() {
-                    |        objectInstances.forEach { it() }
-                    |    }
-                """.trimMargin())
-                append("\n")
-            }
-            
-            // 添加suspend函数
-            if (suspendFunctions.isNotEmpty()) {
-                append("""
-                    |    private val suspendFunctions = listOf(
-                    |        ${suspendFunctions.joinToString(",\n        ") { FunctionType.SUSPEND.generateFunctionCall(it) }}
-                    |    )
-                    |
-                    |    suspend fun iocSuspendStart() {
-                    |        suspendFunctions.forEach { it() }
-                    |    }
-                """.trimMargin())
-                append("\n")
-            }
-            
-            // 添加composable函数
-            if (composableFunctions.isNotEmpty()) {
-                append("""
-                    |    private val composableFunctions = listOf(
-                    |        ${composableFunctions.joinToString(",\n        ") { FunctionType.COMPOSABLE.generateFunctionCall(it) }}
-                    |    )
-                    |
-                    |    @androidx.compose.runtime.Composable
-                    |    fun IocComposeableStart() {
-                    |        composableFunctions.forEach { it() }
-                    |    }
-                """.trimMargin())
-            }
-        }
+        }.lines().filter { it.isNotBlank() }.joinToString("\n")
 
         // 生成代码
         val code = """
