@@ -2,6 +2,8 @@ package site.addzero.gradle.plugin.automodules
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
+import site.addzero.gradle.tool.ProjectModuleConfig
+import site.addzero.gradle.tool.generateProjectDirConfigMap
 import java.io.File
 
 /**
@@ -28,19 +30,27 @@ open class AutoModulesPluginExtension {
  * 自动扫描项目目录并包含所有Gradle子项目
  */
 class AutoModulesPlugin : Plugin<Settings> {
+    // 存储项目目录列表
+    private lateinit var projectDirs: List<File>
+
     override fun apply(settings: Settings) {
         // 创建扩展配置
         val extension = settings.extensions.create("autoModules", AutoModulesPluginExtension::class.java)
 
         // 获取根项目目录
         val rootDir = settings.rootDir
+
+        // 在设置阶段就扫描项目目录
+        // 使用root project来调用generateProjectDirConfigMap函数
+        settings.gradle.rootProject {
+            // 查找所有包含build.gradle.kts的项目目录
+            val blackListDirs = extension.excludeModules
+            val projectConfigs = this.generateProjectDirConfigMap(blackListDirs)
+            projectDirs = projectConfigs.map { File(it.sourceDir).parentFile }
+        }
+
         // 在项目评估完成后执行包含逻辑
         settings.gradle.projectsEvaluated {
-            // 查找所有包含build.gradle.kts的项目目录
-            val projectDirs = findAllProjectDirs(rootDir, extension.excludedFileNames)
-                .filter { it != rootDir } // 排除根项目本身
-                .filter { isIncludeDir(it, rootDir, extension.excludeModules) } // 过滤需要包含的目录
-
             // 包含所有找到的项目
             projectDirs.forEach { projectDir ->
                 val relativePath = getRelativePath(rootDir, projectDir)
@@ -58,43 +68,7 @@ class AutoModulesPlugin : Plugin<Settings> {
         }
     }
 
-    /**
-     * 查找所有包含build.gradle.kts的项目目录
-     */
-    private fun findAllProjectDirs(dir: File, excludedDirs: Set<String>): List<File> {
-        val result = mutableListOf<File>()
-        if (File(dir, "build.gradle.kts").exists()) {
-            result.add(dir)
-        }
-        dir.listFiles { file ->
-            file.isDirectory && !isExcludedDir(file.name, excludedDirs)
-        }?.forEach { subDir ->
-            result.addAll(findAllProjectDirs(subDir, excludedDirs))
-        }
-        return result
-    }
-
-    /**
-     * 判断是否为应排除的目录
-     */
-    private fun isExcludedDir(dirName: String, excludedDirs: Set<String>): Boolean {
-        return excludedDirs.contains(dirName) || dirName.startsWith(".")
-    }
-
-    /**
-     * 判断目录是否应该被包含
-     */
-    private fun isIncludeDir(projectDir: File, rootDir: File, blacklistedDirs: List<String>): Boolean {
-        val relativePath = getRelativePath(rootDir, projectDir)
-
-        return !blacklistedDirs.any { blacklisted ->
-            relativePath == blacklisted || relativePath.startsWith("$blacklisted${File.separator}")
-        }
-    }
-
-    /**
-     * 获取相对路径
-     */
+    // 手动计算相对路径（兼容低版本）
     private fun getRelativePath(rootDir: File, projectDir: File): String {
         val rootPath = rootDir.absolutePath
         val projectPath = projectDir.absolutePath
@@ -104,4 +78,5 @@ class AutoModulesPlugin : Plugin<Settings> {
             projectPath
         }
     }
+
 }

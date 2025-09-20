@@ -116,7 +116,7 @@ fun isExcludedDir(dirName: String): Boolean {
         "node_modules", "target", "out", "bin", ".settings",
         "src", "test", "main", "kotlin", "java", "resources"
     )
-    return excludedDirs.contains(dirName) || dirName.startsWith(".")
+    return excludedDirs.equals(dirName) || dirName.startsWith(".")
 }
 
 

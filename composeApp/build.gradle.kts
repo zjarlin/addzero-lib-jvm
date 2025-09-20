@@ -78,12 +78,12 @@ kotlin {
         }
 
         // 添加源代码集配置，使KSP能够访问依赖模块的源代码
-        commonMain {
-            val addzeroComposeNativeComponent = projects.lib.compose.addzeroComposeNativeComponent
-            val get = addzeroComposeNativeComponent.path
-            val resolve = File(get).resolve(SOURCE_DIR_KMP)
-            kotlin.srcDir(resolve.absolutePath)
-        }
+//        commonMain {
+//            val addzeroComposeNativeComponent = projects.lib.compose.addzeroComposeNativeComponent
+//            val get = addzeroComposeNativeComponent.path
+//            val resolve = File(get).resolve(SOURCE_DIR_KMP)
+//            kotlin.srcDir(resolve.absolutePath)
+//        }
     }
 }
 
