@@ -10,6 +10,10 @@ subprojects {
     }
 }
 
+//tasks.named<Wrapper>("wrapper") {
+//    gradleVersion = "9.1.0"
+//    distributionUrl = "https://mirrors.cloud.tencent.com/gradle/${gradleVersion}/gradle-${gradleVersion}-bin.zip"
+//}
 plugins {
 //    id("site.addzero.publish-buddy") version "+"
 //    gradlePluginPublishBuddy
