@@ -54,34 +54,4 @@ class WindowsPlatformStrategy : PlatformStrategy {
         return PlatformType.WINDOWS
     }
 
-    override fun createSymlink(absolutePath: String, linkPath: String): Boolean {
-        val target = File(absolutePath)
-        val link = File(linkPath)
-
-        val isDirectory = target.isDirectory
-        val command = if (isDirectory) {
-            "mklink /D \"${link.absolutePath}\" \"${target.absolutePath}\""
-        } else {
-            "mklink \"${link.absolutePath}\" \"${target.absolutePath}\""
-        }
-
-        return try {
-            val process = ProcessBuilder("cmd.exe", "/c", command)
-                .redirectErrorStream(true)
-                .start()
-
-            val exitCode = process.waitFor()
-            val output = process.inputStream.bufferedReader().readText()
-
-            if (exitCode == 0) {
-                true
-            } else {
-                System.err.println("Windows创建失败 (错误码: $exitCode): $output")
-                false
-            }
-        } catch (e: Exception) {
-            System.err.println("Windows创建异常: ${e.message}")
-            false
-        }
-    }
 }

@@ -1,14 +1,9 @@
-@file:OptIn(ExperimentalCli::class)
 
 package site.addzero.app
-
-import kotlinx.cli.ExperimentalCli
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.ksp.generated.defaultModule
-import site.addzero.cli.biz.task.TaskStatusService
 import site.addzero.cli.commands.ReplTemp
-import site.addzero.cli.commands.repl.*
 import kotlin.getValue
 
 fun main() {

@@ -15,7 +15,6 @@ class LinuxPlatformStrategy : PlatformStrategy {
             osName.contains("nux")
         }
 
-
     override fun setEnv(name: String, value: String) {
 
         // 优先检测是否使用zsh（macOS默认shell）

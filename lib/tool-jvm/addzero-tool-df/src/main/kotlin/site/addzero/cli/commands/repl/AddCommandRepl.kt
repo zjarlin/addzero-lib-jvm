@@ -7,9 +7,9 @@ import site.addzero.app.ParamDef
 import site.addzero.cli.config.Lines
 import site.addzero.cli.config.configService
 import site.addzero.cli.dotfiles.sync_stragty.SyncUtil
-import site.addzero.cli.platform.PlatformService
 import site.addzero.cli.setting.SettingContext.DOTFILES_DIR
 import site.addzero.cli.setting.SettingContext.HOME_DIR
+import site.addzero.util.AddFileUtil
 import java.io.File
 import kotlin.reflect.typeOf
 
@@ -72,7 +72,8 @@ class AddCommandRepl : AdvancedRepl<AddCommandRepl.AddCommandParams, Unit> {
         }
 
         println("开始创建软链接,${newSourceDirAbs} to ${DOTFILES_DIR}")
-        val success = PlatformService.createSymlink(newSourceDirAbs, DOTFILES_DIR)
+
+        val success = AddFileUtil.mvln(newSourceDirAbs, DOTFILES_DIR)
         //提交配置
         val lines = currentPlatformConfig.links.plus(Lines(newSourceDirAbs, DOTFILES_DIR))
         val copy = currentPlatformConfig.copy(links = lines)
@@ -81,11 +82,7 @@ class AddCommandRepl : AdvancedRepl<AddCommandRepl.AddCommandParams, Unit> {
         // 上传配置
         SyncUtil.commitAndPush()
 
-        if (success) {
-            println("文件添加完成")
-        } else {
-            System.err.println("文件添加失败")
-        }
+        println("文件添加完成")
     }
 
     override fun createParams(values: List<Any?>): AddCommandParams {

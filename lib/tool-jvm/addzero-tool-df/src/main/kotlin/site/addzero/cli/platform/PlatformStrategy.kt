@@ -1,20 +1,6 @@
 package site.addzero.cli.platform
 
 import java.io.File
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.StandardCopyOption
-import java.nio.file.attribute.BasicFileAttributes
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createDirectories
-import kotlin.io.path.deleteExisting
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
 
 interface PlatformStrategy {
     val support: Boolean
@@ -156,102 +142,6 @@ interface PlatformStrategy {
      * @return 平台类型
      */
     fun getPlatformType(): PlatformType
-
-    // 以下为通用默认实现
-
-    fun createSymlink(absolutePath: String, linkPath: String): Boolean {
-        return ProUtil.createSymlink(absolutePath, linkPath)
-    }
-
-
-
-
-
-
-    private fun createLinkAndVerify(source: File, target: File): Boolean {
-        // 确保源位置没有残留文件
-        if (source.exists() && !source.delete()) {
-            System.err.println("错误：无法删除源位置残留文件 - ${source.absolutePath}")
-            return false
-        }
-
-        // 创建软链接
-        return try {
-            Files.createSymbolicLink(source.toPath(), target.toPath())
-            // 验证软链接
-            val linkTarget = Files.readSymbolicLink(source.toPath()).toFile().canonicalFile
-            if (linkTarget == target) {
-                println("成功：文件已移动并创建软链接 - 源：${source.absolutePath} -> 目标：${target.absolutePath}")
-                true
-            } else {
-                System.err.println("错误：软链接验证失败 - 实际指向 ${linkTarget.absolutePath}，预期 ${target.absolutePath}")
-                source.delete() // 清理无效链接
-                false
-            }
-        } catch (e: Exception) {
-            System.err.println("错误：创建软链接失败 - ${e.message ?: "未知错误"}")
-            false
-        }
-    }
-
-
-
-
-
-
-
-
-    /**
-     * 递归复制文件/目录
-     */
-    private fun copyRecursively(source: Path, target: Path) {
-        when {
-            source.isDirectory() -> {
-                // 创建目标目录
-                target.createDirectories()
-
-                // 复制目录内容
-                Files.walkFileTree(source, object : SimpleFileVisitor<Path>() {
-                    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        val relativePath = source.relativize(file)
-                        val targetFile = target.resolve(relativePath)
-                        Files.copy(file, targetFile, StandardCopyOption.REPLACE_EXISTING)
-                        return FileVisitResult.CONTINUE
-                    }
-
-                    override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        val relativePath = source.relativize(dir)
-                        val targetDir = target.resolve(relativePath)
-                        targetDir.createDirectories()
-                        return FileVisitResult.CONTINUE
-                    }
-                })
-            }
-            source.isRegularFile() -> {
-                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
-            }
-            else -> {
-                throw UnsupportedOperationException("不支持的文件类型: ${source.fileName}")
-            }
-        }
-    }
-
-    // 使用示例
-    fun main() {
-        val symlinkPath = "/path/to/symlink" // 软链接路径
-
-        try {
-            val executed = undomvln(symlinkPath)
-            if (executed) {
-                println("软链接已替换为真实文件")
-            } else {
-                println("无需操作（路径不存在或不是软链接）")
-            }
-        } catch (e: Exception) {
-            println("操作失败: ${e.message}")
-        }
-    }
-
 
 
 }
