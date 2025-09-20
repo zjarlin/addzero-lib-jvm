@@ -61,7 +61,7 @@ suspend fun hello2() = withContext(Dispatchers.Main) {
 }
 
 @AutoInit
-class Hello6() {
+class Hello6 {
 
 }
 

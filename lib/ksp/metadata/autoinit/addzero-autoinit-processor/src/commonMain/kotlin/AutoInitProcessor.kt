@@ -15,7 +15,8 @@ private data class InitFunction(
     val isSuspend: Boolean,       // 是否挂起函数
     val isComposable: Boolean,    // 是否Composable函数
     val isStatic: Boolean,        // 是否静态函数（伴生对象中）
-    val initType: InitType        // 初始化类型
+    val initType: InitType,       // 初始化类型
+    val hasParentheses: Boolean = false  // 类声明是否已包含括号
 )
 
 // 初始化类型枚举
@@ -60,8 +61,9 @@ private enum class FunctionType(private val functionCallTemplate: String, privat
                 functionCallTemplate.format(fullFunctionName)
             }
             InitType.CLASS_INSTANCE -> {
-                // 为类实例调用
-                functionCallTemplate.format("${function.className}()")
+                // 为类实例调用，类实例化时需要括号，但只添加一次
+                val className = function.className!!
+                functionCallTemplate.format(className)
             }
             InitType.OBJECT_INSTANCE -> {
                 // 为对象实例调用，不需要括号
@@ -301,6 +303,10 @@ class AutoInitProcessor(
             annotationType == "androidx.compose.runtime.Composable"
         }
 
+        // 对于类实例化，无论类声明中是否包含括号，我们都需要在实例化时添加括号
+        // 所以这里hasParentheses始终为false
+        val hasParentheses = false
+
         val initFunction = InitFunction(
             packageName = packageName,
             className = clazz.qualifiedName?.asString(),
@@ -309,7 +315,8 @@ class AutoInitProcessor(
             isSuspend = false,
             isComposable = isComposable,
             isStatic = false,
-            initType = InitType.CLASS_INSTANCE
+            initType = InitType.CLASS_INSTANCE,
+            hasParentheses = hasParentheses
         )
 
         functions.add(initFunction)
