@@ -10,6 +10,15 @@
 - 区分处理挂起函数（suspend）和可组合函数（@Composable）
 - 生成统一的容器对象用于初始化管理
 ## 使用方法
+```kotlin
+
+    kspCommonMainMetadata("site.addzero:addzero-ioc-processor:+")
+//    or KMP  二选一哈,jvm就用下面的
+    ksp("site.addzero:addzero-ioc-processor:+")
+    
+    implementation("site.addzero:addzero-ioc-core:+")
+
+```
 1. 在需要自动管理的函数、类或对象上添加 `@Bean` 注解：
 
 ```kotlin
