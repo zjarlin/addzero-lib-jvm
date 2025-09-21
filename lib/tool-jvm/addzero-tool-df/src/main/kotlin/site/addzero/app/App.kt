@@ -1,6 +1,4 @@
 package site.addzero.app
-import org.koin.core.context.GlobalContext
-import org.koin.core.context.GlobalContext.get as getKoinContext
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.ksp.generated.defaultModule

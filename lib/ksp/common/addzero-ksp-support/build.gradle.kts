@@ -5,7 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+//            implementation(projects.lib.toolKmp.addzeroToolJson)
             api(projects.lib.toolKmp.addzeroToolStr)
         }
         jvmMain.dependencies {

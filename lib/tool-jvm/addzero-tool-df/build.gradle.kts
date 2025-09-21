@@ -11,7 +11,7 @@ dependencies {
     implementation(libs.addzero.tool.io)
     implementation(libs.kotlin.reflect)
     implementation(projects.lib.toolJvm.addzeroToolCliRepl)
-    implementation(projects.lib.toolJvm.addzeroToolCli)
+    implementation(projects.lib.toolKmp.addzeroToolKoin)
 }
 
 application {

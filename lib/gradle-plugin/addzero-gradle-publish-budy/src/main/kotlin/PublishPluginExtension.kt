@@ -33,7 +33,7 @@ interface PublishPluginExtension {
     companion object {
         fun create(project: Project): PublishPluginExtension {
             return project.extensions.create("publishConfig", PublishPluginExtension::class.java).apply {
-                projectDescription.convention("addzero全栈脚手架")
+                projectDescription.convention("addzero-kmp-scaffold")
                 gitUrl.convention("https://gitee.com/zjarlin/addzero.git")
                 licenseName.convention("The Apache License, Version 2.0")
                 licenseUrl.convention("http://www.apache.org/licenses/LICENSE-2.0.txt")

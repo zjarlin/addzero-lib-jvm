@@ -15,7 +15,7 @@ kotlin {
 
 
             implementation(libs.logback)
-//            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+//            implementation(projects.lib.toolKmp.addzeroToolJson)
         }
 
         //懒人http

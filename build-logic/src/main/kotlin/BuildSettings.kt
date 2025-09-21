@@ -9,7 +9,7 @@ object BuildSettings {
     object Desktop {
         const val MAIN_CLASS = "${PACKAGE_NAME}.MainKt"
     }
-    const val PROJECT_DESCRIPTION = "kmp+jimmer全栈脚手架"
+    const val PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
     const val AUTH_NAME = "zjarlin"
     const val PACKAGE_NAME = "site.addzero"
     const val GIT_URL = "https://gitee.com/zjarlin/addzero.git"

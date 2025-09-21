@@ -10,7 +10,7 @@ kotlin {
                 implementation(projects.lib.compose.addzeroComposeNativeComponentButton)
                 implementation(projects.lib.toolKmp.addzeroTool)
                 implementation(projects.lib.compose.addzeroComposeNativeComponentSearchbar)
-//                implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+//                implementation(projects.lib.toolKmp.addzeroToolJson)
 
             }
         }

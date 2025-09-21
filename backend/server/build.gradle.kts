@@ -32,7 +32,7 @@ ksp {
 dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(projects.lib.compose.addzeroComposeModelComponent)
-    implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+    implementation(projects.lib.toolKmp.addzeroToolJson)
     implementation(projects.lib.toolJvm.jimmer.addzeroJimmerExtLowquery)
     implementation(projects.lib.toolJvm.addzeroToolCommonJvm)
 

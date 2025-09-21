@@ -12,7 +12,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation(projects.lib.toolKmp.addzeroKotlinxSerializationExt)
+//            implementation(projects.lib.toolKmp.addzeroToolJson)
             implementation(projects.lib.compose.addzeroComposePropsAnnotations)
 //            implementation(projects.lib.compose.addzerosearch)
             api(projects.lib.compose.addzeroComposeNativeComponentTable)
