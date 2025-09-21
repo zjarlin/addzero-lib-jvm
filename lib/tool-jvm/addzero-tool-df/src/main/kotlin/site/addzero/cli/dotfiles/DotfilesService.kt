@@ -5,7 +5,7 @@ import org.koin.java.KoinJavaComponent.inject
 import site.addzero.cli.config.ConfigService
 import site.addzero.cli.dotfiles.sync_stragty.SyncUtil
 import site.addzero.cli.setting.SettingContext
-import site.addzero.ioc.annotation.Bean
+
 import java.io.File
 
 val dotfilesService: DotfilesService by inject(DotfilesService::class.java)
@@ -26,7 +26,6 @@ class DotfilesService(private val configService: ConfigService) {
          * @param gitRepo Git仓库URL，如果提供则从该仓库克隆
          * @return 是否初始化成功
          */
-        @Bean
 
         fun init(): Boolean = run {
             val dotfilesDirectory = File(SettingContext.DOTFILES_DIR)

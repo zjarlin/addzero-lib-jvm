@@ -20,7 +20,6 @@ object ProUtil {
     }
 
 
-    // Unix类系统通用设置方法（写入配置文件）
     @Throws(IOException::class, InterruptedException::class)
     fun setUnixEnv(key: String, value: String?, configFile: String?) {
         // 1. 先删除已存在的同名变量配置

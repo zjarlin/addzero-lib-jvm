@@ -11,7 +11,7 @@ import site.addzero.cli.setting.SettingContext.CONFIG_FILE
 import site.addzero.cli.setting.SettingContext.WORK_DIR
 import site.addzero.core.ext.parseObjectByKtx
 import site.addzero.core.ext.toJsonByKtx
-import site.addzero.ioc.annotation.Bean
+
 import java.io.File
 
 val configService: ConfigService by inject(ConfigService::class.java)
@@ -117,7 +117,6 @@ class ConfigService {
 
     init {
 
-        @Bean
         fun initConfigDir() {
             println("初始化工作目录...")
             val dir = File(WORK_DIR)

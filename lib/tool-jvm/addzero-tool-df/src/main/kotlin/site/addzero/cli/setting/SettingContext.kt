@@ -1,8 +1,4 @@
 package site.addzero.cli.setting
-
-import site.addzero.ioc.annotation.Bean
-
-
 object SettingContext {
     val HOME_DIR
         get() = run {
@@ -13,9 +9,12 @@ object SettingContext {
                 property
             }
         }
+    //可以改
     val WORK_DIR = "${HOME_DIR}/.config/df"
-    val SYNC_DIR: String
-        get() = "${WORK_DIR}/dfctx"
+
+    //可以改
+    val SYNC_DIR: String = "${WORK_DIR}/dfctx"
+
     val STATUS_DIR = "$WORK_DIR/cache/.status"
     val STATUS_FILE = "$STATUS_DIR/task_status.json"
 
@@ -25,9 +24,6 @@ object SettingContext {
 
     val DEFAULT_PKG: Set<String> = linkedSetOf("git", "curl", "wget", "zsh", "neovim", "node", "npm", "yarn")
 
-    const val EXIT_COMMAND = "q"
-
-    const val HELP_COMMAND = "h"
 
 }
 
