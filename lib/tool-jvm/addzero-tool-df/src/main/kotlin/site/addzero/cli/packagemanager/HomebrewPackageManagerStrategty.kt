@@ -1,18 +1,49 @@
-package site.addzero.cli.`package`
+package site.addzero.cli.packagemanager
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.koin.core.annotation.Single
+import org.koin.core.context.startKoin
+import org.koin.ksp.generated.defaultModule
 import site.addzero.cli.platform.PlatformService
+import site.addzero.cli.platform.PlatformType
 import site.addzero.cli.platform.runBoolean
 import site.addzero.cli.platform.runCmd
+import kotlin.time.Clock
+
+fun main() {
+    // 启动Koin并加载模块
+    startKoin {
+        modules(defaultModule)
+    }
+    val listOf = listOf("\"git\",\"curl\",\"wget\",\"zsh\",\"neovim\",\"node\",\"npm\",\"yarn\",\"qq\",\"qq5\"")
+    val joinToString = listOf.map { it.trim() }.map {
+        val runBoolean = "brew list  | grep -q '^$it\$'".runBoolean()
+        it to runBoolean
+    }.joinToString {
+        if (it.second) {
+            "已安装: ${it.first}"
+        } else {
+            "未安装: ${it.first}"
+        }+ System.lineSeparator()
+    }
+    println(joinToString)
+}
 
 /**
  * macOS的Homebrew包管理器实现
  */
-class HomebrewPackageManager : PackageManager {
-    val osType = PlatformService.getPlatformType()
+@Single
+
+class HomebrewPackageManagerStrategty : PackageManagerStrategty {
+    override val support: Boolean
+        get() = run {
+            val osType = PlatformService.getPlatformType()
+            return osType == PlatformType.MACOS
+        }
+
 
     override fun getName(): String = "Homebrew"
 
@@ -22,6 +53,7 @@ class HomebrewPackageManager : PackageManager {
 
     override suspend fun installSelf(): Boolean {
         if (isAvailable()) {
+            println("已安装过包管理器homebrew,跳过")
             return true
         }
         // 安装Homebrew
@@ -79,7 +111,8 @@ class HomebrewPackageManager : PackageManager {
     }
 
     override suspend fun isPackageInstalled(packageName: String): Boolean {
-        return "brew list --formula | grep -q '^$packageName\$'".runBoolean()
+        val runBoolean = "brew list --formula | grep -q '^$packageName\$'".runBoolean()
+        return runBoolean
     }
 
     override suspend fun getPackageVersion(packageName: String): String? {

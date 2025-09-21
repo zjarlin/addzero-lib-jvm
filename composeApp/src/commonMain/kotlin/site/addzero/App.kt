@@ -2,8 +2,12 @@ package site.addzero
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.koin.core.context.startKoin
+import org.koin.dsl.koinApplication
 import org.koin.ksp.generated.defaultModule
 import site.addzero.di.NavgationViewModel
 import site.addzero.ioc.generated.IocContainer
@@ -16,6 +20,7 @@ import site.addzero.ui.infra.theme.ThemeViewModel
 import site.addzero.viewmodel.ChatViewModel
 import site.addzero.viewmodel.LoginViewModel
 import site.addzero.viewmodel.SysRouteViewModel
+import kotlin.getValue
 
 
 @Composable

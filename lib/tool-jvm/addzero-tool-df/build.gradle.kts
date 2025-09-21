@@ -7,11 +7,8 @@ plugins {
 }
 
 
-
 dependencies {
     implementation(libs.kotlinx.coroutines.core )
-//    ksp(libs.addzero.ioc.processor)
-//    implementation(libs.addzero.ioc.core)
     implementation(libs.addzero.tool.io)
     implementation(libs.kotlin.reflect)
     implementation(projects.lib.toolJvm.addzeroToolCliRepl)

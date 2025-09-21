@@ -44,7 +44,7 @@ class AddCommandRepl : AdvancedRepl<AddCommandRepl.AddCommandParams, Unit> {
     override fun eval(params: AddCommandParams) = runBlocking {
         val abs = params.abs
         val sourcePath = params.sourcePath
-        val currentPlatformConfig = configService.osConfig
+        val currentPlatformConfig = configService.currentPlatformConfig
 
         val newSourceDirAbs = if (!abs) {
             val file = File(HOME_DIR, sourcePath)

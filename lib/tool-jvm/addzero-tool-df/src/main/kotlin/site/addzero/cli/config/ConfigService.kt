@@ -22,7 +22,7 @@ val configService: ConfigService by inject(ConfigService::class.java)
 @Single(createdAtStart = true)
 class ConfigService {
     var config: Config = loadConfig()
-    val osConfig: PlatformConfig = config.getCurrentPlatformConfig()
+    val currentPlatformConfig: PlatformConfig = config.getCurrentPlatformConfig()
     fun loadConfig(): Config {
 
         val file = File(CONFIG_FILE)
@@ -35,8 +35,10 @@ class ConfigService {
             return config
 
         }
-        println("检测到配置文件已存,开始读取最新配置...")
-        val parseObjectByKtx = file.readText().parseObjectByKtx<Config>()
+        println("检测到配置文件已存在,开始读取最新配置...")
+        val readText = file.readText()
+        println("最新配置为 :${readText}")
+        val parseObjectByKtx = readText.parseObjectByKtx<Config>()
         config = parseObjectByKtx
         return parseObjectByKtx
     }
@@ -88,8 +90,8 @@ class ConfigService {
         Dispatchers.IO
     ) {
 //        saveConfig()
-        val defaultPackages = osConfig.defaultPackages
-        val copy = osConfig.copy(defaultPackages = defaultPackages + packageName)
+        val defaultPackages = currentPlatformConfig.defaultPackages
+        val copy = currentPlatformConfig.copy(defaultPackages = defaultPackages + packageName)
         updatePlatFormConfig(copy)
         saveConfig()
     }
@@ -99,8 +101,8 @@ class ConfigService {
         Dispatchers.IO
     ) {
 //        saveConfig()
-        val defaultPackages = osConfig.defaultPackages
-        val copy = osConfig.copy(defaultPackages = defaultPackages - packageName)
+        val defaultPackages = currentPlatformConfig.defaultPackages
+        val copy = currentPlatformConfig.copy(defaultPackages = defaultPackages - packageName)
         updatePlatFormConfig(copy)
         saveConfig()
     }
@@ -110,7 +112,7 @@ class ConfigService {
      * 设置包管理器
      */
     suspend fun setPackageManager(packageManager: String?) = withContext(Dispatchers.IO) {
-        val copy = osConfig.copy(packageManager = packageManager)
+        val copy = currentPlatformConfig.copy(packageManager = packageManager)
         updatePlatFormConfig(copy)
         saveConfig()
     }

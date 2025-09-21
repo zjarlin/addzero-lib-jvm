@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 import site.addzero.cli.config.ConfigService
-import site.addzero.cli.`package`.PackageManagerFactory
+import site.addzero.cli.packagemanager.PackageManagerStrategty.Companion.getSupportPackageManager
 import site.addzero.cli.platform.PlatformService
 
 /**
@@ -28,7 +28,6 @@ class InstallService(
         println("安装软件包...")
         // 如果没有指定软件包，则使用配置文件中的默认软件包
         val packagesToInstall = packages.ifEmpty {
-
             if (packages.isEmpty()) {
                 println("没有指定要安装的软件包，且配置文件中没有默认软件包,请先设置")
                 configService.addPkg(PlatformService.readLine() ?: "")
@@ -37,25 +36,8 @@ class InstallService(
             println("使用配置文件中的默认软件包: ${packages.joinToString(", ")}")
             packages
         }
-
         // 获取包管理器，优先使用配置文件中指定的包管理器
-        val packageManager = run {
-            val platformPackageManager = currentPlatformConfig.packageManager
-
-            if (!platformPackageManager.isNullOrEmpty()) {
-                val pm = PackageManagerFactory.getPackageManager(platformPackageManager)
-                if (pm != null) {
-                    println("使用平台特定的包管理器: ${pm.getName()}")
-                    pm
-                } else {
-                    println("平台特定的包管理器 $platformPackageManager 不可用，尝试使用全局配置")
-                    // 注意：Config类中没有全局packageManager属性，直接使用默认包管理器
-                    PackageManagerFactory.getDefaultPackageManager()
-                }
-            } else {
-                PackageManagerFactory.getDefaultPackageManager()
-            }
-        }
+        val packageManager = getSupportPackageManager()
 
         println("使用包管理器: ${packageManager.getName()}")
 
@@ -85,5 +67,6 @@ class InstallService(
             println("以下软件包安装失败: ${failedPackages.joinToString(", ")}")
         }
     }
+
 
 }

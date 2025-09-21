@@ -1,13 +1,31 @@
-package site.addzero.cli.`package`
+package site.addzero.cli.packagemanager
 
+import org.koin.core.annotation.Single
+import org.koin.java.KoinJavaComponent
 import site.addzero.cli.platform.PlatformService
+
+@Single
+class TempContainer(val strategys: List<PackageManagerStrategty>)
+
+val temp by KoinJavaComponent.inject<TempContainer>(TempContainer::class.java)
 
 /**
  * 包管理器抽象接口
  *
  * 提供与包管理器相关的功能抽象，如安装、卸载、更新软件包等
  */
-interface PackageManager {
+interface PackageManagerStrategty {
+    companion object Companion {
+        public fun getSupportPackageManager(): PackageManagerStrategty {
+            val listT = temp.strategys
+            val firstOrNull = listT.firstOrNull { it.support }
+            val supportStrategty = firstOrNull
+            return supportStrategty ?: throw Exception("No support package manager")
+        }
+    }
+
+    val support: Boolean
+
     /**
      * 获取包管理器名称
      */

@@ -19,16 +19,22 @@ interface PlatformStrategy {
     }
 
 
-    fun readYesNo(prompt: String): Boolean? {
+    fun readBoolean(prompt: String, default: Boolean = true): Boolean? {
+        val defaultStr = if (default) "y" else "n"
         while (true) {
-            println("$prompt  (y/n)，默认y:")
-            val input = readLine("$prompt  (y/n)，默认y:")?.lowercase()
+            println("$prompt (y/n)，默认$defaultStr:")
+            val input = readLine("$prompt (y/n)，默认$defaultStr:")?.lowercase()
             when (input) {
-                "y", "yes", "", null -> return true
+                "y", "yes" -> return true
                 "n", "no" -> return false
+                "", null -> return default
                 else -> println("Invalid input. Please enter 'y' or 'n'.")
             }
         }
+    }
+
+    fun readBooleanDefaultNo(prompt: String): Boolean? {
+        return readBoolean(prompt, false)
     }
 
 

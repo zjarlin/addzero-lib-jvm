@@ -1,41 +1,49 @@
-package site.addzero.cli.`package`
+package site.addzero.cli.packagemanager
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.koin.core.annotation.Single
+import site.addzero.cli.platform.PlatformService
+import site.addzero.cli.platform.PlatformType
 import site.addzero.cli.platform.runBoolean
 import site.addzero.cli.platform.runCmd
 
 /**
- * Windows的Chocolatey包管理器实现
+ * Windows的Winget包管理器实现
  */
-class ChocolateyPackageManager : PackageManager {
+@Single
+class WingetPackageManagerStrategty : PackageManagerStrategty {
+    val osType = PlatformService.getPlatformType()
+    override val support: Boolean
+        get() {
+            val osType = PlatformService.getPlatformType()
+            return osType == PlatformType.WINDOWS
+        }
 
-    override fun getName(): String = "Chocolatey"
+    override fun getName(): String = "Winget"
 
     override suspend fun isAvailable(): Boolean {
-        return "where choco".runBoolean()
+        return "winget --version".runBoolean()
     }
 
     override suspend fun installSelf(): Boolean {
         if (isAvailable()) {
+            println("已安装过包管理器winget,跳过")
             return true
         }
-
-        // 安装Chocolatey（需要管理员权限）
-        val installScript =
-            "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-        return "powershell -Command \"$installScript\"".runBoolean()
+        println("Winget不可用，请确保您的Windows版本支持Winget或从Microsoft Store安装")
+        return false
     }
 
     override suspend fun updateIndex(): Boolean {
-        // Chocolatey没有单独的更新索引命令，但可以通过升级自身来更新
-        return "choco upgrade chocolatey -y".runBoolean()
+        // Winget会自动更新源，无需手动更新索引
+        return true
     }
 
     override suspend fun installPackage(packageName: String): Boolean {
-        return "choco install $packageName -y".runBoolean()
+        return "winget install --silent --accept-package-agreements --accept-source-agreements $packageName".runBoolean()
     }
 
     override suspend fun installPackages(packageNames: List<String>): List<String> {
@@ -72,11 +80,12 @@ class ChocolateyPackageManager : PackageManager {
         }
 
     override suspend fun uninstallPackage(packageName: String): Boolean {
-        return "choco uninstall $packageName -y".runBoolean()
+        return "winget uninstall --silent $packageName".runBoolean()
     }
 
     override suspend fun isPackageInstalled(packageName: String): Boolean {
-        return "choco list --local-only $packageName".runBoolean()
+        val result = "winget list --exact --query $packageName".runCmd()
+        return result.exitCode == 0 && result.output.contains(packageName, ignoreCase = true)
     }
 
     override suspend fun getPackageVersion(packageName: String): String? {
@@ -84,12 +93,13 @@ class ChocolateyPackageManager : PackageManager {
             return null
         }
 
-        val result = "choco list --local-only $packageName".runCmd()
+        val result = "winget show --exact --query $packageName".runCmd()
+
 
 
         if (result.exitCode == 0) {
             // 解析输出获取版本号
-            val regex = "${packageName}\\s+([\\d.]+)".toRegex(RegexOption.IGNORE_CASE)
+            val regex = "Version:\\s+([\\d.]+)".toRegex(RegexOption.IGNORE_CASE)
             val matchResult = regex.find(result.output)
             return matchResult?.groupValues?.getOrNull(1)
         }
@@ -97,25 +107,16 @@ class ChocolateyPackageManager : PackageManager {
     }
 
     override suspend fun searchPackage(keyword: String): List<String> {
-        val result = "choco search $keyword".runCmd()
+        val result = "winget search $keyword".runCmd()
 
-
-        return if (result.exitCode == 0) {
+        if (result.exitCode == 0) {
             // 解析输出获取包名列表
-            val lines = result.output.split("\n").filter { it.isNotBlank() }
-            val packages = mutableListOf<String>()
-
-            for (line in lines) {
-                val regex = "^([\\w.-]+)\\s+".toRegex()
-                val matchResult = regex.find(line)
-                matchResult?.groupValues?.getOrNull(1)?.let {
-                    packages.add(it)
-                }
+            val lines = result.output.lines().drop(2) // 跳过标题行
+            return lines.filter { it.isNotBlank() }.map { line ->
+                line.split(Regex("\\s{2,}"))[0] // 获取第一列（包名）
             }
-
-            packages
-        } else {
-            emptyList()
         }
+        return emptyList()
     }
 }
+

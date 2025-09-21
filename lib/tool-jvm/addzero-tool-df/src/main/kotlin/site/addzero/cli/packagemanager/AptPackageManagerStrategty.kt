@@ -1,18 +1,27 @@
-package site.addzero.cli.`package`
+package site.addzero.cli.packagemanager
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.koin.core.annotation.Single
+import site.addzero.cli.platform.PlatformService
+import site.addzero.cli.platform.PlatformType
 import site.addzero.cli.platform.runBoolean
 import site.addzero.cli.platform.runCmd
 
 /**
  * Linux的APT包管理器实现
  */
-class AptPackageManager : PackageManager {
-
-//    private val os = OSFactory.getCurrentOS()
+@Single
+class AptPackageManagerStrategty : PackageManagerStrategty {
+    override val support: Boolean
+        get() {
+            val osType = PlatformService.getPlatformType()
+            val bool = osType == PlatformType.LINUX
+            val runBoolean = "which apt".runBoolean()
+            return bool && runBoolean
+        }
 
     override fun getName(): String = "APT"
 
@@ -21,7 +30,11 @@ class AptPackageManager : PackageManager {
     }
 
     override suspend fun installSelf(): Boolean {
-        return isAvailable()
+        val available = isAvailable()
+        if (available) {
+            println("已安装过包管理器apt,跳过")
+        }
+        return available
     }
 
     override suspend fun updateIndex(): Boolean {
