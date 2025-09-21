@@ -6,12 +6,12 @@ plugins {
     id("jvm-koin-core")
 }
 
-
 dependencies {
-    implementation(libs.kotlinx.coroutines.core )
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.addzero.tool.io)
     implementation(libs.kotlin.reflect)
     implementation(projects.lib.toolJvm.addzeroToolCliRepl)
+    implementation(projects.lib.toolJvm.addzeroToolCli)
 }
 
 application {

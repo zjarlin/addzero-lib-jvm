@@ -48,19 +48,15 @@ object DatabaseMetadataUtil {
                 return !excludeRules.any { rule -> matchesWildcard(tableName, rule) }
             }
         }
-
         // 3. 默认包含所有表
         return true
     }
-
     fun getTableMetaData(
         connection: Connection,
         schema: String, includeRules: List<String>?, excludeRules: List<String>?
     ): MutableList<JdbcTableMetadata> {
         val tables = mutableListOf<JdbcTableMetadata>()
-
         val metaData = connection.metaData
-
         // 获取所有表
         val tablesResultSet = metaData.getTables(
             connection.catalog,

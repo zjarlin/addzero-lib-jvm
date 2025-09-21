@@ -4,9 +4,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
-    id("kmp-json")
-    id("kmp-koin-core")
-    id("kmp-ksp-plugin")
 }
 
 kotlin {
@@ -14,8 +11,12 @@ kotlin {
     macosArm64()
     mingwX64()
     linuxX64()
+    jvm()
 
     dependencies {
+        implementation(project.dependencies.platform(libs.koin.bom))
+        implementation(libs.koin.annotations)
+        implementation(libs.koin.core)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.cli)
     }

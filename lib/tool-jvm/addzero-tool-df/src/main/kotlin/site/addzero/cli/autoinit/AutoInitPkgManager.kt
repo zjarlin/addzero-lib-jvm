@@ -6,13 +6,14 @@ import site.addzero.cli.biz.task.InstallService
 import site.addzero.cli.config.ConfigService
 import site.addzero.cli.packagemanager.PackageManagerStrategty.Companion.getSupportPackageManager
 import site.addzero.cli.platform.PlatformService
-import site.addzero.util.inject
+import site.addzero.util.KoinInjector
 
 
 @Single(createdAtStart = true)
 class AutoInitPkgManager {
     init {
-        val configService = inject<ConfigService>()
+        val koin = KoinInjector.getKoin()
+        val configService = koin.get<ConfigService>()
         val supportPackageManager = getSupportPackageManager()
         val filterNot = configService.currentPlatformConfig.defaultPackages.filterNot {
             runBlocking {
@@ -26,7 +27,8 @@ class AutoInitPkgManager {
             println("开始静默安装")
             //查看哪些包还没安装过
 
-            val inject = inject<InstallService>()
+            val koin = KoinInjector.getKoin()
+            val inject = koin.get<InstallService>()
             runBlocking {
                 inject.executeInternal(this)
             }
