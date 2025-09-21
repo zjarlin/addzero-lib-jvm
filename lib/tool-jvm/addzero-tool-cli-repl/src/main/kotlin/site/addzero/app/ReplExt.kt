@@ -109,7 +109,7 @@ private fun <P, O> executeCommand(
     indexedCommands: Map<Int, AdvancedRepl<P, O>>
 ) {
     val repl = commandMap[cmd.lowercase()] ?: run {
-        println("未知命令: $cmd，输入'help'查看帮助")
+        println("未知命令: $cmd，输入${HELP_COMMAND}查看帮助")
         printCommandList(indexedCommands)
         return
     }
@@ -175,7 +175,7 @@ fun List<AdvancedRepl<*, *>>.startReplMode() {
     @Suppress("UNCHECKED_CAST")
     (this as List<AdvancedRepl<Any, Any>>).toAdvancedRepl(
         prompt = "dotfiles-cli > ",
-        exitCommand = "q",
-        helpCommand = "h"
+        exitCommand = EXIT_COMMAND,
+        helpCommand = HELP_COMMAND
     )
 }
