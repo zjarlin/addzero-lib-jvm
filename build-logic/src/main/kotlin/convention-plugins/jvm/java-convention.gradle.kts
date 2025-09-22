@@ -30,9 +30,9 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.withType<JavaExec>().configureEach {
     // 添加完整的UTF-8编码支持
     jvmArgs("-Dfile.encoding=UTF-8")
+    //保证终端cli打印正确
     jvmArgs("-Dsun.stdout.encoding=UTF-8")
     jvmArgs("-Dsun.stderr.encoding=UTF-8")
-    // 对于JDK 8，额外添加这些参数确保字符编码正确
     jvmArgs("-Dsun.jnu.encoding=UTF-8")
 }
 
