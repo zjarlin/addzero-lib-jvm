@@ -86,6 +86,9 @@ androidx-lifecycle = "2.9.3"
 kotlinx-cli = "0.3.6"
 clikt = "5.0.3"
 
+# OkHttp 版本
+okhttp = "5.1.0"
+
 [libraries]
 
 addzero-ioc-core = { module = "site.addzero:addzero-ioc-core", version.ref = "addzeroIocCoreVersion" }
@@ -100,8 +103,7 @@ clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 
 addzero-gradle-tool = { module = "site.addzero:addzero-gradle-tool", version.ref = "addzeroGradleToolVersion" }
 
-
-
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 lazy-people-http = { module = "io.github.ltttttttttttt:LazyPeopleHttp-lib", version.ref = "lazyPeopleHttp" }
