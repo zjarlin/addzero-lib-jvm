@@ -1,6 +1,32 @@
 # KMP Jimmer 全栈脚手架
 
-> 基于 Kotlin Multiplatform + Jimmer 的全栈开发脚手架，通过 KSP 实现前后端代码生成的完美一致性
+> 基于 Kotlin Multiplatform + Jimmer ORM 的全栈开发脚手架，通过 KSP 实现前后端代码生成的完美一致性，提升开发效率并保证类型安全。
+
+## 发布到Maven Local
+
+由于项目使用了Maven Publish插件，与Gradle配置缓存存在兼容性问题，在执行发布任务时需要禁用配置缓存：
+
+```bash
+./gradlew publishToMavenLocal --no-configuration-cache
+```
+
+或者在gradle.properties中设置：
+```properties
+org.gradle.configuration-cache=false
+```
+
+然后再执行：
+```bash
+./gradlew publishToMavenLocal
+```
+
+## 项目特点
+
+1. **前后端一致性**：通过 Jimmer 实体作为唯一数据源，驱动前后端代码同步
+2. **编译时生成**：使用 KSP 替代注解处理器进行编译时代码生成，确保类型安全和高性能
+3. **响应式状态管理**：利用 ComposeAssist 注解实现 Vue 风格的响应式状态管理
+4. **策略模式**：采用策略模式实现可扩展的字段识别与表单生成
+5. **模块化架构**：多模块分层架构，便于维护和扩展
 
 ## 🚀 技术栈
 
@@ -244,7 +270,7 @@ fun Counter(
 
 #### 2️⃣ **自动生成的代码**
 
-```kotlin
+```
 // 响应式State类 - 支持Compose重组
 class CounterState(
     count: Int = 0,
@@ -293,7 +319,7 @@ fun rememberCounterState(
 
 #### 3️⃣ **响应式使用**
 
-```kotlin
+```
 @Composable
 fun MyScreen() {
     // 创建响应式State
@@ -328,7 +354,7 @@ fun MyScreen() {
 
 #### 4️⃣ **泛型支持**
 
-```kotlin
+```
 @ComposeAssist
 @Composable
 fun <T> GenericDisplay(
@@ -389,7 +415,7 @@ numberState.value = 100      // 自动重组！
 
 头部和尾部内容应该在组件外部直接声明，而不是通过插槽传入：
 
-```kotlin
+```
 // ❌ 旧设计：通过插槽传入
 AddTree(
     items = data,
@@ -444,7 +470,7 @@ Column {
 
 #### 1️⃣ **定义实体**
 
-```kotlin
+```
 @Entity
 interface UserProfile {
     @Id val id: Long
@@ -460,7 +486,7 @@ interface UserProfile {
 
 #### 2️⃣ **配置 KSP 处理器**
 
-```kotlin
+```
 // build.gradle.kts
 ksp {
     arg("entityPackage", "site.addzero.entity")
@@ -471,7 +497,7 @@ ksp {
 
 #### 3️⃣ **自动生成的表单结构**
 
-```kotlin
+```
 // 自动生成的 UserProfileForm.kt
 @Composable
 fun UserProfileForm(
@@ -600,7 +626,7 @@ object UserProfileFormProps {
 
 **🎯 核心特性：通过DSL代码块自定义任意字段的渲染方式**
 
-```kotlin
+```
 @Composable
 fun UserProfileScreen() {
     val userState = rememberUserProfileFormState()
@@ -720,7 +746,7 @@ fun UserProfileScreen() {
 
 #### 5️⃣ **DSL高级用法**
 
-```kotlin
+```
 // 🎯 条件渲染
 UserProfileForm(state = userState, ...) {
     // 根据用户角色显示不同字段
@@ -788,7 +814,7 @@ UserProfileForm(state = userState, ...) {
 
 ### 实体定义 → 智能表单 + DSL自定义的完美映射
 
-```kotlin
+```
 // 1. 定义 Jimmer 实体
 @Entity
 interface User {
@@ -993,7 +1019,7 @@ fun UserManagementScreen() {
 
 ![项目截图](images/img_3.png)
 
-```kotlin
+```
 /**
  * 基于 KSP 生成的路由表导航
  * 🎯 一致性保证：路由定义 → 导航生成 → 权限控制的完整链路
