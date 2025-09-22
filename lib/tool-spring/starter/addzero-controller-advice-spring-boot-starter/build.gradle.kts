@@ -1,6 +1,7 @@
 plugins {
     id("spring-starter")
 }
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
@@ -10,7 +11,6 @@ java {
 kotlin {
     jvmToolchain(8)
 }
-
 
 dependencies {
 //    compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0") // 或使用 Spring Boot 管理的版本

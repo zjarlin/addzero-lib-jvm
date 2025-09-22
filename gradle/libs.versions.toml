@@ -16,6 +16,9 @@ kotlin = "2.2.20"
 #agp = "8.11.0"
 agp = "8.11.1"
 
+# JDK8兼容的Spring Boot版本
+springBootJdk8 = "2.7.18"
+
 # 本项目安卓应用版本定义
 android-biz-version = "1.0"
 android-compileSdk = "36"
@@ -53,6 +56,7 @@ gradleMavenPublishPlugin = "0.34.0"
 dependencyManagementPlugin = "1.1.7"
 snakeyaml = "2.5"
 springBootGradlePlugin = "3.5.6"
+springBootGradlePluginJdk8 = "2.7.18"
 postgresql = "42.7.7"
 
 ktorfitGradlePlugin = "2.6.4"
@@ -87,7 +91,7 @@ kotlinx-cli = "0.3.6"
 clikt = "5.0.3"
 
 # OkHttp 版本
-okhttp = "5.1.0"
+okhttp = "4.12.0"
 
 [libraries]
 
@@ -200,6 +204,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 spring-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBootGradlePlugin" }
+spring-bom-jdk8 = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBootJdk8" }
 
 ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 

@@ -1,8 +1,18 @@
-
 plugins {
     id("spring-common")
 }
-   val libs = the<org.gradle.accessors.dm.LibrariesForLibs>()
+
+//java {
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(8))
+//    }
+//}
+//
+//kotlin {
+//    jvmToolchain(8)
+//}
+
+val libs = the<org.gradle.accessors.dm.LibrariesForLibs>()
 
 dependencies {
     implementation("org.springframework:spring-core")
