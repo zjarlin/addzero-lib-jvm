@@ -1,6 +1,7 @@
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 val versionDate: String? = SimpleDateFormat("yyyy.MM.dd").format(Date())
 version = versionDate.toString()
 // 或者使用setter方法
@@ -14,6 +15,7 @@ subprojects {
 //    gradleVersion = "9.1.0"
 //    distributionUrl = "https://mirrors.cloud.tencent.com/gradle/${gradleVersion}/gradle-${gradleVersion}-bin.zip"
 //}
+
 plugins {
 //    id("site.addzero.publish-buddy") version "+"
 //    gradlePluginPublishBuddy
@@ -28,4 +30,3 @@ plugins {
 //    alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
 }
-

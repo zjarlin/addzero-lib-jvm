@@ -34,6 +34,7 @@ class PublishConventionPlugin : Plugin<Project> {
         // 创建扩展配置
         val extension = PublishPluginExtension.create(project)
         // 配置Maven发布
+        println("项目版本为:::${project.version}")
         val version = SimpleDateFormat(
             "yyyy.MM.dd", Locale.getDefault()
         ).format(Date())
