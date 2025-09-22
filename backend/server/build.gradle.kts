@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.lib.toolKmp.addzeroToolJson)
     implementation(projects.lib.toolJvm.jimmer.addzeroJimmerExtLowquery)
     implementation(projects.lib.toolJvm.addzeroToolCommonJvm)
+    implementation(projects.lib.toolSpring.starter.addzeroControllerAdviceSpringBootStarter)
 
     implementation(projects.lib.toolJvm.addzeroToolSpring)
     implementation(projects.lib.toolJvm.jimmer.addzeroJimmerExtLowquery)
