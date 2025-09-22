@@ -1,3 +1,5 @@
+import org.apache.tools.ant.util.FileUtils.getRelativePath
+
 rootProject.name = "addzero"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 //includeBuild("build-logic")
@@ -35,106 +37,54 @@ dependencyResolutionManagement {
     }
 }
 
-/**
- * 自动扫描并包含所有gradle模块
- * @param rootModules 根模块列表，这些模块会被扫描子模块
- * @param excludeModules 排除的模块列表（支持路径匹配）
- */
-fun autoIncludeModules(
-    rootModules: List<String> = listOf("."),
-    excludeModules: List<String> = emptyList()
-) {
-    val projectDir = rootProject.projectDir
-    val foundModules = mutableSetOf<String>()
-
-    rootModules.forEach { rootModule ->
-        val scanDir = if (rootModule == ".") projectDir else File(projectDir, rootModule)
-        if (scanDir.exists() && scanDir.isDirectory) {
-            scanForGradleModules(scanDir, rootModule, foundModules)
-        }
+fun findAllProjectDirs(rootDir: File): List<File> {
+    val result = mutableListOf<File>()
+    if (File(rootDir, "build.gradle.kts").exists()) {
+        result.add(rootDir)
     }
-
-    // 过滤排除的模块
-    val filteredModules = foundModules.filter { modulePath ->
-        !excludeModules.any { exclude ->
-            when {
-                exclude.contains("*") -> {
-                    // 支持通配符匹配
-                    val pattern = exclude.replace("*", ".*")
-                    modulePath.matches(Regex(pattern))
-                }
-                exclude.startsWith(":") -> modulePath == exclude.substring(1)
-                else -> modulePath.contains(exclude)
-            }
-        }
+    rootDir.listFiles { file: File ->
+        file.isDirectory
+    }?.forEach { subDir ->
+        result.addAll(findAllProjectDirs(subDir))
     }
-
-    // 包含所有找到的模块
-    filteredModules.forEach { modulePath ->
-        if (modulePath != ".") {
-            include(":$modulePath")
-            findProject(":$modulePath")
-            println("✓ 自动包含模块: :$modulePath")
-        }
-    }
-
-    println("\n🎯 模块扫描完成，共找到 ${filteredModules.size} 个模块")
-    if (excludeModules.isNotEmpty()) {
-        println("📝 排除的模块模式: ${excludeModules.joinToString(", ")}")
-    }
+    return result
 }
 
-/**
- * 递归扫描目录中的gradle模块
- */
-fun scanForGradleModules(dir: File, relativePath: String, foundModules: MutableSet<String>) {
-    val buildFiles = arrayOf("build.gradle.kts", "build.gradle")
-
-    // 检查当前目录是否包含构建文件
-    val hasBuildFile = buildFiles.any { File(dir, it).exists() }
-
-    if (hasBuildFile) {
-        val modulePath = if (relativePath == ".") "." else relativePath.replace("/", ":")
-        foundModules.add(modulePath)
-    }
-
-    // 递归扫描子目录（跳过常见的非模块目录）
-    dir.listFiles()?.forEach { subDir ->
-        if (subDir.isDirectory && !isExcludedDir(subDir.name)) {
-            val subPath = if (relativePath == ".") subDir.name else "$relativePath/${subDir.name}"
-            scanForGradleModules(subDir, subPath, foundModules)
-        }
-    }
+val rootDir = settings.layout.rootDirectory.asFile
+val findAllProjectDirs = findAllProjectDirs(rootDir)
+val allProjectDirs = findAllProjectDirs
+    .filter { it.absolutePath != rootDir.absolutePath } // 排除根项目本身
+//    .filter {
+//        val bool = it.name.contains("buildSrc")
+//        if (bool) {
+//            println("检测到构建逻辑项目：${it.name}")
+//        }
+//        bool
+//    }
+allProjectDirs.forEach {
+    val name = it.name
+    println("$name")
+    println("名字$name")
+    val absolutePath = it.absolutePath
+    println("绝对路径$absolutePath")
+    val relativePath = getRelativePath(rootDir, it)
+    println("相对路径$relativePath")
+    val moduleName = ":${relativePath.replace(File.separator, ":")}"
+    println("模块名$moduleName")
 }
-
-/**
- * 判断是否为应排除的目录
- */
-fun isExcludedDir(dirName: String): Boolean {
-    val excludedDirs = setOf(
-        "build", "gradle", ".gradle", ".git", ".idea",
-        "node_modules", "target", "out", "bin", ".settings",
-        "src", "test", "main", "kotlin", "java", "resources"
-    )
-    return excludedDirs.equals(dirName) || dirName.startsWith(".")
+// 包含普通项目
+val (buildProj, modules) = allProjectDirs.partition {
+    val isBuildLogic = it.name.startsWith("build-logic") || it.name.startsWith("buildLogic")
+    isBuildLogic
 }
-
-
-// ================== 智能模块扫描 ==================
-
-// 自动扫描所有gradle模块，只需指定根模块和排除的模块
-autoIncludeModules(
-    rootModules = listOf(
-        "backend",
-        "composeApp",
-        "shared",
-        "shared-compose",
-        "lib"
-    ),
-    excludeModules = listOf(
-//        "addzero-gradle-ksp-buddy",
-//        "addzero-gradle-auto-modules-plugin",
-        "build-logic"
-    )
-)
-
+buildProj.forEach {
+    settings.includeBuild(it)
+    // 打印调试信息
+    println("Auto included build: ${it.name}")
+}
+modules.forEach {
+    val relativePath = getRelativePath(rootDir, it)
+    val moduleName = ":${relativePath.replace(File.separator, ":")}"
+    settings.include(moduleName)
+    println("Auto included module: $moduleName")
+}
