@@ -7,6 +7,7 @@
     import org.springframework.ai.tool.annotation.ToolParam
     import org.springframework.stereotype.Service
     import site.addzero.model.entity.biz_device.ThingModelProperty
+    import site.addzero.generated.isomorphic.ThingModelPropertyIso
 
     /**
      * ThingModelProperty MCP服务

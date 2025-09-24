@@ -30,6 +30,8 @@ ksp {
 //    mainClass.set("site.addzero.SpringBootAppKt")
 //}
 dependencies {
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.9")
+    implementation("site.addzero:addzero-tool-mqtt:+")
     implementation(libs.kotlinx.datetime)
     implementation(projects.lib.compose.addzeroComposeModelComponent)
     implementation(projects.lib.toolKmp.addzeroToolJson)

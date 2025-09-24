@@ -8,7 +8,6 @@ import site.addzero.generated.isomorphic.ThingModelPropertyIso
 class ThingModelViewModel : ViewModel() {
 
     fun loadThingModelProperties(productId: Long): List<ThingModelPropertyIso> {
-        // TODO: 从后端加载物模型属性数据
         return listOf(
             ThingModelPropertyIso(
                 id = 1,

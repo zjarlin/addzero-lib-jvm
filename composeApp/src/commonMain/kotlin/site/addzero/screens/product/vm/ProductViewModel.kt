@@ -10,7 +10,6 @@ import site.addzero.generated.isomorphic.ProductIso
 class ProductViewModel : ViewModel() {
 
     fun loadProducts(): List<ProductIso> {
-        // TODO: 从后端加载产品数据
         return listOf(
             ProductIso(
                 id = 1,

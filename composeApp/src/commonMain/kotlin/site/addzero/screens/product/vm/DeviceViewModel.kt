@@ -11,7 +11,7 @@ class DeviceViewModel : ViewModel() {
     fun loadDevices(): List<DeviceIso> {
 
 
-        return TODO("提供返回值")
+        return emptyList()
     }
 
     fun loadProducts(): List<ProductIso> {

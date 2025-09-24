@@ -10,7 +10,7 @@ class ProductCategoryViewModel : ViewModel() {
 
     fun loadCategories(): List<ProductCategoryIso > {
 
-        return TODO("提供返回值")
+        return emptyList()
     }
 
     fun addCategory(category: ProductCategoryIso ) {
