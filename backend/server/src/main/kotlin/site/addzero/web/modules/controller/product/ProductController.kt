@@ -1,4 +1,4 @@
-package site.addzero.web.modules.controller
+package site.addzero.web.modules.controller.product
 
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -11,11 +11,13 @@ import site.addzero.web.infra.jimmer.base.BaseController
 
 @RestController
 @RequestMapping("/device")
-class DeviceController : BaseController<Device> {}
+class DeviceController : BaseController<Device> {
+}
 
 @RestController
 @RequestMapping("/product")
-class ProductController : BaseController<Product> {}
+class ProductController : BaseController<Product> {
+}
 
 @RestController
 @RequestMapping("/productCategory")

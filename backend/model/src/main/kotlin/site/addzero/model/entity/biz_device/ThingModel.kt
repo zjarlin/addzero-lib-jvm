@@ -1,8 +1,8 @@
 package site.addzero.model.entity.biz_device
 
+import org.babyfish.jimmer.sql.*
 import site.addzero.entity2form.annotation.LabelProp
 import site.addzero.model.common.BaseEntity
-import org.babyfish.jimmer.sql.*
 
 /**
  * 物模型实体类，与产品一对一关联
@@ -29,6 +29,12 @@ interface ThingModel : BaseEntity {
      * 模型描述
      */
     val description: String?
+
+
+    /**
+     * 模型标识
+     */
+    val identifier: String?
 
     /**
      * 状态
