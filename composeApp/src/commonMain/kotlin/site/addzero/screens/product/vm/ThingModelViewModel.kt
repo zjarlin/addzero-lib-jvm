@@ -15,7 +15,6 @@ class ThingModelViewModel : ViewModel() {
                 identifier = "temperature",
                 name = "温度",
                 dataType = "float",
-                dataSpecs = "[-20, 100]",
                 dataPrecision = 2,
                 accessMode = "读写上报"
             )

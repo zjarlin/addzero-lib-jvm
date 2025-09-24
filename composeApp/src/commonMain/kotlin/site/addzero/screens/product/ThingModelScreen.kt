@@ -89,15 +89,12 @@ private fun ThingModelPropertyItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "${property.name} (${property.identifier})", style = MaterialTheme.typography.titleMedium)
-                Text(text = "数据类型: ${property.dataType}", style = MaterialTheme.typography.bodyMedium)
-                property.dataSpecs?.let {
-                    Text(text = "数据范围: $it", style = MaterialTheme.typography.bodyMedium)
-                }
-                property.dataPrecision?.let {
-                    Text(text = "精度: $it", style = MaterialTheme.typography.bodyMedium)
-                }
-                Text(text = "访问方式: ${property.accessMode}", style = MaterialTheme.typography.bodyMedium)
+//                Text(text = "${property.name} (${property.identifier})", style = MaterialTheme.typography.titleMedium)
+//                Text(text = "数据类型: ${property.dataType}", style = MaterialTheme.typography.bodyMedium)
+//                property.dataPrecision?.let {
+//                    Text(text = "精度: $it", style = MaterialTheme.typography.bodyMedium)
+//                }
+//                Text(text = "访问方式: ${property.accessMode}", style = MaterialTheme.typography.bodyMedium)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = { onEdit(property) }) {
@@ -122,7 +119,6 @@ private fun ThingModelPropertyDialog(
     var identifier by remember { mutableStateOf(property?.identifier ?: "") }
     var name by remember { mutableStateOf(property?.name ?: "") }
     var dataType by remember { mutableStateOf(property?.dataType ?: "") }
-    var dataSpecs by remember { mutableStateOf(property?.dataSpecs ?: "") }
     var dataPrecision by remember { mutableStateOf(property?.dataPrecision?.toString() ?: "") }
     var accessMode by remember { mutableStateOf(property?.accessMode ?: "读写") }
 
@@ -148,11 +144,6 @@ private fun ThingModelPropertyDialog(
                     value = dataType,
                     onValueChange = { dataType = it },
                     label = { Text("数据类型") }
-                )
-                OutlinedTextField(
-                    value = dataSpecs,
-                    onValueChange = { dataSpecs = it },
-                    label = { Text("数据范围") }
                 )
                 OutlinedTextField(
                     value = dataPrecision,
@@ -193,7 +184,6 @@ private fun ThingModelPropertyDialog(
                         identifier = identifier,
                         name = name,
                         dataType = dataType,
-                        dataSpecs = dataSpecs,
                         dataPrecision = dataPrecision.toIntOrNull(),
                         accessMode = accessMode
                     )
