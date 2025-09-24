@@ -14,14 +14,14 @@ import site.addzero.screens.product.vm.ProductViewModel
 
 @Route("物联网模块", "产品管理")
 @Composable
-fun ProdMannager(): Unit {
+fun ProdMannager() {
     val koinViewModel = koinViewModel<ProductViewModel>()
     ProductScreen(koinViewModel)
 }
 
 @Route("物联网模块", "产品分类管理")
 @Composable
-fun EquipmentClassificationManagement(): Unit {
+fun EquipmentClassificationManagement() {
     val koinViewModel = koinViewModel<ProductCategoryViewModel>()
     ProductCategoryScreen(koinViewModel)
 }
@@ -29,7 +29,7 @@ fun EquipmentClassificationManagement(): Unit {
 
 @Route("物联网模块", "设备管理")
 @Composable
-fun DeviceMannager(): Unit {
+fun DeviceMannager() {
     val koinViewModel = koinViewModel<DeviceViewModel>()
     DeviceScreen(koinViewModel)
 
@@ -37,6 +37,6 @@ fun DeviceMannager(): Unit {
 
 @Route("物联网模块", "设备接入")
 @Composable
-fun shebiejieru(): Unit {
+fun Shebiejieru() {
     Text("没写")
 }

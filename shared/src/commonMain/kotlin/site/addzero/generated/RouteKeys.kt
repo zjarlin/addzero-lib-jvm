@@ -38,7 +38,7 @@ object RouteKeys {
     const val PROD_MANNAGER = "site.addzero.screens.product.sc.ProdMannager"
     const val EQUIPMENT_CLASSIFICATION_MANAGEMENT = "site.addzero.screens.product.sc.EquipmentClassificationManagement"
     const val DEVICE_MANNAGER = "site.addzero.screens.product.sc.DeviceMannager"
-    const val SHEBIEJIERU = "site.addzero.screens.product.sc.shebiejieru"
+    const val SHEBIEJIERU = "site.addzero.screens.product.sc.Shebiejieru"
     const val JSON_DESIGNER_DEMO = "site.addzero.screens.json.JsonDesignerDemo"
     const val AI_TIMEOUT_AND_ANIMATION_DEMO = "site.addzero.screens.ai.AiTimeoutAndAnimationDemo"
     const val SYS_DEPT_SCREEN = "/system/sysDept"
@@ -80,7 +80,7 @@ object RouteKeys {
         Route(value = "物联网模块", title = "产品管理", routePath = "site.addzero.screens.product.sc.ProdMannager", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.product.sc.ProdMannager"),
         Route(value = "物联网模块", title = "产品分类管理", routePath = "site.addzero.screens.product.sc.EquipmentClassificationManagement", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.product.sc.EquipmentClassificationManagement"),
         Route(value = "物联网模块", title = "设备管理", routePath = "site.addzero.screens.product.sc.DeviceMannager", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.product.sc.DeviceMannager"),
-        Route(value = "物联网模块", title = "设备接入", routePath = "site.addzero.screens.product.sc.shebiejieru", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.product.sc.shebiejieru"),
+        Route(value = "物联网模块", title = "设备接入", routePath = "site.addzero.screens.product.sc.Shebiejieru", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.product.sc.Shebiejieru"),
         Route(value = "界面演示", title = "JSON设计器演示", routePath = "site.addzero.screens.json.JsonDesignerDemo", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.json.JsonDesignerDemo"),
         Route(value = "界面演示", title = "AI超时和思考动画", routePath = "site.addzero.screens.ai.AiTimeoutAndAnimationDemo", icon = "", order = 0.0, qualifiedName = "site.addzero.screens.ai.AiTimeoutAndAnimationDemo"),
         Route(value = "系统管理", title = "部门管理", routePath = "/system/sysDept", icon = "Business", order = 0.0, qualifiedName = "site.addzero.screens.dept.SysDeptScreen"),
