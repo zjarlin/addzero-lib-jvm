@@ -2,7 +2,6 @@ package site.addzero.screens.product
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -12,13 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddButton
 import site.addzero.component.high_level.AddLazyList
+import site.addzero.generated.isomorphic.ProductCategoryIso
+import site.addzero.screens.product.vm.ProductCategoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductCategoryScreen(viewModel: ProductCategoryViewModel) {
-    var categories by remember { mutableStateOf(listOf<ProductCategory>()) }
+    var categories by remember { mutableStateOf(listOf<ProductCategoryIso>()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf<ProductCategory?>(null) }
+    var selectedCategory by remember { mutableStateOf<ProductCategoryIso?>(null) }
 
     // 刷新数据
     LaunchedEffect(Unit) {
@@ -42,7 +43,7 @@ fun ProductCategoryScreen(viewModel: ProductCategoryViewModel) {
             ProductCategoryItem(
                 category = category,
                 onEdit = { selectedCategory = it },
-                onDelete = { viewModel.deleteCategory(it.id) }
+                onDelete = { viewModel.deleteCategory(it.id?:0L) }
             )
         }
     }
@@ -74,9 +75,9 @@ fun ProductCategoryScreen(viewModel: ProductCategoryViewModel) {
 
 @Composable
 private fun ProductCategoryItem(
-    category: ProductCategory,
-    onEdit: (ProductCategory) -> Unit,
-    onDelete: (ProductCategory) -> Unit
+    category: ProductCategoryIso,
+    onEdit: (ProductCategoryIso) -> Unit,
+    onDelete: (ProductCategoryIso) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -114,9 +115,9 @@ private fun ProductCategoryItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductCategoryDialog(
-    category: ProductCategory?,
+    category: ProductCategoryIso?,
     onDismiss: () -> Unit,
-    onConfirm: (ProductCategory) -> Unit
+    onConfirm: (ProductCategoryIso) -> Unit
 ) {
     var name by remember { mutableStateOf(category?.name ?: "") }
     var description by remember { mutableStateOf(category?.description ?: "") }
@@ -152,7 +153,7 @@ private fun ProductCategoryDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val newCategory = ProductCategory(
+                    val newCategory = ProductCategoryIso(
                         id = category?.id ?: 0,
                         name = name,
                         description = description,
@@ -171,10 +172,3 @@ private fun ProductCategoryDialog(
         }
     )
 }
-
-data class ProductCategory(
-    val id: Long,
-    val name: String,
-    val description: String?,
-    val enabled: Boolean
-)

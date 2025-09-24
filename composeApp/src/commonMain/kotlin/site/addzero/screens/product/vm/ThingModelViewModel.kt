@@ -1,13 +1,16 @@
-package site.addzero.viewmodel
+package site.addzero.screens.product.vm
 
 import androidx.lifecycle.ViewModel
+import org.koin.android.annotation.KoinViewModel
+import site.addzero.generated.isomorphic.ThingModelPropertyIso
 
+@KoinViewModel
 class ThingModelViewModel : ViewModel() {
-    
-    fun loadThingModelProperties(productId: Long): List<ThingModelProperty> {
+
+    fun loadThingModelProperties(productId: Long): List<ThingModelPropertyIso> {
         // TODO: 从后端加载物模型属性数据
         return listOf(
-            ThingModelProperty(
+            ThingModelPropertyIso(
                 id = 1,
                 identifier = "temperature",
                 name = "温度",
@@ -18,26 +21,17 @@ class ThingModelViewModel : ViewModel() {
             )
         )
     }
-    
-    fun addProperty(productId: Long, property: ThingModelProperty) {
+
+    fun addProperty(productId: Long, property: ThingModelPropertyIso) {
         // TODO: 添加物模型属性
     }
-    
-    fun updateProperty(property: ThingModelProperty) {
+
+    fun updateProperty(property: ThingModelPropertyIso) {
         // TODO: 更新物模型属性
     }
-    
+
     fun deleteProperty(id: Long) {
         // TODO: 删除物模型属性
     }
 }
 
-data class ThingModelProperty(
-    val id: Long,
-    val identifier: String,
-    val name: String,
-    val dataType: String,
-    val dataSpecs: String?,
-    val dataPrecision: Int?,
-    val accessMode: String
-)

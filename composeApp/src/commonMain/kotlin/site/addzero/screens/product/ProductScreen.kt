@@ -2,7 +2,6 @@ package site.addzero.screens.product
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -12,13 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddButton
 import site.addzero.component.high_level.AddLazyList
+import site.addzero.generated.isomorphic.ProductCategoryIso
+import site.addzero.generated.isomorphic.ProductIso
+import site.addzero.screens.product.vm.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(viewModel: ProductViewModel) {
-    var products by remember { mutableStateOf(listOf<Product>()) }
+    var products by remember { mutableStateOf(listOf<ProductIso>()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedProduct by remember { mutableStateOf<Product?>(null) }
+    var selectedProduct by remember { mutableStateOf<ProductIso?>(null) }
 
     // 刷新数据
     LaunchedEffect(Unit) {
@@ -42,8 +44,8 @@ fun ProductScreen(viewModel: ProductViewModel) {
             ProductItem(
                 product = product,
                 onEdit = { selectedProduct = it },
-                onDelete = { viewModel.deleteProduct(it.id) },
-                onManageThingModel = { viewModel.navigateToThingModel(it.id) }
+                onDelete = { viewModel.deleteProduct(it.id?:0) },
+                onManageThingModel = { viewModel.navigateToThingModel(it.id?:0L) }
             )
         }
     }
@@ -77,10 +79,10 @@ fun ProductScreen(viewModel: ProductViewModel) {
 
 @Composable
 private fun ProductItem(
-    product: Product,
-    onEdit: (Product) -> Unit,
-    onDelete: (Product) -> Unit,
-    onManageThingModel: (Product) -> Unit
+    product: ProductIso,
+    onEdit: (ProductIso) -> Unit,
+    onDelete: (ProductIso) -> Unit,
+    onManageThingModel: (ProductIso) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -94,7 +96,7 @@ private fun ProductItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = product.name, style = MaterialTheme.typography.titleMedium)
                 Text(text = "编码: ${product.code}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "分类: ${product.categoryName}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "分类: ${product.productCategory?.name}", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     text = "接入方式: ${product.accessMethod}",
                     style = MaterialTheme.typography.bodyMedium
@@ -124,14 +126,14 @@ private fun ProductItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductDialog(
-    product: Product?,
-    categories: List<ProductCategory>,
+    product: ProductIso?,
+    categories: List<ProductCategoryIso>,
     onDismiss: () -> Unit,
-    onConfirm: (Product) -> Unit
+    onConfirm: (ProductIso) -> Unit
 ) {
     var name by remember { mutableStateOf(product?.name ?: "") }
     var code by remember { mutableStateOf(product?.code ?: "") }
-    var selectedCategoryId by remember { mutableStateOf(product?.categoryId ?: 0L) }
+    var selectedCategoryId by remember { mutableStateOf(product?.productCategory?.id ?: 0L) }
     var description by remember { mutableStateOf(product?.description ?: "") }
     var accessMethod by remember { mutableStateOf(product?.accessMethod ?: "MQTT") }
     var authMethod by remember { mutableStateOf(product?.authMethod ?: "") }
@@ -143,7 +145,7 @@ private fun ProductDialog(
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.verticalScroll()
+//                modifier = Modifier.verticalScroll()
             ) {
                 OutlinedTextField(
                     value = name,
@@ -172,7 +174,7 @@ private fun ProductDialog(
                             DropdownMenuItem(
                                 text = { Text(category.name) },
                                 onClick = {
-                                    selectedCategoryId = category.id
+                                    selectedCategoryId = category.id.toString().toLong()
                                     // TODO 关闭菜单
                                 }
                             )
@@ -209,12 +211,12 @@ private fun ProductDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val newProduct = Product(
+                    val newProduct = ProductIso(
+
                         id = product?.id ?: 0,
                         name = name,
                         code = code,
-                        categoryId = selectedCategoryId,
-                        categoryName = categories.find { it.id == selectedCategoryId }?.name ?: "",
+                        productCategory = ProductCategoryIso(id=selectedCategoryId, name = categories.find { it.id == selectedCategoryId }?.name ?: "",),
                         description = description,
                         accessMethod = accessMethod,
                         authMethod = authMethod,
@@ -233,15 +235,3 @@ private fun ProductDialog(
         }
     )
 }
-
-data class Product(
-    val id: Long,
-    val name: String,
-    val code: String,
-    val categoryId: Long,
-    val categoryName: String,
-    val description: String?,
-    val accessMethod: String,
-    val authMethod: String,
-    val enabled: Boolean
-)

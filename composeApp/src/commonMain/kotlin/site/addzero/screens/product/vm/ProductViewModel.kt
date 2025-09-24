@@ -1,18 +1,22 @@
-package site.addzero.viewmodel
+package site.addzero.screens.product.vm
 
 import androidx.lifecycle.ViewModel
+import org.koin.android.annotation.KoinViewModel
+import site.addzero.generated.isomorphic.ProductCategoryIso
+import site.addzero.generated.isomorphic.ProductIso
 
+
+@KoinViewModel
 class ProductViewModel : ViewModel() {
-    
-    fun loadProducts(): List<Product> {
+
+    fun loadProducts(): List<ProductIso> {
         // TODO: 从后端加载产品数据
         return listOf(
-            Product(
+            ProductIso(
                 id = 1,
                 name = "数控机床",
                 code = "CNC-001",
-                categoryId = 1,
-                categoryName = "机床",
+                productCategory = ProductCategoryIso(id=1, name = "机床", enabled = true),
                 description = "高精度数控机床",
                 accessMethod = "MQTT",
                 authMethod = "证书认证",
@@ -20,40 +24,27 @@ class ProductViewModel : ViewModel() {
             )
         )
     }
-    
-    fun loadCategories(): List<ProductCategory> {
+
+    fun loadCategories(): List<ProductCategoryIso> {
         // TODO: 从后端加载产品分类数据
         return listOf(
-            ProductCategory(1, "机床", "各类机床设备", true),
-            ProductCategory(2, "传感器", "各种传感器设备", true)
         )
     }
-    
-    fun addProduct(product: Product) {
+
+    fun addProduct(product: ProductIso) {
         // TODO: 添加产品
     }
-    
-    fun updateProduct(product: Product) {
+
+    fun updateProduct(product: ProductIso) {
         // TODO: 更新产品
     }
-    
+
     fun deleteProduct(id: Long) {
         // TODO: 删除产品
     }
-    
+
     fun navigateToThingModel(productId: Long) {
         // TODO: 跳转到物模型管理页面
     }
 }
 
-data class Product(
-    val id: Long,
-    val name: String,
-    val code: String,
-    val categoryId: Long,
-    val categoryName: String,
-    val description: String?,
-    val accessMethod: String,
-    val authMethod: String,
-    val enabled: Boolean
-)

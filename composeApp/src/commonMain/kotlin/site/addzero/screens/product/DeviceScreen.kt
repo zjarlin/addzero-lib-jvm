@@ -2,7 +2,6 @@ package site.addzero.screens.product
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -12,14 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddButton
 import site.addzero.component.high_level.AddLazyList
-import site.addzero.viewmodel.DeviceViewModel
+import site.addzero.generated.isomorphic.DeviceIso
+import site.addzero.generated.isomorphic.ProductIso
+import site.addzero.screens.product.vm.DeviceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceScreen(viewModel: DeviceViewModel) {
-    var devices by remember { mutableStateOf(listOf<Device>()) }
+    var devices by remember { mutableStateOf(listOf<DeviceIso>()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedDevice by remember { mutableStateOf<Device?>(null) }
+    var selectedDevice by remember { mutableStateOf<DeviceIso?>(null) }
 
     // 刷新数据
     LaunchedEffect(Unit) {
@@ -43,7 +44,7 @@ fun DeviceScreen(viewModel: DeviceViewModel) {
             DeviceItem(
                 device = device,
                 onEdit = { selectedDevice = it },
-                onDelete = { viewModel.deleteDevice(it.id) }
+                onDelete = { viewModel.deleteDevice(it.id?:0L) }
             )
         }
     }
@@ -77,9 +78,9 @@ fun DeviceScreen(viewModel: DeviceViewModel) {
 
 @Composable
 private fun DeviceItem(
-    device: Device,
-    onEdit: (Device) -> Unit,
-    onDelete: (Device) -> Unit
+    device: DeviceIso,
+    onEdit: (DeviceIso) -> Unit,
+    onDelete: (DeviceIso) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -93,7 +94,10 @@ private fun DeviceItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = device.name, style = MaterialTheme.typography.titleMedium)
                 Text(text = "编码: ${device.code}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "产品: ${device.productName}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "产品: ${device.product?.name}", style = MaterialTheme
+                        .typography.bodyMedium
+                )
                 Text(
                     text = "状态: ${device.status}",
                     style = MaterialTheme.typography.bodyMedium
@@ -120,14 +124,14 @@ private fun DeviceItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeviceDialog(
-    device: Device?,
-    products: List<Product>,
+    device: DeviceIso?,
+    products: List<ProductIso>,
     onDismiss: () -> Unit,
-    onConfirm: (Device) -> Unit
+    onConfirm: (DeviceIso) -> Unit
 ) {
     var name by remember { mutableStateOf(device?.name ?: "") }
     var code by remember { mutableStateOf(device?.code ?: "") }
-    var selectedProductId by remember { mutableStateOf(device?.productId ?: 0L) }
+    var selectedProductId by remember { mutableStateOf(device?.product?.id ?: 0L) }
     var authInfo by remember { mutableStateOf(device?.authInfo ?: "") }
     var enabled by remember { mutableStateOf(device?.enabled ?: true) }
     var status by remember { mutableStateOf(device?.status ?: "离线") }
@@ -138,7 +142,7 @@ private fun DeviceDialog(
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.verticalScroll()
+//                modifier = Modifier.verticalScroll()
             ) {
                 OutlinedTextField(
                     value = name,
@@ -167,7 +171,7 @@ private fun DeviceDialog(
                             DropdownMenuItem(
                                 text = { Text(product.name) },
                                 onClick = {
-                                    selectedProductId = product.id
+                                    selectedProductId = product.id.toString().toLong()
                                     // TODO 关闭菜单
                                 }
                             )
@@ -199,12 +203,14 @@ private fun DeviceDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val newDevice = Device(
+                    val newDevice = DeviceIso(
                         id = device?.id ?: 0,
                         name = name,
                         code = code,
-                        productId = selectedProductId,
-                        productName = products.find { it.id == selectedProductId }?.name ?: "",
+                        product = ProductIso(
+                            id = selectedProductId,
+                            name = products.find { it.id == selectedProductId }?.name ?: "",
+                        ),
                         authInfo = authInfo,
                         enabled = enabled,
                         status = status
@@ -223,13 +229,3 @@ private fun DeviceDialog(
     )
 }
 
-data class Device(
-    val id: Long,
-    val name: String,
-    val code: String,
-    val productId: Long,
-    val productName: String,
-    val authInfo: String?,
-    val enabled: Boolean,
-    val status: String
-)

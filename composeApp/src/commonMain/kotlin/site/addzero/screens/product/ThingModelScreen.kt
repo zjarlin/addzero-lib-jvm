@@ -2,7 +2,6 @@ package site.addzero.screens.product
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -12,13 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddButton
 import site.addzero.component.high_level.AddLazyList
+import site.addzero.generated.isomorphic.ThingModelPropertyIso
+import site.addzero.screens.product.vm.ThingModelViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThingModelScreen(viewModel: ThingModelViewModel, productId: Long) {
-    var thingModelProperties by remember { mutableStateOf(listOf<ThingModelProperty>()) }
+    var thingModelProperties by remember { mutableStateOf(listOf<ThingModelPropertyIso>()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var selectedProperty by remember { mutableStateOf<ThingModelProperty?>(null) }
+    var selectedProperty by remember { mutableStateOf<ThingModelPropertyIso?>(null) }
 
     // 刷新数据
     LaunchedEffect(Unit) {
@@ -42,7 +43,7 @@ fun ThingModelScreen(viewModel: ThingModelViewModel, productId: Long) {
             ThingModelPropertyItem(
                 property = property,
                 onEdit = { selectedProperty = it },
-                onDelete = { viewModel.deleteProperty(it.id) }
+                onDelete = { viewModel.deleteProperty(it.id?:0L) }
             )
         }
     }
@@ -74,9 +75,9 @@ fun ThingModelScreen(viewModel: ThingModelViewModel, productId: Long) {
 
 @Composable
 private fun ThingModelPropertyItem(
-    property: ThingModelProperty,
-    onEdit: (ThingModelProperty) -> Unit,
-    onDelete: (ThingModelProperty) -> Unit
+    property: ThingModelPropertyIso,
+    onEdit: (ThingModelPropertyIso) -> Unit,
+    onDelete: (ThingModelPropertyIso) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -114,9 +115,9 @@ private fun ThingModelPropertyItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThingModelPropertyDialog(
-    property: ThingModelProperty?,
+    property: ThingModelPropertyIso?,
     onDismiss: () -> Unit,
-    onConfirm: (ThingModelProperty) -> Unit
+    onConfirm: (ThingModelPropertyIso) -> Unit
 ) {
     var identifier by remember { mutableStateOf(property?.identifier ?: "") }
     var name by remember { mutableStateOf(property?.name ?: "") }
@@ -131,7 +132,7 @@ private fun ThingModelPropertyDialog(
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.verticalScroll()
+//                modifier = Modifier.verticalScroll()
             ) {
                 OutlinedTextField(
                     value = identifier,
@@ -187,7 +188,7 @@ private fun ThingModelPropertyDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val newProperty = ThingModelProperty(
+                    val newProperty = ThingModelPropertyIso(
                         id = property?.id ?: 0,
                         identifier = identifier,
                         name = name,
@@ -210,12 +211,3 @@ private fun ThingModelPropertyDialog(
     )
 }
 
-data class ThingModelProperty(
-    val id: Long,
-    val identifier: String,
-    val name: String,
-    val dataType: String,
-    val dataSpecs: String?,
-    val dataPrecision: Int?,
-    val accessMode: String
-)
