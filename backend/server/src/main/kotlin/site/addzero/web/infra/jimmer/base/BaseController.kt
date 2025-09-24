@@ -16,19 +16,8 @@ interface BaseController<E : Any> :BaseGenericContext<E>{
         get() {
             return "id"
         }
-
     // 懒加载 sqlClient，确保只初始化一次并缓存结果
     val sql: KSqlClient get() = lazySqlClient
-//    val fetcher: Fetcher<T> get() = newFetcher(CLASS_E()).by{
-//        allScalarFields()
-//    }
-
-//    fun CLASS(): KClass<E> {
-//        val typeArgument = TypeUtil.getTypeArgument(this.javaClass, 0)
-//        val type = typeArgument as Class<E>
-//        return type.kotlin
-//    }
-
 
     @PostMapping("/page")
     fun page(
@@ -57,7 +46,6 @@ interface BaseController<E : Any> :BaseGenericContext<E>{
         return modifiedEntity
     }
 
-
     @PutMapping("/update")
     fun edit(@RequestBody e: E): Int {
         val update = sql.update(e).totalAffectedRowCount
@@ -80,7 +68,6 @@ interface BaseController<E : Any> :BaseGenericContext<E>{
         return saveEntities.totalAffectedRowCount
     }
 
-
     @GetMapping("/findById")
     fun findById(id: String): E? {
         val byId = sql.findById(type, id)
@@ -89,11 +76,7 @@ interface BaseController<E : Any> :BaseGenericContext<E>{
 
     @GetMapping("/loadTableConfig")
     fun loadTableConfig()  {
-
     }
-
-
-
     companion object {
         private val lazySqlClient: KSqlClient by lazy {
             SpringUtil.getBean(KSqlClient::class.java)

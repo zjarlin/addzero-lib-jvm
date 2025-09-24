@@ -14,6 +14,4 @@ data class StateSearch(
     val columnValue: Any? = null,
     val logicType: EnumLogicOperator = EnumLogicOperator.AND
 ) {
-
-
 }

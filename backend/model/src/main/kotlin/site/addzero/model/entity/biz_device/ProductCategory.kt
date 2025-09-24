@@ -29,6 +29,10 @@ interface ProductCategory : BaseEntity {
     @ManyToOne
     val parent: ProductCategory?
 
+
+    @OneToMany(mappedBy = "productCategory")
+    val products: List<Product>
+
     /**
      * 排序
      */

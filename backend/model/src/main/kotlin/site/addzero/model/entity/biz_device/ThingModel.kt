@@ -29,4 +29,14 @@ interface ThingModel : BaseEntity {
      * 模型描述
      */
     val description: String?
+
+    /**
+     * 状态
+     */
+    @Default("1")
+    val status: Int
+
+    @OneToMany(mappedBy = "thingModel")
+    val properties: List<ThingModelProperty>
+
 }
