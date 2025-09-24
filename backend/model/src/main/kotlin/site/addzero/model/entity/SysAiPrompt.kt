@@ -28,9 +28,9 @@ interface SysAiPrompt : BaseEntity {
     val content: String
 
     /**
-     * category
+     * parent
      */
-    @Column(name = "category")
+    @Column(name = "parent")
     val category: String
 
     /**

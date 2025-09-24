@@ -34,32 +34,30 @@ import site.addzero.generated.forms.dataprovider.Iso2DataProvider
 
 
 /**
- * SysAiPrompt 表单属性常量
+ * ThingModel 表单属性常量
  */
-object SysAiPromptFormProps {
-    const val title = "title"
-    const val content = "content"
-    const val category = "category"
-    const val tags = "tags"
-    const val isBuiltIn = "isBuiltIn"
+object ThingModelFormProps {
+    const val product = "product"
+    const val name = "name"
+    const val description = "description"
 
     /**
      * 获取所有字段名列表（按默认顺序）
      */
     fun getAllFields(): List<String> {
-        return listOf(title, content, category, tags, isBuiltIn)
+        return listOf(product, name, description)
     }
 }
 
 @Composable
-fun SysAiPromptForm(
-    state: MutableState<SysAiPromptIso>,
+fun ThingModelForm(
+    state: MutableState<ThingModelIso>,
     visible: Boolean,
     title: String,
     onClose: () -> Unit,
     onSubmit: () -> Unit,
     confirmEnabled: Boolean = true,
-    dslConfig: SysAiPromptFormDsl.() -> Unit = {}
+    dslConfig: ThingModelFormDsl.() -> Unit = {}
 ) {
     AddDrawer(
         visible = visible,
@@ -68,65 +66,61 @@ fun SysAiPromptForm(
         onSubmit = onSubmit,
         confirmEnabled = confirmEnabled,
     ) {
-        SysAiPromptFormOriginal(state, dslConfig)
+        ThingModelFormOriginal(state, dslConfig)
     }
 }
 
 @Composable
-fun SysAiPromptFormOriginal(
-    state: MutableState<SysAiPromptIso>,
-    dslConfig: SysAiPromptFormDsl.() -> Unit = {}
+fun ThingModelFormOriginal(
+    state: MutableState<ThingModelIso>,
+    dslConfig: ThingModelFormDsl.() -> Unit = {}
 ) {
     val renderMap = remember { mutableMapOf<String, @Composable () -> Unit>() }
-    val dsl = SysAiPromptFormDsl(state, renderMap).apply(dslConfig)
+    val dsl = ThingModelFormDsl(state, renderMap).apply(dslConfig)
 
     // 默认字段渲染映射（保持原有顺序）
     val defaultRenderMap = linkedMapOf<String, @Composable () -> Unit>(
-        SysAiPromptFormProps.title to {
+        ThingModelFormProps.product to {
+            var dataList by remember { mutableStateOf<List<ProductIso>>(emptyList()) }
+
+            LaunchedEffect(Unit) {
+                try {
+                    val provider = Iso2DataProvider.isoToDataProvider[ProductIso::class]
+                    dataList = provider?.invoke("") as? List<ProductIso> ?: emptyList()
+                } catch (e: Exception) {
+                    println("加载 product 数据失败: ${e.message}")
+                    dataList = emptyList()
+                }
+            }
+
+            AddGenericSingleSelector(
+                value = state.value.product,
+                onValueChange = { state.value = state.value.copy(product = it) },
+                placeholder = "所属产品与产品一对一关联",
+                dataProvider = { dataList },
+                getId = { it.id ?: 0L },
+                getLabel = { it.name ?: "" },
+                
+            )
+        },
+        ThingModelFormProps.name to {
             AddTextField(
-                value = state.value.title?.toString() ?: "",
+                value = state.value.name?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(title = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(name = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
-                label = "title",
+                label = "模型名称",
                 isRequired = true
             )
         },
-        SysAiPromptFormProps.content to {
+        ThingModelFormProps.description to {
             AddTextField(
-                value = state.value.content?.toString() ?: "",
+                value = state.value.description?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(content = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(description = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
-                label = "content",
-                isRequired = true
-            )
-        },
-        SysAiPromptFormProps.category to {
-            AddTextField(
-                value = state.value.category?.toString() ?: "",
-                onValueChange = {
-                    state.value = state.value.copy(category = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
-                },
-                label = "parent",
-                isRequired = true
-            )
-        },
-        SysAiPromptFormProps.tags to {
-            AddTextField(
-                value = state.value.tags?.toString() ?: "",
-                onValueChange = {
-                    state.value = state.value.copy(tags = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
-                },
-                label = "tags",
+                label = "模型描述",
                 isRequired = false
-            )
-        },
-        SysAiPromptFormProps.isBuiltIn to {
-            AddSwitchField(
-                value = state.value.isBuiltIn ?: false,
-                onValueChange = { state.value = state.value.copy(isBuiltIn = it) },
-                label = "isBuiltIn"
             )
         }
     )
@@ -161,8 +155,8 @@ fun SysAiPromptFormOriginal(
     )
 }
 
-class SysAiPromptFormDsl(
-    val state: MutableState<SysAiPromptIso>,
+class ThingModelFormDsl(
+    val state: MutableState<ThingModelIso>,
     private val renderMap: MutableMap<String, @Composable () -> Unit>
 ) {
     // 隐藏字段集合
@@ -175,162 +169,98 @@ class SysAiPromptFormDsl(
     private val fieldOrderMap = mutableMapOf<String, Int>()
 
     /**
-     * 配置 title 字段
+     * 配置 product 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun title(
+    fun product(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<ThingModelIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("title")
-                renderMap.remove("title")
+                hiddenFields.add("product")
+                renderMap.remove("product")
             }
             render != null -> {
-                hiddenFields.remove("title")
-                renderMap["title"] = { render(state) }
+                hiddenFields.remove("product")
+                renderMap["product"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("title")
-                renderMap.remove("title")
+                hiddenFields.remove("product")
+                renderMap.remove("product")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("title", orderValue)
+            updateFieldOrder("product", orderValue)
         }
     }
 
     /**
-     * 配置 content 字段
+     * 配置 name 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun content(
+    fun name(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<ThingModelIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("content")
-                renderMap.remove("content")
+                hiddenFields.add("name")
+                renderMap.remove("name")
             }
             render != null -> {
-                hiddenFields.remove("content")
-                renderMap["content"] = { render(state) }
+                hiddenFields.remove("name")
+                renderMap["name"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("content")
-                renderMap.remove("content")
+                hiddenFields.remove("name")
+                renderMap.remove("name")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("content", orderValue)
+            updateFieldOrder("name", orderValue)
         }
     }
 
     /**
-     * 配置 category 字段
+     * 配置 description 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun category(
+    fun description(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<ThingModelIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("category")
-                renderMap.remove("category")
+                hiddenFields.add("description")
+                renderMap.remove("description")
             }
             render != null -> {
-                hiddenFields.remove("category")
-                renderMap["category"] = { render(state) }
+                hiddenFields.remove("description")
+                renderMap["description"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("category")
-                renderMap.remove("category")
+                hiddenFields.remove("description")
+                renderMap.remove("description")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("category", orderValue)
-        }
-    }
-
-    /**
-     * 配置 tags 字段
-     * @param hidden 是否隐藏该字段
-     * @param order 字段显示顺序（数值越小越靠前）
-     * @param render 自定义渲染函数
-     */
-    fun tags(
-        hidden: Boolean = false,
-        order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
-    ) {
-        when {
-            hidden -> {
-                hiddenFields.add("tags")
-                renderMap.remove("tags")
-            }
-            render != null -> {
-                hiddenFields.remove("tags")
-                renderMap["tags"] = { render(state) }
-            }
-            else -> {
-                hiddenFields.remove("tags")
-                renderMap.remove("tags")
-            }
-        }
-
-        // 处理排序
-        order?.let { orderValue ->
-            updateFieldOrder("tags", orderValue)
-        }
-    }
-
-    /**
-     * 配置 isBuiltIn 字段
-     * @param hidden 是否隐藏该字段
-     * @param order 字段显示顺序（数值越小越靠前）
-     * @param render 自定义渲染函数
-     */
-    fun isBuiltIn(
-        hidden: Boolean = false,
-        order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
-    ) {
-        when {
-            hidden -> {
-                hiddenFields.add("isBuiltIn")
-                renderMap.remove("isBuiltIn")
-            }
-            render != null -> {
-                hiddenFields.remove("isBuiltIn")
-                renderMap["isBuiltIn"] = { render(state) }
-            }
-            else -> {
-                hiddenFields.remove("isBuiltIn")
-                renderMap.remove("isBuiltIn")
-            }
-        }
-
-        // 处理排序
-        order?.let { orderValue ->
-            updateFieldOrder("isBuiltIn", orderValue)
+            updateFieldOrder("description", orderValue)
         }
     }
 
@@ -356,7 +286,7 @@ class SysAiPromptFormDsl(
     fun insertBefore(targetField: String, vararg newFields: String) {
         if (fieldOrder.isEmpty()) {
             // 如果没有自定义顺序，先初始化为默认顺序
-            fieldOrder.addAll(SysAiPromptFormProps.getAllFields())
+            fieldOrder.addAll(ThingModelFormProps.getAllFields())
         }
         val index = fieldOrder.indexOf(targetField)
         if (index >= 0) {
@@ -370,7 +300,7 @@ class SysAiPromptFormDsl(
     fun insertAfter(targetField: String, vararg newFields: String) {
         if (fieldOrder.isEmpty()) {
             // 如果没有自定义顺序，先初始化为默认顺序
-            fieldOrder.addAll(SysAiPromptFormProps.getAllFields())
+            fieldOrder.addAll(ThingModelFormProps.getAllFields())
         }
         val index = fieldOrder.indexOf(targetField)
         if (index >= 0) {
@@ -387,7 +317,7 @@ class SysAiPromptFormDsl(
         fieldOrderMap[fieldName] = orderValue
 
         // 重新计算字段顺序
-        val allFields = SysAiPromptFormProps.getAllFields()
+        val allFields = ThingModelFormProps.getAllFields()
         val sortedFields = allFields.sortedWith { field1, field2 ->
             val order1 = fieldOrderMap[field1] ?: Int.MAX_VALUE
             val order2 = fieldOrderMap[field2] ?: Int.MAX_VALUE
@@ -405,9 +335,9 @@ class SysAiPromptFormDsl(
 }
 
 /**
- * 记住 SysAiPrompt 表单状态的便捷函数
+ * 记住 ThingModel 表单状态的便捷函数
  */
 @Composable
-fun rememberSysAiPromptFormState(current: SysAiPromptIso? = null): MutableState<SysAiPromptIso> {
-    return remember(current) { mutableStateOf(current ?: SysAiPromptIso()) }
+fun rememberThingModelFormState(current: ThingModelIso? = null): MutableState<ThingModelIso> {
+    return remember(current) { mutableStateOf(current ?: ThingModelIso()) }
 }

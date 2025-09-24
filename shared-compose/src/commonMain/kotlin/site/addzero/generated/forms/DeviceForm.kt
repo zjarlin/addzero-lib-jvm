@@ -34,32 +34,33 @@ import site.addzero.generated.forms.dataprovider.Iso2DataProvider
 
 
 /**
- * SysAiPrompt 表单属性常量
+ * Device 表单属性常量
  */
-object SysAiPromptFormProps {
-    const val title = "title"
-    const val content = "content"
-    const val category = "category"
-    const val tags = "tags"
-    const val isBuiltIn = "isBuiltIn"
+object DeviceFormProps {
+    const val name = "name"
+    const val code = "code"
+    const val product = "product"
+    const val authInfo = "authInfo"
+    const val enabled = "enabled"
+    const val status = "status"
 
     /**
      * 获取所有字段名列表（按默认顺序）
      */
     fun getAllFields(): List<String> {
-        return listOf(title, content, category, tags, isBuiltIn)
+        return listOf(name, code, product, authInfo, enabled, status)
     }
 }
 
 @Composable
-fun SysAiPromptForm(
-    state: MutableState<SysAiPromptIso>,
+fun DeviceForm(
+    state: MutableState<DeviceIso>,
     visible: Boolean,
     title: String,
     onClose: () -> Unit,
     onSubmit: () -> Unit,
     confirmEnabled: Boolean = true,
-    dslConfig: SysAiPromptFormDsl.() -> Unit = {}
+    dslConfig: DeviceFormDsl.() -> Unit = {}
 ) {
     AddDrawer(
         visible = visible,
@@ -68,65 +69,88 @@ fun SysAiPromptForm(
         onSubmit = onSubmit,
         confirmEnabled = confirmEnabled,
     ) {
-        SysAiPromptFormOriginal(state, dslConfig)
+        DeviceFormOriginal(state, dslConfig)
     }
 }
 
 @Composable
-fun SysAiPromptFormOriginal(
-    state: MutableState<SysAiPromptIso>,
-    dslConfig: SysAiPromptFormDsl.() -> Unit = {}
+fun DeviceFormOriginal(
+    state: MutableState<DeviceIso>,
+    dslConfig: DeviceFormDsl.() -> Unit = {}
 ) {
     val renderMap = remember { mutableMapOf<String, @Composable () -> Unit>() }
-    val dsl = SysAiPromptFormDsl(state, renderMap).apply(dslConfig)
+    val dsl = DeviceFormDsl(state, renderMap).apply(dslConfig)
 
     // 默认字段渲染映射（保持原有顺序）
     val defaultRenderMap = linkedMapOf<String, @Composable () -> Unit>(
-        SysAiPromptFormProps.title to {
+        DeviceFormProps.name to {
             AddTextField(
-                value = state.value.title?.toString() ?: "",
+                value = state.value.name?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(title = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(name = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
-                label = "title",
+                label = "设备名称",
                 isRequired = true
             )
         },
-        SysAiPromptFormProps.content to {
+        DeviceFormProps.code to {
             AddTextField(
-                value = state.value.content?.toString() ?: "",
+                value = state.value.code?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(content = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
+                    state.value = state.value.copy(code = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
                 },
-                label = "content",
+                label = "设备编码",
                 isRequired = true
             )
         },
-        SysAiPromptFormProps.category to {
-            AddTextField(
-                value = state.value.category?.toString() ?: "",
-                onValueChange = {
-                    state.value = state.value.copy(category = if (it.isNullOrEmpty()) "" else it.parseObjectByKtx())
-                },
-                label = "parent",
-                isRequired = true
+        DeviceFormProps.product to {
+            var dataList by remember { mutableStateOf<List<ProductIso>>(emptyList()) }
+
+            LaunchedEffect(Unit) {
+                try {
+                    val provider = Iso2DataProvider.isoToDataProvider[ProductIso::class]
+                    dataList = provider?.invoke("") as? List<ProductIso> ?: emptyList()
+                } catch (e: Exception) {
+                    println("加载 product 数据失败: ${e.message}")
+                    dataList = emptyList()
+                }
+            }
+
+            AddGenericSingleSelector(
+                value = state.value.product,
+                onValueChange = { state.value = state.value.copy(product = it) },
+                placeholder = "所属产品",
+                dataProvider = { dataList },
+                getId = { it.id ?: 0L },
+                getLabel = { it.name ?: "" },
+                
             )
         },
-        SysAiPromptFormProps.tags to {
+        DeviceFormProps.authInfo to {
             AddTextField(
-                value = state.value.tags?.toString() ?: "",
+                value = state.value.authInfo?.toString() ?: "",
                 onValueChange = {
-                    state.value = state.value.copy(tags = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
+                    state.value = state.value.copy(authInfo = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
                 },
-                label = "tags",
+                label = "设备认证信息（设备可以单独设置）",
                 isRequired = false
             )
         },
-        SysAiPromptFormProps.isBuiltIn to {
+        DeviceFormProps.enabled to {
             AddSwitchField(
-                value = state.value.isBuiltIn ?: false,
-                onValueChange = { state.value = state.value.copy(isBuiltIn = it) },
-                label = "isBuiltIn"
+                value = state.value.enabled ?: false,
+                onValueChange = { state.value = state.value.copy(enabled = it) },
+                label = "是否启用"
+            )
+        },
+        DeviceFormProps.status to {
+            AddTextField(
+                value = state.value.status?.toString() ?: "",
+                onValueChange = {
+                    state.value = state.value.copy(status = if (it.isNullOrEmpty()) null else it.parseObjectByKtx())
+                },
+                label = "设备状态",
+                isRequired = false
             )
         }
     )
@@ -161,8 +185,8 @@ fun SysAiPromptFormOriginal(
     )
 }
 
-class SysAiPromptFormDsl(
-    val state: MutableState<SysAiPromptIso>,
+class DeviceFormDsl(
+    val state: MutableState<DeviceIso>,
     private val renderMap: MutableMap<String, @Composable () -> Unit>
 ) {
     // 隐藏字段集合
@@ -175,162 +199,194 @@ class SysAiPromptFormDsl(
     private val fieldOrderMap = mutableMapOf<String, Int>()
 
     /**
-     * 配置 title 字段
+     * 配置 name 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun title(
+    fun name(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<DeviceIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("title")
-                renderMap.remove("title")
+                hiddenFields.add("name")
+                renderMap.remove("name")
             }
             render != null -> {
-                hiddenFields.remove("title")
-                renderMap["title"] = { render(state) }
+                hiddenFields.remove("name")
+                renderMap["name"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("title")
-                renderMap.remove("title")
+                hiddenFields.remove("name")
+                renderMap.remove("name")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("title", orderValue)
+            updateFieldOrder("name", orderValue)
         }
     }
 
     /**
-     * 配置 content 字段
+     * 配置 code 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun content(
+    fun code(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<DeviceIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("content")
-                renderMap.remove("content")
+                hiddenFields.add("code")
+                renderMap.remove("code")
             }
             render != null -> {
-                hiddenFields.remove("content")
-                renderMap["content"] = { render(state) }
+                hiddenFields.remove("code")
+                renderMap["code"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("content")
-                renderMap.remove("content")
+                hiddenFields.remove("code")
+                renderMap.remove("code")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("content", orderValue)
+            updateFieldOrder("code", orderValue)
         }
     }
 
     /**
-     * 配置 category 字段
+     * 配置 product 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun category(
+    fun product(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<DeviceIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("category")
-                renderMap.remove("category")
+                hiddenFields.add("product")
+                renderMap.remove("product")
             }
             render != null -> {
-                hiddenFields.remove("category")
-                renderMap["category"] = { render(state) }
+                hiddenFields.remove("product")
+                renderMap["product"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("category")
-                renderMap.remove("category")
+                hiddenFields.remove("product")
+                renderMap.remove("product")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("category", orderValue)
+            updateFieldOrder("product", orderValue)
         }
     }
 
     /**
-     * 配置 tags 字段
+     * 配置 authInfo 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun tags(
+    fun authInfo(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<DeviceIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("tags")
-                renderMap.remove("tags")
+                hiddenFields.add("authInfo")
+                renderMap.remove("authInfo")
             }
             render != null -> {
-                hiddenFields.remove("tags")
-                renderMap["tags"] = { render(state) }
+                hiddenFields.remove("authInfo")
+                renderMap["authInfo"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("tags")
-                renderMap.remove("tags")
+                hiddenFields.remove("authInfo")
+                renderMap.remove("authInfo")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("tags", orderValue)
+            updateFieldOrder("authInfo", orderValue)
         }
     }
 
     /**
-     * 配置 isBuiltIn 字段
+     * 配置 enabled 字段
      * @param hidden 是否隐藏该字段
      * @param order 字段显示顺序（数值越小越靠前）
      * @param render 自定义渲染函数
      */
-    fun isBuiltIn(
+    fun enabled(
         hidden: Boolean = false,
         order: Int? = null,
-        render: (@Composable (MutableState<SysAiPromptIso>) -> Unit)? = null
+        render: (@Composable (MutableState<DeviceIso>) -> Unit)? = null
     ) {
         when {
             hidden -> {
-                hiddenFields.add("isBuiltIn")
-                renderMap.remove("isBuiltIn")
+                hiddenFields.add("enabled")
+                renderMap.remove("enabled")
             }
             render != null -> {
-                hiddenFields.remove("isBuiltIn")
-                renderMap["isBuiltIn"] = { render(state) }
+                hiddenFields.remove("enabled")
+                renderMap["enabled"] = { render(state) }
             }
             else -> {
-                hiddenFields.remove("isBuiltIn")
-                renderMap.remove("isBuiltIn")
+                hiddenFields.remove("enabled")
+                renderMap.remove("enabled")
             }
         }
 
         // 处理排序
         order?.let { orderValue ->
-            updateFieldOrder("isBuiltIn", orderValue)
+            updateFieldOrder("enabled", orderValue)
+        }
+    }
+
+    /**
+     * 配置 status 字段
+     * @param hidden 是否隐藏该字段
+     * @param order 字段显示顺序（数值越小越靠前）
+     * @param render 自定义渲染函数
+     */
+    fun status(
+        hidden: Boolean = false,
+        order: Int? = null,
+        render: (@Composable (MutableState<DeviceIso>) -> Unit)? = null
+    ) {
+        when {
+            hidden -> {
+                hiddenFields.add("status")
+                renderMap.remove("status")
+            }
+            render != null -> {
+                hiddenFields.remove("status")
+                renderMap["status"] = { render(state) }
+            }
+            else -> {
+                hiddenFields.remove("status")
+                renderMap.remove("status")
+            }
+        }
+
+        // 处理排序
+        order?.let { orderValue ->
+            updateFieldOrder("status", orderValue)
         }
     }
 
@@ -356,7 +412,7 @@ class SysAiPromptFormDsl(
     fun insertBefore(targetField: String, vararg newFields: String) {
         if (fieldOrder.isEmpty()) {
             // 如果没有自定义顺序，先初始化为默认顺序
-            fieldOrder.addAll(SysAiPromptFormProps.getAllFields())
+            fieldOrder.addAll(DeviceFormProps.getAllFields())
         }
         val index = fieldOrder.indexOf(targetField)
         if (index >= 0) {
@@ -370,7 +426,7 @@ class SysAiPromptFormDsl(
     fun insertAfter(targetField: String, vararg newFields: String) {
         if (fieldOrder.isEmpty()) {
             // 如果没有自定义顺序，先初始化为默认顺序
-            fieldOrder.addAll(SysAiPromptFormProps.getAllFields())
+            fieldOrder.addAll(DeviceFormProps.getAllFields())
         }
         val index = fieldOrder.indexOf(targetField)
         if (index >= 0) {
@@ -387,7 +443,7 @@ class SysAiPromptFormDsl(
         fieldOrderMap[fieldName] = orderValue
 
         // 重新计算字段顺序
-        val allFields = SysAiPromptFormProps.getAllFields()
+        val allFields = DeviceFormProps.getAllFields()
         val sortedFields = allFields.sortedWith { field1, field2 ->
             val order1 = fieldOrderMap[field1] ?: Int.MAX_VALUE
             val order2 = fieldOrderMap[field2] ?: Int.MAX_VALUE
@@ -405,9 +461,9 @@ class SysAiPromptFormDsl(
 }
 
 /**
- * 记住 SysAiPrompt 表单状态的便捷函数
+ * 记住 Device 表单状态的便捷函数
  */
 @Composable
-fun rememberSysAiPromptFormState(current: SysAiPromptIso? = null): MutableState<SysAiPromptIso> {
-    return remember(current) { mutableStateOf(current ?: SysAiPromptIso()) }
+fun rememberDeviceFormState(current: DeviceIso? = null): MutableState<DeviceIso> {
+    return remember(current) { mutableStateOf(current ?: DeviceIso()) }
 }

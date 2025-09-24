@@ -66,3 +66,7 @@ dependencyResolutionManagement {
         settings.include(moduleName)
         println("Auto included module: $moduleName")
     }
+plugins {
+  id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+
+}

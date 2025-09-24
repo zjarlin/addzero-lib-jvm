@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     ksp(libs.jimmer.ksp)
-//    ksp(projects.lib.toolJvm.jimmer.addzeroJimmerAutoddl)
+//    ksp(projects.lib.toolJvm.jimmer.addzeroJimmerKspAutoddl)
 
 //    ksp(projects.lib.kld.addzeroKldJimmer)
 
