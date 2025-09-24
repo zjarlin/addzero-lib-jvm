@@ -7,7 +7,7 @@ import site.addzero.generated.isomorphic.ProductIso
 
 /**
  * Ktorfit接口 - 由KSP自动生成
- * 原始Controller: site.addzero.web.modules.controller.ProductController
+ * 原始Controller: site.addzero.web.modules.controller.product.ProductController
  * 基础路径: /product
  */
 interface ProductApi {

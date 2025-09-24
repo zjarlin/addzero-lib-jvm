@@ -7,7 +7,7 @@ import site.addzero.generated.isomorphic.ProductCategoryIso
 
 /**
  * Ktorfit接口 - 由KSP自动生成
- * 原始Controller: site.addzero.web.modules.controller.ProductCategoryController
+ * 原始Controller: site.addzero.web.modules.controller.product.ProductCategoryController
  * 基础路径: /productCategory
  */
 interface ProductCategoryApi {

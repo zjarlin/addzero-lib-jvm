@@ -7,7 +7,7 @@ import site.addzero.generated.isomorphic.DeviceIso
 
 /**
  * Ktorfit接口 - 由KSP自动生成
- * 原始Controller: site.addzero.web.modules.controller.DeviceController
+ * 原始Controller: site.addzero.web.modules.controller.product.DeviceController
  * 基础路径: /device
  */
 interface DeviceApi {

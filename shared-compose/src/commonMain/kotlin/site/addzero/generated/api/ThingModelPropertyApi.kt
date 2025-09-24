@@ -7,7 +7,7 @@ import site.addzero.generated.isomorphic.ThingModelPropertyIso
 
 /**
  * Ktorfit接口 - 由KSP自动生成
- * 原始Controller: site.addzero.web.modules.controller.ThingModelPropertyController
+ * 原始Controller: site.addzero.web.modules.controller.product.ThingModelPropertyController
  * 基础路径: /thingModelProperty
  */
 interface ThingModelPropertyApi {

@@ -7,7 +7,7 @@ import site.addzero.generated.isomorphic.ThingModelIso
 
 /**
  * Ktorfit接口 - 由KSP自动生成
- * 原始Controller: site.addzero.web.modules.controller.ThingModelController
+ * 原始Controller: site.addzero.web.modules.controller.product.ThingModelController
  * 基础路径: /thingModel
  */
 interface ThingModelApi {
