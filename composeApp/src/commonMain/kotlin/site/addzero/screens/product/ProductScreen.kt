@@ -1,46 +1,75 @@
 package site.addzero.screens.product
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import site.addzero.component.table.biz.AddTable
+import site.addzero.component.table.original.entity.ColumnConfig
 import site.addzero.generated.forms.ProductForm
 import site.addzero.generated.forms.rememberProductFormState
+import site.addzero.generated.isomorphic.ProductIso
 import site.addzero.screens.product.vm.ProductViewModel
-data class ColumnMeta(
-    val key: String,
-    val label: String,
-    val kmpType: String,
-    val kmpConfig: String
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(viewModel: ProductViewModel) {
-
     val rememberProductFormState = rememberProductFormState()
 
     ProductForm(
         rememberProductFormState,
         visible = viewModel.showAddDialog,
         title = "产品表单",
-        onClose = { viewModel.showAddDialog = false },
-        onSubmit = {
-            println("提交了表单")
-        }
+        onClose = {},
+        onSubmit = {},
     )
 
     AddTable(
         data = viewModel.products,
         columns = listOf(
-            "name" to "产品名称",
-            "code" to "产品编码",
-            "productCategory" to "产品分类",
-            "devices" to "设备列表",
-            "description" to "描述",
-            "accessMethod" to "接入方式",
-            "enabled" to "是否启用"
+            ColumnConfig(
+                key = "name",
+                comment = "产品名称",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "code",
+                comment = "产品编码",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "productCategory",
+                comment = "产品分类",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "devices",
+                comment = "设备列表",
+                kmpType = "kotlin.collections.List"
+            ),
+            ColumnConfig(
+                key = "description",
+                comment = "描述",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "accessMethod",
+                comment = "接入方式",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "enabled",
+                comment = "是否启用",
+                kmpType = "kotlin.Boolean"
+            )
         ),
-        getColumnKey = { it.first },
+        getColumnKey = { it.key },
+        getColumnLabel = {
+
+            Text(
+             it.comment
+            )
+
+         },
         onSearch = { keyword, serchState, stateSort, StatePagination ->
             println("搜索")
         },
@@ -50,11 +79,12 @@ fun ProductScreen(viewModel: ProductViewModel) {
         },
         onBatchDelete = {},
         onBatchExport = {},
-        onEditClick = {},
-        onDeleteClick = {}
+        onEditClick = { product ->
+            viewModel.selectedProduct = product as ProductIso
+            viewModel.showAddDialog = true
+        },
+        onDeleteClick = { product ->
+            viewModel.deleteProduct((product as ProductIso).id ?: 0L)
+        }
     )
-
-
 }
-
-

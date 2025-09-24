@@ -1,5 +1,8 @@
 package site.addzero.screens.product.vm
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import org.koin.android.annotation.KoinViewModel
 import site.addzero.generated.isomorphic.ProductCategoryIso
@@ -7,9 +10,10 @@ import site.addzero.generated.isomorphic.ProductCategoryIso
 
 @KoinViewModel
 class ProductCategoryViewModel : ViewModel() {
+    var showAddDialog by mutableStateOf(false)
+    var selectedCategory by mutableStateOf<ProductCategoryIso?>(null)
 
     fun loadCategories(): List<ProductCategoryIso > {
-
         return emptyList()
     }
 
@@ -25,4 +29,3 @@ class ProductCategoryViewModel : ViewModel() {
         // TODO: 删除产品分类
     }
 }
-

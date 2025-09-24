@@ -1,11 +1,16 @@
 package site.addzero.screens.product.vm
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import org.koin.android.annotation.KoinViewModel
 import site.addzero.generated.isomorphic.ThingModelPropertyIso
 
 @KoinViewModel
 class ThingModelViewModel : ViewModel() {
+    var showAddDialog by mutableStateOf(false)
+    var selectedProperty by mutableStateOf<ThingModelPropertyIso?>(null)
 
     fun loadThingModelProperties(productId: Long): List<ThingModelPropertyIso> {
         return listOf(
@@ -32,4 +37,3 @@ class ThingModelViewModel : ViewModel() {
         // TODO: 删除物模型属性
     }
 }
-

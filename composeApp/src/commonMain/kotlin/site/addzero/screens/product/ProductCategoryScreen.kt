@@ -1,174 +1,72 @@
 package site.addzero.screens.product
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import site.addzero.component.button.AddButton
-import site.addzero.component.high_level.AddLazyList
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import site.addzero.component.table.biz.AddTable
+import site.addzero.component.table.original.entity.ColumnConfig
+import site.addzero.generated.forms.ProductCategoryForm
+import site.addzero.generated.forms.rememberProductCategoryFormState
 import site.addzero.generated.isomorphic.ProductCategoryIso
 import site.addzero.screens.product.vm.ProductCategoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductCategoryScreen(viewModel: ProductCategoryViewModel) {
-    var categories by remember { mutableStateOf(listOf<ProductCategoryIso>()) }
-    var showAddDialog by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf<ProductCategoryIso?>(null) }
+    val categories = viewModel.loadCategories()
+    val productCategoryFormState = rememberProductCategoryFormState()
 
-    // 刷新数据
-    LaunchedEffect(Unit) {
-        categories = viewModel.loadCategories()
-    }
+    ProductCategoryForm(
+        productCategoryFormState,
+        visible = viewModel.showAddDialog,
+        title = "产品分类表单",
+        onClose = {},
+        onSubmit = {},
+    )
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            text = "产品分类管理",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        AddButton(
-            displayName = "添加分类",
-            onClick = { showAddDialog = true },
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        AddLazyList(categories) { category ->
-            ProductCategoryItem(
-                category = category,
-                onEdit = { selectedCategory = it },
-                onDelete = { viewModel.deleteCategory(it.id?:0L) }
+    AddTable(
+        data = categories,
+        columns = listOf(
+            ColumnConfig(
+                key = "name",
+                comment = "分类名称",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "description",
+                comment = "分类描述",
+                kmpType = "kotlin.String"
+            ),
+            ColumnConfig(
+                key = "enabled",
+                comment = "是否启用",
+                kmpType = "kotlin.Boolean"
             )
-        }
-    }
+        ),
+        getColumnKey = { it.key },
+        getColumnLabel = {
 
-    if (showAddDialog) {
-        ProductCategoryDialog(
-            category = null,
-            onDismiss = { showAddDialog = false },
-            onConfirm = { category ->
-                viewModel.addCategory(category)
-                categories = viewModel.loadCategories()
-                showAddDialog = false
-            }
-        )
-    }
+             Text(
+             it.comment
+            )
 
-    selectedCategory?.let { category ->
-        ProductCategoryDialog(
-            category = category,
-            onDismiss = { selectedCategory = null },
-            onConfirm = { updatedCategory ->
-                viewModel.updateCategory(updatedCategory)
-                categories = viewModel.loadCategories()
-                selectedCategory = null
-            }
-        )
-    }
-}
 
-@Composable
-private fun ProductCategoryItem(
-    category: ProductCategoryIso,
-    onEdit: (ProductCategoryIso) -> Unit,
-    onDelete: (ProductCategoryIso) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = category.name, style = MaterialTheme.typography.titleMedium)
-                category.description?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodyMedium)
-                }
-                Text(
-                    text = if (category.enabled) "启用" else "禁用",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (category.enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = { onEdit(category) }) {
-                    Icon(Icons.Default.Edit, contentDescription = "编辑")
-                }
-
-                IconButton(onClick = { onDelete(category) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "删除")
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ProductCategoryDialog(
-    category: ProductCategoryIso?,
-    onDismiss: () -> Unit,
-    onConfirm: (ProductCategoryIso) -> Unit
-) {
-    var name by remember { mutableStateOf(category?.name ?: "") }
-    var description by remember { mutableStateOf(category?.description ?: "") }
-    var enabled by remember { mutableStateOf(category?.enabled ?: true) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (category == null) "添加分类" else "编辑分类") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("分类名称") }
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("分类描述") }
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(
-                        checked = enabled,
-                        onCheckedChange = { enabled = it }
-                    )
-                    Text("启用分类")
-                }
-            }
+         },
+        onSearch = { keyword, serchState, stateSort, StatePagination ->
+            println("搜索")
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val newCategory = ProductCategoryIso(
-                        id = category?.id ?: 0,
-                        name = name,
-                        description = description,
-                        enabled = enabled
-                    )
-                    onConfirm(newCategory)
-                }
-            ) {
-                Text("确定")
-            }
+        onSaveClick = {},
+        onImportClick = {},
+        onExportClick = { keyword, serchState, stateSort, StatePagination ->
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
+        onBatchDelete = {},
+        onBatchExport = {},
+        onEditClick = { category ->
+            viewModel.selectedCategory = category as ProductCategoryIso
+            viewModel.showAddDialog = true
+        },
+        onDeleteClick = { category ->
+            viewModel.deleteCategory((category as ProductCategoryIso).id ?: 0L)
         }
     )
 }

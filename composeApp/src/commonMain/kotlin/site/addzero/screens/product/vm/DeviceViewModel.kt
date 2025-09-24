@@ -1,5 +1,8 @@
 package site.addzero.screens.product.vm
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import org.koin.android.annotation.KoinViewModel
 import site.addzero.generated.isomorphic.DeviceIso
@@ -7,10 +10,10 @@ import site.addzero.generated.isomorphic.ProductIso
 
 @KoinViewModel
 class DeviceViewModel : ViewModel() {
+    var showAddDialog by mutableStateOf(false)
+    var selectedDevice by mutableStateOf<DeviceIso?>(null)
 
     fun loadDevices(): List<DeviceIso> {
-
-
         return emptyList()
     }
 
@@ -49,4 +52,3 @@ class DeviceViewModel : ViewModel() {
         // TODO: 删除设备
     }
 }
-
