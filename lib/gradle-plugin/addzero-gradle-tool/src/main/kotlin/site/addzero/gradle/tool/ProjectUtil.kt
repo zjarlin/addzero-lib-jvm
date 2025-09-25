@@ -1,5 +1,8 @@
 package site.addzero.gradle.tool
 
+import org.apache.tools.ant.util.FileUtils
+import org.apache.tools.ant.util.FileUtils.getRelativePath
+import org.gradle.api.initialization.Settings
 import site.addzero.gradle.constant.Disposable.KSP_BUILD_DIR_JVM
 import site.addzero.gradle.constant.Disposable.KSP_BUILD_DIR_KMP
 import site.addzero.gradle.constant.Disposable.RESOURCE_DIR_JVM
@@ -26,7 +29,6 @@ fun getProjectDirConfigMapWithOutLib(rootDir: File): MutableMap<String, String> 
     val projectDirConfigMapResult = getProjectDirConfigMap(BLACKLIST_DIRS + listOf("lib"), rootDir)
     return projectDirConfigMapResult
 }
-
 
 fun getProjectDirConfigMap(blackDir: List<String> = BLACKLIST_DIRS, rootDir: File): MutableMap<String, String> {
     val projectDirConfigMapResult = generateProjectDirConfigMap(blackDir, rootDir)
@@ -55,21 +57,16 @@ fun generateProjectDirConfigMap(blackDir: List<String>, rootDir: File): List<Pro
         val relativePath = getRelativePath(rootDir, projectDir)
         val cleanPath = relativePath.replace(File.separator, "-")
         val moduleName = cleanPath.toCamelCase()
-
         val buildFile = File(projectDir, "build.gradle.kts")
         val buildContent = buildFile.readText()
-
         // 通过检查build文件内容判断是否为KMP项目
         val isKmp =
             buildContent.contains("kotlinMultiplatform") || buildContent.contains("org.jetbrains.kotlin.multiplatform") || buildContent.contains(
                 "kmp-"
             )
-
         val sourceDir = if (isKmp) SOURCE_DIR_KMP else SOURCE_DIR_JVM
         val buildDir = if (isKmp) KSP_BUILD_DIR_KMP else KSP_BUILD_DIR_JVM
-
         val resourceDir = if (isKmp) null else RESOURCE_DIR_JVM
-
         val projectConfig = ProjectModuleConfig(
             moduleName = moduleName,
             sourceDir = projectDir.resolve(sourceDir).absolutePath,
@@ -81,15 +78,6 @@ fun generateProjectDirConfigMap(blackDir: List<String>, rootDir: File): List<Pro
     return map
 }
 
- fun getRelativePath(rootDir: File, projectDir: File): String {
-    val rootPath = rootDir.absolutePath
-    val projectPath = projectDir.absolutePath
-    return if (projectPath.startsWith(rootPath)) {
-        projectPath.substring(rootPath.length).trimStart(File.separatorChar)
-    } else {
-        projectPath
-    }
-}
 
 // 递归查找所有包含build.gradle.kts的项目目录
 fun findAllProjectDirs(rootDir: File): List<File> {
@@ -104,6 +92,73 @@ fun findAllProjectDirs(rootDir: File): List<File> {
     }
     return result
 }
+
+
+data class ProjectContext(
+    val buildLogics: List<File>,
+    val modules: List<File>,
+    val blackModules: List<File>,
+)
+
+fun getProjectContext(
+    rootDir: File, predicate: (File) -> Boolean = { true }
+): ProjectContext {
+    val findAllProjectDirs = findAllProjectDirs(rootDir)
+    val allProjectDirs = findAllProjectDirs.filter { it.absolutePath != rootDir.absolutePath } // 排除根项目本身
+
+    val (buildProj, modules) = allProjectDirs.partition {
+        val isBuildLogic = it.name.startsWith("build-logic") || it.name.startsWith("buildLogic")
+        isBuildLogic
+    }
+    val partition = modules.partition {
+        predicate(it)
+    }
+    return ProjectContext(buildProj, partition.first, partition.second)
+}
+
+
+fun getProjectContext(
+    rootDir: File, vararg blackModuleName: String
+): ProjectContext {
+    return getProjectContext(rootDir) {
+        val relativePath = FileUtils.getRelativePath(rootDir, it)
+        val moduleName = ":${relativePath.replace(File.separator, ":")}"
+        moduleName !in blackModuleName
+    }
+}
+
+
+fun Settings.autoIncludeModules(vararg blackModuleName: String) {
+    val rootDir = settings.layout.rootDirectory.asFile
+    settings.autoIncludeModules {
+        val relativePath = FileUtils.getRelativePath(rootDir, it)
+        val moduleName = ":${relativePath.replace(File.separator, ":")}"
+        val isIncluded = moduleName !in blackModuleName
+        isIncluded
+    }
+}
+
+fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
+    val rootDir = settings.layout.rootDirectory.asFile
+    val projectContext = getProjectContext(rootDir, predicate)
+    projectContext.buildLogics.forEach {
+        settings.includeBuild(it)
+        println("🛠️find build logic: ${it.name}")
+    }
+    projectContext.modules.forEach {
+        val relativePath = getRelativePath(rootDir, it)
+        val moduleName = ":${relativePath.replace(File.separator, ":")}"
+        settings.include(moduleName)
+        println("📦find module: $moduleName")
+    }
+
+    projectContext.blackModules.forEach {
+        val relativePath = getRelativePath(rootDir, it)
+        val moduleName = ":${relativePath.replace(File.separator, ":")}"
+        println("⏭️  Skipped module: $moduleName")
+    }
+}
+
 
 // 检查目录是否在黑名单中
 private fun isBlacklisted(projectDir: File, rootDir: File, blackDir: List<String>): Boolean {
