@@ -46,28 +46,52 @@ fun findAllProjectDirs(rootDir: File): List<File> {
     return result
 }
 
-fun autoIncludeModules(rootDir: File) {
+data class ProjectContext(
+    val buildLogics: List<File>,
+    val modules: List<File>,
+)
+
+fun getProjectContext(): ProjectContext {
     val findAllProjectDirs = findAllProjectDirs(rootDir)
     val allProjectDirs = findAllProjectDirs
         .filter { it.absolutePath != rootDir.absolutePath } // 排除根项目本身
+    val (buildProj, modules) =
+        allProjectDirs.partition {
+            val isBuildLogic = it.name.startsWith("build-logic") || it.name.startsWith("buildLogic")
+            isBuildLogic
+        }
+    return ProjectContext(buildProj, modules)
+}
 
-    val (buildProj, modules) = allProjectDirs.partition {
-        val isBuildLogic = it.name.startsWith("build-logic") || it.name.startsWith("buildLogic")
-        isBuildLogic
+
+fun autoIncludeModules(rootDir: File, vararg blackModuleName: String) {
+    autoIncludeModules(rootDir) {
+        val relativePath = getRelativePath(rootDir, it)
+        val moduleName = ":${relativePath.replace(File.separator, ":")}"
+        moduleName !in blackModuleName
     }
-    buildProj.forEach {
+}
+
+fun autoIncludeModules(rootDir: File, predicate: (File) -> Boolean = { true }) {
+    val projectContext = getProjectContext()
+
+    projectContext.buildLogics.forEach {
         settings.includeBuild(it)
         // 打印调试信息
         println("Auto included build: ${it.name}")
     }
-    modules.forEach {
-        val relativePath = getRelativePath(rootDir, it)
-        val moduleName = ":${relativePath.replace(File.separator, ":")}"
-        settings.include(moduleName)
-        println("Auto included module: $moduleName")
-    }
-
+    projectContext.modules
+        .filter {
+            predicate(it)
+        }
+        .forEach {
+            val relativePath = getRelativePath(rootDir, it)
+            val moduleName = ":${relativePath.replace(File.separator, ":")}"
+            settings.include(moduleName)
+            println("Auto included module: $moduleName")
+        }
 }
+
 
 val rootDir = settings.layout.rootDirectory.asFile
 autoIncludeModules(rootDir)
