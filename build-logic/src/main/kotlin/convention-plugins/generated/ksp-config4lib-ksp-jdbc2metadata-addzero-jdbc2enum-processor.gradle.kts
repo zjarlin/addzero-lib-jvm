@@ -12,4 +12,5 @@ ksp {
     arg("dictItemForeignKeyColumn", "dict_id")
     arg("dictItemCodeColumn", "item_value")
     arg("dictItemNameColumn", "item_text")
+    arg("sharedSourceDir", "")
 }
