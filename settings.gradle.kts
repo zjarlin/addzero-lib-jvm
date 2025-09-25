@@ -33,20 +33,20 @@ dependencyResolutionManagement {
     }
 }
 
-    fun findAllProjectDirs(rootDir: File): List<File> {
-        val result = mutableListOf<File>()
-        if (File(rootDir, "build.gradle.kts").exists()) {
-            result.add(rootDir)
-        }
-        rootDir.listFiles { file: File ->
-            file.isDirectory
-        }?.forEach { subDir ->
-            result.addAll(findAllProjectDirs(subDir))
-        }
-        return result
+fun findAllProjectDirs(rootDir: File): List<File> {
+    val result = mutableListOf<File>()
+    if (File(rootDir, "build.gradle.kts").exists()) {
+        result.add(rootDir)
     }
+    rootDir.listFiles { file: File ->
+        file.isDirectory
+    }?.forEach { subDir ->
+        result.addAll(findAllProjectDirs(subDir))
+    }
+    return result
+}
 
-    val rootDir = settings.layout.rootDirectory.asFile
+fun autoIncludeModules(rootDir: File) {
     val findAllProjectDirs = findAllProjectDirs(rootDir)
     val allProjectDirs = findAllProjectDirs
         .filter { it.absolutePath != rootDir.absolutePath } // 排除根项目本身
@@ -66,7 +66,12 @@ dependencyResolutionManagement {
         settings.include(moduleName)
         println("Auto included module: $moduleName")
     }
+
+}
+
+val rootDir = settings.layout.rootDirectory.asFile
+autoIncludeModules(rootDir)
 plugins {
-  id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 
 }

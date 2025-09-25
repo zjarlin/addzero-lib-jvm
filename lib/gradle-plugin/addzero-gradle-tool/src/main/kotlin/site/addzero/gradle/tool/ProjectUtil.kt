@@ -127,27 +127,3 @@ private fun String.toCamelCase(): String {
     }.joinToString("")
 }
 
-/**
- * 判断是否为应排除的目录
- */
-fun isExcludedDir(dirName: String): Boolean {
-    val excludedDirs = setOf(
-        "build",
-        "gradle",
-        ".gradle",
-        ".git",
-        ".idea",
-        "node_modules",
-        "target",
-        "out",
-        "bin",
-        ".settings",
-        "src",
-        "test",
-        "main",
-        "kotlin",
-        "java",
-        "resources"
-    )
-    return excludedDirs.contains(dirName) || dirName.startsWith(".")
-}
