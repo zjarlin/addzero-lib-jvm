@@ -1,6 +1,6 @@
 import org.apache.tools.ant.util.FileUtils.getRelativePath
 
-rootProject.name = "addzero"
+rootProject.name = "addzero-lib"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 

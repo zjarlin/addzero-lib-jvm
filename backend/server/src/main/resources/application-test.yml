@@ -1,6 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:h2:file:${user.dir:/Users/zjarlin}/db/${ADDZERO_DATA_DIR:addzero_data}/db; AUTO_SERVER=TRUE
-    driver-class-name: org.h2.Driver                    # H2 驱动
-    username:              # 默认用户名
-    password:                                           # 默认密码为空
