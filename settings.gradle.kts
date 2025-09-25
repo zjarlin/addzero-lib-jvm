@@ -104,7 +104,8 @@ fun autoIncludeModules(rootDir: File, predicate: (File) -> Boolean = { true }) {
         }
 
     // Print detailed information
-    println("\n" + """
+    println(
+        "\n" + """
         Build Logic (${buildLogicNames.size}):
         ${buildLogicNames.joinToString(", ")}
         
@@ -113,12 +114,12 @@ fun autoIncludeModules(rootDir: File, predicate: (File) -> Boolean = { true }) {
         
         Module Count: ${moduleNames.size}
         Total Count: ${buildLogicNames.size + moduleNames.size}
-    """.trimIndent() + "\n")
+    """.trimIndent() + "\n"
+    )
 }
 
 val rootDir = settings.layout.rootDirectory.asFile
-autoIncludeModules(rootDir,":lib:tool-jvm:jimmer:addzero-jimmer-ksp-autoddl",
-    ":lib:tool-jvm:jimmer:addzero-jimmer-ext-lowquery")
+autoIncludeModules(rootDir)
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 

@@ -1,9 +1,9 @@
 [versions]
-addzeroToolIoVersion = "2025.09.20"
-addzeroIocCoreVersion = "2025.09.20"
-addzeroGradleToolVersion ="2025.09.18"
-addzeroKspBuddyVersion="0.0.608"
-addzeroPublishBuddyVersion="0.0.610"
+addzeroToolIoVersion = "2025.09.24"
+addzeroIocCoreVersion = "2025.09.24"
+addzeroGradleToolVersion ="2025.09.24"
+addzeroKspBuddyVersion="2025.09.24"
+addzeroPublishBuddyVersion="2025.09.24"
 comCodingfelineBuildkonfigGradlePlugin = "0.17.1"
 jdk = "24"
 #https://central.sonatype.com/artifact/org.jetbrains.kotlin.jvm/org.jetbrains.kotlin.jvm.gradle.plugin
