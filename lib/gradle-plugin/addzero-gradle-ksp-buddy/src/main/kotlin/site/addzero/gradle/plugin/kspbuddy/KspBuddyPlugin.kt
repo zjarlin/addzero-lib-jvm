@@ -9,6 +9,8 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import java.io.File
 
+private const val GEN_DIR = "build-logic/src/main/kotlin/conventions/generated"
+
 /**
  * KspBuddyPlugin Gradle 插件主类
  * 该插件用于生成KSP处理器所需的配置脚本
@@ -19,7 +21,7 @@ class KspBuddyPlugin : Plugin<Project> {
         val extension = project.extensions.create<KspBuddyExtension>("kspBuddy")
 
         // 设置默认值
-        extension.kspScriptOutputDir.convention("build-logic/src/main/kotlin/convention-plugins/generated")
+        extension.kspScriptOutputDir.convention(GEN_DIR)
 
         // 创建生成脚本的任务
         val generateTask = project.tasks.register<GenerateKspScriptTask>("generateKspScript") {
@@ -27,10 +29,10 @@ class KspBuddyPlugin : Plugin<Project> {
             group = "build"
 
             // 设置输出文件路径，使用模块名称作为文件名的一部分
-            val outputDirPath = extension.kspScriptOutputDir.getOrElse("build-logic/src/main/kotlin/convention-plugins/generated")
+            val outputDirPath = extension.kspScriptOutputDir.getOrElse(GEN_DIR)
             val generatedDir = File(project.rootProject.projectDir, outputDirPath)
             val moduleName = getModuleName(project)
-            outputFile = File(generatedDir, "ksp-config4${moduleName}.gradle.kts")
+            outputFile = File(generatedDir, "ksp4${moduleName}.gradle.kts")
 
             // 传递mustMap给任务
             mustMap.set(extension.mustMap)
@@ -42,8 +44,9 @@ class KspBuddyPlugin : Plugin<Project> {
 
         // 在项目配置完成后自动生成配置文件
         project.afterEvaluate {
-            // 只有当mustMap有配置时才生成
-            if (extension.mustMap.isPresent && extension.mustMap.get().isNotEmpty()) {
+            // 只有当mustMap有配置且明确指定需要生成预编译脚本时才生成
+            if (extension.mustMap.isPresent && extension.mustMap.get().isNotEmpty()
+                && extension.generatePrecompiledScript.getOrElse(false)) {
                 generateTask.get().generate()
             }
         }
@@ -67,7 +70,7 @@ class KspBuddyPlugin : Plugin<Project> {
 /**
  * 生成KSP配置脚本的任务
  */
-abstract class GenerateKspScriptTask: DefaultTask() {
+abstract class GenerateKspScriptTask : DefaultTask() {
     @get:org.gradle.api.tasks.Input
     abstract val mustMap: MapProperty<String, String>
 
@@ -133,12 +136,23 @@ abstract class GenerateKspScriptTask: DefaultTask() {
         generateSettingsDataClass(packageDir, config.settingsClassName, mustMap, config.packageName)
 
         // 生成SettingContext对象
-        generateSettingContextObject(packageDir, config.contextClassName, config.settingsClassName, config.packageName, mustMap)
+        generateSettingContextObject(
+            packageDir,
+            config.contextClassName,
+            config.settingsClassName,
+            config.packageName,
+            mustMap
+        )
     }
 
-    private fun generateSettingsDataClass(packageDir: File, className: String, properties: Map<String, String>, packageName: String) {
+    private fun generateSettingsDataClass(
+        packageDir: File,
+        className: String,
+        properties: Map<String, String>,
+        packageName: String
+    ) {
         val file = File(packageDir, "${className}.kt")
-        
+
         // 如果没有属性，不需要生成文件
         if (properties.isEmpty()) {
             logger.lifecycle("No properties provided, skipping Settings data class generation")
@@ -166,9 +180,15 @@ abstract class GenerateKspScriptTask: DefaultTask() {
         logger.lifecycle("Generated Settings data class to: ${file.absolutePath}")
     }
 
-    private fun generateSettingContextObject(packageDir: File, objectName: String, settingsClassName: String, packageName: String, properties: Map<String, String>) {
+    private fun generateSettingContextObject(
+        packageDir: File,
+        objectName: String,
+        settingsClassName: String,
+        packageName: String,
+        properties: Map<String, String>
+    ) {
         val file = File(packageDir, "${objectName}.kt")
-        
+
         // 如果没有属性，不需要生成文件
         if (properties.isEmpty()) {
             logger.lifecycle("No properties provided, skipping SettingContext object generation")

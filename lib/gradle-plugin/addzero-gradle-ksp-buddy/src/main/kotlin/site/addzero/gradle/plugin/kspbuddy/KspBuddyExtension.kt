@@ -19,6 +19,12 @@ abstract class KspBuddyExtension {
     abstract val kspScriptOutputDir: Property<String>
 
     /**
+     * 是否生成预编译脚本
+     * 默认: false (需要明确指定才生成)
+     */
+    abstract val generatePrecompiledScript: Property<Boolean>
+
+    /**
      * SettingContext 生成配置
      */
     abstract val settingContext: Property<SettingContextConfig>
@@ -26,6 +32,7 @@ abstract class KspBuddyExtension {
     init {
         // 设置默认值
         settingContext.convention(SettingContextConfig())
+        generatePrecompiledScript.convention(false)
     }
 }
 
