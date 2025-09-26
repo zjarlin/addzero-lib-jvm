@@ -14,8 +14,8 @@ ksp {
     arg("createTime", "create_time")
     arg("updateTime", "update_time")
 
-    arg("metaJsonSavePath", "db/autoddl/meta")
-    arg("metaJsonSaveName", "jimmer_ddlcontext.json")
+//    arg("metaJsonSavePath", "db/autoddl/meta")
+//    arg("metaJsonSaveName", "jimmer_ddlcontext.json")
 
 
 }
