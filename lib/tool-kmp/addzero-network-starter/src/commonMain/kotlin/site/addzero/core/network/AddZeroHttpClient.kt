@@ -1,21 +1,30 @@
 package site.addzero.core.network
 
-import site.addzero.core.network.json.json
-import site.addzero.ktor2curl.CurlLogger
-import site.addzero.ktor2curl.KtorToCurl
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import site.addzero.core.network.json.json
+import site.addzero.ktor2curl.CurlLogger
+import site.addzero.ktor2curl.KtorToCurl
 import kotlin.time.Duration.Companion.minutes
 
 // 创建一个通用的 HTTP 客户端工具类
 expect val apiClient: HttpClient
+
+val apiClientWithSse = apiClient.config {
+    install(SSE) {
+        showCommentEvents()
+        showRetryEvents()
+    }
+
+}
 
 
 internal fun configClient(): HttpClientConfig<*>.() -> Unit = {

@@ -176,7 +176,7 @@ inline fun <reified T, reified C> AddTable(
         emptyContentSlot = emptyContentSlot,
         getCellContent = getCellContent,
         rowLeftSlot = rowLeftSlot ?: { item, index ->
-            val itemId = item.hashCode()
+            val itemId = getRowId?.invoke(item)?:item.getIdExt
             val isSelected = selectedItemIds.contains(itemId)
             RenderCheckbox(
                 item = item,
