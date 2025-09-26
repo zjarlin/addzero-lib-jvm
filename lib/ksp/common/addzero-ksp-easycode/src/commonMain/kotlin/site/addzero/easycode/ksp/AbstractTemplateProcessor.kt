@@ -45,10 +45,16 @@ abstract class AbstractTemplateProcessor<T : Any>(
             val templateConent = Files.readString(File(templatePath).toPath())
 
             metadata.forEach { meta ->
-                val fileName = it.getFileName(meta,options)
+                val fileName = it.getFileName(meta, options)
                 val withPkg = it.getRelativePath.withPkg(it.getPkg)
                 val pathName = withPkg.withFileName(fileName).withFileSuffix(it.getFileSuffix)
-                val formatCode: String = VelocityUtil.formatCode(templateConent, meta, clazz)
+
+                val formatCode: String = VelocityUtil.formatCode(
+                    templateConent = templateConent,
+                    meta = meta,
+                    kspOption = options,
+                    kclass = clazz
+                ) {}
 
                 if (!it.useKspCodeGenerator) {
                     genCode(
