@@ -3,7 +3,7 @@ package site.addzero.assist
 import site.addzero.core.ext.bean2map
 
 object AddFun {
-    val <T>T?.getIdExt: Any
+    inline val <reified T>T?.getIdExt: Any
         get() = {
             val comparable = try {
                 val bean2map = this?.bean2map()
