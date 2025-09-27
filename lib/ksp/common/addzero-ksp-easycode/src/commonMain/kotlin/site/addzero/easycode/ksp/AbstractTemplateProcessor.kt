@@ -42,7 +42,6 @@ abstract class AbstractTemplateProcessor<T : Any>(
                 val fileName = it.getFileName(meta, options)
                 val withPkg = it.getRelativePath.withPkg(it.getPkg)
                 val pathName = withPkg.withFileName(fileName).withFileSuffix(it.getFileSuffix)
-
                 val formatCode: String = VelocityUtil.formatCode(
                     templateConent = templateConent,
                     meta = meta,
@@ -65,14 +64,9 @@ abstract class AbstractTemplateProcessor<T : Any>(
                     ).use { stream ->
                         stream.write(formatCode.toByteArray())
                     }
-
                 }
-
             }
-
-
         }
-
     }
 }
 
