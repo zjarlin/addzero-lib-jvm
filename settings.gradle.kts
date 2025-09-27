@@ -78,12 +78,14 @@ fun autoIncludeModules(rootDir: File, predicate: (File) -> Boolean = { true }) {
     val projectContext = getProjectContext()
 
     val buildLogicNames = mutableListOf<String>()
-    projectContext.buildLogics.forEach {
-        settings.includeBuild(it)
-        buildLogicNames.add(it.name)
-        // Enhanced debug information
-        println("🛠️  [Build Logic #${buildLogicNames.size}] Included build logic: ${it.name}")
-    }
+    projectContext.buildLogics
+        .filterNot { it.name == "buildSrc" }
+        .forEach {
+            settings.includeBuild(it)
+            buildLogicNames.add(it.name)
+            // Enhanced debug information
+            println("🛠️  [Build Logic #${buildLogicNames.size}] Included build logic: ${it.name}")
+        }
 
     val moduleNames = mutableListOf<String>()
     val skippedModuleNames = mutableListOf<String>()

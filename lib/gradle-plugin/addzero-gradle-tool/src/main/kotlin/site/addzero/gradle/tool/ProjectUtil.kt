@@ -107,7 +107,11 @@ fun getProjectContext(
     val allProjectDirs = findAllProjectDirs.filter { it.absolutePath != rootDir.absolutePath } // 排除根项目本身
 
     val (buildProj, modules) = allProjectDirs.partition {
-        val isBuildLogic = it.name.startsWith("build-logic") || it.name.startsWith("buildLogic")
+        val isBuildLogic = it.name.startsWith("build-logic")
+                ||
+                it.name.startsWith("buildLogic")
+                ||
+                it.name.startsWith("buildSrc")
         isBuildLogic
     }
     val partition = modules.partition {
@@ -145,12 +149,14 @@ fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
         settings.includeBuild(it)
         println("🛠️find build logic: ${it.name}")
     }
-    projectContext.modules.forEach {
-        val relativePath = getRelativePath(rootDir, it)
-        val moduleName = ":${relativePath.replace(File.separator, ":")}"
-        settings.include(moduleName)
-        println("📦find module: $moduleName")
-    }
+    projectContext.modules
+        .filterNot { it.name == "buildSrc" }
+        .forEach {
+            val relativePath = getRelativePath(rootDir, it)
+            val moduleName = ":${relativePath.replace(File.separator, ":")}"
+            settings.include(moduleName)
+            println("📦find module: $moduleName")
+        }
 
     projectContext.blackModules.forEach {
         val relativePath = getRelativePath(rootDir, it)

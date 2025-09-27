@@ -19,9 +19,9 @@ data class MetadataContext<T>(
  */
 interface AbsCodegenContext<T : Any, E> where E : TemplateContext<T>, E : Enum<E> {
     val clazz: KClass<T>
-    val clazzE: KClass<E>
+    val clazzEnum: Class<E>
     fun extract(resolver: Resolver): MetadataContext<T>
-    val templateEnum: E
+
 }
 
 
