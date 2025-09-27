@@ -20,22 +20,16 @@ abstract class AbstractTemplateProcessor<T : Any>(
 ) : SymbolProcessor {
     protected val options = environment.options
     protected val codeGenerator = environment.codeGenerator
-    //velocity 模板引擎
-
     private var metadataCache = null as List<T>
     private var dependenciesFiles = mutableSetOf<KSFile>()
     override fun process(resolver: Resolver): List<KSAnnotated> {
-
-
         val extract = absCodegenContext.extract(resolver)
         metadataCache = extract.metadata
         val dependencies = extract.dependencies
         dependenciesFiles.addAll(dependencies)
         return dependencies
     }
-
     override fun finish() {
-
         val templateContext = absCodegenContext.templateContext
         val clazz = absCodegenContext.clazz
         templateContext.forEach {
