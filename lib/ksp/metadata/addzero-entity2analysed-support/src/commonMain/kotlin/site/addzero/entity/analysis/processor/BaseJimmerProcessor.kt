@@ -1,7 +1,7 @@
 package site.addzero.entity.analysis.processor
 
 import site.addzero.context.SettingContext
-import site.addzero.entity.analysis.JimmerEntityAnalyzer
+import site.addzero.entity.analysis.analyzer.JimmerEntityAnalyzer
 import site.addzero.entity.analysis.model.EntityMetadata
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger

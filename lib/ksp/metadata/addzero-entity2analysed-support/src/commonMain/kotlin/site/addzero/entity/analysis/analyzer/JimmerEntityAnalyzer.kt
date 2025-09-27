@@ -1,13 +1,17 @@
-package site.addzero.entity.analysis
+package site.addzero.entity.analysis.analyzer
 
+import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.symbol.ClassKind
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import site.addzero.entity.analysis.model.EntityMetadata
 import site.addzero.entity.analysis.model.EnumMetadata
 import site.addzero.entity.analysis.model.PropertyMetadata
 import site.addzero.entity.analysis.model.TypeAnalysisResult
 import site.addzero.util.defaultValue
+import site.addzero.util.getArgStr
 import site.addzero.util.isJimmerEntity
-import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.*
 
 /**
  * Jimmer 实体分析器
@@ -16,44 +20,27 @@ import com.google.devtools.ksp.symbol.*
  * 负责分析实体结构、属性类型、注解等信息
  */
 class JimmerEntityAnalyzer(
-    private val logger: KSPLogger
 ) {
 
-    /**
-     * 从KSP注解中获取字符串值 (KSP原生版本)
-     */
-    private fun getAnnotationStringValue(annotation: KSAnnotation, parameterName: String): String {
-        return try {
-            val argument = annotation.arguments.find { it.name?.asString() == parameterName }
-            argument?.value?.toString()?.removeSurrounding("\"") ?: ""
-        } catch (e: Exception) {
-            ""
-        }
-    }
 
 
     /**
      * 分析单个实体 (KSP原生版本)
      */
     fun analyzeEntity(entity: KSClassDeclaration): EntityMetadata {
-        try {
             val className = entity.simpleName.asString()
             val packageName = entity.packageName.asString()
             val qualifiedName = entity.qualifiedName?.asString() ?: ""
-
-            logger.info("分析实体: $qualifiedName")
 
             // 收集导入信息
             val imports = mutableSetOf<String>()
 
             // 提取实体描述
             val description = extractEntityDescription(entity)
-
             // 分析属性
             val properties = entity.getAllProperties().map { prop ->
                 analyzeProperty(prop, imports)
             }.toList()
-
             return EntityMetadata(
                 className = className,
                 packageName = packageName,
@@ -63,10 +50,6 @@ class JimmerEntityAnalyzer(
                 description = description
             )
 
-        } catch (e: Exception) {
-            logger.error("分析实体失败: ${entity.simpleName.asString()}, 错误: ${e.message}")
-            throw e
-        }
     }
 
 
@@ -81,44 +64,43 @@ class JimmerEntityAnalyzer(
             when (annotationName) {
                 "Schema" -> {
                     // Swagger/OpenAPI @Schema(description = "...")
-                    val description = getAnnotationStringValue(annotation, "description")
+                    val description = annotation.getArgStr("description")
                     if (description.isNotBlank()) return description
                 }
 
                 "ApiModel" -> {
                     // Swagger @ApiModel(description = "...")
-                    val description = getAnnotationStringValue(annotation, "description")
-                        ?: getAnnotationStringValue(annotation, "value")
+                    val description = annotation.getArgStr("description")
                     if (description.isNotBlank()) return description
                 }
 
                 "Entity" -> {
                     // JPA @Entity(description = "...")
-                    val description = getAnnotationStringValue(annotation, "description")
+                    val description = annotation.getArgStr("description")
                     if (description.isNotBlank()) return description
                 }
 
                 "Table" -> {
                     // JPA @Table(comment = "...")
-                    val description = getAnnotationStringValue(annotation, "comment")
+                    val description = annotation.getArgStr("comment")
                     if (description.isNotBlank()) return description
                 }
 
                 "Comment" -> {
                     // 自定义 @Comment("...")
-                    val description = getAnnotationStringValue(annotation, "value")
+                    val description = annotation.getArgStr("value")
                     if (description.isNotBlank()) return description
                 }
 
                 "Description" -> {
                     // 自定义 @Description("...")
-                    val description = getAnnotationStringValue(annotation, "value")
+                    val description = annotation.getArgStr("value")
                     if (description.isNotBlank()) return description
                 }
 
                 "JsonPropertyDescription" -> {
                     // Jackson @JsonPropertyDescription("...")
-                    val description = getAnnotationStringValue(annotation, "value")
+                    val description = annotation.getArgStr("value")
                     if (description.isNotBlank()) return description
                 }
             }
@@ -174,7 +156,6 @@ class JimmerEntityAnalyzer(
         val typeAnalysis = try {
             analyzeType(type)
         } catch (e: Exception) {
-            logger.warn("无法解析类型 ${typeName}，跳过此属性: ${e.message}")
             // 返回一个默认的类型分析结果
             TypeAnalysisResult(
                 isJimmerEntity = false,
@@ -193,7 +174,7 @@ class JimmerEntityAnalyzer(
             try {
                 analyzeEnum(type.declaration as KSClassDeclaration)
             } catch (e: Exception) {
-                logger.warn("无法分析枚举类型 ${typeName}，使用默认处理: ${e.message}")
+                e.printStackTrace()
                 null
             }
         } else null
@@ -240,7 +221,6 @@ class JimmerEntityAnalyzer(
     fun analyzeType(type: KSType): TypeAnalysisResult {
         val declaration = type.declaration
         val typeName = declaration.simpleName.asString()
-
         val isJimmerEntity = isJimmerEntity(declaration)
         val isEnum = try {
             declaration is KSClassDeclaration &&
