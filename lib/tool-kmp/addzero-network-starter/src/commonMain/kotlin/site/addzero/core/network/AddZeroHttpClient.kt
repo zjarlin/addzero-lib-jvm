@@ -18,13 +18,7 @@ import kotlin.time.Duration.Companion.minutes
 // 创建一个通用的 HTTP 客户端工具类
 expect val apiClient: HttpClient
 
-val apiClientWithSse = apiClient.config {
-    install(SSE) {
-        showCommentEvents()
-        showRetryEvents()
-    }
-
-}
+val apiClientWithSse = apiClient.withSse()
 
 
 internal fun configClient(): HttpClientConfig<*>.() -> Unit = {
@@ -45,7 +39,7 @@ internal fun configClient(): HttpClientConfig<*>.() -> Unit = {
             }
         }
     })
-    configHeaders()
+//    configHeadersWithJson()
     //日志插件
     configLog()
     //json解析插件
@@ -62,41 +56,6 @@ private fun HttpClientConfig<*>.configCurl() {
         }
     }
 }
-
-
-fun HttpClientConfig<*>.configBaseUrl(baseUrl: String) {
-    defaultRequest {
-//            url("https://api.apiopen.top")
-        url(baseUrl)
-    }
-}
-
-private fun HttpClientConfig<*>.configHeaders() {
-    defaultRequest {
-        // 添加基础请求头
-        headers {
-            append(HttpHeaders.Accept, "application/json")
-            append(HttpHeaders.ContentType, "application/json")
-        }
-    }
-}
-
-
-//fun HttpClientConfig<*>.configToken(token: String?) {
-//    defaultRequest {
-//        // 添加基础请求头
-//        headers {
-//            append(HttpHeaders.Accept, "application/json")
-//            append(HttpHeaders.ContentType, "application/json")
-//        }
-//        // 添加token
-//        headers {
-//            if (token != null) {
-//                append(HttpHeaders.Authorization, token)
-//            }
-//        }
-//    }
-//}
 
 
 private fun HttpClientConfig<*>.configLog() {
@@ -128,3 +87,48 @@ private fun HttpClientConfig<*>.configTimeout() {
 
 }
 
+private fun HttpClientConfig<*>.configHeadersWithJson() {
+    defaultRequest {
+        // 添加基础请求头
+        headers {
+            append(HttpHeaders.Accept, "application/json")
+            append(HttpHeaders.ContentType, "application/json")
+        }
+    }
+}
+
+
+private fun HttpClientConfig<*>.configHeadersWithStream() {
+    defaultRequest {
+        // 添加基础请求头
+        headers {
+            append(HttpHeaders.Accept, "text/event-stream")
+            append(HttpHeaders.ContentType, "application/json")
+        }
+    }
+}
+
+fun HttpClient.withJson(): HttpClient {
+    this.config {
+        configHeadersWithJson()
+    }
+    return this
+}
+
+fun HttpClient.withFlow(): HttpClient {
+    this.config {
+        configHeadersWithStream()
+    }
+    return this
+}
+
+fun HttpClient.withSse(): HttpClient {
+    this.config {
+        install(SSE) {
+            showCommentEvents()
+            showRetryEvents()
+        }
+        configHeadersWithStream()
+    }
+    return this
+}

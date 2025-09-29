@@ -32,13 +32,13 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-plugins {
 
+plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("io.gitee.zjarlin.auto-modules") version "0.0.608"
 }
 
 includeBuild("build-logic")
 autoModules {
-    excludeModules = listOf("build-logic")
+   excludeModules = listOf("build-logic")
 }

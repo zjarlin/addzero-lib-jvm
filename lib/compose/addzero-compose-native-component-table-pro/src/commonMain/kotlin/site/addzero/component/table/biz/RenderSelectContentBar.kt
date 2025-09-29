@@ -33,10 +33,16 @@ fun RenderSelectContent(
             Text("已选择 ${selectedItemIds.size} 项")
             // @RBAC_PERMISSION: table.batch.delete - 批量删除权限
             AddButton(
-                displayName = "批量删除", onClick = onBatchDelete)
+                displayName = "批量删除", onClick = {
+                    onBatchDelete()
+                    onClearSelection()
+                })
             Spacer(modifier = Modifier.width(8.dp))
             AddButton(
-                displayName = "导出选中", onClick = onBatchExport)
+                displayName = "导出选中", onClick = {
+                    onBatchExport()
+                }
+            )
         }
     }
 }
