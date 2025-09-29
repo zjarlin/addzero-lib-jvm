@@ -28,7 +28,7 @@ abstract class BaseJimmerProcessor(
 ) : SymbolProcessor {
 
     // Jimmer 实体分析器
-    protected val entityAnalyzer = JimmerEntityAnalyzer(logger)
+    protected val entityAnalyzer = JimmerEntityAnalyzer()
 
     // 存储收集到的实体元数据
     protected val collectedEntities = mutableListOf<EntityMetadata>()
