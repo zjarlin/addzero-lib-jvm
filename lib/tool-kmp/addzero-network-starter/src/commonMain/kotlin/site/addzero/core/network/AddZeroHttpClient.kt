@@ -45,7 +45,7 @@ internal fun configClient(): HttpClientConfig<*>.() -> Unit = {
             }
         }
     })
-    configHeaders()
+//    configHeaders()
     //日志插件
     configLog()
     //json解析插件
@@ -62,41 +62,6 @@ private fun HttpClientConfig<*>.configCurl() {
         }
     }
 }
-
-
-fun HttpClientConfig<*>.configBaseUrl(baseUrl: String) {
-    defaultRequest {
-//            url("https://api.apiopen.top")
-        url(baseUrl)
-    }
-}
-
-private fun HttpClientConfig<*>.configHeaders() {
-    defaultRequest {
-        // 添加基础请求头
-        headers {
-            append(HttpHeaders.Accept, "application/json")
-            append(HttpHeaders.ContentType, "application/json")
-        }
-    }
-}
-
-
-//fun HttpClientConfig<*>.configToken(token: String?) {
-//    defaultRequest {
-//        // 添加基础请求头
-//        headers {
-//            append(HttpHeaders.Accept, "application/json")
-//            append(HttpHeaders.ContentType, "application/json")
-//        }
-//        // 添加token
-//        headers {
-//            if (token != null) {
-//                append(HttpHeaders.Authorization, token)
-//            }
-//        }
-//    }
-//}
 
 
 private fun HttpClientConfig<*>.configLog() {
