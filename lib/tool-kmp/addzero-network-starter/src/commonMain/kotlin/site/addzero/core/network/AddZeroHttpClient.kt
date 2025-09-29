@@ -6,6 +6,7 @@ import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.sse.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -17,13 +18,7 @@ import kotlin.time.Duration.Companion.minutes
 // 创建一个通用的 HTTP 客户端工具类
 expect val apiClient: HttpClient
 
-val apiClientWithSse = apiClient.config {
-    install(SSE) {
-        showCommentEvents()
-        showRetryEvents()
-    }
-
-}
+val apiClientWithSse = apiClient.withSse()
 
 
 internal fun configClient(): HttpClientConfig<*>.() -> Unit = {
@@ -44,7 +39,7 @@ internal fun configClient(): HttpClientConfig<*>.() -> Unit = {
             }
         }
     })
-//    configHeaders()
+//    configHeadersWithJson()
     //日志插件
     configLog()
     //json解析插件
@@ -92,3 +87,48 @@ private fun HttpClientConfig<*>.configTimeout() {
 
 }
 
+private fun HttpClientConfig<*>.configHeadersWithJson() {
+    defaultRequest {
+        // 添加基础请求头
+        headers {
+            append(HttpHeaders.Accept, "application/json")
+            append(HttpHeaders.ContentType, "application/json")
+        }
+    }
+}
+
+
+private fun HttpClientConfig<*>.configHeadersWithStream() {
+    defaultRequest {
+        // 添加基础请求头
+        headers {
+            append(HttpHeaders.Accept, "text/event-stream")
+            append(HttpHeaders.ContentType, "application/json")
+        }
+    }
+}
+
+fun HttpClient.withJson(): HttpClient {
+    this.config {
+        configHeadersWithJson()
+    }
+    return this
+}
+
+fun HttpClient.withFlow(): HttpClient {
+    this.config {
+        configHeadersWithStream()
+    }
+    return this
+}
+
+fun HttpClient.withSse(): HttpClient {
+    this.config {
+        install(SSE) {
+            showCommentEvents()
+            showRetryEvents()
+        }
+        configHeadersWithStream()
+    }
+    return this
+}
