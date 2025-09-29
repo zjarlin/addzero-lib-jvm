@@ -3,6 +3,10 @@ package site.addzero.entity
 import site.addzero.enums.ErrorEnum
 import kotlinx.serialization.Serializable
 
+@Deprecated(
+    message = "Res is deprecated, use ProblemDetail instead",
+    replaceWith = ReplaceWith("ProblemDetail", "site.addzero.entity.ProblemDetail")
+)
 @Serializable
 data class Res<T>(
     val code: Int = 200,

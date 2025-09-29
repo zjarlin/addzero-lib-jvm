@@ -2,6 +2,10 @@ package site.addzero.entity
 
 import kotlinx.serialization.Serializable
 
+/**
+ * ProblemDetail is a standardized response format that follows the RFC 7807 specification.
+ * This class is recommended as a replacement for the deprecated [Res] class.
+ */
 @Serializable
 data class ProblemDetail(
     val detail: String,
