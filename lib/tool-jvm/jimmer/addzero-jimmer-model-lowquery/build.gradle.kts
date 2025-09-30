@@ -1,17 +1,3 @@
 plugins {
-    id("kmp-core")
-    id("kmp-json")
+    id("kotlin-convention")
 }
-
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-//            api(projects.lib.toolKmp.addzeroToolStr)
-            api(projects.lib.compose.addzeroComposeNativeComponentTableCore)
-
-        }
-    }
-
-}
-
-

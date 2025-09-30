@@ -1,6 +1,6 @@
 import org.apache.tools.ant.util.FileUtils.getRelativePath
 
-rootProject.name = "addzero-lib"
+rootProject.name = "addzero-lib-jvm"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 
@@ -34,7 +34,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+//    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("io.gitee.zjarlin.auto-modules") version "0.0.608"
 }
 

@@ -1,3 +1,3 @@
 plugins {
-    id("kmp-core")
+    id("kotlin-convention")
 }

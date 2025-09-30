@@ -1,14 +1,3 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
-    id("kmp-jvm")
+    id("kotlin-convention")
 }
-kotlin{
-    dependencies {
-        api(projects.lib.kmp.model.addzeroToolModelJdbc)
-    }
-}
-
-

@@ -1,8 +1,6 @@
 package site.addzero.enums
-
 enum class ErrorEnum(
     val code: Int,
-
     val msg: String
 ) {
 

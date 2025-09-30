@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
     message = "Res is deprecated, use ProblemDetail instead",
     replaceWith = ReplaceWith("ProblemDetail", "site.addzero.entity.ProblemDetail")
 )
-@Serializable
+
 data class Res<T>(
     val code: Int = 200,
     val message: String = "请求成功",
