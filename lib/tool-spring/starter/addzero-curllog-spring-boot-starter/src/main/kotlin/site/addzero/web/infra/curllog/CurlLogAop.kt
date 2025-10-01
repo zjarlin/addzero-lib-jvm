@@ -1,7 +1,7 @@
 package site.addzero.web.infra.curllog
 
 import site.addzero.site.addzero.rc.ScanControllerProperties
-import jakarta.servlet.http.HttpServletRequest
+//import javax.servlet.http.HttpServletRequest
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
 import org.springframework.aop.Advisor
@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
+import javax.servlet.http.HttpServletRequest
 
 class LogMethodInterceptor : MethodInterceptor {
     override fun invoke(invocation: MethodInvocation): Any? {

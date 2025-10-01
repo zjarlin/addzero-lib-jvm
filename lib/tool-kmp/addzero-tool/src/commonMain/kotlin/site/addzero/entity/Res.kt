@@ -1,7 +1,7 @@
 package site.addzero.entity
 
 import site.addzero.enums.ErrorEnum
-import kotlinx.serialization.Serializable
+
 
 @Deprecated(
     message = "Res is deprecated, use ProblemDetail instead",

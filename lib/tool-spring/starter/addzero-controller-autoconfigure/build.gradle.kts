@@ -1,5 +1,5 @@
 plugins {
-    id("spring-convention")
+    id("spring-lib-convention")
 }
 
 

@@ -1,8 +1,8 @@
 package site.addzero.web.infra.curllog
 
 import com.alibaba.fastjson2.JSON
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import org.springframework.http.HttpMethod
 import org.springframework.web.multipart.MultipartFile
 import java.util.*

@@ -1,6 +1,6 @@
 package site.addzero.entity
 
-import kotlinx.serialization.Serializable
+
 
 /**
  * ProblemDetail is a standardized response format that follows the RFC 7807 specification.

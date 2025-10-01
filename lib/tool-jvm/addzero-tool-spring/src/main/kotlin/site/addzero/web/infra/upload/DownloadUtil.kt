@@ -3,15 +3,13 @@ package site.addzero.web.infra.upload
 import cn.hutool.core.codec.Base64Encoder
 import cn.hutool.core.util.StrUtil
 import site.addzero.web.infra.constant.ContentTypeEnum
-import site.addzero.web.infra.spring.SprCtxUtil
-import site.addzero.web.infra.spring.SprCtxUtil.httpServletRequest
-import site.addzero.web.infra.spring.SprCtxUtil.httpServletResponse
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import org.springframework.web.context.request.RequestContextHolder.getRequestAttributes
+import org.springframework.web.context.request.ServletRequestAttributes
 import java.io.OutputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
+import javax.servlet.http.HttpServletResponse
 
 /**
  * @author zjarlin
@@ -35,9 +33,9 @@ object DownloadUtil {
     fun download(fileName: String, consumer: Consumer<OutputStream>, tab: ContentTypeEnum, addPostfix: Boolean) {
         val application: String = tab.application
         val postfix: String = tab.postfix
-        httpServletResponse.characterEncoding = "UTF-8"
+        ((getRequestAttributes() as ServletRequestAttributes).response as HttpServletResponse).characterEncoding = "UTF-8"
         //得请求头中的User-Agent
-        val agent: String = httpServletRequest.getHeader("User-Agent")
+        val agent: String = (getRequestAttributes() as ServletRequestAttributes).request.getHeader("User-Agent")
 
         // 根据不同的客户端进行不同的编码
         var filenameEncoder = ""
@@ -57,11 +55,12 @@ object DownloadUtil {
             filenameEncoder = StrUtil.addSuffixIfNot(filenameEncoder, postfix)
         }
         //        filenameEncoder = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
-        httpServletResponse.setHeader(
+        ((getRequestAttributes() as ServletRequestAttributes).response as HttpServletResponse).setHeader(
             "Content-disposition", "attachment;filename=$filenameEncoder"
         )
-        httpServletResponse.contentType = application
-        val outputStream: OutputStream = httpServletResponse.outputStream
+        ((getRequestAttributes() as ServletRequestAttributes).response as HttpServletResponse).contentType = application
+        val outputStream: OutputStream =
+            ((getRequestAttributes() as ServletRequestAttributes).response as HttpServletResponse).outputStream
         consumer.accept(outputStream)
     }
 

@@ -1,6 +1,6 @@
 package site.addzero.entity.low_table
 
-import kotlinx.serialization.Serializable
+
 
 
 /**
