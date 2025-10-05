@@ -1,14 +1,18 @@
-
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-//    id("publish-convention")
-
 }
+
 dependencies {
     implementation(gradleApi())
-    implementation(project(":lib:gradle-plugin:addzero-gradle-tool"))
+//    implementation(projects.lib.gradlePlugin.addzeroGradleTool)
+//    implementation(projects.lib.gradlePlugin.addzeroGradleTool)
+
+//    implementation(libs.addzero.gradle.tool)
+//   implementation("site.addzero:addzero-gradle-tool:+")
+//    implementation(project(":lib:gradle-plugin:addzero-gradle-tool"))
 }
+
 gradlePlugin {
     plugins {
         register(project.name) {
