@@ -5,7 +5,8 @@ val versionDate: String? = SimpleDateFormat("yyyy.MM.dd").format(Date())
 version = versionDate.toString()
 // 或者使用setter方法
 subprojects {
-    if (path.startsWith(":lib")) {
+//    println("aaaaaaaaa$path")
+    if (path.startsWith(":lib:")) {
         apply(plugin = "site.addzero.publish-buddy")
     }
 }

@@ -1,12 +1,5 @@
 package site.addzero.entity
 
-
-
-/**
- * ProblemDetail is a standardized response format that follows the RFC 7807 specification.
- * This class is recommended as a replacement for the deprecated [Res] class.
- */
-
 data class ProblemDetail(
     val detail: String,
     val errorCode: String,
