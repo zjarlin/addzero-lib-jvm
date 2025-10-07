@@ -1,8 +1,7 @@
-import java.text.SimpleDateFormat
-import java.util.*
 
-val versionDate: String? = SimpleDateFormat("yyyy.MM.dd").format(Date())
-version = versionDate.toString()
+allprojects {
+    version = "0.0.619"
+}
 // 或者使用setter方法
 subprojects {
 //    println("aaaaaaaaa$path")

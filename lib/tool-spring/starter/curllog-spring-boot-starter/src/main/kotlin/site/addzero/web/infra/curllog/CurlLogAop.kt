@@ -1,6 +1,6 @@
 package site.addzero.web.infra.curllog
 
-import site.addzero.site.addzero.rc.ScanControllerProperties
+import site.addzero.rc.ScanControllerProperties
 //import javax.servlet.http.HttpServletRequest
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation

@@ -3,7 +3,7 @@ package site.addzero.aop.dicttrans.dictaop
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.strategy.StringStrategy
 import site.addzero.aop.dicttrans.strategy.TransStrategySelector
-import site.addzero.site.addzero.rc.ScanControllerProperties
+import site.addzero.rc.ScanControllerProperties
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
 import org.springframework.aop.Advisor

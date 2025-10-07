@@ -1,4 +1,4 @@
-package site.addzero.site.addzero.rc
+package site.addzero.rc
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
