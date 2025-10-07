@@ -34,4 +34,8 @@ dependencies {
     implementation(libs.gradlePlugin.springBoot)
 
 
+//    kmp
+    implementation(libs.gradlePlugin.jetbrainsCompose)
+
+
 }

@@ -1,6 +1,14 @@
+
 plugins {
-    id("kotlin-convention")
+//    id("kotlin-convention")
+
+    id("kmp-core")
 }
-dependencies {
-    api(projects.lib.toolKmp.toolStr)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(projects.lib.toolKmp.toolStr)
+        }
+
+    }
 }

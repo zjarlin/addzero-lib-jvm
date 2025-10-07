@@ -38,7 +38,7 @@ kotlinx-coroutines = "1.10.2"
 ktor = "3.2.3"
 logback = "1.5.18"
 dokkaGradlePlugin = "2.0.0"
-composeGradlePlugin = "1.8.2"
+composeGradlePlugin = "1.9.0"
 gradleMavenPublishPlugin = "0.34.0"
 dependencyManagementPlugin = "1.1.7"
 snakeyaml = "2.5"
@@ -60,6 +60,8 @@ flyway = "11.12.0"
 # CLI 版本
 kotlinx-cli = "0.3.6"
 [libraries]
+gradlePlugin-jetbrainsCompose = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "composeGradlePlugin" }
+
 gradlePlugin-buildkonfig = { module = "com.codingfeline.buildkonfig:buildkonfig-gradle-plugin", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
 gradlePlugin-buildkonfig-cp = { module = "com.codingfeline.buildkonfig:buildkonfig-compiler", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
 
