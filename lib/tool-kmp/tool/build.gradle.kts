@@ -2,5 +2,5 @@ plugins {
     id("kotlin-convention")
 }
 dependencies {
-    api(projects.lib.toolKmp.addzeroToolStr)
+    api(projects.lib.toolKmp.toolStr)
 }
