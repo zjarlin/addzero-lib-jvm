@@ -19,4 +19,8 @@ dependencies {
     implementation("org.springframework:spring-context")
 //    compileOnly("org.aspectj:aspectjweaver:1.9.9")
     compileOnly("org.aspectj:aspectjweaver")
+
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
+
 }

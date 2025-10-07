@@ -2,6 +2,7 @@ package site.addzero.aop.dicttrans.strategy
 
 import cn.hutool.core.text.CharSequenceUtil.isBlank
 import cn.hutool.core.util.StrUtil
+import cn.hutool.extra.spring.SpringUtil
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.inter.TransApi
 import site.addzero.aop.dicttrans.inter.TransStrategy
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component
  * @since 2023/11/8 11:05
  */
 @Component
-open class StringStrategy(private val transApi: TransApi) : TransStrategy<String> {
+open class StringStrategy() : TransStrategy<String> {
 //    private val spelContextMap: MutableMap<String, Any> = HashMap<String, Any>()
 
     lateinit var dict: Dict
@@ -31,6 +32,7 @@ open class StringStrategy(private val transApi: TransApi) : TransStrategy<String
     }
 
     private fun <T> extractSingleAttributeTranslation(fieldRuntimeValue: T, dict: Dict): String {
+        val transApi = SpringUtil.getBean<TransApi>(TransApi::class.java)
         val dictCode: String = dict.dicCode.ifBlank { dict.value }
         val tab: String = dict.tab
         var codeColumn = dict.codeColumn

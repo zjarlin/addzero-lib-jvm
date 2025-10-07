@@ -6,6 +6,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy
 
 @Configuration
 @EnableAspectJAutoProxy
-@ComponentScan(basePackages = ["site.addzero.aop.dicttrans"])
+@ComponentScan(basePackages = ["site.addzero"])
 class DictTransAutoConfiguration
 

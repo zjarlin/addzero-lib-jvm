@@ -1,5 +1,6 @@
 package site.addzero.aop.dicttrans.strategy
 
+import org.springframework.beans.factory.annotation.Autowired
 import site.addzero.aop.dicttrans.inter.TransStrategy
 import org.springframework.stereotype.Component
 
@@ -10,8 +11,10 @@ import org.springframework.stereotype.Component
  */
 @Component
 class TransStrategySelector (
-private val transStrategys: List<TransStrategy<*>>
+//private val transStrategys: List<TransStrategy<*>>
 ){
+    @Autowired
+   lateinit var transStrategys: List<TransStrategy<*>>
     fun getStrategy(t: Any): TransStrategy<Any>? {
         val firstOrNull = transStrategys.firstOrNull { it.support(t) }
         val strategy = firstOrNull

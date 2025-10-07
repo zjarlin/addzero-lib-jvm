@@ -1,5 +1,6 @@
 package site.addzero.aop.dicttrans.dictaop
 
+import cn.hutool.extra.spring.SpringUtil
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.strategy.StringStrategy
 import site.addzero.aop.dicttrans.strategy.TransStrategySelector
@@ -19,6 +20,7 @@ import org.springframework.core.annotation.AnnotationUtils
 
 @Configuration
 @EnableConfigurationProperties(ScanControllerProperties::class)
+
 class DictAopConfiguration {
     // 定义注解切点
     @Bean
@@ -35,8 +37,6 @@ class DictAopConfiguration {
         dictAnnotationPointcut: AspectJExpressionPointcut,
         transStrategySelector: TransStrategySelector
     ): Advisor {
-        // 组合切点：满足 properties.expression 或 带 @Dict 注解
-
 
         // 明确使用 Pointcut 构造 ComposablePointcut
         val expressionPointcut = AspectJExpressionPointcut().apply {
