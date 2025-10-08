@@ -18,11 +18,10 @@ dependencies {
 //    implementation(libs.kotlin.reflect)
 //    implementation("site.addzero:addzero-tool-str:2025.09.20")
     implementation(libs.jackson.module.kotlin)
-    implementation(libs.fastjson2.kotlin)
     implementation(libs.spring.webmvc)
     compileOnly(libs.javax.servlet.api) // 或使用 Spring Boot 管理的版本
 //    implementation(libs.spring.boot.autoconfigure)
 //    api(projects.lib.toolSpring.starter.controllerAutoconfigure) // 或使用
     // Spring Boot 管理的版本
-    implementation(projects.lib.toolKmp.tool)
+//    implementation(projects.lib.toolKmp.tool)
 }

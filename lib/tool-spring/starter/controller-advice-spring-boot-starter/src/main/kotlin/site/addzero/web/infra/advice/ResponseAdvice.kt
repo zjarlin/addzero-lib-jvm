@@ -1,10 +1,6 @@
 package site.addzero.web.infra.advice
 
-import com.alibaba.fastjson2.JSON
-import com.alibaba.fastjson2.JSONArray
-import com.alibaba.fastjson2.JSONObject
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.MethodParameter
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageConverter
@@ -12,7 +8,9 @@ import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
+import site.addzero.rc.ScanControllerProperties
 import site.addzero.web.infra.advice.inter.AbsRes
+import site.addzero.web.infra.advice.inter.SkipWrapperCheck
 
 /**
  * 包装Controller结果, 如果已是Result类型, 则直接返回, 否则进行包装.
@@ -20,9 +18,10 @@ import site.addzero.web.infra.advice.inter.AbsRes
  */
 @RestControllerAdvice
 class ResponseAdvice(
-    @field:Value("\${controller.advice.path}") private val path: List<String?>,
+    private val scanControllerProperties: ScanControllerProperties,
     private val objectMapper: ObjectMapper,
     private val absRes: AbsRes<*>,
+    private val skipWrapperCheck: SkipWrapperCheck,
 ) : ResponseBodyAdvice<Any?> {
 
 //    private val wrapperConfig: ResponseWrapperConfig = responseWrapperConfig ?: DefaultResponseWrapperConfig()
@@ -40,19 +39,14 @@ class ResponseAdvice(
 
         val pkg = containingClass.`package`.name
 
-        if (path.isEmpty() || path.none {
-                it != null && pkg.startsWith(it)
-            }
-
-        ) {
-            return false
+        if (pkg.startsWith(scanControllerProperties.pkg)) {
+            // 排除标记了注解或者在排除列表中的类
+            return !returnType.hasMethodAnnotation(IgnoreResponseAdvice::class.java) && !EXCLUDED_CONTROLLER_CLASSES.contains(
+                containingClass
+            ) && !EXCLUDED_CONTROLLER_STRING.contains(containingClass.name)
         }
-
-        // 排除标记了注解或者在排除列表中的类
-        return !returnType.hasMethodAnnotation(IgnoreResponseAdvice::class.java) && !EXCLUDED_CONTROLLER_CLASSES.contains(
-            containingClass
-        ) && !EXCLUDED_CONTROLLER_STRING.contains(containingClass.name)
-
+        
+        return false
     }
 
     override fun beforeBodyWrite(
@@ -68,17 +62,13 @@ class ResponseAdvice(
                 absRes.success("")
             }
 
-            isWrappedResponse(body) || body is JSONArray -> {
+            isWrappedResponse(body) || skipWrapperCheck.shouldSkip(body) -> {
                 body
-            }
-
-            body is JSONObject -> {
-                if (body.containsKey("code") && body.containsKey("message")) body else absRes.success(body)
             }
 
             body is String -> {
                 try {
-                    val r = JSON.parseObject(body, AbsRes::class.java)
+                    val r = objectMapper.readValue(body, AbsRes::class.java)
                     objectMapper.writeValueAsString(r)
                 } catch (e: Exception) {
                     val success = absRes.success(body)
@@ -91,7 +81,7 @@ class ResponseAdvice(
             }
         }
     }
-    
+
     private fun isWrappedResponse(body: Any): Boolean {
         return try {
             absRes.CLASS().isAssignableFrom(body.javaClass)

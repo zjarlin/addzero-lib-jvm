@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 
 @ConfigurationProperties(prefix = "expression.scan.controller")
 @Primary
-//@Component
 data class ScanControllerProperties(
     var pkg: String = "site.addzero",
     var expression: String = "execution(* ${pkg}..*Controller*+.*(..))"

@@ -3,12 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-convention")
+    id("k8support")
     kotlin("jvm")
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.set(listOf("-Xjsr305=strict", "-Xjvm-default=all"))
-        jvmTarget.set(provider { JvmTarget.fromTarget(java.targetCompatibility.toString()) })
-    }
-}
+
