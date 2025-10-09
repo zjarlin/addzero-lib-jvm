@@ -8,7 +8,7 @@ import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
-import site.addzero.rc.ControllerAdviceProperties
+import site.addzero.rc.AddzeroControllerAdviceProperties
 import site.addzero.web.infra.advice.inter.AbsRes
 import site.addzero.web.infra.advice.inter.SkipWrapperCheck
 
@@ -18,18 +18,11 @@ import site.addzero.web.infra.advice.inter.SkipWrapperCheck
  */
 @RestControllerAdvice
 class ResponseAdvice(
-    private val controllerAdviceProperties: ControllerAdviceProperties,
+    private val addzeroControllerAdviceProperties: AddzeroControllerAdviceProperties,
     private val objectMapper: ObjectMapper,
     private val absRes: AbsRes<*>,
     private val skipWrapperCheck: SkipWrapperCheck,
 ) : ResponseBodyAdvice<Any?> {
-
-//    private val wrapperConfig: ResponseWrapperConfig = responseWrapperConfig ?: DefaultResponseWrapperConfig()
-
-    companion object {
-        private val EXCLUDED_CONTROLLER_CLASSES: Set<Class<*>> = emptySet()
-        private val EXCLUDED_CONTROLLER_STRING: Set<String> = emptySet()
-    }
 
     override fun supports(
         returnType: MethodParameter,
@@ -40,13 +33,13 @@ class ResponseAdvice(
         val pkg = containingClass.`package`.name
 
         // 检查是否在包含列表中
-        val isIncluded = controllerAdviceProperties.includePackages.any {
+        val isIncluded = addzeroControllerAdviceProperties.includePackages.any {
             pkg.startsWith(it)
         }
 
         if (isIncluded) {
             // 检查是否在黑名单中
-            val isExcludedByBlackList = controllerAdviceProperties.excludePackages.any {
+            val isExcludedByBlackList = addzeroControllerAdviceProperties.excludePackages.any {
                 pkg.startsWith(it)
             }
 
