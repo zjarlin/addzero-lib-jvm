@@ -2,7 +2,6 @@ plugins {
     id("spring-starter")
 }
 dependencies {
-    api(projects.lib.toolSpring.starter.dictTransCore)
     implementation(libs.hutool.all)
     implementation(libs.fastjson2.kotlin)
     implementation(libs.byte.buddy)

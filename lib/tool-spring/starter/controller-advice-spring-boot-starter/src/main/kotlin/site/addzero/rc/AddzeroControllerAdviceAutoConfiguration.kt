@@ -7,11 +7,11 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableConfigurationProperties(AddzeroControllerAdviceProperties::class)
 @ConditionalOnProperty(
-    prefix = "expression.scan.controller",
+    prefix = "site.addzero.scan.controller.advice",
     name = ["enabled"],
     havingValue = "true",
     matchIfMissing = true
 )
-class ExpressionScanAutoConfiguration {
+class AddzeroControllerAdviceAutoConfiguration {
 
 }
