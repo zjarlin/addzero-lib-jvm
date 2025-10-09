@@ -1,6 +1,5 @@
 package site.addzero.aop.dicttrans.dictaop
 
-import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.strategy.StringStrategy
 import site.addzero.aop.dicttrans.strategy.TransStrategySelector
 import site.addzero.rc.AddzeroDictTransProperties
@@ -15,6 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.AnnotationUtils
+import site.addzero.aop.dicttrans.anno.Dict
 
 
 @Configuration

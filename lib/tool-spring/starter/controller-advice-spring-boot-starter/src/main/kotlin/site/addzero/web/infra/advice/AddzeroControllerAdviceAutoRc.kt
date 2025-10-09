@@ -1,4 +1,4 @@
-package site.addzero.web.infra.jimmer.dynamicdatasource.config
+package site.addzero.web.infra.advice
 
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -6,5 +6,5 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy
 
 @Configuration
 @EnableAspectJAutoProxy
-@ComponentScan(basePackages = ["site.addzero.web.infra.jimmer.dynamicdatasource"])
-class AutoRc
+@ComponentScan(basePackages = ["site.addzero.web.infra.advice"])
+class AddzeroControllerAdviceAutoRc

@@ -1,2 +1,1 @@
-site.addzero.rc.AddzeroControllerAdviceAutoConfiguration
-site.addzero.web.infra.advice.AutoRc
+site.addzero.web.infra.advice.AddzeroControllerAdviceAutoRc
