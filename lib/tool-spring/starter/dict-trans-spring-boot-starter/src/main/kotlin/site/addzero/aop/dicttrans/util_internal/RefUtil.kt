@@ -1,6 +1,7 @@
 package site.addzero.aop.dicttrans.util_internal
 
 import cn.hutool.core.collection.CollUtil
+import cn.hutool.core.convert.Convert
 import cn.hutool.core.util.ClassUtil
 import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
@@ -90,6 +91,9 @@ internal object RefUtil {
         val javaClass = obj.javaClass
 
         if (ClassUtil.isPrimitiveWrapper(javaClass)) {
+            return false
+        }
+        if (Convert.toStr( obj).isBlank()) {
             return false
         }
 

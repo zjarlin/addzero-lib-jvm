@@ -56,7 +56,6 @@ private fun dosth(req: HttpServletRequest?, arguments: Array<Any>) {
 
 
 @Configuration
-@EnableConfigurationProperties(ScanControllerProperties::class)
 class CurlLogConfiguration {
 
     @Bean

@@ -18,7 +18,6 @@ import site.addzero.aop.dicttrans.anno.Dict
 
 
 @Configuration
-@EnableConfigurationProperties(AddzeroDictTransProperties::class)
 
 class DictAopConfiguration {
     // 定义注解切点
