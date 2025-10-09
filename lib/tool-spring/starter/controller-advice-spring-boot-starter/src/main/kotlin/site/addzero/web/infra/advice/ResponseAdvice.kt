@@ -8,7 +8,7 @@ import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
-import site.addzero.rc.ScanControllerProperties
+import site.addzero.rc.ControllerAdviceProperties
 import site.addzero.web.infra.advice.inter.AbsRes
 import site.addzero.web.infra.advice.inter.SkipWrapperCheck
 
@@ -18,7 +18,7 @@ import site.addzero.web.infra.advice.inter.SkipWrapperCheck
  */
 @RestControllerAdvice
 class ResponseAdvice(
-    private val scanControllerProperties: ScanControllerProperties,
+    private val controllerAdviceProperties: ControllerAdviceProperties,
     private val objectMapper: ObjectMapper,
     private val absRes: AbsRes<*>,
     private val skipWrapperCheck: SkipWrapperCheck,
@@ -39,13 +39,21 @@ class ResponseAdvice(
 
         val pkg = containingClass.`package`.name
 
-        if (pkg.startsWith(scanControllerProperties.pkg)) {
-            // 排除标记了注解或者在排除列表中的类
-            return !returnType.hasMethodAnnotation(IgnoreResponseAdvice::class.java) && !EXCLUDED_CONTROLLER_CLASSES.contains(
-                containingClass
-            ) && !EXCLUDED_CONTROLLER_STRING.contains(containingClass.name)
+        // 检查是否在包含列表中
+        val isIncluded = controllerAdviceProperties.includePackages.any {
+            pkg.startsWith(it)
         }
-        
+
+        if (isIncluded) {
+            // 检查是否在黑名单中
+            val isExcludedByBlackList = controllerAdviceProperties.excludePackages.any {
+                pkg.startsWith(it)
+            }
+
+            // 排除标记了注解或者在排除列表中的类，以及在黑名单中的包
+            return !isExcludedByBlackList && !returnType.hasMethodAnnotation(IgnoreResponseAdvice::class.java)
+        }
+
         return false
     }
 

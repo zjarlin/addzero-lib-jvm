@@ -47,7 +47,7 @@ internal object RefUtil {
 
 
     fun isObjectField(obj: Any, field: Field?): Boolean {
-        val fieldValue = ReflectUtil.getFieldValue(obj, field)
+        val fieldValue = ReflectUtil.getFieldValue(obj, field) ?: return false
         return isT(fieldValue)
     }
 
@@ -86,6 +86,13 @@ internal object RefUtil {
 //        }
 
         val javaClass = obj.javaClass
+
+        if (javaClass.isPrimitive || javaClass.isArray || javaClass.isEnum ||
+            javaClass.isInterface || javaClass.isAnnotation || javaClass
+                .isSynthetic
+        ) {
+            return false
+        }
 
 
         try {

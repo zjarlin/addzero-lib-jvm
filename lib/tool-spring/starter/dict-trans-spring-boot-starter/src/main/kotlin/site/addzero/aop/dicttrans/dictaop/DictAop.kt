@@ -1,10 +1,9 @@
 package site.addzero.aop.dicttrans.dictaop
 
-import cn.hutool.extra.spring.SpringUtil
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.strategy.StringStrategy
 import site.addzero.aop.dicttrans.strategy.TransStrategySelector
-import site.addzero.rc.ScanControllerProperties
+import site.addzero.rc.DictTransProperties
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
 import org.springframework.aop.Advisor
@@ -19,7 +18,7 @@ import org.springframework.core.annotation.AnnotationUtils
 
 
 @Configuration
-@EnableConfigurationProperties(ScanControllerProperties::class)
+@EnableConfigurationProperties(DictTransProperties::class)
 
 class DictAopConfiguration {
     // 定义注解切点
@@ -33,7 +32,7 @@ class DictAopConfiguration {
 
     @Bean
     fun dictAdvisor(
-        properties: ScanControllerProperties,
+        properties: DictTransProperties,
         dictAnnotationPointcut: AspectJExpressionPointcut,
         transStrategySelector: TransStrategySelector
     ): Advisor {
