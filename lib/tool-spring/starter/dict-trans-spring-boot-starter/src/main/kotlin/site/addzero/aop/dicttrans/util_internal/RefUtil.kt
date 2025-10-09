@@ -1,8 +1,10 @@
 package site.addzero.aop.dicttrans.util_internal
 
 import cn.hutool.core.collection.CollUtil
+import cn.hutool.core.util.ClassUtil
 import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
+import cn.hutool.core.util.TypeUtil
 import cn.hutool.extra.spring.SpringUtil
 import site.addzero.aop.dicttrans.inter.TPredicate
 import com.alibaba.fastjson2.JSON
@@ -76,9 +78,9 @@ internal object RefUtil {
 //            val endsWith = className.endsWith(string)
 //            return endsWith
 //        }
-
-        // 使用扩展函数检查注解
-
+//
+////         使用扩展函数检查注解
+//
 //        val draftByClassName = isDraftByClassName(obj)
 //
 //        if (draftByClassName) {
@@ -87,10 +89,7 @@ internal object RefUtil {
 
         val javaClass = obj.javaClass
 
-        if (javaClass.isPrimitive || javaClass.isArray || javaClass.isEnum ||
-            javaClass.isInterface || javaClass.isAnnotation || javaClass
-                .isSynthetic
-        ) {
+        if (ClassUtil.isPrimitiveWrapper(javaClass)) {
             return false
         }
 
