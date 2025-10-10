@@ -28,15 +28,41 @@ internal object TransInternalUtil {
     fun process(rootObj: Any): List<TransInfo<Dict>> {
         val aClass: Class<*> = rootObj.javaClass
 
-        //        List<TransInfo<Dict>> ret = new ArrayList<>();
+        // 分类字段
+        val (normalFields, collectionFields, nestedEntityFields) = classifyFields(rootObj, aClass)
 
+        // 处理普通字段
+        val normalStream = normalFields.flatMap { toTrans1(rootObj,it) }
+
+        // 处理集合字段
+        val collectionStream = collectionFields.flatMap {
+            val field = it.first
+            val collection = ReflectUtil.getFieldValue(rootObj, field)
+            val items = collection as MutableCollection<*>
+            items.flatMap { item -> process(item!!) }
+        }
+
+        // 处理嵌套实体
+        val nestedEntityStream = nestedEntityFields.flatMap {
+            val field = it.first
+            val fieldValue = it.second
+            val nestedEntity = ReflectUtil.getFieldValue(rootObj, field)
+            process(nestedEntity)
+        }
+
+        //合并所有结果
+        val collect = normalStream + collectionStream + nestedEntityStream
+        return collect
+    }
+
+    private fun classifyFields(rootObj: Any, aClass: Class<*>): Triple<List<Pair<Field, Any>>, List<Pair<Field, Any>>, List<Pair<Field, Any>>> {
         // 正常字段列表、集合字段列表、嵌套实体字段列表
         val normalFields = ArrayList<Pair<Field, Any>>()
         val collectionFields = ArrayList<Pair<Field, Any>>()
         val nestedEntityFields = ArrayList<Pair<Field, Any>>()
 
         // 遍历字段
-        val fields: Array<Field> = ReflectUtil.getFields(aClass, { e ->
+        ReflectUtil.getFields(aClass, { e ->
             val allMergedAnnotations1 = AnnotatedElementUtils.getMergedRepeatableAnnotations(e, Dict::class.java)
             val hasDictAnnotation = CollUtil.isNotEmpty(allMergedAnnotations1)
 
@@ -60,28 +86,7 @@ internal object TransInternalUtil {
             hasDictAnnotation || isNestedEntity || isCollection
         })
 
-        // 处理普通字段
-        val normalStream = normalFields.flatMap { toTrans1(rootObj,it) }
-
-        // 处理集合字段
-        val collectionStream = collectionFields.flatMap {
-            val field = it.first
-            val collection: Any = ReflectUtil.getFieldValue(rootObj, field)
-            val items = collection as MutableCollection<*>
-            items.flatMap { item -> process(item!!) }
-        }
-
-        // 处理嵌套实体
-        val nestedEntityStream = nestedEntityFields.flatMap {
-            val first = it.first
-            val second = it.second
-            val nestedEntity = ReflectUtil.getFieldValue(second, first)
-            process(nestedEntity)
-        }
-
-        //合并所有结果
-        val collect = normalStream + collectionStream + nestedEntityStream
-        return collect
+        return Triple(normalFields, collectionFields, nestedEntityFields)
     }
 
 
