@@ -39,6 +39,7 @@ kotlin {
 
 
 kotlin {
+    jvm()
     wasmJs {
         binaries.executable()
         nodejs()
