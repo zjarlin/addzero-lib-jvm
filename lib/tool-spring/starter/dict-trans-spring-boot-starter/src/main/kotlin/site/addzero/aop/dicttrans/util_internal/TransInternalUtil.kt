@@ -14,7 +14,6 @@ import site.addzero.aop.dicttrans.dictaop.entity.TabMultiIn
 import site.addzero.aop.dicttrans.dictaop.entity.TransInfo
 import site.addzero.aop.dicttrans.inter.TransApi
 import org.springframework.core.annotation.AnnotatedElementUtils
-import java.lang.reflect.Field
 import java.util.*
 
 /**
@@ -26,107 +25,83 @@ internal object TransInternalUtil {
 
 
     fun process(rootObj: Any): List<TransInfo<Dict>> {
-        val aClass: Class<*> = rootObj.javaClass
-
-        // 分类字段
-        val (normalFields, collectionFields, nestedEntityFields) = classifyFields(rootObj, aClass)
-
-        // 处理普通字段
-        val normalStream = normalFields.flatMap { toTrans1(rootObj,it) }
-
-        // 处理集合字段
-        val collectionStream = collectionFields.flatMap {
-            val field = it.first
-            val collection = ReflectUtil.getFieldValue(rootObj, field)
-            val items = collection as MutableCollection<*>
-            items.flatMap { item -> process(item!!) }
-        }
-
-        // 处理嵌套实体
-        val nestedEntityStream = nestedEntityFields.flatMap {
-            val field = it.first
-            val fieldValue = it.second
-            val nestedEntity = ReflectUtil.getFieldValue(rootObj, field)
-            process(nestedEntity)
-        }
-
-        //合并所有结果
-        val collect = normalStream + collectionStream + nestedEntityStream
-        return collect
-    }
-
-    private fun classifyFields(rootObj: Any, aClass: Class<*>): Triple<List<Pair<Field, Any>>, List<Pair<Field, Any>>, List<Pair<Field, Any>>> {
-        // 正常字段列表、集合字段列表、嵌套实体字段列表
-        val normalFields = ArrayList<Pair<Field, Any>>()
-        val collectionFields = ArrayList<Pair<Field, Any>>()
-        val nestedEntityFields = ArrayList<Pair<Field, Any>>()
-
-        // 遍历字段
-        ReflectUtil.getFields(aClass, { e ->
-            val allMergedAnnotations1 = AnnotatedElementUtils.getMergedRepeatableAnnotations(e, Dict::class.java)
-            val hasDictAnnotation = CollUtil.isNotEmpty(allMergedAnnotations1)
-
-            val fieldValue = ReflectUtil.getFieldValue(rootObj, e)
-            val isEmpty = ObjUtil.isEmpty(fieldValue)
-            if (isEmpty) {
-                return@getFields false
+        val result = mutableListOf<TransInfo<Dict>>()
+        // 使用队列进行广度优先遍历，避免深层递归
+        val queue = LinkedList<Any>()
+        queue.add(rootObj)
+        
+        // 对象去重，避免循环引用和重复处理
+        val processedObjects = mutableSetOf<Any>()
+        
+        while (queue.isNotEmpty()) {
+            val currentObj = queue.poll()
+            
+            // 避免重复处理相同对象和null对象
+            if (currentObj == null || !processedObjects.add(currentObj)) {
+                continue
             }
+            
+            val aClass: Class<*> = currentObj.javaClass
+            
+            // 遍历所有字段
+            ReflectUtil.getFields(aClass) { field ->
+                field.isAccessible = true
+                val fieldValue = ReflectUtil.getFieldValue(currentObj, field)
+                if (ObjUtil.isEmpty(fieldValue)) {
+                    return@getFields false
+                }
 
-            val isNestedEntity = RefUtil.isT(fieldValue)
-            val isCollection = RefUtil.isCollectionField(e)
-            val fieldObjectPair = Pair(e, fieldValue)
+                // 检查字段是否有 Dict 注解
+                val dictAnnotations = AnnotatedElementUtils.getMergedRepeatableAnnotations(field, Dict::class.java)
+                if (CollUtil.isNotEmpty(dictAnnotations)) {
+                    // 处理带有 Dict 注解的字段
+                    dictAnnotations.forEach { anno ->
+                        val alias = anno.serializationAlias
+                        val nameColumn = StrUtil.toCamelCase(anno.nameColumn)
+                        val other = field.name + CommonConstant.DICT_TEXT_SUFFIX
+                        val firstNonBlank = CharSequenceUtil.firstNonBlank(alias, nameColumn, other)
 
-            if (hasDictAnnotation && !isEmpty) {
-                normalFields.add(fieldObjectPair)
-            } else if (isCollection) {
-                collectionFields.add(fieldObjectPair)
-            } else if (isNestedEntity) {
-                nestedEntityFields.add(fieldObjectPair)
+                        val transInfo = TransInfo(
+                            superObjectFieldTypeEnum = null,
+                            superObjectFieldName = null,
+                            superObject = null,
+                            fieldEnum = null,
+                            anno = anno,
+                            translationProcess = null,
+                            rootObject = currentObj,
+                            afterObject = null,
+                            afterObjectClass = null,
+                            translatedAttributeNames = firstNonBlank,
+                            attributeNameBeforeTranslation = field.name,
+                            valueBeforeTranslation = fieldValue,
+                            translatedValue = null,
+                            translatedType = anno.spelValueType.java,
+                            classificationOfTranslation = null,
+                            rootObjectHashBsm = null
+                        )
+                        result.add(transInfo.copy(classificationOfTranslation = getTranslateType(transInfo)))
+                    }
+                }
+
+                // 处理集合类型字段
+                if (RefUtil.isCollectionField(field)) {
+                    val collection = fieldValue as? MutableCollection<*>
+                    collection?.filterNotNull()?.forEach { item ->
+                        // 将集合中的元素加入队列，等待处理
+                        queue.add(item)
+                    }
+                }
+                // 处理嵌套实体字段
+                else if (RefUtil.isT(fieldValue)) {
+                    // 将嵌套对象加入队列，等待处理
+                    queue.add(fieldValue)
+                }
+
+                true
             }
-            hasDictAnnotation || isNestedEntity || isCollection
-        })
-
-        return Triple(normalFields, collectionFields, nestedEntityFields)
-    }
-
-
-    private fun toTrans1(rootObj: Any, e: Pair<Field, Any>): Sequence<TransInfo<Dict>> {
-        val key: Field = e.first
-        val fieldName = key.name
-        val fieldValue = e.second
-
-//        val fieldValue: Any = ReflectUtil.getFieldValue(``in``, key)
-
-        val needSearchAnnotations = AnnotatedElementUtils.findMergedRepeatableAnnotations(key, Dict::class.java)
-        val transInfoStream = needSearchAnnotations.asSequence().mapIndexed { i, anno ->
-            val alias = anno.serializationAlias
-            val nameColumn = StrUtil.toCamelCase(anno.nameColumn)
-            val other = fieldName + CommonConstant.DICT_TEXT_SUFFIX + if (i == 0) "" else i.toString()
-            val firstNonBlank = CharSequenceUtil.firstNonBlank(alias, nameColumn, other)
-
-            val transInfo = TransInfo<Dict>(
-                superObjectFieldTypeEnum = null,
-                superObjectFieldName = null,
-                superObject = null,
-                fieldEnum = null,
-                anno = anno,
-                translationProcess = null,
-                rootObject = rootObj,
-                afterObject = null,
-                afterObjectClass = null,
-                translatedAttributeNames = firstNonBlank,
-                attributeNameBeforeTranslation = fieldName,
-                valueBeforeTranslation = fieldValue,
-                translatedValue = null,
-                translatedType = anno.spelValueType.java,
-                classificationOfTranslation = null,
-                rootObjectHashBsm = null
-            )
-            transInfo.copy(classificationOfTranslation = getTranslateType(transInfo))
         }
-        val filter = transInfoStream
-//        .filter { it.valueBeforeTranslation != "null" }
-        return filter
+
+        return result
     }
 
 
