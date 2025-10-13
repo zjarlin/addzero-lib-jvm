@@ -78,7 +78,7 @@ public class StructUnpacker extends StructInput {
                      Object ret = Array.newInstance(currentField.getType().getComponentType(), arrayLength);
                      setter.invoke(obj, ret);
                      if (!currentField.getType().getComponentType().isPrimitive()) {
-                        Object[] array = ret;
+                        Object[] array = (Object[]) ret;
 
                         for(int j = 0; j < arrayLength; ++j) {
                            array[j] = currentField.getType().getComponentType().newInstance();
@@ -96,7 +96,7 @@ public class StructUnpacker extends StructInput {
                      Object ret = Array.newInstance(currentField.getType().getComponentType(), arrayLength);
                      currentField.set(obj, ret);
                      if (!currentField.getType().getComponentType().isPrimitive()) {
-                        Object[] array = ret;
+                        Object[] array = (Object[]) ret;
 
                         for(int j = 0; j < arrayLength; ++j) {
                            array[j] = currentField.getType().getComponentType().newInstance();

@@ -15,8 +15,8 @@ public abstract class StructOutput extends OutputStream {
          throw new StructException("Struct classes cant be null. ");
       } else {
          StructData info = StructUtils.getStructInfo(obj);
-         boolean lengthedArray = false;
-         int arrayLength = 0;
+         boolean lengthArray;
+         int arrayLength;
 
          for(Field currentField : info.getFields()) {
             StructFieldData fieldData = info.getFieldData(currentField.getName());
@@ -24,8 +24,8 @@ public abstract class StructOutput extends OutputStream {
                throw new StructException("Field Data not found for field: " + currentField.getName());
             }
 
-            lengthedArray = false;
-            arrayLength = 0;
+            lengthArray = false;
+               arrayLength = -1;
 
             try {
                if (fieldData.isArrayLengthMarker()) {
@@ -35,16 +35,16 @@ public abstract class StructOutput extends OutputStream {
                      arrayLength = ((Number)fieldData.getField().get(obj)).intValue();
                   }
 
-                  lengthedArray = true;
+                  lengthArray = true;
                }
 
                if (fieldData.requiresGetterSetter()) {
-                  if (lengthedArray && arrayLength >= 0) {
+                  if (lengthArray && arrayLength >= 0) {
                      this.writeField(fieldData, fieldData.getGetter(), obj, arrayLength);
                   } else {
                      this.writeField(fieldData, fieldData.getGetter(), obj, -1);
                   }
-               } else if (lengthedArray && arrayLength >= 0) {
+               } else if (lengthArray && arrayLength >= 0) {
                   this.writeField(fieldData, (Method)null, obj, arrayLength);
                } else {
                   this.writeField(fieldData, (Method)null, obj, -1);
@@ -187,16 +187,16 @@ public abstract class StructOutput extends OutputStream {
                break;
             default:
                if (getter != null) {
-                  this.writeObjectArray(getter.invoke(obj, (Object[])null), len);
+                  this.writeObjectArray((Object[])getter.invoke(obj, (Object[])null), len);
                } else {
-                  this.writeObjectArray(field.get(obj), len);
+                  this.writeObjectArray((Object[])field.get(obj), len);
                }
          }
       }
 
    }
 
-   public void handleObject(Field field, Object obj) throws IllegalArgumentException, StructException, IllegalAccessException, IOException {
+   public void handleObject(Field field, Object obj) throws IllegalArgumentException, StructException, IllegalAccessException {
       this.writeObject(field.get(obj));
    }
 

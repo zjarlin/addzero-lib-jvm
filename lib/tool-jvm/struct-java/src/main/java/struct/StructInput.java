@@ -27,7 +27,7 @@ public abstract class StructInput extends InputStream {
                 }
 
                 int arrayLength = -1;
-                boolean lengthedArray = false;
+                boolean lengthArray = false;
 
                 try {
                     if (info.isLenghtedArray(currentField)) {
@@ -39,7 +39,7 @@ public abstract class StructInput extends InputStream {
                             arrayLength = ((Number)lengthMarker.getField().get(obj)).intValue();
                         }
 
-                        lengthedArray = true;
+                        lengthArray = true;
                     }
 
                     if (fieldData.requiresGetterSetter()) {
@@ -49,41 +49,37 @@ public abstract class StructInput extends InputStream {
                             throw new StructException(" getter/setter required for : " + currentField.getName());
                         }
 
-                        if (lengthedArray && arrayLength >= 0) {
+                        if (lengthArray && arrayLength >= 0) {
                             Object ret = Array.newInstance(currentField.getType().getComponentType(), arrayLength);
                             setter.invoke(obj, ret);
                             if (!currentField.getType().getComponentType().isPrimitive()) {
-                                Object[] array = ret;
-
                                 for(int j = 0; j < arrayLength; ++j) {
-                                    array[j] = currentField.getType().getComponentType().newInstance();
+                                    ((Object[]) ret)[j] = currentField.getType().getComponentType().newInstance();
                                 }
                             }
                         }
 
-                        if (!lengthedArray && currentField.getType().isArray() && getter.invoke(obj, (Object[])null) == null) {
+                        if (!lengthArray && currentField.getType().isArray() && getter.invoke(obj, (Object[])null) == null) {
                             throw new StructException("Arrays can not be null :" + currentField.getName());
                         }
 
                         this.readField(fieldData, getter, setter, obj);
                     } else {
-                        if (lengthedArray && arrayLength >= 0) {
+                        if (lengthArray && arrayLength >= 0) {
                             Object ret = Array.newInstance(currentField.getType().getComponentType(), arrayLength);
                             currentField.set(obj, ret);
                             if (!currentField.getType().getComponentType().isPrimitive()) {
-                                Object[] array = ret;
-
                                 for(int j = 0; j < arrayLength; ++j) {
-                                    array[j] = currentField.getType().getComponentType().newInstance();
+                                    ((Object[]) ret)[j] = currentField.getType().getComponentType().newInstance();
                                 }
                             }
                         }
 
-                        if (!lengthedArray && currentField.getType().isArray() && currentField.get(obj) == null) {
+                        if (!lengthArray && currentField.getType().isArray() && currentField.get(obj) == null) {
                             throw new StructException("Arrays can not be null. : " + currentField.getName());
                         }
 
-                        if (!lengthedArray || lengthedArray && arrayLength >= 0) {
+                        if (arrayLength >= 0) {
                             this.readField(fieldData, (Method)null, (Method)null, obj);
                         }
                     }
@@ -238,14 +234,14 @@ public abstract class StructInput extends InputStream {
                     if (getter != null) {
                         this.readObjectArray(new Object[]{getter.invoke(obj, (Object[]) null)});
                     } else {
-                        this.readObjectArray(field.get(obj));
+                        this.readObjectArray(new Object[]{field.get(obj)});
                     }
             }
         }
 
     }
 
-    public void handleObject(Field field, Object obj) throws IllegalArgumentException, StructException, IOException, InstantiationException, IllegalAccessException {
+    public void handleObject(Field field, Object obj) throws IllegalArgumentException, StructException, InstantiationException, IllegalAccessException {
         if (field.get(obj) == null) {
             if (field.getType().getName().endsWith("CString")) {
                 throw new StructException("CString objects should be initialized before unpacking :" + field.getName());
@@ -257,10 +253,10 @@ public abstract class StructInput extends InputStream {
         this.readObject(field.get(obj));
     }
 
-    public void close() throws IOException {
+    public void close() {
     }
 
-    public int read() throws IOException {
+    public int read() {
         return -1;
     }
 
