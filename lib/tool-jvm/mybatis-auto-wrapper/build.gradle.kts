@@ -1,6 +1,5 @@
 plugins {
-    `java-library`
-//    `kotlin-convention`
+    id("java-convention")
 }
 dependencies{
    implementation(libs.hutool.all)

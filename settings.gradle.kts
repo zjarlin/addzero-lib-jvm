@@ -20,6 +20,7 @@ dependencyResolutionManagement {
 }
 pluginManagement {
     repositories {
+//        mavenLocal()
 
 //        applyGoogleRepository()
         google {
