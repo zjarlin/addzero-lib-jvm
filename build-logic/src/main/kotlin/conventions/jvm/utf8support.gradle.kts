@@ -1,14 +1,3 @@
-import gradle.kotlin.dsl.accessors._729aa7c1588b83738f7ec34c0a320432.test
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.`java-library`
-import org.gradle.kotlin.dsl.the
-import org.gradle.kotlin.dsl.withType
-
 plugins {
     `java-library`
 }
