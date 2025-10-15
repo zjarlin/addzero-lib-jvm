@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.addzeroPublishBuddy)
 }
 
-group = "site.addzero.build-logic"
 
 //buildscript {
 //    repositories {
@@ -14,7 +13,6 @@ group = "site.addzero.build-logic"
 //        classpath(libs.gradlePlugin.buildkonfig)
 //    }
 //}
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -23,18 +21,17 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.gradlePlugin.mavenPublish)
-    implementation(libs.org.graalvm.buildtools.native.gradle.plugin)
-    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-    implementation(libs.snakeyaml)
+    compileOnly(libs.org.graalvm.buildtools.native.gradle.plugin)
+    compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+    compileOnly(libs.snakeyaml)
     implementation(libs.gradlePlugin.dokka)
     implementation(libs.gradlePlugin.kotlin)
-    implementation(libs.gradlePlugin.kotlinSerialization)
+    compileOnly(libs.gradlePlugin.kotlinSerialization)
     implementation(libs.gradlePlugin.mavenPublish)
     implementation(libs.gradlePlugin.kotlinSpring)
     implementation(libs.gradlePlugin.dependencyManagement)
     implementation(libs.gradlePlugin.springBoot)
-    implementation(libs.gradlePlugin.jetbrainsCompose)
+    compileOnly(libs.gradlePlugin.jetbrainsCompose)
 
 
 }

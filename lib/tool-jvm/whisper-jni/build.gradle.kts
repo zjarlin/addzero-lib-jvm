@@ -1,3 +1,3 @@
 plugins {
-    id("java-convention")
+    id("site.addzero.jvm.java-convention")
 }

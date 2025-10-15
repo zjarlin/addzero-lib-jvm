@@ -1,6 +1,6 @@
 plugins {
-    id("kotlin-convention")
-    id("dokka-convention")
+    id("site.addzero.jvm.kotlin-convention")
+    id("site.addzero.other.dokka-convention")
 //    kotlin("plugin.serialization")
 }
 

@@ -1,5 +1,5 @@
 plugins {
-    id("spring-starter")
+    id("site.addzero.spring.spring-starter")
 }
 
 
