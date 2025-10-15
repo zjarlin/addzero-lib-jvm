@@ -7,6 +7,7 @@ import cn.hutool.core.util.ReflectUtil
 import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.dynamic.DynamicType
+import site.addzero.util.RefUtil
 import java.lang.reflect.Field
 import java.lang.reflect.Type
 import java.util.*

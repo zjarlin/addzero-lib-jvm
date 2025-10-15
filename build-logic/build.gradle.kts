@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.addzeroPublishBuddy)
 }
 
+group = "site.addzero.build-logic"
+
 //buildscript {
 //    repositories {
 //        gradlePluginPortal()
@@ -32,9 +34,6 @@ dependencies {
     implementation(libs.gradlePlugin.kotlinSpring)
     implementation(libs.gradlePlugin.dependencyManagement)
     implementation(libs.gradlePlugin.springBoot)
-
-
-//    kmp
     implementation(libs.gradlePlugin.jetbrainsCompose)
 
 

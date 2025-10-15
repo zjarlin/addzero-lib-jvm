@@ -26,6 +26,9 @@ kotlinx-serialization = "1.9.0"
 filekitCompose = "0.8.8"
 hutoolAll = "5.8.40"
 fastjson2Kotlin = "2.0.58"
+jackson = "2.18.2"
+okhttp = "4.12.0"
+slf4j = "2.0.16"
 minio = "8.5.17"
 orgGraalvmBuildtoolsNativeGradlePluginVersion = "0.11.0"
 saToken = "1.44.0"
@@ -80,7 +83,12 @@ tomlj = { module = "org.tomlj:tomlj", version.ref = "tomlj" }
 dameng-jdbc-driver = { module = "com.dameng:DmJdbcDriver18", version.ref = "damengJdbc" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+# HTTP和日志依赖
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 spring-boot-starter-thymeleaf = { module = "org.springframework.boot:spring-boot-starter-thymeleaf" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -109,6 +117,26 @@ spring-webmvc = { module = "org.springframework:spring-webmvc" }
 fastjson2-kotlin = { module = "com.alibaba.fastjson2:fastjson2-kotlin", version.ref = "fastjson2Kotlin" }
 
 hutool-all = { module = "cn.hutool:hutool-all", version.ref = "hutoolAll" }
+# Hutool 细粒度模块依赖
+hutool-core = { module = "cn.hutool:hutool-core", version.ref = "hutoolAll" }
+hutool-extra = { module = "cn.hutool:hutool-extra", version.ref = "hutoolAll" }
+hutool-aop = { module = "cn.hutool:hutool-aop", version.ref = "hutoolAll" }
+hutool-crypto = { module = "cn.hutool:hutool-crypto", version.ref = "hutoolAll" }
+hutool-db = { module = "cn.hutool:hutool-db", version.ref = "hutoolAll" }
+hutool-http = { module = "cn.hutool:hutool-http", version.ref = "hutoolAll" }
+hutool-json = { module = "cn.hutool:hutool-json", version.ref = "hutoolAll" }
+hutool-system = { module = "cn.hutool:hutool-system", version.ref = "hutoolAll" }
+hutool-cron = { module = "cn.hutool:hutool-cron", version.ref = "hutoolAll" }
+hutool-cache = { module = "cn.hutool:hutool-cache", version.ref = "hutoolAll" }
+hutool-poi = { module = "cn.hutool:hutool-poi", version.ref = "hutoolAll" }
+hutool-script = { module = "cn.hutool:hutool-script", version.ref = "hutoolAll" }
+hutool-log = { module = "cn.hutool:hutool-log", version.ref = "hutoolAll" }
+hutool-setting = { module = "cn.hutool:hutool-setting", version.ref = "hutoolAll" }
+hutool-socket = { module = "cn.hutool:hutool-socket", version.ref = "hutoolAll" }
+hutool-jwt = { module = "cn.hutool:hutool-jwt", version.ref = "hutoolAll" }
+hutool-captcha = { module = "cn.hutool:hutool-captcha", version.ref = "hutoolAll" }
+hutool-dfa = { module = "cn.hutool:hutool-dfa", version.ref = "hutoolAll" }
+hutool-bloomFilter = { module = "cn.hutool:hutool-bloomFilter", version.ref = "hutoolAll" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 spring-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBootGradlePlugin" }
 
