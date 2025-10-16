@@ -1,19 +1,9 @@
 
 plugins {
     `kotlin-dsl`
-
     alias(libs.plugins.addzeroPublishBuddy)
 }
 
-
-//buildscript {
-//    repositories {
-//        gradlePluginPortal()
-//    }
-//    dependencies {
-//        classpath(libs.gradlePlugin.buildkonfig)
-//    }
-//}
 repositories {
     mavenLocal()
     mavenCentral()
@@ -34,7 +24,6 @@ dependencies {
     implementation(libs.gradlePlugin.springBoot)
     compileOnly(libs.gradlePlugin.jetbrainsCompose)
 
-    // 添加gradleApi依赖以支持Gradle API
     gradleApi()
 
 
