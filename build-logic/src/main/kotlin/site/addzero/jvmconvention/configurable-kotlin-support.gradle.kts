@@ -1,4 +1,4 @@
-package site.addzero.todo
+package site.addzero.jvmconvention
 
 import site.addzero.gradle.getJavaVersion
 import site.addzero.gradle.configureKotlin

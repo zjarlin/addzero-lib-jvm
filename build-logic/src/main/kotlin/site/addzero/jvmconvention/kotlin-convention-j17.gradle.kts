@@ -1,4 +1,4 @@
-package site.addzero.todo
+package site.addzero.jvmconvention
 
 import site.addzero.gradle.configureKotlin
 
@@ -7,6 +7,6 @@ plugins {
     kotlin("jvm")
 }
 
-// Kotlin配置 - Java 8
-configureKotlin(8)
+// Kotlin配置 - Java 17
+configureKotlin(17)
 
