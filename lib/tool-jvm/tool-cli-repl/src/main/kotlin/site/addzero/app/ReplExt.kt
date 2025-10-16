@@ -8,13 +8,13 @@ import kotlin.reflect.typeOf
     const val HELP_COMMAND = "h"
 
 // 打印欢迎信息和命令列表
-private fun <P, O> printWelcomeAndCommands(indexedCommands: Map<Int, AdvancedRepl<P, O>>) {
+private fun <P : Any, O> printWelcomeAndCommands(indexedCommands: Map<Int, AdvancedRepl<P, O>>) {
     println("REPL启动，输入命令编号执行命令，输入'${HELP_COMMAND}'查看命令详情，'${EXIT_COMMAND}'退出")
     printCommandList(indexedCommands)
 }
 
 // 打印命令列表
-private fun <P, O> printCommandList(indexedCommands: Map<Int, AdvancedRepl<P, O>>) {
+private fun <P : Any, O> printCommandList(indexedCommands: Map<Int, AdvancedRepl<P, O>>) {
     println("\n可用命令(键入数字和短名称都可以执行命令):")
     indexedCommands.forEach { (index, repl) ->
         println("  $index. ${repl.command} - ${repl.description}")
@@ -23,7 +23,7 @@ private fun <P, O> printCommandList(indexedCommands: Map<Int, AdvancedRepl<P, O>
 }
 
 // 根据索引执行命令
-private fun <P, O> executeCommandByIndex(
+private fun <P : Any, O> executeCommandByIndex(
     cmdIndex: Int,
     indexedCommands: Map<Int, AdvancedRepl<P, O>>
 ) {
@@ -92,7 +92,7 @@ private fun splitCommandAndArgs(input: String): Pair<String, List<String>> {
 }
 
 // 打印帮助信息
-private fun <P, O> printHelp(commandMap: Map<String, AdvancedRepl<P, O>>) {
+private fun <P : Any, O> printHelp(commandMap: Map<String, AdvancedRepl<P, O>>) {
     println("可用命令(键入数字和短名称都可以执行命令):")
     commandMap.values.forEach { repl ->
         println("\n${repl.command}: ${repl.description}")
@@ -102,7 +102,7 @@ private fun <P, O> printHelp(commandMap: Map<String, AdvancedRepl<P, O>>) {
 }
 
 // 执行命令
-private fun <P, O> executeCommand(
+private fun <P : Any, O> executeCommand(
     cmd: String,
     args: List<String>,
     commandMap: Map<String, AdvancedRepl<P, O>>,
@@ -130,13 +130,21 @@ private fun <P, O> executeCommand(
 /**
  * 扩展函数：将Repl列表转换为可运行的REPL循环
  */
-fun <P, O> List<AdvancedRepl<P, O>>.toAdvancedRepl(
+fun <P : Any, O> List<AdvancedRepl<P, O>>.toAdvancedRepl(
     prompt: String = "> ",
     exitCommand: String = EXIT_COMMAND,
     helpCommand: String = HELP_COMMAND
 ) {
-    val commandMap = associateBy { it.command.lowercase() }
-    val indexedCommands = this.withIndex().associate { (index, repl) -> (index + 1) to repl }
+    // 过滤出支持的REPL命令
+    val supportedCommands = this.filter { it.support() }
+    val unsupportedCount = this.size - supportedCommands.size
+
+    if (unsupportedCount > 0) {
+        println("注意: 有 $unsupportedCount 个命令在当前环境下不受支持")
+    }
+
+    val commandMap = supportedCommands.associateBy { it.command.lowercase() }
+    val indexedCommands = supportedCommands.withIndex().associate { (index, repl) -> (index + 1) to repl }
 
     printWelcomeAndCommands(indexedCommands)
 

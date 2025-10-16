@@ -1,6 +1,10 @@
 package site.addzero.app
 
+import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.valueParameters
+import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
 
 /**
@@ -8,7 +12,7 @@ import kotlin.reflect.typeOf
  * @param P 参数容器类型(数据类)
  * @param O 输出类型
  */
-interface AdvancedRepl<P, O> {
+interface AdvancedRepl<P : Any, O> {
     /** 命令标识符 */
     val command: String
 
@@ -27,11 +31,67 @@ interface AdvancedRepl<P, O> {
     /** 异常处理 */
     fun handleError(e: Exception): String = "错误: ${e.message}"
 
+    /** 检查当前REPL是否受支持(默认为true) */
+    fun support(): Boolean = true
+
+    /**
+     * 参数容器的类型信息，通过反射自动获取泛型类型
+     */
+    @Suppress("UNCHECKED_CAST")
+    val paramClass: KClass<out P>
+        get() {
+            val genericSuperclass = this::class.supertypes
+                .find { it.classifier == AdvancedRepl::class }
+                ?: throw IllegalStateException("无法找到 AdvancedRepl 父类型")
+
+            val paramType = genericSuperclass.arguments.first().type?.jvmErasure
+                ?: throw IllegalStateException("无法获取参数类型 P")
+
+            return paramType as KClass<out P>
+        }
+
+
     /**
      * 创建参数对象实例
+     * 使用反射自动创建，子类可以重写来自定义逻辑
      * @param values 参数值列表，按paramDefs顺序排列
      */
-    fun createParams(values: List<Any?>): P
+    fun createParams(values: List<Any?>): P {
+        val clazz = paramClass
+
+        // 特殊处理 Unit 类型
+        if (clazz == Unit::class) {
+            @Suppress("UNCHECKED_CAST")
+            return Unit as P
+        }
+
+        // 确保传入的参数列表不为空（对于非Unit类型）
+        if (values.isEmpty()) {
+            throw IllegalArgumentException("参数类型 ${clazz.simpleName} 需要参数，但传入了空列表")
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val anyClass = clazz as KClass<Any>
+        val constructor = anyClass.primaryConstructor
+            ?: throw IllegalArgumentException("${clazz.simpleName} 必须有主构造函数")
+
+        val parameters = constructor.valueParameters
+        if (parameters.size != values.size) {
+            throw IllegalArgumentException(
+                "参数数量不匹配: 构造函数需要 ${parameters.size} 个参数，但提供了 ${values.size} 个"
+            )
+        }
+
+        // 按位置映射参数值
+        val args = parameters.mapIndexed { index, param ->
+            val value = values[index]
+            // 使用工具类进行类型转换
+            ParamUtils.convertValueIfNeeded(value, param.type.classifier)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return constructor.call(*args.toTypedArray()) as P
+    }
 
     /**
      * 解析输入为参数容器
@@ -91,3 +151,4 @@ interface AdvancedRepl<P, O> {
         }
     }
 }
+
