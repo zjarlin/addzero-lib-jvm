@@ -16,6 +16,5 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 kotlin {
-    val jdkversion = libs.versions.jdk.get().toInt()
-    jvmToolchain(jdkversion)
+    jvmToolchain(libs.versions.jdk.get().toInt())
 }

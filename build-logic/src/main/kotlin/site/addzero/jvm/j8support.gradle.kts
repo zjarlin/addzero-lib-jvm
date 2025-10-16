@@ -1,23 +1,11 @@
 
 package site.addzero.jvm
-import org.gradle.accessors.dm.LibrariesForLibs
+
+import site.addzero.gradle.configureJava8
 
 plugins {
     `java-library`
 }
-
-val libs = the<LibrariesForLibs>()
-
-val jdkversion = libs.versions.jdk.get()
-extensions.configure<JavaPluginExtension> {
-    val toVersion = JavaVersion.toVersion(jdkversion)
-    sourceCompatibility = toVersion
-    targetCompatibility = toVersion
-}
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(jdkversion.toInt()))
-    }
-}
+configureJava8()
 
 

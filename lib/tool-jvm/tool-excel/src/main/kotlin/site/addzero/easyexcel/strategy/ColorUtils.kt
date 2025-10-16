@@ -1,4 +1,4 @@
-package com.gisroad.business.util.easyexcel.strategy
+package site.addzero.easyexcel.strategy
 
 import org.apache.poi.ss.usermodel.IndexedColors
 import kotlin.math.pow

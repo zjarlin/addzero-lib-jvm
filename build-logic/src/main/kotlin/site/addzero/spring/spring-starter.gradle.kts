@@ -1,5 +1,7 @@
 package site.addzero.spring
 
+import site.addzero.gradle.getLibs
+
 plugins {
     id("site.addzero.spring.spring-common")
 }
@@ -14,8 +16,6 @@ plugins {
 //    jvmToolchain(8)
 //}
 
-val libs = the<org.gradle.accessors.dm.LibrariesForLibs>()
-
 dependencies {
     implementation("org.springframework:spring-core")
     implementation("org.springframework:spring-context")
@@ -23,6 +23,4 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor")
 //    compileOnly("org.aspectj:aspectjweaver:1.9.9")
     compileOnly("org.aspectj:aspectjweaver")
-
-
 }
