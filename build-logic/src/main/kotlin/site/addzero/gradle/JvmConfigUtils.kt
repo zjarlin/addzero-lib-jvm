@@ -1,5 +1,6 @@
 package site.addzero.gradle
 
+import gradle.kotlin.dsl.accessors._1f7d316dde97d6948b0c52fe44e47820.java
 import org.gradle.api.Project
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.JavaPluginExtension
@@ -91,10 +92,7 @@ fun Project.configureKotlinCompilation(
             freeCompilerArgs.set(allArgs)
 
             // 自动根据Java的targetCompatibility推断JVM目标版本
-            jvmTarget.set(provider {
-                val javaExt = extensions.getByName("java") as JavaPluginExtension
-                JvmTarget.fromTarget(javaExt.targetCompatibility.toString())
-            })
+         jvmTarget.set(provider { JvmTarget.fromTarget(java.targetCompatibility.toString()) })
         }
     }
 }
