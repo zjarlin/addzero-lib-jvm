@@ -1,11 +1,27 @@
-
 package site.addzero.other
-import site.addzero.gradle.BuildSettings
-import site.addzero.gradle.email
-import site.addzero.gradle.gitBaseUrl
-import site.addzero.gradle.gitHost
-import site.addzero.gradle.gitRepoName
+
 import java.time.LocalDate
+
+
+val PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
+val AUTH_NAME = "zjarlin"
+val GIT_URL = "https://gitee.com/zjarlin/addzero.git"
+
+
+val email: String
+    get() = "$AUTH_NAME@outlook.com"
+val gitBaseUrl: String
+    get() = GIT_URL.removeSuffix(".git")
+
+val gitRepoPath: String
+    get() = GIT_URL.substringAfter("://").substringAfter("/")
+
+val gitHost: String
+    get() = GIT_URL.substringAfter("://").substringBefore("/")
+
+val gitRepoName: String
+    get() = gitRepoPath.removeSuffix(".git")
+
 
 plugins {
     id("com.vanniktech.maven.publish")
@@ -25,9 +41,9 @@ mavenPublishing {
 
     pom {
         name.set(project.name)
-        description.set(BuildSettings.PROJECT_DESCRIPTION)
+        description.set(PROJECT_DESCRIPTION)
         inceptionYear.set(LocalDate.now().year.toString())
-        url.set(BuildSettings.gitBaseUrl)
+        url.set(gitBaseUrl)
         licenses {
             license {
                 name.set("The Apache License, Version 2.0")
@@ -37,16 +53,16 @@ mavenPublishing {
         }
         developers {
             developer {
-                id.set(BuildSettings.AUTH_NAME)
-                name.set(BuildSettings.AUTH_NAME)
-                email.set(BuildSettings.email)
+                id.set(AUTH_NAME)
+                name.set(AUTH_NAME)
+                email.set(email)
             }
         }
 
         scm {
-            connection.set("scm:git:git://${BuildSettings.gitHost}/${BuildSettings.gitRepoName}.git")
-            developerConnection.set("scm:git:ssh://${BuildSettings.gitHost}/${BuildSettings.gitRepoName}.git")
-            url.set(BuildSettings.gitBaseUrl)
+            connection.set("scm:git:git://${gitHost}/${gitRepoName}.git")
+            developerConnection.set("scm:git:ssh://${gitHost}/${gitRepoName}.git")
+            url.set(gitBaseUrl)
         }
     }
 }
