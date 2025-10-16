@@ -1,14 +1,13 @@
 package site.addzero.todo
 
 import site.addzero.gradle.configureKotlin
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("site.addzero.todo.j25support")
+    id("site.addzero.todo.property-based-java-support")
     kotlin("jvm")
 }
 
 // Kotlin配置 - Java 25
-// Java 25 toolchain，但Kotlin编译目标使用JVM 21（当前稳定版本）
-configureKotlin(25, JvmTarget.JVM_21)
+// JVM目标版本会自动根据Java的targetCompatibility推断
+configureKotlin(25)
 

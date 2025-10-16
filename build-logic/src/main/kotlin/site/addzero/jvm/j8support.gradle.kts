@@ -1,11 +1,12 @@
 
 package site.addzero.jvm
 
-import site.addzero.gradle.configureJava8
+import site.addzero.gradle.configureJava
 
 plugins {
     `java-library`
 }
-configureJava8()
+
+configureJava(8)
 
 

@@ -32,26 +32,19 @@ fun Project.getLibs(): LibrariesForLibs = the<LibrariesForLibs>()
  * 2. project属性 "addzero.java.version"
  * 3. gradle.properties中的 "addzero.java.version"
  * 4. 版本目录中的 libs.versions.jdk
- * 5. 默认值8
+ * 5. 默认值（由调用方指定）
  */
-fun Project.getJavaVersion(): Int {
+fun Project.getJavaVersion(defaultVersion: Int = 8): Int {
     return findProperty("java.version")?.toString()?.toInt()
         ?: findProperty("addzero.java.version")?.toString()?.toInt()
         ?: project.findProperty("addzero.java.version")?.toString()?.toInt()
         ?: try {
             getLibs().versions.jdk.get().toInt()
         } catch (e: Exception) {
-            8
+            defaultVersion
         }
 }
 
-/**
- * 根据Java版本获取对应的Kotlin JVM目标版本
- * Java 8使用"1.8"，其他版本使用数字字符串
- */
-fun getKotlinJvmTarget(javaVersion: Int): String {
-    return if (javaVersion >= 9) javaVersion.toString() else "1.$javaVersion"
-}
 
 /**
  * 配置Java版本兼容性
@@ -86,11 +79,9 @@ fun Project.configureJava(javaVersion: Int) {
 
 /**
  * 配置Kotlin编译选项
- * 统一设置编译器参数和JVM目标版本
+ * 统一设置编译器参数，JVM目标版本自动根据Java兼容性推断
  */
 fun Project.configureKotlinCompilation(
-    javaVersion: Int,
-    jvmTarget: JvmTarget? = null,
     additionalCompilerArgs: List<String> = emptyList()
 ) {
     tasks.withType<KotlinCompile>().configureEach {
@@ -99,9 +90,11 @@ fun Project.configureKotlinCompilation(
             val allArgs = baseArgs + additionalCompilerArgs
             freeCompilerArgs.set(allArgs)
 
-            // 优先使用指定的jvmTarget，否则根据Java版本自动计算
-            val targetVersion = jvmTarget ?: JvmTarget.fromTarget(getKotlinJvmTarget(javaVersion))
-            this.jvmTarget.set(targetVersion)
+            // 自动根据Java的targetCompatibility推断JVM目标版本
+            jvmTarget.set(provider {
+                val javaExt = extensions.getByName("java") as JavaPluginExtension
+                JvmTarget.fromTarget(javaExt.targetCompatibility.toString())
+            })
         }
     }
 }
@@ -120,29 +113,14 @@ fun Project.configureKotlinToolchain(javaVersion: Int) {
  */
 fun Project.configureKotlin(
     javaVersion: Int,
-    jvmTarget: JvmTarget? = null,
     additionalCompilerArgs: List<String> = emptyList()
 ) {
-    configureKotlinCompilation(javaVersion, jvmTarget, additionalCompilerArgs)
     configureKotlinToolchain(javaVersion)
+    configureKotlinCompilation(additionalCompilerArgs)
 }
 
-// 便捷方法：配置特定版本的Java
-fun Project.configureJava8() = configureJava(8)
-fun Project.configureJava11() = configureJava(11)
-fun Project.configureJava17() = configureJava(17)
-fun Project.configureJava21() = configureJava(21)
-fun Project.configureJava25() = configureJava(25)
-
-// 便捷方法：配置特定版本的Kotlin
-fun Project.configureKotlin8(additionalArgs: List<String> = emptyList()) =
-    configureKotlin(8, JvmTarget.JVM_1_8, additionalArgs)
-fun Project.configureKotlin11(additionalArgs: List<String> = emptyList()) =
-    configureKotlin(11, JvmTarget.JVM_11, additionalArgs)
-fun Project.configureKotlin17(additionalArgs: List<String> = emptyList()) =
-    configureKotlin(17, JvmTarget.JVM_17, additionalArgs)
-fun Project.configureKotlin21(additionalArgs: List<String> = emptyList()) =
-    configureKotlin(21, JvmTarget.JVM_21, additionalArgs)
+// 注意：不再提供硬编码版本的便捷方法，请使用通用函数并传入具体版本号
+// 例如：configureJava(8) 或 configureKotlin(11) - JVM目标版本会自动推断
 
 /**
  * 完整的Java + Kotlin配置
@@ -150,22 +128,13 @@ fun Project.configureKotlin21(additionalArgs: List<String> = emptyList()) =
  */
 fun Project.configureJavaAndKotlin(
     javaVersion: Int,
-    kotlinJvmTarget: JvmTarget? = null,
     additionalKotlinCompilerArgs: List<String> = emptyList()
 ) {
     configureJava(javaVersion)
-    configureKotlin(javaVersion, kotlinJvmTarget, additionalKotlinCompilerArgs)
+    configureKotlin(javaVersion, additionalKotlinCompilerArgs)
 }
 
-// 便捷方法：配置特定版本的Java + Kotlin
-fun Project.configureJavaAndKotlin8(additionalArgs: List<String> = emptyList()) =
-    configureJavaAndKotlin(8, JvmTarget.JVM_1_8, additionalArgs)
-fun Project.configureJavaAndKotlin11(additionalArgs: List<String> = emptyList()) =
-    configureJavaAndKotlin(11, JvmTarget.JVM_11, additionalArgs)
-fun Project.configureJavaAndKotlin17(additionalArgs: List<String> = emptyList()) =
-    configureJavaAndKotlin(17, JvmTarget.JVM_17, additionalArgs)
-fun Project.configureJavaAndKotlin21(additionalArgs: List<String> = emptyList()) =
-    configureJavaAndKotlin(21, JvmTarget.JVM_21, additionalArgs)
+
 
 /**
  * 配置UTF-8编码

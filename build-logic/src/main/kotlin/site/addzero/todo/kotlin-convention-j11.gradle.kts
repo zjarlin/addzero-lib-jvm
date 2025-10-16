@@ -1,6 +1,6 @@
 package site.addzero.todo
 
-import site.addzero.gradle.configureKotlin11
+import site.addzero.gradle.configureKotlin
 
 plugins {
     id("site.addzero.todo.property-based-java-support")
@@ -8,5 +8,5 @@ plugins {
 }
 
 // Kotlin配置 - Java 11
-configureKotlin11()
+configureKotlin(11)
 

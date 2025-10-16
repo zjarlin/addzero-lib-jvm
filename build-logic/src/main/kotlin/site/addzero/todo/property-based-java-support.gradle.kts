@@ -8,9 +8,6 @@ plugins {
 }
 
 // 动态配置Java版本
-configJava()
+val javaVersion = getJavaVersion()
+configureJava(javaVersion)
 
-fun configJava() {
-    val javaVersion = getJavaVersion()
-    configureJava(javaVersion)
-}
