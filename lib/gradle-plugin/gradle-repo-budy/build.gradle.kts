@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(gradleApi())
+gradleApi()
 //    implementation(projects.lib.gradlePlugin.addzeroGradleTool)
 //    implementation(projects.lib.gradlePlugin.addzeroGradleTool)
 

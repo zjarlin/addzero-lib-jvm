@@ -5,7 +5,7 @@ plugins {
 
 }
 dependencies {
-    implementation(gradleApi())
+gradleApi()
     implementation(libs.gradlePlugin.mavenPublish)
 }
 gradlePlugin {

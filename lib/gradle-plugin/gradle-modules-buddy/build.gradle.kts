@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation(gradleApi())
+gradleApi()
 //    implementation(libs.addzero.gradle.tool)
 //    implementation(project(":lib:gradle-plugin:addzero-gradle-tool"))
     implementation(project(":lib:gradle-plugin:gradle-tool"))

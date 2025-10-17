@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation(gradleApi())
+gradleApi()
 }
 
 gradlePlugin {
