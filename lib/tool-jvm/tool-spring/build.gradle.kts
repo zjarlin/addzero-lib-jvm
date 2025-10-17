@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.spring.spring-lib-convention")
+    id("site.addzero.buildlogic.spring.spring-lib-convention")
 }
 
 dependencies {

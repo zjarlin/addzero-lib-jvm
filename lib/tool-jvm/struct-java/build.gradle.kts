@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.jvm.java-convention")
+    id("site.addzero.buildlogic.jvm.java-convention")
 }
 dependencies{
 }

@@ -1,7 +1,7 @@
-package site.addzero.spring
+package site.addzero.buildlogic.spring
 
 plugins {
-    id("site.addzero.spring.spring-common")
+    id("site.addzero.buildlogic.spring.spring-common")
 }
 
 dependencies {
@@ -10,9 +10,9 @@ dependencies {
 
     // 自动配置
     implementation("org.springframework.boot:spring-boot-autoconfigure")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
     // 元数据生成
-    compileOnly("org.springframework.boot:spring-boot-autoconfigure-processor")
+//    compileOnly("org.springframework.boot:spring-boot-autoconfigure-processor")
 //    compileOnly("org.aspectj:aspectjweaver:1.9.9")
     compileOnly("org.aspectj:aspectjweaver")
 }

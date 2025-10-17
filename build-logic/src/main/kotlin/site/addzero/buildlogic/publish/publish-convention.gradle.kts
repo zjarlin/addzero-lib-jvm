@@ -1,17 +1,18 @@
-package site.addzero.other
+package site.addzero.buildlogic.publish
 
-import org.gradle.api.provider.Property
+import site.addzero.gradle.PublishConventionExtension
 import java.time.LocalDate
 
 // 默认配置常量
-val DEFAULT_PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
-val DEFAULT_AUTH_NAME = "zjarlin"
-val DEFAULT_GIT_URL = "https://gitee.com/zjarlin/addzero.git"
-
-// License 默认配置
-val DEFAULT_LICENSE_NAME = "The Apache License, Version 2.0"
-val DEFAULT_LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-val DEFAULT_LICENSE_DISTRIBUTION = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+plugins {
+    id("site.addzero.buildlogic.publish.publish-ext")
+    id("com.vanniktech.maven.publish")
+}
+// 注意：由于Maven Publish插件与Gradle配置缓存存在兼容性问题，
+// 在使用publishToMavenLocal或publishToMavenCentral任务时，
+// 请使用--no-configuration-cache参数禁用配置缓存
+// 例如: ./gradlew publishToMavenLocal --no-configuration-cache
+val create = the<site.addzero.gradle.PublishConventionExtension>()
 
 // 直接访问扩展配置的计算属性
 val projectDescription get() = create.projectDescription.get()
@@ -40,33 +41,10 @@ val email get() = authName.toEmail()
 fun String.toEmail() = "$this@outlook.com"
 fun String.toScmConnection(host: String = gitHost, repoName: String = gitRepoName): String =
     "scm:git:git://$host/$repoName.git"
+
 fun String.toDeveloperConnection(host: String = gitHost, repoName: String = gitRepoName): String =
     "scm:git:ssh://$host/$repoName.git"
 
-interface PublishConventionExtension {
-    val projectDescription: Property<String>
-    val authorName: Property<String>
-    val gitUrl: Property<String>
-    val emailDomain: Property<String>
-
-    // License 配置
-    val licenseName: Property<String>
-    val licenseUrl: Property<String>
-    val licenseDistribution: Property<String>
-}
-
-val create = extensions.create<PublishConventionExtension>("addzeroPublishBuddy").apply {
-    // 设置默认值
-    projectDescription.set(DEFAULT_PROJECT_DESCRIPTION)
-    authorName.set(DEFAULT_AUTH_NAME)
-    gitUrl.set(DEFAULT_GIT_URL)
-    emailDomain.set("outlook.com")
-
-    // License 默认值
-    licenseName.set(DEFAULT_LICENSE_NAME)
-    licenseUrl.set(DEFAULT_LICENSE_URL)
-    licenseDistribution.set(DEFAULT_LICENSE_DISTRIBUTION)
-}
 
 // 从扩展配置获取值的便捷函数
 fun PublishConventionExtension.getEmail(): String = "${authorName.get()}@${emailDomain.get()}"
@@ -74,17 +52,6 @@ fun PublishConventionExtension.getGitBaseUrl(): String = gitUrl.get().removeSuff
 fun PublishConventionExtension.getGitHost(): String = gitUrl.get().substringAfter("://").substringBefore("/")
 fun PublishConventionExtension.getGitRepoName(): String = gitUrl.get().substringAfter("://").substringAfter("/").removeSuffix(".git")
 
-
-
-plugins {
-    id("com.vanniktech.maven.publish")
-}
-
-
-// 注意：由于Maven Publish插件与Gradle配置缓存存在兼容性问题，
-// 在使用publishToMavenLocal或publishToMavenCentral任务时，
-// 请使用--no-configuration-cache参数禁用配置缓存
-// 例如: ./gradlew publishToMavenLocal --no-configuration-cache
 
 val pjVersion = project.version.toString()
 mavenPublishing {

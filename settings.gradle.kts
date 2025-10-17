@@ -39,7 +39,7 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("io.gitee.zjarlin.auto-modules") version "0.0.608"
-//    id("site.addzero.repo-buddy") version "2025.09.26"
+//    id("site.addzero.repo-buddy") springVersion "2025.09.26"
 }
 
 includeBuild("build-logic")

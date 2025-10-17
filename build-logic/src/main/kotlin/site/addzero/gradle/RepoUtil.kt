@@ -1,11 +1,7 @@
 package site.addzero.gradle
 
-import org.gradle.accessors.dm.LibrariesForLibs
-import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.internal.serialize.codecs.core.NodeOwner
 import org.gradle.kotlin.dsl.maven
-import org.gradle.kotlin.dsl.the
 
 
 fun RepositoryHandler.applyGoogleRepository() {
@@ -17,7 +13,6 @@ fun RepositoryHandler.applyGoogleRepository() {
         }
     }
 }
-
 
 fun RepositoryHandler.applyCommonRepositories() {
     applyGoogleRepository()

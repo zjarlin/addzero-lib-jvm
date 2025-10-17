@@ -1,7 +1,7 @@
-package site.addzero.spring
+package site.addzero.buildlogic.spring
 
 plugins {
-    id("site.addzero.spring.spring-common")
+    id("site.addzero.buildlogic.spring.spring-common")
     id("org.springframework.boot") apply false
 }
 
