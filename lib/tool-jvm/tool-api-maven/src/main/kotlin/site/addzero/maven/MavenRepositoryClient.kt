@@ -17,6 +17,11 @@ import site.addzero.maven.model.MavenSearchResponse
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+fun main() {
+    val groupArtifacts = MavenRepositoryClient.searchByArtifactId("build-logic")
+    println(groupArtifacts)
+//    println(searchByGroupIdAndArtifactId)
+}
 /**
  * Maven仓库客户端
  *
