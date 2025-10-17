@@ -94,7 +94,7 @@ fun Project.configureWithSourcesJar() {
     }
 }
 
-fun Project.configUtf8(): Unit {
+fun Project.configUtf8() {
     tasks.withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"
     }

@@ -21,7 +21,6 @@ dependencies {
     implementation(libs.gradlePlugin.kotlin)
     implementation(libs.gradlePlugin.mavenPublish)
     implementation(libs.org.graalvm.buildtools.native.gradle.plugin)
-    
     implementation(libs.gradlePlugin.dependencyManagement)
     implementation(libs.gradlePlugin.springBoot)
     implementation(libs.gradlePlugin.kotlinSpring)
