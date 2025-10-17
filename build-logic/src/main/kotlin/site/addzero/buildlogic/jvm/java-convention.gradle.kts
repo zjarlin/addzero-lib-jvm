@@ -1,11 +1,17 @@
 package site.addzero.buildlogic.jvm
 
+import site.addzero.gradle.*
+
 plugins {
     `java-library`
-    id("site.addzero.buildlogic.common.configureJavaCompatibility")
-    id("site.addzero.buildlogic.common.configureJavaToolchain")
-    id("site.addzero.buildlogic.common.configureWithSourcesJar")
-    id("site.addzero.buildlogic.common.configureJUnitPlatform")
-    id("site.addzero.buildlogic.common.configureUtf8Encoding")
+    id("site.addzero.buildlogic.common.ext")
 }
 
+val value = the<AdzeroExtension>()
+val javaVersion = value.jdkVersion.get()
+
+configureWithSourcesJar()
+configUtf8()
+configureJavaCompatibility(javaVersion)
+configJavaToolChain(javaVersion)
+configJunitPlatform()

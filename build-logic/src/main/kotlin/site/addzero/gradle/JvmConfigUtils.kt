@@ -1,54 +1,68 @@
 package site.addzero.gradle
 
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-/**
- * JVM配置工具类 - 提供Java和Kotlin配置的公共函数
- * 仿照RepoUtil.kt的模式，使用Project扩展函数
- */
-
-/**
- * 安全获取版本目录访问器
- */
-fun Project.getLibs(): LibrariesForLibs = the<LibrariesForLibs>()
-
-/**
- * 获取项目Java版本
- * 支持多种配置方式：
- * 1. project属性 "java.springVersion"
- * 2. project属性 "addzero.java.springVersion"
- * 3. gradle.properties中的 "addzero.java.springVersion"
- * 4. 版本目录中的 libs.versions.jdk
- * 5. 默认值（由调用方指定）
- */
-fun Project.getJavaVersion(defaultVersion: Int = 8): Int {
-    return findProperty("java.springVersion")?.toString()?.toInt()
-        ?: findProperty("addzero.java.springVersion")?.toString()?.toInt()
-        ?: project.findProperty("addzero.java.springVersion")?.toString()?.toInt()
-        ?: try {
-            getLibs().versions.jdk.get().toInt()
-        } catch (e: Exception) {
-            defaultVersion
+fun Project.configJavaToolChain(jdkVersion: String)  {
+    val toInt = jdkVersion.toInt()
+    extensions.configure<JavaPluginExtension> {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(toInt))
         }
+    }
 }
+
+
+
+fun Project.configJunitPlatform()  {
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+    }
+}
+
+
 
 
 /**
  * 配置Java版本兼容性
  * 统一设置sourceCompatibility和targetCompatibility
  */
-fun Project.configureJavaCompatibility(javaVersion: Int) {
+fun Project.configureJavaCompatibility(jdkVersion: String) {
+    val toInt = jdkVersion.toInt()
     extensions.configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.toVersion(javaVersion)
-        targetCompatibility = JavaVersion.toVersion(javaVersion)
+        sourceCompatibility = JavaVersion.toVersion(toInt)
+        targetCompatibility = JavaVersion.toVersion(toInt)
     }
+}
+
+fun Project.configureKotlinCompatibility() {
+    val the = the<JavaPluginExtension>()
+    val toString = the.targetCompatibility.toString()
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.set(listOf("-Xjsr305=strict", "-Xjvm-default=all"))
+            jvmTarget.set(provider { JvmTarget.fromTarget(toString) })
+        }
+    }
+}
+
+
+fun Project.configureKotlinToolchain(jdkVersion: String) {
+    val toInt = jdkVersion.toInt()
+    val the = the<KotlinJvmProjectExtension>()
+    the.jvmToolchain (toInt)
 }
 
 
@@ -77,5 +91,26 @@ fun Project.configureKotlinTestDependencies() {
 fun Project.configureWithSourcesJar() {
     extensions.configure<JavaPluginExtension> {
         withSourcesJar()
+    }
+}
+
+fun Project.configUtf8(): Unit {
+    tasks.withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+    }
+
+// Java执行任务编码
+    tasks.withType<JavaExec>().configureEach {
+        // 添加完整的UTF-8编码支持
+        jvmArgs("-Dfile.encoding=UTF-8")
+        //保证终端cli打印正确
+        jvmArgs("-Dsun.stdout.encoding=UTF-8")
+        jvmArgs("-Dsun.stderr.encoding=UTF-8")
+        jvmArgs("-Dsun.jnu.encoding=UTF-8")
+    }
+
+// Javadoc任务编码
+    tasks.withType<Javadoc>().configureEach {
+        options.encoding = "UTF-8"
     }
 }
