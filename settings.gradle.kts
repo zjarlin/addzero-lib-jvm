@@ -40,7 +40,6 @@ pluginManagement {
 plugins {
 //    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("org.gradle.toolchains.foojay-resolver-convention") version "+"
-//    id("io.gitee.zjarlin.auto-modules") version "0.0.608"
     id("site.addzero.modules-buddy") version "+"
     id("me.champeau.includegit") version "0.3.2"
 }
