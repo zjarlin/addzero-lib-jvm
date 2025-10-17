@@ -1,6 +1,6 @@
 plugins {
-    id("kotlin-convention")
-    id("dokka-convention")
+    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.buildlogic.other.dokka-convention")
 //    kotlin("plugin.serialization")
 }
 

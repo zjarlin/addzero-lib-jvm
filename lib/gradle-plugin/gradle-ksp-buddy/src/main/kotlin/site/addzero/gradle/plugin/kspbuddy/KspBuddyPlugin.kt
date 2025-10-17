@@ -3,8 +3,10 @@ package site.addzero.gradle.plugin.kspbuddy
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import java.io.File
@@ -34,6 +36,10 @@ class KspBuddyPlugin : Plugin<Project> {
             val moduleName = getModuleName(project)
             outputFile = File(generatedDir, "ksp4${moduleName}.gradle.kts")
 
+            // 设置生成代码的输出目录
+            val buildOutputDir = project.layout.buildDirectory.dir("generated/ksp-buddy")
+            generatedCodeOutputDir.set(buildOutputDir)
+
             // 传递mustMap给任务
             mustMap.set(extension.mustMap)
 
@@ -42,12 +48,25 @@ class KspBuddyPlugin : Plugin<Project> {
             targetProject.set(project)
         }
 
-        // 在项目配置完成后自动生成配置文件
+        // 将生成的代码目录添加到 Kotlin 源集
         project.afterEvaluate {
-            // 只有当mustMap有配置且明确指定需要生成预编译脚本时才生成
+            try {
+                // 尝试添加源代码目录，简化版本避免复杂的类型推断
+                val outputDir = generateTask.flatMap { it.generatedCodeOutputDir }
+                project.tasks.findByName("compileKotlin")?.let { compileTask ->
+                    compileTask.dependsOn(generateTask)
+                }
+            } catch (e: Exception) {
+                project.logger.warn("Failed to configure Kotlin source sets: ${e.message}")
+            }
+        }
+
+        // 只有当mustMap有配置且明确指定需要生成预编译脚本时才自动生成
+        project.afterEvaluate {
             if (extension.mustMap.isPresent && extension.mustMap.get().isNotEmpty()
                 && extension.generatePrecompiledScript.getOrElse(false)) {
-                generateTask.get().generate()
+                // 使用任务执行而不是直接调用方法，确保 Gradle 能正确跟踪依赖
+                generateTask.get()
             }
         }
     }
@@ -83,6 +102,9 @@ abstract class GenerateKspScriptTask : DefaultTask() {
     @get:org.gradle.api.tasks.OutputFile
     abstract var outputFile: File
 
+    @get:OutputDirectory
+    abstract val generatedCodeOutputDir: DirectoryProperty
+
     @org.gradle.api.tasks.TaskAction
     fun generate() {
         // 确保输出目录存在
@@ -110,21 +132,26 @@ abstract class GenerateKspScriptTask : DefaultTask() {
         logger.lifecycle("Generated KSP configuration script to: ${outputFile.absolutePath}")
 
         // 生成Settings数据类和SettingContext对象
-        generateSettingsAndContext()
+        val generatedFiles = generateSettingsAndContext()
+
+        // 使用 Gradle 刷新助手
+        val refreshHelper = project.objects.newInstance(GradleRefreshHelper::class.java)
+        refreshHelper.requestGradleReevaluation(targetProject.get())
+        refreshHelper.generateIdeRefreshHint(targetProject.get(), generatedFiles)
     }
 
-    private fun generateSettingsAndContext() {
+    private fun generateSettingsAndContext(): List<File> {
         val config = settingContextConfig.get()
         if (!config.enabled) {
             logger.lifecycle("SettingContext generation is disabled")
-            return
+            return emptyList()
         }
 
         val project = targetProject.get()
         val mustMap = mustMap.get()
 
-        // 创建输出目录在build目录下，避免污染源码
-        val outputDir = File(project.buildDir, "generated/ksp-buddy")
+        // 使用任务配置的输出目录
+        val outputDir = generatedCodeOutputDir.get().asFile
         val packageDir = File(outputDir, config.packageName.replace(".", "/"))
         packageDir.mkdirs()
 
@@ -132,17 +159,27 @@ abstract class GenerateKspScriptTask : DefaultTask() {
         logger.lifecycle("Package name: ${config.packageName}")
         logger.lifecycle("MustMap content: $mustMap")
 
+        val generatedFiles = mutableListOf<File>()
+
         // 生成Settings数据类
-        generateSettingsDataClass(packageDir, config.settingsClassName, mustMap, config.packageName)
+        val settingsFile = generateSettingsDataClass(packageDir, config.settingsClassName, mustMap, config.packageName)
+        if (settingsFile != null) {
+            generatedFiles.add(settingsFile)
+        }
 
         // 生成SettingContext对象
-        generateSettingContextObject(
+        val contextFile = generateSettingContextObject(
             packageDir,
             config.contextClassName,
             config.settingsClassName,
             config.packageName,
             mustMap
         )
+        if (contextFile != null) {
+            generatedFiles.add(contextFile)
+        }
+
+        return generatedFiles
     }
 
     private fun generateSettingsDataClass(
@@ -150,13 +187,13 @@ abstract class GenerateKspScriptTask : DefaultTask() {
         className: String,
         properties: Map<String, String>,
         packageName: String
-    ) {
+    ): File? {
         val file = File(packageDir, "${className}.kt")
 
         // 如果没有属性，不需要生成文件
         if (properties.isEmpty()) {
             logger.lifecycle("No properties provided, skipping Settings data class generation")
-            return
+            return null
         }
 
         // 使用字符串模板生成代码，只根据mustMap生成属性（不包含序列化注解）
@@ -178,6 +215,7 @@ abstract class GenerateKspScriptTask : DefaultTask() {
 
         file.writeText(finalContent)
         logger.lifecycle("Generated Settings data class to: ${file.absolutePath}")
+        return file
     }
 
     private fun generateSettingContextObject(
@@ -186,13 +224,13 @@ abstract class GenerateKspScriptTask : DefaultTask() {
         settingsClassName: String,
         packageName: String,
         properties: Map<String, String>
-    ) {
+    ): File? {
         val file = File(packageDir, "${objectName}.kt")
 
         // 如果没有属性，不需要生成文件
         if (properties.isEmpty()) {
             logger.lifecycle("No properties provided, skipping SettingContext object generation")
-            return
+            return null
         }
 
         // 使用字符串模板生成代码
@@ -227,5 +265,6 @@ abstract class GenerateKspScriptTask : DefaultTask() {
 
         file.writeText(finalContent)
         logger.lifecycle("Generated SettingContext object to: ${file.absolutePath}")
+        return file
     }
 }

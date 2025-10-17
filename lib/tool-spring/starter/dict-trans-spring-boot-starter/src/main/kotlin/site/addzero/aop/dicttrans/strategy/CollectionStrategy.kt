@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil
 import cn.hutool.core.util.ObjectUtil
 import site.addzero.aop.dicttrans.inter.TransStrategy
 import site.addzero.aop.dicttrans.util_internal.ByteBuddyUtil
-import site.addzero.aop.dicttrans.util_internal.RefUtil
+import site.addzero.util.RefUtil
 import site.addzero.aop.dicttrans.util_internal.TransInternalUtil
 import org.springframework.stereotype.Component
 import java.util.*

@@ -1,5 +1,5 @@
 plugins {
-    id("spring-starter")
+    id("site.addzero.buildlogic.spring.spring-starter")
 }
 
 

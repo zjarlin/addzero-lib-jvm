@@ -48,7 +48,7 @@ object MetaInfoUtils {
         val lastOrNull = find.asSequence()
             .mapNotNull { annotation ->
                 val loadedClass = ClassUtil.loadClass<Annotation>(annotation)
-                val swaggerAnnotation = AnnotationUtil.getAnnotation<Annotation?>(annotatedElement, loadedClass)
+                val swaggerAnnotation = AnnotationUtil.getAnnotation(annotatedElement, loadedClass)
                 swaggerAnnotation?.let {
                     // 根据不同的注解类型提取描述
                     when (annotation) {
@@ -60,10 +60,10 @@ object MetaInfoUtils {
                         "io.swagger.v3.oas.annotations.media.Schema" -> it.javaClass.getMethod("description")
                             .invoke(it) as? String
 
-                        "io.swagger.annotations.ApiModelProperty" -> it.javaClass.getMethod("columnValue")
+                        "io.swagger.annotations.ApiModelProperty" -> it.javaClass.getMethod("value")
                             .invoke(it) as? String
 
-                        "com.fasterxml.jackson.annotation.JsonPropertyDescription" -> it.javaClass.getMethod("columnValue")
+                        "com.fasterxml.jackson.annotation.JsonPropertyDescription" -> it.javaClass.getMethod("value")
                             .invoke(it) as? String
 
                         else -> null

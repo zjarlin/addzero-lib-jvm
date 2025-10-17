@@ -2,8 +2,9 @@ package site.addzero.aop.dicttrans.strategy
 
 import cn.hutool.core.collection.CollUtil
 import site.addzero.aop.dicttrans.inter.TransStrategy
-import site.addzero.aop.dicttrans.util_internal.RefUtil
+import site.addzero.util.RefUtil
 import org.springframework.stereotype.Component
+import site.addzero.aop.dicttrans.inter.TPredicate
 
 /**
  * @author zjarlin
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component
  */
 
 @Component
-class TStrategy : TransStrategy<Any?> {
+class TStrategy(private val tPredicate: TPredicate) : TransStrategy<Any?> {
 
     public override fun trans(o: Any?): Any? {
         val list = mutableListOf(o)
@@ -24,6 +25,6 @@ class TStrategy : TransStrategy<Any?> {
     }
 
     override fun support(t: Any): Boolean {
-        return RefUtil.isT(t)
+        return RefUtil.isT(t, *tPredicate.tBlackList().toTypedArray<Class<out Any>>())
     }
 }

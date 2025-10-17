@@ -14,6 +14,7 @@ import site.addzero.aop.dicttrans.dictaop.entity.TabMultiIn
 import site.addzero.aop.dicttrans.dictaop.entity.TransInfo
 import site.addzero.aop.dicttrans.inter.TransApi
 import org.springframework.core.annotation.AnnotatedElementUtils
+import site.addzero.util.RefUtil
 import java.util.*
 
 /**
@@ -29,20 +30,20 @@ internal object TransInternalUtil {
         // 使用队列进行广度优先遍历，避免深层递归
         val queue = LinkedList<Any>()
         queue.add(rootObj)
-        
+
         // 对象去重，避免循环引用和重复处理
         val processedObjects = mutableSetOf<Any>()
-        
+
         while (queue.isNotEmpty()) {
             val currentObj = queue.poll()
-            
+
             // 避免重复处理相同对象和null对象
             if (currentObj == null || !processedObjects.add(currentObj)) {
                 continue
             }
-            
+
             val aClass: Class<*> = currentObj.javaClass
-            
+
             // 遍历所有字段
             ReflectUtil.getFields(aClass) { field ->
                 field.isAccessible = true

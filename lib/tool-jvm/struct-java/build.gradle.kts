@@ -1,6 +1,5 @@
 plugins {
-    id("java-convention")
+    id("site.addzero.buildlogic.jvm.java-convention")
 }
 dependencies{
-//   api("struct:struct-java:0.2")
 }

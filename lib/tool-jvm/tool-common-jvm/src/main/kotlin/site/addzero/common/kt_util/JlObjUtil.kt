@@ -3,7 +3,6 @@ package site.addzero.common.kt_util
 import cn.hutool.core.collection.CollUtil
 import cn.hutool.core.date.DateUtil
 import cn.hutool.core.util.ObjUtil
-import site.addzero.common.util.data_structure.ref.RefUtil
 
 object JlObjUtil {
     // 判断是否是日期字符串
@@ -39,13 +38,6 @@ fun Any?.isNotEmpty(): Boolean {
 }
 
 
-fun Any?.isNotNew(): Boolean {
-    if (this == null) {
-        return false
-    }
-    val new = RefUtil.isNew(this)
-    return !new
-}
 
 fun Iterator<*>?.isEmpty(): Boolean {
     return CollUtil.isEmpty(this)

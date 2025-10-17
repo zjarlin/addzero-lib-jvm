@@ -1,6 +1,6 @@
 
 allprojects {
-    version = "0.0.642"
+    version = "0.0.643"
 }
 // 或者使用setter方法
 subprojects {

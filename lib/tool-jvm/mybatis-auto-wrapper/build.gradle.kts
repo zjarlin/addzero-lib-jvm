@@ -1,5 +1,5 @@
 plugins {
-    id("java-convention")
+    id("site.addzero.buildlogic.jvm.java-convention")
 }
 dependencies{
    implementation(libs.hutool.all)
@@ -7,3 +7,4 @@ dependencies{
 //    implementation("com.baomidou:mybatis-plus:3.5.12")
     implementation("org.apache.commons:commons-lang3:3.18.0")
 }
+//implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5")
