@@ -1,44 +1,9 @@
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-
-//includeBuild("lib/gradle-plugin/addzero-gradle-repo-budy")
-
-
-dependencyResolutionManagement {
-    repositories {
-//        mavenLocal()
-        google {
-            mavenContent {
-                includeGroupAndSubgroups("androidx")
-                includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
-            }
-        }
-        mavenCentral()
-    }
-}
-pluginManagement {
-    repositories {
-//        mavenLocal()
-
-//        applyGoogleRepository()
-        google {
-            mavenContent {
-                includeGroupAndSubgroups("androidx")
-                includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
-            }
-        }
-        mavenCentral()
-        gradlePluginPortal()
-        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-    }
-}
-
-
 plugins {
 //    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("site.addzero.repo-buddy") version "+"
     id("org.gradle.toolchains.foojay-resolver-convention") version "+"
     id("site.addzero.modules-buddy") version "+"
     id("me.champeau.includegit") version "0.3.2"
