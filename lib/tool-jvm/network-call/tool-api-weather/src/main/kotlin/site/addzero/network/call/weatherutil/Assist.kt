@@ -39,11 +39,4 @@ internal object Assist {
         val parts = this.trim().split("\\s+".toRegex())
         return if (parts.size == 2) Pair(parts[0], parts[1]) else Pair(this, this)
     }
-
-
-}
-fun main() {
-    val input = "2003-05-05 周二"
-    val (date, weekday) = input.splitDateAndWeekday()
-    println("日期: $date, 星期: $weekday")
 }
