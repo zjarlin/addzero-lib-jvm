@@ -50,6 +50,9 @@ fun PublishConventionExtension.getGitRepoName(): String = gitUrl.get().substring
 
 
 val pjVersion = project.version.toString()
+
+
+
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
