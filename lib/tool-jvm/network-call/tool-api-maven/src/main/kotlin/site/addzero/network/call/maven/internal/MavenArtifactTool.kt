@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit
                 val xmlContent = fetchUrl(metadataUrl) ?: continue
                 return parseMetadataXml(xmlContent, groupId, artifactId, repo)
             } catch (e: Exception) {
+                e.printStackTrace()
                 println("仓库 $repo 解析失败: ${e.message}")
             }
         }

@@ -8,13 +8,13 @@ import java.io.File
 /**
  * 自动模块插件扩展配置
  */
-open class AutoModulesPluginExtension {
+interface AutoModulesPluginExtension {
     /**
      * 默认的黑名单目录列表
      */
-    val excludeModules = emptyArray<String>()
+    var excludeModules: Array<String>
 
-    val preidicate: ((File) -> Boolean)? = null
+    var preidicate: ((File) -> Boolean)?
 }
 
 /**
@@ -23,7 +23,10 @@ open class AutoModulesPluginExtension {
  */
 class AutoModulesPlugin : Plugin<Settings> {
     override fun apply(settings: Settings) {
-        val extension = settings.extensions.create("autoModules", AutoModulesPluginExtension::class.java)
+        val extension = settings.extensions.create("autoModules", AutoModulesPluginExtension::class.java).apply {
+            excludeModules = arrayOf()
+            preidicate = null
+        }
         val excludeModules = extension.excludeModules
 
         val preidicate = extension.preidicate

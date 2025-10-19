@@ -20,6 +20,21 @@ object VersionUtils {
         return versionDate
     }
 
+    /**
+     * 判断是否为日期版本格式 (yyyy.MM.dd)
+     * @param version 待判断的版本号
+     * @return 如果是日期格式返回true，否则返回false
+     */
+    fun isDateVersion(version: String): Boolean {
+        return try {
+            // 分离前缀和核心版本
+            val (_, coreVersion) = splitVersionPrefix(version)
+            // 尝试解析为日期版本（yyyy.MM.dd）
+            parseDateVersion(coreVersion) != null
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     /**
      * 分离版本号的前缀（字母部分）和核心版本（数字部分）

@@ -1,12 +1,20 @@
 package site.addzero.util
 
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.create
 
-inline fun <reified T : Any> Project.createExtension(defaultValue: String=""): T {
+inline fun <reified T : Any> Project.createExtension(defaultValue: String = ""): T {
     val create = extensions.create<T>(
         T::class.simpleName?.lowercase() ?: defaultValue
 
     )
     return create
 }
+
+fun Project.autoApplyPlugin(pluginId: String) {
+    if (plugins.hasPlugin(pluginId)) {
+        apply(plugin = pluginId)
+    }
+}
+

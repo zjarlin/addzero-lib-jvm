@@ -21,6 +21,9 @@ gitRepositories {
 
 
 }
+//autoModules{
+//   excludeModules=arrayOf("build-logic")
+//}
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {

@@ -1,7 +1,7 @@
 package site.addzero.gradle
 
+import org.gradle.api.Project
 import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.get
 
 
 interface PublishConventionExtension {
@@ -14,6 +14,8 @@ interface PublishConventionExtension {
     val licenseName: Property<String>
     val licenseUrl: Property<String>
     val licenseDistribution: Property<String>
+
+    var predicateSubProject: (Project)->Boolean
 }
 
 

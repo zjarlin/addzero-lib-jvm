@@ -1,7 +1,6 @@
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.xml.sax.InputSource
-import site.addzero.network.call.maven.internal.MavenArtifactTool
 import java.io.StringReader
 import java.util.concurrent.TimeUnit
 import javax.xml.parsers.DocumentBuilderFactory
@@ -49,6 +48,7 @@ internal class MavenVersionFetcher(
                     return latestVersion
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 // 单个仓库失败，继续尝试下一个
                 println("仓库 $repo 查询失败: ${e.message}")
             }

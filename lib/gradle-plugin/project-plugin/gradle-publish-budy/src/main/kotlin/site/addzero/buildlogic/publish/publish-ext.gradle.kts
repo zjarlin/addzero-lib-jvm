@@ -24,5 +24,8 @@ val create = extensions.create<PublishConventionExtension>("addzeroPublishBuddy"
     licenseName.set(DEFAULT_LICENSE_NAME)
     licenseUrl.set(DEFAULT_LICENSE_URL)
     licenseDistribution.set(DEFAULT_LICENSE_DISTRIBUTION)
+    predicateSubProject={
+       path.startsWith(":lib:")
+    }
 }
 

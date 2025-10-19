@@ -9,6 +9,27 @@ plugins {
     //已知的稳定最新版本为0.0.647
     id("site.addzero.buildlogic.version-buddy") version "+"
 }
+
+
+
+
+/*
+这里是源码中创建扩展的地方,需要用户实现
+val createExtension = createExtension<VersionBuddyExtension>().apply {
+    subProjectVersionApplyPredicate = {
+        path.startsWith(":lib:")
+    }
+}
+*/
+
+versionBuddyExtension{
+//这里设置predicate,表示那些project需要递增版本号,默认行为
+    subProjectVersionApplyPredicate = {
+        path.startsWith(":lib:")
+    } 
+}
+
+
 ```
 
 1. **gradle.properties 配置**：如果在 `gradle.properties` 文件中配置了 `version` 属性，则使用该值
@@ -30,9 +51,14 @@ plugins {
 latestversion 可能会有延迟,so nextVersion亦有延迟,如果你发版太快,会出现不自洽的情况!!!  那么这时候应当手动控制版本(
 那么nextVersion读取程序中现有的版本肯定不会有延迟问题),例如:
 
+
 ```kotlin
 subprojects {
     version = "0.0.647"
 }
 
 ```
+
+如果遇到latest版本 获取问题,或者您有更好的maven批量查询工具类 ,请请pr修复该工具类
+https://gitee.com/zjarlin/addzero-lib-jvm.git 
+addzero-lib-jvm/lib/tool-jvm/network-call/tool-api-maven/src/main/kotlin/site/addzero/network/call/maven/util/MavenTool.kt
