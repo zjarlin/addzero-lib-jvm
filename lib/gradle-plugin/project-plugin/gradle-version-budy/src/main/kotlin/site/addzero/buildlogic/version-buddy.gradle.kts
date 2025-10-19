@@ -1,4 +1,5 @@
 package site.addzero.buildlogic
+
 import site.addzero.network.call.maven.util.MavenUtil
 import site.addzero.util.VersionUtil
 
@@ -12,7 +13,10 @@ val projectVersion = project.version.toString().takeIf { it != "unspecified" }
 val defaultVersion = configuredVersion ?: projectVersion ?: ""
 subprojects {
     if (defaultVersion.isNotBlank()) {
-        version = defaultVersion
+        println("current latest version for ${project.name}: $defaultVersion")
+        val nextVersion = VersionUtil.nextVersion(defaultVersion)
+        println("the next version will be ${project.name}: $nextVersion")
+        version = nextVersion
         return@subprojects
     }
 
@@ -25,9 +29,9 @@ subprojects {
     if (latestVersion.isNullOrBlank()) {
         version = VersionUtil.defaultVersion()
     }
-    println("Latest version for ${project.name}: $latestVersion")
+    println("current latest version for ${project.name}: $latestVersion")
     val nextVersion = VersionUtil.nextVersion(latestVersion)
-    println("Next version for ${project.name}: $nextVersion")
+    println("the next version will be ${project.name}: $nextVersion")
     version = nextVersion
 
 }
