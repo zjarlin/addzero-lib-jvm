@@ -110,14 +110,15 @@ fun getProjectContext(
         val isBuildLogic = it.name.startsWith("build-logic")
                 ||
                 it.name.startsWith("buildLogic")
-                ||
-                it.name.startsWith("buildSrc")
+//                ||
+//                it.name.startsWith("buildSrc")
         isBuildLogic
     }
     val partition = modules.partition {
         predicate(it)
     }
-    return ProjectContext(buildProj, partition.first, partition.second)
+    val projectContext = ProjectContext(buildProj, partition.first.filterNot { it.name.startsWith("buildSrc") }, partition.second)
+    return projectContext
 }
 
 
