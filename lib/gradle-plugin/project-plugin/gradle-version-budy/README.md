@@ -6,29 +6,10 @@
 
 ```kotlin
 plugins {
-
-   //已知的稳定最新版本为0.0.651
-   //maven的中央仓库的最新版本号查询绝对有坑! 日期格式2025.09.09这种居然排在我最新发的版本前面,他并不是按发布的日期降序排的,估计是
+   //已知的稳定最新版本为0.0.651,仅需一行即可使用自动版本号,gradle.properties里只需配置grop 例如org.babyfish.jimmer
+//    version自动会从中央仓库找最新的并+1
    id("site.addzero.buildlogic.version-buddy") version "0.0.651"
 }
-
-
-/*
-这里是源码中创建扩展的地方,需要用户实现
-val createExtension = createExtension<VersionBuddyExtension>().apply {
-    subProjectVersionApplyPredicate = {
-        path.startsWith(":lib:")
-    }
-}
-*/
-
-versionBuddyExtension {
-//这里设置predicate,表示那些project需要递增版本号,默认行为
-   subProjectVersionApplyPredicate = {
-      path.startsWith(":lib:")
-   }
-}
-
 
 ```
 
