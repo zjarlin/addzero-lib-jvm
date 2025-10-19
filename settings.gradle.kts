@@ -9,8 +9,6 @@ plugins {
     id("me.champeau.includegit") version "0.3.2"
 }
 
-//includeBuild("build-logic")
-
 gitRepositories {
     include("build-logic") {
         uri.set("https://gitee.com/zjarlin/build-logic.git")

@@ -1,12 +1,10 @@
 plugins {
     `kotlin-dsl`
-    `java-gradle-plugin`
+//    `java-gradle-plugin`
 
 }
 dependencies {
     implementation(gradleApi())
-
-
 }
 
 

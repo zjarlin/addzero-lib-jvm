@@ -1,4 +1,4 @@
-
+package site.addzero.buildlogic
 fun RepositoryHandler.enableMirror() {
     all {
         if (this is MavenArtifactRepository) {
@@ -16,6 +16,8 @@ val urlMappings = mapOf(
     "https://dl.google.com/dl/android/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public/",
     "https://plugins.gradle.org/m2" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins/"
 )
+
+
 
 gradle.allprojects {
     buildscript {
