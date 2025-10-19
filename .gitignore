@@ -1,6 +1,9 @@
 *.iml
 .kotlin
-.gradle
+**/.gradle
+!*/.gradle
+/checkouts/addzero-lib-jvm-stable/.gradle/file-system.probe
+
 **/build/
 xcuserdata
 !src/**/build/
