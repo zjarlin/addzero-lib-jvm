@@ -3,6 +3,7 @@
 **/.gradle
 !*/.gradle
 /checkouts/addzero-lib-jvm-stable/.gradle/file-system.probe
+.autoddl
 
 **/build/
 xcuserdata
