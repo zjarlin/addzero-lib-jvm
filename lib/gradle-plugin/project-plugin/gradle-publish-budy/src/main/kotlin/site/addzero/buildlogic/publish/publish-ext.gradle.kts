@@ -1,6 +1,7 @@
 package site.addzero.buildlogic.publish
-import site.addzero.util.*
+
 import site.addzero.gradle.PublishConventionExtension
+import site.addzero.util.createExtension
 
 val DEFAULT_PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
 val DEFAULT_AUTH_NAME = "zjarlin"
@@ -12,7 +13,7 @@ val DEFAULT_LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 val DEFAULT_LICENSE_DISTRIBUTION = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 
 
-val creatdaseExtension =project. createExtension<PublishConventionExtension>()
+val creatdaseExtension = project.createExtension<PublishConventionExtension>()
 val create = extensions.create<PublishConventionExtension>("addzeroPublishBuddy").apply {
     // 设置默认值
     projectDescription.set(DEFAULT_PROJECT_DESCRIPTION)
@@ -24,8 +25,6 @@ val create = extensions.create<PublishConventionExtension>("addzeroPublishBuddy"
     licenseName.set(DEFAULT_LICENSE_NAME)
     licenseUrl.set(DEFAULT_LICENSE_URL)
     licenseDistribution.set(DEFAULT_LICENSE_DISTRIBUTION)
-    predicateSubProject={
-       path.startsWith(":lib:")
-    }
+//    predicateSubProject.set { path.startsWith(":lib:") }
 }
 

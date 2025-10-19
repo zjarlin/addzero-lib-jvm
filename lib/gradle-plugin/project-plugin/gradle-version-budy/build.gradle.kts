@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(gradleApi())
     implementation(projects.lib.gradlePlugin.gradleScriptCore)
-       implementation(projects.lib.toolJvm.networkCall.toolApiMaven)
+    implementation(projects.lib.toolJvm.networkCall.toolApiMaven)
+
 
 }

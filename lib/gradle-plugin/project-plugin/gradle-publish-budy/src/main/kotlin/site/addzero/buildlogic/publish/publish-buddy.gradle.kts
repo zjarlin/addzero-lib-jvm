@@ -88,8 +88,7 @@ mavenPublishing {
 }
 
 subprojects {
-    val predicateSubProject = create.predicateSubProject(this)
-    if (!predicateSubProject) {
+    if (!path.startsWith(":lib:")) {
         return@subprojects
     }
     listOf(

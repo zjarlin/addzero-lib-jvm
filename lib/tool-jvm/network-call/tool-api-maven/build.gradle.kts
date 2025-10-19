@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     implementation(libs.okhttp)
-
     implementation(libs.jackson.module.kotlin)
 
 }
