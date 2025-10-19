@@ -25,9 +25,11 @@ subprojects {
         error("auto version error, you must set group")
     }
 
-    val latestVersion = MavenUtil.getLatestVersion(group, projectDir.name)
+    val latestVersion = MavenUtil.getLatestVersion(group, project.name)
     if (latestVersion.isNullOrBlank()) {
-        version = VersionUtil.defaultVersion()
+        val defaultVersion1 = VersionUtil.defaultVersion()
+        println("the${group}:${project.name} not found using defult version ${defaultVersion1}")
+        version = defaultVersion1
     }
     println("current latest version for ${project.name}: $latestVersion")
     val nextVersion = VersionUtil.nextVersion(latestVersion)
