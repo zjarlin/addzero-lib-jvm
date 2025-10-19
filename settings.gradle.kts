@@ -16,6 +16,12 @@ gitRepositories {
         uri.set("https://gitee.com/zjarlin/build-logic.git")
         branch.set("master")
     }
+    include("addzero-lib-jvm-stable") {
+        uri.set("https://gitee.com/zjarlin/addzero-lib-jvm-stable.git")
+        branch.set("master")
+    }
+
+
 }
 dependencyResolutionManagement {
     versionCatalogs {

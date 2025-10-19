@@ -1,6 +1,5 @@
 package site.addzero.network.call.weatherutil
 
-import site.addzero.network.call.weatherutil.Assist.splitDateAndWeekday
 import java.time.LocalDate
 import java.time.YearMonth
 
