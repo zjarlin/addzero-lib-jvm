@@ -6,6 +6,7 @@
 
 ```kotlin
 plugins {
+    //已知的稳定最新版本为0.0.647
     id("site.addzero.buildlogic.version-buddy") version "+"
 }
 ```
@@ -26,3 +27,12 @@ plugins {
 ## 注意事项
 
 插件会自动应用到所有子项目,maven最新版本的查询是单个查询,而非批量查询(有人我怎么批量查询我可以改进),会拖慢构建速度
+latestversion 可能会有延迟,so nextVersion亦有延迟,如果你发版太快,会出现不自洽的情况!!!  那么这时候应当手动控制版本(
+那么nextVersion读取程序中现有的版本肯定不会有延迟问题),例如:
+
+```kotlin
+subprojects {
+    version = "0.0.647"
+}
+
+```
