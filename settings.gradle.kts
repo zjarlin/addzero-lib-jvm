@@ -6,7 +6,7 @@ plugins {
     id("site.addzero.repo-buddy") version "+"
     id("org.gradle.toolchains.foojay-resolver-convention") version "+"
     id("site.addzero.modules-buddy") version "+"
-    id("me.champeau.includegit") version "0.3.2"
+    id("me.champeau.includegit") version "+"
 }
 
 gitRepositories {

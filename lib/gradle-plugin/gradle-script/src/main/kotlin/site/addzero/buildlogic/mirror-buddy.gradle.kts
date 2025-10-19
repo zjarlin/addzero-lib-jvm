@@ -17,8 +17,6 @@ val urlMappings = mapOf(
     "https://plugins.gradle.org/m2" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins/"
 )
 
-
-
 gradle.allprojects {
     buildscript {
         repositories.enableMirror()
