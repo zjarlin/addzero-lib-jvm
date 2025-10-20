@@ -2,6 +2,7 @@ package site.addzero.gradle.plugin.automodules
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
+import org.gradle.api.provider.Property
 import site.addzero.gradle.tool.autoIncludeModules
 import java.io.File
 
@@ -12,9 +13,12 @@ interface AutoModulesPluginExtension {
     /**
      * 默认的黑名单目录列表
      */
-    var excludeModules: Array<String>
+    val excludeModules: Property<Array<String>>
 
-    var preidicate: ((File) -> Boolean)?
+    /**
+     * 函数式判断逻辑 - 返回 Boolean
+     */
+    val predicate: Property<((File) -> Boolean)?>
 }
 
 /**
@@ -24,16 +28,16 @@ interface AutoModulesPluginExtension {
 class AutoModulesPlugin : Plugin<Settings> {
     override fun apply(settings: Settings) {
         val extension = settings.extensions.create("autoModules", AutoModulesPluginExtension::class.java).apply {
-            excludeModules = arrayOf()
-            preidicate = null
+            excludeModules.convention(arrayOf())
+            predicate.convention(null)
         }
         val excludeModules = extension.excludeModules
 
-        val preidicate = extension.preidicate
+        val preidicate = extension.predicate.get()
         if (preidicate != null) {
             settings.autoIncludeModules(preidicate)
         } else {
-            settings.autoIncludeModules(*excludeModules)
+            settings.autoIncludeModules(*excludeModules.get())
         }
     }
 }

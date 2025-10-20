@@ -1,4 +1,4 @@
-package site.addzero.common.util.metainfo.entity
+package site.addzero.util.metainfo.entity
 
 import java.lang.reflect.Field
 

@@ -1,11 +1,12 @@
-package site.addzero.common.util.metainfo
+package site.addzero.util.metainfo
 
 import cn.hutool.core.annotation.AnnotationUtil
 import cn.hutool.core.util.ClassUtil
-import site.addzero.common.util.metainfo.entity.FieldInfo
-import site.addzero.common.util.metainfo.entity.toSimpleString
+import site.addzero.util.RefUtil.isCollectionField
+import site.addzero.util.RefUtil.isT
+import site.addzero.util.metainfo.entity.FieldInfo
+import site.addzero.util.metainfo.entity.toSimpleString
 import java.lang.reflect.AnnotatedElement
-import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 
 object MetaInfoUtils {
@@ -22,10 +23,10 @@ object MetaInfoUtils {
     private fun findAnno(annotation: String): Boolean {
         try {
             val loadedClass = ClassUtil.loadClass<Annotation>(annotation)
+            return true
         } catch (e: Exception) {
             return false
         }
-        return true
     }
 
     fun guessDescription(annotatedElement: AnnotatedElement): String? {
@@ -42,10 +43,11 @@ object MetaInfoUtils {
 
             , "com.fasterxml.jackson.annotation.JsonPropertyDescription"
         )
-        val find = swaggerAnnotations.filter { findAnno(it) }
+
+        val availableAnnotations = swaggerAnnotations.filter { findAnno(it) }
 
         // 查找最后一个匹配的注解并获取描述
-        val lastOrNull = find.asSequence()
+        val lastOrNull = availableAnnotations.asSequence()
             .mapNotNull { annotation ->
                 val loadedClass = ClassUtil.loadClass<Annotation>(annotation)
                 val swaggerAnnotation = AnnotationUtil.getAnnotation(annotatedElement, loadedClass)
@@ -86,12 +88,12 @@ object MetaInfoUtils {
             // 获取字段上的注释
             val description = guessDescription(field)
             // 判断字段是否是嵌套对象
-            val isNestedObject = isCustomObject(field.type)
+            val isNestedObject = isT(field.type)
 
             // 如果字段是嵌套对象类型，递归获取其子字段
             val children = if (isNestedObject) {
                 getFieldInfosRecursive(field.type)
-            } else if (isList(field)) {
+            } else if (isCollectionField(field)) {
                 // 如果字段是一个集合类型，递归获取其泛型类型的子字段
                 val genericType = (field.genericType as? ParameterizedType)?.actualTypeArguments?.get(0)
                 if (genericType is Class<*> && isCustomObject(genericType)) {
@@ -132,9 +134,5 @@ object MetaInfoUtils {
         return !(clazz.isPrimitive || clazz == String::class.java || Number::class.java.isAssignableFrom(clazz) || clazz.isEnum || clazz == List::class.java)
     }
 
-    // 判断字段是否是 List 类型
-    fun isList(field: Field): Boolean {
-        return List::class.java.isAssignableFrom(field.type)
-    }
 
 }

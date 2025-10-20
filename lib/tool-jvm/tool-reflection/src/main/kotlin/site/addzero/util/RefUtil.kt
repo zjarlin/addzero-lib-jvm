@@ -178,15 +178,15 @@ object RefUtil {
         }
 
         // JSON序列化兜底验证（可选）
-            return try {
-                // 尝试使用fastjson2序列化和反序列化
-                val jsonString = com.alibaba.fastjson2.JSON.toJSONString(obj)
-                com.alibaba.fastjson2.JSON.parseObject(jsonString, clazz)
-                true
-            } catch (e: Exception) {
-                // 序列化或反序列化失败，说明不是标准业务对象
-                false
-            }
+        return try {
+            // 尝试使用fastjson2序列化和反序列化
+            val jsonString = com.alibaba.fastjson2.JSON.toJSONString(obj)
+            com.alibaba.fastjson2.JSON.parseObject(jsonString, clazz)
+            true
+        } catch (e: Exception) {
+            // 序列化或反序列化失败，说明不是标准业务对象
+            false
+        }
 
     }
 

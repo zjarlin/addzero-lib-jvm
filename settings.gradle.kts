@@ -8,6 +8,10 @@ plugins {
     id("me.champeau.includegit") version "+"
 }
 
+//autoModules {
+//    excludeModules.set(arrayOf())
+//    preidicate = null
+//}
 gitRepositories {
     include("build-logic") {
         uri.set("https://gitee.com/zjarlin/build-logic.git")
