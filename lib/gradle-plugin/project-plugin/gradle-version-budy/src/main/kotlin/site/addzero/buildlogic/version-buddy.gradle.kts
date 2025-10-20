@@ -34,13 +34,12 @@ val finalNextVersionProvider = providers.provider {
         nextVersion
     }
 }
+val finalVersion = finalNextVersionProvider.get()
 
 subprojects {
 //     val startsWith = path.startsWith(":lib:")
 //    val shouldApply = createExtension.subProjectVersionApplyPredicate.get()(this)
 //    if (!startsWith) return@subprojects
 
-    val finalVersion = finalNextVersionProvider.get()
-    println("📦 ${project.name}: $finalVersion")
     version = finalVersion
 }

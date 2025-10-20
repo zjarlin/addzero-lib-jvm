@@ -13,9 +13,7 @@ val DEFAULT_LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 val DEFAULT_LICENSE_DISTRIBUTION = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 
 
-val creatdaseExtension = project.createExtension<PublishConventionExtension>()
-val create = extensions.create<PublishConventionExtension>("addzeroPublishBuddy").apply {
-    // 设置默认值
+val creatdaseExtension = createExtension<PublishConventionExtension>().apply {
     projectDescription.set(DEFAULT_PROJECT_DESCRIPTION)
     authorName.set(DEFAULT_AUTH_NAME)
     gitUrl.set(DEFAULT_GIT_URL)
@@ -25,6 +23,5 @@ val create = extensions.create<PublishConventionExtension>("addzeroPublishBuddy"
     licenseName.set(DEFAULT_LICENSE_NAME)
     licenseUrl.set(DEFAULT_LICENSE_URL)
     licenseDistribution.set(DEFAULT_LICENSE_DISTRIBUTION)
-//    predicateSubProject.set { path.startsWith(":lib:") }
-}
 
+}

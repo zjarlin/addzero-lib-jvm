@@ -1,7 +1,6 @@
 package site.addzero.buildlogic.publish
 
 import site.addzero.gradle.PublishConventionExtension
-import site.addzero.util.autoApplyPlugin
 import java.time.LocalDate
 
 // 默认配置常量
@@ -89,14 +88,15 @@ mavenPublishing {
 
 subprojects {
     if (!path.startsWith(":lib:")) {
+        "path not startwith :lib,skip module ${project.name}"
         return@subprojects
     }
     listOf(
-        "site.addzero.publish-buddy",
-        "site.addzero.buildlogic.publish.publish-convention",
+//        "site.addzero.publish-buddy",
         "site.addzero.buildlogic.publish.publish-buddy",
     ).forEach {
-        autoApplyPlugin(it)
+        apply(plugin = it)
+//        autoApplyPlugin(it)
     }
 }
 

@@ -3,10 +3,7 @@ plugins {
 //    `java-gradle-plugin`
 
 }
+
 dependencies {
     implementation(gradleApi())
 }
-
-
-
-

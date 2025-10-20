@@ -1,12 +1,20 @@
-//subprojects {
-////    version = "0.0.651"
-//    if (path.startsWith(":lib:")) {
-//        apply(plugin = "site.addzero.publish-buddy")
-//    }
-//}
+subprojects {
+    version="0.0.652"
+    if (!path.startsWith(":lib:")) {
+        "not publish module ${project.name}, skip"
+        return@subprojects
+    }
+    listOf(
+        "site.addzero.publish-buddy",
+//        "site.addzero.buildlogic.publish.publish-buddy",
+    ).forEach {
+        apply(plugin = it)
+//        autoApplyPlugin(it)
+    }
+}
 plugins {
-    id("site.addzero.buildlogic.version-buddy") version "0.0.651"
-    id("site.addzero.buildlogic.publish.publish-buddy") version "0.0.651"
-//    alias(libs.plugins.addzeroPublishBuddy) apply false
+//    id("site.addzero.buildlogic.version-buddy") version "0.0.651"
+//    id("site.addzero.buildlogic.publish.publish-buddy") version "0.0.651"
+    alias(libs.plugins.addzeroPublishBuddy) apply false
     alias(libs.plugins.kotlinJvm) apply false
 }
