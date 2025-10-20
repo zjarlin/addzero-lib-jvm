@@ -31,7 +31,7 @@ val gitBaseUrl get() = gitUrl.toGitBaseUrl()
 val gitRepoPath get() = gitUrl.toGitRepoPath()
 val gitHost get() = gitUrl.toGitHost()
 val gitRepoName get() = gitUrl.toGitRepoName()
-val email get() = authName.toEmail()
+val authEmail get() = authName.toEmail()
 
 // Author 相关扩展
 fun String.toEmail() = "$this@outlook.com"
@@ -74,7 +74,7 @@ mavenPublishing {
             developer {
                 id.set(authName)
                 name.set(authName)
-                email.set(email)
+                email.set(authEmail)
             }
         }
 
