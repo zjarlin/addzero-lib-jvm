@@ -2,9 +2,11 @@
 .kotlin
 **/.gradle
 !*/.gradle
-/checkouts/addzero-lib-jvm-stable/.gradle/file-system.probe
 .autoddl
+
+checkouts/**
 checkouts
+
 **/build/
 xcuserdata
 !src/**/build/
