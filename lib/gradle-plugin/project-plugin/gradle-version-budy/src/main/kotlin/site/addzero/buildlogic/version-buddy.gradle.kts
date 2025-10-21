@@ -23,7 +23,7 @@ if (groupId.isBlank()) error("auto version error, you must set group")
 val finalNextVersionProvider = providers.provider {
     val version = firstNotBlank(
         findProperty("version")?.toString()?.takeIf { it != "unspecified" },
-        System.getProperty("version")?.takeIf { it.isNotBlank() && it != "unspecified" },
+        project.version.toString().takeIf { it.isNotBlank() && it != "unspecified" },
         MavenCentralSearchUtil.getLatestVersionByGroupId(groupId),
         VersionUtils.defaultVersion()
     )
