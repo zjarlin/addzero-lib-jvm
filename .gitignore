@@ -1,6 +1,12 @@
 *.iml
 .kotlin
-.gradle
+**/.gradle
+!*/.gradle
+.autoddl
+
+checkouts/**
+checkouts
+
 **/build/
 xcuserdata
 !src/**/build/
@@ -21,3 +27,4 @@ captures
 .vscode
 /composeApp/src/commonMain/kotlin/site/addzero/component/table.zip
 /checkouts/checkouts.bin
+/checkouts.bin
