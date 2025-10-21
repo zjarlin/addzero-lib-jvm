@@ -1,8 +1,6 @@
 package site.addzero.network.call.maven.util
 
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class MavenCentralSearchUtilTest {
 
@@ -18,7 +16,8 @@ class MavenCentralSearchUtilTest {
 
     @Test
     fun `should get latest version by group id with new API`() {
-        val latestVersion = MavenCentralSearchUtil.getLatestVersionByGroupId ("org.babyfish.jimmer")
+        val latestVersion = MavenCentralSearchUtil.getLatestVersionByGroupId("org.babyfish.jimmer")
+        val latestVersion1 = MavenCentralSearchUtil.getLatestVersionByGroupId("site.addzero")
 //        assertNotNull(latestVersion, "Should get latest version for group id")
         println("Latest version in group 'org.babyfish.jimmer' is $latestVersion")
     }

@@ -1,5 +1,7 @@
 //subprojects {
-//    version="0.0.652"
+////    version = "0.0.652"
+//    version = "2025.10.20"
+//
 //    if (!path.startsWith(":lib:")) {
 //        "not publish module ${project.name}, skip"
 //        return@subprojects
@@ -12,12 +14,12 @@
 ////        autoApplyPlugin(it)
 //    }
 //}
-subprojects {
-    version = "2025.10.20"
-}
+//subprojects {
+//    version = "2025.10.20"
+//}
 plugins {
-    id("site.addzero.buildlogic.version-buddy") version "0.0.652"
-    id("site.addzero.buildlogic.publish.publish-buddy") version "0.0.652"
-//    alias(libs.plugins.addzeroPublishBuddy) apply false
+    id("site.addzero.buildlogic.version-buddy") version "2025.10.20"
+    id("site.addzero.buildlogic.publish.publish-buddy") version "2025.10.20"
+    alias(libs.plugins.addzeroPublishBuddy) apply false
     alias(libs.plugins.kotlinJvm) apply false
 }

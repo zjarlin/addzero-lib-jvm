@@ -20,33 +20,27 @@ val licenseName get() = create.licenseName.get()
 val licenseUrl get() = create.licenseUrl.get()
 val licenseDistribution get() = create.licenseDistribution.get()
 
-// Git URL 扩展函数
-fun String.toGitBaseUrl() = this.removeSuffix(".git")
 fun String.toGitRepoPath() = this.substringAfter("://").substringAfter("/")
-fun String.toGitHost() = this.substringAfter("://").substringBefore("/")
-fun String.toGitRepoName() = this.toGitRepoPath().removeSuffix(".git")
 
 // 基于全局配置的扩展属性
-val gitBaseUrl get() = gitUrl.toGitBaseUrl()
+val gitBaseUrl get() = gitUrl.removeSuffix(".git")
 val gitRepoPath get() = gitUrl.toGitRepoPath()
-val gitHost get() = gitUrl.toGitHost()
-val gitRepoName get() = gitUrl.toGitRepoName()
-val authEmail get() = authName.toEmail()
+val gitHost get() = gitUrl.substringAfter("://").substringBefore("/")
+val gitRepoName get() = gitUrl.toGitRepoPath().removeSuffix(".git")
+val authEmail get() = "$authName@outlook.com"
 
-// Author 相关扩展
-fun String.toEmail() = "$this@outlook.com"
-fun String.toScmConnection(host: String = gitHost, repoName: String = gitRepoName): String =
-    "scm:git:git://$host/$repoName.git"
+//fun String.toScmConnection(host: String = gitHost, repoName: String = gitRepoName): String =
+//    "scm:git:git://$host/$repoName.git"
 
-fun String.toDeveloperConnection(host: String = gitHost, repoName: String = gitRepoName): String =
-    "scm:git:ssh://$host/$repoName.git"
+//fun String.toDeveloperConnection(host: String = gitHost, repoName: String = gitRepoName): String =
+//    "scm:git:ssh://$host/$repoName.git"
 
 
 // 从扩展配置获取值的便捷函数
-fun PublishConventionExtension.getEmail(): String = "${authorName.get()}@${emailDomain.get()}"
-fun PublishConventionExtension.getGitBaseUrl(): String = gitUrl.get().removeSuffix(".git")
-fun PublishConventionExtension.getGitHost(): String = gitUrl.get().substringAfter("://").substringBefore("/")
-fun PublishConventionExtension.getGitRepoName(): String = gitUrl.get().substringAfter("://").substringAfter("/").removeSuffix(".git")
+//fun PublishConventionExtension.getAuthEmail(): String = "${authorName.get()}@${emailDomain.get()}"
+//fun PublishConventionExtension.getGitBaseUrl(): String = gitUrl.get().removeSuffix(".git")
+//fun PublishConventionExtension.getGitHost(): String = gitUrl.get().substringAfter("://").substringBefore("/")
+//fun PublishConventionExtension.getGitRepoName(): String = gitUrl.get().substringAfter("://").substringAfter("/").removeSuffix(".git")
 
 
 val pjVersion = project.version.toString()
