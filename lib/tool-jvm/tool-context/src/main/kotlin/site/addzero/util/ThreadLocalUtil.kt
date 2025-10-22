@@ -1,4 +1,4 @@
-package site.addzero.common.util
+package site.addzero.util
 
 class ThreadLocalUtil<T> private constructor() {
     private val threadLocal = ThreadLocal<T>()
@@ -18,7 +18,8 @@ class ThreadLocalUtil<T> private constructor() {
 
         fun remove() {
             val util = holder.get()
-            util?.threadLocal?.remove()
+            val threadLocal = util?.threadLocal
+            threadLocal?.remove()
         }
 
         @Suppress("UNCHECKED_CAST")
