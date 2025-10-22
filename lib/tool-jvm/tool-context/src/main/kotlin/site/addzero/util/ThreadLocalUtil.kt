@@ -18,7 +18,8 @@ class ThreadLocalUtil<T> private constructor() {
 
         fun remove() {
             val util = holder.get()
-            util?.threadLocal?.remove()
+            val threadLocal = util?.threadLocal
+            threadLocal?.remove()
         }
 
         @Suppress("UNCHECKED_CAST")

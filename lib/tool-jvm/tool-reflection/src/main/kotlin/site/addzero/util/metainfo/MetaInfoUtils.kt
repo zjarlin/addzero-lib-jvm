@@ -2,11 +2,13 @@ package site.addzero.util.metainfo
 
 import cn.hutool.core.annotation.AnnotationUtil
 import cn.hutool.core.util.ClassUtil
+import cn.hutool.core.util.StrUtil
 import site.addzero.util.RefUtil.isCollectionField
 import site.addzero.util.RefUtil.isT
 import site.addzero.util.metainfo.entity.FieldInfo
 import site.addzero.util.metainfo.entity.toSimpleString
 import java.lang.reflect.AnnotatedElement
+import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 
 object MetaInfoUtils {
@@ -74,6 +76,53 @@ object MetaInfoUtils {
             }.lastOrNull()
         return lastOrNull // 取最后一个找到的描述
     }
+
+    /**
+     * 猜测数据库列名
+     *
+     * @param field 字段对象
+     * @return 数据库列名
+     */
+    fun guessColumnName(field: Field): String {
+        // 定义可能的列名注解
+        val columnAnnotations = listOf(
+            "javax.persistence.Column",
+            "com.baomidou.mybatisplus.annotation.TableField",
+            "org.apache.ibatis.annotations.Result"
+        )
+
+        val availableAnnotations = columnAnnotations.filter { findAnno(it) }
+
+        // 查找匹配的注解并获取列名
+        val columnName = availableAnnotations.asSequence()
+            .mapNotNull { annotation ->
+                val loadedClass = ClassUtil.loadClass<Annotation>(annotation)
+                val columnAnnotation = AnnotationUtil.getAnnotation(field, loadedClass)
+                columnAnnotation?.let {
+                    when {
+                        annotation.endsWith("Column") -> {
+                            try {
+                                it.javaClass.getMethod("name").invoke(it) as? String
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        annotation.contains("TableField") -> {
+                            try {
+                                it.javaClass.getMethod("value").invoke(it) as? String
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        else -> null
+                    }
+                }
+            }.firstOrNull()
+
+        // 如果找到了注解中的列名，则返回；否则将字段名从驼峰转换为下划线
+        return columnName?.takeIf { it.isNotEmpty() } ?: StrUtil.toUnderlineCase(field.name)
+    }
+
 
     fun getFieldInfos(clazz: Class<*>): List<FieldInfo> {
         return getFieldInfosRecursive(clazz)

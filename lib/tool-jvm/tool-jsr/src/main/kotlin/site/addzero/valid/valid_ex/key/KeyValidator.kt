@@ -2,9 +2,10 @@ package site.addzero.valid.valid_ex.key
 
 import cn.hutool.extra.spring.SpringUtil
 import site.addzero.util.ThreadLocalUtil
+import site.addzero.util.metainfo.MetaInfoUtils
+import java.lang.reflect.Field
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
-import java.lang.reflect.Field
 
 /**
  * Key注解的校验器
@@ -23,12 +24,25 @@ class KeyValidator : ConstraintValidator<Key, Any?> {
     override fun isValid(value: Any?, context: ConstraintValidatorContext): Boolean {
         // 获取当前正在校验的对象
         val currentObject = ThreadLocalUtil.get<Any>()
+
+        val validLogic = try {
+            validLogic(currentObject, context)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return true
+        } finally {
+            ThreadLocalUtil.remove()
+        }
+        return validLogic
+    }
+
+    private fun validLogic(currentObject: Any, context: ConstraintValidatorContext): Boolean {
         if (currentObject == null) {
             // 如果没有通过[@ThisValid](file:///Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/tool-jvm/tool-jsr/src/main/kotlin/site/addzero/valid/valid_ex/ThisValid.kt#L12-L16)设置上下文，则不进行校验
             return true
         }
 
-        // 获取当前对象类及所有父类中标记了[@Key](file:///Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/tool-jvm/tool-jsr/src/main/kotlin/site/addzero/valid/valid_ex/key/Key.kt#L17-L22)注解且属于当前group的字段
+        // 获取当前对象类及所有父类中标记了[@Key](file:///Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/tool-jvm/tool-jsr/src/main/kotlin/site/addzero/valid/valid_ex/key/Key.kt#L17-L24)注解且属于当前group的字段
         val keyFields = getKeyFields(currentObject.javaClass, keyAnnotation.group)
         if (keyFields.isEmpty()) {
             return true
@@ -40,7 +54,9 @@ class KeyValidator : ConstraintValidator<Key, Any?> {
         for (field in keyFields) {
             field.isAccessible = true
             val fieldValue = field.get(currentObject)
-            fieldValues[field.name] = fieldValue
+            // 使用字段名作为key，而不是字段对象
+            val guessColumnName = MetaInfoUtils.guessColumnName(field)
+            fieldValues[guessColumnName] = fieldValue
         }
 
         // 如果有任何字段值为null，则不进行唯一性校验
@@ -75,9 +91,7 @@ class KeyValidator : ConstraintValidator<Key, Any?> {
     }
 
     private fun getKeyUniqueValidator(): KeyUniqueValidator {
-        val bean = SpringUtil.getBean<KeyUniqueValidator>(KeyUniqueValidator::class.java)
-        return bean
-
+        return SpringUtil.getBean(KeyUniqueValidator::class.java)
     }
 
     private fun getKeyFields(clazz: Class<*>, group: String): List<Field> {

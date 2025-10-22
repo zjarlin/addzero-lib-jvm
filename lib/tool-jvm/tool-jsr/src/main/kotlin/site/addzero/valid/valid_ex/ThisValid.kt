@@ -10,7 +10,7 @@ import javax.validation.Constraint
  *
  * @since 2024/01/04
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD, AnnotationTarget.ANNOTATION_CLASS)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
 @Retention(
     AnnotationRetention.RUNTIME
 )
