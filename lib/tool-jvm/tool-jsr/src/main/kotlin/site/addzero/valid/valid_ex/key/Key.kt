@@ -15,6 +15,9 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [KeyValidator::class])
 annotation class Key(
+    val message: String = "字段组合已存在",
     val group: String = "",
-    val validator: KClass<out KeyUniqueValidator> = JdbcKeyUniqueValidator::class
+    val validator: KClass<out KeyUniqueValidator> = JdbcKeyUniqueValidator::class,
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Any>> = []
 )

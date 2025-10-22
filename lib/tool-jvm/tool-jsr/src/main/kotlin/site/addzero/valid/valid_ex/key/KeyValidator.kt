@@ -1,11 +1,10 @@
 package site.addzero.valid.valid_ex.key
 
-import cn.hutool.core.util.StrUtil
 import cn.hutool.extra.spring.SpringUtil
 import site.addzero.util.ThreadLocalUtil
-import java.lang.reflect.Field
 import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
+import java.lang.reflect.Field
 
 /**
  * Key注解的校验器
@@ -15,12 +14,10 @@ import javax.validation.ConstraintValidatorContext
  */
 class KeyValidator : ConstraintValidator<Key, Any?> {
 
-    private lateinit var group: String
-    private lateinit var validatorClass: Class<out KeyUniqueValidator>
+    private lateinit var keyAnnotation: Key
 
     override fun initialize(constraintAnnotation: Key) {
-        this.group = constraintAnnotation.group
-        this.validatorClass = constraintAnnotation.validator.java
+        this.keyAnnotation = constraintAnnotation
     }
 
     override fun isValid(value: Any?, context: ConstraintValidatorContext): Boolean {
@@ -31,8 +28,8 @@ class KeyValidator : ConstraintValidator<Key, Any?> {
             return true
         }
 
-        // 获取当前对象类及所有父类中标记了[@Key](file:///Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/tool-jvm/tool-jsr/src/main/kotlin/site/addzero/valid/valid_ex/key/Key.kt#L16-L19)注解且属于当前group的字段
-        val keyFields = getKeyFields(currentObject.javaClass, group)
+        // 获取当前对象类及所有父类中标记了[@Key](file:///Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/tool-jvm/tool-jsr/src/main/kotlin/site/addzero/valid/valid_ex/key/Key.kt#L17-L22)注解且属于当前group的字段
+        val keyFields = getKeyFields(currentObject.javaClass, keyAnnotation.group)
         if (keyFields.isEmpty()) {
             return true
         }
@@ -51,15 +48,36 @@ class KeyValidator : ConstraintValidator<Key, Any?> {
             return true
         }
 
-        // 从Spring上下文中获取校验器实例并执行校验
-        val validator = SpringUtil.getBean(validatorClass)
-            ?: validatorClass.getDeclaredConstructor().newInstance()
+        // 获取校验器实例并执行校验
+        val validator = getKeyUniqueValidator()
         val tableName = getTableName(clazz)
 
         // 获取排除ID（用于更新场景）
         val excludeId = getIdValue(currentObject)
 
-        return validator.isUnique(tableName, group, fieldValues, excludeId)
+        val isUnique = validator.isUnique(tableName, keyAnnotation.group, fieldValues, excludeId)
+
+        // 如果校验失败，构建错误消息
+        if (!isUnique) {
+            val message = keyAnnotation.message.ifEmpty { buildErrorMessage(keyFields, fieldValues) }
+            context.disableDefaultConstraintViolation()
+            context.buildConstraintViolationWithTemplate(message).addConstraintViolation()
+            return false
+        }
+
+        return true
+    }
+
+    private fun buildErrorMessage(keyFields: List<Field>, fieldValues: Map<String, Any?>): String {
+        val fieldNames = keyFields.joinToString(", ") { it.name }
+        val fieldValuesStr = fieldValues.entries.joinToString(", ") { "${it.key}=${it.value}" }
+        return "字段组合 ($fieldNames) 的值 ($fieldValuesStr) 已存在"
+    }
+
+    private fun getKeyUniqueValidator(): KeyUniqueValidator {
+        val bean = SpringUtil.getBean<KeyUniqueValidator>(KeyUniqueValidator::class.java)
+        return bean
+
     }
 
     private fun getKeyFields(clazz: Class<*>, group: String): List<Field> {
@@ -83,10 +101,7 @@ class KeyValidator : ConstraintValidator<Key, Any?> {
     private fun getTableName(clazz: Class<*>): String {
         // 这里应该根据实体类获取对应表名的逻辑
         // 示例：可以使用JPA的[@Table](file:///Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/tool-spring/src/main/kotlin/site/addzero/web/infra/advice/RespBodyAdviceConfig.kt#L22-L23)注解或其他方式
-        val simpleName = clazz.simpleName
-        val toUnderlineCase = StrUtil.toUnderlineCase(simpleName)
-        val string = toUnderlineCase ?: "unknown_table"
-        return string
+        return clazz.simpleName ?: "unknown_table"
     }
 
     private fun getIdValue(obj: Any): Any? {

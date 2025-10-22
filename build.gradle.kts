@@ -14,9 +14,9 @@
 ////        autoApplyPlugin(it)
 //    }
 //}
-subprojects {
-    version = "2025.10.20"
-}
+//subprojects {
+//    version = "0.0.653"
+//}
 plugins {
     id("site.addzero.buildlogic.version-buddy") version "2025.10.20"
     id("site.addzero.buildlogic.publish.publish-buddy") version "2025.10.20"
