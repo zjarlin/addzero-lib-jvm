@@ -19,27 +19,34 @@ fun firstNotBlank(vararg values: String?): String? {
 
 val groupId = firstNotBlank(project.group.toString().takeIf { it.isNotBlank() && it != "unspecified" }, "") ?: ""
 if (groupId.isBlank()) error("auto version error, you must set group")
+val propertyVersion = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: ""
+val projectVersion = project.version.toString().takeIf { it.isNotBlank() && it != "unspecified" } ?: ""
 
-val finalNextVersionProvider = providers.provider {
-    val version = firstNotBlank(
-        findProperty("version")?.toString()?.takeIf { it != "unspecified" },
-        project.version.toString().takeIf { it.isNotBlank() && it != "unspecified" },
-        MavenCentralSearchUtil.getLatestVersionByGroupId(groupId),
-        VersionUtils.defaultVersion()
-    )
+val mavenVersion = MavenCentralSearchUtil.getLatestVersionByGroupId(groupId)
+val finalVersion = run {
+    if (propertyVersion.isNotBlank()) {
+        println("🔄 VersionBuddy UsePropertyVersion: $propertyVersion ")
+        propertyVersion
+    } else if (projectVersion.isNotBlank()) {
+        println("🔄 VersionBuddy  UseProjectVersion: $projectVersion ")
+        projectVersion
+    } else {
 
-    if (version.isNullOrBlank()) null else {
-        val nextVersion = VersionUtils.nextVersion(version)
-        println("🔄 VersionBuddy: $version → $nextVersion")
-        nextVersion
+        if (mavenVersion.isNullOrBlank()) {
+            val defaultVersion = VersionUtils.defaultVersion()
+            println("🔄 VersionBuddy  NotFound MavenCentral Version use default version: $defaultVersion ")
+
+            defaultVersion
+        } else {
+            val nextVersion = VersionUtils.nextVersion(mavenVersion)
+            println("🔄 VersionBuddy  Found MavenCentral Version  : $mavenVersion => the nextVersion will be use :  $nextVersion")
+            nextVersion
+        }
+
     }
+
 }
-val finalVersion = finalNextVersionProvider.get()
 
 subprojects {
-//     val startsWith = path.startsWith(":lib:")
-//    val shouldApply = createExtension.subProjectVersionApplyPredicate.get()(this)
-//    if (!startsWith) return@subprojects
-
     version = finalVersion
 }
