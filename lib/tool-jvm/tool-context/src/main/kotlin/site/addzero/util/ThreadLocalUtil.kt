@@ -1,4 +1,4 @@
-package site.addzero.common.util
+package site.addzero.util
 
 class ThreadLocalUtil<T> private constructor() {
     private val threadLocal = ThreadLocal<T>()
