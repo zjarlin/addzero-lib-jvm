@@ -1,7 +1,6 @@
-package site.addzero.gradle.tool
+package site.addzero.util
 
 import org.yaml.snakeyaml.Yaml
-import kotlin.collections.get
 import kotlin.io.path.Path
 
 object YmlUtil {
@@ -44,7 +43,7 @@ object YmlUtil {
     fun getActivate(dir: String): String {
         val loadYmlConfigMap = loadYmlConfigMap(dir)
         val configValue = getConfigValue<String>(loadYmlConfigMap, "spring.profiles.active")
-        return configValue ?: "local"
+        return configValue ?: "dev"
     }
 
 
