@@ -74,7 +74,7 @@ object MetaInfoUtils {
                     }
                 }
             }.lastOrNull()
-        return lastOrNull // 取最后一个找到的描述
+        return lastOrNull
     }
 
     /**

@@ -4,8 +4,7 @@ plugins {
 
 }
 dependencies {
-gradleApi()
-    implementation(libs.snakeyaml)
+    implementation(gradleApi())
 }
 
 

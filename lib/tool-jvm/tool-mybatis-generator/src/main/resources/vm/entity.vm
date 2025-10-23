@@ -1,0 +1,59 @@
+
+package ${package.Entity};
+
+#foreach($pkg in ${table.importPackages})
+import ${pkg};
+#end
+import com.gisroad.business.common.entity.BaseEntity;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import com.alibaba.excel.annotation.ExcelProperty;
+
+/**
+* <p>
+    * $!{table.comment}
+    * </p>
+*
+* @author ${author}
+* @since ${date}
+*/
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ApiModel(value = "${entity}对象", description = "$!{table.comment}")
+#if(${table.convert})
+@TableName("${schemaName}${table.name}")
+#end
+public class ${entity} extends BaseEntity {
+#set($blacklistFields = ["sid","createuser","updateuser"
+, "createUser"
+, "createDate"
+, "updateUser"
+, "updateDate"
+, "delflag"
+, "orderId"
+, "orderid"
+])
+
+
+## ----------  BEGIN 字段循环遍历  ----------
+#foreach($field in ${table.fields})
+    #if(!$blacklistFields.contains($field.propertyName))
+      #if("$!field.comment" != "")
+      @ApiModelProperty("${field.comment}")
+      @ExcelProperty("${field.comment}")
+      #end
+      #if(${field.dateTimeFormat})
+      @JsonFormat(pattern = "${field.dateTimeFormat}")
+      @DateTimeFormat(pattern = "${field.dateTimeFormat}")
+      #end
+      @TableField("$field.annotationColumnName")
+      private ${field.propertyType} ${field.propertyName};
+
+    #end
+#end
+## ----------  END 字段循环遍历  ----------
+}

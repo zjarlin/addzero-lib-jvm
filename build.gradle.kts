@@ -14,12 +14,13 @@
 ////        autoApplyPlugin(it)
 //    }
 //}
-//subprojects {
-//    version = "0.0.653"
-//}
+subprojects {
+    version = "0.0.657"
+}
 plugins {
-    id("site.addzero.buildlogic.version-buddy") version "2025.10.20"
-    id("site.addzero.buildlogic.publish.publish-buddy") version "2025.10.20"
-    alias(libs.plugins.addzeroPublishBuddy) apply false
+//    id("site.addzero.buildlogic.version-buddy") version "0.0.656"
+    alias(libs.plugins.addzeroVersionBuddy)
+    alias(libs.plugins.addzeroPublishBuddyNew)
+//    alias(libs.plugins.addzeroPublishBuddy) apply false
     alias(libs.plugins.kotlinJvm) apply false
 }
