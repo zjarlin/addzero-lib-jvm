@@ -46,6 +46,7 @@ object RefUtil {
                 else -> null
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
@@ -102,6 +103,7 @@ object RefUtil {
                 try {
                     return@map field[`object`]
                 } catch (e: IllegalAccessException) {
+                    e.printStackTrace()
                     return@map null
                 }
             }.allMatch { value: Any? ->
@@ -184,6 +186,7 @@ object RefUtil {
             com.alibaba.fastjson2.JSON.parseObject(jsonString, clazz)
             true
         } catch (e: Exception) {
+            e.printStackTrace()
             // 序列化或反序列化失败，说明不是标准业务对象
             false
         }

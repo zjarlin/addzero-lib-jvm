@@ -9,6 +9,7 @@ import cn.hutool.core.date.DateUtil
                 DateUtil.parse(value)
                 true
             } catch (e: Exception) {
+                e.printStackTrace()
                 false
             }
 

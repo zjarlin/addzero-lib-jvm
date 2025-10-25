@@ -27,9 +27,11 @@ val finalVersion = run {
     if (propertyVersion.isNotBlank()) {
         println("🔄 VersionBuddy UsePropertyVersion: $propertyVersion ")
         propertyVersion
+        return@run
     } else if (projectVersion.isNotBlank()) {
         println("🔄 VersionBuddy  UseProjectVersion: $projectVersion ")
         projectVersion
+        return@run
     } else {
 
         if (mavenVersion.isNullOrBlank()) {

@@ -12,7 +12,7 @@ plugins {
 }
 
 autoModules {
-    excludeModules=listOf("build-logic","addzero-lib-jvm-stable")
+    excludeModules=listOf("checkouts/build-logic","addzero-lib-jvm-stable")
 }
 includeBuild("checkouts/build-logic")
 gitRepositories {
