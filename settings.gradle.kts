@@ -1,3 +1,5 @@
+import me.champeau.gradle.igp.GitIncludeExtension
+
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -11,18 +13,24 @@ plugins {
     id("me.champeau.includegit") version "+"
 }
 
+val bdlogic = "build-logic"
+val jvmstable = "addzero-lib-jvm-stable"
+
 autoModules {
-    excludeModules=listOf("checkouts/build-logic","addzero-lib-jvm-stable")
+    excludeModules = listOf(bdlogic, jvmstable)
 }
-includeBuild("checkouts/build-logic")
-gitRepositories {
-    include("build-logic") {
-        uri.set("https://gitee.com/zjarlin/build-logic.git")
+includeBuild("checkouts/$bdlogic")
+
+
+fun GitIncludeExtension.includeAddzeroProject(projectName: String): Unit {
+    include(projectName) {
+        uri.set("https://gitee.com/zjarlin/$projectName.git")
         branch.set("master")
     }
-    include("addzero-lib-jvm-stable") {
-        uri.set("https://gitee.com/zjarlin/addzero-lib-jvm-stable.git")
-        branch.set("master")
+}
+gitRepositories {
+    listOf(bdlogic, jvmstable).forEach {
+        includeAddzeroProject(it)
     }
 }
 dependencyResolutionManagement {
