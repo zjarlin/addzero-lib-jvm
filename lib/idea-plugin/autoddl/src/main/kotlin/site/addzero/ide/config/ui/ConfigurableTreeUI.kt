@@ -194,6 +194,25 @@ class ConfigurableTreeUI : Configurable {
                 // 如果不是叶节点，继续递归构建子树
                 val childPath = currentPath + nodeName
                 buildTreeStructure(node, childPath, configMap)
+            } else {
+                // 如果是叶节点，确保该配置的面板已创建
+                val configInfo = configsAtThisLevel.find { 
+                    it.path.size == currentPath.size + 1 && it.path.last() == nodeName 
+                }
+                if (configInfo != null) {
+                    val pathKey = configInfo.path.joinToString(".")
+                    if (!formBuilders.containsKey(pathKey)) {
+                        val formBuilder = DynamicFormBuilder()
+                        val configPanel = createConfigPanel(configInfo, formBuilder)
+                        formBuilders[pathKey] = formBuilder
+                        
+                        // 加载配置数据
+                        val configInstance = SingletonConfigManager.getConfig(configInfo.configClass)
+                        formBuilder.setFormDataFromConfig(configInstance)
+                        
+                        cardPanel?.add(configPanel, pathKey)
+                    }
+                }
             }
         }
     }
@@ -208,9 +227,19 @@ class ConfigurableTreeUI : Configurable {
         }
         
         try {
-            val formPanel = formBuilder.buildFormPanel(configInfo.configItems)
-            panel.add(formPanel, BorderLayout.CENTER)
+            // 确保配置项不为空
+            if (configInfo.configItems.isNotEmpty()) {
+                val formPanel = formBuilder.buildFormPanel(configInfo.configItems)
+                panel.add(formPanel, BorderLayout.CENTER)
+            } else {
+                // 如果没有配置项，显示提示信息
+                val emptyLabel = JLabel("该配置项没有可编辑的参数").apply {
+                    horizontalAlignment = SwingConstants.CENTER
+                }
+                panel.add(emptyLabel, BorderLayout.CENTER)
+            }
         } catch (e: Exception) {
+            e.printStackTrace()
             val errorLabel = JLabel("无法创建配置面板: ${e.message}").apply {
                 horizontalAlignment = SwingConstants.CENTER
             }

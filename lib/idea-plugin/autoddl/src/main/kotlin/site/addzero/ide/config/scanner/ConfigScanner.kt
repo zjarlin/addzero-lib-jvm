@@ -21,26 +21,46 @@ object ConfigScanner {
         // 注册示例配置类
         try {
             // 注册数据库配置
-            val databaseConfigClass = Class.forName("site.addzero.ide.config.example.DatabaseConfig").kotlin
+            val databaseConfigClass = Class.forName("site.addzero.ide.config.example.ExampleConfig\$DatabaseConfig").kotlin
             registerIfRouted(databaseConfigClass)
         } catch (e: ClassNotFoundException) {
+            System.err.println("DatabaseConfig class not found: ${e.message}")
             // 忽略，示例类可能不存在
+        } catch (e: Exception) {
+            System.err.println("Error registering DatabaseConfig: ${e.message}")
         }
         
         try {
             // 注册常用配置
-            val usefulConfigClass = Class.forName("site.addzero.ide.config.example.UsefulConfig").kotlin
+            val usefulConfigClass = Class.forName("site.addzero.ide.config.example.ExampleConfig\$UsefulConfig").kotlin
             registerIfRouted(usefulConfigClass)
         } catch (e: ClassNotFoundException) {
+            System.err.println("UsefulConfig class not found: ${e.message}")
             // 忽略，示例类可能不存在
+        } catch (e: Exception) {
+            System.err.println("Error registering UsefulConfig: ${e.message}")
         }
         
         try {
             // 注册性能配置
-            val performanceConfigClass = Class.forName("site.addzero.ide.config.example.PerformanceConfig").kotlin
+            val performanceConfigClass = Class.forName("site.addzero.ide.config.example.ExampleConfig\$PerformanceConfig").kotlin
             registerIfRouted(performanceConfigClass)
         } catch (e: ClassNotFoundException) {
+            System.err.println("PerformanceConfig class not found: ${e.message}")
             // 忽略，示例类可能不存在
+        } catch (e: Exception) {
+            System.err.println("Error registering PerformanceConfig: ${e.message}")
+        }
+        
+        try {
+            // 注册测试配置
+            val testConfigClass = Class.forName("site.addzero.ide.config.example.TestConfig").kotlin
+            registerIfRouted(testConfigClass)
+        } catch (e: ClassNotFoundException) {
+            System.err.println("TestConfig class not found: ${e.message}")
+            // 忽略，测试类可能不存在
+        } catch (e: Exception) {
+            System.err.println("Error registering TestConfig: ${e.message}")
         }
         
         isScanned = true

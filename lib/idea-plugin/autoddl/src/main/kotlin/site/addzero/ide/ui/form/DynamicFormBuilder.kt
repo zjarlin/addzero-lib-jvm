@@ -28,28 +28,40 @@ class DynamicFormBuilder {
      */
     fun buildFormPanel(configItems: List<ConfigItem>): DialogPanel {
         return panel {
-            configItems.forEach { configItem ->
-                // 存储配置项以便后续使用
-                configItemsMap[configItem.key] = configItem
+            if (configItems.isEmpty()) {
+                row {
+                    label("该配置项没有可编辑的参数")
+                }
+            } else {
+                configItems.forEach { configItem ->
+                    try {
+                        // 存储配置项以便后续使用
+                        configItemsMap[configItem.key] = configItem
 
-                when (configItem) {
-                    is KeyValueConfig -> {
-                        addKeyValueField(configItem)
-                    }
-                    is SelectConfig -> {
-                        addSelectField(configItem)
-                    }
-                    is CheckboxConfig -> {
-                        addCheckboxField(configItem)
-                    }
-                    is ListConfig -> {
-                        addListField(configItem)
-                    }
-                    is TableConfig -> {
-                        addTableField(configItem)
-                    }
-                    is ConditionalConfig -> {
-                        addConditionalField(configItem)
+                        when (configItem) {
+                            is KeyValueConfig -> {
+                                addKeyValueField(configItem)
+                            }
+                            is SelectConfig -> {
+                                addSelectField(configItem)
+                            }
+                            is CheckboxConfig -> {
+                                addCheckboxField(configItem)
+                            }
+                            is ListConfig -> {
+                                addListField(configItem)
+                            }
+                            is TableConfig -> {
+                                addTableField(configItem)
+                            }
+                            is ConditionalConfig -> {
+                                addConditionalField(configItem)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        row {
+                            label("创建配置项 ${configItem.key} 时出错: ${e.message}")
+                        }
                     }
                 }
             }

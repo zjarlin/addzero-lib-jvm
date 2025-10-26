@@ -38,6 +38,7 @@ object ConfigRegistry {
                 ConfigFormFactory.generateConfigItems(configClass)
             } catch (e: Exception) {
                 System.err.println("Failed to generate config items for ${configClass}: ${e.message}")
+                e.printStackTrace()
                 emptyList()
             }
             
@@ -49,6 +50,7 @@ object ConfigRegistry {
             )
             
             registeredConfigs[id] = routeInfo
+            System.out.println("Registered config: $id with ${configItems.size} items")
         }
     }
     

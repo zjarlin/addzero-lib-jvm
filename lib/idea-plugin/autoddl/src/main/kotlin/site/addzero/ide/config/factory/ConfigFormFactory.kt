@@ -25,20 +25,27 @@ object ConfigFormFactory {
         // 检查类是否有 @Configurable 注解
         val classAnnotation = configClass.findAnnotation<Configurable>()
         if (classAnnotation == null) {
-            throw IllegalArgumentException("Class must be annotated with @Configurable")
+            System.err.println("Class ${configClass.simpleName} is not annotated with @Configurable")
+            // 不抛出异常，而是返回空列表
+            return emptyList()
         }
         
         // 遍历类的所有属性
         configClass.memberProperties.forEach { property ->
             val field = property.javaField
             if (field != null) {
-                val configItem = createConfigItemFromField(field, configClass, property.name)
-                if (configItem != null) {
-                    configItems.add(configItem)
+                try {
+                    val configItem = createConfigItemFromField(field, configClass, property.name)
+                    if (configItem != null) {
+                        configItems.add(configItem)
+                    }
+                } catch (e: Exception) {
+                    System.err.println("Failed to create config item for field ${property.name} in ${configClass.simpleName}: ${e.message}")
                 }
             }
         }
         
+        System.out.println("Generated ${configItems.size} config items for ${configClass.simpleName}")
         return configItems
     }
     
