@@ -1,7 +1,7 @@
 package com.addzero.util.taos
 
+import cn.hutool.core.bean.BeanUtil
 import com.taosdata.jdbc.TSDBDriver
-import net.sf.cglib.beans.BeanMap
 import java.lang.reflect.Method
 import java.sql.Connection
 import java.sql.DriverManager
@@ -25,7 +25,13 @@ class TDengineUtil {
      * @param databaseColumnHumpToLine 是否需要数据库列名下划线转驼峰
      */
     constructor(url: String, username: String?, password: String?, databaseColumnHumpToLine: Boolean) {
-//        val forName = Class.forName("com.taosdata.jdbc.TSDBDriver")
+        // 解析URL获取数据库名称
+        val dbPattern = Regex("/([a-zA-Z0-9_]+)$")
+        val matchResult = dbPattern.find(url)
+        val databaseName = matchResult?.groupValues?.get(1)
+
+        // 先连接到服务器（不指定具体数据库）
+        val baseUrl = url.substringBeforeLast("/")
         val connProps = Properties()
         connProps.setProperty(TSDBDriver.PROPERTY_KEY_USER, username)
         connProps.setProperty(TSDBDriver.PROPERTY_KEY_PASSWORD, password)
@@ -33,8 +39,52 @@ class TDengineUtil {
         connProps.setProperty(TSDBDriver.PROPERTY_KEY_CHARSET, "UTF-8")
         connProps.setProperty(TSDBDriver.PROPERTY_KEY_LOCALE, "en_US.UTF-8")
         connProps.setProperty(TSDBDriver.PROPERTY_KEY_TIME_ZONE, "UTC-8")
+
+        // 建立初始连接
+        val tempConnection = DriverManager.getConnection(baseUrl, connProps)
+
+        // 检查并创建数据库（如果需要）
+        if (databaseName != null) {
+            ensureDatabaseExists(tempConnection, databaseName)
+        }
+
+        // 关闭临时连接
+        tempConnection.close()
+
+        // 重新连接到指定数据库
         this.connection = DriverManager.getConnection(url, connProps)
         this.databaseColumnHumpToLine = databaseColumnHumpToLine
+    }
+
+    /**
+     * 确保数据库存在，如果不存在则创建
+     */
+    private fun ensureDatabaseExists(connection: Connection, databaseName: String) {
+        try {
+            // 尝试使用数据库
+            val statement = connection.createStatement()
+            statement.execute("use $databaseName")
+            statement.close()
+        } catch (e: SQLException) {
+            // 检查是否是数据库不存在的错误
+            if (e.message?.contains("not exist", ignoreCase = true) == true) {
+                // 数据库不存在，创建它
+                createDatabaseIfNotExists(connection, databaseName)
+            } else {
+                // 其他SQL异常，重新抛出
+                throw e
+            }
+        }
+    }
+
+    /**
+     * 如果数据库不存在则创建数据库
+     */
+    private fun createDatabaseIfNotExists(connection: Connection, databaseName: String) {
+        val statement = connection.createStatement()
+        statement.execute("create database if not exists $databaseName")
+        statement.execute("use $databaseName")
+        statement.close()
     }
 
     /**
@@ -120,7 +170,7 @@ class TDengineUtil {
      */
     @Throws(SQLException::class)
     fun insert(tableName: String?, o: Any?): Boolean {
-        val map= BeanMap.create(o)
+        val map = BeanUtil.beanToMap(o)
 
         val sql: String = createInsertSql(tableName, map)
         return connection.createStatement().execute(sql)
@@ -128,11 +178,185 @@ class TDengineUtil {
 
 
     @Throws(SQLException::class)
-    fun insertWithStable(tableName: String?, sTableName: String?, o: Any?, vararg tags: String?): Boolean {
-        val map = BeanMap.create(o)
+    fun insertWithStable(tableName: String?, sTableName: String?, o: Any?): Boolean {
+        // 确保超级表存在
+        ensureStableExists(sTableName, o)
 
-        val sql: String = createInsertStableSql(tableName, sTableName, map, *tags)
+        // 从对象中提取标签值
+        val tagValues = extractTagValues(o)
+
+        // 从对象中提取普通字段（排除标签字段）
+        val map = BeanUtil.beanToMap(o).toMutableMap()
+        removeTagFieldsFromMap(o, map)
+
+        // 打印调试信息
+//        println("Map keys: ${map.keys}")
+//        println("Tag values: $tagValues")
+
+        val sql: String = createInsertStableSql(tableName, sTableName, map, *tagValues.toTypedArray())
+//        println("SQL: $sql")
         return connection.createStatement().execute(sql)
+    }
+
+    /**
+     * 从映射中移除标签字段，因为标签字段不应该作为普通字段插入
+     */
+    private fun removeTagFieldsFromMap(o: Any?, map: MutableMap<String, Any?>) {
+        if (o == null) return
+
+        val clazz = o.javaClass
+        val fields = clazz.declaredFields
+
+        // 移除标签字段
+        for (field in fields) {
+            field.isAccessible = true
+            if (field.isAnnotationPresent(TdTag::class.java)) {
+                val tagAnnotation = field.getAnnotation(TdTag::class.java)
+                // 使用注解中指定的名称，如果没有指定则使用字段名的下划线形式
+                // 但要注意，在BeanUtil.beanToMap转换后的Map中，键是驼峰命名格式
+                val fieldName = if (tagAnnotation.name.isNotEmpty()) {
+                    // 如果注解中指定了name，则查找Map时需要找到对应的驼峰命名
+                    // 因为BeanUtil.beanToMap使用的是字段原始名称(驼峰格式)
+                    field.name
+                } else {
+                    // 如果没有指定name，则使用字段名转换成下划线的形式
+                    humpToLine(field.name)
+                }
+                // 从BeanUtil.beanToMap得到的Map中，键是字段的原始名称（驼峰格式）
+                // 所以我们应该使用字段的原始名称来移除
+                map.remove(field.name)
+            }
+        }
+    }
+
+    /**
+     * 从对象中提取标签值
+     */
+    private fun extractTagValues(o: Any?): List<String> {
+        if (o == null) return emptyList()
+
+        val tagValues = mutableListOf<String>()
+        val clazz = o.javaClass
+        val fields = clazz.declaredFields
+
+        // 按顺序提取标签字段的值
+        for (field in fields) {
+            field.isAccessible = true
+            if (field.isAnnotationPresent(TdTag::class.java)) {
+                val value = field.get(o)?.toString() ?: ""
+                tagValues.add(value)
+            }
+        }
+
+        return tagValues
+    }
+
+    /**
+     * 确保超级表存在，如果不存在则创建
+     */
+    private fun ensureStableExists(sTableName: String?, o: Any?) {
+        if (sTableName == null || o == null) return
+
+        try {
+            // 尝试查询超级表
+            val statement = connection.createStatement()
+            statement.execute("describe $sTableName")
+            statement.close()
+        } catch (e: SQLException) {
+            // 检查是否是表不存在的错误
+            if (e.message?.contains("not exist", ignoreCase = true) == true ||
+                e.message?.contains("Table does not exist", ignoreCase = true) == true) {
+                // 超级表不存在，创建它
+                createStableIfNotExists(sTableName, o)
+            } else {
+                // 其他SQL异常，重新抛出
+                throw e
+            }
+        }
+    }
+
+    /**
+     * 如果超级表不存在则创建超级表
+     */
+    private fun createStableIfNotExists(sTableName: String, o: Any) {
+        // 获取对象的类
+        val clazz = o.javaClass
+        val fields = clazz.declaredFields
+
+        // 分离普通字段和标签字段
+        val regularFields = mutableListOf<java.lang.reflect.Field>()
+        val tagFields = mutableListOf<java.lang.reflect.Field>()
+
+        for (field in fields) {
+            field.isAccessible = true
+            if (field.isAnnotationPresent(TdTag::class.java)) {
+                tagFields.add(field)
+            } else {
+                regularFields.add(field)
+            }
+        }
+
+        // 构建字段定义部分
+        val fieldDefinitions = regularFields.joinToString(", ") { field ->
+            val fieldName = humpToLine(field.name)
+            val fieldType = field.type
+
+            // 根据字段类型确定数据库类型
+            val dbType = when (fieldType) {
+                java.lang.String::class.java -> "BINARY(255)"
+                java.lang.Integer::class.java, Int::class.java -> "INT"
+                java.lang.Long::class.java, Long::class.java -> "BIGINT"
+                java.lang.Double::class.java, Double::class.java -> "DOUBLE"
+                java.lang.Float::class.java, Float::class.java -> "FLOAT"
+                java.lang.Boolean::class.java, Boolean::class.java -> "BOOL"
+                java.util.Date::class.java -> "TIMESTAMP"
+                else -> "BINARY(255)" // 默认使用字符串类型
+            }
+
+            if (fieldName == "ts") {
+                "$fieldName TIMESTAMP"
+            } else {
+                "$fieldName $dbType"
+            }
+        }
+
+        // 构建标签定义部分
+        val tagDefinitions = tagFields.joinToString(", ") { field ->
+            val tagAnnotation = field.getAnnotation(TdTag::class.java)
+            val tagName = if (tagAnnotation.name.isNotEmpty()) tagAnnotation.name else humpToLine(field.name)
+
+            // 如果注解中指定了类型，则使用指定的类型，否则根据字段类型映射
+            val tagType = if (tagAnnotation.type.isNotEmpty() && tagAnnotation.type != "BINARY(255)") {
+                tagAnnotation.type
+            } else {
+                // 根据字段类型确定标签的数据库类型
+                val fieldType = field.type
+                when (fieldType) {
+                    java.lang.String::class.java -> "BINARY(255)"
+                    java.lang.Integer::class.java, Int::class.java -> "INT"
+                    java.lang.Long::class.java, Long::class.java -> "BIGINT"
+                    java.lang.Double::class.java, Double::class.java -> "DOUBLE"
+                    java.lang.Float::class.java, Float::class.java -> "FLOAT"
+                    java.lang.Boolean::class.java, Boolean::class.java -> "BOOL"
+                    java.util.Date::class.java -> "TIMESTAMP"
+                    else -> "BINARY(255)" // 默认使用字符串类型
+                }
+            }
+            "$tagName $tagType"
+        }
+
+        // 如果没有标签字段，则使用默认标签
+        val finalTagDefinitions = if (tagFields.isEmpty()) {
+            "tag1 BINARY(255), tag2 BINARY(255), tag3 BINARY(255)"
+        } else {
+            tagDefinitions
+        }
+
+        val sql = "CREATE STABLE IF NOT EXISTS $sTableName ($fieldDefinitions) TAGS ($finalTagDefinitions)"
+
+        val statement = connection.createStatement()
+        statement.execute(sql)
+        statement.close()
     }
 
     /**
@@ -216,7 +440,7 @@ class TDengineUtil {
         fun createInsertStableSql(
             tableName: String?,
             sTbaleName: String?,
-            map: BeanMap?,
+            map: Map<*, *>?,
             vararg tags: String?
         ): String {
             return "INSERT INTO $tableName${stableToSQL(sTbaleName, *tags)}${mapToSQL(map)}"
@@ -234,11 +458,11 @@ class TDengineUtil {
          * @param map
          * @return
          */
-        fun createInsertSql(tableName: String?, map: BeanMap?): String {
+        fun createInsertSql(tableName: String?, map: Map<*, *>?): String {
             return "INSERT INTO $tableName${mapToSQL(map)}"
         }
 
-        fun mapToSQL(map: BeanMap?): String {
+        fun mapToSQL(map: Map<*, *>?): String {
             if (map == null) return ""
 
             val entries = map.entries
