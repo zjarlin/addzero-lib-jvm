@@ -1,6 +1,7 @@
 package com.addzero.mybatis.auto_wrapper;
 
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -11,6 +12,7 @@ import java.lang.invoke.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -65,7 +67,7 @@ public class CreateSFunctionUtil {
                     // 获取 getter 方法
                     Method getterMethod = ReflectUtil.getMethod(clazz, "get" + capitalize(fieldName));
                     // 获取 setter 方法
-                    Method setterMethod = ReflectUtil.getMethod(clazz, "set" + capitalize(fieldName),field.getType());
+                    Method setterMethod = ReflectUtil.getMethod(clazz, "set" + capitalize(fieldName), field.getType());
 
                     if (getterMethod != null && setterMethod != null) {
                         Function<T, ?> getter = entity -> {
@@ -100,7 +102,15 @@ public class CreateSFunctionUtil {
             columnName = StringUtils.underlineToCamel(columnName);
         }
         final String methodName = StringUtils.concatCapitalize("get", columnName);
-        Method method = ReflectUtil.getMethod(clazz, methodName);
+
+        Method[] methodsDirectly = ReflectUtil.getMethodsDirectly(clazz, true, true);
+        Method method = Arrays.stream(methodsDirectly).filter(m -> {
+            boolean b = StrUtil.containsIgnoreCase(m.getName(), methodName);
+            return b;
+        }).findAny().orElse(null);
+
+
+//        Method method = ReflectUtil.getMethod(clazz, methodName);
         if (method == null) {
             throw new RuntimeException(clazz + "的" + methodName + "方法没有找到:");
         }
