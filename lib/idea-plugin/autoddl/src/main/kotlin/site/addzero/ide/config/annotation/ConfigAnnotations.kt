@@ -130,3 +130,16 @@ annotation class ConfigConditional(
     val conditionOperator: String,
     val conditionValue: String
 )
+
+/**
+ * 用于定义配置路由的注解
+ *
+ * @param parent 父级菜单名称
+ * @param name 当前菜单名称
+ */
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class Route(
+    val parent: String,
+    val name: String
+)
