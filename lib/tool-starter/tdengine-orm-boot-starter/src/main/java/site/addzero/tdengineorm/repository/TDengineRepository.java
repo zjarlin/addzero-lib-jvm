@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static site.addzero.tdengineorm.util.StringUtil.makeSurroundWith;
+
 /**
  * TDengine工具类
  *
@@ -148,7 +150,7 @@ public class TDengineRepository {
         if (null != dynamicNameStrategy) {
             tbName = dynamicNameStrategy.dynamicTableName(tbName);
         }
-        String sql = SqlConstant.INSERT_INTO + tbName + TdSqlUtil.joinColumnNamesAndValuesSql(object, noTagFieldList, paramsMap);
+        String sql = SqlConstant.INSERT_INTO + makeSurroundWith(tbName ,"'") + TdSqlUtil.joinColumnNamesAndValuesSql(object, noTagFieldList, paramsMap);
         return updateWithTdLog(sql, paramsMap);
     }
 

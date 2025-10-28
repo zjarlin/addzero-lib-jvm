@@ -5,6 +5,9 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import site.addzero.tdengineorm.annotation.TdColumn;
 import site.addzero.tdengineorm.annotation.TdTable;
 import site.addzero.tdengineorm.annotation.TdTag;
@@ -17,14 +20,14 @@ import site.addzero.tdengineorm.exception.TdOrmException;
 import site.addzero.tdengineorm.exception.TdOrmExceptionCode;
 import site.addzero.tdengineorm.func.GetterFunction;
 import site.addzero.tdengineorm.strategy.DynamicNameStrategy;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import static site.addzero.tdengineorm.util.StringUtil.makeSurroundWith;
+import static site.addzero.tdengineorm.util.StringUtil.makeSurroundWithNullable;
 
 /**
  * @author Nullen
@@ -91,7 +94,7 @@ public class TdSqlUtil {
      */
     public static StringBuilder getInsertIntoSqlPrefix(String tbName, List<Field> fields) {
         return new StringBuilder(SqlConstant.INSERT_INTO)
-                .append(tbName)
+                .append(makeSurroundWith(tbName, "'"))
                 .append(fields.stream().map(TdSqlUtil::getColumnName).collect(getColumnWithBracketCollector()))
                 .append(SqlConstant.VALUES);
     }
@@ -105,7 +108,7 @@ public class TdSqlUtil {
      * @param entity 需要入库的实体对象
      * @param fields 字段
      * @param index  目的是为了避免参数重复, 适用于需要批量插入的场景, 如只需要插入一行数据, 可以为任何值, 不过建议直接使用getInsertIntoSql方法
-     * @return {@link Pair }<{@link String }, {@link Map }<{@link String }, {@link Object }>> Key是SQL部分, Value是参数名称和参数值Map
+     * @return {@link Pair }<{@link String }, {@link Map }<{@link String }, {@link Object }>>
      */
     public static <T> Pair<String, Map<String, Object>> getInsertSqlSuffix(T entity, List<Field> fields, int index) {
         if (fields.isEmpty()) {
@@ -218,8 +221,9 @@ public class TdSqlUtil {
                 : getColumnNameSqlAndParamNameSqlPair(fields);
 
         // 拼接INSERT INTO语句的初始化 SQL
+
         return new StringBuilder(SqlConstant.INSERT_INTO)
-                .append(StrUtil.isBlankIfStr(defaultTbName) ? getTbName(entityClass) : defaultTbName)
+                .append(makeSurroundWith(StrUtil.isBlankIfStr(defaultTbName) ? getTbName(entityClass) : defaultTbName, "'"))
                 .append(columnNameSqlAndParamNameSqlPair.getKey())
                 .append(SqlConstant.VALUES)
                 .append(columnNameSqlAndParamNameSqlPair.getValue());
@@ -237,7 +241,7 @@ public class TdSqlUtil {
 
         // 拼接INSERT INTO语句的初始化 SQL
         return new StringBuilder(SqlConstant.INSERT_INTO)
-                .append(tbName)
+                .append(makeSurroundWithNullable(tbName, "'"))
                 .append(separateByCommas(columNames, true))
                 .append(SqlConstant.VALUES)
                 .append(separateByCommas(paramsNames, true));
@@ -248,7 +252,7 @@ public class TdSqlUtil {
 
         // 拼接INSERT INTO语句的初始化 SQL
         return new StringBuilder(SqlConstant.INSERT_INTO)
-                .append(tbName)
+                .append(makeSurroundWith(tbName, "'"))
                 .append(columnNameSqlAndParamNameSqlPair.getKey())
                 .append(SqlConstant.VALUES)
                 .append(columnNameSqlAndParamNameSqlPair.getValue());
@@ -386,8 +390,8 @@ public class TdSqlUtil {
         // 获取普通字段的名称
         String commFieldSql = TdSqlUtil.joinColumnNamesWithBracket(fieldsPair.getValue());
         // 根据策略生成表名
-        return SqlConstant.INSERT_INTO + dynamicTbNameStrategy.dynamicTableName(sTbName)
-                + TdSqlConstant.USING + sTbName + tagFieldSql + commFieldSql + SqlConstant.VALUES;
+        return SqlConstant.INSERT_INTO + makeSurroundWith(dynamicTbNameStrategy.dynamicTableName(sTbName), "'")
+               + TdSqlConstant.USING + sTbName + tagFieldSql + commFieldSql + SqlConstant.VALUES;
     }
 
 
@@ -406,7 +410,7 @@ public class TdSqlUtil {
         String childTbName = dynamicTbNameStrategy.dynamicTableName(sTbName);
 
         // 拼接最终SQL
-        String finalSql = SqlConstant.INSERT_INTO + childTbName + TdSqlConstant.USING + sTbName + tagFieldSql + commFieldSql;
+        String finalSql = SqlConstant.INSERT_INTO + makeSurroundWith(childTbName, "'") + TdSqlConstant.USING + sTbName + tagFieldSql + commFieldSql;
 
         return Pair.of(finalSql, paramsMap);
     }
@@ -471,11 +475,11 @@ public class TdSqlUtil {
 
         String tsColumn = primaryTsField == null ? StrUtil.EMPTY
                 : SqlConstant.HALF_ANGLE_DASH
-                + TdSqlUtil.getColumnName(primaryTsField)
-                + SqlConstant.HALF_ANGLE_DASH
-                + SqlConstant.BLANK
-                + TdFieldTypeEnum.TIMESTAMP.getFiledType()
-                + SqlConstant.COMMA;
+                  + TdSqlUtil.getColumnName(primaryTsField)
+                  + SqlConstant.HALF_ANGLE_DASH
+                  + SqlConstant.BLANK
+                  + TdFieldTypeEnum.TIMESTAMP.getFiledType()
+                  + SqlConstant.COMMA;
 
         StringBuilder finalSb = new StringBuilder(SqlConstant.LEFT_BRACKET).append(tsColumn);
         for (int i = 0; i < fields.size(); i++) {

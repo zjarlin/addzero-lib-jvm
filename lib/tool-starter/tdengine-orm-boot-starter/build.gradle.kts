@@ -10,6 +10,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-autoconfigure:2.4.2")
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc:2.4.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+
+//    implementation("site.addzero:too-str:")
     implementation(libs.hutool.all)
 //    implementation(libs.spring.boot.autoconfigure)
 //    api(projects.lib.toolStarter.controllerAutoconfigure) // 或使用
