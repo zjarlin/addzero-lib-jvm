@@ -491,7 +491,10 @@ public class TdSqlUtil {
         Class<?> fieldType = field.getType();
         TdFieldTypeEnum tdFieldTypeEnum = TdFieldTypeEnum.matchByFieldType(fieldType);
         if (null == tdFieldTypeEnum) {
-            throw new TdOrmException(TdOrmExceptionCode.CANT_NOT_MATCH_FIELD_TYPE);
+            log.warn("Field [{}] with type [{}] cannot be matched to TDengine field type, using NCHAR as default.", 
+                    field.getName(), fieldType.getName());
+            return TdFieldTypeEnum.NCHAR;
+//            throw new TdOrmException(TdOrmExceptionCode.CANT_NOT_MATCH_FIELD_TYPE);
         }
 
         return tdFieldTypeEnum;

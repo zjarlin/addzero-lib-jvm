@@ -27,6 +27,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -167,27 +168,27 @@ public class TDengineRepository {
     public <T> int[] batchInsert(Class<T> clazz, List<T> entityList, int pageSize, DynamicNameStrategy dynamicTbNameStrategy) {
         // 不使用USING语法时, 不能指定TAG字段的值
         List<Field> fieldList = ClassUtil.getAllFields(clazz, field -> !field.isAnnotationPresent(TdTag.class));
-        
+
         // 按动态表名对实体进行分组
         Map<String, List<T>> entityGroups = entityList.stream()
                 .collect(Collectors.groupingBy(entity -> dynamicTbNameStrategy.dynamicTableName(entity)));
-        
+
         // 计算总批次数
         int totalBatches = entityGroups.values().stream()
                 .mapToInt(group -> (group.size() + pageSize - 1) / pageSize) // 向上取整计算每组的批次数
                 .sum();
-        
+
         int[] result = new int[totalBatches];
         int groupIndex = 0;
-        
+
         // 对每个分组分别进行批量插入
         for (Map.Entry<String, List<T>> entry : entityGroups.entrySet()) {
             String tbName = entry.getKey();
             List<T> groupEntities = entry.getValue();
-            
+
             // 对每个分组再按pageSize分批
             List<List<T>> partition = ListUtil.partition(groupEntities, pageSize);
-            
+
             for (List<T> list : partition) {
                 Map<String, Object> paramsMap = new HashMap<>(list.size());
                 StringBuilder insertIntoSql = TdSqlUtil.getInsertIntoSqlPrefix(tbName, fieldList);
@@ -202,7 +203,7 @@ public class TDengineRepository {
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -233,6 +234,14 @@ public class TDengineRepository {
      * @return int
      */
     public <T> int createStableTable(Class<T> clazz) {
+        String tableName = TdSqlUtil.getTbName(clazz);
+        
+        // 检查超级表是否已经存在
+        if (isStableTableExists(tableName)) {
+            // 超级表已存在，返回0表示无需创建
+            return 0;
+        }
+        
         List<Field> fieldList = ClassUtil.getAllFields(clazz);
         // 区分普通字段和Tag字段
         Pair<List<Field>, List<Field>> fieldListPairByTag = TdSqlUtil.differentiateByTag(fieldList);
@@ -244,7 +253,7 @@ public class TDengineRepository {
 
         Field primaryTsField = TdSqlUtil.checkPrimaryTsField(commFieldList);
 
-        String finalSql = TdSqlConstant.CREATE_STABLE + TdSqlUtil.getTbName(clazz) + TdSqlUtil.buildCreateColumn(commFieldList, primaryTsField);
+        String finalSql = TdSqlConstant.CREATE_STABLE + tableName + TdSqlUtil.buildCreateColumn(commFieldList, primaryTsField);
         List<Field> tagFieldList = fieldListPairByTag.getKey();
 
         if (CollectionUtils.isEmpty(tagFieldList)) {
@@ -254,34 +263,47 @@ public class TDengineRepository {
         finalSql += SqlConstant.BLANK + TdSqlConstant.TAGS + tagColumnSql;
         return updateWithTdLog(finalSql, new HashMap<>(0));
     }
-
+    
+    /**
+     * 检查超级表是否已存在
+     * 
+     * @param tableName 表名
+     * @return true表示存在，false表示不存在
+     */
+    public boolean isStableTableExists(String tableName) {
+        String checkSql = "SELECT tbname FROM information_schema.ins_stables WHERE db_name = DATABASE() AND stable_name = :tableName";
+        Map<String, Object> params = new HashMap<>();
+        params.put("tableName", tableName);
+        List<Map> result = jdbcTemplatePlus.list(checkSql, params, Map.class);
+        return !CollectionUtils.isEmpty(result);
+    }
 
     public <T> void batchInsertUsing(Class<T> clazz, List<T> entityList, int pageSize, DynamicNameStrategy dynamicTbNameStrategy) {
         // 获取超级表表名&所有字段
         Pair<String, List<Field>> tbNameAndFieldsPair = TdSqlUtil.getTbNameAndFieldListPair(clazz);
-        
+
         // 按动态表名对实体进行分组
         Map<String, List<T>> entityGroups = entityList.stream()
                 .collect(Collectors.groupingBy(entity -> dynamicTbNameStrategy.dynamicTableName(entity)));
-        
+
         // 对每个分组分别进行批量插入
         for (Map.Entry<String, List<T>> entry : entityGroups.entrySet()) {
             String tbName = entry.getKey();
             List<T> groupEntities = entry.getValue();
-            
+
             // 对每个分组再按pageSize分批
             List<List<T>> partition = ListUtil.partition(groupEntities, pageSize);
-            
+
             for (List<T> list : partition) {
                 if (list.isEmpty()) continue;
-                
+
                 T t = list.get(0);
                 List<Field> tagFields = ClassUtil.getAllFields(t.getClass()).stream()
                         .filter(field -> field.isAnnotationPresent(TdTag.class))
                         .collect(Collectors.toList());
-                
+
                 Map<String, Object> tagValueMap = TdSqlUtil.getFiledValueMap(tagFields, t);
-                
+
                 Map<String, Object> paramsMap = new HashMap<>(list.size());
                 paramsMap.putAll(tagValueMap);
                 StringBuilder finalSql = new StringBuilder(TdSqlUtil.getInsertUsingSqlPrefix(t, tbNameAndFieldsPair.getKey(),

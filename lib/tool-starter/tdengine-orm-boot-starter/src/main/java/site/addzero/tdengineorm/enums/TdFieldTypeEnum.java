@@ -2,6 +2,7 @@ package site.addzero.tdengineorm.enums;
 
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
@@ -79,6 +80,8 @@ public enum TdFieldTypeEnum {
             return TdFieldTypeEnum.BOOL;
         } else if (fieldType.equals(String.class)) {
             return TdFieldTypeEnum.NCHAR;
+        } else if (fieldType.equals(BigDecimal.class)) {
+            return TdFieldTypeEnum.DOUBLE;
         }
         return null;
     }
