@@ -1,6 +1,7 @@
 package site.addzero.tdengineorm.util;
 
 import cn.hutool.core.annotation.AnnotationUtil;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.ReflectUtil;
@@ -34,6 +35,29 @@ import static site.addzero.tdengineorm.util.StringUtil.makeSurroundWithNullable;
  */
 @Slf4j
 public class TdSqlUtil {
+
+    public Set<String> getAllTagFields(Class<?> entityClass) {
+        Field[] fields = ReflectUtil.getFields(entityClass, e -> e.isAnnotationPresent(TdTag.class));
+        Set<String> collect = Arrays.stream(fields).map(e -> {
+            return e.getName();
+        }).collect(Collectors.toSet());
+        return collect;
+    }
+    public static Set<Pair<String, String>> getAllTagFieldsPair(Object obj) {
+        Class<?> entityClass = obj.getClass();
+        Field[] fields = ReflectUtil.getFields(entityClass, e -> e.isAnnotationPresent(TdTag.class));
+        Set<Pair<String, String>> collect = Arrays.stream(fields).map(e -> {
+
+            Object fieldValue = ReflectUtil.getFieldValue(obj, e);
+            String string = fieldValue.toString();
+//            String str = Convert.toStr(fieldValue);
+            return Pair.of(e.getName(), string);
+//            return e.getName();
+        }).collect(Collectors.toSet());
+
+        return collect;
+    }
+
 
     public static String getTbName(Class<?> entityClass) {
         String tbNameByAnno = getTbNameByAnno(entityClass);
@@ -390,7 +414,7 @@ public class TdSqlUtil {
         // 获取普通字段的名称
         String commFieldSql = TdSqlUtil.joinColumnNamesWithBracket(fieldsPair.getValue());
         // 根据策略生成表名
-        return SqlConstant.INSERT_INTO + makeSurroundWith(dynamicTbNameStrategy.dynamicTableName(sTbName), "'")
+        return SqlConstant.INSERT_INTO + makeSurroundWith(dynamicTbNameStrategy.dynamicTableName(object), "'")
                + TdSqlConstant.USING + sTbName + tagFieldSql + commFieldSql + SqlConstant.VALUES;
     }
 
@@ -407,7 +431,7 @@ public class TdSqlUtil {
         String commFieldSql = getTagFieldNameAndValuesSql(object, fieldsPair.getValue(), paramsMap, false);
 
         // 根据策略生成表名
-        String childTbName = dynamicTbNameStrategy.dynamicTableName(sTbName);
+        String childTbName = dynamicTbNameStrategy.dynamicTableName(object);
 
         // 拼接最终SQL
         String finalSql = SqlConstant.INSERT_INTO + makeSurroundWith(childTbName, "'") + TdSqlConstant.USING + sTbName + tagFieldSql + commFieldSql;

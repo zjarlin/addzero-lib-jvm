@@ -6,14 +6,13 @@ package site.addzero.tdengineorm.strategy;
  * @author Silas
  */
 @FunctionalInterface
-public interface DynamicNameStrategy {
+public interface DynamicNameStrategy<T> {
 
     /**
      * 动态表名生成
      *
-     * @param tableName 原始表名
      * @return 根据策略修改后的表名
      */
-    String dynamicTableName(String tableName);
+    String dynamicTableName(T entity);
 
 }

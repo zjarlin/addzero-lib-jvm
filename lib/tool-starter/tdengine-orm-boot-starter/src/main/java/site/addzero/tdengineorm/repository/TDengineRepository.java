@@ -148,7 +148,7 @@ public class TDengineRepository {
         Map<String, Object> paramsMap = new HashMap<>(noTagFieldList.size());
         String tbName = TdSqlUtil.getTbName(object.getClass());
         if (null != dynamicNameStrategy) {
-            tbName = dynamicNameStrategy.dynamicTableName(tbName);
+            tbName = dynamicNameStrategy.dynamicTableName(object);
         }
         String sql = SqlConstant.INSERT_INTO + makeSurroundWith(tbName ,"'") + TdSqlUtil.joinColumnNamesAndValuesSql(object, noTagFieldList, paramsMap);
         return updateWithTdLog(sql, paramsMap);
@@ -165,26 +165,44 @@ public class TDengineRepository {
     }
 
     public <T> int[] batchInsert(Class<T> clazz, List<T> entityList, int pageSize, DynamicNameStrategy dynamicTbNameStrategy) {
-        // 根据策略获取表名称
-        String tbName = dynamicTbNameStrategy.dynamicTableName(TdSqlUtil.getTbName(clazz));
         // 不使用USING语法时, 不能指定TAG字段的值
         List<Field> fieldList = ClassUtil.getAllFields(clazz, field -> !field.isAnnotationPresent(TdTag.class));
-        // 以防数据量过大, 分批进行插入
-        List<List<T>> partition = ListUtil.partition(entityList, pageSize);
-        int[] result = new int[partition.size()];
-
-        for (int i = 0; i < partition.size(); i++) {
-            List<T> list = partition.get(i);
-            Map<String, Object> paramsMap = new HashMap<>(list.size());
-            StringBuilder insertIntoSql = TdSqlUtil.getInsertIntoSqlPrefix(tbName, fieldList);
-            StringBuilder finalSql = new StringBuilder(insertIntoSql);
-            joinInsetSqlSuffix(list, finalSql, paramsMap);
-            int singleResult = namedParameterJdbcTemplate.update(finalSql.toString(), paramsMap);
-            if (log.isDebugEnabled()) {
-                log.debug("{} ===== execute result ====>{}", finalSql, singleResult);
+        
+        // 按动态表名对实体进行分组
+        Map<String, List<T>> entityGroups = entityList.stream()
+                .collect(Collectors.groupingBy(entity -> dynamicTbNameStrategy.dynamicTableName(entity)));
+        
+        // 计算总批次数
+        int totalBatches = entityGroups.values().stream()
+                .mapToInt(group -> (group.size() + pageSize - 1) / pageSize) // 向上取整计算每组的批次数
+                .sum();
+        
+        int[] result = new int[totalBatches];
+        int groupIndex = 0;
+        
+        // 对每个分组分别进行批量插入
+        for (Map.Entry<String, List<T>> entry : entityGroups.entrySet()) {
+            String tbName = entry.getKey();
+            List<T> groupEntities = entry.getValue();
+            
+            // 对每个分组再按pageSize分批
+            List<List<T>> partition = ListUtil.partition(groupEntities, pageSize);
+            
+            for (List<T> list : partition) {
+                Map<String, Object> paramsMap = new HashMap<>(list.size());
+                StringBuilder insertIntoSql = TdSqlUtil.getInsertIntoSqlPrefix(tbName, fieldList);
+                StringBuilder finalSql = new StringBuilder(insertIntoSql);
+                joinInsetSqlSuffix(list, finalSql, paramsMap);
+                int singleResult = namedParameterJdbcTemplate.update(finalSql.toString(), paramsMap);
+                if (log.isDebugEnabled()) {
+                    log.debug("{} ===== execute result ====>{}", finalSql, singleResult);
+                }
+                if (groupIndex < result.length) {
+                    result[groupIndex++] = singleResult;
+                }
             }
-            result[i] = singleResult;
         }
+        
         return result;
     }
 
