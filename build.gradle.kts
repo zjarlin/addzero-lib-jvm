@@ -15,7 +15,7 @@
 //    }
 //}
 subprojects {
-    version = "0.0.657"
+    version = "0.0.659"
 }
 plugins {
 //    id("site.addzero.buildlogic.version-buddy") version "0.0.656"
