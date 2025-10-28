@@ -29,7 +29,7 @@ public @interface TdColumn {
     /**
      * 字段长度
      */
-    int length() default 0;
+    int length() default 255;
 
     /**
      * 列注释
@@ -40,4 +40,4 @@ public @interface TdColumn {
      * 是否允许为空
      */
     boolean nullable() default true;
-} 
+}

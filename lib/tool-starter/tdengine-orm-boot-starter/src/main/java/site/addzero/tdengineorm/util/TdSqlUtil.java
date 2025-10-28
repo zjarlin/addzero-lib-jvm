@@ -473,13 +473,16 @@ public class TdSqlUtil {
     public static String getFieldTypeAndLength(Field field) {
         TdColumn tdField = field.getAnnotation(TdColumn.class);
         TdFieldTypeEnum type = null == tdField ? getColumnTypeByField(field) : tdField.type();
+        int finalLength = 0;
         if (type.isNeedLengthLimit()) {
             if (tdField == null || tdField.length() <= 0) {
-                log.warn("Field [{}] has no length limit.", field.getName());
-                throw new TdOrmException(TdOrmExceptionCode.FIELD_NO_LENGTH);
+                finalLength = 255;
+//                log.warn("Field [{}] has no length limit.", field.getName());
+//                throw new TdOrmException(TdOrmExceptionCode.FIELD_NO_LENGTH);
+            } else {
+                finalLength = tdField.length();
             }
-            int length = tdField.length();
-            return type.getFiledType() + SqlConstant.LEFT_BRACKET + length + SqlConstant.RIGHT_BRACKET;
+            return type.getFiledType() + SqlConstant.LEFT_BRACKET + finalLength + SqlConstant.RIGHT_BRACKET;
         }
         return type.getFiledType();
     }
