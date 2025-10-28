@@ -259,26 +259,38 @@ public class TDengineRepository {
     public <T> void batchInsertUsing(Class<T> clazz, List<T> entityList, int pageSize, DynamicNameStrategy dynamicTbNameStrategy) {
         // 获取超级表表名&所有字段
         Pair<String, List<Field>> tbNameAndFieldsPair = TdSqlUtil.getTbNameAndFieldListPair(clazz);
-
-        // 目前仅支持同子表的数据批量插入, 所以随意取一个对象的tag的值都是一样的
-        List<List<T>> partition = ListUtil.partition(entityList, pageSize);
-        T t = partition.get(0).get(0);
-
-        List<Field> tagFields = ClassUtil.getAllFields(t.getClass()).stream()
-                .filter(field -> field.isAnnotationPresent(TdTag.class))
-                .collect(Collectors.toList());
-
-        Map<String, Object> tagValueMap = TdSqlUtil.getFiledValueMap(tagFields, t);
-
-        for (List<T> list : partition) {
-            Map<String, Object> paramsMap = new HashMap<>(list.size());
-            paramsMap.putAll(tagValueMap);
-            StringBuilder finalSql = new StringBuilder(TdSqlUtil.getInsertUsingSqlPrefix(t, tbNameAndFieldsPair.getKey(),
-                    tbNameAndFieldsPair.getValue(), dynamicTbNameStrategy, paramsMap));
-            joinInsetSqlSuffix(list, finalSql, paramsMap);
-            int result = namedParameterJdbcTemplate.update(finalSql.toString(), paramsMap);
-            if (log.isDebugEnabled()) {
-                log.debug("{} =====execute result====>{}", finalSql, result);
+        
+        // 按动态表名对实体进行分组
+        Map<String, List<T>> entityGroups = entityList.stream()
+                .collect(Collectors.groupingBy(entity -> dynamicTbNameStrategy.dynamicTableName(entity)));
+        
+        // 对每个分组分别进行批量插入
+        for (Map.Entry<String, List<T>> entry : entityGroups.entrySet()) {
+            String tbName = entry.getKey();
+            List<T> groupEntities = entry.getValue();
+            
+            // 对每个分组再按pageSize分批
+            List<List<T>> partition = ListUtil.partition(groupEntities, pageSize);
+            
+            for (List<T> list : partition) {
+                if (list.isEmpty()) continue;
+                
+                T t = list.get(0);
+                List<Field> tagFields = ClassUtil.getAllFields(t.getClass()).stream()
+                        .filter(field -> field.isAnnotationPresent(TdTag.class))
+                        .collect(Collectors.toList());
+                
+                Map<String, Object> tagValueMap = TdSqlUtil.getFiledValueMap(tagFields, t);
+                
+                Map<String, Object> paramsMap = new HashMap<>(list.size());
+                paramsMap.putAll(tagValueMap);
+                StringBuilder finalSql = new StringBuilder(TdSqlUtil.getInsertUsingSqlPrefix(t, tbNameAndFieldsPair.getKey(),
+                        tbNameAndFieldsPair.getValue(), dynamicTbNameStrategy, paramsMap));
+                joinInsetSqlSuffix(list, finalSql, paramsMap);
+                int result = namedParameterJdbcTemplate.update(finalSql.toString(), paramsMap);
+                if (log.isDebugEnabled()) {
+                    log.debug("{} =====execute result====>{}", finalSql, result);
+                }
             }
         }
     }
