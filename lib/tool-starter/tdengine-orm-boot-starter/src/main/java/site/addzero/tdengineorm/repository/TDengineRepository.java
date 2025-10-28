@@ -235,13 +235,13 @@ public class TDengineRepository {
      */
     public <T> int createStableTable(Class<T> clazz) {
         String tableName = TdSqlUtil.getTbName(clazz);
-        
+
         // 检查超级表是否已经存在
         if (isStableTableExists(tableName)) {
             // 超级表已存在，返回0表示无需创建
             return 0;
         }
-        
+
         List<Field> fieldList = ClassUtil.getAllFields(clazz);
         // 区分普通字段和Tag字段
         Pair<List<Field>, List<Field>> fieldListPairByTag = TdSqlUtil.differentiateByTag(fieldList);
@@ -263,10 +263,10 @@ public class TDengineRepository {
         finalSql += SqlConstant.BLANK + TdSqlConstant.TAGS + tagColumnSql;
         return updateWithTdLog(finalSql, new HashMap<>(0));
     }
-    
+
     /**
      * 检查超级表是否已存在
-     * 
+     *
      * @param tableName 表名
      * @return true表示存在，false表示不存在
      */
@@ -274,8 +274,8 @@ public class TDengineRepository {
         String checkSql = "SELECT tbname FROM information_schema.ins_stables WHERE db_name = DATABASE() AND stable_name = :tableName";
         Map<String, Object> params = new HashMap<>();
         params.put("tableName", tableName);
-        List<Map> result = jdbcTemplatePlus.list(checkSql, params, Map.class);
-        return !CollectionUtils.isEmpty(result);
+        List<Object> list = jdbcTemplatePlus.list(checkSql, params, Object.class);
+        return !CollectionUtils.isEmpty(list);
     }
 
     public <T> void batchInsertUsing(Class<T> clazz, List<T> entityList, int pageSize, DynamicNameStrategy dynamicTbNameStrategy) {
