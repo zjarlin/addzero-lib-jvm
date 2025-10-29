@@ -14,9 +14,6 @@
 ////        autoApplyPlugin(it)
 //    }
 //}
-subprojects {
-    version = "0.0.659"
-}
 plugins {
 //    id("site.addzero.buildlogic.version-buddy") version "0.0.656"
     alias(libs.plugins.addzeroVersionBuddy)
