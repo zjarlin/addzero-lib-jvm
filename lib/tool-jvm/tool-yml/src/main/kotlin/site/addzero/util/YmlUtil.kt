@@ -1,6 +1,7 @@
 package site.addzero.util
 
 import org.yaml.snakeyaml.Yaml
+import java.io.File
 import kotlin.io.path.Path
 
 object YmlUtil {
@@ -28,10 +29,8 @@ object YmlUtil {
 
 
     fun <T> loadYmlConfig(dir: String): T {
-        val path = Path(dir)
-        val toFile = path.toFile()
-
-        val config = yaml.load<T>(toFile.inputStream())
+        val inputStream = File(dir).inputStream()
+        val config = yaml.load<T>(inputStream)
         return config
     }
 
@@ -40,7 +39,7 @@ object YmlUtil {
         return bool
     }
 
-    fun getActivate(dir: String): String {
+    fun getActivateBydir(dir: String): String {
         val loadYmlConfigMap = loadYmlConfigMap(dir)
         val configValue = getConfigValue<String>(loadYmlConfigMap, "spring.profiles.active")
         return configValue ?: "dev"

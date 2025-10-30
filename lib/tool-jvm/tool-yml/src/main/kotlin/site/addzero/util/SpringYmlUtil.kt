@@ -1,19 +1,33 @@
 package site.addzero.util
 
-import site.addzero.util.YmlUtil.getActivate
+import site.addzero.util.YmlUtil.getActivateBydir
+import java.io.File
 
-object SpringYmlUtil {
-
-    fun getYmlAbsolutePath(resourceName: String = "application.yml"): String {
-        val resource = Thread.currentThread().contextClassLoader.getResource(resourceName)
-            ?: throw IllegalArgumentException("无法在classpath中找到资源文件: $resourceName")
-        return resource.path
+class SpringYmlUtil(val customPath: String?) {
+    val actPath by lazy {
+        if (customPath != null && File(customPath).exists()) {
+            customPath
+        } else {
+            // 使用默认的resources目录路径
+            val resource = Thread.currentThread().contextClassLoader.getResource("")
+                ?: throw IllegalStateException("无法找到resources目录")
+            File(resource.toURI()).absolutePath
+        }
     }
 
+
+
+    fun getYmlContent(resourceName: String): String {
+        val file = getResource(resourceName)
+        return file.readText()
+    }
+
+    private fun getResource(resourceName: String): File = File(actPath, resourceName)
+
+
     fun getActivateYml(): Map<String, Any> {
-        val ymlAbsolutePath = getYmlAbsolutePath()
-        val activate = getActivate(ymlAbsolutePath)
-        val ymlActivateAbsolutePath = getYmlAbsolutePath("application-$activate.yml")
+        val activate = getActivateBydir(getResource("application.yml").absolutePath)
+        val ymlActivateAbsolutePath = getResource("application-$activate.yml").absolutePath
         val loadYmlConfigMap = YmlUtil.loadYmlConfigMap(ymlActivateAbsolutePath)
         return loadYmlConfigMap
     }

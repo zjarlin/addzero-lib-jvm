@@ -13,15 +13,11 @@ import java.io.File
  */
 class MpGenerator(private val mpGeneratorSettings: MpGeneratorSettings) {
 
-    fun gen(outputPath: String, vararg genList: String) {
-        val pkg = mpGeneratorSettings.pkg
+    fun gen(outputPath: String,  pkg:String,vararg genList: String) {
         val authName = mpGeneratorSettings.authName
-
         val url = mpGeneratorSettings.url
         val username = mpGeneratorSettings.username
         val password = mpGeneratorSettings.password
-
-
         // region 代码生成新版3.5.1以上使用
         FastAutoGenerator.create(url, username, password) //全局配置
             .globalConfig({ builder ->
@@ -71,11 +67,7 @@ class MpGenerator(private val mpGeneratorSettings: MpGeneratorSettings) {
     class CustomVelocityTemplateEngine(private val mpGeneratorSettings: MpGeneratorSettings) :
         VelocityTemplateEngine() {
         public override fun writer(objectMap: MutableMap<String?, Any?>, templatePath: String, outputFile: File) {
-            objectMap["superControllerClass"] = "BaseController"
-            objectMap["extBaseApiImport"] = mpGeneratorSettings.extBaseApiImport
-            objectMap["extExcelApiImport"] = mpGeneratorSettings.extExcelApiImport
-
-
+            objectMap.putAll(mpGeneratorSettings.velocityContextMap)
             super.writer(objectMap, templatePath, outputFile)
         }
     }

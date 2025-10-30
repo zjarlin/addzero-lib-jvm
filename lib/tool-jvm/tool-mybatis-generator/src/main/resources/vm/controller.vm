@@ -4,17 +4,12 @@ import ${package.Service}.$!{table.serviceName};
 import ${package.Entity}.${entity};
 
 import ${extBaseApiImport};
-import ${extExcelApiImport};
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
-#if(${restControllerStyle})
 import org.springframework.web.bind.annotation.RestController;
-#else
-import org.springframework.stereotype.Controller;
-#end
 
 /**
 * <p>
@@ -25,12 +20,8 @@ import org.springframework.stereotype.Controller;
 * @since ${date}
 */
 @Api("$!{table.comment}接口")
-#if(${restControllerStyle})
 @RestController
-#else
-@Controller
-#end
 @RequestMapping("/${table.entityPath}")
-public class ${table.controllerName} extends ${superControllerClass}} <I${entity}Service, ${entity}> implements ExcelApi<${entity}, ${entity}> {
+public class ${table.controllerName} implements ${superControllerClass}<I${entity}Service, ${entity}> {
 
 }

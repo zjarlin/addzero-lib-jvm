@@ -4,14 +4,15 @@ package ${package.Entity};
 #foreach($pkg in ${table.importPackages})
 import ${pkg};
 #end
-import com.gisroad.business.common.entity.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.format.annotation.DateTimeFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import com.alibaba.excel.annotation.ExcelProperty;
+
+import ${extBaseEntityImport};
+import ${extExcelImport};
 
 /**
 * <p>
@@ -27,8 +28,15 @@ import com.alibaba.excel.annotation.ExcelProperty;
 #if(${table.convert})
 @TableName("${schemaName}${table.name}")
 #end
-public class ${entity} extends BaseEntity {
-#set($blacklistFields = ["sid","createuser","updateuser"
+public class ${entity} extends BaseModel {
+#set($blacklistFields = ["id","sid","createuser","updateuser"
+
+    ,"createBy"
+,"createTime"
+,"updateBy"
+,"updateTime"
+
+
 , "createUser"
 , "createDate"
 , "updateUser"
@@ -44,7 +52,7 @@ public class ${entity} extends BaseEntity {
     #if(!$blacklistFields.contains($field.propertyName))
       #if("$!field.comment" != "")
       @ApiModelProperty("${field.comment}")
-      @ExcelProperty("${field.comment}")
+      @${extExcelAnnoName}(${extExcelAnnoPropertyName}="${field.comment}")
       #end
       #if(${field.dateTimeFormat})
       @JsonFormat(pattern = "${field.dateTimeFormat}")
