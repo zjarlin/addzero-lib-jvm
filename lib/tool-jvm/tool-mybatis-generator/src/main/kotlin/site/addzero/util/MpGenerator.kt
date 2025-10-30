@@ -47,7 +47,6 @@ class MpGenerator(private val mpGeneratorSettings: MpGeneratorSettings) {
                 it
                     .addInclude(genList.toMutableList()) // 设置需要生成的表名，留空则生产全部表
                     .entityBuilder() //实体类配置
-                    .enableFileOverride() // 覆盖已生成文件
                     .enableLombok() //使用lombok
                     .enableTableFieldAnnotation() //实体类字段注解
                     .idType(IdType.INPUT)

@@ -1,4 +1,4 @@
-package site.addzero.addl.util.catalogutil
+package site.addzero.util.catalogutil
 
 data class VersionCatalogDTO(
     val versions: List<VersionEntry>?,
