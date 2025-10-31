@@ -6,7 +6,7 @@ import site.addzero.ide.config.model.InputType
 /**
  * 数据库配置类
  */
-@Route("基础配置", "数据库配置", configClass = DatabaseConfig::class)
+@SettingRoute("基础配置")
 @Configurable
 data class DatabaseConfig(
     @ConfigField(
@@ -14,28 +14,28 @@ data class DatabaseConfig(
         description = "数据库服务器地址"
     )
     val host: String = "localhost",
-    
+
     @ConfigField(
         label = "数据库端口",
         description = "数据库服务端口",
         inputType = InputType.NUMBER
     )
     val port: Int = 3306,
-    
+
     @ConfigField(
         label = "用户名",
         description = "数据库连接用户名",
         required = true
     )
     val username: String = "",
-    
+
     @ConfigField(
         label = "密码",
         description = "数据库连接密码",
         inputType = InputType.PASSWORD
     )
     val password: String = "",
-    
+
     @ConfigSelect(
         label = "数据库类型",
         description = "选择数据库类型",
@@ -46,25 +46,25 @@ data class DatabaseConfig(
         ]
     )
     val databaseType: String = "mysql",
-    
+
     @ConfigCheckbox(
         label = "启用SSL连接",
         description = "是否使用SSL加密连接"
     )
     val useSSL: Boolean = false,
-    
+
     @ConfigList(
         label = "表列表",
         description = "需要处理的数据库表名列表"
     )
     val tables: List<String> = listOf(),
-    
+
     @ConfigTable(
         label = "连接配置",
         description = "多个数据库连接配置"
     )
     val connections: List<ConnectionConfig> = listOf(),
-    
+
     @ConfigConditional(
         label = "数据库Schema",
         description = "数据库Schema名称",
@@ -79,7 +79,7 @@ data class DatabaseConfig(
 /**
  * 常用配置类
  */
-@Route("基础配置", "常用配置", configClass = UsefulConfig::class)
+@SettingRoute("基础配置")
 @Configurable
 data class UsefulConfig(
     @ConfigField(
@@ -88,13 +88,13 @@ data class UsefulConfig(
         inputType = InputType.NUMBER
     )
     val timeout: Int = 5000,
-    
+
     @ConfigCheckbox(
         label = "调试模式",
         description = "是否启用调试模式"
     )
     val debugMode: Boolean = false,
-    
+
     @ConfigSelect(
         label = "日志级别",
         description = "设置日志输出级别",
@@ -111,7 +111,7 @@ data class UsefulConfig(
 /**
  * 性能配置类
  */
-@Route("高级配置", "性能配置", configClass = PerformanceConfig::class)
+@SettingRoute("高级配置")
 @Configurable
 data class PerformanceConfig(
     @ConfigField(
@@ -120,14 +120,14 @@ data class PerformanceConfig(
         inputType = InputType.NUMBER
     )
     val maxThreads: Int = 10,
-    
+
     @ConfigField(
         label = "缓冲区大小",
         description = "缓冲区大小（字节）",
         inputType = InputType.NUMBER
     )
     val bufferSize: Int = 1024,
-    
+
     @ConfigCheckbox(
         label = "启用缓存",
         description = "是否启用缓存机制"
@@ -144,13 +144,13 @@ data class ConnectionConfig(
         description = "连接的标识名称"
     )
     val name: String = "",
-    
+
     @ConfigField(
         label = "连接URL",
         description = "数据库连接URL"
     )
     val url: String = "",
-    
+
     @ConfigSelect(
         label = "驱动类",
         description = "数据库驱动类名",

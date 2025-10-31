@@ -2,7 +2,7 @@ package site.addzero.ide.config.example
 
 import site.addzero.ide.config.annotation.*
 
-@Route("测试配置", configClass = TestConfig::class)
+@SettingRoute("测试配置")
 @Configurable
 data class TestConfig(
     @ConfigField(
@@ -10,7 +10,7 @@ data class TestConfig(
         description = "这是一个测试字段"
     )
     val testField: String = "默认值",
-    
+
     @ConfigCheckbox(
         label = "启用测试",
         description = "是否启用测试功能"

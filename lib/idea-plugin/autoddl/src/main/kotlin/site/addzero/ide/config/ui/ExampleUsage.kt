@@ -7,7 +7,7 @@ import javax.swing.JPanel
 
 /**
  * 通用设置模块使用示例
- * 
+ *
  * 本文件展示了如何使用 BaseConfigurableTreeUI 创建自定义的设置面板
  */
 
@@ -45,13 +45,13 @@ class CustomScannerExampleUI : BaseConfigurableTreeUI(
 class AdvancedExampleUI(
     private val myDisplayName: String = "高级设置示例"
 ) : BaseConfigurableTreeUI(myDisplayName) {
-    
+
     override fun createTreePanel(): JPanel {
         val panel = super.createTreePanel()
         // 可以在这里添加自定义逻辑
         return panel
     }
-    
+
     override fun createConfigPanel(
         configInfo: site.addzero.ide.config.registry.ConfigRouteInfo,
         formBuilder: site.addzero.ide.ui.form.DynamicFormBuilder
@@ -67,7 +67,7 @@ class AdvancedExampleUI(
 /**
  * 示例配置类 1: 应用配置
  */
-@Route("示例设置", "应用配置", configClass = ExampleConfig1::class)
+@SettingRoute("示例设置")
 @Configurable
 data class ExampleConfig1(
     @ConfigField(
@@ -76,19 +76,19 @@ data class ExampleConfig1(
         required = true
     )
     val appName: String = "我的应用",
-    
+
     @ConfigField(
         label = "版本",
         description = "应用版本号"
     )
     val version: String = "1.0.0",
-    
+
     @ConfigCheckbox(
         label = "启用调试",
         description = "是否启用调试模式"
     )
     val debugEnabled: Boolean = false,
-    
+
     @ConfigSelect(
         label = "语言",
         description = "应用界面语言",
@@ -104,7 +104,7 @@ data class ExampleConfig1(
 /**
  * 示例配置类 2: 网络配置
  */
-@Route("示例设置", "网络配置", configClass = ExampleConfig2::class)
+@SettingRoute("示例设置")
 @Configurable
 data class ExampleConfig2(
     @ConfigField(
@@ -112,20 +112,20 @@ data class ExampleConfig2(
         description = "代理服务器地址"
     )
     val proxyHost: String = "",
-    
+
     @ConfigField(
         label = "代理端口",
         description = "代理服务器端口",
         inputType = InputType.NUMBER
     )
     val proxyPort: Int = 8080,
-    
+
     @ConfigCheckbox(
         label = "使用代理",
         description = "是否使用代理服务器"
     )
     val useProxy: Boolean = false,
-    
+
     @ConfigField(
         label = "超时时间",
         description = "网络请求超时时间（毫秒）",
@@ -138,10 +138,10 @@ data class ExampleConfig2(
 
 /**
  * 在 plugin.xml 中注册设置面板的示例:
- * 
- * <applicationConfigurable 
- *     parentId="tools" 
- *     instance="site.addzero.ide.config.ui.CustomScannerExampleUI" 
+ *
+ * <applicationConfigurable
+ *     parentId="tools"
+ *     instance="site.addzero.ide.config.ui.CustomScannerExampleUI"
  *     id="example.settings">
  *     <label>示例设置</label>
  * </applicationConfigurable>
@@ -149,24 +149,24 @@ data class ExampleConfig2(
 
 /**
  * 使用步骤:
- * 
- * 1. 定义配置类，使用 @Route 和 @Configurable 注解
+ *
+ * 1. 定义配置类，使用 @SettingRoute 和 @Configurable 注解
  * 2. 创建 BaseConfigurableTreeUI 实例或继承它
  * 3. 在 plugin.xml 中注册为 Configurable
- * 
+ *
  * 示例代码:
- * 
+ *
  * ```kotlin
  * class MyPluginSettings : BaseConfigurableTreeUI(
  *     displayName = "我的插件设置"
  * )
  * ```
- * 
+ *
  * XML配置:
  * ```xml
- * <applicationConfigurable 
- *     parentId="tools" 
- *     instance="my.package.MyPluginSettings" 
+ * <applicationConfigurable
+ *     parentId="tools"
+ *     instance="my.package.MyPluginSettings"
  *     id="my.plugin.settings">
  *     <label>我的插件设置</label>
  * </applicationConfigurable>

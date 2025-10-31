@@ -7,8 +7,6 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 
 @OptIn(ExperimentalCompilerApi::class)
 class AddGenerateExtensionPlugin : CompilerPluginRegistrar() {
-    override val pluginId: String
-        get() = "site.addzero.AddGenerateExtensionPlugin"
     override val supportsK2: Boolean = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {

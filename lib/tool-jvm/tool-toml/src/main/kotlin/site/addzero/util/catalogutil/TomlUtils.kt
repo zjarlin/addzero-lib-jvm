@@ -5,11 +5,6 @@ import org.tomlj.Toml
 import org.tomlj.TomlArray
 import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
-import site.addzero.addl.util.catalogutil.BundleEntry
-import site.addzero.addl.util.catalogutil.LibraryEntry
-import site.addzero.addl.util.catalogutil.PluginEntry
-import site.addzero.addl.util.catalogutil.VersionCatalogDTO
-import site.addzero.addl.util.catalogutil.VersionEntry
 import java.nio.file.Path
 import java.nio.file.Paths
 

@@ -1,7 +1,6 @@
-package site.addzero.addl.util.catalogutil
+package site.addzero.util.catalogutil
 
 import cn.hutool.core.io.FileUtil
-import com.addzero.common.kt_util.isBlank
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.nio.file.Paths

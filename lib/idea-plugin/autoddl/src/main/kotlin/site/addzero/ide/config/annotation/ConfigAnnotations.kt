@@ -139,7 +139,6 @@ annotation class ConfigConditional(
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class Route(
-    val parent: String,
-    val name: String
+annotation class SettingRoute(
+    val parent: String
 )

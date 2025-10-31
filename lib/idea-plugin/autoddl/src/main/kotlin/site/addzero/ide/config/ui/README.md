@@ -53,7 +53,7 @@ package my.plugin.config
 
 import site.addzero.ide.config.ui.BaseConfigurableTreeUI
 import site.addzero.ide.config.registry.ConfigRegistry
-import site.addzero.ide.config.annotation.Route
+import site.addzero.ide.config.annotation.SettingRoute
 import site.addzero.ide.config.annotation.Configurable
 import site.addzero.ide.config.annotation.ConfigField
 import site.addzero.ide.config.model.InputType

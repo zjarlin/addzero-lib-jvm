@@ -3,10 +3,4 @@ plugins {
 //    id("kmp-json")
 }
 
-dependencies {
-        implementation(libs.tomlj)
-    implementation(libs.hutool.all)
-
-
-}
 
