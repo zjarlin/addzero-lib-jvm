@@ -6,7 +6,7 @@ import java.util.*
 import java.util.regex.Pattern
 
 
-object CurlParserHelper {
+internal object CurlParserHelper {
     // Helper method to extract path params
     fun extractPathParams(url: String): MutableList<String?> {
         val UUID_PATTERN = Pattern.compile("^[a-f0-9\\-]{20,}$", Pattern.CASE_INSENSITIVE)

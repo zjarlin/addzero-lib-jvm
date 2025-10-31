@@ -1,7 +1,7 @@
 package site.addzero.util
 
 import com.google.gson.*;
-object PayloadMutator {
+internal object PayloadMutator {
     // Generate mutation rules based on value type
     fun generateMutationRules(payload: String?): MutableMap<String?, String?> {
         val rules: MutableMap<String?, String?> = HashMap<String?, String?>()

@@ -1,6 +1,8 @@
 package site.addzero.util
 
+import okhttp3.*
 import org.junit.jupiter.api.Test
+import java.io.IOException
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -73,5 +75,21 @@ class CurlParserTest {
 
         assertEquals("PUT", parsedCurl.method)
         assertEquals("https://example.com/api", parsedCurl.url)
+    }
+
+    // 测试CurlExecutor
+    // 注意：这个测试需要网络连接，且依赖外部服务，仅作演示用途
+    // @Test
+    fun testCurlExecutor() {
+        val curlCommand = "curl https://httpbin.org/get"
+        val parsedCurl = CurlParser.parseCurl(curlCommand)
+        
+        try {
+            val response = CurlExecutor.execute(parsedCurl)
+            assertEquals(200, response.code)
+            response.close()
+        } catch (e: IOException) {
+            // 网络请求可能失败，这在单元测试中是正常的
+        }
     }
 }
