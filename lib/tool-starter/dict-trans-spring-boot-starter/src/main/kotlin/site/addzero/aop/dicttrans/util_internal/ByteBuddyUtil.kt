@@ -106,12 +106,14 @@ internal class ByteBuddyUtil {
                     val afterObject = genChildObjectRecursion(fieldValue, getNeedAddInfoFun)
                     ReflectUtil.setFieldValue(o, e, afterObject)
                 } else if (RefUtil.isCollectionField(e)) {
-                    val fieldValue1 = fieldValue as MutableCollection<*>
-                    if (CollUtil.isNotEmpty(fieldValue1)) {
-                        val collect31 = fieldValue1
-                            .map { genChildObjectRecursion(it, getNeedAddInfoFun) }
+                    if (fieldValue != null) {
+                        val fieldValue1 = fieldValue as MutableCollection<*>
+                        if (CollUtil.isNotEmpty(fieldValue1)) {
+                            val collect31 = fieldValue1
+                                .map { genChildObjectRecursion(it, getNeedAddInfoFun) }
 
-                        ReflectUtil.setFieldValue(o, e, collect31)
+                            ReflectUtil.setFieldValue(o, e, collect31)
+                        }
                     }
                 }
             }
