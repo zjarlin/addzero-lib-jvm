@@ -4,6 +4,7 @@
 package site.addzero.util
 
 import cn.hutool.core.collection.CollUtil
+import cn.hutool.core.util.ClassUtil.isPrimitiveWrapper
 import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
 import cn.hutool.core.util.TypeUtil
@@ -113,15 +114,6 @@ object RefUtil {
             }
     }
 
-    fun isPrimitiveOrWrapper(aClass: Class<*>): Boolean {
-        val primitive = aClass.isPrimitive
-        return primitive || Byte::class.java.isAssignableFrom(aClass) || Short::class.java.isAssignableFrom(aClass) || Int::class.java.isAssignableFrom(
-            aClass
-        ) || Long::class.java.isAssignableFrom(aClass) || Float::class.java.isAssignableFrom(aClass) || Double::class.java.isAssignableFrom(
-            aClass
-        ) || Boolean::class.java.isAssignableFrom(aClass) || Char::class.java.isAssignableFrom(aClass)
-    }
-
     fun isCollection(obj: Any): Boolean {
         val assignableFrom = MutableCollection::class.java.isAssignableFrom(obj.javaClass)
         return assignableFrom
@@ -154,7 +146,7 @@ object RefUtil {
         val clazz = obj.javaClass
 
         // 快速排除：基本类型、字符串、数组、集合、枚举、注解、Class对象
-        if (clazz.isPrimitive || isPrimitiveOrWrapper(clazz) ||
+        if (clazz.isPrimitive || isPrimitiveWrapper(clazz) ||
             clazz == String::class.java || clazz.isArray ||
             Collection::class.java.isAssignableFrom(clazz) ||
             Map::class.java.isAssignableFrom(clazz) ||
