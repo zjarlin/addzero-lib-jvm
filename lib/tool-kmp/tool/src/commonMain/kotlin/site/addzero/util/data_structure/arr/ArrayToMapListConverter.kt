@@ -1,47 +1,49 @@
 package site.addzero.util.data_structure.arr
 
-import site.addzero.str.add
 
+/**
+ * 将二维数组转换为Map列表，第一行作为键名，其余行作为值
+ *
+ * @param T 数组元素的类型
+ * @param array 二维数组，第一行为键名，其余行为对应的值
+ * @return 包含Map的列表，每个Map代表一行数据
+ */
+fun <T> convertWithFirstRowAsKeys(array: Array<Array<T>>): List<Map<T, T>> {
+    if (array.isEmpty()) return emptyList()
 
-object ArrayToMapListConverter {
-    fun convertArrayToListOfMaps(array: Array<Array<String>>): List<Map<String, String>> {
-        val listOfMaps: List<Map<String, String>> = ArrayList()
+    val headers = array[0]
+    val rows = array.drop(1)
 
-        // 假设第一行是列标题
-        val headers = array[0]
+    return convertRowsToMaps(rows, headers)
+}
 
-        // 遍历除标题外的每一行
-        for (i in 1 until array.size) {
-            val rowMap: MutableMap<String, String> = HashMap()
-            val row = array[i]
+/**
+ * 将二维数组转换为Map列表，使用指定的键名列表
+ *
+ * @param T 数组元素的类型
+ * @param array 二维数组，仅包含值
+ * @param keys 键名列表
+ * @return 包含Map的列表，每个Map代表一行数据
+ */
+fun <T> convertWithKeys(array: Array<Array<T>>, keys: Array<T>): List<Map<T, T>> {
+    if (array.isEmpty()) return emptyList()
 
-            // 遍历每一列，使用headers作为键，row中的元素作为值
-            for (j in row.indices) {
-                rowMap[headers[j]] = row[j]
-            }
+    return convertRowsToMaps(array.toList(), keys)
+}
 
-            // 将创建的Map添加到列表中
-            listOfMaps.add(rowMap)
-        }
-
-        return listOfMaps
-    }
-
-    fun main(args: Array<String>) {
-        // 示例二维数组
-        val array = arrayOf(
-            arrayOf("ID", "Name", "Age", "City"),
-            arrayOf("1", "Alice", "30", "New York"),
-            arrayOf("2", "Bob", "25", "Los Angeles"),
-            arrayOf("3", "Charlie", "35", "Chicago")
-        )
-
-        // 转换为List<Map>
-        val listOfMaps = convertArrayToListOfMaps(array)
-
-        // 打印结果
-        for (row in listOfMaps) {
-            println(row)
-        }
+/**
+ * 将行数据转换为Map列表的核心逻辑
+ *
+ * @param T 数组元素的类型
+ * @param rows 行数据列表
+ * @param keys 键名数组
+ * @return 包含Map的列表，每个Map代表一行数据
+ */
+private fun <T> convertRowsToMaps(rows: List<Array<T>>, keys: Array<T>): List<Map<T, T>> {
+    return rows.map { row ->
+        keys
+            .take(row.size.coerceAtMost(keys.size))
+            .mapIndexed { index, key -> key to row[index] }
+            .toMap()
     }
 }

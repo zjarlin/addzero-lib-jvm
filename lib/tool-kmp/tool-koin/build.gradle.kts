@@ -1,0 +1,19 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
+plugins {
+    id("kmp-core")
+}
+
+kotlin {
+
+
+    dependencies {
+        implementation(project.dependencies.platform(libs.koin.bom))
+        implementation(libs.koin.annotations)
+        implementation(libs.koin.core)
+    }
+
+}

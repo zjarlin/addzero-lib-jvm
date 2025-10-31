@@ -1,5 +1,5 @@
 plugins {
-       id("site.addzero.buildlogic.jb.jb-convention")
+    id("site.addzero.buildlogic.intellij.intellij-platform-core")
 
 //    id("kmp-json")
 }

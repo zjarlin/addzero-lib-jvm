@@ -27,11 +27,4 @@ data class Res<T>(
         fun forbidden(message: String) = Res<Nothing>(403, message)
     }
 }
-
-// 扩展函数
-//
 fun ErrorEnum.fail() = Res.fail(this)
-//fun String.fail() = Res.fail(this)
-//fun String.failByCode(code: Int) = Res.fail(code, this)
-//fun String.unauthorized() = Res.unauthorized(this)
-//fun String.forbidden() = Res.forbidden(this)

@@ -1,59 +1,39 @@
 package site.addzero.str
 
 
-//JlCollutil
 
-// infix fun<T> MutableCollection<T>.`+?`(defaultExcludeFields:
-//                                        MutableCollection<T>):
-//         List<T> {
-//    defaultExcludeFields.forEach {
-//        CollUtil.addIfAbsent(this,it)
-//    }
-//    return this.filter { it.isNotNull() }
-//}
-
-fun <T, K> List<T>.addAllIfAbsentByKey(other: Collection<T>, keySelector: (T) -> K): Boolean? {
+fun <T, K> addAllIfAbsentByKey(
+    target: MutableList<T>,
+    other: Collection<T>,
+    keySelector: (T) -> K
+): Boolean {
     var modified = false
     other.forEach { element ->
-        if (none { keySelector(it) == keySelector(element) }) {
-            this.add(element)
+        if (target.none { keySelector(it) == keySelector(element) }) {
+            target.add(element)
             modified = true
         }
     }
     return modified
 }
 
-fun <E> List<E>.removeAt(i: Int) {
-    this.toMutableList().removeAt(i)
-}
 
-fun <T> List<T>.add(currentNode: T) {
-    this.toMutableList().add(currentNode)
-
-}
-
-fun <E> List<E>.addAll(allLeafNodes: List<E>) {
-    this.toMutableList().addAll(allLeafNodes)
-}
-
-fun <E> List<E>.removeIf(predicate: (E) -> Boolean) {
-    val toMutableList = this.toMutableList()
-    toMutableList.removeIf(predicate)
-}
 
 /**
  * 根据多个比较条件计算两个集合的差集。
  *
  * @param T 集合元素的类型
+ * @param collection 当前集合
  * @param other 另一个集合
  * @param predicates 多个 lambda 表达式，用于自定义比较规则
  * @return 差集（当前集合中不存在于 `other` 集合中的元素）
  */
-fun <T> Collection<T>.differenceBy(
+fun <T> differenceBy(
+    collection: Collection<T>,
     other: Collection<T>,
     vararg predicates: (T, T) -> Boolean,
 ): List<T> {
-    return this.filter { item ->
+    return collection.filter { item ->
         other.none { otherItem ->
             predicates.all { predicate -> predicate(item, otherItem) }
         }
@@ -64,20 +44,19 @@ fun <T> Collection<T>.differenceBy(
  * 根据多个比较条件计算两个集合的交集。
  *
  * @param T 集合元素的类型
+ * @param collection 当前集合
  * @param other 另一个集合
  * @param predicates 多个 lambda 表达式，用于自定义比较规则
  * @return 交集（同时存在于两个集合中的元素）
  */
-fun <T> Collection<T>.intersectBy(
+fun <T> intersectBy(
+    collection: Collection<T>,
     other: Collection<T>,
     vararg predicates: (T, T) -> Boolean,
 ): List<T> {
-    return this.filter { item ->
+    return collection.filter { item ->
         other.any { otherItem ->
             predicates.all { predicate -> predicate(item, otherItem) }
         }
     }
 }
-
-
-
