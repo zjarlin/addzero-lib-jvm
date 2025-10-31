@@ -59,8 +59,9 @@ internal class ByteBuddyUtil {
         ): Any? {
             o ?: return o
             //非T类型比如String Integer
-            val t = !RefUtil.isT(o)
-            if (t) {
+            val isT = RefUtil.isT(o)
+            val isNotT = !isT
+            if (isNotT) {
                 return o
             }
 
@@ -77,8 +78,9 @@ internal class ByteBuddyUtil {
                 ByteBuddy().subclass(aClass)
             } catch (e: Exception) {
                 e.printStackTrace()
-                error(e.message+"字节码生成失败,检查class 是否open,是否有无参构造")
-
+                println("${o}是否是t类型,实际返回了${isT},期望${true}")
+                error(e.message+"字节码生成失败,检查class 是否open,是否有无参构造或T类型的判断是否有误!!!")
+//
             }
 
             for (e in needAddFields) {
