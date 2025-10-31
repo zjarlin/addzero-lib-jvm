@@ -4,9 +4,9 @@ import cn.hutool.core.bean.BeanUtil
 import cn.hutool.core.collection.CollUtil
 import cn.hutool.core.util.ArrayUtil
 import cn.hutool.core.util.ReflectUtil
-import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.dynamic.DynamicType
+import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
 import site.addzero.util.RefUtil
 import java.lang.reflect.Field
 import java.lang.reflect.Type
@@ -78,9 +78,12 @@ internal class ByteBuddyUtil {
                 ByteBuddy().subclass(aClass)
             } catch (e: Exception) {
                 e.printStackTrace()
-                println("${o}是否是t类型,实际返回了${isT},期望${true}")
-                error(e.message+"字节码生成失败,检查class 是否open,是否有无参构造或T类型的判断是否有误!!!")
-//
+                val trimIndent = """
+                    ${e.message + e.cause}
+                字节码生成失败,检查class 是否open,是否有无参构造或T类型的判断是否有误!!!"
+                    "${o}是否是t类型,返回${isT},期望${true}"
+                """.trimIndent()
+                error(trimIndent)
             }
 
             for (e in needAddFields) {
@@ -139,8 +142,8 @@ internal class ByteBuddyUtil {
             for (e in needAddFields) {
                 val fieldName = e.fieldName
                 val rootObject = e.rootObject
-                var type= e.type
-                val recur =e.recur
+                var type = e.type
+                val recur = e.recur
                 val isT = e.isT
                 if (recur == true && isT == true) {
                     val aClass: Class<*> = genChildClassRecursion(type, getNeedAddInfoFun)
