@@ -5,6 +5,6 @@ data class Office(
     val cid: Long,
     val companyName: String,
     val score: Int,
-    val state: Any,
+    val state: Any?,
     val total: Int
 )

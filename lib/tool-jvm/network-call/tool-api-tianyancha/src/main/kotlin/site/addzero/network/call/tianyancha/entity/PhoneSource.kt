@@ -10,16 +10,16 @@ data class PhoneSource(
     val companyType: Int,
     val gid: Long,
     val hasMoreCompany: Int,
-    val oriPhoneNumber: Any,
+    val oriPhoneNumber: Any?,
     val phoneNumber: String,
-    val phoneTag: Any,
-    val phoneTagList: Any,
+    val phoneTag: Any?,
+    val phoneTagList: Any?,
     val phoneTagType: Int,
     val phoneTips: String,
     val phoneType: Int,
     val province: String,
-    val reportYear: String,
+    val reportYear: String?,
     val showSource: String,
-    val suspectedAccountTag: Any,
-    val suspectedAccountTagUrl: Any
+    val suspectedAccountTag: Any?,
+    val suspectedAccountTagUrl: Any?
 )

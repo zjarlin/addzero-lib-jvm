@@ -25,9 +25,9 @@ data class TagV3(
     val profileTagTypeId: Int,
     val profileTagTypeRanking: Int,
     val routingAction: Boolean,
-    val routingAddr: String,
-    val routingName: String,
-    val showCondition: Any,
+    val routingAddr: String?,
+    val routingName: String?,
+    val showCondition: Any?,
     val title: String,
     val type: Int
 )
