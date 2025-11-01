@@ -7,12 +7,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import site.addzero.network.call.tianyancha.constant.UrlConstant
 import site.addzero.network.call.tianyancha.domain.baseinfo.BaseInfo
-import site.addzero.network.call.tianyancha.domain.baseinfo.Data
 import site.addzero.network.call.tianyancha.domain.search.CompanyList
 import site.addzero.network.call.tianyancha.domain.search.Search
-import site.addzero.network.call.tianyancha.entity.CompanyInfoRes
+import site.addzero.network.call.tianyancha.entity.detail.CompanyInfoRes
 import java.net.URLEncoder
-import java.util.*
 
 object TycApi {
    private const val AUTHORIZATION = "0###oo34J0ZRgatN5UBO8UQRwap6Ew_A###1565664617903###24ed6f7b1512aee63869b97552a2bd8f"
@@ -77,7 +75,6 @@ object TycApi {
         }
 
         val responseBody = response.body?.string() ?: return emptyList()
-        println("响应内容: $responseBody") // 添加调试信息
         val parseObject = responseBody.parseObject<site.addzero.network.call.tianyancha.domain.search.JsonRootBean>()
         val searches = parseObject.data?.companyList?.filterNotNull()?.map { it.toSearch() } ?: emptyList()
         return searches

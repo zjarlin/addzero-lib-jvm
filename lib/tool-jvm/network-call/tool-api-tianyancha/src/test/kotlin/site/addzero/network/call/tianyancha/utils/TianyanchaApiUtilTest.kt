@@ -1,9 +1,8 @@
 package site.addzero.network.call.tianyancha.utils
 
-import com.alibaba.fastjson2.JSONReader
 import com.alibaba.fastjson2.parseObject
 import org.junit.jupiter.api.Test
-import site.addzero.network.call.tianyancha.entity.CompanyInfoRes
+import site.addzero.network.call.tianyancha.entity.detail.CompanyInfoRes
 
 class TianyanchaApiUtilTest {
 

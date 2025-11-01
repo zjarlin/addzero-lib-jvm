@@ -1,9 +1,10 @@
 package site.addzero.network.call.tianyancha.utils
 
 import site.addzero.network.call.tianyancha.domain.baseinfo.BaseInfo
+import site.addzero.network.call.tianyancha.entity.detail.Data
 import java.util.Date
 
-fun site.addzero.network.call.tianyancha.entity.Data.toBaseInfo2(): BaseInfo {
+fun Data.toBaseInfo2(): BaseInfo {
     val data = this
     return BaseInfo(
         id = data.id.toString(),

@@ -1,6 +1,6 @@
-package site.addzero.network.call.tianyancha.entity
+package site.addzero.network.call.tianyancha.entity.detail
 
-data class StaffNumInfo(
+data class StaffNumInfoThreeYear(
     val branchNum: Int,
     val existBranch: Boolean,
     val explainText: String,

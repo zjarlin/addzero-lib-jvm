@@ -1,4 +1,4 @@
-package site.addzero.network.call.tianyancha.entity
+package site.addzero.network.call.tianyancha.entity.detail
 
 data class Data(
     val abInfo: List<AbInfo>,
