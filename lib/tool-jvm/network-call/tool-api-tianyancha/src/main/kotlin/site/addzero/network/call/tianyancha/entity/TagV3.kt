@@ -15,7 +15,7 @@ data class TagV3(
     val hoverNoticeContent: String,
     val hoverNoticeType: Int,
     val iOSVersion: Any?,
-    val id: Int,
+    val id: Long,
     val logo: String,
     val name: String,
     val order: Int,

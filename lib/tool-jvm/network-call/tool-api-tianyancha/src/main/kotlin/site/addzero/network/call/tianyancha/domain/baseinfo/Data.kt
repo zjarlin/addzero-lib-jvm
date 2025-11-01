@@ -49,7 +49,7 @@ data class Data(
     val weibo: String? = null,
     val link: Int = 0,
     val categoryScore: Int = 0,
-    val id: Int = 0,
+    val id: Long = 0,
     val isMicroEnt: Int = 0,
     val regNumber: String? = null,
     val regCapital: String? = null,
