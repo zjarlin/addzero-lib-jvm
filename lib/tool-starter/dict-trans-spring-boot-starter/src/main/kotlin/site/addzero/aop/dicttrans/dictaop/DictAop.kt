@@ -43,7 +43,7 @@ class DictAopConfiguration {
         //       intersection() 表示&&
 
         val compositePointcut = ComposablePointcut(expressionPointcut as Pointcut)
-            .union(dictAnnotationPointcut as Pointcut)
+            .intersection (dictAnnotationPointcut as Pointcut)
 
 
         val advice = object : MethodInterceptor {
