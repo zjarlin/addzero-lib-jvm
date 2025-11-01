@@ -4,6 +4,6 @@ data class PhoneInfo(
     val comment: String,
     val label: String,
     val number: String,
-    val source: Any,
+    val source: Any?,
     val type: String
 )

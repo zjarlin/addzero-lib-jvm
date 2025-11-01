@@ -10,6 +10,8 @@ import site.addzero.network.call.tianyancha.domain.baseinfo.BaseInfo
 import site.addzero.network.call.tianyancha.domain.search.CompanyList
 import site.addzero.network.call.tianyancha.domain.search.Search
 import site.addzero.network.call.tianyancha.entity.detail.CompanyInfoRes
+import site.addzero.network.call.tianyancha.entity.search.Company
+import site.addzero.network.call.tianyancha.entity.search.SearchRes
 import java.net.URLEncoder
 
 object TycApi {
@@ -75,8 +77,11 @@ object TycApi {
         }
 
         val responseBody = response.body?.string() ?: return emptyList()
-        val parseObject = responseBody.parseObject<site.addzero.network.call.tianyancha.domain.search.JsonRootBean>()
-        val searches = parseObject.data?.companyList?.filterNotNull()?.map { it.toSearch() } ?: emptyList()
+//        val parseObject = responseBody.parseObject<site.addzero.network.call.tianyancha.domain.search.JsonRootBean>()
+        val parseObject = responseBody.parseObject<SearchRes>()
+
+//        val searches = parseObject.data?.companyList?.filterNotNull()?.map { it.toSearch() } ?: emptyList()
+        val searches = parseObject.data?.companyList?.map { it.toSearch2() } ?: emptyList()
         return searches
 
     }
@@ -104,5 +109,18 @@ object TycApi {
             type = this.type
         )
     }
+}
+
+fun Company.toSearch2(): Search {
+    return Search(
+        id = this.id,
+        regCapital = this.regCapital,
+        name = EmUtils.removeEmTag(this.name),
+        base = this.base,
+        companyType = EnumParser.parseCompanyType(this.companyType),
+        estiblishTime = this.estiblishTime,
+        legalPersonName = this.legalPersonName,
+        type = this.type
+    )
 }
 
