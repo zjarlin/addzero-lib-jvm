@@ -7,8 +7,6 @@ import java.io.IOException
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterEach
 
 class CurlExecutorTest {

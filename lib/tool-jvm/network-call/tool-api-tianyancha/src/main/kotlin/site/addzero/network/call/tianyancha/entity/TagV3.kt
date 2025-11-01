@@ -1,0 +1,33 @@
+package site.addzero.network.call.tianyancha.entity
+
+data class TagV3(
+    val actionType: String,
+    val androidVersion: Any?,
+    val background: String,
+    val borderColor: String,
+    val borderTransparency: Double,
+    val borderWidth: Double,
+    val color: String,
+    val fontFamily: String,
+    val fontSize: Int,
+    val guideColor: String,
+    val guideTransparency: Double,
+    val hoverNoticeContent: String,
+    val hoverNoticeType: Int,
+    val iOSVersion: Any?,
+    val id: Int,
+    val logo: String,
+    val name: String,
+    val order: Int,
+    val popName: String,
+    val profileTagClickHyperlinkDetails: String,
+    val profileTagClickHyperlinkType: Int,
+    val profileTagTypeId: Int,
+    val profileTagTypeRanking: Int,
+    val routingAction: Boolean,
+    val routingAddr: String,
+    val routingName: String,
+    val showCondition: Any,
+    val title: String,
+    val type: Int
+)

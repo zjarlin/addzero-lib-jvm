@@ -7,10 +7,14 @@ class TianyanchaApiUtilTest {
     @Test
     fun `test getBaseInfo withTycApi valid response`() {
         val searchCompany = TycApi.searchCompany("中洛佳")
-        val firstOrNull = searchCompany.map { it.id }.firstOrNull()
-        val baseInfo = TycApi.getBaseInfo(firstOrNull)
-//        val searchCompany1 = TianyanchaApiUtil.searchCompany("百度")
         println()
+    }
+    @Test
+    fun odijasodij(): Unit {
+        val lng = 3398690435
+        val baseInfo = TycApi.getBaseInfo(lng)
+        println(baseInfo)
+
     }
 
 }

@@ -30,7 +30,7 @@ data class BaseInfo(
     //注册地址
     val regLocation: String? = null,
     //行业
-    val industry: String? = null,
+    val industry: Any? = null,
     //核准时间
     val approvedTime: String? = null,
     //参保人数
@@ -76,7 +76,7 @@ data class BaseInfo(
     // 邮箱
     val email: String? = null,
     //网址
-    val websiteList: String? = null,
+    val websiteList: Any? = null,
     //企业联系方式
     val phoneNumber: String? = null,
     //吊销日期
