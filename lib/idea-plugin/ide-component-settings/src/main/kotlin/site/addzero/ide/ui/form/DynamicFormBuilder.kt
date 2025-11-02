@@ -30,6 +30,9 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
     // 存储验证状态
     private val validationState = ConcurrentHashMap<String, Boolean>()
     
+    // 存储修改状态
+    private var isModified = false
+    
     /**
      * 根据元数据构建动态表单
      *
@@ -148,6 +151,23 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 component.addFocusListener(object : FocusAdapter() {
                     override fun focusLost(e: FocusEvent?) {
                         validateField(item, component.text)
+                        // 标记为已修改
+                        isModified = true
+                    }
+                })
+                
+                // 添加文档监听器来实时跟踪修改
+                component.document.addDocumentListener(object : javax.swing.event.DocumentListener {
+                    override fun insertUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
+                    }
+                    
+                    override fun removeUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
+                    }
+                    
+                    override fun changedUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
                     }
                 })
             }
@@ -156,6 +176,23 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 component.addFocusListener(object : FocusAdapter() {
                     override fun focusLost(e: FocusEvent?) {
                         validateField(item, component.text)
+                        // 标记为已修改
+                        isModified = true
+                    }
+                })
+                
+                // 添加文档监听器来实时跟踪修改
+                component.document.addDocumentListener(object : javax.swing.event.DocumentListener {
+                    override fun insertUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
+                    }
+                    
+                    override fun removeUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
+                    }
+                    
+                    override fun changedUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
                     }
                 })
             }
@@ -164,6 +201,23 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 component.addFocusListener(object : FocusAdapter() {
                     override fun focusLost(e: FocusEvent?) {
                         validateField(item, String(component.password))
+                        // 标记为已修改
+                        isModified = true
+                    }
+                })
+                
+                // 添加文档监听器来实时跟踪修改
+                component.document.addDocumentListener(object : javax.swing.event.DocumentListener {
+                    override fun insertUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
+                    }
+                    
+                    override fun removeUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
+                    }
+                    
+                    override fun changedUpdate(e: javax.swing.event.DocumentEvent?) {
+                        isModified = true
                     }
                 })
             }
@@ -171,12 +225,16 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             is JCheckBox -> {
                 component.addActionListener {
                     validateField(item, component.isSelected.toString())
+                    // 标记为已修改
+                    isModified = true
                 }
             }
             
             is JComboBox<*> -> {
                 component.addActionListener {
                     validateField(item, component.selectedItem?.toString() ?: "")
+                    // 标记为已修改
+                    isModified = true
                 }
             }
             
@@ -189,6 +247,23 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                         viewComponent.addFocusListener(object : FocusAdapter() {
                             override fun focusLost(e: FocusEvent?) {
                                 validateField(item, viewComponent.text)
+                                // 标记为已修改
+                                isModified = true
+                            }
+                        })
+                        
+                        // 添加文档监听器来实时跟踪修改
+                        viewComponent.document.addDocumentListener(object : javax.swing.event.DocumentListener {
+                            override fun insertUpdate(e: javax.swing.event.DocumentEvent?) {
+                                isModified = true
+                            }
+                            
+                            override fun removeUpdate(e: javax.swing.event.DocumentEvent?) {
+                                isModified = true
+                            }
+                            
+                            override fun changedUpdate(e: javax.swing.event.DocumentEvent?) {
+                                isModified = true
                             }
                         })
                     }
@@ -382,6 +457,9 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                     "提示",
                     JOptionPane.WARNING_MESSAGE
                 )
+            } else {
+                // 标记为已修改
+                isModified = true
             }
         }
         
@@ -400,6 +478,8 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                     )
                 } else {
                     tableModel.removeRow(selectedRow)
+                    // 标记为已修改
+                    isModified = true
                 }
             } else {
                 JOptionPane.showMessageDialog(
@@ -427,6 +507,11 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 val newRow = arrayOfNulls<Any>(columnNames.size)
                 tableModel.addRow(newRow)
             }
+        }
+        
+        // 添加表格模型监听器来跟踪修改
+        tableModel.addTableModelListener {
+            isModified = true
         }
         
         panel.add(toolbarPanel, BorderLayout.NORTH)
@@ -542,6 +627,90 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
         }
         
         return data
+    }
+    
+    /**
+     * 检查表单是否被修改
+     */
+    fun isModified(): Boolean {
+        return isModified
+    }
+    
+    /**
+     * 设置表单修改状态
+     */
+    fun setModified(modified: Boolean) {
+        isModified = modified
+    }
+    
+    /**
+     * 设置表单数据
+     */
+    fun setFormData(data: Map<String, String>) {
+        configItems.forEach { item ->
+            val component = componentMap[item.key]
+            val value = data[item.key]
+            if (component != null && value != null) {
+                setComponentValue(component, value, item)
+            }
+        }
+        // 重置修改状态
+        isModified = false
+    }
+    
+    /**
+     * 设置组件的值
+     */
+    private fun setComponentValue(component: JComponent, value: String, item: ConfigItem) {
+        when (component) {
+            is JTextField -> {
+                if (component.text != value) {
+                    component.text = value
+                }
+            }
+            is JTextArea -> {
+                if (component.text != value) {
+                    component.text = value
+                }
+            }
+            is JCheckBox -> {
+                val boolValue = value.toBoolean()
+                if (component.isSelected != boolValue) {
+                    component.isSelected = boolValue
+                }
+            }
+            is JComboBox<*> -> {
+                // 查找匹配的选项
+                for (i in 0 until component.itemCount) {
+                    val option = component.getItemAt(i)
+                    val matchingOption = item.options.find { it.label == option }
+                    if (matchingOption?.value == value) {
+                        component.selectedIndex = i
+                        break
+                    }
+                }
+            }
+            is JBScrollPane -> {
+                // 处理包装在滚动面板中的组件（如文本域）
+                val viewport = component.viewport
+                val viewComponent = viewport.view
+                if (viewComponent is JTextArea) {
+                    if (viewComponent.text != value) {
+                        viewComponent.text = value
+                    }
+                }
+            }
+            is JPasswordField -> {
+                val password = value.toCharArray()
+                if (!component.password.contentEquals(password)) {
+                    component.text = value
+                }
+            }
+            // 表格组件的处理比较复杂，这里简化处理
+            is JPanel -> {
+                // 表格组件暂不处理
+            }
+        }
     }
     
     /**

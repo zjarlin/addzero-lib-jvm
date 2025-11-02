@@ -15,8 +15,7 @@
         <!-- Add your extensions here -->
         <applicationConfigurable id="autoddl.settings"
                                  displayName="AutoDDL"
-                                 instance="site.addzero.ide.config.ui.AutoDDLConfigurable"/>
-
+                                 instance="site.addzero.ide.config.ui.AutoDDLProjectConfigurable"/>
 
         <postStartupActivity implementation="site.addzero.ide.init.AutoDDLConfigRegistrar"/>
     </extensions>

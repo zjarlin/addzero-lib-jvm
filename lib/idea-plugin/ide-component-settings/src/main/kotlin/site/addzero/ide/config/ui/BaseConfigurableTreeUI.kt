@@ -2,11 +2,13 @@ package site.addzero.ide.config.ui
 
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.components.JBScrollPane
 import site.addzero.ide.config.annotation.SettingRoute
 import site.addzero.ide.config.registry.ConfigRegistry
 import site.addzero.ide.config.registry.ConfigRouteInfo
+import site.addzero.ide.config.service.PluginSettingsService
 import site.addzero.ide.ui.form.DynamicFormBuilder
 import kotlin.reflect.full.findAnnotation
 import java.awt.BorderLayout
@@ -18,6 +20,7 @@ import javax.swing.*
  */
 abstract class BaseConfigurableTreeUI(
     protected val labelName: String,
+    protected val project: Project? = null,
 
     protected val configScanner: () -> Unit = {
         // 默认扫描逻辑
@@ -26,6 +29,8 @@ abstract class BaseConfigurableTreeUI(
 ) : Configurable {
 
     private var mainPanel: JPanel? = null
+    private val formBuilders = mutableListOf<DynamicFormBuilder>()
+    
     override fun getDisplayName(): @NlsContexts.ConfigurableName String? {
         return labelName
     }
@@ -69,8 +74,10 @@ abstract class BaseConfigurableTreeUI(
                     }
                     
                     // 添加每个配置项的表单
+                    formBuilders.clear() // 清除旧的formBuilders
                     configList.forEach { configInfo ->
                         val formBuilder = DynamicFormBuilder(configInfo.configItems)
+                        formBuilders.add(formBuilder) // 保存formBuilder引用
                         val configPanel = createConfigPanel(configInfo, formBuilder)
                         
                         // 设置边距
@@ -85,6 +92,9 @@ abstract class BaseConfigurableTreeUI(
                         
                         formPanel.add(configPanel)
                     }
+                    
+                    // 重置表单到保存的状态
+                    reset()
                 }
                 
                 // 包装在滚动面板中
@@ -118,15 +128,43 @@ abstract class BaseConfigurableTreeUI(
         return formBuilder.build()
     }
 
-    override fun isModified(): Boolean = false
+    override fun isModified(): Boolean {
+        // 检查是否有任何表单被修改
+        return formBuilders.any { it.isModified() }
+    }
 
     @Throws(ConfigurationException::class)
     override fun apply() {
         // 应用配置更改
+        val allFormData = mutableMapOf<String, Any?>()
+        
+        // 收集所有表单数据
+        formBuilders.forEach { formBuilder ->
+            val formData = formBuilder.getFormData()
+            allFormData.putAll(formData)
+        }
+        
+        // 保存到持久化服务
+        if (project != null) {
+            val settingsService = PluginSettingsService.getInstance(project)
+            settingsService.saveConfigData(allFormData)
+        }
+        
+        // 标记所有表单为未修改
+        formBuilders.forEach { it.setModified(false) }
     }
 
     override fun reset() {
         // 重置配置
+        if (project != null) {
+            val settingsService = PluginSettingsService.getInstance(project)
+            val savedData = settingsService.getConfigData()
+            
+            // 将保存的数据应用到表单
+            formBuilders.forEach { formBuilder ->
+                formBuilder.setFormData(savedData)
+            }
+        }
     }
 
     override fun disposeUIResources() {

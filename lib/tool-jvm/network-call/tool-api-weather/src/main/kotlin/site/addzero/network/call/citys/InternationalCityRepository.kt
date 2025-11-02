@@ -17,7 +17,7 @@ class InternationalCityRepository {
 
     private fun resultSetToArea(rs: ResultSet): Area {
         return Area(
-            id = rs.getInt("_id"),
+            id = rs.getLong("_id"),
             areaCode = rs.getString("cityId"),
             areaName = rs.getString("cityName"),
             cityName = rs.getString("cityName"),

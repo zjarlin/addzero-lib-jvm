@@ -18,7 +18,7 @@ class CityRepository {
 
     private fun resultSetToArea(rs: ResultSet): Area {
         return Area(
-            id = rs.getInt("id"),
+            id = rs.getLong("id"),
             areaCode = rs.getString("area_id"),
             areaName = rs.getString("area_name"),
             cityName = rs.getString("city_name"),
