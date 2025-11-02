@@ -48,6 +48,7 @@ data class AutoDDLSettings(
         label = "连接超时时间",
         description = "数据库连接超时时间（毫秒）",
         inputType = InputType.NUMBER
+
     )
     val connectionTimeout: Int = 5000,
 

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("site.addzero.buildlogic.intellij.intellij-platform")
 }
@@ -14,6 +16,7 @@ intellijPlatform {
 }
 
 
-
-
-
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
+}

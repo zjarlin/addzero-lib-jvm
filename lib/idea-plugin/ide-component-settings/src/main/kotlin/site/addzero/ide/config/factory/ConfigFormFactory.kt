@@ -33,17 +33,36 @@ object ConfigFormFactory {
         // 获取构造函数参数的注解映射（对于data class，注解在构造函数参数上）
         val constructorParamAnnotations = mutableMapOf<String, List<Annotation>>()
         val primaryConstructor = configClass.primaryConstructor
-        primaryConstructor?.parameters?.forEach { param ->
-            if (param.name != null) {
-                constructorParamAnnotations[param.name!!] = param.annotations
-            }
-        }
         
-        // 获取类的所有属性
-        configClass.memberProperties.forEach { property ->
-            val configItem = createConfigItem(property, configClass, constructorParamAnnotations)
-            if (configItem != null) {
-                configItems.add(configItem)
+        // 按构造函数参数顺序获取属性，保证顺序
+        if (primaryConstructor != null) {
+            // 先收集构造函数参数信息
+            primaryConstructor.parameters.forEach { param ->
+                if (param.name != null) {
+                    constructorParamAnnotations[param.name!!] = param.annotations
+                }
+            }
+            
+            // 按构造函数参数顺序处理属性（保证顺序）
+            primaryConstructor.parameters.forEach { param ->
+                if (param.name != null) {
+                    // 找到对应的属性
+                    val property = configClass.memberProperties.find { it.name == param.name }
+                    if (property != null) {
+                        val configItem = createConfigItem(property, configClass, constructorParamAnnotations)
+                        if (configItem != null) {
+                            configItems.add(configItem)
+                        }
+                    }
+                }
+            }
+        } else {
+            // 如果没有主构造函数，则按成员属性顺序处理
+            configClass.memberProperties.forEach { property ->
+                val configItem = createConfigItem(property, configClass, constructorParamAnnotations)
+                if (configItem != null) {
+                    configItems.add(configItem)
+                }
             }
         }
         
@@ -198,29 +217,102 @@ object ConfigFormFactory {
     private fun extractColumnsFromClass(elementClass: KClass<*>): List<TableColumn> {
         val columns = mutableListOf<TableColumn>()
         
-        elementClass.memberProperties.forEach { prop ->
-            // 尝试从属性注解中获取label
-            val configField = prop.findAnnotation<ConfigField>()
-            val configSelect = prop.findAnnotation<ConfigSelect>()
-            
-            val label = when {
-                configField != null && configField.label.isNotEmpty() -> configField.label
-                configSelect != null && configSelect.label.isNotEmpty() -> configSelect.label
-                else -> prop.name
+        // 获取构造函数参数的注解映射（对于data class，注解在构造函数参数上）
+        val constructorParamAnnotations = mutableMapOf<String, List<Annotation>>()
+        val primaryConstructor = elementClass.primaryConstructor
+        
+        // 按构造函数参数顺序处理，保证列的顺序
+        if (primaryConstructor != null) {
+            // 先收集构造函数参数信息
+            primaryConstructor.parameters.forEach { param ->
+                if (param.name != null) {
+                    constructorParamAnnotations[param.name!!] = param.annotations
+                }
             }
             
-            val inputType = when {
-                configField != null -> configField.inputType
-                configSelect != null -> InputType.SELECT
-                else -> InputType.TEXT
+            // 按构造函数参数顺序处理属性（保证顺序）
+            primaryConstructor.parameters.forEach { param ->
+                if (param.name != null) {
+                    // 找到对应的属性
+                    val prop = elementClass.memberProperties.find { it.name == param.name }
+                    if (prop != null) {
+                        val propertyName = prop.name
+                        
+                        // 首先尝试从构造函数参数获取注解（对于data class）
+                        val paramAnnotations = constructorParamAnnotations[propertyName] ?: emptyList()
+                        
+                        @Suppress("UNCHECKED_CAST")
+                        val configField = prop.findAnnotation<ConfigField>()
+                            ?: paramAnnotations.find { it is ConfigField } as? ConfigField
+                        
+                        @Suppress("UNCHECKED_CAST")
+                        val configSelect = prop.findAnnotation<ConfigSelect>()
+                            ?: paramAnnotations.find { it is ConfigSelect } as? ConfigSelect
+                        
+                        @Suppress("UNCHECKED_CAST")
+                        val configCheckbox = prop.findAnnotation<ConfigCheckbox>()
+                            ?: paramAnnotations.find { it is ConfigCheckbox } as? ConfigCheckbox
+                        
+                        val label = when {
+                            configField != null && configField.label.isNotEmpty() -> configField.label
+                            configSelect != null && configSelect.label.isNotEmpty() -> configSelect.label
+                            configCheckbox != null && configCheckbox.label.isNotEmpty() -> configCheckbox.label
+                            else -> propertyName
+                        }
+                        
+                        val inputType = when {
+                            configField != null -> configField.inputType
+                            configSelect != null -> InputType.SELECT
+                            configCheckbox != null -> InputType.CHECKBOX
+                            else -> InputType.TEXT
+                        }
+                        
+                        println("ConfigFormFactory: Extracting column from $propertyName: label=$label, inputType=$inputType")
+                        
+                        columns.add(TableColumn(
+                            key = propertyName,
+                            label = label,
+                            inputType = inputType,
+                            width = 150
+                        ))
+                    }
+                }
             }
-            
-            columns.add(TableColumn(
-                key = prop.name,
-                label = label,
-                inputType = inputType,
-                width = 150
-            ))
+        } else {
+            // 如果没有主构造函数，则按成员属性顺序处理
+            elementClass.memberProperties.forEach { prop ->
+                val propertyName = prop.name
+                
+                @Suppress("UNCHECKED_CAST")
+                val configField = prop.findAnnotation<ConfigField>()
+                
+                @Suppress("UNCHECKED_CAST")
+                val configSelect = prop.findAnnotation<ConfigSelect>()
+                
+                @Suppress("UNCHECKED_CAST")
+                val configCheckbox = prop.findAnnotation<ConfigCheckbox>()
+                
+                val label = when {
+                    configField != null && configField.label.isNotEmpty() -> configField.label
+                    configSelect != null && configSelect.label.isNotEmpty() -> configSelect.label
+                    configCheckbox != null && configCheckbox.label.isNotEmpty() -> configCheckbox.label
+                    else -> propertyName
+                }
+                
+                val inputType = when {
+                    configField != null -> configField.inputType
+                    configSelect != null -> InputType.SELECT
+                    configCheckbox != null -> InputType.CHECKBOX
+                    else -> InputType.TEXT
+                }
+                
+                columns.add(TableColumn(
+                    key = propertyName,
+                    label = label,
+                    inputType = inputType,
+                    width = 150
+                ))
+            }
         }
         
         return columns
