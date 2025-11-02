@@ -1,10 +1,10 @@
 package site.addzero.util.catalogutil
 
+import cn.hutool.core.io.FileUtil
 import org.tomlj.Toml
 import org.tomlj.TomlArray
 import org.tomlj.TomlParseResult
 import org.tomlj.TomlTable
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -137,10 +137,8 @@ object TomlUtils {
     }
 
     private fun getToml(path: String): String {
-        val file = File(path)
-        if (!file.exists()) {
-            file.parentFile.mkdirs()
-            file.writeText(
+        if (!FileUtil.exist(path)) {
+            FileUtil.writeUtf8String(
                 """
                 [versions]
                 kotlin = "2.1.0"
@@ -153,7 +151,7 @@ object TomlUtils {
 
                 [bundles]
                 spring = ["spring-boot", "spring-core"]
-                """.trimIndent()
+                """.trimIndent(), path
             )
         }
         return path
