@@ -3,5 +3,8 @@ plugins {
 
 //    id("kmp-json")
 }
+dependencies {
+    implementation(libs.hutool.core)
+}
 
 
