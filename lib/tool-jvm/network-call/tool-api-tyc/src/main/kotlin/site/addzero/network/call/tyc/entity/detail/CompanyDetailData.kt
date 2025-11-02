@@ -48,6 +48,8 @@ data class CompanyDetailData(
     val companyTimeTitle: String,
     /** 企业类型 */
     val companyType: Int,
+
+
     /** 企业复杂名称 */
     val complexName: String,
     /** 信用代码 */
@@ -222,4 +224,45 @@ data class CompanyDetailData(
     val year4BranchSocialStaffNum: Int,
     /** 社保参保年份 */
     val year4SocialStaffNum: Int
-)
+) {
+
+    fun parseIsMicroEnt(type: Int?): String? {
+        val map = HashMap<Int?, String?>()
+        map[0] = "不是"
+        map[1] = "是"
+
+        val s = map.get(type)
+        return s
+    }
+
+    // 法人类型，1 人 2 公司
+    fun parseType(type: Int?): String? {
+        val map = HashMap<Int?, String?>()
+        map[1] = "人"
+        map[2] = "公司"
+
+        val s = map.get(type)
+        return s
+    }
+
+    val typeName: String?
+        get() = parseType(type)
+
+
+    val companyTypeName: String?
+        get() = parseCompanyType(companyType)
+
+    fun parseCompanyType(companyType: Int?): String? {
+        val map = HashMap<Int?, String?>()
+        map[1] = "公司"
+        map[2] = "香港公司"
+        map[3] = "社会组织"
+        map[4] = "律所"
+        map[5] = "事业单位"
+        map[6] = "基金会"
+
+        val s = map.get(companyType)
+        return s
+    }
+
+}
