@@ -77,6 +77,7 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             val checkbox = createComponentForType(item) as? JCheckBox
             // JCheckBox不支持HTML，所以直接设置文本，必填标记用星号
             checkbox?.text = if (item.required) "${item.label} *" else item.label
+            // 默认值已在createComponentForType中设置
             componentMap[item.key] = checkbox ?: createComponentForType(item)
             
             // 添加描述信息（如果有的话）
@@ -231,6 +232,10 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
         return when (item.inputType) {
             InputType.TEXT -> {
                 val textField = JTextField()
+                // 设置默认值
+                if (item.defaultValue != null) {
+                    textField.text = item.defaultValue.toString()
+                }
                 // 设置合适的列数，但限制最大宽度
                 textField.columns = 40
                 val preferredWidth = minOf(600, textField.preferredSize.width)
@@ -246,7 +251,13 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             
             InputType.NUMBER -> {
                 val numberField = JFormattedTextField()
-                numberField.value = 0
+                // 设置默认值
+                when (item.defaultValue) {
+                    is Int -> numberField.value = item.defaultValue
+                    is Long -> numberField.value = item.defaultValue.toInt()
+                    is Number -> numberField.value = item.defaultValue.toInt()
+                    else -> numberField.value = 0
+                }
                 numberField.columns = 20
                 val preferredWidth = minOf(300, numberField.preferredSize.width)
                 numberField.preferredSize = Dimension(preferredWidth, numberField.preferredSize.height)
@@ -256,6 +267,10 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             
             InputType.PASSWORD -> {
                 val passwordField = JPasswordField()
+                // 设置默认值
+                if (item.defaultValue != null) {
+                    passwordField.text = item.defaultValue.toString()
+                }
                 passwordField.columns = 40
                 val preferredWidth = minOf(600, passwordField.preferredSize.width)
                 passwordField.preferredSize = Dimension(preferredWidth, passwordField.preferredSize.height)
@@ -265,6 +280,10 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             
             InputType.TEXTAREA -> {
                 val textArea = JTextArea(5, 40)
+                // 设置默认值
+                if (item.defaultValue != null) {
+                    textArea.text = item.defaultValue.toString()
+                }
                 textArea.lineWrap = true
                 textArea.wrapStyleWord = true
                 // 限制文本域的最大宽度
@@ -281,7 +300,12 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             
             InputType.CHECKBOX -> {
                 val checkBox = JCheckBox()
-                checkBox.isSelected = false
+                // 设置默认值
+                if (item.defaultValue is Boolean) {
+                    checkBox.isSelected = item.defaultValue
+                } else {
+                    checkBox.isSelected = false
+                }
                 checkBox
             }
             
@@ -289,6 +313,14 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 val comboBox = JComboBox<String>()
                 item.options.forEach { option ->
                     comboBox.addItem(option.label)
+                }
+                // 设置默认值 - 根据默认值找到对应的选项
+                if (item.defaultValue != null) {
+                    val defaultValueStr = item.defaultValue.toString()
+                    val matchingOption = item.options.find { it.value == defaultValueStr }
+                    if (matchingOption != null) {
+                        comboBox.selectedItem = matchingOption.label
+                    }
                 }
                 val preferredWidth = minOf(600, comboBox.preferredSize.width)
                 comboBox.preferredSize = Dimension(preferredWidth, comboBox.preferredSize.height)

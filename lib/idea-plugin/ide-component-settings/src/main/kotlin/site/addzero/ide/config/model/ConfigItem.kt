@@ -13,7 +13,8 @@ data class ConfigItem(
     val options: List<SelectOption> = emptyList(),
     val tableColumns: List<TableColumn> = emptyList(), // 表格列配置
     val minRows: Int = 0, // 表格最小行数
-    val maxRows: Int = -1 // 表格最大行数（-1表示无限制）
+    val maxRows: Int = -1, // 表格最大行数（-1表示无限制）
+    val defaultValue: Any? = null // 默认值
 )
 
 /**
