@@ -40,7 +40,7 @@ class MpGeneratorTest {
         )
                val outputPath = getGenDir()
 
-        mpGenerator.gen(outputPath, "com.zlj.iot", *genList)
+//        mpGenerator.gen(outputPath, "com.zlj.iot", *genList)
     }
 
     private fun getGenDir(): String {
