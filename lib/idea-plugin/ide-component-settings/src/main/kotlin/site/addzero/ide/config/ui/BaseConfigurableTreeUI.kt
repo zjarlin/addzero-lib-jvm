@@ -22,7 +22,7 @@ abstract class BaseConfigurableTreeUI(
     protected val labelName: String,
     protected val project: Project? = null,
 
-    protected val configScanner: () -> Unit = {
+    protected var configScanner: () -> Unit = {
         // 默认扫描逻辑
         // ConfigScanner.scanAndRegisterConfigs()
     }
