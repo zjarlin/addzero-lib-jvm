@@ -49,5 +49,58 @@ data class AutoDDLSettings(
         description = "数据库连接超时时间（毫秒）",
         inputType = InputType.NUMBER
     )
-    val connectionTimeout: Int = 5000
+    val connectionTimeout: Int = 5000,
+
+    @ConfigTable(
+        label = "数据源配置",
+        description = "多数据源连接配置列表",
+        minRows = 0,
+        maxRows = 10
+    )
+    val dataSources: List<DataSourceConfig> = listOf()
+)
+
+/**
+ * 数据源配置数据类
+ * 用于表格配置示例
+ */
+data class DataSourceConfig(
+    @ConfigField(
+        label = "数据源名称",
+        description = "数据源的唯一标识名称"
+    )
+    val name: String = "",
+
+    @ConfigField(
+        label = "连接URL",
+        description = "数据库连接字符串"
+    )
+    val url: String = "",
+
+    @ConfigSelect(
+        label = "数据库类型",
+        description = "选择数据库类型",
+        optionsValue = ["mysql", "postgresql", "oracle", "h2"],
+        optionsLabel = ["MySQL", "PostgreSQL", "Oracle", "H2"]
+    )
+    val type: String = "mysql",
+
+    @ConfigField(
+        label = "用户名",
+        description = "数据库用户名"
+    )
+    val username: String = "",
+
+    @ConfigField(
+        label = "密码",
+        description = "数据库密码",
+        inputType = InputType.PASSWORD
+    )
+    val password: String = "",
+
+    @ConfigCheckbox(
+        label = "启用",
+        description = "是否启用此数据源"
+    )
+    val enabled: Boolean = true
 )

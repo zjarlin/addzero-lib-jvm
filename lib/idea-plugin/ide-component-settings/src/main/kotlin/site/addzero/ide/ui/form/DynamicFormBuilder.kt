@@ -2,13 +2,18 @@ package site.addzero.ide.ui.form
 
 import site.addzero.ide.config.model.ConfigItem
 import site.addzero.ide.config.model.InputType
+import site.addzero.ide.config.model.TableColumn
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.*
+import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
 import com.intellij.ui.components.JBScrollPane
 
 /**
@@ -66,6 +71,31 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
         itemPanel.alignmentX = JPanel.LEFT_ALIGNMENT
         // 添加适当的边距
         itemPanel.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        
+        // 对于checkbox，标签直接设置在组件上，不需要单独的标签
+        if (item.inputType == InputType.CHECKBOX) {
+            val checkbox = createComponentForType(item) as? JCheckBox
+            // JCheckBox不支持HTML，所以直接设置文本，必填标记用星号
+            checkbox?.text = if (item.required) "${item.label} *" else item.label
+            componentMap[item.key] = checkbox ?: createComponentForType(item)
+            
+            // 添加描述信息（如果有的话）
+            if (item.description.isNotEmpty()) {
+                val containerPanel = JPanel(BorderLayout())
+                containerPanel.add(checkbox, BorderLayout.WEST)
+                val descriptionLabel = JLabel("<html><small>${item.description}</small></html>")
+                descriptionLabel.border = BorderFactory.createEmptyBorder(2, 0, 0, 0)
+                containerPanel.add(descriptionLabel, BorderLayout.SOUTH)
+                itemPanel.add(containerPanel, BorderLayout.CENTER)
+            } else {
+                itemPanel.add(checkbox, BorderLayout.WEST)
+            }
+            
+            // 添加验证监听器
+            checkbox?.let { addValidationListener(item, it) }
+            
+            return itemPanel
+        }
         
         // 创建标题面板，包含标签和必填标记
         val titlePanel = JPanel(BorderLayout())
@@ -161,6 +191,17 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                             }
                         })
                     }
+                    is JTable -> {
+                        // 表格验证在添加/删除行时自动处理
+                    }
+                }
+            }
+            
+            is JPanel -> {
+                // 检查是否是表格面板
+                val table = (component.getComponent(1) as? JBScrollPane)?.viewport?.view as? JTable
+                table?.let {
+                    // 表格验证逻辑
                 }
             }
         }
@@ -255,9 +296,111 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 comboBox
             }
             
+            InputType.TABLE -> {
+                createTableComponent(item)
+            }
+            
             // 使用穷尽性when表达式处理所有情况
             else -> JLabel("Unsupported input type: ${item.inputType}")
         }
+    }
+    
+    /**
+     * 创建表格组件
+     */
+    private fun createTableComponent(item: ConfigItem): JComponent {
+        // 创建表格列名
+        val columnNames = item.tableColumns.map { it.label }.toTypedArray()
+        
+        // 创建表格模型
+        val tableModel = object : DefaultTableModel(columnNames, 0) {
+            override fun isCellEditable(row: Int, column: Int): Boolean = true
+        }
+        
+        // 创建表格
+        val table = JTable(tableModel)
+        table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+        
+        // 设置列宽
+        item.tableColumns.forEachIndexed { index, column ->
+            val tableColumn = table.columnModel.getColumn(index)
+            tableColumn.preferredWidth = column.width
+            tableColumn.minWidth = 100
+        }
+        
+        // 创建表格面板，包含表格、添加/删除按钮
+        val panel = JPanel(BorderLayout())
+        
+        // 工具栏面板
+        val toolbarPanel = JPanel()
+        toolbarPanel.layout = BoxLayout(toolbarPanel, BoxLayout.X_AXIS)
+        
+        // 添加按钮
+        val addButton = JButton("添加行")
+        addButton.addActionListener {
+            val newRow = arrayOfNulls<Any>(columnNames.size)
+            tableModel.addRow(newRow)
+            
+            // 检查最大行数限制
+            if (item.maxRows > 0 && tableModel.rowCount > item.maxRows) {
+                tableModel.removeRow(tableModel.rowCount - 1)
+                JOptionPane.showMessageDialog(
+                    panel,
+                    "已达到最大行数限制: ${item.maxRows}",
+                    "提示",
+                    JOptionPane.WARNING_MESSAGE
+                )
+            }
+        }
+        
+        // 删除按钮
+        val removeButton = JButton("删除行")
+        removeButton.addActionListener {
+            val selectedRow = table.selectedRow
+            if (selectedRow >= 0) {
+                // 检查最小行数限制
+                if (item.minRows > 0 && tableModel.rowCount <= item.minRows) {
+                    JOptionPane.showMessageDialog(
+                        panel,
+                        "已达到最小行数限制: ${item.minRows}",
+                        "提示",
+                        JOptionPane.WARNING_MESSAGE
+                    )
+                } else {
+                    tableModel.removeRow(selectedRow)
+                }
+            } else {
+                JOptionPane.showMessageDialog(
+                    panel,
+                    "请先选择要删除的行",
+                    "提示",
+                    JOptionPane.INFORMATION_MESSAGE
+                )
+            }
+        }
+        
+        toolbarPanel.add(addButton)
+        toolbarPanel.add(Box.createHorizontalStrut(5))
+        toolbarPanel.add(removeButton)
+        toolbarPanel.add(Box.createHorizontalGlue())
+        
+        // 表格滚动面板
+        val scrollPane = JBScrollPane(table)
+        scrollPane.preferredSize = Dimension(600, 200)
+        scrollPane.maximumSize = Dimension(600, 300)
+        
+        // 确保最小行数
+        if (item.minRows > 0) {
+            for (i in 0 until item.minRows) {
+                val newRow = arrayOfNulls<Any>(columnNames.size)
+                tableModel.addRow(newRow)
+            }
+        }
+        
+        panel.add(toolbarPanel, BorderLayout.NORTH)
+        panel.add(scrollPane, BorderLayout.CENTER)
+        
+        return panel
     }
     
     /**
@@ -335,6 +478,17 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 }
             }
             
+            is JPanel -> {
+                // 检查是否是表格面板
+                val scrollPane = component.getComponent(1) as? JBScrollPane
+                val table = scrollPane?.viewport?.view as? JTable
+                if (table != null && item.required) {
+                    table.model.rowCount > 0
+                } else {
+                    true
+                }
+            }
+            
             else -> true
         }
     }
@@ -377,6 +531,41 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                     null
                 }
             }
+            
+            is JPanel -> {
+                // 处理表格组件
+                val scrollPane = component.getComponent(1) as? JBScrollPane
+                val table = scrollPane?.viewport?.view as? JTable
+                if (table != null) {
+                    // 获取表格列配置 - 通过反向查找找到对应的ConfigItem
+                    val tableItem = componentMap.entries.find { it.value == component }?.let { entry ->
+                        configItems.find { it.key == entry.key && it.inputType == InputType.TABLE }
+                    }
+                    if (tableItem != null) {
+                        // 返回表格数据
+                        val rows = mutableListOf<Map<String, Any?>>()
+                        val model = table.model
+                        val columnCount = model.columnCount
+                        
+                        for (row in 0 until model.rowCount) {
+                            val rowData = mutableMapOf<String, Any?>()
+                            for (col in 0 until columnCount) {
+                                // 使用列的key而不是label
+                                val columnKey = tableItem.tableColumns.getOrNull(col)?.key ?: model.getColumnName(col)
+                                val value = model.getValueAt(row, col)
+                                rowData[columnKey] = value
+                            }
+                            rows.add(rowData)
+                        }
+                        rows
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+            
             is JPasswordField -> String(component.password)
             else -> null
         }

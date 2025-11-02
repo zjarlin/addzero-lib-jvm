@@ -19,7 +19,7 @@ annotation class Configurable
  * @param inputType 输入类型
  */
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
 annotation class ConfigField(
     val key: String = "",
     val label: String = "",
@@ -39,7 +39,7 @@ annotation class ConfigField(
  * @param required 是否必填
  */
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
 annotation class ConfigSelect(
     val key: String = "",
     val label: String = "",
@@ -67,7 +67,7 @@ annotation class SelectOption(
  * @param description 配置项描述
  */
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
 annotation class ConfigCheckbox(
     val key: String = "",
     val label: String = "",
@@ -103,7 +103,7 @@ annotation class ConfigList(
  * @param minRows 最小行数限制
  */
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
 annotation class ConfigTable(
     val key: String = "",
     val label: String = "",
