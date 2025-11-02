@@ -16,6 +16,16 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeSelectionModel
 
 /**
+ * 配置路由信息包装类，用于在树节点中显示友好的名称
+ */
+private data class ConfigRouteInfoWrapper(
+    val displayName: String,
+    val configInfo: ConfigRouteInfo
+) {
+    override fun toString(): String = displayName
+}
+
+/**
  * 基础的可配置树形设置面板类
  * 支持自定义显示名称和配置扫描逻辑
  */
@@ -84,9 +94,16 @@ abstract class BaseConfigurableTreeUI(
         // 添加节点选择监听器
         tree.addTreeSelectionListener { e ->
             val node = tree.lastSelectedPathComponent as? DefaultMutableTreeNode
-            if (node != null && node.userObject is ConfigRouteInfo) {
-                val configInfo = node.userObject as ConfigRouteInfo
-                showConfigPanel(configInfo)
+            if (node != null) {
+                when (val userObject = node.userObject) {
+                    is ConfigRouteInfoWrapper -> {
+                        showConfigPanel(userObject.configInfo)
+                    }
+                    is ConfigRouteInfo -> {
+                        // 兼容旧代码
+                        showConfigPanel(userObject)
+                    }
+                }
             }
         }
 
@@ -123,7 +140,9 @@ abstract class BaseConfigurableTreeUI(
         configs.values.forEach { configInfo ->
             val pathKey = configInfo.path.joinToString(".")
             val parentNode = getOrCreatePathNode(pathMap, configInfo.path, root)
-            val configNode = DefaultMutableTreeNode(configInfo)
+            // 使用配置类的简单名称作为节点显示文本，而不是ConfigRouteInfo的toString
+            val displayName = configInfo.configClass.simpleName ?: "Unknown"
+            val configNode = DefaultMutableTreeNode(ConfigRouteInfoWrapper(displayName, configInfo))
             parentNode.add(configNode)
         }
 
@@ -174,8 +193,20 @@ abstract class BaseConfigurableTreeUI(
         configInfo: ConfigRouteInfo,
         formBuilder: DynamicFormBuilder
     ): JPanel {
+        // 创建主面板，包含标题和表单内容
+        val mainPanel = JPanel(BorderLayout())
+        
+        // 添加标题
+        val titleLabel = JLabel(configInfo.configClass.simpleName ?: "Configuration")
+        titleLabel.font = titleLabel.font.deriveFont(titleLabel.font.size + 2f)
+        titleLabel.border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        mainPanel.add(titleLabel, BorderLayout.NORTH)
+        
         // 使用 DynamicFormBuilder 构建表单
-        return formBuilder.build()
+        val formPanel = formBuilder.build()
+        mainPanel.add(formPanel, BorderLayout.CENTER)
+        
+        return mainPanel
     }
 
     override fun isModified(): Boolean = false

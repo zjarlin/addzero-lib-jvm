@@ -4,6 +4,7 @@ import site.addzero.ide.config.model.ConfigItem
 import site.addzero.ide.config.model.InputType
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.util.concurrent.ConcurrentHashMap
@@ -42,7 +43,9 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
         // 将表单包装在带滚动条的面板中
         val scrollPane = JBScrollPane(formPanel)
         scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
-        scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER // 禁用水平滚动
+        // 确保面板不会超出容器宽度
+        formPanel.alignmentX = JPanel.LEFT_ALIGNMENT
         
         // 创建主面板并添加滚动面板
         val mainPanel = JPanel(BorderLayout())
@@ -60,13 +63,18 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
     private fun createItemPanel(item: ConfigItem): JPanel {
         val itemPanel = JPanel()
         itemPanel.layout = BorderLayout()
+        itemPanel.alignmentX = JPanel.LEFT_ALIGNMENT
+        // 添加适当的边距
+        itemPanel.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
         
         // 创建标题面板，包含标签和必填标记
         val titlePanel = JPanel(BorderLayout())
         titlePanel.border = BorderFactory.createEmptyBorder(0, 0, 5, 0)
+        titlePanel.alignmentX = JPanel.LEFT_ALIGNMENT
         
         // 创建标签
         val label = JLabel(item.label)
+        label.horizontalAlignment = JLabel.LEFT
         
         // 如果是必填项，添加红色星号标记
         if (item.required) {
@@ -79,6 +87,7 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
         // 创建组件面板
         val componentPanel = JPanel()
         componentPanel.layout = BorderLayout()
+        componentPanel.alignmentX = JPanel.LEFT_ALIGNMENT
         
         // 根据输入类型创建不同的组件
         val component = createComponentForType(item)
@@ -180,7 +189,14 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
     private fun createComponentForType(item: ConfigItem): JComponent {
         return when (item.inputType) {
             InputType.TEXT -> {
-                val textField = JTextField(20)
+                val textField = JTextField()
+                // 设置合适的列数，但限制最大宽度
+                textField.columns = 40
+                val preferredWidth = minOf(600, textField.preferredSize.width)
+                textField.preferredSize = Dimension(preferredWidth, textField.preferredSize.height)
+                textField.maximumSize = Dimension(preferredWidth, textField.preferredSize.height)
+                // 确保是单行，不换行
+                textField.horizontalAlignment = JTextField.LEFT
                 if (item.required) {
                     // 添加必填验证逻辑
                 }
@@ -190,20 +206,36 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
             InputType.NUMBER -> {
                 val numberField = JFormattedTextField()
                 numberField.value = 0
-                numberField.columns = 10
+                numberField.columns = 20
+                val preferredWidth = minOf(300, numberField.preferredSize.width)
+                numberField.preferredSize = Dimension(preferredWidth, numberField.preferredSize.height)
+                numberField.maximumSize = Dimension(preferredWidth, numberField.preferredSize.height)
                 numberField
             }
             
             InputType.PASSWORD -> {
-                val passwordField = JPasswordField(20)
+                val passwordField = JPasswordField()
+                passwordField.columns = 40
+                val preferredWidth = minOf(600, passwordField.preferredSize.width)
+                passwordField.preferredSize = Dimension(preferredWidth, passwordField.preferredSize.height)
+                passwordField.maximumSize = Dimension(preferredWidth, passwordField.preferredSize.height)
                 passwordField
             }
             
             InputType.TEXTAREA -> {
-                val textArea = JTextArea(5, 20)
+                val textArea = JTextArea(5, 40)
                 textArea.lineWrap = true
                 textArea.wrapStyleWord = true
-                JBScrollPane(textArea)
+                // 限制文本域的最大宽度
+                val preferredWidth = minOf(600, textArea.preferredSize.width)
+                textArea.preferredSize = Dimension(preferredWidth, 100)
+                
+                val scrollPane = JBScrollPane(textArea)
+                scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+                scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER // 禁用水平滚动
+                scrollPane.preferredSize = Dimension(preferredWidth, 120)
+                scrollPane.maximumSize = Dimension(preferredWidth, 150)
+                scrollPane
             }
             
             InputType.CHECKBOX -> {
@@ -217,6 +249,9 @@ class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
                 item.options.forEach { option ->
                     comboBox.addItem(option.label)
                 }
+                val preferredWidth = minOf(600, comboBox.preferredSize.width)
+                comboBox.preferredSize = Dimension(preferredWidth, comboBox.preferredSize.height)
+                comboBox.maximumSize = Dimension(preferredWidth, comboBox.preferredSize.height)
                 comboBox
             }
             
