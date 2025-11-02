@@ -17,7 +17,7 @@
 <!--                                 displayName="AutoDDL"-->
 <!--                                 provider="site.addzero.ide.init.AutoDDLConfigRegistrar$AutoDDLConfigurableProvider"/>-->
                   <!-- 注册启动监听器，用于动态注册意图动作 -->
-        <postStartupActivity implementation="site.addzero.ide.init.AutoDDLConfigRegistrar"/>
+<!--        <postStartupActivity implementation="site.addzero.ide.init.AutoDDLConfigRegistrar"/>-->
 
     </extensions>
 
