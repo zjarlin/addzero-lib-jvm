@@ -13,14 +13,13 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-<!--        <applicationConfigurable id="autoddl.settings"-->
-<!--                                 displayName="AutoDDL"-->
-<!--                                 provider="site.addzero.ide.init.AutoDDLConfigRegistrar$AutoDDLConfigurableProvider"/>-->
-                  <!-- 注册启动监听器，用于动态注册意图动作 -->
-<!--        <postStartupActivity implementation="site.addzero.ide.init.AutoDDLConfigRegistrar"/>-->
+        <applicationConfigurable id="autoddl.settings"
+                                 displayName="AutoDDL"
+                                 instance="site.addzero.ide.config.ui.AutoDDLConfigurable"/>
 
+
+        <postStartupActivity implementation="site.addzero.ide.init.AutoDDLConfigRegistrar"/>
     </extensions>
-
 
     <applicationListeners>
         <!-- Add your application listeners here -->
