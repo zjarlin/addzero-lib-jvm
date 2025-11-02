@@ -28,29 +28,6 @@ private fun Char.isDefined(): Boolean {
     return this.code in 32..126 || this.code in 0x4E00..0x9FFF
 }
 
-/**
- * 删除字符串中最后一次出现的指定字符。
- * 注意这和removeSuffixifnot有所不同(该方法只是移除最后一个字符,而不是最后出现的字符,例如如最后一个是空格就翻车了)
- *
- * @param str 字符串
- * @param ch 要删除的字符
- * @return 删除指定字符后的字符串
- */
-fun removeLastCharOccurrence(str: String, ch: Char): String {
-    if (str.isNullOrEmpty()) {
-        return ""
-    }
-
-    val lastIndex = str.lastIndexOf(ch) // 获取指定字符最后一次出现的位置
-    return if (lastIndex != -1) {
-        // 如果找到了指定字符，则删除它
-        str.substring(0, lastIndex) + str.substring(lastIndex + 1)
-    } else {
-        // 如果没有找到指定字符，则返回原字符串
-        str
-    }
-}
-
 
 fun <T> groupBySeparator(lines: List<T>, predicate: (T) -> Boolean): Map<T, List<T>> {
     val separatorIndices = lines.indices.filter { predicate(lines[it]) }
@@ -73,15 +50,14 @@ fun String?.makeSurroundWith(fix: String): String {
     return addSuffixIfNot
 }
 
-    fun String?.removeNotChinese(): String {
-        if (this.isNullOrBlank()) {
-            return ""
-        }
-        val regex = "[^\u4E00-\u9FA5]"
-        val s1 = this.replace(regex.toRegex(), "")
-        return s1
+fun String?.removeNotChinese(): String {
+    if (this.isNullOrBlank()) {
+        return ""
     }
-
+    val regex = "[^\u4E00-\u9FA5]"
+    val s1 = this.replace(regex.toRegex(), "")
+    return s1
+}
 
 
 /**
@@ -108,63 +84,11 @@ fun CharSequence?.isNotBlank(): Boolean {
     return !this.isBlank()
 }
 
-/**
- * 扩展函数：移除重复符号
- */
-fun String?.removeDuplicateSymbol(duplicateElement: String): String {
-    if (this.isNullOrEmpty() || duplicateElement.isEmpty()) {
-        return this ?: ""
-    }
-
-    val sb = StringBuilder()
-    var previous = "" // 初始化前一个元素，用于比较
-    var i = 0
-
-    while (i < this!!.length) {
-        val elementLength = duplicateElement.length
-        if (i + elementLength <= this.length && this.substring(i, i + elementLength) == duplicateElement) {
-            if (previous != duplicateElement) {
-                sb.append(duplicateElement)
-                previous = duplicateElement
-            }
-            i += elementLength
-        } else {
-            sb.append(this[i])
-            previous = this[i].toString()
-            i++
-        }
-    }
-    return sb.toString()
-}
-
-/**
- * 扩展函数：清理多余的char
- */
-fun String?.removeDuplicateSymbol(symbol: Char): String {
-    if (this.isNullOrEmpty()) {
-        return ""
-    }
-    val sb = StringBuilder()
-    var prevIsSymbol = false
-
-    for (c in this!!.toCharArray()) {
-        if (c == symbol) {
-            if (!prevIsSymbol) {
-                sb.append(c)
-                prevIsSymbol = true
-            }
-        } else {
-            sb.append(c)
-            prevIsSymbol = false
-        }
-    }
-    return sb.toString()
-}
 
 /**
  * 扩展函数：提取路径部分
  */
-fun String.getPathFromRight(n: Int): String? {
+fun String.getPathFromRight(n: Int): String {
     val parts = this.split(".").filter { it.isNotEmpty() }
 
     if (parts!!.size < n) {
@@ -301,11 +225,11 @@ fun removeAny(str: CharSequence?, vararg stringsToRemove: String): String {
     return result
 }
 
-fun CharSequence.removeAnyQuote(): String  {
+fun CharSequence.removeAnyQuote(): String {
     if (this.isBlank()) {
         return ""
     }
-    return removeAny(this, "\"","\\")
+    return removeAny(this, "\"", "\\")
 }
 
 
@@ -559,7 +483,6 @@ fun String.replaceKMP(pattern: String, replacement: String): String {
 }
 
 
-
 /**
  * 删除字符串中最后一次出现的指定字符。
  *
@@ -582,23 +505,22 @@ fun removeLastCharOccurrence(str: String?, ch: Char): String {
 }
 
 
-
-
-
-
-
 /**
  * 变量名类型
  */
 enum class VariableType {
     /** 常量: 大写+下划线 (如: MAX_VALUE) */
     CONSTANT,
+
     /** 小驼峰变量名 (如: firstName) */
     CAMEL_CASE,
+
     /** ���驼峰类名 (如: UserInfo) */
     PASCAL_CASE,
+
     /** 下划线分隔 (如: user_name) */
     SNAKE_CASE,
+
     /** 中划线分隔 (如: user-name) */
     KEBAB_CASE
 }
@@ -645,16 +567,20 @@ fun toValidVariableName(
         VariableType.CONSTANT -> {
             words.joinToString("_") { it.uppercase() }
         }
+
         VariableType.CAMEL_CASE -> {
             words.first() + words.drop(1)
                 .joinToString("") { it.capitalize() }
         }
+
         VariableType.PASCAL_CASE -> {
             words.joinToString("") { it.capitalize() }
         }
+
         VariableType.SNAKE_CASE -> {
             words.joinToString("_") { it.lowercase() }
         }
+
         VariableType.KEBAB_CASE -> {
             words.joinToString("-") { it.lowercase() }
         }
@@ -738,11 +664,11 @@ fun CharSequence?.isNullOrEmpty(): Boolean {
     return this == null || this.isEmpty()
 }
 
-fun <T: Any> T?.isNull(): Boolean {
+fun <T : Any> T?.isNull(): Boolean {
     return this == null
 }
 
-fun <T: Any> T?.isNotNull(): Boolean {
+fun <T : Any> T?.isNotNull(): Boolean {
     return this != null
 }
 
@@ -775,7 +701,6 @@ fun removeDuplicateSymbol(source: String?, duplicateElement: String?): String? {
     }
     return sb.toString()
 }
-
 
 
 /**
