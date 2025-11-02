@@ -155,7 +155,7 @@ abstract class BaseConfigurableTreeUI(
      */
     private fun showConfigPanel(configInfo: ConfigRouteInfo) {
         currentConfigInfo = configInfo
-        val formBuilder = DynamicFormBuilder()
+        val formBuilder = DynamicFormBuilder(configInfo.configItems)
         val panel = createConfigPanel(configInfo, formBuilder)
         configPanel?.removeAll()
         configPanel?.add(panel, BorderLayout.CENTER)
@@ -170,10 +170,8 @@ abstract class BaseConfigurableTreeUI(
         configInfo: ConfigRouteInfo,
         formBuilder: DynamicFormBuilder
     ): JPanel {
-        val panel = JPanel(BorderLayout())
-        val label = JLabel("配置: ${configInfo.configClass.simpleName}")
-        panel.add(label, BorderLayout.CENTER)
-        return panel
+        // 使用 DynamicFormBuilder 构建表单
+        return formBuilder.build()
     }
     
     override fun isModified(): Boolean = false

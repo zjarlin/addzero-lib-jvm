@@ -1,0 +1,349 @@
+package site.addzero.ide.ui.form
+
+import site.addzero.ide.config.model.ConfigItem
+import site.addzero.ide.config.model.InputType
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.util.concurrent.ConcurrentHashMap
+import javax.swing.*
+import com.intellij.ui.components.JBScrollPane
+
+/**
+ * 动态表单构建器
+ * 用于根据元数据构建配置界面的表单面板
+ *
+ * @param configItems 配置项元数据列表
+ */
+class DynamicFormBuilder(private val configItems: List<ConfigItem>) {
+    
+    // 存储表单组件的映射，用于验证
+    private val componentMap = ConcurrentHashMap<String, JComponent>()
+    
+    // 存储验证状态
+    private val validationState = ConcurrentHashMap<String, Boolean>()
+    
+    /**
+     * 根据元数据构建动态表单
+     *
+     * @return 构建好的表单面板
+     */
+    fun build(): JPanel {
+        val formPanel = JPanel()
+        formPanel.layout = BoxLayout(formPanel, BoxLayout.Y_AXIS)
+        
+        // 为每个配置项创建对应的UI组件
+        configItems.forEach { item ->
+            val itemPanel = createItemPanel(item)
+            formPanel.add(itemPanel)
+        }
+        
+        // 将表单包装在带滚动条的面板中
+        val scrollPane = JBScrollPane(formPanel)
+        scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+        scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        
+        // 创建主面板并添加滚动面板
+        val mainPanel = JPanel(BorderLayout())
+        mainPanel.add(scrollPane, BorderLayout.CENTER)
+        
+        return mainPanel
+    }
+    
+    /**
+     * 为单个配置项创建UI面板
+     *
+     * @param item 配置项元数据
+     * @return 包含标签和输入组件的面板
+     */
+    private fun createItemPanel(item: ConfigItem): JPanel {
+        val itemPanel = JPanel()
+        itemPanel.layout = BorderLayout()
+        
+        // 创建标题面板，包含标签和必填标记
+        val titlePanel = JPanel(BorderLayout())
+        titlePanel.border = BorderFactory.createEmptyBorder(0, 0, 5, 0)
+        
+        // 创建标签
+        val label = JLabel(item.label)
+        
+        // 如果是必填项，添加红色星号标记
+        if (item.required) {
+            label.text = "<html>${item.label}<span color='red'> *</span></html>"
+        }
+        
+        titlePanel.add(label, BorderLayout.WEST)
+        itemPanel.add(titlePanel, BorderLayout.NORTH)
+        
+        // 创建组件面板
+        val componentPanel = JPanel()
+        componentPanel.layout = BorderLayout()
+        
+        // 根据输入类型创建不同的组件
+        val component = createComponentForType(item)
+        componentMap[item.key] = component
+        componentPanel.add(component, BorderLayout.CENTER)
+        
+        // 添加实时验证监听器
+        addValidationListener(item, component)
+        
+        // 添加描述信息（如果有的话）
+        if (item.description.isNotEmpty()) {
+            val descriptionLabel = JLabel("<html><small>${item.description}</small></html>")
+            descriptionLabel.border = BorderFactory.createEmptyBorder(2, 0, 0, 0)
+            componentPanel.add(descriptionLabel, BorderLayout.SOUTH)
+        }
+        
+        itemPanel.add(componentPanel, BorderLayout.CENTER)
+        return itemPanel
+    }
+    
+    /**
+     * 为组件添加验证监听器
+     */
+    private fun addValidationListener(item: ConfigItem, component: JComponent) {
+        when (component) {
+            is JTextField -> {
+                component.addFocusListener(object : FocusAdapter() {
+                    override fun focusLost(e: FocusEvent?) {
+                        validateField(item, component.text)
+                    }
+                })
+            }
+            
+            is JTextArea -> {
+                component.addFocusListener(object : FocusAdapter() {
+                    override fun focusLost(e: FocusEvent?) {
+                        validateField(item, component.text)
+                    }
+                })
+            }
+            
+            is JPasswordField -> {
+                component.addFocusListener(object : FocusAdapter() {
+                    override fun focusLost(e: FocusEvent?) {
+                        validateField(item, String(component.password))
+                    }
+                })
+            }
+            
+            is JCheckBox -> {
+                component.addActionListener {
+                    validateField(item, component.isSelected.toString())
+                }
+            }
+            
+            is JComboBox<*> -> {
+                component.addActionListener {
+                    validateField(item, component.selectedItem?.toString() ?: "")
+                }
+            }
+            
+            is JBScrollPane -> {
+                // 处理包装在滚动面板中的组件（如文本域）
+                val viewport = component.viewport
+                val viewComponent = viewport.view
+                when (viewComponent) {
+                    is JTextArea -> {
+                        viewComponent.addFocusListener(object : FocusAdapter() {
+                            override fun focusLost(e: FocusEvent?) {
+                                validateField(item, viewComponent.text)
+                            }
+                        })
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * 验证单个字段
+     */
+    private fun validateField(item: ConfigItem, value: String) {
+        val isValid = if (item.required) {
+            value.isNotBlank()
+        } else {
+            true
+        }
+        
+        validationState[item.key] = isValid
+        // 可以在这里添加UI反馈，比如高亮显示错误字段
+    }
+    
+    /**
+     * 根据输入类型创建对应的组件
+     *
+     * @param item 配置项元数据
+     * @return 对应的Swing组件
+     */
+    private fun createComponentForType(item: ConfigItem): JComponent {
+        return when (item.inputType) {
+            InputType.TEXT -> {
+                val textField = JTextField(20)
+                if (item.required) {
+                    // 添加必填验证逻辑
+                }
+                textField
+            }
+            
+            InputType.NUMBER -> {
+                val numberField = JFormattedTextField()
+                numberField.value = 0
+                numberField.columns = 10
+                numberField
+            }
+            
+            InputType.PASSWORD -> {
+                val passwordField = JPasswordField(20)
+                passwordField
+            }
+            
+            InputType.TEXTAREA -> {
+                val textArea = JTextArea(5, 20)
+                textArea.lineWrap = true
+                textArea.wrapStyleWord = true
+                JBScrollPane(textArea)
+            }
+            
+            InputType.CHECKBOX -> {
+                val checkBox = JCheckBox()
+                checkBox.isSelected = false
+                checkBox
+            }
+            
+            InputType.SELECT -> {
+                val comboBox = JComboBox<String>()
+                item.options.forEach { option ->
+                    comboBox.addItem(option.label)
+                }
+                comboBox
+            }
+            
+            // 使用穷尽性when表达式处理所有情况
+            else -> JLabel("Unsupported input type: ${item.inputType}")
+        }
+    }
+    
+    /**
+     * 验证整个表单
+     *
+     * @return 验证是否通过
+     */
+    fun validateForm(): Boolean {
+        var isFormValid = true
+        
+        configItems.forEach { item ->
+            val component = componentMap[item.key]
+            if (component != null) {
+                val isValid = validateComponent(item, component)
+                validationState[item.key] = isValid
+                if (!isValid) {
+                    isFormValid = false
+                }
+            }
+        }
+        
+        return isFormValid
+    }
+    
+    /**
+     * 验证单个组件
+     */
+    private fun validateComponent(item: ConfigItem, component: JComponent): Boolean {
+        return when (component) {
+            is JTextField -> {
+                if (item.required) {
+                    component.text.isNotBlank()
+                } else {
+                    true
+                }
+            }
+            
+            is JTextArea -> {
+                if (item.required) {
+                    component.text.isNotBlank()
+                } else {
+                    true
+                }
+            }
+            
+            is JPasswordField -> {
+                if (item.required) {
+                    component.password.isNotEmpty()
+                } else {
+                    true
+                }
+            }
+            
+            is JCheckBox -> {
+                // 复选框通常不需要必填验证，除非有特殊需求
+                true
+            }
+            
+            is JComboBox<*> -> {
+                if (item.required) {
+                    component.selectedIndex >= 0
+                } else {
+                    true
+                }
+            }
+            
+            is JBScrollPane -> {
+                // 处理包装在滚动面板中的组件（如文本域）
+                val viewport = component.viewport
+                val viewComponent = viewport.view
+                if (viewComponent is JTextArea && item.required) {
+                    viewComponent.text.isNotBlank()
+                } else {
+                    true
+                }
+            }
+            
+            else -> true
+        }
+    }
+    
+    /**
+     * 获取表单数据
+     *
+     * @return 配置项键值对映射
+     */
+    fun getFormData(): Map<String, Any?> {
+        val data = mutableMapOf<String, Any?>()
+        
+        configItems.forEach { item ->
+            val component = componentMap[item.key]
+            if (component != null) {
+                val value = getComponentValue(component)
+                data[item.key] = value
+            }
+        }
+        
+        return data
+    }
+    
+    /**
+     * 获取组件的值
+     */
+    private fun getComponentValue(component: JComponent): Any? {
+        return when (component) {
+            is JTextField -> component.text
+            is JTextArea -> component.text
+            is JCheckBox -> component.isSelected
+            is JComboBox<*> -> component.selectedItem
+            is JBScrollPane -> {
+                // 处理包装在滚动面板中的组件（如文本域）
+                val viewport = component.viewport
+                val viewComponent = viewport.view
+                if (viewComponent is JTextArea) {
+                    viewComponent.text
+                } else {
+                    null
+                }
+            }
+            is JPasswordField -> String(component.password)
+            else -> null
+        }
+    }
+}

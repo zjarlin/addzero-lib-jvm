@@ -1,7 +1,5 @@
 package site.addzero.ide.config.annotation
 
-import site.addzero.ide.config.model.InputType
-
 /**
  * 用于标记配置类的注解
  */

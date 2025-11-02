@@ -1,7 +1,6 @@
 package site.addzero.ide.config.example
 
 import site.addzero.ide.config.annotation.*
-import site.addzero.ide.config.model.InputType
 
 /**
  * 数据库配置类

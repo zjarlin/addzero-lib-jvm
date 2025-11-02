@@ -1,8 +1,9 @@
 package site.addzero.ide.config.ui
 
 import site.addzero.ide.config.annotation.*
-import site.addzero.ide.config.model.InputType
 import site.addzero.ide.config.registry.ConfigRegistry
+import com.intellij.ui.components.JBScrollPane
+import site.addzero.ide.config.model.InputType
 import javax.swing.JPanel
 
 /**
@@ -46,7 +47,7 @@ class AdvancedExampleUI(
     private val myDisplayName: String = "高级设置示例"
 ) : BaseConfigurableTreeUI(myDisplayName) {
 
-    override fun createTreePanel(): JPanel {
+    override fun createTreePanel(): JBScrollPane {
         val panel = super.createTreePanel()
         // 可以在这里添加自定义逻辑
         return panel
@@ -117,6 +118,7 @@ data class ExampleConfig2(
         label = "代理端口",
         description = "代理服务器端口",
         inputType = InputType.NUMBER
+
     )
     val proxyPort: Int = 8080,
 
