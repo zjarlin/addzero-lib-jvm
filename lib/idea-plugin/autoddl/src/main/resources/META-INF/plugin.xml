@@ -1,0 +1,26 @@
+<idea-plugin>
+    <id>com.addzero.autoddl</id>
+    <name>AutoDDL</name>
+    <vendor email="support@addzero.site" url="https://www.addzero.site">AddZero</vendor>
+
+    <description><![CDATA[
+    AutoDDL is a plugin that automatically generates DDL statements from your code.
+    ]]></description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <applicationConfigurable
+            instance="site.addzero.ide.config.ui.AutoDDLConfigurable"
+            id="autoddl.settings"
+            displayName="AutoDDL"/>
+    </extensions>
+
+    <applicationListeners>
+        <!-- Add your application listeners here -->
+    </applicationListeners>
+
+</idea-plugin>

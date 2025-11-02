@@ -32,8 +32,8 @@ class CustomScannerExampleUI : BaseConfigurableTreeUI(
     displayName = "自定义扫描器示例",
     configScanner = {
         // 自定义扫描逻辑
-        ConfigRegistry.registerConfig(ExampleConfig1::class)
-        ConfigRegistry.registerConfig(ExampleConfig2::class)
+        // ConfigRegistry.registerConfig(ExampleConfig1::class)
+        // ConfigRegistry.registerConfig(ExampleConfig2::class)
         // 可以添加更多自定义逻辑
     }
 )
@@ -93,11 +93,8 @@ data class ExampleConfig1(
     @ConfigSelect(
         label = "语言",
         description = "应用界面语言",
-        options = [
-            SelectOption("zh-CN", "中文"),
-            SelectOption("en-US", "English"),
-            SelectOption("ja-JP", "日本語")
-        ]
+        optionsValue = ["zh-CN", "en-US", "ja-JP"],
+        optionsLabel = ["中文", "English", "日本語"]
     )
     val language: String = "zh-CN"
 )
@@ -135,42 +132,3 @@ data class ExampleConfig2(
     )
     val timeout: Int = 5000
 )
-
-// ==================== 在插件中使用 ====================
-
-/**
- * 在 plugin.xml 中注册设置面板的示例:
- *
- * <applicationConfigurable
- *     parentId="tools"
- *     instance="site.addzero.ide.config.ui.CustomScannerExampleUI"
- *     id="example.settings">
- *     <label>示例设置</label>
- * </applicationConfigurable>
- */
-
-/**
- * 使用步骤:
- *
- * 1. 定义配置类，使用 @SettingRoute 和 @Configurable 注解
- * 2. 创建 BaseConfigurableTreeUI 实例或继承它
- * 3. 在 plugin.xml 中注册为 Configurable
- *
- * 示例代码:
- *
- * ```kotlin
- * class MyPluginSettings : BaseConfigurableTreeUI(
- *     displayName = "我的插件设置"
- * )
- * ```
- *
- * XML配置:
- * ```xml
- * <applicationConfigurable
- *     parentId="tools"
- *     instance="my.package.MyPluginSettings"
- *     id="my.plugin.settings">
- *     <label>我的插件设置</label>
- * </applicationConfigurable>
- * ```
- */

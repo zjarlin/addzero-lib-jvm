@@ -48,7 +48,7 @@ class MyConfigurableTreeUI : BaseConfigurableTreeUI(
 
 ### 完整示例
 
-```kotlin
+```
 package my.plugin.config
 
 import site.addzero.ide.config.ui.BaseConfigurableTreeUI
@@ -198,10 +198,8 @@ data class DatabaseConfig(
     @ConfigSelect(
         label = "数据库类型",
         description = "选择数据库类型",
-        options = [
-            SelectOption("mysql", "MySQL"),
-            SelectOption("postgresql", "PostgreSQL")
-        ]
+        optionsValue = ["mysql", "postgresql"],
+        optionsLabel = ["MySQL", "PostgreSQL"]
     )
     val dbType: String = "mysql",
     

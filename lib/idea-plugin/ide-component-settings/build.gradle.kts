@@ -6,14 +6,9 @@ dependencies {
 
 
 }
-//intellijPlatform {
+// intellijPlatform {
 //    pluginConfiguration {
-//        id = "com.addzero.autoddl"
-//        name = "AutoDDL"
+//        id = "site.addzero.ide.component.settings"
+//        name = "IDE Component Settings"
 //    }
 //}
-//
-
-
-
-

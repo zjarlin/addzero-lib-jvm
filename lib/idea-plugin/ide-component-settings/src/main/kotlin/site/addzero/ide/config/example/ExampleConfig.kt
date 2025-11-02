@@ -1,6 +1,7 @@
 package site.addzero.ide.config.example
 
 import site.addzero.ide.config.annotation.*
+import site.addzero.ide.config.model.InputType
 
 /**
  * 数据库配置类
@@ -38,11 +39,8 @@ data class DatabaseConfig(
     @ConfigSelect(
         label = "数据库类型",
         description = "选择数据库类型",
-        options = [
-            SelectOption("mysql", "MySQL"),
-            SelectOption("postgresql", "PostgreSQL"),
-            SelectOption("oracle", "Oracle")
-        ]
+        optionsValue = ["mysql", "postgresql", "oracle"],
+        optionsLabel = ["MySQL", "PostgreSQL", "Oracle"]
     )
     val databaseType: String = "mysql",
 
@@ -97,12 +95,8 @@ data class UsefulConfig(
     @ConfigSelect(
         label = "日志级别",
         description = "设置日志输出级别",
-        options = [
-            SelectOption("DEBUG", "调试"),
-            SelectOption("INFO", "信息"),
-            SelectOption("WARN", "警告"),
-            SelectOption("ERROR", "错误")
-        ]
+        optionsValue = ["DEBUG", "INFO", "WARN", "ERROR"],
+        optionsLabel = ["调试", "信息", "警告", "错误"]
     )
     val logLevel: String = "INFO"
 )
@@ -153,11 +147,8 @@ data class ConnectionConfig(
     @ConfigSelect(
         label = "驱动类",
         description = "数据库驱动类名",
-        options = [
-            SelectOption("com.mysql.cj.jdbc.Driver", "MySQL Driver"),
-            SelectOption("org.postgresql.Driver", "PostgreSQL Driver"),
-            SelectOption("oracle.jdbc.driver.OracleDriver", "Oracle Driver")
-        ]
+        optionsValue = ["com.mysql.cj.jdbc.Driver", "org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver"],
+        optionsLabel = ["MySQL Driver", "PostgreSQL Driver", "Oracle Driver"]
     )
     val driver: String = "com.mysql.cj.jdbc.Driver"
 )

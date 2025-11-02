@@ -1,5 +1,7 @@
 package site.addzero.ide.config.annotation
 
+import site.addzero.ide.config.model.InputType
+
 /**
  * 用于标记配置类的注解
  */
@@ -32,7 +34,8 @@ annotation class ConfigField(
  * @param key 配置项的键，如果不指定则使用字段名
  * @param label 显示标签，如果不指定则使用字段名
  * @param description 配置项描述
- * @param options 下拉选项
+ * @param optionsValue 下拉选项值数组
+ * @param optionsLabel 下拉选项标签数组
  * @param required 是否必填
  */
 @Retention(AnnotationRetention.RUNTIME)
@@ -41,7 +44,8 @@ annotation class ConfigSelect(
     val key: String = "",
     val label: String = "",
     val description: String = "",
-    val options: Array<SelectOption> = [],
+    val optionsValue: Array<String> = [],
+    val optionsLabel: Array<String> = [],
     val required: Boolean = false
 )
 
@@ -138,5 +142,6 @@ annotation class ConfigConditional(
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 annotation class SettingRoute(
-    val parent: String
+    val parent: String,
+    val path: Array<String> = []
 )
