@@ -4,9 +4,9 @@ plugins {
 dependencies {
     implementation(libs.hutool.all)
     implementation(libs.fastjson2.kotlin)
-    implementation(projects.lib.toolJvm.toolReflection)
+    implementation("site.addzero:too-reflection:${libs.versions.addzero.lib.get()}")
     implementation(libs.byte.buddy)
-    api(projects.lib.toolStarter.dictTransCore) // 或使用
+    api("site.addzero:dict-trans-core:${libs.versions.addzero.lib.get()}")
     // 配置处理器 - 重要！
 //    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 //    implementation("org.springframework.boot:spring-boot-configuration-processor")
