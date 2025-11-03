@@ -1,6 +1,8 @@
 package site.addzero.aop.dicttrans.inter
 
 import cn.hutool.core.util.TypeUtil
+import site.addzero.util.RefUtil
+import java.lang.reflect.ParameterizedType
 
 /**
  * @author zjarlin
@@ -9,8 +11,8 @@ import cn.hutool.core.util.TypeUtil
 interface TransStrategy< T> {
     fun trans(t:  T): T
     fun support(t: Any): Boolean{
-        val klass = TypeUtil.getTypeArgument(this.javaClass, 0) as Class<T>
-        return klass.isAssignableFrom(t.javaClass)
+        val genericClass = RefUtil.getGenericClass(this, 0)
+        return genericClass?.isAssignableFrom(t.javaClass) ?: false
     }
 
 }
