@@ -3,7 +3,10 @@
  */
 package site.addzero.network.call.tyc.api
 
-import site.addzero.network.call.tyc.demo.HuaweiCloudApi
+import com.alibaba.fastjson2.parseObject
+import site.addzero.network.call.tyc.api.HuaweiCloudApi
+import site.addzero.network.call.tyc.model.CompanyRes
+import site.addzero.network.call.tyc.model.Data
 
 /**
  * 企业搜索API工具类
@@ -24,12 +27,13 @@ class CompanySearchApi(ak: String, sk: String) {
         keyword: String,
         pageNum: Int = 1,
         pageSize: Int = 10
-    ): String? {
+    ): Data {
         val encodedKeyword = java.net.URLEncoder.encode(keyword, "UTF-8")
         val url = "http://kzenterprisewmh.apistore.huaweicloud.com/api-mall/api/company_search/query" +
                 "?keyword=$encodedKeyword&pageNum=$pageNum&pageSize=$pageSize"
-
-        return huaweiCloudApi.executeRequest(url, "GET")
+        val executeRequest = huaweiCloudApi.executeRequest(url, "GET")
+        val parseObject = executeRequest.parseObject<CompanyRes>()
+        return parseObject.data
     }
 
 }

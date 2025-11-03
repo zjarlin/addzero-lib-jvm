@@ -1,11 +1,8 @@
-/*
- * Copyright (c) Huawei Technologies Co., Ltd. 2018-2023. All rights reserved.
- */
-package site.addzero.network.call.tyc.demo
+package site.addzero.network.call.tyc.api
 
 import com.cloud.apigateway.sdk.utils.Client
-import okhttp3.OkHttpClient
 import com.cloud.apigateway.sdk.utils.Request
+import okhttp3.OkHttpClient
 import site.addzero.network.call.tyc.util.Constant
 import site.addzero.network.call.tyc.util.SSLCipherSuiteUtil
 
