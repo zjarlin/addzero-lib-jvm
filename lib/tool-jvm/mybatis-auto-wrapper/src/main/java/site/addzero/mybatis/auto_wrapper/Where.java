@@ -1,4 +1,4 @@
-package com.addzero.mybatis.auto_wrapper;
+package site.addzero.mybatis.auto_wrapper;
 
 
 import java.lang.annotation.*;

@@ -1,4 +1,4 @@
-package com.addzero.mybatis.auto_wrapper;
+package site.addzero.mybatis.auto_wrapper;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
