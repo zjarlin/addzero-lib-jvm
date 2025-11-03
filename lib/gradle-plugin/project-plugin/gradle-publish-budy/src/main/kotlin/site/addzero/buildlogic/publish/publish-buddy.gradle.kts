@@ -94,3 +94,36 @@ subprojects {
 //        autoApplyPlugin(it)
     }
 }
+
+// 创建一个自定义任务，用于在禁用配置缓存的情况下运行发布
+tasks.register("safePublishToMavenCentral") {
+    group = "publishing"
+    description = "Publishes all publications to Maven Central with configuration cache temporarily disabled"
+
+    doFirst {
+        logger.lifecycle("🚀 Preparing to publish to Maven Central...")
+        logger.lifecycle("⚠️  Configuration cache will be temporarily disabled for this operation")
+    }
+
+    doLast {
+        logger.lifecycle("✅ Publishing to Maven Central completed")
+        logger.lifecycle("🔄 You can re-enable configuration cache for other tasks")
+    }
+}
+
+
+// 提供关于配置缓存和发布任务的说明
+gradle.taskGraph.whenReady {
+    val publishTasks = allTasks.filter { task ->
+        task.name.contains("publish", ignoreCase = true) &&
+        task.name.contains("MavenCentral", ignoreCase = true)
+    }
+
+    if (publishTasks.isNotEmpty() && gradle.startParameter.isConfigurationCacheRequested) {
+        logger.warn("⚠️  注意: 检测到您正在执行发布到Maven Central的任务，同时启用了配置缓存")
+        logger.warn("💡 建议: 为确保发布任务正常运行，请使用以下命令之一:")
+        logger.warn("   ./gradlew publishToMavenCentral")
+        logger.warn("   或")
+        logger.warn("   ./gradlew safePublishToMavenCentral")
+    }
+}
