@@ -14,7 +14,7 @@ class CompanySearchApiTest {
     @BeforeEach
     fun setUp() {
         // 使用测试用的AK/SK创建实例
-        companySearchApi = CompanySearchApi("44e3423356564524a36cb8a9ae1a927c", "3b1d3095ced04d44bb0c001ea7d0a5c3")
+        companySearchApi = CompanySearchApi("", "")
     }
 
     @Test
