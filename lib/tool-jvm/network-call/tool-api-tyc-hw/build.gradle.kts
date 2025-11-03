@@ -1,35 +1,33 @@
-
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 
 dependencies {
-
-
-//    implementation("org.apache.httpcomponents:httpclient:4.5.14")
-
-
-//    implementation("org.apache.commons:commons-lang3:3.19.0")
-//    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
     // HTTP客户端
 //    implementation(libs.jackson.module.kotlin)
     implementation(libs.fastjson2.kotlin)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("site.addzeor:huawei-java-sdk:${libs.versions.addzero.lib.get()}")
+    implementation("site.addzero:huawei-java-sdk:${libs.versions.addzero.lib.get()}")
 
-    // JSON处理
-//    implementation(libs.jackson.module.kotlin)
-    // 日志
-//    implementation(libs.slf4j.api)
-//    implementation(libs.fastjson2.kotlin)
+//    implementation("commons-codec:commons-codec:1.16.0")
+//    implementation("commons-logging:commons-logging:1.2")
+    implementation("org.apache.httpcomponents:httpclient:4.5.14") {
+        exclude(group = "commons-codec", module = "commons-codec")
+        exclude(group = "org.apache.httpcomponents", module = "httpcore")
+    }
+    implementation("com.squareup.okhttp3:okhttp:4.11.0") {
+        exclude(group = "com.squareup.okio", module = "okio")
+    }
+    implementation("com.squareup.okio:okio:3.5.0") {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-common")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
+    }
+    implementation("org.apache.httpcomponents:httpcore:4.4.13")
+//    implementation("org.slf4j:slf4j-api:2.0.16")
+//    implementation("org.slf4j:slf4j-simple:2.0.16")
 
-//    implementation("org.jsoup:jsoup:1.15.3")
-    // 临时添加hutool-http用于测试
-//    implementation(libs.hutool.http)
-
-    // SQLite JDBC 驱动
-//    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
-
-
+    implementation("org.openeuler:bgmprovider:1.0.6") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+    }
+    implementation("org.bouncycastle:bcprov-jdk15to18:1.78")
 
 }

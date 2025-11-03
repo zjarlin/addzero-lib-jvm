@@ -3,9 +3,15 @@
  */
 package site.addzero.network.call.tyc.util
 
-import com.sun.org.slf4j.internal.LoggerFactory
 import okhttp3.OkHttpClient
 import org.apache.http.client.HttpClient
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.bouncycastle.crypto.BlockCipher
+import org.bouncycastle.crypto.engines.AESEngine
+import org.bouncycastle.crypto.prng.SP800SecureRandomBuilder
+import org.openeuler.BGMProvider
 import site.addzero.network.call.tyc.util.Constant.GM_PROTOCOL
 import site.addzero.network.call.tyc.util.Constant.HTTPS
 import site.addzero.network.call.tyc.util.Constant.INTERNATIONAL_PROTOCOL
@@ -21,7 +27,6 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.*
 
 object SSLCipherSuiteUtil {
-    private val LOGGER: Logger = LoggerFactory.getLogger(SSLCipherSuiteUtil::class.java)
     private var httpClient: CloseableHttpClient? = null
     private var okHttpClient: OkHttpClient? = null
 
@@ -123,7 +128,7 @@ object SSLCipherSuiteUtil {
                 protocol
             )
         ) {
-            LOGGER.info("Unsupport protocol: {}, Only support GMTLS TLSv1.2", protocol)
+            println("Unsupport protocol: $protocol, Only support GMTLS TLSv1.2")
             throw UnsupportProtocolException("Unsupport protocol, Only support GMTLS TLSv1.2")
         }
         // Create a trust manager that does not validate certificate chains
@@ -156,7 +161,7 @@ object SSLCipherSuiteUtil {
                 protocol
             )
         ) {
-            LOGGER.info("Unsupport protocol: {}, Only support GMTLS TLSv1.2", protocol)
+            println("Unsupport protocol: $protocol, Only support GMTLS TLSv1.2")
             throw UnsupportProtocolException("Unsupport protocol, Only support GMTLS TLSv1.2")
         }
         val kms: Array<KeyManager?>? = null
@@ -188,7 +193,7 @@ object SSLCipherSuiteUtil {
                 try {
                     source = SecureRandom.getInstanceStrong()
                 } catch (ex: NoSuchAlgorithmException) {
-                    LOGGER.error("get SecureRandom failed", e)
+                    println("get SecureRandom failed: ${e.message}")
                     throw RuntimeException("get SecureRandom failed")
                 }
             }
@@ -210,7 +215,7 @@ object SSLCipherSuiteUtil {
     // 校验域名
     private class TheRealHostnameVerifier : HostnameVerifier {
         override fun verify(hostname: String?, session: SSLSession?): Boolean {
-            if (com.huawei.apig.sdk.util.HostName.checkHostName(hostname)) {
+            if (HostName.checkHostName(hostname)) {
                 return true
             } else {
                 val hv = HttpsURLConnection.getDefaultHostnameVerifier()
