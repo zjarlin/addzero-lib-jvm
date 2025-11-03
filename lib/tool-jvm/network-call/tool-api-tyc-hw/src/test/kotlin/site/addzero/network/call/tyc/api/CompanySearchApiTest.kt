@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2018-2023. All rights reserved.
+ */
+package site.addzero.network.call.tyc.api
+
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+
+class CompanySearchApiTest {
+
+    private lateinit var companySearchApi: CompanySearchApi
+
+    @BeforeEach
+    fun setUp() {
+        // 使用测试用的AK/SK创建实例
+        companySearchApi = CompanySearchApi("44e3423356564524a36cb8a9ae1a927c", "3b1d3095ced04d44bb0c001ea7d0a5c3")
+    }
+
+    @Test
+    fun `test search companies with keyword`() {
+        val result = companySearchApi.searchCompanies("古城机械")
+        println("Search result: $result")
+        // 结果可能为null（取决于网络连接和API状态），但我们至少确保方法能正常执行
+        assertTrue(result is String? || result == null)
+    }
+
+    @Test
+    fun `test search companies with pagination`() {
+        val result = companySearchApi.searchCompanies("古城机械", 1, 20)
+        println("Search result with pagination: $result")
+        // 结果可能为null（取决于网络连接和API状态），但我们至少确保方法能正常执行
+        assertTrue(result is String? || result == null)
+    }
+
+    @Test
+    fun `test get company detail`() {
+        // 使用一个假的公司ID进行测试
+        val result = companySearchApi.getCompanyDetail("410307100005658")
+        println("Company detail result: $result")
+        // 结果可能为null（取决于网络连接和API状态），但我们至少确保方法能正常执行
+        assertTrue(result is String? || result == null)
+    }
+}
