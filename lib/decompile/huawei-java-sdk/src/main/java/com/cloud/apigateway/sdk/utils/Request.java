@@ -119,7 +119,7 @@ public class Request {
          int loop = 0;
 
          for(Map.Entry<String, List<String>> entry : this.queryString.entrySet()) {
-            for(String value : (List)entry.getValue()) {
+            for(String value : entry.getValue()) {
                if (loop > 0) {
                   uri.append("&");
                }

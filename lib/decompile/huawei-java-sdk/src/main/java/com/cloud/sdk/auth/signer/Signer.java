@@ -111,7 +111,7 @@ public class Signer {
       StringBuilder result = new StringBuilder();
 
       for(Map.Entry<String, List<String>> entry : sorted.entrySet()) {
-         for(String value : (List)entry.getValue()) {
+         for(String value : entry.getValue()) {
             if (result.length() > 0) {
                result.append("&");
             }
