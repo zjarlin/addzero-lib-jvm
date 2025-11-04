@@ -22,7 +22,7 @@ autoModules {
 includeBuild("checkouts/$bdlogic")
 
 
-fun GitIncludeExtension.includeAddzeroProject(projectName: String): Unit {
+fun GitIncludeExtension.includeAddzeroProject(projectName: String) {
     include(projectName) {
         uri.set("https://gitee.com/zjarlin/$projectName.git")
         branch.set("master")
