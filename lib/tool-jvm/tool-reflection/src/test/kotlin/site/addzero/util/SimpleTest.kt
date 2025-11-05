@@ -12,6 +12,7 @@ fun main() {
     println("Are they equal? lng.javaClass == java.lang.Long::class.java: ${lng.javaClass == java.lang.Long::class.java}")
 
     val result = isPrimitiveWrapper(lng.javaClass)//        val primitive = aClass.isPrimitive
+
 //        return primitive || Byte::class.java.isAssignableFrom(aClass) || Short::class.java.isAssignableFrom(aClass) || Int::class.java.isAssignableFrom(
 //            aClass
 //        ) || Long::class.java.isAssignableFrom(aClass) || Float::class.java.isAssignableFrom(aClass) || Double::class.java.isAssignableFrom(

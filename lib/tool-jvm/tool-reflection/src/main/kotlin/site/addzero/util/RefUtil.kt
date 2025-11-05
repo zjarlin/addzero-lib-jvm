@@ -153,7 +153,10 @@ object RefUtil {
             Enum::class.java.isAssignableFrom(clazz) ||
             Annotation::class.java.isAssignableFrom(clazz) ||
             Class::class.java.isAssignableFrom(clazz) ||
-            clazz.isSynthetic || clazz.isAnonymousClass || clazz.isLocalClass
+            clazz.isSynthetic || clazz.isAnonymousClass || clazz.isLocalClass ||
+            // 排除常见的Java标准库类
+            Date::class.java.isAssignableFrom(clazz) ||
+            Calendar::class.java.isAssignableFrom(clazz)
         ) {
             return false
         }

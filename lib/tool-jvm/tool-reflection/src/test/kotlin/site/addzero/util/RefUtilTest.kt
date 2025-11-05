@@ -9,6 +9,7 @@ import java.lang.Double
 import java.lang.Float
 import java.lang.Long
 import java.lang.Short
+import java.util.Date
 
 class RefUtilTest {
 
@@ -112,6 +113,7 @@ class RefUtilTest {
         assertFalse(RefUtil.isT(1.0))
         assertFalse(RefUtil.isT('a'))
         assertFalse(RefUtil.isT("test"))
+        assertFalse(RefUtil.isT(Date()))
 
     }
 }
