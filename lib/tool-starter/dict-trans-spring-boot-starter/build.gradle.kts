@@ -4,7 +4,8 @@ plugins {
 dependencies {
     implementation(libs.hutool.all)
     implementation(libs.fastjson2.kotlin)
-    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
+//    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
+    implementation("site.addzero:tool-reflection:0.0.673")
 
     implementation(libs.byte.buddy)
     api("site.addzero:dict-trans-core:${libs.versions.addzero.lib.get()}")
