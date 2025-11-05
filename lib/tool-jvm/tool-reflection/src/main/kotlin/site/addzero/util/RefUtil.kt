@@ -1,5 +1,4 @@
-@file:JvmName("RefUtils")
-@file:Suppress("unused")
+@file:JvmName("RefUtils") @file:Suppress("unused")
 
 package site.addzero.util
 
@@ -8,9 +7,15 @@ import cn.hutool.core.util.ClassUtil.isPrimitiveWrapper
 import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
 import cn.hutool.core.util.TypeUtil
+import com.alibaba.fastjson2.JSON
+import sun.util.calendar.BaseCalendar
+import sun.util.calendar.Gregorian
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -26,7 +31,7 @@ object RefUtil {
         if (this == null) {
             return false
         }
-        val new = RefUtil.isNew(this)
+        val new = isNew(this)
         return !new
     }
 
@@ -40,8 +45,7 @@ object RefUtil {
      */
     fun getGenericClass(obj: Any, index: Int = 0): Class<*>? {
         return try {
-            val typeArgument = TypeUtil.getTypeArgument(obj.javaClass, index)
-            when (typeArgument) {
+            when (val typeArgument = TypeUtil.getTypeArgument(obj.javaClass, index)) {
                 is ParameterizedType -> typeArgument.rawType as Class<*>
                 is Class<*> -> typeArgument
                 else -> null
@@ -143,24 +147,59 @@ object RefUtil {
      * @return true 表示是需要递归处理的业务对象，false 表示不需要递归
      */
     fun isT(obj: Any, vararg blacklistClasses: Class<*>): Boolean {
-        val clazz = obj.javaClass
 
-        // 快速排除：基本类型、字符串、数组、集合、枚举、注解、Class对象
-        if (clazz.isPrimitive || isPrimitiveWrapper(clazz) ||
-            clazz == String::class.java || clazz.isArray ||
-            Collection::class.java.isAssignableFrom(clazz) ||
-            Map::class.java.isAssignableFrom(clazz) ||
-            Enum::class.java.isAssignableFrom(clazz) ||
-            Annotation::class.java.isAssignableFrom(clazz) ||
-            Class::class.java.isAssignableFrom(clazz) ||
-            clazz.isSynthetic || clazz.isAnonymousClass || clazz.isLocalClass ||
-            // 排除常见的Java标准库类
-            Date::class.java.isAssignableFrom(clazz) ||
-            Calendar::class.java.isAssignableFrom(clazz)
-        ) {
+        val clazz = obj.javaClass
+        if (clazz == String::class.java) {
             return false
         }
+        if (obj is Gregorian) {
+            return false
 
+        }
+        val assignableFrom = BaseCalendar::class.java.isAssignableFrom(clazz)
+        if (assignableFrom) {
+            return false
+        }
+        // 快速排除：基本类型、字符串、数组、集合、枚举、注解、Class对象
+        if (isPrimitiveWrapper(clazz)) {
+            return false
+        }
+        if (clazz.isArray || clazz.isSynthetic || clazz.isAnonymousClass || clazz.isLocalClass ) {
+            return false
+        }
+        if (listOf(
+                Collection::class,
+                Map::class,
+                Enum::class,
+                Annotation::class,
+                Class::class,
+                Date::class,
+                Calendar::class,
+                Gregorian::class,
+                TimeZone::class,
+                Locale::class,
+                LocalDate::class,
+                LocalDateTime::class,
+                LocalDateTime::class,
+                BigDecimal::class,
+                String::class,
+                Array::class,
+                Boolean::class,
+                Byte::class,
+                Short::class,
+                Integer::class,
+                Long::class,
+                Float::class,
+                Double::class,
+                Boolean::class,
+                Char::class
+            ).any {
+                it.java.isAssignableFrom(clazz)
+            }
+        ) {
+            return false
+
+        }
         // 检查用户自定义黑名单
         if (blacklistClasses.any { blacklistClass ->
                 blacklistClass.isAssignableFrom(clazz)
@@ -175,16 +214,17 @@ object RefUtil {
         }
 
         // JSON序列化兜底验证（可选）
-        return try {
+        val bool = try {
             // 尝试使用fastjson2序列化和反序列化
-            val jsonString = com.alibaba.fastjson2.JSON.toJSONString(obj)
-            com.alibaba.fastjson2.JSON.parseObject(jsonString, clazz)
+            val jsonString = JSON.toJSONString(obj)
+            JSON.parseObject(jsonString, clazz)
             true
         } catch (e: Exception) {
             e.printStackTrace()
             // 序列化或反序列化失败，说明不是标准业务对象
             false
         }
+        return bool
 
     }
 
