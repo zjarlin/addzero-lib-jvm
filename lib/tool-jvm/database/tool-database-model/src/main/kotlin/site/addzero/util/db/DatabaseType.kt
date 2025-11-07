@@ -1,7 +1,7 @@
 package site.addzero.util.db
 
 /**
- * 数据库类型枚举
+ * 关系型数据库类型枚举
  */
 enum class DatabaseType(
     val code: String,
@@ -19,12 +19,22 @@ enum class DatabaseType(
     OCEANBASE("oceanbase", "蚂蚁金服OceanBase数据库"),
     POLARDB("polardb", "阿里云PolarDB数据库"),
     TIDB("tidb", "PingCAP TiDB数据库"),
-    TDENGINE("tdengine", "TDengine时序数据库"),
+    DB2("db2", "IBM DB2数据库"),
+    SYBASE("sybase", "Sybase数据库");
+}
+
+/**
+ * 非关系型数据库类型枚举
+ */
+enum class NoSqlDatabaseType(
+    val code: String,
+    val desc: String
+) {
     MONGODB("mongodb", "MongoDB文档数据库"),
     REDIS("redis", "Redis内存数据库"),
     ELASTICSEARCH("elasticsearch", "Elasticsearch搜索引擎"),
+    TDENGINE("tdengine", "TDengine时序数据库"),
     INFLUXDB("influxdb", "InfluxDB时序数据库"),
     CLICKHOUSE("clickhouse", "ClickHouse列式数据库"),
-    DB2("db2", "IBM DB2数据库"),
-    SYBASE("sybase", "Sybase数据库");
+    QUESTDB("questdb", "QuestDB时序数据库");
 }
