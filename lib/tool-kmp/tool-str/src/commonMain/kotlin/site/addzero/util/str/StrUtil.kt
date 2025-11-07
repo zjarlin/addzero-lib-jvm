@@ -16,8 +16,7 @@ import kotlin.text.isNullOrEmpty
 fun String?.cleanBlank(): String {
     if (this.isNullOrEmpty()) return ""
 
-    return this!!.trim()
-        .replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
+    return this!!.trim().replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
         .filter { it.isDefined() } // 移除不可见字符
 }
 
@@ -49,6 +48,18 @@ fun String?.makeSurroundWith(fix: String): String {
     val addSuffixIfNot = addPrefixIfNot.addSuffixIfNot(fix)
     return addSuffixIfNot
 }
+
+
+/**
+ * 扩展函数：用HTML P标签包裹
+ */
+fun String?.makeSurroundWithHtmlP(): String {
+    if (this.isNullOrBlank()) {
+        return ""
+    }
+    return this.addPrefixIfNot("<p>").addSuffixIfNot("</p>")
+}
+
 
 fun String?.removeNotChinese(): String {
     if (this.isNullOrBlank()) {
@@ -115,12 +126,7 @@ fun String?.lowerCase(): String {
  */
 fun String?.addPrefixIfNot(prefix: String, ignoreCase: Boolean = false): String {
     if (this.isNullOrEmpty()) return ""
-
-    return if (ignoreCase) {
-        if (this!!.startsWith(prefix, ignoreCase = true)) this else prefix + this
-    } else {
-        if (this!!.startsWith(prefix)) this else prefix + this
-    }
+    return if (this.startsWith(prefix, ignoreCase)) this else prefix + this
 }
 
 
@@ -225,11 +231,26 @@ fun removeAny(str: CharSequence?, vararg stringsToRemove: String): String {
     return result
 }
 
+fun CharSequence?.removeAny(vararg stringsToRemove: String): String {
+    return removeAny(this, *stringsToRemove)
+}
+
+
 fun CharSequence.removeAnyQuote(): String {
     if (this.isBlank()) {
         return ""
     }
     return removeAny(this, "\"", "\\")
+}
+
+
+/**
+ * 删除空格或者引号
+ * @param [testStrs]
+ * @return [String]
+ */
+fun CharSequence.removeBlankOrQuotation(): String {
+    return removeAny(this, " ", "\"")
 }
 
 
@@ -244,6 +265,22 @@ fun String.toUnderLineCase(): String {
     return sb.toString()
 }
 
+
+fun CharSequence.isNumber(): Boolean = matches(Regex("""^-?\d*\.?\d+$"""))
+
+fun String.equalsIgnoreCase(string: String): Boolean {
+    val equals = this.equals(string, true)
+    return equals
+}
+
+
+fun Any?.toNotEmptyStr(): String {
+    if (this == null) {
+        return ""
+    }
+    return this.toString().removeBlankOrQuotation()
+}
+
 /**
  * 简化的 KMP 兼容字符串格式化函数
  * 只支持 %.nf 格式的浮点数格式化
@@ -254,8 +291,7 @@ fun String.kmpFormat(vararg args: Any?): String {
 
     // 简单的 %.1f 替换
     if (result.contains("%.1f") && argIndex < args.size) {
-        val value = args[argIndex++]
-        val formatted = when (value) {
+        val formatted = when (val value = args[argIndex++]) {
             is Double -> formatDouble(value, 1)
             is Float -> formatDouble(value.toDouble(), 1)
             is Number -> formatDouble(value.toDouble(), 1)
@@ -266,8 +302,7 @@ fun String.kmpFormat(vararg args: Any?): String {
 
     // 简单的 %.0f 替换
     if (result.contains("%.0f") && argIndex < args.size) {
-        val value = args[argIndex++]
-        val formatted = when (value) {
+        val formatted = when (val value = args[argIndex++]) {
             is Double -> formatDouble(value, 0)
             is Float -> formatDouble(value.toDouble(), 0)
             is Number -> formatDouble(value.toDouble(), 0)
@@ -534,10 +569,7 @@ enum class VariableType {
  * @return 处理后的变量名
  */
 fun toValidVariableName(
-    input: String,
-    type: VariableType = VariableType.CAMEL_CASE,
-    prefix: String = "",
-    suffix: String = ""
+    input: String, type: VariableType = VariableType.CAMEL_CASE, prefix: String = "", suffix: String = ""
 ): String {
     if (input.isBlank()) return ""
 
@@ -558,9 +590,7 @@ fun toValidVariableName(
     }
 
     // 3. 分词处理（按空格、下划线、中划线分割）
-    val words = result.split(Regex("[\\s_-]+"))
-        .filter { it.isNotBlank() }
-        .map { it.lowercase() }
+    val words = result.split(Regex("[\\s_-]+")).filter { it.isNotBlank() }.map { it.lowercase() }
 
     // 4. 根据类型格式化
     result = when (type) {
@@ -569,8 +599,7 @@ fun toValidVariableName(
         }
 
         VariableType.CAMEL_CASE -> {
-            words.first() + words.drop(1)
-                .joinToString("") { it.capitalize() }
+            words.first() + words.drop(1).joinToString("") { it.capitalize() }
         }
 
         VariableType.PASCAL_CASE -> {
@@ -626,8 +655,7 @@ fun String.toSnakeCase(prefix: String = "", suffix: String = "") =
 fun String.toKebabCase(prefix: String = "", suffix: String = "") =
     toValidVariableName(this, VariableType.KEBAB_CASE, prefix, suffix)
 
-fun String.capitalize() =
-    replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
 /**
  * 获取字符串长度
