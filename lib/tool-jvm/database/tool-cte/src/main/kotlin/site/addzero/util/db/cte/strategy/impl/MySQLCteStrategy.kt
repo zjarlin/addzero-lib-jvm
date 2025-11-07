@@ -28,7 +28,8 @@ class MySQLCteStrategy : CteStrategy {
                     t.*,
                     0 as tree_depth,
                     'down' as tree_direction,
-                    CAST(t.${id} AS CHAR(1000)) as tree_path
+                    CAST(t.${id} AS CHAR(1000)) as tree_path,
+                    CAST(CONCAT(',', t.${id}, ',') AS CHAR(2000)) as cycle_detection_path
                 FROM ${tableName} t
                 ${customSqlSegment} 
                 
@@ -38,9 +39,12 @@ class MySQLCteStrategy : CteStrategy {
                     t.*,
                     rd.tree_depth + 1,
                     'down',
-                    CONCAT(rd.tree_path, ',', t.${id})
+                    CONCAT(rd.tree_path, ',', t.${id}),
+                    CONCAT(rd.cycle_detection_path, t.${id}, ',')
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
+                WHERE NOT FIND_IN_SET(t.${id}, rd.cycle_detection_path)
+                  AND rd.tree_depth < 100
             ),
             
             recursive_data_up AS (
@@ -48,7 +52,8 @@ class MySQLCteStrategy : CteStrategy {
                     t.*,
                     0 as tree_depth,
                     'up' as tree_direction,
-                    CAST(t.${id} AS CHAR(1000)) as tree_path
+                    CAST(t.${id} AS CHAR(1000)) as tree_path,
+                    CAST(CONCAT(',', t.${id}, ',') AS CHAR(2000)) as cycle_detection_path
                 FROM ${tableName} t
                 ${customSqlSegment}  
                 
@@ -58,9 +63,12 @@ class MySQLCteStrategy : CteStrategy {
                     t.*,
                     ru.tree_depth + 1,
                     'up',
-                    CONCAT(t.${id}, ',', ru.tree_path)
+                    CONCAT(t.${id}, ',', ru.tree_path),
+                    CONCAT(t.${id}, ',', ru.cycle_detection_path)
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
+                WHERE NOT FIND_IN_SET(t.${id}, ru.cycle_detection_path)
+                  AND ru.tree_depth < 100
             ),
             
             combined_data AS (
