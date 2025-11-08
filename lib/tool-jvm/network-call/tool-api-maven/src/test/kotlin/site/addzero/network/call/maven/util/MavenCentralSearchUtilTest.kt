@@ -30,7 +30,8 @@ class MavenCentralSearchUtilTest {
     }
     @Test
     fun `search by ati`(): Unit {
-        val searchByArtifactId = MavenCentralSearchUtil.searchByArtifactId("tool-api-maven", 5)
+//        val searchByArtifactId = MavenCentralSearchUtil.searchByArtifactId("tool-api-maven", 5)
+        val searchByArtifactId1= MavenCentralSearchUtil.searchByArtifactId ("mybatis-auto-wrapper", 5)
         println()
 
     }

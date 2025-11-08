@@ -1,10 +1,12 @@
+
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 dependencies {
 //    implementation(libs.hutool.all)
     compileOnly("com.baomidou:mybatis-plus:${libs.versions.mybatisPlus.get()}")
-    implementation(projects.lib.toolJvm.database.mybatisAutoWrapper)
+    implementation("site.addzero:mybatis-auto-wrapper:${libs.versions.mybatisAutoWrapper.get()}")
+//    implementation("site.addzero:mybatis-auto-wrapper:+")
     implementation(projects.lib.toolJvm.toolSpring)
     implementation(libs.hutool.core)
 //    compileOnly(projects.)
