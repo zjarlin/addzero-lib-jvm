@@ -30,3 +30,6 @@ captures
 /checkouts.bin
 /.intellijPlatform
 /kotlin-js-store
+
+# Ignore Gradle file system probe in all directories
+**/file-system.probe

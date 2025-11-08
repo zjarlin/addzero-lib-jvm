@@ -165,8 +165,8 @@ fun String.containsAnyIgnoreCase(vararg substrings: String): Boolean {
 }
 
 fun String.toBigCamelCase(): String {
-    return this.split("_").joinToString("") { char: String ->
-        char.replaceFirstChar { c: Char -> c.uppercase() }
+    return this.split("_").joinToString("") {
+        it.replaceFirstChar { it.uppercase() }
     }
 }
 
@@ -174,9 +174,9 @@ fun String.toBigCamelCase(): String {
  * 将列名转换为驼峰命名
  */
 fun String.toLowCamelCase(): String {
-    return this.split("_").joinToString("") { char: String ->
-        char.replaceFirstChar { c: Char -> c.uppercase() }
-    }.replaceFirstChar { it: Char -> it.lowercase() }
+    return this.split("_").joinToString("") {
+        it.replaceFirstChar { c -> c.uppercase() }
+    }.replaceFirstChar { it -> it.lowercase() }
 }
 
 infix fun String.ignoreCaseLike(other: String): Boolean {
@@ -217,22 +217,17 @@ fun String.withFileSuffix(suffix: String = ".kt"): String {
 /**
  * 从字符序列中移除所有指定的字符串片段
  *
- * @param str 原字符序列
  * @param stringsToRemove 要移除的字符串片段
  * @return 移除指定字符串片段后的新字符串
  */
-fun removeAny(str: CharSequence?, vararg stringsToRemove: String): String {
-    if (str == null) return ""
+fun CharSequence?.removeAny(vararg stringsToRemove: String): String {
+    if (this == null) return ""
 
-    var result = str.toString()
+    var result = this.toString()
     for (toRemove in stringsToRemove) {
         result = result.replace(toRemove, "")
     }
     return result
-}
-
-fun CharSequence?.removeAny(vararg stringsToRemove: String): String {
-    return removeAny(this, *stringsToRemove)
 }
 
 
@@ -240,7 +235,7 @@ fun CharSequence.removeAnyQuote(): String {
     if (this.isBlank()) {
         return ""
     }
-    return removeAny(this, "\"", "\\")
+    return this.removeAny("\"", "\\")
 }
 
 
@@ -250,7 +245,7 @@ fun CharSequence.removeAnyQuote(): String {
  * @return [String]
  */
 fun CharSequence.removeBlankOrQuotation(): String {
-    return removeAny(this, " ", "\"")
+    return this.removeAny(" ", "\"")
 }
 
 
@@ -750,5 +745,6 @@ fun extractTextBetweenPTags(input: String?): List<String> {
     // 提取所有匹配的内容
     return regex.findAll(input).map { it.groupValues[1] }.toList()
 }
+
 
 

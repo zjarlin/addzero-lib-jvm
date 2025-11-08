@@ -1,6 +1,8 @@
 package site.addzero.util.str
 
+import PinYin4JUtils
 import java.io.File
+
 /**
  * 优化表名
  * @param tableEnglishName
@@ -10,10 +12,10 @@ import java.io.File
 fun defaultTableEnglishName(tableEnglishName: String, tableChineseName: String?): String {
     var tableEnglishName = tableEnglishName
 
-    if (tableChineseName.isNotBlank()&&tableEnglishName.isBlank()) {
-        tableEnglishName=PinYin4JUtils.hanziToPinyin(tableChineseName!!,"_")
+    if (tableChineseName.isNotBlank() && tableEnglishName.isBlank()) {
+        tableEnglishName = PinYin4JUtils.hanziToPinyin(tableChineseName!!, "_")
     }
-    tableEnglishName = removeAny(tableEnglishName, "(", ")")
+    tableEnglishName = tableEnglishName.removeAny("(", ")")
     tableEnglishName = tableEnglishName.replace("\\((.*?)\\)".toRegex(), "") // 移除括号及其内容
     tableEnglishName = tableEnglishName.replace("(_{2,})".toRegex(), "_") // 移除连续的下划线
     return tableEnglishName
