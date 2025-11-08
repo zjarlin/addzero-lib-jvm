@@ -83,7 +83,6 @@ class MpUtil1<P>(private val ps: IService<P>) {
         }
 
         var b1 = false
-        val result = Result(b1, intersection)
         val intersectionSize = intersection.size
         val voSize = collection.size
 
@@ -101,7 +100,7 @@ class MpUtil1<P>(private val ps: IService<P>) {
 //            result = handleMerge(collection, intersection);
         }
 
-        val listListBooleanTriple = Triple(left, result.getValues(), b && result.getB1())
+        val listListBooleanTriple = Triple(left, intersection, b && b1)
         return listListBooleanTriple
     }
 
@@ -245,19 +244,6 @@ class MpUtil1<P>(private val ps: IService<P>) {
             count <= 0
         }.collect(Collectors.toSet())
         return collect
-    }
-
-    private class Result<P>(var b1: Boolean, var values: MutableList<P>) {
-        fun getB1(): Boolean = b1
-        fun setB1(b1: Boolean) {
-            this.b1 = b1
-        }
-
-        // Getter and setter methods for values
-        fun getValues(): MutableList<P> = values
-        fun setValues(values: MutableList<P>) {
-            this.values = values
-        }
     }
 
     companion object {
