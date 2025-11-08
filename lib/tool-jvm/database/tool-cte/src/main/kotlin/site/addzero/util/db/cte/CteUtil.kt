@@ -38,7 +38,7 @@ class CteUtil {
             actStrategy.generateRecursiveTreeQuerySql(tableName, id, pid, customSqlSegment, finalCustomSqlSegment)
         val queryForList = jdbcTemplate.queryForList(generateRecursiveTreeQuerySql)
         return queryForList
-    }
+     }
 
 
 }
