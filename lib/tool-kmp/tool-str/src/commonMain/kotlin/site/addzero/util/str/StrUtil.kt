@@ -687,14 +687,6 @@ fun CharSequence?.isNullOrEmpty(): Boolean {
     return this == null || this.isEmpty()
 }
 
-fun <T : Any> T?.isNull(): Boolean {
-    return this == null
-}
-
-fun <T : Any> T?.isNotNull(): Boolean {
-    return this != null
-}
-
 /**
  * 删除多余符号
  * @param [source]
@@ -746,5 +738,51 @@ fun extractTextBetweenPTags(input: String?): List<String> {
     return regex.findAll(input).map { it.groupValues[1] }.toList()
 }
 
+/**
+ * 清理文档注释，移除注释符号并格式化内容
+ * @param docComment 文档注释字符串
+ * @return 清理后的字符串
+ */
+
+fun cleanDocComment(docComment: String?): String {
+    if (docComment == null) return ""
+
+    // 使用正则表达式去除注释符号和多余空格
+    val trim = docComment.replace(Regex("""/\*\*?"""), "")  // 去除开头的 /* 或 /**
+        .replace(Regex("""\*"""), "")      // 去除行内的 *
+        .replace(Regex("""\*/"""), "")     // 去除结尾的 */
+        .replace(Regex("""/"""), "")     // 去除结尾的 */
+        .replace(Regex("""\n"""), " ")      // 将换行替换为空格
+        .replace(Regex("""\s+"""), " ")    // 合并多个空格为一个
+        .trim()
+
+    return trim                             // 去除首尾空格
+}
 
 
+/**
+ * 从字符串数组中找到第一个非空字符串
+ * @param strings 字符串数组
+ * @return 第一个非空字符串，如果都为空则返回空字符串
+ */
+fun firstNotBlank(vararg strings: String?): String {
+    return strings.firstOrNull { !it.isNullOrBlank() } ?: ""
+}
+
+/**
+ * 扩展函数：提取REST URL
+ */
+fun String?.getRestUrl(): String {
+    if (this.isNullOrBlank()) {
+        return ""
+    }
+    
+    val pattern = Regex(".*:\\d+(/[^/]+)(/.*)")
+    val matchResult = pattern.find(this)
+
+    return if (matchResult != null && matchResult.groupValues.size > 2) {
+        matchResult.groupValues[2]
+    } else {
+        ""
+    }
+}

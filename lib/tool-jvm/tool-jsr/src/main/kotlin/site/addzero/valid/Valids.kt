@@ -73,8 +73,6 @@ object Valids {
      * @since 2023/10/07
      */
     private fun <T> getCustomDes(item: T): List<Des> {
-
-
         val java = item!!::class.java
         val fieldInfosRecursive = MetaInfoUtils.getFieldInfosRecursive(java)
         fieldInfosRecursive.map {

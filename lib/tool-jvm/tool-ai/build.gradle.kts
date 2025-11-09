@@ -6,8 +6,9 @@ dependencies{
    implementation(libs.hutool.core)
     implementation(libs.hutool.http)
     implementation(libs.fastjson2.kotlin)
-//    implementation("site.addzero:tool-str:${libs.versions.addzero.lib.get()}")
-//    implementation("site.addzero:tool-jvmstr:${libs.versions.addzero.lib.get()}")
-    implementation(projects.lib.toolJvm.toolJvmstr)
-    implementation(projects.lib.toolJvm.toolReflection)
+    implementation("site.addzero:tool-str:${libs.versions.addzero.lib1.get()}")
+    implementation("site.addzero:tool-jvmstr:${libs.versions.addzero.lib1.get()}")
+//    implementation(projects.lib.toolJvm.toolJvmstr)
+    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
+//    implementation(project(":lib:tool-kmp:tool-str"))
 }

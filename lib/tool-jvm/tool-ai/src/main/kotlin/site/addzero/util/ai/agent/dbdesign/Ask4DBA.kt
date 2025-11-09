@@ -3,7 +3,6 @@ import site.addzero.util.ai.invoker.AiUtil
 import com.alibaba.fastjson2.parseObject
 import site.addzero.util.ai.consts.Promts.DBA
 import site.addzero.util.ai.inter.SettingContext
-import site.addzero.util.str.isNull
 
 
 data class Qwendto(
@@ -27,7 +26,7 @@ fun quesDba(question: String, settingContext: SettingContext): FormDTO? {
         val dbask = init.ask(FormDTO::class.java)
         val parseObject1 = dbask.parseObject<FormDTO>()
 
-        if (parseObject1.isNull()&&dbask.isNotBlank()) {
+        if (parseObject1==null&&dbask.isNotBlank()) {
             throw RuntimeException("解析出错了但AI原始回答Json为：$dbask")
         }
 
