@@ -1,5 +1,7 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.graalvm-convention")
+    application
 }
 
 dependencies {
@@ -11,4 +13,9 @@ dependencies {
     implementation(projects.lib.toolJvm.toolYml)
     implementation("org.apache.velocity:velocity-engine-core:2.3")
     implementation("mysql:mysql-connector-java:8.0.33")
+    implementation(projects.lib.toolJvm.toolCliRepl)
+}
+
+application {
+    mainClass.set("site.addzero.lib_adaptor.MpGenCliKt")
 }

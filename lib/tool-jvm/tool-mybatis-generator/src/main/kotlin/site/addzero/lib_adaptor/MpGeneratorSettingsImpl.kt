@@ -1,10 +1,24 @@
 package site.addzero.lib_adaptor
 
+import cn.hutool.core.io.FileUtil
 import site.addzero.inter.MpGeneratorSettings
+import java.io.File
+import java.util.Properties
 
 class MpGeneratorSettingsImpl : MpGeneratorSettings {
     override val resourcePath: String
-        get() = "C:\\Users\\wang\\IdeaProjects\\producttrace-master\\zlj-admin\\src\\main\\resources"
+        get() {
+            val properties = Properties().apply {
+                this::class.java.classLoader.getResourceAsStream("generator.properties")?.use {
+                    load(it)
+                }
+            }
+            val projectRoot = properties.getProperty("project.root") ?: throw RuntimeException("请配置项目根目录")
+            val module = properties.getProperty("project.module") ?: throw RuntimeException("请配置项目模块目录")
+            val file = FileUtil.file(projectRoot, module, "src", "main", "resources")
+            val absolutePath = file.absolutePath
+            return absolutePath
+        }
     override val authName: String
         get() = "zjarlin"
     override val velocityContextMap: Map<String, Any>
