@@ -1,6 +1,7 @@
 package site.addzero.util
 
 import site.addzero.util.YmlUtil.getActivateBydir
+import site.addzero.util.YmlUtil.replaceEnvInString
 import java.io.File
 
 class SpringYmlUtil(val customPath: String?) {
@@ -40,7 +41,10 @@ class SpringYmlUtil(val customPath: String?) {
     fun getActivateYmlPropertiesString(pas: String): String? {
         val activateYml = getActivateYml()
         val configValue = YmlUtil.getConfigValue<String>(activateYml, pas)
-        return configValue
+                      val replaceEnvInString = configValue.replaceEnvInString("")
+
+       return replaceEnvInString
+//        return configValue
     }
 
 

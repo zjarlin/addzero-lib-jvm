@@ -8,5 +8,5 @@ dependencies {
     compileOnly("org.springframework:spring-jdbc:5.3.21")
     compileOnly("org.springframework:spring-context:5.3.21")
 //    implementation(libs.hutool.all)
-    api(projects.lib.toolJvm.database.toolDatabaseModel)
+    api("site.addzero:tool-database-model:0.0.673")
 }

@@ -42,6 +42,7 @@ object YmlUtil {
     fun getActivateBydir(dir: String): String {
         val loadYmlConfigMap = loadYmlConfigMap(dir)
         val configValue = getConfigValue<String>(loadYmlConfigMap, "spring.profiles.active")
+
         return configValue ?: "dev"
     }
 
