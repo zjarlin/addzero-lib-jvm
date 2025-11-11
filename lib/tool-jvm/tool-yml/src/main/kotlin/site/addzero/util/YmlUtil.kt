@@ -1,5 +1,6 @@
 package site.addzero.util
 
+import cn.hutool.core.io.FileUtil
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import kotlin.io.path.Path
@@ -29,7 +30,8 @@ object YmlUtil {
 
 
     fun <T> loadYmlConfig(dir: String): T {
-        val inputStream = File(dir).inputStream()
+        val inputStream = FileUtil.file(dir).inputStream()
+
         val config = yaml.load<T>(inputStream)
         return config
     }

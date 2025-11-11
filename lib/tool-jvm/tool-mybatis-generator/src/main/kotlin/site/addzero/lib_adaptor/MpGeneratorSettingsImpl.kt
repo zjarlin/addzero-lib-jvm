@@ -8,13 +8,15 @@ import java.util.Properties
 class MpGeneratorSettingsImpl : MpGeneratorSettings {
     override val resourcePath: String
         get() {
+            val resourceAsStream = this::class.java.classLoader.getResourceAsStream("generator.properties")
+
             val properties = Properties().apply {
-                this::class.java.classLoader.getResourceAsStream("generator.properties")?.use {
+                resourceAsStream?.use {
                     load(it)
                 }
             }
             val projectRoot = properties.getProperty("project.root") ?: throw RuntimeException("请配置项目根目录")
-            val module = properties.getProperty("project.module") ?: throw RuntimeException("请配置项目模块目录")
+            val module = properties.getProperty("project.yml.module") ?: throw RuntimeException("请配置项目模块目录")
             val file = FileUtil.file(projectRoot, module, "src", "main", "resources")
             val absolutePath = file.absolutePath
             return absolutePath

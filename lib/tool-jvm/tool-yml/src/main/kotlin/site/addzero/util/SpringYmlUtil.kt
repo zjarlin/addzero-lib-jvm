@@ -1,18 +1,19 @@
 package site.addzero.util
 
+import cn.hutool.core.io.FileUtil
 import site.addzero.util.YmlUtil.getActivateBydir
 import site.addzero.util.YmlUtil.replaceEnvInString
 import java.io.File
 
 class SpringYmlUtil(val customPath: String?) {
     val actPath by lazy {
-        if (customPath != null && File(customPath).exists()) {
+        if (customPath != null && FileUtil.file(customPath).exists()) {
             customPath
         } else {
             // 使用默认的resources目录路径
             val resource = Thread.currentThread().contextClassLoader.getResource("")
                 ?: throw IllegalStateException("无法找到resources目录")
-            File(resource.toURI()).absolutePath
+            FileUtil.file(resource.toURI()).absolutePath
         }
     }
 
@@ -23,7 +24,8 @@ class SpringYmlUtil(val customPath: String?) {
         return file.readText()
     }
 
-    private fun getResource(resourceName: String): File = File(actPath, resourceName)
+    private fun getResource(resourceName: String): File =
+        FileUtil.file( actPath, resourceName)
 
 
     fun getActivateYml(): Map<String, Any> {

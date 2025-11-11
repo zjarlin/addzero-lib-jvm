@@ -4,6 +4,7 @@ plugins {
 }
 dependencies {
     implementation(libs.snakeyaml)
+    implementation(libs.hutool.core)
 
 }
 
