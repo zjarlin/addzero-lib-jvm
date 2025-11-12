@@ -12,7 +12,7 @@ dependencies {
     implementation("com.baomidou:mybatis-plus-core:3.5.3.1")
     implementation("org.apache.velocity:velocity-engine-core:2.3")
     implementation("mysql:mysql-connector-java:8.0.33")
-    implementation("site.addzero:tool-tool-yml:+")
+    implementation("site.addzero:tool-yml:+")
     implementation("site.addzero:tool-cli-repl:+")
 }
 

@@ -9,16 +9,17 @@ plugins {
     id("site.addzero.repo-buddy") version "+"
 //    id("site.addzero.modules-buddy") version "0.0.652"
 
-    id("io.gitee.zjarlin.auto-modules") version "0.0.608"
+//    id("io.gitee.zjarlin.auto-modules") version "0.0.608"
     id("me.champeau.includegit") version "+"
 }
 
 val bdlogic = "build-logic"
 val jvmstable = "addzero-lib-jvm-stable"
 
-autoModules {
-    excludeModules = listOf(bdlogic, jvmstable)
-}
+include(":lib:tool-jvm:tool-mybatis-generator")
+//autoModules {
+//    excludeModules = listOf(bdlogic, jvmstable)
+//}
 includeBuild("checkouts/$bdlogic")
 
 
