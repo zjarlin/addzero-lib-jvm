@@ -7,8 +7,12 @@ fun main(args: Array<String>) {
     val outputPath = getGenDir()
     val mpGenerator = MpGenerator(MpGeneratorSettingsImpl())
     val genList = arrayOf(
-        "iot_device_connection",
-        "iot_function_definition"
+//        "iot_product_device_access",
+        "iot_industrial_protocol",
+//        "iot_product_connection_param_act",
+//        "iot_product_connection_param"
+//        "iot_device_connection",
+//        "iot_function_definition"
 //        "iot_energy_type"
 //       "iot_device_emission_source"
 //        "iot_action_metadata",
