@@ -2,24 +2,15 @@ package site.addzero.lib_adaptor
 
 import cn.hutool.core.io.FileUtil
 import site.addzero.inter.MpGeneratorSettings
-import java.io.File
-import java.util.Properties
+import site.addzero.util.PropertyUtil
 
 class MpGeneratorSettingsImpl : MpGeneratorSettings {
     override val resourcePath: String
         get() {
-            val resourceAsStream = this::class.java.classLoader.getResourceAsStream("generator.properties")
-
-            val properties = Properties().apply {
-                resourceAsStream?.use {
-                    load(it)
-                }
-            }
-            val projectRoot = properties.getProperty("project.root") ?: throw RuntimeException("请配置项目根目录")
-            val module = properties.getProperty("project.yml.module") ?: throw RuntimeException("请配置项目模块目录")
+            val projectRoot = PropertyUtil.getProperty("generator.properties", "project.root")
+            val module = PropertyUtil.getProperty("generator.properties", "project.yml.module")
             val file = FileUtil.file(projectRoot, module, "src", "main", "resources")
-            val absolutePath = file.absolutePath
-            return absolutePath
+            return file.absolutePath
         }
     override val authName: String
         get() = "zjarlin"
@@ -40,4 +31,3 @@ class MpGeneratorSettingsImpl : MpGeneratorSettings {
     override val passwordYmlPath: String
         get() = "spring.datasource.druid.master.password"
 }
-

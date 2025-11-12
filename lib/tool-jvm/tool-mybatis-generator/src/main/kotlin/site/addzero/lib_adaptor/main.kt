@@ -2,6 +2,7 @@ package site.addzero.lib_adaptor
 
 import cn.hutool.core.io.FileUtil
 import site.addzero.util.MpGenerator
+import site.addzero.util.PropertyUtil
 
 fun main(args: Array<String>) {
     val outputPath = getGenDir()
@@ -9,7 +10,7 @@ fun main(args: Array<String>) {
     val genList = arrayOf(
 //        "iot_product_device_access",
 
-       "iot_tag_definition",
+        "iot_tag_definition",
 //        "iot_industrial_protocol",
 //        "iot_product_connection_param_act",
 //        "iot_product_connection_param"
@@ -45,12 +46,9 @@ fun main(args: Array<String>) {
 
 }
 
-private fun getGenDir(): String {
-    // 使用相对路径，基于项目根目录
-//    val projectRoot = System.getProperty("user.dir")
-    val projectRoot = "C:\\Users\\wang\\IdeaProjects\\producttrace-master"
-    // 获取项目根目录的父目录，然后定位到zlj-iot模块
-    val file = FileUtil.file(projectRoot, "zlj-iot", "src", "main", "java")
-    val outputPath = file.getAbsolutePath()
-    return outputPath?: throw RuntimeException("请配置生成路径连接信息")
+fun getGenDir(): String {
+    val projectRoot = PropertyUtil.getProperty("generator.properties", "project.root")
+    val module = PropertyUtil.getProperty("generator.properties", "project.module")
+    val file = FileUtil.file(projectRoot, module, "src", "main", "java")
+    return file.absolutePath
 }

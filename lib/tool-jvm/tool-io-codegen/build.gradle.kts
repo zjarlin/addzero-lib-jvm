@@ -1,7 +1,6 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
-//    id("kmp-json")
 }
 dependencies {
-//    implementation(project(":lib:tool-kmp:tool-str"))
+    implementation(project(":lib:tool-kmp:tool-str"))
 }

@@ -4,7 +4,7 @@ import cn.hutool.core.io.FileUtil
 import site.addzero.app.AdvancedRepl
 import site.addzero.app.ParamDef
 import site.addzero.util.MpGenerator
-import java.util.*
+import site.addzero.util.PropertyUtil
 
 /**
  * MyBatis Plus代码生成器REPL命令
@@ -29,14 +29,10 @@ class MpGenRepl : AdvancedRepl<MpGenRepl.MpGenParams, String> {
 
     override fun eval(params: MpGenParams): String {
         try {
-            val properties = Properties().apply {
-                this::class.java.classLoader.getResourceAsStream("generator.properties")?.use {
-                    load(it)
-                }
-            }
-            val projectRoot = properties.getProperty("project.root") ?: throw RuntimeException("请配置项目根目录")
-            val module = properties.getProperty("project.module") ?: throw RuntimeException("请配置项目模块目录")
-            val pkg = properties.getProperty("project.package") ?: throw RuntimeException("请配置项目包路径")
+            val configFile = "generator.properties"
+            val projectRoot = PropertyUtil.getProperty(configFile, "project.root")
+            val module = PropertyUtil.getProperty(configFile, "project.module")
+            val pkg = PropertyUtil.getProperty(configFile, "project.package")
 
 
             val outputPath = getGenDir(projectRoot, module)
@@ -46,7 +42,7 @@ class MpGenRepl : AdvancedRepl<MpGenRepl.MpGenParams, String> {
                 params.tables.split(",").map { it.trim() }.toTypedArray()
             } else {
                 // 从配置文件读取表列表
-                properties.getProperty("generator.tables")?.split(",")?.map { it.trim() }?.toTypedArray()
+                PropertyUtil.getPropertyOrNull(configFile, "generator.tables")?.split(",")?.map { it.trim() }?.toTypedArray()
                     ?: arrayOf()
             }
 

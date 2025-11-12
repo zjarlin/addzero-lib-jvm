@@ -162,9 +162,9 @@ object TomlUtils {
 
         val mergedVersions = allDtos.flatMap { it.versions ?: emptyList() }.distinctBy { it.versionRef }.sortedBy { it.versionRef }
 
-        val mergedLibraries = allDtos.flatMap { it.libraries ?: emptyList() }.groupBy { it.group to it.name }.map { it.value.last() }     .sortedWith(compareBy({ it.group }, { it.name }))
+        val mergedLibraries = allDtos.flatMap { it.libraries ?: emptyList() }.groupBy { it.group to it.name }.map { it.value.last() }.sortedWith(compareBy({ it.group }, { it.name }))
 
-        val mergedPlugins = allDtos.flatMap { it.plugins ?: emptyList() }.distinctBy { it.id }.sortedBy {it. id }
+        val mergedPlugins = allDtos.flatMap { it.plugins ?: emptyList() }.distinctBy { it.id }.sortedBy { it.id }
 
         val mergedBundles = allDtos.flatMap { it.bundles ?: emptyList() }.distinctBy { it.key }.sortedBy { it.key }
 

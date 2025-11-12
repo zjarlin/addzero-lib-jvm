@@ -5,7 +5,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object AddFileUtil {
+object IoUtil {
     /**
      * 将文件或目录从源路径移动到目标路径，并在原位置创建软链接
      * @param sourcePath 源路径（位置1）
