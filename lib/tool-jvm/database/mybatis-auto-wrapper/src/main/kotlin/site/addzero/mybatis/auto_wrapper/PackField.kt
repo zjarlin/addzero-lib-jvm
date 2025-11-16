@@ -10,8 +10,7 @@ internal abstract class PackField protected constructor(protected var field: Fie
         value: Any?,
         columnProcess: (Class<T>, String) -> R
     ): MutableList<ColumnInfo<T, R>> {
-        val declaredAnnotation = field.getDeclaredAnnotation(Where::class.java)
-        val toMutableList = ans.map {
+        val toMutableList = ans.filterNot { it.ignore }.map {
             val columnInfo = ColumnInfo(
                 symbol = it.value,
                 column = it.column.takeIf { it -> it.isNotEmpty() } ?: fieldName,

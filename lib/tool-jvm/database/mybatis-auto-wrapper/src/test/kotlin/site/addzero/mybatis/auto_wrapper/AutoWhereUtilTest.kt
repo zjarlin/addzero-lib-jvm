@@ -17,6 +17,25 @@ internal class AutoWhereUtilTest {
         var status: String? = null
     }
 
+    internal class IgnoreWhereDTO {
+        @Where(ignore = true)
+        var phone: String? = null
+
+        @Where
+        var name: String? = null
+    }
+
+    // 测试DTO - SpEL表达式处理
+    internal class UserSpelDTO {
+        @Where(condition = "#value != null && #value.length > 3")
+        var nickname: String? = null
+
+        @Where(value = "null", condition = "#dto.requireNull == true")
+        var deletedAt: String? = null
+
+        var requireNull: Boolean = false
+    }
+
 
     @Test
     fun testQueryByField_columnNameMapping() {
@@ -44,5 +63,49 @@ internal class AutoWhereUtilTest {
         val sqlSegment2 = wrapper2.sqlSegment
         println("场景3 - status有值: $sqlSegment2")
         Assertions.assertTrue(sqlSegment2.contains("status IS NOT NULL"), "应该包含 IS NOT NULL 条件")
+    }
+
+    @Test
+    fun testWhereIgnoreSkipCondition() {
+        val dto = IgnoreWhereDTO()
+        dto.phone = "123456789"
+        dto.name = "tester"
+        val wrapper = queryByField(IgnoreWhereDTO::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        Assertions.assertTrue(sqlSegment.contains("name ="), "未忽略字段应该生成查询条件")
+        Assertions.assertFalse(sqlSegment.contains("phone"), "ignore=true 的字段不应该生成查询条件")
+
+        val dtoOnlyIgnored = IgnoreWhereDTO()
+        dtoOnlyIgnored.phone = "123456789"
+        val wrapperOnlyIgnored = queryByField(IgnoreWhereDTO::class.java, dtoOnlyIgnored)
+        Assertions.assertTrue(wrapperOnlyIgnored.sqlSegment.isBlank(), "只有 ignore 字段时应不生成 SQL 片段")
+    }
+
+    @Test
+    fun testWhereSpelCondition() {
+        // 场景1：nickname 长度满足 SpEL 条件
+        val dto = UserSpelDTO()
+        dto.nickname = "tester"
+        val wrapper = queryByField(UserSpelDTO::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        println("SpEL 场景1 - nickname 合规: $sqlSegment")
+        Assertions.assertTrue(sqlSegment.contains("nickname ="), "SpEL 为 true 时应生成 nickname 条件")
+        Assertions.assertFalse(sqlSegment.contains("deleted_at"), "未触发 requireNull 不应生成 deleted_at 条件")
+
+        // 场景2：nickname 不满足 SpEL 条件
+        val dtoShort = UserSpelDTO()
+        dtoShort.nickname = "abc"
+        val wrapperShort = queryByField(UserSpelDTO::class.java, dtoShort)
+        val sqlSegmentShort = wrapperShort.sqlSegment
+        println("SpEL 场景2 - nickname 不合规: $sqlSegmentShort")
+        Assertions.assertFalse(sqlSegmentShort.contains("nickname ="), "SpEL 为 false 时不应生成 nickname 条件")
+
+        // 场景3：依赖 dto 字段的 SpEL 条件
+        val dtoNull = UserSpelDTO()
+        dtoNull.requireNull = true
+        val wrapperNull = queryByField(UserSpelDTO::class.java, dtoNull)
+        val sqlSegmentNull = wrapperNull.sqlSegment
+        println("SpEL 场景3 - requireNull 触发: $sqlSegmentNull")
+        Assertions.assertTrue(sqlSegmentNull.contains("deleted_at IS NULL"), "SpEL 依赖 dto 字段时应生成 IS NULL 条件")
     }
 }

@@ -11,8 +11,7 @@ dependencies {
 
 
     // SpEL 表达式支持
-//    implementation("org.springframework:spring-expression:6.1.14")
-//    implementation("org.springframework:spring-core:6.1.14")
+    implementation("org.springframework:spring-expression:6.1.14")
     implementation("site.addzero:tool-spel:2025.11.18")
 //    implementation("org.springframework:spring-core:6.1.14")
 }

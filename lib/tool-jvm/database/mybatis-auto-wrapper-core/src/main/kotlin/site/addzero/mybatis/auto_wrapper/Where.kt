@@ -23,6 +23,10 @@ annotation class Where(
      */
     val join: Boolean = false,
     /**
+     * 是否忽略该 Where 条件
+     */
+    val ignore: Boolean = false,
+    /**
      * SpEL 表达式，用于动态判断是否应用此条件
      * 表达式中可以使用以下变量：
      * - #value: 当前字段的值
