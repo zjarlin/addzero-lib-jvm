@@ -1,4 +1,4 @@
-package site.addzero.buildlogic.publish
+package site.addzero.buildlogic
 
 import site.addzero.gradle.PublishConventionExtension
 import site.addzero.util.createExtension
