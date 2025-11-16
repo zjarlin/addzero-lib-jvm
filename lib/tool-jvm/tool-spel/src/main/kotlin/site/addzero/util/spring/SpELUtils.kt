@@ -31,7 +31,7 @@ object SpELUtils {
         if (isBlank(expression)) {
             return null
         }
-        val parser: ExpressionParser = SpelExpressionParser()
+        val parser = SpelExpressionParser()
         val ctx = StandardEvaluationContext()
         ctx.setBeanResolver { _: EvaluationContext, beanName: String -> getBean(beanName) }
         ctx.setVariables(variables)

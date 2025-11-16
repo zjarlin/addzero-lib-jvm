@@ -10,7 +10,7 @@ dependencies {
     compileOnly("org.springframework:spring-web:5.3.21")
     compileOnly("org.springframework:spring-webmvc:5.3.21")
 
-    implementation(libs.hutool.all)
+    compileOnly(libs.hutool.all)
     implementation(libs.jackson.module.kotlin)
     compileOnly("javax.servlet:javax.servlet-api:4.0.1")
 }

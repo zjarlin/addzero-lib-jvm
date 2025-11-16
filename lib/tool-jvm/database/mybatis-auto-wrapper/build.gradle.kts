@@ -12,8 +12,8 @@ dependencies {
 
     // SpEL 表达式支持（保持兼容 JDK 8）
     compileOnly("org.springframework:spring-expression:5.3.39")
-//    implementation("site.addzero:tool-spel:2025.11.18")
-    implementation(projects.lib.toolJvm.toolSpel)
+    implementation("site.addzero:tool-spel:2025.11.19")
+//    implementation(projects.lib.toolJvm.toolSpel)
 //    implementation("org.springframework:spring-core:6.1.14")
 }
 //implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5")
