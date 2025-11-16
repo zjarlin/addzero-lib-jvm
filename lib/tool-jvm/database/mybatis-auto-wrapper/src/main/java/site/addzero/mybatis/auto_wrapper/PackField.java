@@ -1,5 +1,6 @@
 package site.addzero.mybatis.auto_wrapper;
 
+import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -358,6 +359,17 @@ class ColumnInfo<T, R> implements JoinAndNested<T, R> {
 
     @Override
     public boolean getCondition() {
+        // 对于 null 和 notNull 操作符，逻辑相反
+        if ("null".equals(symbol)) {
+            // null 操作符：当值为 null 时才生成 IS NULL 条件
+            return value == null;
+        }
+        if ("notNull".equals(symbol)) {
+            // notNull 操作符：当值不为 null 时才生成 IS NOT NULL 条件
+            return ObjUtil.isNotEmpty(value);
+        }
+
+        // 其他操作符：当值不为空时才生成条件
         if (value instanceof String) {
             return StringUtils.isNotBlank((String) value);
         }
