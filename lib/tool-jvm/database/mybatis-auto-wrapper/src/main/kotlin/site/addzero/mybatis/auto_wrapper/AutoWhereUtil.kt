@@ -16,17 +16,12 @@ private val columnProcessToSFunction: (Class<*>, String) -> SFunction<*, *> = { 
     val method = CreateSFunctionUtil.findMethodByColumnName(clazz, column)
     CreateSFunctionUtil.createSFunction(clazz, method)!!
 }
-
 private val columnProcessToString: (Class<*>, String) -> String = { _, column -> StringUtils.camelToUnderline(column)!! }
-
 private val packFieldPostProcessEqField: (Class<*>, Class<*>) -> MutableSet<Field> = { entityClass, dtoClazz ->
     val entityClassMap = getFieldsList(entityClass)
     val dtoClazzMap = getFieldsList(dtoClazz)
-
     dtoClazzMap.filterKeys { entityClassMap.containsKey(it) }.values.toMutableSet()
 }
-
-
 private val packFieldPostProcessEqFieldIgnoreId: (Class<*>, Class<*>) -> MutableSet<Field> = { entityClass, dtoClazz ->
     val entityClassMap = getFieldsList(entityClass)
     val dtoClazzMap = getFieldsList(dtoClazz)
@@ -35,29 +30,17 @@ private val packFieldPostProcessEqFieldIgnoreId: (Class<*>, Class<*>) -> Mutable
         entityClassMap.containsKey(it) && !StrUtil.equals(it, "id")
     }.values.toMutableSet()
 }
-
-
 private val packFieldPostProcessEmpty: (Class<*>, Class<*>) -> MutableSet<Field> = { _, _ -> mutableSetOf() }
-
 private fun getFieldsList(clazz: Class<*>): Map<String, Field> {
-    return generateSequence(clazz) { it.superclass }
-        .flatMap { ReflectUtil.getFields(it).asSequence() }
-        .associateBy { it.name }
+    return generateSequence(clazz) { it.superclass }.flatMap { ReflectUtil.getFields(it).asSequence() }.associateBy { it.name }
 }
 
 fun <T> lambdaQueryByAnnotation(clazz: Class<T>, dto: Any): LambdaQueryWrapper<T> {
-    @Suppress("UNCHECKED_CAST")
-    val columnProcess = columnProcessToSFunction as (Class<T>, String) -> SFunction<T, *>
+    @Suppress("UNCHECKED_CAST") val columnProcess = columnProcessToSFunction as (Class<T>, String) -> SFunction<T, *>
     return action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEmpty, columnProcess, dto)
 }
 
-private fun <T, R, W : AbstractWrapper<T, R, *>> action(
-    wrapper: W,
-    clazz: Class<T>,
-    packFieldPostProcess: (Class<*>, Class<*>) -> MutableSet<Field>,
-    columnProcess: (Class<T>, String) -> R,
-    dto: Any?
-): W {
+private fun <T, R, W : AbstractWrapper<T, R, *>> action(wrapper: W, clazz: Class<T>, packFieldPostProcess: (Class<*>, Class<*>) -> MutableSet<Field>, columnProcess: (Class<T>, String) -> R, dto: Any?): W {
     if (ObjUtil.isNull(dto)) {
         return wrapper
     }
@@ -75,19 +58,16 @@ private fun <T, R> goTo(clazz: Class<T>, wrapper: AbstractWrapper<T, R, *>, wher
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> lambdaQueryByField(clazz: Class<T>, dto: Any): LambdaQueryWrapper<T> {
-    @Suppress("UNCHECKED_CAST")
     val columnProcess = columnProcessToSFunction as (Class<T>, String) -> SFunction<T, *>
     return action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEqField, columnProcess, dto)!!
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> lambdaQueryByField(clazz: Class<T>, dto: Any, ignoreId: Boolean): LambdaQueryWrapper<T> {
-    @Suppress("UNCHECKED_CAST")
     val columnProcess = columnProcessToSFunction as (Class<T>, String) -> SFunction<T, *>
-    return (if (ignoreId)
-        action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEqFieldIgnoreId, columnProcess, dto)
-    else
-        action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEqField, columnProcess, dto))!!
+    return (if (ignoreId) action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEqFieldIgnoreId, columnProcess, dto) else action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEqField, columnProcess, dto))!!
 }
 
 
