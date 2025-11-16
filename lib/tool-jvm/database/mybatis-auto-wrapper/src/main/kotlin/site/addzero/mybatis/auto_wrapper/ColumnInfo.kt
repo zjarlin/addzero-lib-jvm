@@ -1,8 +1,10 @@
 package site.addzero.mybatis.auto_wrapper
 
 import cn.hutool.core.util.ObjUtil
+import cn.hutool.core.util.StrUtil
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
 import site.addzero.web.infra.spring.SpELUtils
+import java.lang.reflect.Array as JArray
 import java.lang.reflect.Field
 
 internal class ColumnInfo<T, R>(
@@ -60,11 +62,15 @@ internal class ColumnInfo<T, R>(
                 }
 
                 "in" -> {
-                    queryWrapper.`in`(columnInfo.condition, r, columnInfo.value as MutableCollection<*>)
+                    columnInfo.collectionValue()?.let { queryWrapper.`in`(columnInfo.condition, r, it) }
                 }
 
                 "notIn" -> {
-                    queryWrapper.notIn(columnInfo.condition, r, columnInfo.value as MutableCollection<*>)
+                    columnInfo.collectionValue()?.let { queryWrapper.notIn(columnInfo.condition, r, it) }
+                }
+
+                "findInSet" -> {
+                    queryWrapper.findInSet(columnInfo.condition, r, columnInfo)
                 }
 
                 "like" -> {
@@ -94,6 +100,53 @@ internal class ColumnInfo<T, R>(
                 else -> {}
             }
         }
+        
+        private fun <T, R, W : AbstractWrapper<T, R, W>> AbstractWrapper<T, R, W>.findInSet(condition: Boolean, r: R, columnInfo: ColumnInfo<T, R>) {
+            if (!condition) {
+                return
+            }
+            val candidates = columnInfo.collectionValue()
+                ?.mapNotNull { it?.toString()?.trim()?.takeIf { str -> str.isNotEmpty() } }
+                ?.takeIf { it.isNotEmpty() }
+                ?: return
 
+            val columnName = when (r) {
+                is String -> r
+                else -> columnInfo.column
+            }
+            val format = StrUtil.format("FIND_IN_SET({0}, {}) > 0", columnName)
+            this.and { inner ->
+                candidates.forEach { candidate ->
+                    inner.or { it.apply(format, candidate) }
+                }
+            }
+        }
+
+        private fun ColumnInfo<*, *>.collectionValue(): MutableCollection<*>? {
+            val currentValue = value ?: return null
+            val collection: MutableCollection<*> = when (currentValue) {
+                is MutableCollection<*> -> currentValue
+                is Collection<*> -> currentValue.toMutableList()
+                is Array<*> -> currentValue.toMutableList()
+                is BooleanArray -> currentValue.toList().toMutableList()
+                is ByteArray -> currentValue.toList().toMutableList()
+                is CharArray -> currentValue.toList().toMutableList()
+                is ShortArray -> currentValue.toList().toMutableList()
+                is IntArray -> currentValue.toList().toMutableList()
+                is LongArray -> currentValue.toList().toMutableList()
+                is FloatArray -> currentValue.toList().toMutableList()
+                is DoubleArray -> currentValue.toList().toMutableList()
+                is String -> currentValue.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toMutableList()
+                else -> {
+                    if (currentValue.javaClass.isArray) {
+                        val length = JArray.getLength(currentValue)
+                        MutableList(length) { index -> JArray.get(currentValue, index) }
+                    } else {
+                        return null
+                    }
+                }
+            }
+            return collection.takeIf { it.isNotEmpty() }
+        }
     }
 }

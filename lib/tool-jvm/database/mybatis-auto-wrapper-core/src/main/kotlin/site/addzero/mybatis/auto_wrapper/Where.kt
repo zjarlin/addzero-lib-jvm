@@ -11,7 +11,7 @@ package site.addzero.mybatis.auto_wrapper
 @JvmRepeatable(Wheres::class)
 annotation class Where(
     /**
-     * 查询操作符，如 =, !=, >, >=, <, <=, like, in, null, notNull 等
+     * 查询操作符，如 =, !=, >, >=, <, <=, like, in, null, notNull, findInSet 等
      */
     val value: String = "=",
     /**

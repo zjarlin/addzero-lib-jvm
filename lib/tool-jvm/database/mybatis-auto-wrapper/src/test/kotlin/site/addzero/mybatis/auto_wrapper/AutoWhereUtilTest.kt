@@ -36,6 +36,18 @@ internal class AutoWhereUtilTest {
         var requireNull: Boolean = false
     }
 
+    // 测试DTO - in/notIn & findInSet
+    internal class UserInDTO {
+        @Where(value = "in")
+        var categoryIds: String? = null
+
+        @Where(value = "notIn")
+        var excludeIds: String? = null
+
+        @Where(value = "findInSet")
+        var channels: String? = null
+    }
+
 
     @Test
     fun testQueryByField_columnNameMapping() {
@@ -107,5 +119,28 @@ internal class AutoWhereUtilTest {
         val sqlSegmentNull = wrapperNull.sqlSegment
         println("SpEL 场景3 - requireNull 触发: $sqlSegmentNull")
         Assertions.assertTrue(sqlSegmentNull.contains("deleted_at IS NULL"), "SpEL 依赖 dto 字段时应生成 IS NULL 条件")
+    }
+
+    @Test
+    fun testWhereInWithCommaSeparatedString() {
+        val dto = UserInDTO()
+        dto.categoryIds = "1,2, 3"
+        dto.excludeIds = "4,5"
+        val wrapper = queryByField(UserInDTO::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        println("IN 场景 - 逗号分隔: $sqlSegment")
+        Assertions.assertTrue(sqlSegment.contains("category_ids IN"), "逗号分隔字符串应被拆分成 IN 条件")
+        Assertions.assertTrue(sqlSegment.contains("exclude_ids NOT IN"), "逗号分隔字符串应被拆分成 NOT IN 条件")
+    }
+
+    @Test
+    fun testWhereFindInSetCondition() {
+        val dto = UserInDTO()
+        dto.channels = "wx, dy"
+        val wrapper = queryByField(UserInDTO::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        println("FIND_IN_SET 场景: $sqlSegment")
+        Assertions.assertTrue(sqlSegment.contains("FIND_IN_SET"), "findInSet 运算符应生成 FIND_IN_SET 语句")
+        Assertions.assertTrue(sqlSegment.contains("channel"), "findInSet 应作用于字段列")
     }
 }
