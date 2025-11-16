@@ -9,7 +9,6 @@ import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.lang.reflect.Method
-import java.util.*
 
 
 object CreateSFunctionUtil {
