@@ -35,7 +35,8 @@ class MavenCentralSearchUtilTest {
 //        val searchByArtifactId1= MavenCentralSearchUtil.searchByArtifactId ("tool-database-model", 5)
 
 
-        val searchByArtifactId2= MavenCentralSearchUtil.searchByArtifactId ("tool-coll", 5)
+//        val searchByArtifactId2= MavenCentralSearchUtil.searchByArtifactId ("tool-coll", 5)
+        val searchByArtifactId2= MavenCentralSearchUtil.searchByArtifactId ("mybatis-auto-wrapper", 5)
         println()
 
     }
