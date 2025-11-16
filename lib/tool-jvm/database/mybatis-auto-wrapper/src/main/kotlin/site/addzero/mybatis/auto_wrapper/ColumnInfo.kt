@@ -12,12 +12,20 @@ internal class ColumnInfo<T, R>(
 
     override val condition = if (spelCondition.isNullOrBlank()) {
         // 默认逻辑：对于 null 和 notNull 操作符，逻辑相反
-        if ("null" == symbol) {
-            // null 操作符：当值为 null 时才生成 IS NULL 条件
-            value == null
+        when (symbol) {
+            "null" -> {
+                // null 操作符：只有当值为 null 时才生成 IS NULL 条件
+                value == null
+            }
+            "notNull" -> {
+                // notNull 操作符：只有当值不为 null 时才生成 IS NOT NULL 条件
+                value != null
+            }
+            else -> {
+                // 其他操作符（=, !=, >, <, like等）：值不为空时才应用
+                ObjUtil.isNotEmpty(value)
+            }
         }
-        val notEmpty = ObjUtil.isNotEmpty(value)
-        notEmpty
     } else {
         val variables = HashMap<String, Any?>()
         variables["value"] = value
