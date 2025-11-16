@@ -1,8 +1,7 @@
-package site.addzero.web.infra.spring
+package site.addzero.util.spring
 
 import cn.hutool.core.text.CharSequenceUtil.isBlank
 import cn.hutool.extra.spring.SpringUtil.getBean
-import org.springframework.expression.BeanResolver
 import org.springframework.expression.EvaluationContext
 import org.springframework.expression.ExpressionParser
 import org.springframework.expression.spel.standard.SpelExpressionParser
@@ -21,23 +20,23 @@ object SpELUtils {
     }
 
     fun <T> evaluateExpression(rootObject: Any, expression: String, resultType: Class<T>?): T? {
-        return evaluateExpression<T>(rootObject, HashMap(), expression, resultType)
+        return evaluateExpression(rootObject, HashMap(), expression, resultType)
     }
 
-    fun <T> evaluateExpression(variables: MutableMap<String, Any>, expression: String, resultType: Class<T>?): T? {
+    fun <T> evaluateExpression(variables: MutableMap<String, Any?>, expression: String, resultType: Class<T>?): T? {
         return evaluateExpression(null, variables, expression, resultType)
     }
 
-    fun <T> evaluateExpression(rootObject: Any?, variables: MutableMap<String, Any>, expression: String, resultType: Class<T>?): T? {
+    fun <T> evaluateExpression(rootObject: Any?, variables: MutableMap<String, Any?>, expression: String, resultType: Class<T>?): T? {
         if (isBlank(expression)) {
             return null
         }
         val parser: ExpressionParser = SpelExpressionParser()
         val ctx = StandardEvaluationContext()
-        ctx.setBeanResolver(BeanResolver { context: EvaluationContext, beanName: String -> getBean(beanName) })
+        ctx.setBeanResolver { _: EvaluationContext, beanName: String -> getBean(beanName) }
         ctx.setVariables(variables)
         ctx.setRootObject(rootObject)
-        val obj = parser.parseExpression(expression).getValue<T>(ctx, resultType)
+        val obj = parser.parseExpression(expression).getValue(ctx, resultType)
         return obj
     }
 }

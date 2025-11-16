@@ -3,7 +3,7 @@ package site.addzero.mybatis.auto_wrapper
 import cn.hutool.core.util.ObjUtil
 import cn.hutool.core.util.StrUtil
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
-import site.addzero.web.infra.spring.SpELUtils
+import site.addzero.util.spring.SpELUtils
 import java.lang.reflect.Field
 import java.lang.reflect.Array as JArray
 
@@ -31,11 +31,12 @@ internal class ColumnInfo<T, R>(
             return@lazy false
         }
 
-        val variables = HashMap<String, Any?>()
-        variables["value"] = value
-        variables["field"] = field
-        variables["dto"] = dto
-        val conditionResult = SpELUtils.evaluateExpression(variables, conditionExpression!!, Boolean::class.java)
+        val variables = mutableMapOf(
+            "value" to value,
+            "field" to field,
+            "dto" to dto
+        )
+        val conditionResult = SpELUtils.evaluateExpression(variables , conditionExpression!!, Boolean::class.java)
         conditionResult == true
     }
 
