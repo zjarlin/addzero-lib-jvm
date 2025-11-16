@@ -27,7 +27,7 @@ internal class AutoWhereUtilTest {
 
     // 测试DTO - SpEL表达式处理
     internal class UserSpelDTO {
-        @Where(condition = "#value != null && #value.length > 3")
+        @Where(condition = "#value != null && #value.startsWith('test')")
         var nickname: String? = null
 
         @Where(value = "null", condition = "#dto.requireNull == true")

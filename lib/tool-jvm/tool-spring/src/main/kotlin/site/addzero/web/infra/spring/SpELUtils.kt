@@ -37,7 +37,7 @@ object SpELUtils {
         ctx.setBeanResolver(BeanResolver { context: EvaluationContext, beanName: String -> getBean(beanName) })
         ctx.setVariables(variables)
         ctx.setRootObject(rootObject)
-        val obj = parser.parseExpression(expression).getValue<T>(ctx, resultType)
+        val obj = parser.parseExpression(expression).getValue(ctx, resultType)
         return obj
     }
 }

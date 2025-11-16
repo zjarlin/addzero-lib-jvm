@@ -3,38 +3,44 @@ package site.addzero.mybatis.auto_wrapper
 import cn.hutool.core.util.ObjUtil
 import cn.hutool.core.util.StrUtil
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
+import org.springframework.expression.ExpressionException
 import site.addzero.web.infra.spring.SpELUtils
-import java.lang.reflect.Array as JArray
 import java.lang.reflect.Field
+import java.lang.reflect.Array as JArray
 
 internal class ColumnInfo<T, R>(
-    var symbol: String, var column: String, var value: Any?, var join: Boolean, var spelCondition: String?, var field: Field, var columnProcess: (Class<T>, String) -> R
+    var symbol: String,
+    var column: String,
+    var value: Any?,
+    var join: Boolean,
+    var conditionExpression: String?,
+    var field: Field,
+    var columnProcess: (Class<T>, String) -> R
 ) : JoinAndNested<T, R> {
     var dto: Any? = null
 
-    override val condition = if (spelCondition.isNullOrBlank()) {
-        // 默认逻辑：对于 null 和 notNull 操作符，逻辑相反
-        when (symbol) {
-            "null" -> {
-                // null 操作符：只有当值为 null 时才生成 IS NULL 条件
-                value == null
-            }
-            "notNull" -> {
-                // notNull 操作符：只有当值不为 null 时才生成 IS NOT NULL 条件
-                value != null
-            }
-            else -> {
-                // 其他操作符（=, !=, >, <, like等）：值不为空时才应用
-                ObjUtil.isNotEmpty(value)
+    override val condition: Boolean = run {
+
+        if (conditionExpression.isNullOrBlank()) {
+            return@run when (symbol) {
+                "null" -> value == null
+                "notNull" -> value != null
+                else -> ObjUtil.isNotEmpty(value)
             }
         }
-    } else {
+
         val variables = HashMap<String, Any?>()
         variables["value"] = value
         variables["field"] = field
         variables["dto"] = dto
-        val spelResult = SpELUtils.evaluateExpression(variables, spelCondition!!, Boolean::class.java)
-        spelResult == true
+
+        val bool = try {
+            val conditionResult = SpELUtils.evaluateExpression(variables, conditionExpression!!, Boolean::class.java)
+            conditionResult == true
+        } catch (_: ExpressionException) {
+            false
+        }
+        return@run bool
     }
 
     override fun process(clazz: Class<T>, wrapper: AbstractWrapper<T, R, *>) {
@@ -100,7 +106,7 @@ internal class ColumnInfo<T, R>(
                 else -> {}
             }
         }
-        
+
         private fun <T, R, W : AbstractWrapper<T, R, W>> AbstractWrapper<T, R, W>.findInSet(condition: Boolean, r: R, columnInfo: ColumnInfo<T, R>) {
             if (!condition) {
                 return

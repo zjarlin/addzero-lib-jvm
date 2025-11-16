@@ -16,7 +16,7 @@ internal abstract class PackField protected constructor(protected var field: Fie
                 column = it.column.takeIf { it -> it.isNotEmpty() } ?: fieldName,
                 value = value,
                 join = it.join,
-                spelCondition = it.condition,
+                conditionExpression = it.condition,
                 field = field,
                 columnProcess = columnProcess
             )
