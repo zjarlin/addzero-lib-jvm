@@ -10,7 +10,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.pinyin4j)
-            implementation("site.addzero:tool-io-codegen:${libs.versions.addzero.lib1.get()}")
+            implementation("site.addzero:tool-io-codegen:${libs.versions.addzero.lib674.get()}")
         }
     }
 }
