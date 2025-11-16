@@ -10,8 +10,9 @@ internal class WheresPackField(field: Field) : PackField(field) {
     override fun <T, R> getColumnInfoList(obj: Any?, columnProcess: (Class<T>, String) -> R): MutableList<ColumnInfo<T, R>> {
         val ans = this.an?.value ?: emptyArray()
         val value = ReflectUtil.getFieldValue(obj, field)
-        val createListColumnInfo = createListColumnInfo(ans, value, columnProcess)
-        return createListColumnInfo
+        val columnInfoList = createListColumnInfo(ans, value, columnProcess)
+        columnInfoList.forEach { it.dto = obj }
+        return columnInfoList
     }
 
     override fun getAnnotation(): Where? {

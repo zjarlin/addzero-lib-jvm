@@ -3,7 +3,6 @@ package site.addzero.mybatis.auto_wrapper
 import cn.hutool.core.util.ObjUtil
 import cn.hutool.core.util.StrUtil
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
-import org.springframework.expression.ExpressionException
 import site.addzero.web.infra.spring.SpELUtils
 import java.lang.reflect.Field
 import java.lang.reflect.Array as JArray
@@ -19,28 +18,25 @@ internal class ColumnInfo<T, R>(
 ) : JoinAndNested<T, R> {
     var dto: Any? = null
 
-    override val condition: Boolean = run {
-
+    override val condition: Boolean by lazy {
         if (conditionExpression.isNullOrBlank()) {
-            return@run when (symbol) {
+            return@lazy when (symbol) {
                 "null" -> value == null
                 "notNull" -> value != null
                 else -> ObjUtil.isNotEmpty(value)
             }
         }
 
+        if (dto == null) {
+            return@lazy false
+        }
+
         val variables = HashMap<String, Any?>()
         variables["value"] = value
         variables["field"] = field
         variables["dto"] = dto
-
-        val bool = try {
-            val conditionResult = SpELUtils.evaluateExpression(variables, conditionExpression!!, Boolean::class.java)
-            conditionResult == true
-        } catch (_: ExpressionException) {
-            false
-        }
-        return@run bool
+        val conditionResult = SpELUtils.evaluateExpression(variables, conditionExpression!!, Boolean::class.java)
+        conditionResult == true
     }
 
     override fun process(clazz: Class<T>, wrapper: AbstractWrapper<T, R, *>) {
