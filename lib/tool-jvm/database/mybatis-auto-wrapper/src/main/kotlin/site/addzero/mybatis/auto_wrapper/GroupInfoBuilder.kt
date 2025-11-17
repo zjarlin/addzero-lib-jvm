@@ -1,6 +1,7 @@
 package site.addzero.mybatis.auto_wrapper
 
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 internal class GroupInfoBuilder<T, R>(
     var clazz: Class<T>,
@@ -48,12 +49,20 @@ internal class GroupInfoBuilder<T, R>(
         dtoClazz: Class<*>
     ): List<PackField> {
         val packFields = mutableListOf<PackField>()
+        val hasCustomWhere = eqFields.any {
+            it.isAnnotationPresent(Wheres::class.java) || it.isAnnotationPresent(Where::class.java)
+        }
         eqFields.forEach { eqField ->
             try {
+                if (Modifier.isStatic(eqField.modifiers) || eqField.isSynthetic) {
+                    return@forEach
+                }
                 if (eqField.isAnnotationPresent(Wheres::class.java)) {
                     packFields.add(WheresPackField(eqField))
                 } else if (eqField.isAnnotationPresent(Where::class.java)) {
                     packFields.add(WherePackField(eqField))
+                } else if (!hasCustomWhere) {
+                    packFields.add(DefaultPackField(eqField))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

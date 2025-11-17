@@ -3,6 +3,7 @@ package site.addzero.mybatis.auto_wrapper
 import com.baomidou.mybatisplus.annotation.TableField
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import kotlin.test.assertTrue
 
 /**
  * 单元测试 - AutoWhereUtil
@@ -63,10 +64,9 @@ internal class AutoWhereUtilTest {
     fun testPro(): Unit {
         val dto = IotEventPropertyMapping()
         dto.propertyMetadataId = 1
-
-
         val wrapper = queryByField(IotEventPropertyMapping::class.java, dto)
         val sqlSegment = wrapper.sqlSegment
+        assertTrue { sqlSegment.isNotBlank() }
         println()
     }
 
