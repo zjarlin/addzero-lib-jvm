@@ -1,5 +1,5 @@
+@file:JvmName("AutoWhereUtil")
 package site.addzero.mybatis.auto_wrapper
-
 import cn.hutool.core.util.ObjUtil
 import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil

@@ -8,6 +8,7 @@ plugins {
 //    id("org.gradle.toolchains.foojay-resolver-convention") version "+"
     id("site.addzero.repo-buddy") version "+"
 //    id("site.addzero.modules-buddy") version "0.0.652"
+
     id("io.gitee.zjarlin.auto-modules") version "0.0.608"
     id("me.champeau.includegit") version "+"
 }
@@ -15,7 +16,10 @@ plugins {
 val bdlogic = "build-logic"
 val jvmstable = "addzero-lib-jvm-stable"
 
-include(":lib:tool-jvm:tool-mybatis-generator")
+//include(":lib:tool-jvm:tool-mybatis-generator")
+//include(":lib:tool-jvm:database:tool-cte")
+//lib/tool-jvm/database/tool-cte
+
 autoModules {
     excludeModules = listOf(bdlogic, jvmstable)
 }

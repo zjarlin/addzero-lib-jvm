@@ -15,11 +15,16 @@ class CteUtil {
 
     @Autowired
     private lateinit var ctes: List<CteStrategy>
+    fun actStrategy(databaseType: DatabaseType): CteStrategy {
+        val actStrategy =
+            ctes.firstOrNull { it.supports(databaseType) } ?: throw IllegalArgumentException("No CTE strategy found")
+        return actStrategy
+    }
 
     /**
      * 执行递归树查询
      */
-    fun recursiveTreeQuery(
+    fun recursiveTreeQuerySqlUp(
         tableName: String,
         id: String = "id",
         pid: String = "parent_id",
@@ -27,18 +32,50 @@ class CteUtil {
         cteWrapperContext: WrapperContext,
         combinedDataWrapperContext: WrapperContext,
     ): List<Map<String, Any?>> {
-        val actStrategy =
-            ctes.firstOrNull { it.supports(databaseType) } ?: throw IllegalArgumentException("No CTE strategy found")
         val customSqlSegment =
             parseWrapperSqlToString(cteWrapperContext.customSqlSegment, cteWrapperContext.paramNameValuePairs)
         val finalCustomSqlSegment = parseWrapperSqlToString(
-            combinedDataWrapperContext.customSqlSegment, combinedDataWrapperContext.paramNameValuePairs
+            combinedDataWrapperContext.customSqlSegment,
+            combinedDataWrapperContext.paramNameValuePairs
         )
-        val generateRecursiveTreeQuerySql =
-            actStrategy.generateRecursiveTreeQuerySql(tableName, id, pid, customSqlSegment, finalCustomSqlSegment)
+        val generateRecursiveTreeQuerySql = actStrategy(databaseType).generateRecursiveTreeQuerySqlUp(
+            tableName, id, pid,
+            customSqlSegment, finalCustomSqlSegment
+        )
         val queryForList = jdbcTemplate.queryForList(generateRecursiveTreeQuerySql)
         return queryForList
      }
+
+
+    /**
+     * 执行递归树查询
+     */
+    fun recursiveTreeQuerySqlUpAndDown(
+        tableName: String,
+        id: String = "id",
+        pid: String = "parent_id",
+        databaseType: DatabaseType = DatabaseType.MYSQL,
+        cteWrapperContext: WrapperContext,
+        combinedDataWrapperContext: WrapperContext,
+    ): List<Map<String, Any?>> {
+        val customSqlSegment =
+            parseWrapperSqlToString(cteWrapperContext.customSqlSegment, cteWrapperContext.paramNameValuePairs)
+        val finalCustomSqlSegment = parseWrapperSqlToString(
+            combinedDataWrapperContext.customSqlSegment,
+            combinedDataWrapperContext.paramNameValuePairs
+        )
+        val generateRecursiveTreeQuerySql = actStrategy(databaseType) .generateRecursiveTreeQuerySqlUpAndDown(
+            tableName,
+            id,
+            pid,
+            customSqlSegment,
+            finalCustomSqlSegment
+        )
+        val queryForList = jdbcTemplate.queryForList(generateRecursiveTreeQuerySql)
+        return queryForList
+    }
+
+
 
 
 }

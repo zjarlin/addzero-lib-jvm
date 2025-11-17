@@ -14,15 +14,67 @@ class KingbaseCteStrategy : CteStrategy {
         return databaseType == DatabaseType.KINGBASE
     }
 
-    override fun generateRecursiveTreeQuerySql(
+
+
+    override fun generateRecursiveTreeQuerySqlUp(
         tableName: String,
         id: String,
         pid: String,
         customSqlSegment: String,
         finalCustomSqlSegment: String
     ): String {
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        
         return """
             WITH RECURSIVE 
+            ${recursiveDataUp}
+            
+            SELECT *
+            FROM recursive_data_up
+            ${finalCustomSqlSegment}  
+            ORDER BY tree_depth;
+        """.trimIndent()
+    }
+
+    override fun generateRecursiveTreeQuerySqlUpAndDown(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String,
+        finalCustomSqlSegment: String
+    ): String {
+        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        
+        return """
+            WITH RECURSIVE 
+            ${recursiveDataDown},
+            
+            ${recursiveDataUp},
+            
+            combined_data AS (
+                SELECT * FROM recursive_data_up
+                UNION 
+                SELECT * FROM recursive_data_down
+            )
+            
+            SELECT *
+            FROM combined_data
+            ${finalCustomSqlSegment}  
+            ORDER BY tree_direction, tree_depth;
+        """.trimIndent()
+    }
+
+    /**
+     * 生成向下递归的CTE片段
+     */
+    private fun generateRecursiveDataDown(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String
+    ): String {
+        return """
             recursive_data_down AS (
                 SELECT 
                     t.*,
@@ -41,8 +93,20 @@ class KingbaseCteStrategy : CteStrategy {
                     rd.tree_path || ',' || CAST(t.${id} AS VARCHAR(1000))
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
-            ),
-            
+            )
+        """.trimIndent()
+    }
+
+    /**
+     * 生成向上递归的CTE片段
+     */
+    private fun generateRecursiveDataUp(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String
+    ): String {
+        return """
             recursive_data_up AS (
                 SELECT 
                     t.*,
@@ -61,18 +125,7 @@ class KingbaseCteStrategy : CteStrategy {
                     CAST(t.${id} AS VARCHAR(1000)) || ',' || ru.tree_path
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
-            ),
-            
-            combined_data AS (
-                SELECT * FROM recursive_data_up
-                UNION 
-                SELECT * FROM recursive_data_down
             )
-            
-            SELECT *
-            FROM combined_data
-            ${finalCustomSqlSegment}  
-            ORDER BY tree_direction, tree_depth;
         """.trimIndent()
     }
 }

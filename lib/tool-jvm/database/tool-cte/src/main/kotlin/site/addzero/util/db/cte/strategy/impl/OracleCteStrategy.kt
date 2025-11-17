@@ -14,15 +14,68 @@ class OracleCteStrategy : CteStrategy {
         return databaseType == DatabaseType.ORACLE
     }
 
-    override fun generateRecursiveTreeQuerySql(
+
+
+    override fun generateRecursiveTreeQuerySqlUp(
         tableName: String,
         id: String,
         pid: String,
         customSqlSegment: String,
         finalCustomSqlSegment: String
     ): String {
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        
         return """
-            WITH recursive_data_down (${id}, ${pid}, tree_depth, tree_direction, tree_path) AS (
+            WITH 
+            ${recursiveDataUp}
+            
+            SELECT *
+            FROM recursive_data_up
+            ${finalCustomSqlSegment}
+            ORDER BY tree_depth
+        """.trimIndent()
+    }
+
+    override fun generateRecursiveTreeQuerySqlUpAndDown(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String,
+        finalCustomSqlSegment: String
+    ): String {
+        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        
+        return """
+            WITH 
+            ${recursiveDataDown},
+            
+            ${recursiveDataUp},
+            
+            combined_data AS (
+                SELECT * FROM recursive_data_up
+                UNION ALL
+                SELECT * FROM recursive_data_down
+            )
+            
+            SELECT *
+            FROM combined_data
+            ${finalCustomSqlSegment}
+            ORDER BY tree_direction, tree_depth
+        """.trimIndent()
+    }
+
+    /**
+     * 生成向下递归的CTE片段
+     */
+    private fun generateRecursiveDataDown(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String
+    ): String {
+        return """
+            recursive_data_down (${id}, ${pid}, tree_depth, tree_direction, tree_path) AS (
                 SELECT 
                     t.${id},
                     t.${pid},
@@ -42,8 +95,20 @@ class OracleCteStrategy : CteStrategy {
                     rd.tree_path || ',' || TO_CHAR(t.${id})
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
-            ),
-            
+            )
+        """.trimIndent()
+    }
+
+    /**
+     * 生成向上递归的CTE片段
+     */
+    private fun generateRecursiveDataUp(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String
+    ): String {
+        return """
             recursive_data_up (${id}, ${pid}, tree_depth, tree_direction, tree_path) AS (
                 SELECT 
                     t.${id},
@@ -64,18 +129,7 @@ class OracleCteStrategy : CteStrategy {
                     TO_CHAR(t.${id}) || ',' || ru.tree_path
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
-            ),
-            
-            combined_data AS (
-                SELECT * FROM recursive_data_up
-                UNION ALL
-                SELECT * FROM recursive_data_down
             )
-            
-            SELECT *
-            FROM combined_data
-            ${finalCustomSqlSegment}
-            ORDER BY tree_direction, tree_depth
         """.trimIndent()
     }
 }

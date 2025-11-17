@@ -1,5 +1,6 @@
 package site.addzero.mybatis.auto_wrapper
 
+import com.baomidou.mybatisplus.annotation.TableField
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -7,6 +8,16 @@ import org.junit.jupiter.api.Test
  * 单元测试 - AutoWhereUtil
  */
 internal class AutoWhereUtilTest {
+
+   internal class IotEventPropertyMapping  {
+        @TableField("event_metadata_id")
+         val eventMetadataId: Long? = null
+
+        @TableField("property_metadata_id")
+        var propertyMetadataId: Long? = null
+    }
+
+
     // 测试DTO - 空值处理
     internal class UserNullDTO {
         @Where(value = "null")
@@ -46,6 +57,17 @@ internal class AutoWhereUtilTest {
 
         @Where(value = "findInSet")
         var channels: String? = null
+    }
+
+    @Test
+    fun testPro(): Unit {
+        val dto = IotEventPropertyMapping()
+        dto.propertyMetadataId = 1
+
+
+        val wrapper = queryByField(IotEventPropertyMapping::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        println()
     }
 
 

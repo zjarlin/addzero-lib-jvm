@@ -14,69 +14,118 @@ class DamengCteStrategy : CteStrategy {
         return databaseType == DatabaseType.DAMENG
     }
 
-    override fun generateRecursiveTreeQuerySql(
-        tableName: String, id: String, pid: String, customSqlSegment: String, finalCustomSqlSegment: String
+
+
+    override fun generateRecursiveTreeQuerySqlUp(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String,
+        finalCustomSqlSegment: String
     ): String {
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        
+        return """
+            WITH 
+            ${recursiveDataUp}
+            
+            SELECT *
+            FROM recursive_data_up
+            ${finalCustomSqlSegment}
+            ORDER BY tree_depth;
+        """.trimIndent()
+    }
 
-        val trimIndent = """
-       WITH 
-recursive_data_down AS (
-    SELECT 
-        t.*,
-        0 as tree_depth,
-        'down' as tree_direction,
-        CAST(t.${id} AS VARCHAR(1000)) as tree_path
-    FROM ${tableName} t
-    ${customSqlSegment}
-    
-    UNION ALL
-    
-    SELECT 
-        t.*,
-        rd.tree_depth + 1,
-        'down',
-        rd.tree_path || ',' || t.${id}
-    FROM ${tableName} t
-    INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
-),
+    override fun generateRecursiveTreeQuerySqlUpAndDown(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String,
+        finalCustomSqlSegment: String
+    ): String {
+        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        
+        return """
+            WITH 
+            ${recursiveDataDown},
+            
+            ${recursiveDataUp},
+            
+            combined_data AS (
+                SELECT * FROM recursive_data_up
+                UNION 
+                SELECT * FROM recursive_data_down
+            )
+            
+            SELECT *
+            FROM combined_data
+            ${finalCustomSqlSegment}
+            ORDER BY tree_direction, tree_depth;
+        """.trimIndent()
+    }
 
-recursive_data_up AS (
-    SELECT 
-        t.*,
-        0 as tree_depth,
-        'up' as tree_direction,
-        CAST(t.${id} AS VARCHAR(1000)) as tree_path
-    FROM ${tableName} t
-    ${customSqlSegment}
-    
-    UNION ALL
-    
-    SELECT 
-        t.*,
-        ru.tree_depth + 1,
-        'up',
-        t.${id} || ',' || ru.tree_path
-    FROM ${tableName} t
-    INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
-),
+    /**
+     * 生成向下递归的CTE片段
+     */
+    private fun generateRecursiveDataDown(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String
+    ): String {
+        return """
+            recursive_data_down AS (
+                SELECT 
+                    t.*,
+                    0 as tree_depth,
+                    'down' as tree_direction,
+                    CAST(t.${id} AS VARCHAR(1000)) as tree_path
+                FROM ${tableName} t
+                ${customSqlSegment}
+                
+                UNION ALL
+                
+                SELECT 
+                    t.*,
+                    rd.tree_depth + 1,
+                    'down',
+                    rd.tree_path || ',' || t.${id}
+                FROM ${tableName} t
+                INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
+            )
+        """.trimIndent()
+    }
 
-combined_data AS (
-    SELECT * FROM recursive_data_up
-    UNION 
-    SELECT * FROM recursive_data_down
-)
-
-SELECT *
-FROM combined_data
-${finalCustomSqlSegment}
-ORDER BY tree_direction, tree_depth;
-""".trimIndent()
-
-
-
-
-
-
-        return trimIndent
+    /**
+     * 生成向上递归的CTE片段
+     */
+    private fun generateRecursiveDataUp(
+        tableName: String,
+        id: String,
+        pid: String,
+        customSqlSegment: String
+    ): String {
+        return """
+            recursive_data_up AS (
+                SELECT 
+                    t.*,
+                    0 as tree_depth,
+                    'up' as tree_direction,
+                    CAST(t.${id} AS VARCHAR(1000)) as tree_path
+                FROM ${tableName} t
+                ${customSqlSegment}
+                
+                UNION ALL
+                
+                SELECT 
+                    t.*,
+                    ru.tree_depth + 1,
+                    'up',
+                    t.${id} || ',' || ru.tree_path
+                FROM ${tableName} t
+                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
+            )
+        """.trimIndent()
     }
 }
