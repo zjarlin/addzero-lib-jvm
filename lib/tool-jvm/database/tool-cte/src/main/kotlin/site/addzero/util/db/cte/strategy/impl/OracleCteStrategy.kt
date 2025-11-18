@@ -21,9 +21,11 @@ class OracleCteStrategy : CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
-        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
         return """
             WITH 
@@ -41,10 +43,12 @@ class OracleCteStrategy : CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
-        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment)
-        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
         return """
             WITH 
@@ -72,16 +76,30 @@ class OracleCteStrategy : CteStrategy {
         tableName: String,
         id: String,
         pid: String,
-        customSqlSegment: String
+        customSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
+        val breadcrumbField = breadcrumbColumn ?: id
+        val breadcrumbAnchor = if (returnBreadcrumb) {
+            "TO_CHAR(t.${breadcrumbField}) as tree_breadcrumb"
+        } else {
+            "CAST(NULL AS VARCHAR2(4000)) as tree_breadcrumb"
+        }
+        val breadcrumbRecursive = if (returnBreadcrumb) {
+            "rd.tree_breadcrumb || ',' || TO_CHAR(t.${breadcrumbField})"
+        } else {
+            "CAST(NULL AS VARCHAR2(4000))"
+        }
         return """
-            recursive_data_down (${id}, ${pid}, tree_depth, tree_direction, tree_path) AS (
+            recursive_data_down (${id}, ${pid}, tree_depth, tree_direction, tree_path, tree_breadcrumb) AS (
                 SELECT 
                     t.${id},
                     t.${pid},
                     0 as tree_depth,
                     'down' as tree_direction,
-                    TO_CHAR(t.${id}) as tree_path
+                    TO_CHAR(t.${id}) as tree_path,
+                    ${breadcrumbAnchor}
                 FROM ${tableName} t
                 ${customSqlSegment}
                 
@@ -92,7 +110,8 @@ class OracleCteStrategy : CteStrategy {
                     t.${pid},
                     rd.tree_depth + 1,
                     'down',
-                    rd.tree_path || ',' || TO_CHAR(t.${id})
+                    rd.tree_path || ',' || TO_CHAR(t.${id}),
+                    ${breadcrumbRecursive}
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
             )
@@ -106,16 +125,30 @@ class OracleCteStrategy : CteStrategy {
         tableName: String,
         id: String,
         pid: String,
-        customSqlSegment: String
+        customSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
+        val breadcrumbField = breadcrumbColumn ?: id
+        val breadcrumbAnchor = if (returnBreadcrumb) {
+            "TO_CHAR(t.${breadcrumbField}) as tree_breadcrumb"
+        } else {
+            "CAST(NULL AS VARCHAR2(4000)) as tree_breadcrumb"
+        }
+        val breadcrumbRecursive = if (returnBreadcrumb) {
+            "TO_CHAR(t.${breadcrumbField}) || ',' || ru.tree_breadcrumb"
+        } else {
+            "CAST(NULL AS VARCHAR2(4000))"
+        }
         return """
-            recursive_data_up (${id}, ${pid}, tree_depth, tree_direction, tree_path) AS (
+            recursive_data_up (${id}, ${pid}, tree_depth, tree_direction, tree_path, tree_breadcrumb) AS (
                 SELECT 
                     t.${id},
                     t.${pid},
                     0 as tree_depth,
                     'up' as tree_direction,
-                    TO_CHAR(t.${id}) as tree_path
+                    TO_CHAR(t.${id}) as tree_path,
+                    ${breadcrumbAnchor}
                 FROM ${tableName} t
                 ${customSqlSegment}
                 
@@ -126,7 +159,8 @@ class OracleCteStrategy : CteStrategy {
                     t.${pid},
                     ru.tree_depth + 1,
                     'up',
-                    TO_CHAR(t.${id}) || ',' || ru.tree_path
+                    TO_CHAR(t.${id}) || ',' || ru.tree_path,
+                    ${breadcrumbRecursive}
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
             )

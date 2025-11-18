@@ -20,9 +20,19 @@ interface CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean = true,
+        breadcrumbColumn: String? = null
     ): String {
-        return generateRecursiveTreeQuerySqlUpAndDown(tableName, id, pid, customSqlSegment, finalCustomSqlSegment)
+        return generateRecursiveTreeQuerySqlUpAndDown(
+            tableName,
+            id,
+            pid,
+            customSqlSegment,
+            finalCustomSqlSegment,
+            returnBreadcrumb,
+            breadcrumbColumn
+        )
     }
 
     /**
@@ -33,7 +43,9 @@ interface CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean = true,
+        breadcrumbColumn: String? = null
     ): String
 
     /**
@@ -44,6 +56,8 @@ interface CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean = true,
+        breadcrumbColumn: String? = null
     ): String
 }

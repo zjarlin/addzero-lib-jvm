@@ -21,9 +21,12 @@ class DamengCteStrategy : CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
-        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        val recursiveDataUp =
+            generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
         return """
             WITH 
@@ -41,10 +44,14 @@ class DamengCteStrategy : CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
-        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment)
-        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        val recursiveDataDown =
+            generateRecursiveDataDown(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
+        val recursiveDataUp =
+            generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
         return """
             WITH 
@@ -72,15 +79,29 @@ class DamengCteStrategy : CteStrategy {
         tableName: String,
         id: String,
         pid: String,
-        customSqlSegment: String
+        customSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
+        val breadcrumbField = breadcrumbColumn ?: id
+        val breadcrumbAnchor = if (returnBreadcrumb) {
+            "CAST(t.${breadcrumbField} AS VARCHAR(1000)) as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS VARCHAR(1000)) as tree_breadcrumb,"
+        }
+        val breadcrumbRecursive = if (returnBreadcrumb) {
+            "rd.tree_breadcrumb || ',' || t.${breadcrumbField} as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS VARCHAR(1000)) as tree_breadcrumb,"
+        }
         return """
             recursive_data_down AS (
                 SELECT 
                     t.*,
                     0 as tree_depth,
                     'down' as tree_direction,
-                    CAST(t.${id} AS VARCHAR(1000)) as tree_path
+                    CAST(t.${id} AS VARCHAR(1000)) as tree_path,
+                    ${breadcrumbAnchor}
                 FROM ${tableName} t
                 ${customSqlSegment}
                 
@@ -90,7 +111,8 @@ class DamengCteStrategy : CteStrategy {
                     t.*,
                     rd.tree_depth + 1,
                     'down',
-                    rd.tree_path || ',' || t.${id}
+                    rd.tree_path || ',' || t.${id},
+                    ${breadcrumbRecursive}
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
             )
@@ -104,15 +126,29 @@ class DamengCteStrategy : CteStrategy {
         tableName: String,
         id: String,
         pid: String,
-        customSqlSegment: String
+        customSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
+        val breadcrumbField = breadcrumbColumn ?: id
+        val breadcrumbAnchor = if (returnBreadcrumb) {
+            "CAST(t.${breadcrumbField} AS VARCHAR(1000)) as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS VARCHAR(1000)) as tree_breadcrumb,"
+        }
+        val breadcrumbRecursive = if (returnBreadcrumb) {
+            "t.${breadcrumbField} || ',' || ru.tree_breadcrumb as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS VARCHAR(1000)) as tree_breadcrumb,"
+        }
         return """
             recursive_data_up AS (
                 SELECT 
                     t.*,
                     0 as tree_depth,
                     'up' as tree_direction,
-                    CAST(t.${id} AS VARCHAR(1000)) as tree_path
+                    CAST(t.${id} AS VARCHAR(1000)) as tree_path,
+                    ${breadcrumbAnchor}
                 FROM ${tableName} t
                 ${customSqlSegment}
                 
@@ -122,7 +158,8 @@ class DamengCteStrategy : CteStrategy {
                     t.*,
                     ru.tree_depth + 1,
                     'up',
-                    t.${id} || ',' || ru.tree_path
+                    t.${id} || ',' || ru.tree_path,
+                    ${breadcrumbRecursive}
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
             )

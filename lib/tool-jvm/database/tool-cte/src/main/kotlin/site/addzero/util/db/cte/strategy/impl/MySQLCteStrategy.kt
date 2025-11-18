@@ -21,9 +21,11 @@ class MySQLCteStrategy : CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
-        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
         return """
             WITH RECURSIVE 
@@ -41,10 +43,13 @@ class MySQLCteStrategy : CteStrategy {
         id: String,
         pid: String,
         customSqlSegment: String,
-        finalCustomSqlSegment: String
+        finalCustomSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
-        val recursiveDataDown = generateRecursiveDataDown(tableName, id, pid, customSqlSegment)
-        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment)
+        val recursiveDataDown =
+            generateRecursiveDataDown(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
+        val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
         return """
             WITH RECURSIVE 
@@ -72,8 +77,21 @@ class MySQLCteStrategy : CteStrategy {
         tableName: String,
         id: String,
         pid: String,
-        customSqlSegment: String
+        customSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
+        val breadcrumbField = breadcrumbColumn ?: id
+        val breadcrumbAnchor = if (returnBreadcrumb) {
+            "CAST(t.${breadcrumbField} AS CHAR(1000)) as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS CHAR(1000)) as tree_breadcrumb,"
+        }
+        val breadcrumbRecursive = if (returnBreadcrumb) {
+            "CONCAT(rd.tree_breadcrumb, ',', t.${breadcrumbField}) as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS CHAR(1000)) as tree_breadcrumb,"
+        }
         return """
             recursive_data_down AS (
                 SELECT 
@@ -81,6 +99,7 @@ class MySQLCteStrategy : CteStrategy {
                     0 as tree_depth,
                     'down' as tree_direction,
                     CAST(t.${id} AS CHAR(1000)) as tree_path,
+                    ${breadcrumbAnchor}
                     CAST(CONCAT(',', t.${id}, ',') AS CHAR(2000)) as cycle_detection_path
                 FROM ${tableName} t
                 ${customSqlSegment} 
@@ -92,6 +111,7 @@ class MySQLCteStrategy : CteStrategy {
                     rd.tree_depth + 1,
                     'down',
                     CONCAT(rd.tree_path, ',', t.${id}),
+                    ${breadcrumbRecursive}
                     CONCAT(rd.cycle_detection_path, t.${id}, ',')
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
@@ -108,8 +128,21 @@ class MySQLCteStrategy : CteStrategy {
         tableName: String,
         id: String,
         pid: String,
-        customSqlSegment: String
+        customSqlSegment: String,
+        returnBreadcrumb: Boolean,
+        breadcrumbColumn: String?
     ): String {
+        val breadcrumbField = breadcrumbColumn ?: id
+        val breadcrumbAnchor = if (returnBreadcrumb) {
+            "CAST(t.${breadcrumbField} AS CHAR(1000)) as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS CHAR(1000)) as tree_breadcrumb,"
+        }
+        val breadcrumbRecursive = if (returnBreadcrumb) {
+            "CONCAT(t.${breadcrumbField}, ',', ru.tree_breadcrumb) as tree_breadcrumb,"
+        } else {
+            "CAST(NULL AS CHAR(1000)) as tree_breadcrumb,"
+        }
         return """
             recursive_data_up AS (
                 SELECT 
@@ -117,6 +150,7 @@ class MySQLCteStrategy : CteStrategy {
                     0 as tree_depth,
                     'up' as tree_direction,
                     CAST(t.${id} AS CHAR(1000)) as tree_path,
+                    ${breadcrumbAnchor}
                     CAST(CONCAT(',', t.${id}, ',') AS CHAR(2000)) as cycle_detection_path
                 FROM ${tableName} t
                 ${customSqlSegment}  
@@ -128,6 +162,7 @@ class MySQLCteStrategy : CteStrategy {
                     ru.tree_depth + 1,
                     'up',
                     CONCAT(t.${id}, ',', ru.tree_path),
+                    ${breadcrumbRecursive}
                     CONCAT(t.${id}, ',', ru.cycle_detection_path)
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}

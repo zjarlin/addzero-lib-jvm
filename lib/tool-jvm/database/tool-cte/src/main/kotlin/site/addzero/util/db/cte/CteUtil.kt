@@ -31,6 +31,8 @@ class CteUtil {
         databaseType: DatabaseType = DatabaseType.MYSQL,
         cteWrapperContext: WrapperContext,
         combinedDataWrapperContext: WrapperContext,
+        returnBreadcrumb: Boolean = true,
+        breadcrumbColumn: String? = null,
     ): List<Map<String, Any?>> {
         val customSqlSegment =
             parseWrapperSqlToString(cteWrapperContext.customSqlSegment, cteWrapperContext.paramNameValuePairs)
@@ -40,7 +42,7 @@ class CteUtil {
         )
         val generateRecursiveTreeQuerySql = actStrategy(databaseType).generateRecursiveTreeQuerySqlUp(
             tableName, id, pid,
-            customSqlSegment, finalCustomSqlSegment
+            customSqlSegment, finalCustomSqlSegment, returnBreadcrumb, breadcrumbColumn
         )
         val queryForList = jdbcTemplate.queryForList(generateRecursiveTreeQuerySql)
         return queryForList
@@ -57,6 +59,8 @@ class CteUtil {
         databaseType: DatabaseType = DatabaseType.MYSQL,
         cteWrapperContext: WrapperContext,
         combinedDataWrapperContext: WrapperContext,
+        returnBreadcrumb: Boolean = true,
+        breadcrumbColumn: String? = null,
     ): List<Map<String, Any?>> {
         val customSqlSegment =
             parseWrapperSqlToString(cteWrapperContext.customSqlSegment, cteWrapperContext.paramNameValuePairs)
@@ -69,7 +73,9 @@ class CteUtil {
             id,
             pid,
             customSqlSegment,
-            finalCustomSqlSegment
+            finalCustomSqlSegment,
+            returnBreadcrumb,
+            breadcrumbColumn
         )
         val queryForList = jdbcTemplate.queryForList(generateRecursiveTreeQuerySql)
         return queryForList
