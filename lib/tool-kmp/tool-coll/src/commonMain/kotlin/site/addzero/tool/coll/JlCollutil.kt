@@ -55,3 +55,35 @@ fun <T> intersectBy(
         }
     }
 }
+
+/**
+ * 多字段去重：按多个 key 组合生成唯一键，保留首次出现的元素顺序。
+ *
+ * @param source 源列表，为空或 null 时直接返回空列表
+ * @param keyExtractors 提取 key 的函数，可传多个，依次拼接形成唯一键
+ */
+fun <T> distinctByKeys(source: List<T>?, vararg keyExtractors: (T) -> Any?): List<T> {
+    if (source.isNullOrEmpty() || keyExtractors.isEmpty()) {
+        return source ?: emptyList()
+    }
+
+    val seen = linkedMapOf<String, T>()
+    source.forEach { item ->
+        if (item != null) {
+            val key = buildKey(item, keyExtractors)
+            if (!seen.containsKey(key)) {
+                seen[key] = item
+            }
+        }
+    }
+    return seen.values.toList()
+}
+
+private fun <T> buildKey(item: T, keyExtractors: Array<out (T) -> Any?>): String {
+    val sb = StringBuilder()
+    keyExtractors.forEach { extractor ->
+        val value = extractor(item)
+        sb.append(value?.toString() ?: "null").append('#')
+    }
+    return sb.toString()
+}
