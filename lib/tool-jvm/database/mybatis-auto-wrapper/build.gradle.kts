@@ -6,8 +6,7 @@ dependencies {
     implementation("com.baomidou:mybatis-plus-core:${libs.versions.mybatisPlus.get()}")
 //    implementation("com.baomidou:mybatis-plus:3.5.12")
 //    implementation("org.apache.commons:commons-lang3:3.18.0")
-//    api(projects.lib.toolJvm.database.mybatisAutoWrapperCore)
-    api("site.addzero:mybatis-auto-wrapper-core:2025.11.19")
+    api(projects.lib.toolJvm.database.mybatisAutoWrapperCore)
 
 
     // SpEL 表达式支持（保持兼容 JDK 8）

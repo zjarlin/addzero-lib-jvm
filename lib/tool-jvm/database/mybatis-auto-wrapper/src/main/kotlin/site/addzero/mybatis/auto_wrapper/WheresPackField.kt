@@ -10,7 +10,7 @@ internal class WheresPackField(field: Field) : PackField(field) {
     override fun <T, R> getColumnInfoList(obj: Any?, columnProcess: (Class<T>, String) -> R): MutableList<ColumnInfo<T, R>> {
         val ans = this.an?.value ?: emptyArray()
         val value = ReflectUtil.getFieldValue(obj, field)
-        val columnInfoList = createListColumnInfo(ans, value, columnProcess)
+        val columnInfoList = createListColumnInfo(ans, value, obj, columnProcess)
         columnInfoList.forEach { it.dto = obj }
         return columnInfoList
     }

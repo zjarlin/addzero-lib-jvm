@@ -37,6 +37,27 @@ internal class AutoWhereUtilTest {
         var name: String? = null
     }
 
+    internal class IgnoreSpelDTO {
+        @Where(ignore = true, condition = "#value == null")
+        var phone: String? = null
+
+        @Where(ignore = true, condition = "#dto.skipName == true")
+        var name: String? = null
+
+        var skipName: Boolean = false
+    }
+
+    internal class DeviceQueryDTO {
+        @TableField("product_key")
+        @Where
+        var productKey: String? = null
+
+        @TableField("device_id")
+        @Where(value = "null", condition = "#dto.deviceId == null")
+        @Where(ignore = true, condition = "#dto.deviceId != null")
+        var deviceId: String? = null
+    }
+
     // 测试DTO - SpEL表达式处理
     internal class UserSpelDTO {
         @Where(condition = "#value != null && #value.startsWith('test')")
@@ -113,6 +134,46 @@ internal class AutoWhereUtilTest {
         dtoOnlyIgnored.phone = "123456789"
         val wrapperOnlyIgnored = queryByField(IgnoreWhereDTO::class.java, dtoOnlyIgnored)
         Assertions.assertTrue(wrapperOnlyIgnored.sqlSegment.isBlank(), "只有 ignore 字段时应不生成 SQL 片段")
+    }
+
+    @Test
+    fun testWhereIgnoreSpelExpression() {
+        val dto = IgnoreSpelDTO()
+        dto.name = "tester"
+        dto.skipName = true
+        val wrapper = queryByField(IgnoreSpelDTO::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        Assertions.assertFalse(sqlSegment.contains("phone"), "phone 的 SpEL 结果为 true 时应忽略")
+        Assertions.assertFalse(sqlSegment.contains("name ="), "skipName 为 true 时应忽略 name 条件")
+
+        val dtoActive = IgnoreSpelDTO()
+        dtoActive.phone = "123456789"
+        dtoActive.name = "tester"
+        val wrapperActive = queryByField(IgnoreSpelDTO::class.java, dtoActive)
+        val sqlSegmentActive = wrapperActive.sqlSegment
+        Assertions.assertTrue(sqlSegmentActive.contains("phone ="), "SpEL 为 false 时应生成 phone 条件")
+        Assertions.assertTrue(sqlSegmentActive.contains("name ="), "skipName 为 false 时应生成 name 条件")
+    }
+
+    @Test
+    fun testDeviceQueryIgnoreWithSpel() {
+        val dtoNull = DeviceQueryDTO().apply {
+            productKey = "prod-key"
+            deviceId = null
+        }
+        val wrapperNull = queryByField(DeviceQueryDTO::class.java, dtoNull)
+        val sqlSegmentNull = wrapperNull.sqlSegment
+        Assertions.assertTrue(sqlSegmentNull.contains("product_key ="), "productKey 应生成等值查询")
+        Assertions.assertTrue(sqlSegmentNull.contains("device_id IS NULL"), "deviceId 为空时应生成 IS NULL 条件")
+
+        val dtoValue = DeviceQueryDTO().apply {
+            productKey = "prod-key"
+            deviceId = "device-1"
+        }
+        val wrapperValue = queryByField(DeviceQueryDTO::class.java, dtoValue)
+        val sqlSegmentValue = wrapperValue.sqlSegment
+        Assertions.assertTrue(sqlSegmentValue.contains("product_key ="), "productKey 应生成等值查询")
+        Assertions.assertFalse(sqlSegmentValue.contains("device_id IS NULL"), "deviceId 有值时不应生成 IS NULL 条件")
     }
 
     @Test

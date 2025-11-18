@@ -36,8 +36,13 @@ internal class ColumnInfo<T, R>(
             "field" to field,
             "dto" to dto
         )
-        val conditionResult = SpELUtils.evaluateExpression(variables , conditionExpression!!, Boolean::class.java)
-        conditionResult == true
+        val conditionResult = try {
+            SpELUtils.evaluateExpression(variables, conditionExpression!!, Boolean::class.java)==true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ObjUtil.isNotEmpty(value)
+        }
+        return@lazy conditionResult
     }
 
     override fun process(clazz: Class<T>, wrapper: AbstractWrapper<T, R, *>) {

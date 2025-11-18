@@ -9,7 +9,7 @@ internal class WherePackField(field: Field) : PackField(field) {
 
     override fun <T, R> getColumnInfoList(obj: Any?, columnProcess: (Class<T>, String) -> R): MutableList<ColumnInfo<T, R>> {
         val annotation = field.getAnnotation(Where::class.java)
-        val columnInfoList = createListColumnInfo(arrayOf(annotation), getFieldValue(obj, field), columnProcess)
+        val columnInfoList = createListColumnInfo(arrayOf(annotation), getFieldValue(obj, field), obj, columnProcess)
         columnInfoList.forEach { it.dto = obj }
         return columnInfoList
     }
