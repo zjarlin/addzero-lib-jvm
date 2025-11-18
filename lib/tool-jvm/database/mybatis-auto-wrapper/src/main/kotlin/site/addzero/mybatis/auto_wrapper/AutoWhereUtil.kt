@@ -2,7 +2,6 @@
 package site.addzero.mybatis.auto_wrapper
 import cn.hutool.core.util.ObjUtil
 import cn.hutool.core.util.ReflectUtil
-import cn.hutool.core.util.StrUtil
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
@@ -17,27 +16,24 @@ private val columnProcessToSFunction: (Class<*>, String) -> SFunction<*, *> = { 
     CreateSFunctionUtil.createSFunction(clazz, method)!!
 }
 private val columnProcessToString: (Class<*>, String) -> String = { _, column -> StringUtils.camelToUnderline(column)!! }
-private val packFieldPostProcessEqField: (Class<*>, Class<*>) -> MutableSet<Field> = { entityClass, dtoClazz ->
-    val entityClassMap = getFieldsList(entityClass)
-    val dtoClazzMap = getFieldsList(dtoClazz)
-    dtoClazzMap.filterKeys { entityClassMap.containsKey(it) }.values.toMutableSet()
+private val packFieldPostProcessEqField: (Class<*>, Class<*>) -> MutableSet<Field> = { _, dtoClazz ->
+    getFieldsList(dtoClazz).values.toMutableSet()
 }
-private val packFieldPostProcessEqFieldIgnoreId: (Class<*>, Class<*>) -> MutableSet<Field> = { entityClass, dtoClazz ->
-    val entityClassMap = getFieldsList(entityClass)
-    val dtoClazzMap = getFieldsList(dtoClazz)
-
-    dtoClazzMap.filterKeys {
-        entityClassMap.containsKey(it) && !StrUtil.equals(it, "id")
-    }.values.toMutableSet()
+private val packFieldPostProcessEqFieldIgnoreId: (Class<*>, Class<*>) -> MutableSet<Field> = { _, dtoClazz ->
+    getFieldsList(dtoClazz).values.filterNot { it.name == "id" }.toMutableSet()
 }
-private val packFieldPostProcessEmpty: (Class<*>, Class<*>) -> MutableSet<Field> = { _, _ -> mutableSetOf() }
+private val packFieldPostProcessWhereAnnotation: (Class<*>, Class<*>) -> MutableSet<Field> = { _, dtoClazz ->
+    getFieldsList(dtoClazz).values.filter { field ->
+        field.isAnnotationPresent(Where::class.java) || field.isAnnotationPresent(Wheres::class.java)
+    }.toMutableSet()
+}
 private fun getFieldsList(clazz: Class<*>): Map<String, Field> {
     return generateSequence(clazz) { it.superclass }.flatMap { ReflectUtil.getFields(it).asSequence() }.associateBy { it.name }
 }
 
 fun <T> lambdaQueryByAnnotation(clazz: Class<T>, dto: Any): LambdaQueryWrapper<T> {
     @Suppress("UNCHECKED_CAST") val columnProcess = columnProcessToSFunction as (Class<T>, String) -> SFunction<T, *>
-    return action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessEmpty, columnProcess, dto)
+    return action(Wrappers.lambdaQuery<T>(), clazz, packFieldPostProcessWhereAnnotation, columnProcess, dto)
 }
 
 private fun <T, R, W : AbstractWrapper<T, R, *>> action(wrapper: W, clazz: Class<T>, packFieldPostProcess: (Class<*>, Class<*>) -> MutableSet<Field>, columnProcess: (Class<T>, String) -> R, dto: Any?): W {
@@ -72,7 +68,7 @@ fun <T> lambdaQueryByField(clazz: Class<T>, dto: Any, ignoreId: Boolean): Lambda
 
 
 fun <T> queryByAnnotation(clazz: Class<T>, dto: Any): QueryWrapper<T> {
-    return action(Wrappers.query<T>(), clazz, packFieldPostProcessEmpty, columnProcessToString, dto)!!
+    return action(Wrappers.query<T>(), clazz, packFieldPostProcessWhereAnnotation, columnProcessToString, dto)!!
 }
 
 fun <T> queryByField(clazz: Class<T>, dto: Any): QueryWrapper<T> {

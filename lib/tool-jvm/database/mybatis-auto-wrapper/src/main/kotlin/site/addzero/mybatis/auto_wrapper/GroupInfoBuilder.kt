@@ -49,9 +49,6 @@ internal class GroupInfoBuilder<T, R>(
         dtoClazz: Class<*>
     ): List<PackField> {
         val packFields = mutableListOf<PackField>()
-        val hasCustomWhere = eqFields.any {
-            it.isAnnotationPresent(Wheres::class.java) || it.isAnnotationPresent(Where::class.java)
-        }
         eqFields.forEach { eqField ->
             try {
                 if (Modifier.isStatic(eqField.modifiers) || eqField.isSynthetic) {
@@ -61,7 +58,7 @@ internal class GroupInfoBuilder<T, R>(
                     packFields.add(WheresPackField(eqField))
                 } else if (eqField.isAnnotationPresent(Where::class.java)) {
                     packFields.add(WherePackField(eqField))
-                } else if (!hasCustomWhere) {
+                } else {
                     packFields.add(DefaultPackField(eqField))
                 }
             } catch (e: Exception) {

@@ -81,6 +81,22 @@ internal class AutoWhereUtilTest {
         var channels: String? = null
     }
 
+    internal class SimpleEntity {
+        var name: String? = null
+        var age: Int? = null
+    }
+
+    internal class SimpleDto {
+        var name: String? = null
+        var age: Int? = null
+    }
+
+    internal class AnnotationDto {
+        @Where
+        var name: String? = null
+        var age: Int? = null
+    }
+
     @Test
     fun testPro(): Unit {
         val dto = IotEventPropertyMapping()
@@ -155,6 +171,69 @@ internal class AutoWhereUtilTest {
         Assertions.assertTrue(sqlSegmentActive.contains("name ="), "skipName 为 false 时应生成 name 条件")
     }
 
+    internal data class EnergyBatchQueryDto(
+        @field:Where(value = "in", column = "energy_type_id")
+        var energyTypeIds: Collection<Long>? = null,
+
+        @field:Where(value = "in", column = "product_id")
+        var productIds: Collection<String>? = null,
+
+        @field:Where(value = "in", column = "device_id")
+        var deviceIds: Collection<String>? = null,
+
+        @field:Where
+        var dataStatus: String = "0",
+
+        @field:Where
+        var collectType: String = "0",
+
+        @field:Where(value = ">=", column = "ts")
+        var startTime: String = "2024-01-01 00:00:00",
+
+        @field:Where(value = "<=", column = "ts")
+        var endTime: String = "2024-01-31 23:59:59"
+    )
+
+    @Test
+    fun testQueryByAnnotationWithEnergyBatchDto() {
+        val dto = EnergyBatchQueryDto(
+            energyTypeIds = listOf(1, 2),
+            productIds = listOf("p1"),
+            deviceIds = listOf("d1")
+        )
+        val wrapper = queryByAnnotation(IotEventPropertyMapping::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        Assertions.assertTrue(sqlSegment.contains("energy_type_id IN"), "energy_type_id IN 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("product_id IN"), "product_id IN 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("device_id IN"), "device_id IN 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("data_status ="), "data_status 默认值应该生成")
+        Assertions.assertTrue(sqlSegment.contains("collect_type ="), "collect_type 默认值应该生成")
+        Assertions.assertTrue(sqlSegment.contains("ts <="), "ts <= 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("ts >="), "ts >= 条件应该生成")
+    }
+
+
+
+    @Test
+    fun testQueryByAnnotationWithEnergyBatchDto1jjjj() {
+        val dto = EnergyBatchQueryDto(
+            energyTypeIds = listOf(1, 2),
+            productIds = listOf("p1"),
+            deviceIds = listOf("d1")
+        )
+        val wrapper = queryByField(IotEventPropertyMapping::class.java, dto)
+        val sqlSegment = wrapper.sqlSegment
+        assertTrue { sqlSegment.isNotBlank() }
+        Assertions.assertTrue(sqlSegment.contains("energy_type_id IN"), "energy_type_id IN 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("product_id IN"), "product_id IN 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("device_id IN"), "device_id IN 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("data_status ="), "data_status 默认值应该生成")
+        Assertions.assertTrue(sqlSegment.contains("collect_type ="), "collect_type 默认值应该生成")
+        Assertions.assertTrue(sqlSegment.contains("ts <="), "ts <= 条件应该生成")
+        Assertions.assertTrue(sqlSegment.contains("ts >="), "ts >= 条件应该生成")
+    }
+
+
     @Test
     fun testDeviceQueryIgnoreWithSpel() {
         val dtoNull = DeviceQueryDTO().apply {
@@ -225,5 +304,30 @@ internal class AutoWhereUtilTest {
         println("FIND_IN_SET 场景: $sqlSegment")
         Assertions.assertTrue(sqlSegment.contains("FIND_IN_SET"), "findInSet 运算符应生成 FIND_IN_SET 语句")
         Assertions.assertTrue(sqlSegment.contains("channel"), "findInSet 应作用于字段列")
+    }
+
+    @Test
+    fun testQueryByFieldSimpleEquals() {
+        val dto = SimpleDto().apply {
+            name = "alice"
+            age = 20
+        }
+        val sqlSegment = queryByField(SimpleEntity::class.java, dto).sqlSegment
+        Assertions.assertTrue(sqlSegment.contains("name ="), "非空字段 name 应生成等值条件")
+        Assertions.assertTrue(sqlSegment.contains("age ="), "非空字段 age 应生成等值条件")
+    }
+
+    @Test
+    fun testQueryByAnnotationOnlyWhereFields() {
+        val dto = AnnotationDto().apply {
+            name = "bob"
+            age = 30
+        }
+        val wrapperOnlyWhere = queryByAnnotation(SimpleEntity::class.java, dto)
+        val sqlOnlyWhere = wrapperOnlyWhere.sqlSegment
+        Assertions.assertTrue(sqlOnlyWhere.contains("name ="), "标注了 @Where 的字段应该生成条件")
+        Assertions.assertFalse(sqlOnlyWhere.contains("age ="), "未标注 @Where 的字段在 onlyWhereField=true 时不应生成条件")
+        val sqlFromField = queryByField(SimpleEntity::class.java, dto).sqlSegment
+        Assertions.assertTrue(sqlFromField.contains("age ="), "queryByField 应为未标注字段生成等值条件")
     }
 }
