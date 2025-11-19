@@ -58,7 +58,7 @@ class MySQLCteStrategy : CteStrategy {
             ${recursiveDataUp},
             
             combined_data AS (
-                SELECT * FROM recursive_data_up
+                SELECT * FROM recursive_data_up WHERE tree_depth > 0
                 UNION 
                 SELECT * FROM recursive_data_down
             )
@@ -100,7 +100,7 @@ class MySQLCteStrategy : CteStrategy {
                     'down' as tree_direction,
                     CAST(t.${id} AS CHAR(1000)) as tree_path,
                     ${breadcrumbAnchor}
-                    CAST(CONCAT(',', t.${id}, ',') AS CHAR(2000)) as cycle_detection_path
+                    CAST(t.${id} AS CHAR(2000)) as cycle_detection_path
                 FROM ${tableName} t
                 ${customSqlSegment} 
                 
@@ -112,7 +112,7 @@ class MySQLCteStrategy : CteStrategy {
                     'down',
                     CONCAT(rd.tree_path, ',', t.${id}),
                     ${breadcrumbRecursive}
-                    CONCAT(rd.cycle_detection_path, t.${id}, ',')
+                    CONCAT(rd.cycle_detection_path, ',', t.${id})
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
                 WHERE NOT FIND_IN_SET(t.${id}, rd.cycle_detection_path)
@@ -151,7 +151,7 @@ class MySQLCteStrategy : CteStrategy {
                     'up' as tree_direction,
                     CAST(t.${id} AS CHAR(1000)) as tree_path,
                     ${breadcrumbAnchor}
-                    CAST(CONCAT(',', t.${id}, ',') AS CHAR(2000)) as cycle_detection_path
+                    CAST(t.${id} AS CHAR(2000)) as cycle_detection_path
                 FROM ${tableName} t
                 ${customSqlSegment}  
                 

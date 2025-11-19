@@ -58,7 +58,7 @@ class PostgreSQLCteStrategy : CteStrategy {
             ${recursiveDataUp},
             
             combined_data AS (
-                SELECT * FROM recursive_data_up
+                SELECT * FROM recursive_data_up WHERE tree_depth > 0
                 UNION 
                 SELECT * FROM recursive_data_down
             )
