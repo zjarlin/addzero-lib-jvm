@@ -1,5 +1,7 @@
+@file:JvmName("List2TreeUtil")
 package site.addzero.util.data_structure.tree
 
+import kotlin.jvm.JvmName
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 
@@ -7,7 +9,6 @@ import kotlin.reflect.KProperty1
  * 列表转树形结构工具类
  * 支持任意实体类型转换为树形结构
  */
-object List2TreeUtil {
     /**
      * 将列表转换为树形结构
      *
@@ -196,4 +197,4 @@ object List2TreeUtil {
 
         return result
     }
-}
+
