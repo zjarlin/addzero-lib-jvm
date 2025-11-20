@@ -161,7 +161,7 @@ class KingbaseCteStrategy : CteStrategy {
                     CAST(t.${id} AS VARCHAR(1000)) || ',' || ru.tree_path,
                     ${breadcrumbRecursive}
                 FROM ${tableName} t
-                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
+                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid} AND ru.${pid} IS NOT NULL
             )
         """.trimIndent()
     }

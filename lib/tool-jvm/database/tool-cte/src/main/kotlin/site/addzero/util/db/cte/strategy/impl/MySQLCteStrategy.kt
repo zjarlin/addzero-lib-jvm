@@ -165,7 +165,7 @@ class MySQLCteStrategy : CteStrategy {
                     ${breadcrumbRecursive}
                     CONCAT(t.${id}, ',', ru.cycle_detection_path)
                 FROM ${tableName} t
-                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
+                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid} AND ru.${pid} IS NOT NULL
                 WHERE NOT FIND_IN_SET(t.${id}, ru.cycle_detection_path)
                   AND ru.tree_depth < 100
             )

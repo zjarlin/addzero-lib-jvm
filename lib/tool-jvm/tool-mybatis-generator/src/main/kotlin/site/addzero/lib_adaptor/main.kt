@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
     val genList = arrayOf(
 //        "iot_product_device_access",
 
-        "iot_tag_definition",
+        "iot_thingmodel_property_mapping",
 //        "iot_industrial_protocol",
 //        "iot_product_connection_param_act",
 //        "iot_product_connection_param"

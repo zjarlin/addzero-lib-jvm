@@ -165,7 +165,7 @@ class PostgreSQLCteStrategy : CteStrategy {
                     ${breadcrumbRecursive}
                     ru.cycle_detection_path || t.${id}
                 FROM ${tableName} t
-                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid}
+                INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid} AND ru.${pid} IS NOT NULL
                 WHERE NOT (t.${id} = ANY(ru.cycle_detection_path))
                   AND ru.tree_depth < 100
             )
