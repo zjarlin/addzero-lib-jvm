@@ -18,7 +18,8 @@ class CteUtilTest {
     fun setUp() {
         // 手动构造JdbcTemplate实例，而不是使用@Autowired和@Mock
         val dataSource = JdbcDataSource()
-        dataSource.setURL("jdbc:h2:mem:testdb")
+        // Keep the in-memory database alive across JdbcTemplate connections
+        dataSource.setURL("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1")
         dataSource.setUser("sa")
         dataSource.setPassword("")
         jdbcTemplate = JdbcTemplate(dataSource)
