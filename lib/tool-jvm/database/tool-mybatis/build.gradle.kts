@@ -7,7 +7,7 @@ dependencies {
     compileOnly("com.baomidou:mybatis-plus:${libs.versions.mybatisPlus.get()}")
     implementation("site.addzero:mybatis-auto-wrapper:${libs.versions.mybatisAutoWrapper.get()}")
 //    implementation("site.addzero:mybatis-auto-wrapper:+")
-    implementation(projects.lib.toolJvm.toolSpring)
+//    implementation(projects.lib.toolJvm.toolSpring)
     implementation(libs.hutool.core)
 //    compileOnly(projects.)
 //    implementation("com.baomidou:mybatis-plus-core:${libs.versions.mybatisPlus.get()}")

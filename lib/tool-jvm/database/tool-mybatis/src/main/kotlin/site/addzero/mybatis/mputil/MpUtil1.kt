@@ -21,7 +21,7 @@ import java.util.stream.Collectors
  * @since 2023/2/26 09:18
  */
 //@Component
-class MpUtil1<P>(private val ps: IService<P>) {
+class MpUtil1<P> @JvmOverloads constructor(private val ps: IService<P>, val idName: String = "id") {
 
     /**
      * 前端和数据库的差集和交集
@@ -67,9 +67,10 @@ class MpUtil1<P>(private val ps: IService<P>) {
         var b = false
         if (left.isNotEmpty()) {
             left.forEach {
-                val field = it?.javaClass?.getDeclaredField("id")
+                val javaClass = it?.javaClass
+                val field = ReflectUtil.getField(javaClass, idName)
                 field?.isAccessible = true
-                field?.set(it, null)
+                ReflectUtil.setFieldValue(it, field, null)
             }
             b = ps.saveBatch(left)
         }
@@ -151,7 +152,7 @@ class MpUtil1<P>(private val ps: IService<P>) {
 //拿交集,但是以传过来的数据为主
                 val copyOptions = CopyOptions.create()
                 copyOptions.setPropertiesFilter({ field, value ->
-                    val notId: Boolean = !"id".equals(field.name)
+                    val notId: Boolean = !idName.equals(field.name)
                     val notEmpty: Boolean = value != null && value.toString().isNotEmpty()
                     notId && notEmpty
                 })
@@ -193,7 +194,7 @@ class MpUtil1<P>(private val ps: IService<P>) {
             } else {
                 val copyOptions: CopyOptions = CopyOptions.create()
                 copyOptions.setPropertiesFilter({ field, value ->
-                    val notId: Boolean = "id" != field.name
+                    val notId: Boolean = idName != field.name
                     val notEmpty: Boolean = value != null && value.toString().isNotEmpty()
                     notId && notEmpty
                 })
