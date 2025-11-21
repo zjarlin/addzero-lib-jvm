@@ -27,13 +27,26 @@ class OracleCteStrategy : CteStrategy {
     ): String {
         val recursiveDataUp = generateRecursiveDataUp(tableName, id, pid, customSqlSegment, returnBreadcrumb, breadcrumbColumn)
         
+        // 合并WHERE条件，避免出现两个WHERE子句
+        val whereClause = if (finalCustomSqlSegment.isBlank()) {
+            "WHERE tree_depth > 0"
+        } else {
+            // 移除finalCustomSqlSegment中的"WHERE"关键字，然后合并条件
+            val condition = finalCustomSqlSegment.trim().removePrefix("WHERE").trim()
+            if (condition.isEmpty()) {
+                "WHERE tree_depth > 0"
+            } else {
+                "WHERE tree_depth > 0 AND $condition"
+            }
+        }
+        
         return """
             WITH 
             ${recursiveDataUp}
             
             SELECT *
             FROM recursive_data_up
-            ${finalCustomSqlSegment}
+            ${whereClause}
             ORDER BY tree_depth
         """.trimIndent()
     }
@@ -135,11 +148,6 @@ class OracleCteStrategy : CteStrategy {
         } else {
             "CAST(NULL AS VARCHAR2(4000)) as tree_breadcrumb"
         }
-        val breadcrumbRecursive = if (returnBreadcrumb) {
-            "TO_CHAR(t.${breadcrumbField}) || ',' || ru.tree_breadcrumb"
-        } else {
-            "CAST(NULL AS VARCHAR2(4000))"
-        }
         return """
             recursive_data_up (${id}, ${pid}, tree_depth, tree_direction, tree_path, tree_breadcrumb) AS (
                 SELECT 
@@ -160,7 +168,12 @@ class OracleCteStrategy : CteStrategy {
                     ru.tree_depth + 1,
                     'up',
                     TO_CHAR(t.${id}) || ',' || ru.tree_path,
-                    ${breadcrumbRecursive}
+                    CASE 
+                        WHEN ru.tree_breadcrumb IS NOT NULL AND ru.tree_breadcrumb != '' THEN
+                            TO_CHAR(t.${breadcrumbField}) || ',' || ru.tree_breadcrumb
+                        ELSE
+                            TO_CHAR(t.${breadcrumbField})
+                    END
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid} AND ru.${pid} IS NOT NULL
             )
