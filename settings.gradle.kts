@@ -98,6 +98,7 @@ dependencyResolutionManagement {
 //include(":lib:tool-jvm:database:tool-database-model")
 //include(":lib:tool-jvm:database:tool-mybatis")
 include(":lib:tool-jvm:database:tool-cte")
+include(":lib:tool-jvm:database:tool-sql-executor")
 //include(":lib:tool-jvm:database:tool-ddlgenerator")
 //include(":lib:tool-jvm:database:mybatis-auto-wrapper")
 //include(":lib:tool-jvm:tool-ai")

@@ -63,7 +63,7 @@ class GaussDbCteStrategy : CteStrategy {
                 SELECT * FROM recursive_data_down
             )
             
-            SELECT *
+            SELECT DISTINCT *
             FROM combined_data
             ${finalCustomSqlSegment}  
             ORDER BY tree_direction, tree_depth;
