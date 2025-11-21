@@ -115,7 +115,7 @@ class MySQLCteStrategy : CteStrategy {
                     CONCAT(rd.cycle_detection_path, ',', t.${id})
                 FROM ${tableName} t
                 INNER JOIN recursive_data_down rd ON t.${pid} = rd.${id}
-                WHERE NOT FIND_IN_SET(t.${id}, rd.cycle_detection_path)
+                WHERE POSITION(CONCAT(',', t.${id}, ',') IN CONCAT(',', rd.cycle_detection_path, ',')) = 0
                   AND rd.tree_depth < 100
             )
         """.trimIndent()
@@ -166,7 +166,7 @@ class MySQLCteStrategy : CteStrategy {
                     CONCAT(t.${id}, ',', ru.cycle_detection_path)
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid} AND ru.${pid} IS NOT NULL
-                WHERE NOT FIND_IN_SET(t.${id}, ru.cycle_detection_path)
+                WHERE POSITION(CONCAT(',', t.${id}, ',') IN CONCAT(',', ru.cycle_detection_path, ',')) = 0
                   AND ru.tree_depth < 100
             )
         """.trimIndent()
