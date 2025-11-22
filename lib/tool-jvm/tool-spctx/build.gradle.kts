@@ -1,6 +1,7 @@
 plugins {
 //    id("site.addzero.buildlogic.spring.spring-lib-convention")
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+//    id("site.addzero.buildlogic.auto-jvmname")
 }
 
 dependencies {
