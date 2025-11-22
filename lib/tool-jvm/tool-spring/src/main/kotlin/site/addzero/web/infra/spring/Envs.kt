@@ -1,4 +1,4 @@
-package site.addzero.web.infra
+package site.addzero.web.infra.spring
 
 import cn.hutool.core.util.StrUtil
 import cn.hutool.extra.spring.SpringUtil

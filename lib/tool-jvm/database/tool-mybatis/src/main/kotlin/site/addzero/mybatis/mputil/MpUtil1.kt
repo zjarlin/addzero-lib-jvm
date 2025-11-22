@@ -248,8 +248,8 @@ class MpUtil1<P> @JvmOverloads constructor(private val ps: IService<P>, val idNa
     }
 
     companion object {
-        fun <P> of(ps: IService<P>): MpUtil1<P> {
-            return MpUtil1<P>(ps)
+        fun <P> of(ps: IService<P>, idName: String = "id"): MpUtil1<P> {
+            return MpUtil1(ps, idName)
         }
     }
 }

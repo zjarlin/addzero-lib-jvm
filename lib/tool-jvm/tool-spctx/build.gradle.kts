@@ -8,9 +8,9 @@ dependencies {
 //    compileOnly("org.springframework:spring-jdbc:5.3.21")
     compileOnly("org.springframework:spring-context:5.3.21")
 //    compileOnly("org.springframework:spring-web:5.3.21")
-//    compileOnly("org.springframework:spring-webmvc:5.3.21")
-    implementation("org.springframework:spring-expression:5.3.39")
+    compileOnly("org.springframework:spring-webmvc:5.3.21")
 
-
-    compileOnly(libs.hutool.extra)
+//    compileOnly(libs.hutool.all)
+//    implementation(libs.jackson.module.kotlin)
+//    compileOnly("javax.servlet:javax.servlet-api:4.0.1")
 }
