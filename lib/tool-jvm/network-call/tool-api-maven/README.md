@@ -12,6 +12,54 @@
 
 ## 使用示例
 
+### Gradle 依赖版本更新 🆕
+
+```kotlin
+import site.addzero.network.call.maven.util.GradleDependencyParser
+
+// 1. 更新单个依赖到最新版本
+val oldDependency = """implementation("com.google.inject:guice:4.2.3")"""
+val newDependency = GradleDependencyParser.updateToLatestVersion(oldDependency)
+println(newDependency)
+// 输出: implementation("com.google.inject:guice:5.1.0")
+
+// 2. 解析依赖坐标
+val coordinate = GradleDependencyParser.parseDependency(
+    """implementation("com.google.inject:guice:4.2.3")"""
+)
+println("groupId: ${coordinate?.groupId}")
+println("artifactId: ${coordinate?.artifactId}")
+println("version: ${coordinate?.version}")
+
+// 3. 批量更新依赖
+val dependencies = listOf(
+    """implementation("com.google.inject:guice:4.2.3")""",
+    """testImplementation("junit:junit:4.12")""",
+    """api('org.springframework.boot:spring-boot-starter:2.7.0')"""
+)
+
+val results = GradleDependencyParser.batchUpdateToLatestVersion(dependencies)
+results.forEach { result ->
+    if (result.isUpdated) {
+        println("${result.oldVersion} -> ${result.newVersion}")
+        println("  旧: ${result.original}")
+        println("  新: ${result.updated}")
+    }
+}
+
+// 4. 提取 Maven 坐标
+val coordinate = GradleDependencyParser.extractMavenCoordinate(
+    """implementation("com.google.inject:guice:4.2.3")"""
+)
+println(coordinate) // 输出: com.google.inject:guice:4.2.3
+
+// 5. 验证依赖字符串格式
+val isValid = GradleDependencyParser.isValidDependencyString(
+    """implementation("com.google.inject:guice:4.2.3")"""
+)
+println(isValid) // 输出: true
+```
+
 ### 基本搜索
 
 ```kotlin
