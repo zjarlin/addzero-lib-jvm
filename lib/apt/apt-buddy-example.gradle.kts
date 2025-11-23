@@ -1,7 +1,12 @@
+// =========================================================
+// APT Buddy 插件使用示例
+// =========================================================
+// 这是一个独立的配置示例文件，展示如何在项目中使用 apt-buddy 插件
+// 将此配置复制到实际项目的 build.gradle.kts 中使用
+
 plugins {
     id("java-library")
-    // 暂时注释掉，因为插件需要先发布才能在同一个项目中使用
-    // id("site.addzero.apt-buddy")
+    id("site.addzero.apt-buddy") version "2025.11.27"
 }
 
 java {
@@ -10,20 +15,16 @@ java {
 }
 
 dependencies {
-    // PostgreSQL JDBC 驱动（可选，根据实际数据库类型调整）
+    // APT 处理器依赖
+    annotationProcessor("site.addzero:apt:2025.11.27")
+    
+    // 数据库驱动（根据实际情况选择）
     implementation("org.postgresql:postgresql:42.7.2")
-
-    // MySQL JDBC 驱动（可选）
-     implementation("mysql:mysql-connector-java:8.0.33")
+    // 或者 MySQL
+    // implementation("mysql:mysql-connector-java:8.0.33")
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
-
-// 配置 APT Buddy 插件示例（插件应用后才能生效）
-// 插件发布后，取消注释上面的插件应用语句和下面的配置
-/*
+// 配置 APT Buddy 插件
 aptBuddy {
     mustMap.apply {
         // 数据库连接配置
@@ -48,11 +49,22 @@ aptBuddy {
         put("enumOutputPackage", "com.example.generated.enums")
     }
     
-    // 禁用生成 Java 配置类（因为 APT 处理器已经有自己的配置处理方式）
+    // 可选：禁用生成 Java 配置类（默认启用）
     settingContext.set(
         site.addzero.gradle.plugin.aptbuddy.SettingContextConfig(
             enabled = false
         )
     )
 }
-*/
+
+// =========================================================
+// 使用方式：
+// =========================================================
+// 1. 执行任务生成配置和打印 Maven pom.xml：
+//    ./gradlew generateAptScript
+//
+// 2. 编译项目（自动应用 APT 配置）：
+//    ./gradlew compileJava
+//
+// 3. 查看控制台输出的 Maven pom.xml 配置，复制到 Maven 项目使用
+// =========================================================
