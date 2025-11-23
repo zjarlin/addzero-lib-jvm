@@ -1,4 +1,5 @@
 import me.champeau.gradle.igp.GitIncludeExtension
+import org.codehaus.groovy.tools.shell.util.Logger.io
 
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -50,6 +51,7 @@ dependencyResolutionManagement {
 //include(":lib:tool-kmp:tool-coll")
 //include(":lib:tool-kmp:tool-json")
 include(":lib:tool-kmp:tool-str")
+include(":lib:apt")
 //include(":lib:tool-kmp:jdbc:tool-jdbc-model")
 //include(":lib:tool-kmp:jdbc:tool-jdbc")
 //include(":lib:tool-kmp:tool-koin")
@@ -113,7 +115,7 @@ include(":lib:tool-jvm:tool-email")
 //include(":lib:tool-jvm:tool-mqtt")
 //include(":lib:tool-jvm:tool-excel")
 //include(":lib:tool-jvm:tool-api-jvm")
-//include(":lib:tool-jvm:tool-io-codegen")
+include(":lib:tool-jvm:tool-io-codegen")
 //include(":lib:tool-jvm:tool-context")
 include(":lib:tool-jvm:tool-curl")
 //include(":lib:tool-jvm:tool-funbox")
@@ -125,6 +127,7 @@ include(":lib:tool-jvm:network-call:tool-api-maven")
 //include(":lib:tool-jvm:network-call:tool-api-weather")
 //include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
 //include(":lib:tool-jvm:stream-wrapper")
+
 include(":lib:tool-jvm:tool-jvmstr")
 //include(":lib:tool-jvm:tool-common-jvm")
 //include(":lib:tool-jvm:tool-pinyin")

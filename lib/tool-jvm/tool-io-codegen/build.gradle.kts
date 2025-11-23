@@ -2,5 +2,5 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 dependencies {
-    implementation(project(":lib:tool-kmp:tool-str"))
+    implementation("site.addzero:tool-str:2025.11.27")
 }
