@@ -1,0 +1,797 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Maven Central Search API",
+    "description": "Maven Central Repository 搜索 REST API\n\n参考文档: https://central.sonatype.org/search/rest-api-guide/\n\n所有搜索返回 JSON 格式的结果。",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Maven Central",
+      "url": "https://central.sonatype.org"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://central.sonatype.com/solrsearch",
+      "description": "Maven Central 主服务器"
+    },
+    {
+      "url": "https://search.maven.org/solrsearch",
+      "description": "Maven Central 备用服务器"
+    }
+  ],
+  "tags": [
+    {
+      "name": "精确搜索",
+      "description": "按精确的 groupId、artifactId 或坐标搜索"
+    },
+    {
+      "name": "模糊搜索",
+      "description": "关键词、类名、SHA-1、标签等模糊搜索"
+    },
+    {
+      "name": "版本查询",
+      "description": "查询特定工件的所有版本"
+    },
+    {
+      "name": "文件下载",
+      "description": "下载工件文件"
+    }
+  ],
+  "paths": {
+    "/select": {
+      "get": {
+        "tags": ["精确搜索"],
+        "summary": "按 groupId 搜索",
+        "description": "搜索指定 groupId 下的所有工件，返回每个工件的最新版本",
+        "operationId": "searchByGroupId",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "查询条件，格式: g:groupId",
+            "schema": {
+              "type": "string",
+              "example": "g:com.google.inject"
+            }
+          },
+          {
+            "name": "rows",
+            "in": "query",
+            "description": "返回结果数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "example": 10
+            }
+          },
+          {
+            "name": "wt",
+            "in": "query",
+            "description": "响应格式",
+            "schema": {
+              "type": "string",
+              "default": "json",
+              "enum": ["json", "xml"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "搜索成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "responseHeader": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "example": 0
+              },
+              "QTime": {
+                "type": "integer",
+                "example": 2
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "numFound": {
+                "type": "integer",
+                "description": "找到的总数",
+                "example": 42
+              },
+              "start": {
+                "type": "integer",
+                "description": "起始位置",
+                "example": 0
+              },
+              "docs": {
+                "type": "array",
+                "description": "工件列表",
+                "items": {
+                  "$ref": "#/components/schemas/Artifact"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Artifact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "工件唯一ID",
+            "example": "com.google.inject:guice:7.0.0"
+          },
+          "g": {
+            "type": "string",
+            "description": "groupId",
+            "example": "com.google.inject"
+          },
+          "a": {
+            "type": "string",
+            "description": "artifactId",
+            "example": "guice"
+          },
+          "v": {
+            "type": "string",
+            "description": "version",
+            "example": "7.0.0"
+          },
+          "latestVersion": {
+            "type": "string",
+            "description": "最新版本",
+            "example": "7.0.0"
+          },
+          "p": {
+            "type": "string",
+            "description": "packaging (打包方式)",
+            "example": "jar"
+          },
+          "timestamp": {
+            "type": "integer",
+            "description": "发布时间戳",
+            "example": 1699999999999
+          },
+          "repositoryId": {
+            "type": "string",
+            "description": "仓库ID",
+            "example": "central"
+          },
+          "l": {
+            "type": "string",
+            "description": "classifier (分类器)",
+            "example": "javadoc"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "QueryParam": {
+        "name": "q",
+        "in": "query",
+        "required": true,
+        "description": "搜索查询条件",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RowsParam": {
+        "name": "rows",
+        "in": "query",
+        "description": "返回结果数量 (1-100)",
+        "schema": {
+          "type": "integer",
+          "default": 20,
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "WtParam": {
+        "name": "wt",
+        "in": "query",
+        "description": "响应格式",
+        "schema": {
+          "type": "string",
+          "default": "json",
+          "enum": ["json", "xml"]
+        }
+      },
+      "CoreParam": {
+        "name": "core",
+        "in": "query",
+        "description": "搜索核心 (使用 'gav' 获取所有版本)",
+        "schema": {
+          "type": "string",
+          "enum": ["gav"]
+        }
+      }
+    }
+  },
+  "x-postman-collection": {
+    "info": {
+      "name": "Maven Central Search API",
+      "description": "Maven Central 仓库搜索 API 完整示例",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "精确搜索",
+        "item": [
+          {
+            "name": "按 groupId 搜索 - com.google.inject",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:com.google.inject&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:com.google.inject",
+                    "description": "按 groupId 搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按 groupId 搜索 - org.springframework.boot",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:org.springframework.boot&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:org.springframework.boot"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按坐标搜索 - guice",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:com.google.inject+AND+a:guice&rows=1&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:com.google.inject+AND+a:guice",
+                    "description": "groupId AND artifactId"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "1"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按坐标搜索 - jackson-databind",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:com.fasterxml.jackson.core+AND+a:jackson-databind&rows=1&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:com.fasterxml.jackson.core+AND+a:jackson-databind"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "1"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按完整坐标搜索 - 带分类器",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:com.google.inject+AND+a:guice+AND+v:7.0.0+AND+p:jar+AND+l:javadoc&rows=5&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:com.google.inject+AND+a:guice+AND+v:7.0.0+AND+p:jar+AND+l:javadoc",
+                    "description": "g=groupId, a=artifactId, v=version, p=packaging, l=classifier"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "5"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "版本查询",
+        "item": [
+          {
+            "name": "搜索所有版本 - guice (使用 GAV core)",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:com.google.inject+AND+a:guice&rows=20&wt=json&core=gav",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:com.google.inject+AND+a:guice"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "20"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  },
+                  {
+                    "key": "core",
+                    "value": "gav",
+                    "description": "使用 GAV core 返回所有版本"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "搜索所有版本 - spring-boot-starter",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=g:org.springframework.boot+AND+a:spring-boot-starter&rows=20&wt=json&core=gav",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "g:org.springframework.boot+AND+a:spring-boot-starter"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "20"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  },
+                  {
+                    "key": "core",
+                    "value": "gav"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "模糊搜索",
+        "item": [
+          {
+            "name": "关键词搜索 - jackson",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=jackson&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "jackson",
+                    "description": "关键词搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "关键词搜索 - spring",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=spring&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "spring"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按 artifactId 搜索 - guice",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=a:guice&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "a:guice",
+                    "description": "按 artifactId 跨组搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按类名搜索 - JUnit",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=c:JUnit&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "c:JUnit",
+                    "description": "c: 表示按类名搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按完全限定类名搜索",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=fc:org.junit.Test&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "fc:org.junit.Test",
+                    "description": "fc: 表示按完全限定类名搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按 SHA-1 搜索",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=1:35379fb6526fd019f331542b4e9ae2e566c57933&rows=5&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "1:35379fb6526fd019f331542b4e9ae2e566c57933",
+                    "description": "1: 表示按 SHA-1 搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "5"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "按标签搜索 - sbtplugin",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Accept",
+                  "value": "application/json"
+                }
+              ],
+              "url": {
+                "raw": "https://central.sonatype.com/solrsearch/select?q=tags:sbtplugin&rows=10&wt=json",
+                "protocol": "https",
+                "host": ["central", "sonatype", "com"],
+                "path": ["solrsearch", "select"],
+                "query": [
+                  {
+                    "key": "q",
+                    "value": "tags:sbtplugin",
+                    "description": "tags: 表示按标签搜索"
+                  },
+                  {
+                    "key": "rows",
+                    "value": "10"
+                  },
+                  {
+                    "key": "wt",
+                    "value": "json"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "文件下载",
+        "item": [
+          {
+            "name": "下载 POM 文件 - guice",
+            "request": {
+              "method": "GET",
+              "url": {
+                "raw": "https://search.maven.org/remotecontent?filepath=com/google/inject/guice/7.0.0/guice-7.0.0.pom",
+                "protocol": "https",
+                "host": ["search", "maven", "org"],
+                "path": ["remotecontent"],
+                "query": [
+                  {
+                    "key": "filepath",
+                    "value": "com/google/inject/guice/7.0.0/guice-7.0.0.pom",
+                    "description": "文件路径: groupId(用/替换.)/artifactId/version/filename"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "下载 JAR 文件 - guice",
+            "request": {
+              "method": "GET",
+              "url": {
+                "raw": "https://search.maven.org/remotecontent?filepath=com/google/inject/guice/7.0.0/guice-7.0.0.jar",
+                "protocol": "https",
+                "host": ["search", "maven", "org"],
+                "path": ["remotecontent"],
+                "query": [
+                  {
+                    "key": "filepath",
+                    "value": "com/google/inject/guice/7.0.0/guice-7.0.0.jar"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "下载 Sources JAR - guice",
+            "request": {
+              "method": "GET",
+              "url": {
+                "raw": "https://search.maven.org/remotecontent?filepath=com/google/inject/guice/7.0.0/guice-7.0.0-sources.jar",
+                "protocol": "https",
+                "host": ["search", "maven", "org"],
+                "path": ["remotecontent"],
+                "query": [
+                  {
+                    "key": "filepath",
+                    "value": "com/google/inject/guice/7.0.0/guice-7.0.0-sources.jar"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "下载 Javadoc JAR - guice",
+            "request": {
+              "method": "GET",
+              "url": {
+                "raw": "https://search.maven.org/remotecontent?filepath=com/google/inject/guice/7.0.0/guice-7.0.0-javadoc.jar",
+                "protocol": "https",
+                "host": ["search", "maven", "org"],
+                "path": ["remotecontent"],
+                "query": [
+                  {
+                    "key": "filepath",
+                    "value": "com/google/inject/guice/7.0.0/guice-7.0.0-javadoc.jar"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

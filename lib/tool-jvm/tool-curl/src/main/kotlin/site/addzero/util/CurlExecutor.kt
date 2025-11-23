@@ -18,23 +18,49 @@ object CurlExecutor {
         .build()
 
     /**
+     * 是否启用调试日志
+     */
+    var enableDebugLog: Boolean = true
+
+    /**
      * 执行解析后的Curl请求
      *
      * @param parsedCurl 解析后的Curl对象
      * @return 响应结果
      * @throws IOException 网络请求异常
      */
-    fun execute(parsedCurl: ParsedCurl): Response {
+    private fun execute(parsedCurl: ParsedCurl): Response {
         val request = buildRequest(parsedCurl)
         return client.newCall(request).execute()
     }
 
 
-
-    fun execute(curl:String): Response {
+    fun execute(curl: String): Response {
+        if (enableDebugLog) {
+            println("=== Executing Curl Command ===")
+            println(formatCurlCommand(curl))
+            println("=".repeat(30))
+        }
+        
         val parseCurl = CurlParser.parseCurl(curl)
         val execute = execute(parseCurl)
+        
+        if (enableDebugLog) {
+            println("Response Status: ${execute.code}")
+            println("Response Headers: ${execute.headers}")
+        }
+        
         return execute
+    }
+    
+    /**
+     * 格式化curl命令，使其更易读
+     */
+    private fun formatCurlCommand(curl: String): String {
+        return curl
+            .replace(Regex("\\s+-H\\s+"), "\n  -H ")
+            .replace(Regex("\\s+-d\\s+"), "\n  -d ")
+            .replace(Regex("\\s+--data\\s+"), "\n  --data ")
     }
 
 
