@@ -776,7 +776,7 @@ fun String?.getRestUrl(): String {
     if (this.isNullOrBlank()) {
         return ""
     }
-    
+
     val pattern = Regex(".*:\\d+(/[^/]+)(/.*)")
     val matchResult = pattern.find(this)
 
@@ -785,4 +785,25 @@ fun String?.getRestUrl(): String {
     } else {
         ""
     }
+}
+
+/**
+ * wasm测试失败
+ * @param [input]
+ * @return [MutableMap<String?, Any?>]
+ */
+fun extractKeyValuePairs(input: String): MutableMap<String?, Any?> {
+    val keyValueMap = HashMap<String?, Any?>()
+    // 正则表达式匹配形如 "key : value" 或 "key：value" 的子串，考虑冒号和值周围的空白字符
+    val pattern = Regex("([\\p{L}\\p{N}_]+)[ \\t]*([:：])[ \\t]*([\\p{L}\\p{N}_]+)")
+
+    pattern.findAll(input)
+        .forEach { match ->
+            // 提取匹配到的key和value，去除空白字符
+            val key = match.groupValues[1].trim()
+            val value = match.groupValues[3].trim()
+            keyValueMap[key] = value
+        }
+
+    return keyValueMap
 }
