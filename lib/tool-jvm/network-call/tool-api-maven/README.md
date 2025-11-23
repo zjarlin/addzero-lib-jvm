@@ -14,6 +14,8 @@
 
 ### Gradle 依赖版本更新 🆕
 
+#### GradleDependencyParser - Gradle 依赖解析器
+
 ```kotlin
 import site.addzero.network.call.maven.util.GradleDependencyParser
 
@@ -58,6 +60,69 @@ val isValid = GradleDependencyParser.isValidDependencyString(
     """implementation("com.google.inject:guice:4.2.3")"""
 )
 println(isValid) // 输出: true
+```
+
+#### MavenDependencyParser - Maven 依赖解析器 🆕
+
+支持解析和更新 Maven pom.xml 中的 `<dependency>` 标签：
+
+```kotlin
+import site.addzero.network.call.maven.util.MavenDependencyParser
+
+// 1. 更新单个依赖标签到最新版本
+val oldXml = """
+    <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>4.2.3</version>
+    </dependency>
+""".trimIndent()
+
+val newXml = MavenDependencyParser.updateToLatestVersion(oldXml)
+println(newXml)
+// 输出:
+// <dependency>
+//     <groupId>com.google.inject</groupId>
+//     <artifactId>guice</artifactId>
+//     <version>5.1.0</version>
+// </dependency>
+
+// 2. 解析 Maven 依赖标签
+val coordinate = MavenDependencyParser.parseDependency(oldXml)
+println("groupId: ${coordinate?.groupId}")
+println("artifactId: ${coordinate?.artifactId}")
+println("version: ${coordinate?.version}")
+
+// 3. 从 pom.xml 中提取所有依赖
+val pomXml = File("pom.xml").readText()
+val dependencies = MavenDependencyParser.extractDependenciesFromPom(pomXml)
+println("找到 ${dependencies.size} 个依赖")
+
+// 4. 更新整个 pom.xml 到最新版本
+val updatedPom = MavenDependencyParser.updatePomToLatestVersions(pomXml)
+File("pom-updated.xml").writeText(updatedPom)
+
+// 5. 获取 pom.xml 更新报告
+val report = MavenDependencyParser.getPomUpdateReport(pomXml)
+report.forEach { result ->
+    println(result.summary)
+    // 输出如: com.google.inject:guice 4.2.3 -> 5.1.0
+}
+
+// 6. Gradle 转 Maven 格式
+val gradleDep = """implementation("com.google.inject:guice:4.2.3")"""
+val mavenXml = MavenDependencyParser.convertFromGradle(gradleDep)
+println(mavenXml)
+// 输出 Maven XML 格式
+
+// 7. 从 Maven 坐标字符串解析
+val coordinate = MavenDependencyParser.parseDependencyFromCoordinate(
+    "com.google.inject:guice:4.2.3:compile"
+)
+
+// 8. 格式化 Maven XML（美化输出）
+val uglyXml = "<dependency><groupId>com.google.inject</groupId><artifactId>guice</artifactId><version>4.2.3</version></dependency>"
+val prettyXml = MavenDependencyParser.formatDependencyXml(uglyXml)
 ```
 
 ### 基本搜索
