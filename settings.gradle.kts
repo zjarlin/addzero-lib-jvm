@@ -51,7 +51,7 @@ dependencyResolutionManagement {
 //include(":lib:tool-kmp:tool-coll")
 //include(":lib:tool-kmp:tool-json")
 include(":lib:tool-kmp:tool-str")
-include(":lib:apt")
+include(":lib:apt-dict-processor")
 //include(":lib:tool-kmp:jdbc:tool-jdbc-model")
 //include(":lib:tool-kmp:jdbc:tool-jdbc")
 //include(":lib:tool-kmp:tool-koin")
