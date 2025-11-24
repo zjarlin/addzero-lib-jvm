@@ -83,12 +83,14 @@ class DictEnumProcessor : AbstractProcessor() {
             // 打印配置信息（不包含敏感信息）
             processingEnv.messager.printMessage(
                 Diagnostic.Kind.NOTE,
-                "[INFO] 字典处理器配置:\n" +
-                "  数据库URL: ${config.jdbcUrl}\n" +
-                "  字典表: ${config.dictTableName ?: "sys_dict_type"}\n" +
-                "  字典项表: ${config.dictItemTableName ?: "sys_dict_data"}\n" +
-                "  输出包名: ${config.enumOutputPackage}\n" +
-                "  输出目录: ${config.enumOutputDirectory ?: "默认(target/generated-sources/annotations)"}"
+                """
+                [INFO] 字典处理器配置:
+                  数据库URL: ${config.jdbcUrl}
+                  字典表: ${config.dictTableName ?: "sys_dict_type"}
+                  字典项表: ${config.dictItemTableName ?: "sys_dict_data"}
+                  输出包名: ${config.enumOutputPackage}
+                  输出目录: ${config.enumOutputDirectory ?: "默认(target/generated-sources/annotations)"}
+                """.trimIndent()
             )
 
 
@@ -175,16 +177,20 @@ class DictEnumProcessor : AbstractProcessor() {
         } catch (e: SQLException) {
             processingEnv.messager.printMessage(
                 Diagnostic.Kind.WARNING,
-                "[WARNING] ⚠️ SQL错误: ${e.message}\n" +
-                "  错误代码: ${e.errorCode}, SQL状态: ${e.sqlState}\n" +
-                "  跳过字典枚举生成过程"
+                """
+                [WARNING] ⚠️ SQL错误: ${e.message}
+                  错误代码: ${e.errorCode}, SQL状态: ${e.sqlState}
+                  跳过字典枚举生成过程
+                """.trimIndent()
             )
         } catch (e: Exception) {
             processingEnv.messager.printMessage(
                 Diagnostic.Kind.WARNING,
-                "[WARNING] ⚠️ 无法连接到数据库或提取字典数据: ${e.message}\n" +
-                "  ${e.stackTraceToString()}\n" +
-                "  跳过字典枚举生成过程"
+                """
+                [WARNING] ⚠️ 无法连接到数据库或提取字典数据: ${e.message}
+                  ${e.stackTraceToString()}
+                  跳过字典枚举生成过程
+                """.trimIndent()
             )
         }
 

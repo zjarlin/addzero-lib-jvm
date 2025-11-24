@@ -85,90 +85,79 @@ class DictEnumCodeGenerator(
         }
 
         writer.use { w ->
-            // 包声明
-            w.println("package $settings.enumOutputPackage;")
-            w.println()
-
-            // 类注释
-            w.println("/**")
-            w.println(" * ${dictMetadata.dictName}")
-            w.println(" *")
-            w.println(" * 数据库字典编码: ${dictMetadata.dictCode}")
-            w.println(" * 自动生成的枚举类，不要手动修改")
-            w.println(" */")
-            w.println("public enum $fullEnumName {")
-            w.println()
-
-            // 生成枚举常量
-            val enumConstants = dictMetadata.items.map { item ->
+            val enumConstants = dictMetadata.items.joinToString(",\n") { item ->
                 val enumEntryName = item.code.toEnumEntryName()
                 """    $enumEntryName("${item.code.escapeJavaString()}", "${item.desc.escapeJavaString()}")"""
             }
-            w.println(enumConstants.joinToString(",\n") + ";")
-            w.println()
 
-            // 生成字段
-            w.println("    private final String code;")
-            w.println("    private final String desc;")
-            w.println()
+            val code = """
+                package ${settings.enumOutputPackage};
 
-            // 生成构造函数
-            w.println("    $fullEnumName(String code, String desc) {")
-            w.println("        this.code = code;")
-            w.println("        this.desc = desc;")
-            w.println("    }")
-            w.println()
+                /**
+                 * ${dictMetadata.dictName}
+                 *
+                 * 数据库字典编码: ${dictMetadata.dictCode}
+                 * 自动生成的枚举类，不要手动修改
+                 */
+                public enum $fullEnumName {
 
-            // 生成 getter 方法
-            w.println("    public String getCode() {")
-            w.println("        return code;")
-            w.println("    }")
-            w.println()
-            w.println("    public String getDesc() {")
-            w.println("        return desc;")
-            w.println("    }")
-            w.println()
+                $enumConstants;
 
-            // 生成 fromCode 方法
-            w.println("    /**")
-            w.println("     * 根据编码获取枚举值")
-            w.println("     *")
-            w.println("     * @param code 编码")
-            w.println("     * @return 对应的枚举值，如果不存在则返回null")
-            w.println("     */")
-            w.println("    public static $fullEnumName fromCode(String code) {")
-            w.println("        if (code == null) {")
-            w.println("            return null;")
-            w.println("        }")
-            w.println("        for ($fullEnumName e : values()) {")
-            w.println("            if (e.code.equals(code)) {")
-            w.println("                return e;")
-            w.println("            }")
-            w.println("        }")
-            w.println("        return null;")
-            w.println("    }")
-            w.println()
+                    private final String code;
+                    private final String desc;
 
-            // 生成 fromDesc 方法
-            w.println("    /**")
-            w.println("     * 根据描述获取枚举值")
-            w.println("     *")
-            w.println("     * @param desc 描述")
-            w.println("     * @return 对应的枚举值，如果不存在则返回null")
-            w.println("     */")
-            w.println("    public static $fullEnumName fromDesc(String desc) {")
-            w.println("        if (desc == null) {")
-            w.println("            return null;")
-            w.println("        }")
-            w.println("        for ($fullEnumName e : values()) {")
-            w.println("            if (e.desc.equals(desc)) {")
-            w.println("                return e;")
-            w.println("            }")
-            w.println("        }")
-            w.println("        return null;")
-            w.println("    }")
+                    $fullEnumName(String code, String desc) {
+                        this.code = code;
+                        this.desc = desc;
+                    }
 
-            w.println("}")
+                    public String getCode() {
+                        return code;
+                    }
+
+                    public String getDesc() {
+                        return desc;
+                    }
+
+                    /**
+                     * 根据编码获取枚举值
+                     *
+                     * @param code 编码
+                     * @return 对应的枚举值，如果不存在则返回null
+                     */
+                    public static $fullEnumName fromCode(String code) {
+                        if (code == null) {
+                            return null;
+                        }
+                        for ($fullEnumName e : values()) {
+                            if (e.code.equals(code)) {
+                                return e;
+                            }
+                        }
+                        return null;
+                    }
+
+                    /**
+                     * 根据描述获取枚举值
+                     *
+                     * @param desc 描述
+                     * @return 对应的枚举值，如果不存在则返回null
+                     */
+                    public static $fullEnumName fromDesc(String desc) {
+                        if (desc == null) {
+                            return null;
+                        }
+                        for ($fullEnumName e : values()) {
+                            if (e.desc.equals(desc)) {
+                                return e;
+                            }
+                        }
+                        return null;
+                    }
+                }
+            """.trimIndent()
+
+            w.print(code)
         }
 
         messager.printMessage(Diagnostic.Kind.NOTE, "[INFO] 生成枚举类: $fullEnumName")
