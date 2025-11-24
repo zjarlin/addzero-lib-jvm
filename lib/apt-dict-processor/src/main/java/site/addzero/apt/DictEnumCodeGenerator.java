@@ -4,8 +4,12 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,11 +21,24 @@ public class DictEnumCodeGenerator {
     private final Filer filer;
     private final Messager messager;
     private final String enumOutputPackage;
+    private final String customOutputDirectory;  // 自定义输出目录
+    private final boolean useCustomOutput;       // 是否使用自定义输出
 
     public DictEnumCodeGenerator(Filer filer, Messager messager, String enumOutputPackage) {
+        this(filer, messager, enumOutputPackage, null);
+    }
+
+    public DictEnumCodeGenerator(Filer filer, Messager messager, String enumOutputPackage, String customOutputDirectory) {
         this.filer = filer;
         this.messager = messager;
         this.enumOutputPackage = enumOutputPackage;
+        this.customOutputDirectory = customOutputDirectory;
+        this.useCustomOutput = customOutputDirectory != null && !customOutputDirectory.trim().isEmpty();
+        
+        if (useCustomOutput) {
+            messager.printMessage(Diagnostic.Kind.NOTE, 
+                "使用自定义输出目录: " + customOutputDirectory);
+        }
     }
 
     /**
@@ -69,8 +86,17 @@ public class DictEnumCodeGenerator {
         String qualifiedName = enumOutputPackage + "." + fullEnumName;
 
         try {
-            JavaFileObject fileObject = filer.createSourceFile(qualifiedName);
-            try (PrintWriter writer = new PrintWriter(fileObject.openWriter())) {
+            PrintWriter writer = null;
+            
+            try {
+                if (useCustomOutput) {
+                    // 使用自定义输出目录
+                    writer = createCustomOutputWriter(fullEnumName);
+                } else {
+                    // 使用标准 Filer API（生成到 target/generated-sources/annotations）
+                    JavaFileObject fileObject = filer.createSourceFile(qualifiedName);
+                    writer = new PrintWriter(fileObject.openWriter());
+                }
                 writer.println("package " + enumOutputPackage + ";");
                 writer.println();
                 writer.println("/**");
@@ -85,7 +111,8 @@ public class DictEnumCodeGenerator {
                 // 生成枚举常量
                 List<String> enumConstants = dictMetadata.items.stream()
                     .map(item -> {
-                        String enumEntryName = toEnumEntryName(item.desc, item.code);
+                        // 使用 code 作为枚举值名称，确保处理数字开头的情况
+                        String enumEntryName = toEnumEntryName(item.code);
                         return String.format("    %s(\"%s\", \"%s\")",
                             enumEntryName,
                             escapeJavaString(item.code),
@@ -156,6 +183,10 @@ public class DictEnumCodeGenerator {
                 writer.println("    }");
                 
                 writer.println("}");
+            } finally {
+                if (writer != null) {
+                    writer.close();
+                }
             }
             
             messager.printMessage(Diagnostic.Kind.NOTE, "Generated enum class: " + fullEnumName);
@@ -194,32 +225,70 @@ public class DictEnumCodeGenerator {
 
     /**
      * 转换为合法的枚举项名称
+     * 规则：
+     * 1. 如果是纯数字，直接加下划线前缀: "0" -> "_0", "123" -> "_123"
+     * 2. 如果以数字开头，加下划线前缀: "10min" -> "_10MIN", "1abc" -> "_1ABC"
+     * 3. 其他情况转大写并替换非法字符: "status" -> "STATUS"
      */
-    private String toEnumEntryName(String desc, String code) {
-        // 优先使用 code，如果 code 为空则使用 desc
-        String name = (code != null && !code.isEmpty()) ? code : desc;
-        if (name == null || name.isEmpty()) {
-            name = "UNKNOWN";
+    private String toEnumEntryName(String code) {
+        if (code == null || code.isEmpty()) {
+            return "UNKNOWN";
         }
         
-        // 转换为大写并替换非法字符
-        name = name.toUpperCase()
+        // 如果整个code都是数字，直接加下划线前缀并返回
+        if (code.matches("^\\d+$")) {
+            return "_" + code;
+        }
+        
+        // 转换为大写并替换非法字符（只保留字母、数字、下划线）
+        String processed = code.toUpperCase()
                    .replaceAll("[^A-Z0-9_]", "_")
                    .replaceAll("_+", "_");
         
-        // 确保以字母或下划线开头
-        if (!name.isEmpty() && Character.isDigit(name.charAt(0))) {
-            name = "_" + name;
+        // 移除尾部下划线
+        processed = processed.replaceAll("_+$", "");
+        
+        // 如果以数字开头，加下划线前缀
+        if (!processed.isEmpty() && Character.isDigit(processed.charAt(0))) {
+            processed = "_" + processed;
         }
         
-        // 移除首尾下划线
-        name = name.replaceAll("^_+|_+$", "");
-        
-        if (name.isEmpty()) {
-            name = "UNKNOWN";
+        // 移除开头的多余下划线（但保留用于数字开头的那一个）
+        // 例如：___ABC -> _ABC（如果ABC是数字开头则保留一个下划线）
+        // 注意：这里不要移除用于数字开头的下划线
+        if (processed.startsWith("__")) {
+            // 如果有多个下划线，只保留一个
+            processed = processed.replaceAll("^_+", "_");
         }
         
-        return name;
+        // 如果处理后为空或只有下划线，使用默认值
+        if (processed.isEmpty() || processed.matches("^_+$")) {
+            return "UNKNOWN";
+        }
+        
+        return processed;
+    }
+
+    /**
+     * 创建自定义输出目录的 Writer
+     */
+    private PrintWriter createCustomOutputWriter(String fullEnumName) throws IOException {
+        // 将包名转换为目录路径
+        String packagePath = enumOutputPackage.replace('.', File.separatorChar);
+        
+        // 构建完整路径
+        Path outputPath = Paths.get(customOutputDirectory, packagePath);
+        
+        // 创建目录（如果不存在）
+        Files.createDirectories(outputPath);
+        
+        // 创建文件
+        Path filePath = outputPath.resolve(fullEnumName + ".java");
+        
+        messager.printMessage(Diagnostic.Kind.NOTE, 
+            "生成枚举到自定义目录: " + filePath);
+        
+        return new PrintWriter(Files.newBufferedWriter(filePath));
     }
 
     /**

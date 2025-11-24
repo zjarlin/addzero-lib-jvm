@@ -6,7 +6,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 
 plugins {
-//    id("org.gradle.toolchains.foojay-resolver-convention") version "+"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "+"
     id("site.addzero.repo-buddy") version "+"
 //    id("site.addzero.modules-buddy") version "0.0.652"
 

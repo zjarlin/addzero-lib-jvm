@@ -44,12 +44,14 @@ public class DictEnumProcessor extends AbstractProcessor {
             );
             
             String enumOutputPackage = getRequiredOption(options, "enumOutputPackage");
+            String enumOutputDirectory = getOption(options, "enumOutputDirectory", null);
             
             this.metadataExtractor = new DictMetadataExtractor(processingEnv.getMessager(), config);
             this.enumCodeGenerator = new DictEnumCodeGenerator(
                 processingEnv.getFiler(),
                 processingEnv.getMessager(),
-                enumOutputPackage
+                enumOutputPackage,
+                enumOutputDirectory
             );
         } catch (IllegalArgumentException e) {
             processingEnv.getMessager().printMessage(

@@ -21,6 +21,10 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
+tasks.named<Jar>("jar") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 // 配置 APT Buddy 插件示例（插件应用后才能生效）
 // 插件发布后，取消注释上面的插件应用语句和下面的配置
 /*
