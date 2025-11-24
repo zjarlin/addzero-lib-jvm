@@ -25,6 +25,7 @@ val jvmstable = "addzero-lib-jvm-stable"
 //    excludeModules = listOf(bdlogic, jvmstable)
 //}
 includeBuild("checkouts/$bdlogic")
+includeBuild("lib/gradle-plugin/project-plugin/gradle-apt-buddy")
 
 
 fun GitIncludeExtension.includeAddzeroProject(projectName: String) {

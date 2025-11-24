@@ -7,6 +7,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import java.io.File
@@ -30,25 +31,41 @@ class AptBuddyPlugin : Plugin<Project> {
             val buildOutputDir = project.layout.buildDirectory.dir("generated/apt-buddy")
             generatedCodeOutputDir.set(buildOutputDir)
             mustMap.set(extension.mustMap)
-            settingContextConfig.set(extension.settingContext)
-            targetProject.set(project)
+            
+            // 分解 settingContextConfig 为单独的属性
+            contextClassName.set(extension.settingContext.map { it.contextClassName })
+            settingsClassName.set(extension.settingContext.map { it.settingsClassName })
+            packageName.set(extension.settingContext.map { it.packageName })
+            settingContextEnabled.set(extension.settingContext.map { it.enabled })
+            
+            projectPath.set(project.path)
         }
 
         project.afterEvaluate {
             try {
                 val outputDir = generateTask.flatMap { it.generatedCodeOutputDir }
+                
+                // 如果启用了 settingContext 生成，添加生成的源码目录到源码集
+                if (extension.settingContext.get().enabled && extension.mustMap.get().isNotEmpty()) {
+                    project.plugins.withId("java") {
+                        val sourceSets = project.extensions.getByType(SourceSetContainer::class.java)
+                        val mainSourceSet = sourceSets.getByName("main")
+                        mainSourceSet.java.srcDir(outputDir)
+                        project.logger.lifecycle("Added generated source directory to main sourceSet: ${outputDir.get().asFile.absolutePath}")
+                    }
+                }
+                
+                // 让 compileJava 依赖生成任务
                 project.tasks.findByName("compileJava")?.let { compileTask ->
                     compileTask.dependsOn(generateTask)
                 }
+                
+                // 让 compileKotlin 也依赖生成任务（如果存在）
+                project.tasks.findByName("compileKotlin")?.let { compileTask ->
+                    compileTask.dependsOn(generateTask)
+                }
             } catch (e: Exception) {
-                project.logger.warn("Failed to configure Java source sets: ${e.message}")
-            }
-        }
-
-        project.afterEvaluate {
-            if (extension.mustMap.isPresent && extension.mustMap.get().isNotEmpty()
-                && extension.generatePrecompiledScript.getOrElse(false)) {
-                generateTask.get()
+                project.logger.warn("Failed to configure Java source sets: ${e.message}", e)
             }
         }
     }
@@ -62,10 +79,19 @@ abstract class GenerateAptScriptTask : DefaultTask() {
     abstract val mustMap: MapProperty<String, String>
 
     @get:org.gradle.api.tasks.Input
-    abstract val settingContextConfig: Property<SettingContextConfig>
+    abstract val contextClassName: Property<String>
+    
+    @get:org.gradle.api.tasks.Input
+    abstract val settingsClassName: Property<String>
+    
+    @get:org.gradle.api.tasks.Input
+    abstract val packageName: Property<String>
+    
+    @get:org.gradle.api.tasks.Input
+    abstract val settingContextEnabled: Property<Boolean>
 
     @get:org.gradle.api.tasks.Input
-    abstract val targetProject: Property<Project>
+    abstract val projectPath: Property<String>
 
     @get:org.gradle.api.tasks.OutputFile
     abstract var outputFile: File
@@ -75,6 +101,9 @@ abstract class GenerateAptScriptTask : DefaultTask() {
 
     @org.gradle.api.tasks.TaskAction
     fun generate() {
+        logger.lifecycle("APT Buddy: Starting code generation...")
+        logger.lifecycle("APT Buddy: mustMap contains ${mustMap.get().size} entries")
+        
         outputFile.parentFile.mkdirs()
 
         val content = buildString {
@@ -94,9 +123,10 @@ abstract class GenerateAptScriptTask : DefaultTask() {
         printMavenPomConfiguration()
 
         val generatedFiles = generateSettingsAndContext()
-        val refreshHelper = project.objects.newInstance(GradleRefreshHelper::class.java)
-        refreshHelper.requestGradleReevaluation(targetProject.get())
-        refreshHelper.generateIdeRefreshHint(targetProject.get(), generatedFiles)
+        logger.lifecycle("APT Buddy: Generated ${generatedFiles.size} configuration files")
+        
+        // 生成 IDE 刷新提示文件
+        generateIdeRefreshHint(generatedFiles)
     }
 
     private fun printMavenPomConfiguration() {
@@ -142,22 +172,36 @@ abstract class GenerateAptScriptTask : DefaultTask() {
     }
 
     private fun generateSettingsAndContext(): List<File> {
-        val config = settingContextConfig.get()
-        if (!config.enabled) {
-            logger.lifecycle("SettingContext generation is disabled")
+        if (!settingContextEnabled.get()) {
+            logger.lifecycle("APT Buddy: SettingContext generation is disabled")
             return emptyList()
         }
 
         val outputDir = generatedCodeOutputDir.get().asFile
-        val packageDir = File(outputDir, config.packageName.replace(".", "/"))
+        val pkgName = packageName.get()
+        val packageDir = File(outputDir, pkgName.replace(".", "/"))
         packageDir.mkdirs()
 
-        logger.lifecycle("Generating Settings and SettingContext in: ${packageDir.absolutePath}")
-        logger.lifecycle("Package name: ${config.packageName}")
+        logger.lifecycle("═══════════════════════════════════════════════════════════════")
+        logger.lifecycle("📝 APT Buddy: Generating configuration classes")
+        logger.lifecycle("═══════════════════════════════════════════════════════════════")
+        logger.lifecycle("Output directory: ${packageDir.absolutePath}")
+        logger.lifecycle("Package name: $pkgName")
+        logger.lifecycle("Settings class: ${settingsClassName.get()}")
+        logger.lifecycle("Context class: ${contextClassName.get()}")
+        logger.lifecycle("Properties count: ${mustMap.get().size}")
 
         val generatedFiles = mutableListOf<File>()
-        generateSettingsJavaClass(packageDir, config.settingsClassName, mustMap.get(), config.packageName)?.let { generatedFiles.add(it) }
-        generateSettingContextJavaClass(packageDir, config.contextClassName, config.settingsClassName, config.packageName, mustMap.get())?.let { generatedFiles.add(it) }
+        generateSettingsJavaClass(packageDir, settingsClassName.get(), mustMap.get(), pkgName)?.let { 
+            generatedFiles.add(it)
+            logger.lifecycle("✅ Generated: ${it.name}")
+        }
+        generateSettingContextJavaClass(packageDir, contextClassName.get(), settingsClassName.get(), pkgName, mustMap.get())?.let { 
+            generatedFiles.add(it)
+            logger.lifecycle("✅ Generated: ${it.name}")
+        }
+        
+        logger.lifecycle("═══════════════════════════════════════════════════════════════")
 
         return generatedFiles
     }
@@ -258,5 +302,27 @@ $mapGets
         file.writeText(content)
         logger.lifecycle("Generated SettingContext Java class to: ${file.absolutePath}")
         return file
+    }
+
+    private fun generateIdeRefreshHint(generatedFiles: List<File>) {
+        val outputDir = generatedCodeOutputDir.get().asFile
+        val hintFile = File(outputDir, "apt-buddy-ide-hints.txt")
+        hintFile.writeText(buildString {
+            appendLine("APT Buddy IDE Refresh Hints")
+            appendLine("============================")
+            appendLine("Generated files that may need IDE refresh:")
+            generatedFiles.forEach { file ->
+                appendLine("- ${file.absolutePath}")
+            }
+            appendLine()
+            appendLine("If you see compilation errors, try:")
+            appendLine("1. Gradle -> Refresh Gradle Project (IntelliJ)")
+            appendLine("2. File -> Reload Gradle Projects")
+            appendLine("3. Restart IDE if necessary")
+            appendLine()
+            appendLine("Generated at: ${System.currentTimeMillis()}")
+        })
+
+        logger.lifecycle("Generated IDE refresh hints: ${hintFile.absolutePath}")
     }
 }

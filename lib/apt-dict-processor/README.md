@@ -1,131 +1,279 @@
-# 字典枚举 APT 处理器
+# APT Dict Processor - 字典枚举代码生成器
 
-从数据库字典表自动生成 Java 风格的枚举类。
+从数据库字典表自动生成 Java 枚举类的 APT（Annotation Processing Tool）处理器。
 
-## 功能特性
+## 特性
 
-- 从数据库字典表和字典项表读取数据
-- 自动生成标准的 Java 枚举类
-- 提供 `fromCode()` 和 `fromDesc()` 工具方法
-- 支持多种数据库（PostgreSQL、MySQL 等）
+- 🚀 **Kotlin 实现** - 使用现代化的 Kotlin 语言重写，代码更简洁
+- 🔧 **强类型配置** - 支持通过 `DictProcessorConfig` 进行类型安全的配置
+- 📦 **Gradle APT Buddy 集成** - 可与 gradle-apt-buddy 插件配合使用，提供更好的开发体验
+- 🔌 **兼容性** - 同时支持驼峰命名和点号分隔两种参数格式
+- 🎯 **自定义输出** - 支持指定枚举类的输出目录
+- 🌐 **多数据库支持** - 支持 MySQL、PostgreSQL 等主流数据库
+
+## 版本要求
+
+- Java 8+
+- Kotlin 2.1.20+
 
 ## 使用方法
 
-### 1. 添加依赖
+### 1. Maven 配置
 
-在你的项目 `build.gradle.kts` 中添加：
+#### 添加依赖
+
+```xml
+<dependency>
+    <groupId>site.addzero</groupId>
+    <artifactId>apt-dict-processor</artifactId>
+    <version>2025.11.27</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+#### 配置 Maven Compiler Plugin
+
+```xml
+<properties>
+    <!-- 数据库连接配置 -->
+    <jdbc.driver>com.mysql.cj.jdbc.Driver</jdbc.driver>
+    <jdbc.url>jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull&amp;useSSL=true&amp;serverTimezone=GMT%2B8</jdbc.url>
+    <jdbc.username>root</jdbc.username>
+    <jdbc.password>your_password</jdbc.password>
+    
+    <!-- 字典表配置 -->
+    <dict.table.name>sys_dict_type</dict.table.name>
+    <dict.id.column>dict_type</dict.id.column>
+    <dict.code.column>dict_type</dict.code.column>
+    <dict.name.column>dict_name</dict.name.column>
+    
+    <!-- 字典项表配置 -->
+    <dict.item.table.name>sys_dict_data</dict.item.table.name>
+    <dict.item.foreign.key.column>dict_type</dict.item.foreign.key.column>
+    <dict.item.code.column>dict_value</dict.item.code.column>
+    <dict.item.name.column>dict_label</dict.item.name.column>
+    
+    <!-- 输出配置 -->
+    <enum.output.package>com.zlj.iot.enums.generated</enum.output.package>
+</properties>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.11.0</version>
+            <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+                <annotationProcessorPaths>
+                    <!-- Lombok（如果使用） -->
+                    <path>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>1.18.30</version>
+                    </path>
+                    <!-- APT 字典枚举生成处理器 -->
+                    <path>
+                        <groupId>site.addzero</groupId>
+                        <artifactId>apt-dict-processor</artifactId>
+                        <version>2025.11.27</version>
+                    </path>
+                    <!-- MySQL 驱动 - APT 处理器需要连接数据库 -->
+                    <path>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>8.0.33</version>
+                    </path>
+                </annotationProcessorPaths>
+                
+                <!-- APT 处理器编译参数配置 -->
+                <compilerArgs>
+                    <!-- 数据库连接配置 -->
+                    <arg>-Ajdbc.driver=${jdbc.driver}</arg>
+                    <arg>-Ajdbc.url=${jdbc.url}</arg>
+                    <arg>-Ajdbc.username=${jdbc.username}</arg>
+                    <arg>-Ajdbc.password=${jdbc.password}</arg>
+                    
+                    <!-- 字典表配置 -->
+                    <arg>-Adict.table.name=${dict.table.name}</arg>
+                    <arg>-Adict.id.column=${dict.id.column}</arg>
+                    <arg>-Adict.code.column=${dict.code.column}</arg>
+                    <arg>-Adict.name.column=${dict.name.column}</arg>
+                    
+                    <!-- 字典项表配置 -->
+                    <arg>-Adict.item.table.name=${dict.item.table.name}</arg>
+                    <arg>-Adict.item.foreign.key.column=${dict.item.foreign.key.column}</arg>
+                    <arg>-Adict.item.code.column=${dict.item.code.column}</arg>
+                    <arg>-Adict.item.name.column=${dict.item.name.column}</arg>
+                    
+                    <!-- 生成的枚举类包名 -->
+                    <arg>-Aenum.output.package=${enum.output.package}</arg>
+                    <!-- 自定义输出目录（可选，生成到源码目录） -->
+                    <arg>-Aenum.output.directory=${project.basedir}/src/main/java</arg>
+                </compilerArgs>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+### 2. Gradle 配置
+
+#### 基础配置
 
 ```kotlin
+plugins {
+    id("java")
+}
+
 dependencies {
-    annotationProcessor(projects.lib.apt) // 或 "site.addzero:apt:版本号"
+    // APT 处理器
+    annotationProcessor("site.addzero:apt-dict-processor:2025.11.27")
     
-    // 根据你的数据库类型添加 JDBC 驱动
-    implementation("org.postgresql:postgresql:42.7.2")
-    // 或 MySQL
-    // implementation("mysql:mysql-connector-java:8.0.33")
+    // JDBC 驱动（编译时需要）
+    annotationProcessor("mysql:mysql-connector-java:8.0.33")
+}
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.addAll(
+        listOf(
+            "-Ajdbc.driver=com.mysql.cj.jdbc.Driver",
+            "-Ajdbc.url=jdbc:mysql://192.168.1.140:3306/iot_db",
+            "-Ajdbc.username=root",
+            "-Ajdbc.password=your_password",
+            "-Adict.table.name=sys_dict_type",
+            "-Adict.id.column=dict_type",
+            "-Adict.code.column=dict_type",
+            "-Adict.name.column=dict_name",
+            "-Adict.item.table.name=sys_dict_data",
+            "-Adict.item.foreign.key.column=dict_type",
+            "-Adict.item.code.column=dict_value",
+            "-Adict.item.name.column=dict_label",
+            "-Aenum.output.package=com.example.enums.generated"
+        )
+    )
 }
 ```
 
-### 2. 配置编译选项
-
-在 `build.gradle.kts` 中配置数据库连接和表结构信息：
+#### 使用 Gradle APT Buddy 插件（推荐）
 
 ```kotlin
-tasks.withType<JavaCompile> {
-    options.compilerArgs.addAll(listOf(
+plugins {
+    id("java")
+    id("site.addzero.apt-buddy") version "2025.11.27"
+}
+
+dependencies {
+    annotationProcessor("site.addzero:apt-dict-processor:2025.11.27")
+    annotationProcessor("mysql:mysql-connector-java:8.0.33")
+}
+
+aptBuddy {
+    mustMap.apply {
         // 数据库连接配置
-        "-AjdbcDriver=org.postgresql.Driver",
-        "-AjdbcUrl=jdbc:postgresql://localhost:5432/your_database",
-        "-AjdbcUsername=your_username",
-        "-AjdbcPassword=your_password",
+        put("jdbc.driver", "com.mysql.cj.jdbc.Driver")
+        put("jdbc.url", "jdbc:mysql://192.168.1.140:3306/iot_db")
+        put("jdbc.username", "root")
+        put("jdbc.password", "your_password")
         
         // 字典表配置
-        "-AdictTableName=sys_dict",
-        "-AdictIdColumn=id",
-        "-AdictCodeColumn=dict_code",
-        "-AdictNameColumn=dict_name",
+        put("dict.table.name", "sys_dict_type")
+        put("dict.id.column", "dict_type")
+        put("dict.code.column", "dict_type")
+        put("dict.name.column", "dict_name")
         
         // 字典项表配置
-        "-AdictItemTableName=sys_dict_item",
-        "-AdictItemForeignKeyColumn=dict_id",
-        "-AdictItemCodeColumn=item_value",
-        "-AdictItemNameColumn=item_text",
+        put("dict.item.table.name", "sys_dict_data")
+        put("dict.item.foreign.key.column", "dict_type")
+        put("dict.item.code.column", "dict_value")
+        put("dict.item.name.column", "dict_label")
         
-        // 生成的枚举类包名
-        "-AenumOutputPackage=com.example.generated.enums"
-    ))
+        // 输出配置
+        put("enum.output.package", "com.example.enums.generated")
+        put("enum.output.directory", "$projectDir/src/main/java")
+    }
 }
 ```
 
-### 3. 数据库表结构
+使用 apt-buddy 插件后，可以运行 `./gradlew generateAptScript` 查看等价的 Maven 配置。
 
-#### 字典表 (sys_dict)
-```sql
-CREATE TABLE sys_dict (
-    id BIGINT PRIMARY KEY,
-    dict_code VARCHAR(100),  -- 字典编码，如 "user_status"
-    dict_name VARCHAR(200)   -- 字典名称，如 "用户状态"
-);
-```
+## 配置参数说明
 
-#### 字典项表 (sys_dict_item)
-```sql
-CREATE TABLE sys_dict_item (
-    id BIGINT PRIMARY KEY,
-    dict_id BIGINT,          -- 外键关联字典表
-    item_value VARCHAR(100), -- 字典项编码，如 "ACTIVE"
-    item_text VARCHAR(200)   -- 字典项描述，如 "激活"
-);
-```
+| 参数名 | 必填 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `jdbc.driver` | 否 | `com.mysql.cj.jdbc.Driver` | JDBC 驱动类名 |
+| `jdbc.url` | 是 | - | 数据库连接 URL |
+| `jdbc.username` | 是 | - | 数据库用户名 |
+| `jdbc.password` | 是 | - | 数据库密码 |
+| `dict.table.name` | 否 | `sys_dict_type` | 字典主表名称 |
+| `dict.id.column` | 否 | `dict_type` | 字典主表 ID 列名 |
+| `dict.code.column` | 否 | `dict_type` | 字典主表代码列名 |
+| `dict.name.column` | 否 | `dict_name` | 字典主表名称列名 |
+| `dict.item.table.name` | 否 | `sys_dict_data` | 字典项表名称 |
+| `dict.item.foreign.key.column` | 否 | `dict_type` | 字典项表外键列名 |
+| `dict.item.code.column` | 否 | `dict_value` | 字典项代码列名 |
+| `dict.item.name.column` | 否 | `dict_label` | 字典项名称列名 |
+| `enum.output.package` | 是 | - | 生成的枚举类包名 |
+| `enum.output.directory` | 否 | `target/generated-sources/annotations` | 枚举类输出目录 |
 
-### 4. 编译项目
+**注意**：所有参数同时支持驼峰命名格式（如 `jdbcDriver`）和点号分隔格式（如 `jdbc.driver`），推荐使用点号格式。
 
-执行编译命令：
+## 数据库表结构要求
 
-```bash
-./gradlew compileJava
-```
+### 字典主表（默认 `sys_dict_type`）
 
-APT 处理器会自动：
-1. 连接到数据库
-2. 读取字典表和字典项数据
-3. 在 `build/generated/sources/annotationProcessor` 目录下生成 Java 枚举类
+| 列名 | 类型 | 说明 |
+|------|------|------|
+| `dict_type` | varchar | 字典编码（主键） |
+| `dict_name` | varchar | 字典名称 |
 
-### 5. 生成的枚举示例
+### 字典项表（默认 `sys_dict_data`）
+
+| 列名 | 类型 | 说明 |
+|------|------|------|
+| `dict_type` | varchar | 字典编码（外键） |
+| `dict_value` | varchar | 字典项值 |
+| `dict_label` | varchar | 字典项标签 |
+
+## 生成的枚举类示例
 
 假设数据库中有以下数据：
 
-**sys_dict 表：**
-| id | dict_code | dict_name |
-|----|-----------|-----------|
-| 1  | user_status | 用户状态 |
+**sys_dict_type:**
+```
+dict_type: sys_user_sex
+dict_name: 用户性别
+```
 
-**sys_dict_item 表：**
-| id | dict_id | item_value | item_text |
-|----|---------|------------|-----------|
-| 1  | 1       | ACTIVE     | 激活      |
-| 2  | 1       | INACTIVE   | 未激活    |
+**sys_dict_data:**
+```
+dict_type: sys_user_sex, dict_value: 0, dict_label: 男
+dict_type: sys_user_sex, dict_value: 1, dict_label: 女
+dict_type: sys_user_sex, dict_value: 2, dict_label: 未知
+```
 
 生成的枚举类：
 
 ```java
-package com.example.generated.enums;
+package com.example.enums.generated;
 
 /**
- * 用户状态
+ * 用户性别
  *
- * 数据库字典编码: user_status
+ * 数据库字典编码: sys_user_sex
  * 自动生成的枚举类，不要手动修改
  */
-public enum EnumUserStatus {
+public enum EnumSysUserSex {
 
-    ACTIVE("ACTIVE", "激活"),
-    INACTIVE("INACTIVE", "未激活");
+    _0("0", "男"),
+    _1("1", "女"),
+    _2("2", "未知");
 
     private final String code;
     private final String desc;
 
-    EnumUserStatus(String code, String desc) {
+    EnumSysUserSex(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -140,12 +288,15 @@ public enum EnumUserStatus {
 
     /**
      * 根据编码获取枚举值
+     *
+     * @param code 编码
+     * @return 对应的枚举值，如果不存在则返回null
      */
-    public static EnumUserStatus fromCode(String code) {
+    public static EnumSysUserSex fromCode(String code) {
         if (code == null) {
             return null;
         }
-        for (EnumUserStatus e : values()) {
+        for (EnumSysUserSex e : values()) {
             if (e.code.equals(code)) {
                 return e;
             }
@@ -155,12 +306,15 @@ public enum EnumUserStatus {
 
     /**
      * 根据描述获取枚举值
+     *
+     * @param desc 描述
+     * @return 对应的枚举值，如果不存在则返回null
      */
-    public static EnumUserStatus fromDesc(String desc) {
+    public static EnumSysUserSex fromDesc(String desc) {
         if (desc == null) {
             return null;
         }
-        for (EnumUserStatus e : values()) {
+        for (EnumSysUserSex e : values()) {
             if (e.desc.equals(desc)) {
                 return e;
             }
@@ -170,86 +324,68 @@ public enum EnumUserStatus {
 }
 ```
 
-### 6. 使用生成的枚举
+## 使用生成的枚举
 
 ```java
-// 通过编码查找
-EnumUserStatus status = EnumUserStatus.fromCode("ACTIVE");
-System.out.println(status.getDesc()); // 输出: 激活
+// 通过编码获取枚举
+EnumSysUserSex sex = EnumSysUserSex.fromCode("0");
+System.out.println(sex.getDesc()); // 输出: 男
 
-// 通过描述查找
-EnumUserStatus status2 = EnumUserStatus.fromDesc("激活");
-System.out.println(status2.getCode()); // 输出: ACTIVE
+// 通过描述获取枚举
+EnumSysUserSex sex2 = EnumSysUserSex.fromDesc("女");
+System.out.println(sex2.getCode()); // 输出: 1
 
-// 直接使用
-if (user.getStatus().equals(EnumUserStatus.ACTIVE.getCode())) {
-    // 用户已激活
-}
+// 直接使用枚举常量
+String maleCode = EnumSysUserSex._0.getCode(); // "0"
+String maleDesc = EnumSysUserSex._0.getDesc(); // "男"
 ```
 
-## 配置参数说明
+## 故障排查
 
-| 参数 | 必填 | 默认值 | 说明 |
-|------|------|--------|------|
-| jdbcDriver | 否 | org.postgresql.Driver | JDBC 驱动类名 |
-| jdbcUrl | **是** | - | 数据库连接 URL |
-| jdbcUsername | **是** | - | 数据库用户名 |
-| jdbcPassword | **是** | - | 数据库密码 |
-| dictTableName | 否 | sys_dict | 字典表名 |
-| dictIdColumn | 否 | id | 字典表主键列名 |
-| dictCodeColumn | 否 | dict_code | 字典编码列名 |
-| dictNameColumn | 否 | dict_name | 字典名称列名 |
-| dictItemTableName | 否 | sys_dict_item | 字典项表名 |
-| dictItemForeignKeyColumn | 否 | dict_id | 字典项外键列名 |
-| dictItemCodeColumn | 否 | item_value | 字典项编码列名 |
-| dictItemNameColumn | 否 | item_text | 字典项描述列名 |
-| enumOutputPackage | **是** | - | 生成枚举类的包名 |
+### 1. 参数未被识别
 
-## 注意事项
+**问题**：编译时看到警告 "以下选项未被任何处理程序识别"
 
-1. **数据库连接**：确保编译时数据库可访问
-2. **命名转换**：字典编码会自动转换为驼峰命名的枚举类名
-3. **类名前缀**：生成的枚举类会自动添加 "Enum" 前缀
-4. **重复检测**：如果字典编码转换后的类名重复，会跳过生成并发出警告
-5. **空字典项**：没有字典项的字典会被跳过
+**解决**：
+- 确保使用点号分隔格式：`-Ajdbc.driver` 而不是 `-AjdbcDriver`
+- 检查参数拼写是否正确
+- 查看本文档的"配置参数说明"部分
 
-## 与 KSP 版本的对比
+### 2. 数据库连接失败
 
-| 特性 | KSP 版本 | APT 版本 |
-|------|----------|----------|
-| 语言 | Kotlin | Java |
-| 生成代码 | Kotlin enum | Java enum |
-| 适用项目 | Kotlin/KMP | Java/JVM |
-| 配置方式 | kspBuddy DSL | Gradle 编译选项 |
-| 拼音转换 | 支持 | 简化版 |
+**问题**：编译时看到 "Communications link failure" 或类似错误
 
-## 故障排除
+**解决**：
+- 检查数据库地址、端口是否正确
+- 确认数据库用户名和密码是否正确
+- 检查网络连接是否正常
+- 确认 JDBC 驱动已添加到 annotationProcessorPaths
 
-### 编译时找不到数据库驱动
+### 3. 未生成枚举类
 
-确保在 `dependencies` 中添加了正确的 JDBC 驱动：
+**问题**：编译成功但没有生成枚举类
 
-```kotlin
-dependencies {
-    implementation("org.postgresql:postgresql:42.7.2")
-}
-```
+**解决**：
+- 检查数据库表是否有数据
+- 查看编译日志，确认处理器是否运行
+- 确认 `enum.output.package` 参数已正确设置
+- 检查数据库表名和列名配置是否与实际一致
 
-### 数据库连接失败
+## 技术实现
 
-检查：
-1. 数据库是否启动
-2. URL、用户名、密码是否正确
-3. 网络是否可达
-4. 防火墙设置
+- **语言**：Kotlin 2.1.20
+- **编译目标**：Java 8
+- **架构**：
+  - `DictProcessorConfig`: 强类型配置类
+  - `DictMetadataExtractor`: 数据库元数据提取器
+  - `DictEnumCodeGenerator`: 枚举代码生成器
+  - `DictEnumProcessor`: APT 主处理器
 
-### 未生成枚举类
+## 相关项目
 
-检查：
-1. 数据库表中是否有数据
-2. 表名和列名配置是否正确
-3. 查看编译日志中的警告信息
+- [gradle-apt-buddy](../gradle-plugin/project-plugin/gradle-apt-buddy) - Gradle APT 参数配置插件
+- [dict-trans-spring-boot-starter](../dict-trans-spring-boot-starter) - 字典翻译 Spring Boot Starter
 
-## 许可证
+## License
 
-根据项目主许可证
+Apache License 2.0

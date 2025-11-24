@@ -1,6 +1,6 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
-    id("site.addzero.buildlogic.other.dokka-convention")
+//    id("site.addzero.buildlogic.other.dokka-convention")
 }
 
 dependencies {

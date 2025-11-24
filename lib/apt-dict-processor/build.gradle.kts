@@ -1,62 +1,47 @@
 plugins {
-    id("java-library")
-    // 暂时注释掉，因为插件需要先发布才能在同一个项目中使用
-    // id("site.addzero.apt-buddy")
+    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.apt-buddy") version "2025.11.28"
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
 
 dependencies {
-    // PostgreSQL JDBC 驱动（可选，根据实际数据库类型调整）
     implementation("org.postgresql:postgresql:42.7.2")
-
-    // MySQL JDBC 驱动（可选）
-     implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("mysql:mysql-connector-java:8.0.33")
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
 
-tasks.named<Jar>("jar") {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-// 配置 APT Buddy 插件示例（插件应用后才能生效）
-// 插件发布后，取消注释上面的插件应用语句和下面的配置
-/*
+// 配置 APT Buddy 插件（用于测试和示例）
 aptBuddy {
     mustMap.apply {
-        // 数据库连接配置
-        put("jdbcDriver", "org.postgresql.Driver")
-        put("jdbcUrl", "jdbc:postgresql://localhost:5432/my_database")
-        put("jdbcUsername", "postgres")
-        put("jdbcPassword", "postgres")
-        
+        // 数据库连接配置（使用小驼峰格式）
+        put("jdbcDriver", "com.mysql.cj.jdbc.Driver")
+        put("jdbcUrl", "jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8")
+        put("jdbcUsername", "root")
+        put("jdbcPassword", "zljkj~123")
         // 字典表配置
-        put("dictTableName", "sys_dict")
-        put("dictIdColumn", "id")
-        put("dictCodeColumn", "dict_code")
+        put("dictTableName", "sys_dict_type")
+        put("dictIdColumn", "dict_type")
+        put("dictCodeColumn", "dict_type")
         put("dictNameColumn", "dict_name")
-        
         // 字典项表配置
-        put("dictItemTableName", "sys_dict_item")
-        put("dictItemForeignKeyColumn", "dict_id")
-        put("dictItemCodeColumn", "item_value")
-        put("dictItemNameColumn", "item_text")
-        
+        put("dictItemTableName", "sys_dict_data")
+        put("dictItemForeignKeyColumn", "dict_type")
+        put("dictItemCodeColumn", "dict_value")
+        put("dictItemNameColumn", "dict_label")
         // 生成的枚举类包名
-        put("enumOutputPackage", "com.example.generated.enums")
+        put("enumOutputPackage", "site.addzero.apt.test.enums")
+        // 可选：自定义输出目录（如果需要生成到源码目录）
+         put("enumOutputDirectory", "$projectDir/src/test/java")
     }
-    
-    // 禁用生成 Java 配置类（因为 APT 处理器已经有自己的配置处理方式）
+
+    // 启用生成 Java 配置类（Settings 和 SettingContext）
     settingContext.set(
         site.addzero.gradle.plugin.aptbuddy.SettingContextConfig(
-            enabled = false
+            contextClassName = "DictProcessorSettings",
+            settingsClassName = "DictProcessorConfig",
+            packageName = "site.addzero.apt.config",
+            outputDir = "src/main/java",
+            enabled = true
         )
     )
 }
-*/
