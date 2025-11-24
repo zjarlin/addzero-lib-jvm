@@ -13,9 +13,12 @@ dependencies {
 // 配置 APT Buddy 插件（用于测试和示例）
 aptBuddy {
     mustMap.apply {
+        // 是否启用字典 APT 处理器（默认: false）
+        put("dictAptEnabled", "false")
+        
         // 数据库连接配置（使用小驼峰格式）
         put("jdbcDriver", "com.mysql.cj.jdbc.Driver")
-        put("jdbcUrl", "jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8")
+        put("jdbcUrl", "jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&connectTimeout=30000&socketTimeout=30000&autoReconnect=true")
         put("jdbcUsername", "root")
         put("jdbcPassword", "zljkj~123")
         // 字典表配置

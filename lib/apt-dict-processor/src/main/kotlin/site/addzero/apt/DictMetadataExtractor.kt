@@ -15,9 +15,9 @@ import javax.tools.Diagnostic
  * 从数据库中抽取字典表和字典项表的元数据
  */
 class DictMetadataExtractor(
-    private val messager: Messager,
-    private val config: DictProcessorConfig
+    private val messager: Messager
 ) {
+    private val config: DictProcessorConfig = DictProcessorSettings.getSettings()
     /**
      * 字典项数据类
      */

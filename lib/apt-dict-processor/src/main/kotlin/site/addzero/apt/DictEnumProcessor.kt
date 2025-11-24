@@ -15,6 +15,7 @@ import javax.tools.Diagnostic
  * 使用 apt-buddy 插件生成的强类型配置类
  *
  * 支持的配置选项（小驼峰格式）：
+ * - dictAptEnabled: 是否启用字典 APT 处理器（默认: false）
  * - jdbcDriver: JDBC 驱动类名
  * - jdbcUrl: 数据库连接 URL
  * - jdbcUsername: 数据库用户名
@@ -47,6 +48,16 @@ class DictEnumProcessor : AbstractProcessor() {
             // 初始化 apt-buddy 生成的配置（第一行）
             DictProcessorSettings.initialize(options)
             val config = DictProcessorSettings.getSettings()
+
+            // 检查是否启用字典 APT 处理器
+            val enabled = config.dictAptEnabled?.toBoolean() ?: false
+            if (!enabled) {
+                processingEnv.messager.printMessage(
+                    Diagnostic.Kind.NOTE,
+                    "[INFO] 字典 APT 处理器未启用 (dictAptEnabled=false)，跳过处理"
+                )
+                return
+            }
 
             // 打印所有接收到的选项（调试用）
             if (options.isNotEmpty()) {
@@ -85,6 +96,7 @@ class DictEnumProcessor : AbstractProcessor() {
                 Diagnostic.Kind.NOTE,
                 """
                 [INFO] 字典处理器配置:
+                  启用状态: ✅ 已启用
                   数据库URL: ${config.jdbcUrl}
                   字典表: ${config.dictTableName ?: "sys_dict_type"}
                   字典项表: ${config.dictItemTableName ?: "sys_dict_data"}
@@ -95,15 +107,8 @@ class DictEnumProcessor : AbstractProcessor() {
 
 
             // 初始化组件
-            this.metadataExtractor = DictMetadataExtractor(
-                processingEnv.messager,
-                config
-            )
-
-            this.enumCodeGenerator = DictEnumCodeGenerator(
-                processingEnv.filer,
-                processingEnv.messager,
-            )
+            this.metadataExtractor = DictMetadataExtractor(processingEnv.messager)
+            this.enumCodeGenerator = DictEnumCodeGenerator(processingEnv.filer, processingEnv.messager)
 
         } catch (e: IllegalArgumentException) {
             processingEnv.messager.printMessage(

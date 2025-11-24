@@ -27,14 +27,14 @@ class KspBuddyPlugin : Plugin<Project> {
 
         // 创建生成脚本的任务
         val generateTask = project.tasks.register<GenerateKspScriptTask>("generateKspScript") {
-            description = "Generates KSP configuration script based on mustMap"
+            description = "Generates KSP configuration classes based on mustMap"
             group = "build"
 
             // 设置输出文件路径，使用模块名称作为文件名的一部分
             val outputDirPath = extension.kspScriptOutputDir.getOrElse(GEN_DIR)
             val generatedDir = File(project.rootProject.projectDir, outputDirPath)
             val moduleName = getModuleName(project)
-            outputFile = File(generatedDir, "ksp4${moduleName}.gradle.kts")
+            scriptOutputFile = File(generatedDir, "ksp4${moduleName}.gradle.kts")
 
             // 设置生成代码的输出目录
             val buildOutputDir = project.layout.buildDirectory.dir("generated/ksp-buddy")
@@ -45,6 +45,10 @@ class KspBuddyPlugin : Plugin<Project> {
 
             // 传递SettingContext配置
             settingContextConfig.set(extension.settingContext)
+            
+            // 是否生成 precompiled script
+            generateScript.set(extension.generatePrecompiledScript)
+            
             targetProject.set(project)
         }
 
@@ -95,41 +99,52 @@ abstract class GenerateKspScriptTask : DefaultTask() {
 
     @get:org.gradle.api.tasks.Input
     abstract val settingContextConfig: Property<SettingContextConfig>
+    
+    @get:org.gradle.api.tasks.Input
+    abstract val generateScript: Property<Boolean>
 
     @get:org.gradle.api.tasks.Input
     abstract val targetProject: Property<Project>
 
-    @get:org.gradle.api.tasks.OutputFile
-    abstract var outputFile: File
+    @get:org.gradle.api.tasks.Internal
+    abstract var scriptOutputFile: File
 
     @get:OutputDirectory
     abstract val generatedCodeOutputDir: DirectoryProperty
 
     @org.gradle.api.tasks.TaskAction
     fun generate() {
-        // 确保输出目录存在
-        outputFile.parentFile.mkdirs()
+        logger.lifecycle("KSP Buddy: Starting code generation...")
+        logger.lifecycle("KSP Buddy: mustMap contains ${mustMap.get().size} entries")
+        
+        // 只在 generateScript 为 true 时生成 gradle.kts 脚本文件
+        if (generateScript.get()) {
+            // 确保输出目录存在
+            scriptOutputFile.parentFile.mkdirs()
 
-        // 生成脚本内容
-        val content = buildString {
-            appendLine("plugins {")
-            appendLine("    id(\"com.google.devtools.ksp\")")
-            appendLine("}")
-            appendLine()
-            appendLine("ksp {")
+            // 生成脚本内容
+            val content = buildString {
+                appendLine("plugins {")
+                appendLine("    id(\"com.google.devtools.ksp\")")
+                appendLine("}")
+                appendLine()
+                appendLine("ksp {")
 
-            // 添加所有配置项
-            mustMap.get().forEach { (key, value) ->
-                appendLine("    arg(\"$key\", \"$value\")")
+                // 添加所有配置项
+                mustMap.get().forEach { (key, value) ->
+                    appendLine("    arg(\"$key\", \"$value\")")
+                }
+
+                appendLine("}")
             }
 
-            appendLine("}")
+            // 写入文件
+            scriptOutputFile.writeText(content)
+
+            logger.lifecycle("Generated KSP configuration script to: ${scriptOutputFile.absolutePath}")
+        } else {
+            logger.lifecycle("KSP Buddy: Skipping gradle.kts script generation (generatePrecompiledScript is false)")
         }
-
-        // 写入文件
-        outputFile.writeText(content)
-
-        logger.lifecycle("Generated KSP configuration script to: ${outputFile.absolutePath}")
 
         // 生成Settings数据类和SettingContext对象
         val generatedFiles = generateSettingsAndContext()

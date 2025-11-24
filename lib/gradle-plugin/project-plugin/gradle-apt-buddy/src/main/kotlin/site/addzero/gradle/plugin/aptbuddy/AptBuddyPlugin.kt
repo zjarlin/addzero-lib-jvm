@@ -20,13 +20,13 @@ class AptBuddyPlugin : Plugin<Project> {
         extension.aptScriptOutputDir.convention(GEN_DIR)
 
         val generateTask = project.tasks.register<GenerateAptScriptTask>("generateAptScript") {
-            description = "Generates APT configuration script based on mustMap"
+            description = "Generates APT configuration classes based on mustMap"
             group = "build"
 
             val outputDirPath = extension.aptScriptOutputDir.getOrElse(GEN_DIR)
             val generatedDir = File(project.rootProject.projectDir, outputDirPath)
             val moduleName = getModuleName(project)
-            outputFile = File(generatedDir, "apt4${moduleName}.gradle.kts")
+            scriptOutputFile = File(generatedDir, "apt4${moduleName}.gradle.kts")
 
             val buildOutputDir = project.layout.buildDirectory.dir("generated/apt-buddy")
             generatedCodeOutputDir.set(buildOutputDir)
@@ -37,6 +37,9 @@ class AptBuddyPlugin : Plugin<Project> {
             settingsClassName.set(extension.settingContext.map { it.settingsClassName })
             packageName.set(extension.settingContext.map { it.packageName })
             settingContextEnabled.set(extension.settingContext.map { it.enabled })
+            
+            // 是否生成 precompiled script
+            generateScript.set(extension.generatePrecompiledScript)
             
             projectPath.set(project.path)
         }
@@ -89,12 +92,15 @@ abstract class GenerateAptScriptTask : DefaultTask() {
     
     @get:org.gradle.api.tasks.Input
     abstract val settingContextEnabled: Property<Boolean>
+    
+    @get:org.gradle.api.tasks.Input
+    abstract val generateScript: Property<Boolean>
 
     @get:org.gradle.api.tasks.Input
     abstract val projectPath: Property<String>
 
-    @get:org.gradle.api.tasks.OutputFile
-    abstract var outputFile: File
+    @get:org.gradle.api.tasks.Internal
+    abstract var scriptOutputFile: File
 
     @get:OutputDirectory
     abstract val generatedCodeOutputDir: DirectoryProperty
@@ -104,20 +110,25 @@ abstract class GenerateAptScriptTask : DefaultTask() {
         logger.lifecycle("APT Buddy: Starting code generation...")
         logger.lifecycle("APT Buddy: mustMap contains ${mustMap.get().size} entries")
         
-        outputFile.parentFile.mkdirs()
+        // 只在 generateScript 为 true 时生成 gradle.kts 脚本文件
+        if (generateScript.get()) {
+            scriptOutputFile.parentFile.mkdirs()
 
-        val content = buildString {
-            appendLine("tasks.withType<JavaCompile> {")
-            appendLine("    options.compilerArgs.addAll(listOf(")
-            mustMap.get().forEach { (key, value) ->
-                appendLine("        \"-A$key=$value\",")
+            val content = buildString {
+                appendLine("tasks.withType<JavaCompile> {")
+                appendLine("    options.compilerArgs.addAll(listOf(")
+                mustMap.get().forEach { (key, value) ->
+                    appendLine("        \"-A$key=$value\",")
+                }
+                appendLine("    ))")
+                appendLine("}")
             }
-            appendLine("    ))")
-            appendLine("}")
-        }
 
-        outputFile.writeText(content)
-        logger.lifecycle("Generated APT configuration script to: ${outputFile.absolutePath}")
+            scriptOutputFile.writeText(content)
+            logger.lifecycle("Generated APT configuration script to: ${scriptOutputFile.absolutePath}")
+        } else {
+            logger.lifecycle("APT Buddy: Skipping gradle.kts script generation (generatePrecompiledScript is false)")
+        }
 
         // 打印 Maven pom.xml 配置
         printMavenPomConfiguration()

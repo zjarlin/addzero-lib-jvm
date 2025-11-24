@@ -171,6 +171,9 @@ dependencies {
 
 aptBuddy {
     mustMap.apply {
+        // 是否启用字典 APT 处理器（默认: false）
+        put("dict.apt.enabled", "true")
+        
         // 数据库连接配置
         put("jdbc.driver", "com.mysql.cj.jdbc.Driver")
         put("jdbc.url", "jdbc:mysql://192.168.1.140:3306/iot_db")
@@ -202,6 +205,7 @@ aptBuddy {
 
 | 参数名 | 必填 | 默认值 | 说明 |
 |--------|------|--------|------|
+| `dict.apt.enabled` | 否 | `false` | **是否启用字典 APT 处理器** ⚡ |
 | `jdbc.driver` | 否 | `com.mysql.cj.jdbc.Driver` | JDBC 驱动类名 |
 | `jdbc.url` | 是 | - | 数据库连接 URL |
 | `jdbc.username` | 是 | - | 数据库用户名 |
@@ -218,6 +222,37 @@ aptBuddy {
 | `enum.output.directory` | 否 | `target/generated-sources/annotations` | 枚举类输出目录 |
 
 **注意**：所有参数同时支持驼峰命名格式（如 `jdbcDriver`）和点号分隔格式（如 `jdbc.driver`），推荐使用点号格式。
+
+### ⚡ 启用/禁用开关
+
+通过 `dict.apt.enabled` 参数控制是否启用字典 APT 处理器：
+
+```kotlin
+aptBuddy {
+    mustMap.apply {
+        // 启用字典 APT 处理器
+        put("dict.apt.enabled", "true")  // 开启
+        // put("dict.apt.enabled", "false")  // 关闭（默认）
+        
+        // ... 其他配置
+    }
+}
+```
+
+**使用场景：**
+- 🚫 **开发环境禁用**：开发时不需要连接数据库，设置为 `false` 跳过处理
+- ✅ **CI/CD 启用**：构建流水线中设置为 `true` 生成枚举类
+- 🔄 **按需切换**：通过环境变量动态控制是否生成
+
+**动态控制示例：**
+```kotlin
+aptBuddy {
+    mustMap.apply {
+        // 从环境变量读取，默认为 false
+        put("dict.apt.enabled", System.getenv("DICT_APT_ENABLED") ?: "false")
+    }
+}
+```
 
 ## 数据库表结构要求
 
