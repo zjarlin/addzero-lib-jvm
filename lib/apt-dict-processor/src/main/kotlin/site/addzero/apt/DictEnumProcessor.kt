@@ -175,42 +175,61 @@ class DictEnumProcessor : AbstractProcessor() {
             }
 
         } catch (e: ClassNotFoundException) {
-            processingEnv.messager.printMessage(
-                Diagnostic.Kind.WARNING,
-                "[WARNING] ⚠️ 找不到JDBC驱动: ${e.message}\n  跳过字典枚举生成过程"
-            )
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] ========== JDBC驱动加载失败 ==========")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 找不到JDBC驱动: ${e.message}")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 请检查 annotationProcessorPaths 中是否包含 mysql-connector-java")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[WARNING] 跳过字典枚举生成过程")
         } catch (e: SQLException) {
-            processingEnv.messager.printMessage(
-                Diagnostic.Kind.WARNING,
-                """
-                [WARNING] ⚠️ SQL错误: ${e.message}
-                  错误代码: ${e.errorCode}, SQL状态: ${e.sqlState}
-                  跳过字典枚举生成过程
-                """.trimIndent()
-            )
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] ========== 数据库操作失败 ==========")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] SQL异常类型: ${e.javaClass.name}")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 错误消息: ${e.message}")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 错误代码: ${e.errorCode}")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] SQL状态: ${e.sqlState}")
+            
+            e.cause?.let { cause ->
+                processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 根本原因类型: ${cause.javaClass.name}")
+                processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 根本原因消息: ${cause.message}")
+                
+                // 如果还有更深层的原因
+                cause.cause?.let { deeperCause ->
+                    processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 更深层原因: ${deeperCause.javaClass.name}")
+                    processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 更深层消息: ${deeperCause.message}")
+                }
+            }
+            
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[WARNING] 跳过字典枚举生成过程")
         } catch (e: Exception) {
-            processingEnv.messager.printMessage(
-                Diagnostic.Kind.WARNING,
-                """
-                [WARNING] ⚠️ 无法连接到数据库或提取字典数据: ${e.message}
-                  ${e.stackTraceToString()}
-                  跳过字典枚举生成过程
-                """.trimIndent()
-            )
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] ========== 未预期的异常 ==========")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 异常类型: ${e.javaClass.name}")
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 错误消息: ${e.message}")
+            
+            e.cause?.let { cause ->
+                processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 原因类型: ${cause.javaClass.name}")
+                processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[ERROR] 原因消息: ${cause.message}")
+            }
+            
+            processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, "[DEBUG] 完整堆栈跟踪:")
+            e.stackTraceToString().lines().take(20).forEach { line ->
+                processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, "[DEBUG]   $line")
+            }
+            
+            processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, "[WARNING] 跳过字典枚举生成过程")
         }
 
         return false
     }
 
-//    override fun getSupportedOptions(): Set<String> {
-//        return setOf(
-//            "jdbcDriver", "jdbcUrl", "jdbcUsername", "jdbcPassword",
-//            "dictTableName", "dictIdColumn", "dictCodeColumn", "dictNameColumn",
-//            "dictItemTableName", "dictItemForeignKeyColumn",
-//            "dictItemCodeColumn", "dictItemNameColumn",
-//            "enumOutputPackage", "enumOutputDirectory"
-//        )
-//    }
+    override fun getSupportedOptions(): Set<String> {
+        return setOf(
+            // 小驼峰格式（apt-buddy 生成的配置类对应）
+            "dictAptEnabled",
+            "jdbcDriver", "jdbcUrl", "jdbcUsername", "jdbcPassword",
+            "dictTableName", "dictIdColumn", "dictCodeColumn", "dictNameColumn",
+            "dictItemTableName", "dictItemForeignKeyColumn",
+            "dictItemCodeColumn", "dictItemNameColumn",
+            "enumOutputPackage", "enumOutputDirectory"
+        )
+    }
 }
 
 /**

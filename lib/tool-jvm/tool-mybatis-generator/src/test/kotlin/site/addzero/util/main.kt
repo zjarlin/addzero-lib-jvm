@@ -11,7 +11,7 @@ class MpGeneratorTest {
     fun `test generate mybatis plus code`() {
         val mpGenerator = MpGenerator(MpGeneratorSettingsImpl())
         val genList = arrayOf(
-            "iot_product_category"
+            "biz_company"
     //        "iot_energy_type"
     //       "iot_device_emission_source"
     //        "iot_action_metadata",
