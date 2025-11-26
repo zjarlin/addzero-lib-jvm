@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin
+package site.addzero.gradle.plugin.repobuddy
 
 import org.gradle.api.Plugin
 import org.gradle.api.artifacts.dsl.RepositoryHandler
