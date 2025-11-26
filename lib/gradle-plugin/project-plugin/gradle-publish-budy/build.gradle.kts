@@ -19,5 +19,5 @@ plugins {
 dependencies {
 gradleApi()
     implementation(libs.gradlePlugin.mavenPublish)
-    implementation(projects.lib.gradlePlugin.gradleScriptCore)
+   implementation("site.addzero:gradle-script-core:2025.10.20")
 }
