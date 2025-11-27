@@ -9,7 +9,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "+"
     id("site.addzero.gradle.plugin.repo-buddy") version "+"
 //    id("site.addzero.modules-buddy") version "0.0.652"
-
+//    id("site.addzero.gradle.plugin.modules-buddy") version "+"
 //    id("io.gitee.zjarlin.auto-modules") version "0.0.608"
     id("me.champeau.includegit") version "+"
 }
@@ -25,7 +25,7 @@ val jvmstable = "addzero-lib-jvm-stable"
 //    excludeModules = listOf(bdlogic, jvmstable)
 //}
 includeBuild("checkouts/$bdlogic")
-includeBuild("lib/gradle-plugin/project-plugin/gradle-apt-buddy")
+//includeBuild("lib/gradle-plugin/project-plugin/gradle-apt-buddy")
 
 
 fun GitIncludeExtension.includeAddzeroProject(projectName: String) {
