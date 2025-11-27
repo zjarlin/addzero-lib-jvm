@@ -22,14 +22,7 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
-    implementation(projects.lib.gradlePlugin.gradleTool)
+   implementation("site.addzero:gradle-tool:2025.11.29")
 }
 
-gradlePlugin {
-    plugins {
-        create(project.name) {
-            id = "site.addzero.modules-buddy"
-            implementationClass = "site.addzero.gradle.plugin.automodules.AutoModulesPlugin"
-        }
-    }
-}
+

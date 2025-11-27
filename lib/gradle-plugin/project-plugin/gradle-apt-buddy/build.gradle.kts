@@ -24,12 +24,4 @@ dependencies {
     gradleApi()
 }
 
-gradlePlugin {
-    plugins {
-        create(project.name) {
-            id = "site.addzero.apt-buddy"
-            implementationClass = "site.addzero.gradle.plugin.aptbuddy.AptBuddyPlugin"
-            displayName = "APT Buddy Plugin"
-        }
-    }
-}
+
