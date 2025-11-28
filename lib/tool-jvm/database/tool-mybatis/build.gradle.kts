@@ -9,6 +9,7 @@ dependencies {
 //    implementation("site.addzero:mybatis-auto-wrapper:+")
 //    implementation(projects.lib.toolJvm.toolSpring)
     implementation(libs.hutool.core)
+    implementation("site.addzero:tool-spctx:2025.11.27")
 //    compileOnly(projects.)
 //    implementation("com.baomidou:mybatis-plus-core:${libs.versions.mybatisPlus.get()}")
 //    implementation("org.apache.commons:commons-lang3:3.18.0")

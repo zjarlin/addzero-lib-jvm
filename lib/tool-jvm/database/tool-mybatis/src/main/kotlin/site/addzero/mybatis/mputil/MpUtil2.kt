@@ -1,10 +1,9 @@
+@file:JvmName("MpUtil2")
 package site.addzero.mybatis.mputil
 
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction
-import com.baomidou.mybatisplus.extension.service.IService
 import java.io.Serializable
 import java.util.function.BiConsumer
-import java.util.function.Consumer
 import java.util.function.Function
 
 /**
@@ -14,67 +13,66 @@ import java.util.function.Function
  * @author zjarlin
  * @since 2023/2/26 09:18
  */
-class MpUtil2<P, C> (private val ps: IService<P>,private val cs: IService<C>) {
 
+fun <P : Any, C : Any> pSave2(po: P, collection: MutableCollection<C>, consumer: BiConsumer<C, P>) {
+    val ps = getService(po)
+    ps.save(po)
+    cSave2(po, collection, consumer)
+}
 
-    fun pSave(po: P, collection: MutableCollection<C>, consumer: BiConsumer<C, P>) {
-        ps.save(po)
-        cSave(po, collection, consumer)
-    }
+fun <P : Any, C : Any> pSave2(
+    po: P,
+    collection: MutableCollection<C>,
+    pgetIdFun: Function<P, String>,
+    csetPidCon: BiConsumer<C, String>
+) {
+    val consumer = BiConsumer { c: C, p: P -> csetPidCon.accept(c, pgetIdFun.apply(po)) }
+    val ps = getService(po)
+    ps.save(po)
+    cSave2(po, collection, consumer)
+}
 
-    fun pSave(
-        po: P,
-        collection: MutableCollection<C>,
-        pgetIdFun: Function<P, String>,
-        csetPidCon: BiConsumer<C, String>
-    ) {
-        val consumer = BiConsumer { c: C, p: P -> csetPidCon.accept(c, pgetIdFun.apply(po)) }
-        ps.save(po)
-        cSave(po, collection, consumer)
-    }
+private fun <P : Any, C : Any> cSave2(po: P, collection: MutableCollection<C>, consumer: BiConsumer<C, P>) {
+    collection.forEach { c -> consumer.accept(c, po) }
+    val cs = getService(collection)
+    cs.saveBatch(collection)
+}
 
-    private fun cSave(po: P, collection: MutableCollection<C>, consumer: BiConsumer<C, P>) {
-        collection.forEach(Consumer { c: C ->
-            consumer.accept(c, po)
-        })
-        cs.saveBatch(collection)
-    }
+fun <P : Any, C : Any> pRemove2(pClass: Class<P>, id: Serializable, cgetPidFun: SFunction<C, String>, cClass: Class<C>) {
+    cRemove2(id, cgetPidFun, cClass)
+    val ps = getServiceByClass(pClass)
+    ps.removeById(id)
+}
 
-    fun pRemove(id: Serializable, cgetPidFun: SFunction<C, String>) {
-        cRemove(id, cgetPidFun)
-        ps.removeById(id)
-    }
+private fun <C : Any> cRemove2(id: Serializable, cgetPidFun: SFunction<C, String>, cClass: Class<C>): Boolean {
+    val cs = getServiceByClass(cClass)
+    return cs.lambdaUpdate().eq(cgetPidFun, id).remove()
+}
 
-    private fun cRemove(id: Serializable, cgetPidFun: SFunction<C, String>): Boolean {
-        return cs.lambdaUpdate().eq(cgetPidFun, id).remove()
-    }
+fun <P : Any, C : Any> pRemoveBatch2(
+    ids: MutableCollection<Serializable>,
+    pgetIdFun: SFunction<P, String>,
+    cgetPidFun: SFunction<C, String>,
+    pClass: Class<P>,
+    cClass: Class<C>
+) {
+    val ps = getServiceByClass(pClass)
+    val cs = getServiceByClass(cClass)
+    cs.lambdaUpdate().`in`(cgetPidFun, ids).remove()
+    ps.lambdaUpdate().`in`(pgetIdFun, ids).remove()
+}
 
-    fun pRemoveBatch(
-        ids: MutableCollection<Serializable>,
-        pgetIdFun: SFunction<P, String>,
-        cgetPidFun: SFunction<C, String>
-    ) {
-        cs.lambdaUpdate().`in`(cgetPidFun, ids).remove()
-        ps.lambdaUpdate().`in`(pgetIdFun, ids).remove()
-    }
-
-    fun pUpdate(
-        po: P,
-        collection: MutableCollection<C>,
-        pgetIdFun: SFunction<P, String>,
-        cgetPidFun: SFunction<C, String>,
-        consumer: BiConsumer<C, P>
-    ) {
-        ps.updateById(po)
-        val pid: String = pgetIdFun.apply(po)
-        cRemove(pid, cgetPidFun)
-        cSave(po, collection, consumer)
-    }
-
-
-    companion object {
-        fun <P, C> of(ps: IService<P>, cs: IService<C>): MpUtil2<P, C> {
-            return MpUtil2(ps, cs)
-        }
-    }
+fun <P : Any, C : Any> pUpdate2(
+    po: P,
+    collection: MutableCollection<C>,
+    pgetIdFun: SFunction<P, String>,
+    cgetPidFun: SFunction<C, String>,
+    consumer: BiConsumer<C, P>
+) {
+    val ps = getService(po)
+    ps.updateById(po)
+    val pid: String = pgetIdFun.apply(po)
+    val cs = getService(collection)
+    cs.lambdaUpdate().eq(cgetPidFun, pid).remove()
+    cSave2(po, collection, consumer)
 }

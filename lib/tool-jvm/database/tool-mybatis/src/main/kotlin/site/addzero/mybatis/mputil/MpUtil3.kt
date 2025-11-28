@@ -1,11 +1,10 @@
+@file:JvmName("MpUtil3")
 package site.addzero.mybatis.mputil
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction
-import com.baomidou.mybatisplus.extension.service.IService
 import java.io.Serializable
 import java.util.function.BiConsumer
-import java.util.function.Consumer
 import java.util.function.Function
 
 /**
@@ -15,162 +14,151 @@ import java.util.function.Function
  * @author zjarlin
  * @since 2023/2/26 09:18
  */
-class MpUtil3<P, C, C1>(
 
-    private val ps: IService<P>,
-
-    private val cs: IService<C>,
-
-    private val cs1: IService<C1>
-) {
-
-    fun pSave(
-        p: P,
-        childColl: MutableList<C>,
-        childColl1: MutableList<C1>,
-        getPidFun: Function<P, String>,
-        cSetPkFun: BiConsumer<C, String>,
-        c1SetPkFun: BiConsumer<C1, String>
-    ): Boolean {
-        val tConsumer = BiConsumer { child: C, par: P -> cSetPkFun.accept(child, getPidFun.apply(par).toString()) }
-        val tConsumer1 = BiConsumer { child1: C1, par: P -> c1SetPkFun.accept(child1, getPidFun.apply(par).toString()) }
-        val b: Boolean
-        try {
-            b = pSave(p, childColl, childColl1, tConsumer, tConsumer1)
-        } catch (e: Exception) {
-            return false
-        }
-        return b
+fun <P : Any, C : Any, C1 : Any> pSave3(
+    p: P,
+    childColl: MutableList<C>,
+    childColl1: MutableList<C1>,
+    getPidFun: Function<P, String>,
+    cSetPkFun: BiConsumer<C, String>,
+    c1SetPkFun: BiConsumer<C1, String>
+): Boolean {
+    val tConsumer = BiConsumer { child: C, par: P -> cSetPkFun.accept(child, getPidFun.apply(par)) }
+    val tConsumer1 = BiConsumer { child1: C1, par: P -> c1SetPkFun.accept(child1, getPidFun.apply(par)) }
+    return try {
+        pSave3(p, childColl, childColl1, tConsumer, tConsumer1)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
     }
+}
 
-    /**
-     * 级联新增
-     *
-     * @param p
-     * @param childColl  子表
-     * @param childColl1 孩子coll1
-     * @param cSetFun    c组有趣
-     * @param c1SetFun   c1组有趣 入参
-     * @return boolean
-     * @author zjarlin
-     * @since 2023/03/16
-     */
-    fun pSave(
-        p: P,
-        childColl: MutableCollection<C>,
-        childColl1: MutableCollection<C1>,
-        cSetFun: BiConsumer<C, P>,
-        c1SetFun: BiConsumer<C1, P>
-    ): Boolean {
-        val save = ps.save(p)
-        return save && cSave(p, childColl, childColl1, cSetFun, c1SetFun)
-    }
+/**
+ * 级联新增
+ */
+fun <P : Any, C : Any, C1 : Any> pSave3(
+    p: P,
+    childColl: MutableCollection<C>,
+    childColl1: MutableCollection<C1>,
+    cSetFun: BiConsumer<C, P>,
+    c1SetFun: BiConsumer<C1, P>
+): Boolean {
+    val ps = getService(p)
+    val save = ps.save(p)
+    return save && cSave3(p, childColl, childColl1, cSetFun, c1SetFun)
+}
 
-    /**
-     * 子表新增
-     *
-     * @param p         p
-     * @param childColl 孩子科尔
-     * @param setFun    设置有趣 入参
-     * @return boolean
-     * @author zjarlin
-     * @since 2023/03/01
-     */
-    fun cSave(
-        p: P,
-        childColl: MutableCollection<C>,
-        childColl1: MutableCollection<C1>,
-        setFun: BiConsumer<C, P>,
-        c1SetFun: BiConsumer<C1, P>
-    ): Boolean {
-        val cConsumer = Consumer { child: C -> setFun.accept(child, p) }
-        childColl.forEach(cConsumer)
-        val c1Consumer = Consumer { child: C1 -> c1SetFun.accept(child, p) }
-        childColl.forEach(cConsumer)
-        childColl1.forEach(c1Consumer)
-        val b = cs.saveBatch(childColl)
-        val b1 = cs1.saveBatch(childColl1)
-        return b && b1
-    }
+/**
+ * 子表新增
+ */
+fun <P : Any, C : Any, C1 : Any> cSave3(
+    p: P,
+    childColl: MutableCollection<C>,
+    childColl1: MutableCollection<C1>,
+    setFun: BiConsumer<C, P>,
+    c1SetFun: BiConsumer<C1, P>
+): Boolean {
+    childColl.forEach { child -> setFun.accept(child, p) }
+    childColl1.forEach { child -> c1SetFun.accept(child, p) }
+    val cs = getService(childColl)
+    val cs1 = getService(childColl1)
+    val b = cs.saveBatch(childColl)
+    val b1 = cs1.saveBatch(childColl1)
+    return b && b1
+}
 
-    fun pRemove(
-        pid: Serializable, cGetPidFun: SFunction<C, String>, c1GetPidFun: SFunction<C1, String>
-    ): Boolean {
-        val b = ps.removeById(pid)
-        val b1 = cRemove(pid, cGetPidFun, c1GetPidFun)
-        return b && b1
-    }
+fun <P : Any, C : Any, C1 : Any> pRemove3(
+    pid: Serializable,
+    pClass: Class<P>,
+    cGetPidFun: SFunction<C, String>,
+    cClass: Class<C>,
+    c1GetPidFun: SFunction<C1, String>,
+    c1Class: Class<C1>
+): Boolean {
+    val ps = getServiceByClass(pClass)
+    val b = ps.removeById(pid)
+    val b1 = cRemove3(pid, cGetPidFun, cClass, c1GetPidFun, c1Class)
+    return b && b1
+}
 
-    fun pRemoveBatch(
-        pid: MutableCollection<out Serializable>, cGetPidFun: SFunction<C, String>, c1GetPidFun: SFunction<C1, String>
-    ): Boolean {
-        val b1 = ps.removeByIds(pid)
-        val b = cRemoveBatch(pid, cGetPidFun, c1GetPidFun)
-        return b1 && b
-    }
+fun <P : Any, C : Any, C1 : Any> pRemoveBatch3(
+    pid: MutableCollection<out Serializable>,
+    pClass: Class<P>,
+    cGetPidFun: SFunction<C, String>,
+    cClass: Class<C>,
+    c1GetPidFun: SFunction<C1, String>,
+    c1Class: Class<C1>
+): Boolean {
+    val ps = getServiceByClass(pClass)
+    val b1 = ps.removeByIds(pid)
+    val b = cRemoveBatch3(pid, cGetPidFun, cClass, c1GetPidFun, c1Class)
+    return b1 && b
+}
 
-    fun cRemove(
-        pid: Serializable, cGetPidFun: SFunction<C, String>, c1GetPidFun: SFunction<C1, String>
-    ): Boolean {
-        val eq = Wrappers.lambdaQuery<C>().eq(cGetPidFun, pid)
-        val eq1 = Wrappers.lambdaQuery<C1>().eq(c1GetPidFun, pid)
-        val remove = cs.remove(eq)
-        val remove1 = cs1.remove(eq1)
-        return remove && remove1
-    }
+fun <C : Any, C1 : Any> cRemove3(
+    pid: Serializable,
+    cGetPidFun: SFunction<C, String>,
+    cClass: Class<C>,
+    c1GetPidFun: SFunction<C1, String>,
+    c1Class: Class<C1>
+): Boolean {
+    val cs = getServiceByClass(cClass)
+    val cs1 = getServiceByClass(c1Class)
+    val eq = Wrappers.lambdaQuery<C>().eq(cGetPidFun, pid)
+    val eq1 = Wrappers.lambdaQuery<C1>().eq(c1GetPidFun, pid)
+    val remove = cs.remove(eq)
+    val remove1 = cs1.remove(eq1)
+    return remove && remove1
+}
 
-    fun cRemoveBatch(
-        pid: MutableCollection<out Serializable>, cGetPidFun: SFunction<C, String>, c1GetPidFun: SFunction<C1, String>
-    ): Boolean {
-        val remove2 = cs.lambdaUpdate().`in`(cGetPidFun, pid).remove()
-        val remove3 = cs1.lambdaUpdate().`in`(c1GetPidFun, pid).remove()
-        return remove2 && remove3
-    }
+fun <C : Any, C1 : Any> cRemoveBatch3(
+    pid: MutableCollection<out Serializable>,
+    cGetPidFun: SFunction<C, String>,
+    cClass: Class<C>,
+    c1GetPidFun: SFunction<C1, String>,
+    c1Class: Class<C1>
+): Boolean {
+    val cs = getServiceByClass(cClass)
+    val cs1 = getServiceByClass(c1Class)
+    val remove2 = cs.lambdaUpdate().`in`(cGetPidFun, pid).remove()
+    val remove3 = cs1.lambdaUpdate().`in`(c1GetPidFun, pid).remove()
+    return remove2 && remove3
+}
 
-    fun pUpdate(
-        p: P,
-        childColl: MutableCollection<C>,
-        childColl1: MutableCollection<C1>,
-        pgetPidFun: Function<P, String>,
-        cgetPidFun: SFunction<C, String>,
-        c1GetPidFun: SFunction<C1, String>,
-        csetPkFun: BiConsumer<C, String>,
-        c1SetPkFun: BiConsumer<C1, String>
-    ): Boolean {
-        val b = ps.updateById(p)
-        val apply = pgetPidFun.apply(p)
-        val b2 = cRemove(apply, cgetPidFun, c1GetPidFun)
-        val b3 = cSave(p, childColl, childColl1, pgetPidFun, csetPkFun, c1SetPkFun)
-        return b && b2 && b3
-    }
+fun <P : Any, C : Any, C1 : Any> pUpdate3(
+    p: P,
+    childColl: MutableCollection<C>,
+    childColl1: MutableCollection<C1>,
+    pgetPidFun: Function<P, String>,
+    cgetPidFun: SFunction<C, String>,
+    c1GetPidFun: SFunction<C1, String>,
+    csetPkFun: BiConsumer<C, String>,
+    c1SetPkFun: BiConsumer<C1, String>
+): Boolean {
+    val ps = getService(p)
+    val cs = getService(childColl)
+    val cs1 = getService(childColl1)
+    val b = ps.updateById(p)
+    val apply = pgetPidFun.apply(p)
+    val eq = Wrappers.lambdaQuery<C>().eq(cgetPidFun, apply)
+    val eq1 = Wrappers.lambdaQuery<C1>().eq(c1GetPidFun, apply)
+    val b2 = cs.remove(eq) && cs1.remove(eq1)
+    val b3 = cSave3ByFun(p, childColl, childColl1, pgetPidFun, csetPkFun, c1SetPkFun)
+    return b && b2 && b3
+}
 
-    /**
-     * c保存
-     *
-     * @param p         p
-     * @param childColl 孩子科尔
-     * @param getPidFun 得到pid有趣
-     * @param setPkFun  组pk有趣 入参
-     * @return boolean
-     * @author zjarlin
-     * @since 2023/03/01
-     */
-    fun cSave(
-        p: P,
-        childColl: MutableCollection<C>,
-        childColl1: MutableCollection<C1>,
-        getPidFun: Function<P, String>,
-        setPkFun: BiConsumer<C, String>,
-        c1SetPkFun: BiConsumer<C1, String>
-    ): Boolean {
-        val tConsumer = BiConsumer { child: C, par: P -> setPkFun.accept(child, getPidFun.apply(par)) }
-        val t1Consumer = BiConsumer { child: C1, par: P -> c1SetPkFun.accept(child, getPidFun.apply(par)) }
-        return cSave(p, childColl, childColl1, tConsumer, t1Consumer)
-    }
-
-    companion object {
-        fun <P, C, C1> of(ps: IService<P>, cs: IService<C>, cs1: IService<C1>): MpUtil3<P, C, C1> {
-            return MpUtil3<P, C, C1>(ps, cs, cs1)
-        }
-    }
+/**
+ * c保存
+ */
+fun <P : Any, C : Any, C1 : Any> cSave3ByFun(
+    p: P,
+    childColl: MutableCollection<C>,
+    childColl1: MutableCollection<C1>,
+    getPidFun: Function<P, String>,
+    setPkFun: BiConsumer<C, String>,
+    c1SetPkFun: BiConsumer<C1, String>
+): Boolean {
+    val tConsumer = BiConsumer { child: C, par: P -> setPkFun.accept(child, getPidFun.apply(par)) }
+    val t1Consumer = BiConsumer { child: C1, par: P -> c1SetPkFun.accept(child, getPidFun.apply(par)) }
+    return cSave3(p, childColl, childColl1, tConsumer, t1Consumer)
 }
