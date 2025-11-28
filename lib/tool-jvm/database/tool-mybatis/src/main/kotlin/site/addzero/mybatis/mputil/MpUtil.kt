@@ -1,52 +1,31 @@
 @file:JvmName("MpUtil")
 package site.addzero.mybatis.mputil
 
-import cn.hutool.core.annotation.AnnotationUtil
 import cn.hutool.core.bean.BeanUtil.copyProperties
 import cn.hutool.core.bean.copier.CopyOptions
 import cn.hutool.core.util.NumberUtil
 import cn.hutool.core.util.ReflectUtil
-import com.baomidou.mybatisplus.extension.service.IService
-import site.addzero.mybatis.auto_wrapper.AutoWhereUtil
-import site.addzero.mybatis.auto_wrapper.Where
-import java.lang.reflect.Field
 
 /**
- * 级联操作工具
+ * 级联操作工具 - 通用版本（不依赖具体 ORM）
  * @author zjarlin
  * @since 2023/2/26 09:18
  */
 
 var idName: String = "id"
 
-private fun <P : Any> isByAnno(ps: IService<P>): Boolean {
-    val entityClass = ps.entityClass
-    val fields: Array<Field> = ReflectUtil.getFields(entityClass)
-    return fields.any { AnnotationUtil.hasAnnotation(it, Where::class.java) }
-}
+// ==================== 核心逻辑（通用，接收 EntityOps） ====================
 
 /**
- * 前端和数据库的差集和交集
+ * 前端和数据库的差集和交集（通用版本）
  */
-fun <P : Any> diffAndInter(collection: MutableCollection<P>): DiffAndInterResult<P> {
-    if (collection.isEmpty()) return DiffAndInterResult.empty()
-    val ps = getService(collection)
-    val byAnno = isByAnno(ps)
-    return diffAndInter(collection, byAnno, ps)
-}
-
-fun <P : Any> diffAndInter(collection: MutableCollection<P>, byAnno: Boolean, ps: IService<P>): DiffAndInterResult<P> {
+fun <P : Any> diffAndInter(collection: MutableCollection<P>, ops: EntityOps<P>): DiffAndInterResult<P> {
     val ret = DiffAndInterResult<P>(mutableListOf(), mutableListOf())
     if (collection.isEmpty()) return ret
 
-    val aClass = ps.entityClass
-
     collection.forEach { e: P ->
-        val pLambdaQueryWrapper =
-            if (byAnno) AutoWhereUtil.lambdaQueryByAnnotation(aClass, e)
-            else AutoWhereUtil.lambdaQueryByField(aClass, e, true)
-        val list = ps.list(pLambdaQueryWrapper)
-        if (list.isNullOrEmpty()) {
+        val list = ops.listBy(e)
+        if (list.isEmpty()) {
             ret.diff.add(e)
         } else {
             val copyOptions: CopyOptions = CopyOptions.create()
@@ -63,27 +42,15 @@ fun <P : Any> diffAndInter(collection: MutableCollection<P>, byAnno: Boolean, ps
 }
 
 /**
- * 前端和数据库的差集和交集（含配对）
+ * 前端和数据库的差集和交集 - 含配对（通用版本）
  */
-fun <P : Any> diffPairAndInter(collection: MutableCollection<P>): DiffPairAndInterResult<P> {
-    if (collection.isEmpty()) return DiffPairAndInterResult.empty()
-    val ps = getService(collection)
-    val byAnno = isByAnno(ps)
-    return diffPairAndInter(collection, byAnno, ps)
-}
-
-fun <P : Any> diffPairAndInter(collection: MutableCollection<P>, byAnno: Boolean, ps: IService<P>): DiffPairAndInterResult<P> {
+fun <P : Any> diffPairAndInter(collection: MutableCollection<P>, ops: EntityOps<P>): DiffPairAndInterResult<P> {
     val ret = DiffPairAndInterResult<P>(mutableListOf(), mutableListOf())
     if (collection.isEmpty()) return ret
 
-    val aClass = ps.entityClass
-
     collection.forEach { e: P ->
-        val pLambdaQueryWrapper =
-            if (byAnno) AutoWhereUtil.lambdaQueryByAnnotation(aClass, e)
-            else AutoWhereUtil.lambdaQueryByField(aClass, e, true)
-        val list = ps.list(pLambdaQueryWrapper)
-        if (list.isNullOrEmpty()) {
+        val list = ops.listBy(e)
+        if (list.isEmpty()) {
             ret.diff.add(e)
         } else {
             val copyOptions = CopyOptions.create()
@@ -99,9 +66,12 @@ fun <P : Any> diffPairAndInter(collection: MutableCollection<P>, byAnno: Boolean
     return ret
 }
 
-fun <P : Any> voidcompareSaveOrUpdate(p: P): P? {
+/**
+ * 比较并保存或更新（通用版本）
+ */
+fun <P : Any> compareSaveOrUpdate(p: P, ops: EntityOps<P>): P? {
     val list = mutableListOf(p)
-    val result = voidcompareSaveOrUpdate(list)
+    val result = compareSaveOrUpdate(list, ops)
     val toUpdate = result.toUpdate
     if (!toUpdate.isNullOrEmpty()) {
         return toUpdate[0]
@@ -113,12 +83,10 @@ fun <P : Any> voidcompareSaveOrUpdate(p: P): P? {
     return p
 }
 
-fun <P : Any> voidcompareSaveOrUpdate(collection: MutableCollection<P>): CompareSaveOrUpdateResult<P> {
+fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityOps<P>): CompareSaveOrUpdateResult<P> {
     if (collection.isEmpty()) return CompareSaveOrUpdateResult.empty()
 
-    val ps = getService(collection)
-    val diffAndInterResult = diffAndInter(collection)
-
+    val diffAndInterResult = diffAndInter(collection, ops)
     val diff = diffAndInterResult.diff
 
     var insertSuccess = false
@@ -129,7 +97,7 @@ fun <P : Any> voidcompareSaveOrUpdate(collection: MutableCollection<P>): Compare
             field?.isAccessible = true
             ReflectUtil.setFieldValue(it, field, null)
         }
-        insertSuccess = ps.saveBatch(diff)
+        insertSuccess = ops.saveBatch(diff)
     }
 
     val inter = diffAndInterResult.inter
@@ -148,9 +116,9 @@ fun <P : Any> voidcompareSaveOrUpdate(collection: MutableCollection<P>): Compare
     val voSize = collection.size
 
     if (interSize <= voSize) {
-        updateSuccess = ps.updateBatchById(inter)
+        updateSuccess = ops.updateBatchById(inter)
     } else {
-        val count = ps.count()
+        val count = ops.countAll()
         val equals: Boolean = NumberUtil.equals(count, interSize)
         if (equals) {
             throw RuntimeException("请检查唯一性校验注解,查询出交集应当修改的行数大于输入的行数,可能会误修改数据,因此中断更新!")
@@ -166,24 +134,45 @@ fun <P : Any> voidcompareSaveOrUpdate(collection: MutableCollection<P>): Compare
 }
 
 /**
- * 只要数据库不存在的
+ * 只要数据库不存在的（通用版本）
+ */
+fun <P : Any> checkExists(collection: MutableCollection<P>, ops: EntityOps<P>): MutableCollection<P> {
+    if (collection.isEmpty()) return mutableListOf()
+    return collection.filter { ops.countBy(it) <= 0 }.toMutableSet()
+}
+
+// ==================== MP 特化便捷方法（自动推导 IService） ====================
+
+/**
+ * 前端和数据库的差集和交集（MP 特化）
+ */
+fun <P : Any> diffAndInter(collection: MutableCollection<P>): DiffAndInterResult<P> {
+    if (collection.isEmpty()) return DiffAndInterResult.empty()
+    return diffAndInter(collection, getEntityOps(collection))
+}
+
+/**
+ * 前端和数据库的差集和交集 - 含配对（MP 特化）
+ */
+fun <P : Any> diffPairAndInter(collection: MutableCollection<P>): DiffPairAndInterResult<P> {
+    if (collection.isEmpty()) return DiffPairAndInterResult.empty()
+    return diffPairAndInter(collection, getEntityOps(collection))
+}
+
+/**
+ * 比较并保存或更新（MP 特化）
+ */
+fun <P : Any> voidcompareSaveOrUpdate(p: P): P? = compareSaveOrUpdate(p, getEntityOps(p))
+
+fun <P : Any> voidcompareSaveOrUpdate(collection: MutableCollection<P>): CompareSaveOrUpdateResult<P> {
+    if (collection.isEmpty()) return CompareSaveOrUpdateResult.empty()
+    return compareSaveOrUpdate(collection, getEntityOps(collection))
+}
+
+/**
+ * 只要数据库不存在的（MP 特化）
  */
 fun <P : Any> checkExists(collection: MutableCollection<P>): MutableCollection<P> {
     if (collection.isEmpty()) return mutableListOf()
-    val ps = getService(collection)
-    val byAnno = isByAnno(ps)
-    return checkExists(collection, byAnno, ps)
-}
-
-fun <P : Any> checkExists(collection: MutableCollection<P>, byAnno: Boolean, ps: IService<P>): MutableCollection<P> {
-    if (collection.isEmpty()) return mutableListOf()
-
-    val aClass = ps.entityClass
-    return collection.filter {
-        val pLambdaQueryWrapper =
-            if (byAnno) AutoWhereUtil.lambdaQueryByAnnotation(aClass, it)
-            else AutoWhereUtil.lambdaQueryByField(aClass, it, true)
-        val count = ps.count(pLambdaQueryWrapper)
-        count <= 0
-    }.toMutableSet()
+    return checkExists(collection, getEntityOps(collection))
 }
