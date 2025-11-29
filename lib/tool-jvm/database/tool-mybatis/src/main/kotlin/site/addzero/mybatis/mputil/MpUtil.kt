@@ -12,7 +12,13 @@ import cn.hutool.core.util.ReflectUtil
  * @since 2023/2/26 09:18
  */
 
-var idName: String = "id"
+/**
+ * MpUtil 配置
+ */
+object MpUtilConfig {
+    @Volatile
+    var idName: String = "id"
+}
 
 // ==================== 核心逻辑（通用，接收 EntityOps） ====================
 
@@ -30,7 +36,7 @@ fun <P : Any> diffAndInter(collection: MutableCollection<P>, ops: EntityOps<P>):
         } else {
             val copyOptions: CopyOptions = CopyOptions.create()
             copyOptions.setPropertiesFilter { field, value ->
-                val notId = idName != field.name
+                val notId = MpUtilConfig.idName != field.name
                 val notEmpty = value != null && value.toString().isNotEmpty()
                 notId && notEmpty
             }
@@ -55,7 +61,7 @@ fun <P : Any> diffPairAndInter(collection: MutableCollection<P>, ops: EntityOps<
         } else {
             val copyOptions = CopyOptions.create()
             copyOptions.setPropertiesFilter { field, value ->
-                val notId = idName != field.name
+                val notId = MpUtilConfig.idName != field.name
                 val notEmpty = value != null && value.toString().isNotEmpty()
                 notId && notEmpty
             }
@@ -68,19 +74,13 @@ fun <P : Any> diffPairAndInter(collection: MutableCollection<P>, ops: EntityOps<
 
 /**
  * 比较并保存或更新（通用版本）
+ * @return 操作成功返回实体，失败返回 null
  */
 fun <P : Any> compareSaveOrUpdate(p: P, ops: EntityOps<P>): P? {
     val list = mutableListOf(p)
     val result = compareSaveOrUpdate(list, ops)
-    val toUpdate = result.toUpdate
-    if (!toUpdate.isNullOrEmpty()) {
-        return toUpdate[0]
-    }
-    val toInsert = result.toInsert
-    if (!toInsert.isNullOrEmpty()) {
-        return toInsert[0]
-    }
-    return p
+    if (!result.anySuccess) return null
+    return result.toUpdate?.firstOrNull() ?: result.toInsert?.firstOrNull()
 }
 
 fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityOps<P>): CompareSaveOrUpdateResult<P> {
@@ -93,7 +93,7 @@ fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityO
     if (diff.isNotEmpty()) {
         diff.forEach {
             val javaClass = it.javaClass
-            val field = ReflectUtil.getField(javaClass, idName)
+            val field = ReflectUtil.getField(javaClass, MpUtilConfig.idName)
             field?.isAccessible = true
             ReflectUtil.setFieldValue(it, field, null)
         }
@@ -105,7 +105,7 @@ fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityO
     if (inter.isEmpty()) {
         return CompareSaveOrUpdateResult(
             toInsert = diff,
-            toUpdate = mutableListOf(),
+            toUpdate = null,
             insertSuccess = insertSuccess,
             updateSuccess = true
         )
@@ -134,9 +134,9 @@ fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityO
 }
 
 /**
- * 只要数据库不存在的（通用版本）
+ * 过滤出数据库中不存在的数据（通用版本）
  */
-fun <P : Any> checkExists(collection: MutableCollection<P>, ops: EntityOps<P>): MutableCollection<P> {
+fun <P : Any> filterNotExists(collection: MutableCollection<P>, ops: EntityOps<P>): MutableCollection<P> {
     if (collection.isEmpty()) return mutableListOf()
     return collection.filter { ops.countBy(it) <= 0 }.toMutableSet()
 }
@@ -162,17 +162,17 @@ fun <P : Any> diffPairAndInter(collection: MutableCollection<P>): DiffPairAndInt
 /**
  * 比较并保存或更新（MP 特化）
  */
-fun <P : Any> voidcompareSaveOrUpdate(p: P): P? = compareSaveOrUpdate(p, getEntityOps(p))
+fun <P : Any> upsert(p: P): P? = compareSaveOrUpdate(p, getEntityOps(p))
 
-fun <P : Any> voidcompareSaveOrUpdate(collection: MutableCollection<P>): CompareSaveOrUpdateResult<P> {
+fun <P : Any> upsert(collection: MutableCollection<P>): CompareSaveOrUpdateResult<P> {
     if (collection.isEmpty()) return CompareSaveOrUpdateResult.empty()
     return compareSaveOrUpdate(collection, getEntityOps(collection))
 }
 
 /**
- * 只要数据库不存在的（MP 特化）
+ * 过滤出数据库中不存在的数据（MP 特化）
  */
-fun <P : Any> checkExists(collection: MutableCollection<P>): MutableCollection<P> {
+fun <P : Any> filterNotExists(collection: MutableCollection<P>): MutableCollection<P> {
     if (collection.isEmpty()) return mutableListOf()
-    return checkExists(collection, getEntityOps(collection))
+    return filterNotExists(collection, getEntityOps(collection))
 }
