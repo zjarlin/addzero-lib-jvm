@@ -22,6 +22,9 @@ data class CompareSaveOrUpdateResult<P>(
     val anySuccess: Boolean
         get() = insertSuccess || updateSuccess
 
+    val mergedResult: List<P>
+        get() = listOfNotNull(toInsert, toUpdate).flatten()
+
     companion object {
         fun <P> empty(): CompareSaveOrUpdateResult<P> = CompareSaveOrUpdateResult(null, null,
             insertSuccess = false,
