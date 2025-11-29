@@ -19,6 +19,9 @@ data class CompareSaveOrUpdateResult<P>(
     val allSuccess: Boolean
         get() = insertSuccess && updateSuccess
 
+    val anySuccess: Boolean
+        get() = insertSuccess || updateSuccess
+
     companion object {
         fun <P> empty(): CompareSaveOrUpdateResult<P> = CompareSaveOrUpdateResult(null, null,
             insertSuccess = false,
