@@ -2,9 +2,7 @@ package site.addzero.util.db
 
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.ResultSet
 import java.sql.SQLException
-import java.util.*
 
 /**
  * 轻量级SQL执行器工具类
@@ -24,6 +22,16 @@ class SqlExecutor(
             url.startsWith("jdbc:postgresql") -> Class.forName("org.postgresql.Driver")
             url.startsWith("jdbc:oracle") -> Class.forName("oracle.jdbc.driver.OracleDriver")
             url.startsWith("jdbc:sqlserver") -> Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
+            url.startsWith("jdbc:h2") -> Class.forName("org.h2.Driver")
+            url.startsWith("jdbc:sqlite") -> Class.forName("org.sqlite.JDBC")
+            url.startsWith("jdbc:dm") -> Class.forName("dm.jdbc.driver.DmDriver")
+            url.startsWith("jdbc:kingbase8") -> Class.forName("com.kingbase8.Driver")
+            url.startsWith("jdbc:gaussdb") -> Class.forName("com.huawei.gauss.jdbc.ZenithDriver")
+            url.startsWith("jdbc:oceanbase") -> Class.forName("com.oceanbase.jdbc.Driver")
+            url.startsWith("jdbc:polardb") -> Class.forName("com.aliyun.polardb.Driver")
+            url.startsWith("jdbc:tidb") -> Class.forName("io.tidb.jdbc.TiDBDriver")
+            url.startsWith("jdbc:db2") -> Class.forName("com.ibm.db2.jcc.DB2Driver")
+            url.startsWith("jdbc:sybase") -> Class.forName("com.sybase.jdbc4.jdbc.SybDriver")
             else -> throw IllegalArgumentException("Unsupported database type: $url")
         }
     }
@@ -51,7 +59,7 @@ class SqlExecutor(
         val statement = conn.createStatement()
         val resultSet = statement.executeQuery(sql)
         val columnCount = resultSet.metaData.columnCount
-        
+
         val result = mutableListOf<Map<String, Any?>>()
         while (resultSet.next()) {
             val row = mutableMapOf<String, Any?>()
@@ -62,10 +70,10 @@ class SqlExecutor(
             }
             result.add(row)
         }
-        
+
         resultSet.close()
         statement.close()
-        
+
         return result
     }
 
@@ -104,7 +112,7 @@ class SqlExecutor(
         try {
             connection?.close()
         } catch (e: SQLException) {
-            // 忽略关闭异常
+            e.printStackTrace()
         }
     }
 }
