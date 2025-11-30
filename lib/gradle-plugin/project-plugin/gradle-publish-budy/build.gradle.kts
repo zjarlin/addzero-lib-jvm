@@ -1,23 +1,34 @@
-//import site.addzero.gradle.tool.configureJ8
-//buildscript {
-//    repositories {
-//        mavenLocal()
-//        mavenCentral()
-//    }
-//    dependencies {
-//        classpath("site.addzero:gradle-tool-config-java:0.0.674")
-//    }
-//}
-//configureJ8("8")
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-//    id("publish-convention")
-
 }
+
+// 确保Kotlin编译兼容Java 8
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+    }
+}
+// 确保Java编译兼容Java 8
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+}
+
+extensions.configure<JavaPluginExtension> {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+
 dependencies {
-gradleApi()
+    gradleApi()
     implementation(libs.gradlePlugin.mavenPublish)
-   implementation("site.addzero:gradle-script-core:2025.10.20")
+    implementation("site.addzero:gradle-script-core:2025.11.29")
+
 }
