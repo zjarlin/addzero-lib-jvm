@@ -10,5 +10,5 @@ dependencies{
     implementation("site.addzero:tool-jvmstr:${libs.versions.addzero.lib1.get()}")
 //    implementation(projects.lib.toolJvm.toolJvmstr)
     implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
-//    implementation(project(":lib:tool-kmp:tool-str"))
+//    implementation("site.addzero:addzero-tool-str:2025.09.30")
 }
