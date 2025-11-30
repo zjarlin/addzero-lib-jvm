@@ -11,7 +11,6 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-11-30T20:21:18.877462
-// Loaded: 1, Excluded: 0, Total: 1
-include(":lib:tool-kmp:tool-str")
+// Generated at: 2025-11-30T20:26:36.554622
+// Loaded: 0, Excluded: 0, Total: 0
 // <<< Gradle Buddy: End Of Block <<<
