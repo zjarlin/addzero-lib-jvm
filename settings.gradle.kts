@@ -11,7 +11,7 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-11-30T16:39:37.084054
+// Generated at: 2025-11-30T16:41:35.730339
 // Only these modules will be loaded:
 include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 // <<< Gradle Buddy: End Of Block <<<
