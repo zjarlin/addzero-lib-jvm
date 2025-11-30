@@ -33,3 +33,4 @@ captures
 
 # Ignore Gradle file system probe in all directories
 **/file-system.probe
+/.xcodemap
