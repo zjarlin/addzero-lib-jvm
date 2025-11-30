@@ -1,4 +1,5 @@
 import site.addzero.gradle.tool.configureJ8
+
 buildscript {
     repositories {
         mavenLocal()
@@ -18,8 +19,7 @@ plugins {
 }
 dependencies {
     implementation(gradleApi())
-    implementation(projects.lib.gradlePlugin.gradleScriptCore)
-    implementation(projects.lib.toolJvm.networkCall.toolApiMaven)
-
+    implementation("site.addzero:gradle-script-core:2025.11.29")
+    implementation("site.addzero:tool-api-maven:2025.11.28")
 
 }

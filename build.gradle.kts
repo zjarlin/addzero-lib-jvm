@@ -1,10 +1,5 @@
 plugins {
-    // 移除有问题的插件引用
-}
-
-allprojects {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
+    id("site.addzero.buildlogic.version-buddy") version "2025.11.29"
+    id("site.addzero.buildlogic.publish-buddy") version "2025.11.29"
+    alias(libs.plugins.kotlinJvm) apply false
 }
