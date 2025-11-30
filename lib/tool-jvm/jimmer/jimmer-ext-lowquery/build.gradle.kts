@@ -5,6 +5,6 @@ plugins {
 dependencies {
     implementation(libs.jimmer.sql.kotlin)
     implementation(libs.hutool.all)
-    api(projects.lib.toolJvm.jimmer.jimmerModelLowquery)
+    api("site.addzero:addzero-jimmer-model-lowquery:2025.09.29")
 
 }

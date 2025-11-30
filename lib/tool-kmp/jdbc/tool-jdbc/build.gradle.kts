@@ -2,5 +2,5 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 dependencies {
-    api(projects.lib.toolKmp.jdbc.toolJdbcModel)
+    api("site.addzero:tool-jdbc-model:2025.09.30")
 }

@@ -7,10 +7,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // 基础工具
-            implementation(projects.lib.ksp.common.kspSupport)
+            implementation("site.addzero:addzero-ksp-support:2025.09.29")
 
             // 实体分析支持
-            implementation(projects.lib.ksp.metadata.entity2analysedSupport)
+            implementation("site.addzero:addzero-entity2analysed-support:2025.09.29")
 
 
 

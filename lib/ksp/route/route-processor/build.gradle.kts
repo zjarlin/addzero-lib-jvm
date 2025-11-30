@@ -4,9 +4,9 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(projects.lib.ksp.route.routeCore)
+            api("site.addzero:addzero-route-core:2025.09.29")
 
-            implementation(projects.lib.ksp.common.kspSupport)
+            implementation("site.addzero:addzero-ksp-support:2025.09.29")
         }
     }
 }

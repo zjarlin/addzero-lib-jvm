@@ -5,9 +5,9 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.lib.ksp.common.kspSupportJdbc)
-            implementation(projects.lib.ksp.common.kspSupport)
-            implementation(projects.lib.toolKmp.jdbc.toolJdbcModel)
+            implementation("site.addzero:addzero-ksp-support-jdbc:2025.09.29")
+            implementation("site.addzero:addzero-ksp-support:2025.09.29")
+            implementation("site.addzero:tool-jdbc-model:2025.09.30")
 
         }
 

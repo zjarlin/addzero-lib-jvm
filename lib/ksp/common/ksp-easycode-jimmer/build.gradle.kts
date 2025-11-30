@@ -10,11 +10,11 @@ plugins {
 }
 kotlin {
     dependencies {
-        implementation(projects.lib.ksp.common.kspSupport)
-        implementation(projects.lib.ksp.common.kspEasycode)
-        implementation(projects.lib.ksp.metadata.entity2analysedSupport)
+        implementation("site.addzero:addzero-ksp-support:2025.09.29")
+        implementation("site.addzero:addzero-ksp-easycode:2025.09.29")
+        implementation("site.addzero:addzero-entity2analysed-support:2025.09.29")
 
-        implementation(projects.lib.toolKmp.toolKoin)
+        implementation("site.addzero:addzero-tool-koin:2025.09.29")
 
     }
     sourceSets {

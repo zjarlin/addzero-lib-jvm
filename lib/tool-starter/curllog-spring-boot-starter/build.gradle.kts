@@ -10,7 +10,7 @@ dependencies {
     implementation(libs.spring.webmvc)
     compileOnly(libs.javax.servlet.api) // 或使用 Spring Boot 管理的版本
 //    implementation(libs.spring.boot.autoconfigure)
-    api(projects.lib.toolStarter.controllerAutoconfigure) // 或使用
+    api("site.addzero:addzero-controller-autoconfigure:2025.09.29") // 或使用
 // Spring Boot 管理的版本
 }
 

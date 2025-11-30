@@ -6,8 +6,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // 基础工具
-            implementation(projects.lib.ksp.common.kspSupport)
-            implementation(projects.lib.ksp.common.kspSupportJdbc)
+            implementation("site.addzero:addzero-ksp-support:2025.09.29")
+            implementation("site.addzero:addzero-ksp-support-jdbc:2025.09.29")
 
         }
     }

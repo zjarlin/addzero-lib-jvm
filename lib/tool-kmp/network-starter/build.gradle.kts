@@ -5,7 +5,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.ktorfit.lib)
-            implementation(projects.lib.toolKmp.toolJson)
+            implementation("site.addzero:addzero-tool-json:2025.09.29")
         }
     }
 }

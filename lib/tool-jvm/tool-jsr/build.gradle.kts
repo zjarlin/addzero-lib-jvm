@@ -6,8 +6,8 @@ plugins {
 
 dependencies{
     implementation("javax.validation:validation-api:2.0.1.Final")
-    api(projects.lib.toolJvm.toolContext)
-    api(projects.lib.toolJvm.toolReflection)
+    api("site.addzero:tool-context:0.0.672")
+    api("site.addzero:tool-reflection:2025.10.20")
 //    todo 换成细粒度的
     implementation(libs.hutool.all)
     implementation(libs.fastjson2.kotlin)
@@ -17,5 +17,5 @@ dependencies{
     // 添加Spring相关依赖用于唯一性校验
     compileOnly("org.springframework:spring-jdbc:5.3.21")
     compileOnly("org.springframework:spring-context:5.3.21")
-    compileOnly(projects.lib.toolJvm.toolSpring)
+    compileOnly("site.addzero:addzero-tool-spring:2025.09.29")
 }

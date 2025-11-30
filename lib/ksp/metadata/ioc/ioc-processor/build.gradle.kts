@@ -8,8 +8,8 @@ plugins {
 kotlin {
     dependencies {
 
-        implementation(projects.lib.ksp.common.kspSupport)
-        implementation(projects.lib.ksp.metadata.ioc.iocCore)
+        implementation("site.addzero:addzero-ksp-support:2025.09.29")
+        implementation("site.addzero:addzero-ioc-core:2025.09.29")
     }
 
     sourceSets {

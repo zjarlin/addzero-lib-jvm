@@ -5,8 +5,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation(projects.lib.toolKmp.toolJson)
-            api(projects.lib.toolKmp.toolStr)
+//            implementation("site.addzero:addzero-tool-json:2025.09.29")
+            api("site.addzero:addzero-tool-str:2025.09.30")
         }
         jvmMain.dependencies {
             implementation(libs.pinyin4j)
