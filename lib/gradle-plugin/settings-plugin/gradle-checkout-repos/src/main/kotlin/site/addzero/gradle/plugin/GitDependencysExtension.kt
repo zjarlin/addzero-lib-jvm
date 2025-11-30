@@ -13,7 +13,7 @@ abstract class GitDependencysExtension {
     init {
         enableZlibs.convention(true)
         defaultRepoType.convention(RepoType.GITEE)
-        zlibsName.convention("zlibs")
+        zlibsName.convention("libs")
         buildLogicName.convention("build-logic")
         defaultOwner.convention("zjarlin")
         defaultBranch.convention("master")
