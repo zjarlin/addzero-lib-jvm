@@ -1,4 +1,4 @@
-package site.addzero.buildlogic
+package site.addzero.gradle.plugin
 
 import site.addzero.gradle.PublishConventionExtension
 import site.addzero.util.createExtension
@@ -106,11 +106,9 @@ subprojects {
         return@subprojects
     }
     listOf(
-//        "site.addzero.publish-buddy",
-        "site.addzero.buildlogic.publish.publish-buddy",
+        "site.addzero.buildlogic.gradle.plugin.publish-buddy",
     ).forEach {
         apply(plugin = it)
-//        autoApplyPlugin(it)
     }
 }
 
