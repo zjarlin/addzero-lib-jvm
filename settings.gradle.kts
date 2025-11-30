@@ -11,11 +11,7 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-11-30T17:36:37.625480
-// Only these modules will be loaded:
-include(":checkouts:build-logic")
-include(":checkouts:compose-component:compose-component-shadcn")
-include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
-include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
-include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
+// Generated at: 2025-11-30T20:21:18.877462
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<
