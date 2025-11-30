@@ -1,41 +1,48 @@
 package site.addzero.gradle.plugin
 
 import me.champeau.gradle.igp.GitIncludeExtension
+import me.champeau.gradle.igp.gitRepositories
 
 plugins {
     id("me.champeau.includegit")
 }
 
-val gitDependencys = extensions.create<GitDependencysExtension>("gitDependencys")
+val gitDependencys = extensions.create<GitDependencysExtension>("implementationRemoteGit")
 val enableZlibs = gitDependencys.enableZlibs.get()
 val zlibsName = gitDependencys.zlibsName.get()
 val buidlogicName = gitDependencys.buildLogicName.get()
+val remoteGits = gitDependencys.remoteGits.get()
 
-fun GitIncludeExtension.include(
-    projectName: String,
-    repoType: RepoType = gitDependencys.defaultRepoType.get(),
-    owner: String = gitDependencys.defaultOwner.get(),
-    branchName: String = gitDependencys.defaultBranch.get()
+
+val repoType = gitDependencys.repoType.get()
+val auth = gitDependencys.auther.get()
+val branchName = gitDependencys.branch.get()
+
+if (enableZlibs) {
+   includeBuild("checkouts/$buidlogicName")
+}
+fun GitIncludeExtension.includeGitProject(
+    repoName: String,
 ) {
-    include(projectName) {
-        uri.set(repoType.urlTemplate.format(owner, projectName))
+    include(repoName) {
+        uri.set(repoType.urlTemplate.format(auth, repoName))
         branch.set(branchName)
     }
 }
+gitRepositories {
+    if (remoteGits.isNotEmpty()) {
+        remoteGits.forEach {
+            includeGitProject(it)
+        }
+    }
 
-fun GitIncludeExtension.include(vararg projectNames: String) {
     if (enableZlibs) {
-        include(buidlogicName)
+        includeGitProject(buidlogicName)
     }
-    projectNames.forEach {
-        include(
-            it,
-            gitDependencys.defaultRepoType.get(),
-            gitDependencys.defaultOwner.get(),
-            gitDependencys.defaultBranch.get()
-        )
-    }
+
+
 }
+
 gradle.settingsEvaluated {
     if (enableZlibs) {
         dependencyResolutionManagement {
