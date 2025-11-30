@@ -1,5 +1,6 @@
 import site.addzero.gradle.tool.configureJ8
 
+version="2025.11.32"
 buildscript {
     repositories {
         mavenLocal()

@@ -10,7 +10,7 @@ plugins {
 tasks.withType<KotlinCompile> {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
-        freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }
 // 确保Java编译兼容Java 8
