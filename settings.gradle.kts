@@ -11,7 +11,12 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-11-30T16:41:35.730339
-// Only these modules will be loaded:
-include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
+// Generated at: 2025-11-30T17:25:13.746423
+// Loaded: 5, Excluded: 1, Total: 6
+// Excluded (build infrastructure): :checkouts:build-logic
+include(":checkouts:addzero-lib-jvm-stable:lib:tool-jvm:tool-api-jvm")
+include(":checkouts:compose-component:compose-component-shadcn")
+include(":lib:ksp:common:ksp-easycode")
+include(":lib:tool-jvm:jimmer:jimmer-ext-dynamic-datasource")
+include(":lib:tool-jvm:tool-funbox")
 // <<< Gradle Buddy: End Of Block <<<
