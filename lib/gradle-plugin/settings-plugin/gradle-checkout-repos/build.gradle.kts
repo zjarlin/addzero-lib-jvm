@@ -18,6 +18,6 @@ repositories {
 }
 
 dependencies {
-    implementation("me.champeau.includegit:me.champeau.includegit.gradle.plugin:0.1.5")
+     implementation("me.champeau.includegit:me.champeau.includegit.gradle.plugin:0.3.2")
 }
 
