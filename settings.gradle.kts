@@ -84,16 +84,13 @@ include(":lib:apt-dict-processor")
 //include(":lib:gradle-plugin:gradle-tool")
 //include(":lib:gradle-plugin:gradle-script")
 //include(":lib:gradle-plugin:settings-plugin:gradle-repo-buddy")
-//include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 include(":lib:gradle-plugin:settings-plugin:gradle-checkout-repos")
 
-
-
-
+//include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 //include(":lib:gradle-plugin:gradle-script-core")
 //include(":lib:gradle-plugin:gradle-tool-config-java")
 //include(":lib:gradle-plugin:project-plugin:gradle-version-budy")
-//include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 //include(":lib:gradle-plugin:project-plugin:gradle-ksp-buddy")
 
 //include(":lib:gradle-plugin:project-plugin:gradle-apt-buddy")
