@@ -19,16 +19,17 @@ fun GitIncludeExtension.includeGitProject(repoName: String) {
     }
 }
 
-gitRepositories {
-    val enableZlibs = gitDependencies.enableZlibs.get()
-    val buildLogicName = gitDependencies.buildLogicName.get()
-    val remoteGits = gitDependencies.remoteGits.get()
-    
-    if (enableZlibs) {
-        includeGitProject(buildLogicName)
+// 显式函数调用，在用户配置扩展后调用
+fun Settings.includeRemoteGits(vararg repos: String) {
+    gitRepositories {
+        repos.forEach { includeGitProject(it) }
     }
-    if (remoteGits.isNotEmpty()) {
-        remoteGits.forEach { includeGitProject(it) }
+}
+
+// enableZlibs 的默认行为：包含 build-logic
+gitRepositories {
+    if (gitDependencies.enableZlibs.get()) {
+        includeGitProject(gitDependencies.buildLogicName.get())
     }
 }
 
@@ -36,7 +37,15 @@ gradle.settingsEvaluated {
     val enableZlibs = gitDependencies.enableZlibs.get()
     val zlibsName = gitDependencies.zlibsName.get()
     val buildLogicName = gitDependencies.buildLogicName.get()
-    
+    val remoteGits = gitDependencies.remoteGits.get()
+
+    // 处理通过属性配置的 remoteGits（备选方案，推荐使用 includeRemoteGits 函数）
+    if (remoteGits.isNotEmpty()) {
+        gitRepositories {
+            remoteGits.forEach { includeGitProject(it) }
+        }
+    }
+
     if (enableZlibs) {
         includeBuild("checkouts/$buildLogicName")
         dependencyResolutionManagement {
