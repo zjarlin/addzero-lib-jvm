@@ -5,16 +5,9 @@ import site.addzero.util.VersionUtils
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 
-fun firstNotBlank(vararg values: String?): String? =
-    values.firstOrNull { !it.isNullOrBlank() }
+fun String?.isValid() = !isNullOrBlank() && this != "unspecified"
 
-val groupId = firstNotBlank(project.group.toString().takeIf { it.isNotBlank() && it != "unspecified" }, "")
-    ?: error("auto version error, you must set group")
-
-val propertyVersion = findProperty("version")?.toString()?.takeIf { it != "unspecified" } ?: ""
-val rootProjectVersion = project.version.toString().takeIf { it.isNotBlank() && it != "unspecified" } ?: ""
-
-// 版本缓存，避免重复查询
+// 版本缓存
 val versionCache = ConcurrentHashMap<String, String>()
 
 // 异步获取模块版本
@@ -24,48 +17,52 @@ fun fetchVersionAsync(groupId: String, artifactId: String): CompletableFuture<St
             .getOrNull()
     }
 
-// 计算模块的最终版本
-fun resolveModuleVersion(groupId: String, artifactId: String, mavenVersion: String?): String {
-    return when {
+// 延迟到配置完成后执行，确保 group/version 已设置
+afterEvaluate {
+    val groupId = project.group.toString().takeIf { it.isValid() }
+        ?: error("[VersionBuddy] group is required")
+
+    val propertyVersion = findProperty("version")?.toString()?.takeIf { it.isValid() } ?: ""
+    val rootProjectVersion = project.version.toString().takeIf { it.isValid() } ?: ""
+
+    // 计算模块的最终版本
+    fun resolveModuleVersion(mavenVersion: String?): String = when {
         propertyVersion.isNotBlank() -> propertyVersion
         rootProjectVersion.isNotBlank() -> rootProjectVersion
         mavenVersion.isNullOrBlank() -> VersionUtils.defaultVersion()
         else -> VersionUtils.nextVersion(mavenVersion)
     }
-}
 
-// 收集需要查询版本的子项目
-val targetProjects = subprojects.filter { it.path.startsWith(":lib:") }
-
-if (targetProjects.isEmpty()) {
-    println("[VersionBuddy] No :lib: subprojects found")
-} else {
-    // 并行异步查询所有模块的 Maven 版本
-    val versionFutures = targetProjects.associate { subProject ->
-        val artifactId = subProject.name
-        artifactId to fetchVersionAsync(groupId, artifactId)
+    fun versionSource(mavenVersion: String?) = when {
+        propertyVersion.isNotBlank() -> "property"
+        rootProjectVersion.isNotBlank() -> "rootProject"
+        mavenVersion.isNullOrBlank() -> "default"
+        else -> "maven($mavenVersion)+1"
     }
 
-    // 等待所有异步查询完成并收集结果
+    val targetProjects = subprojects.filter { it.path.startsWith(":lib:") }
+
+    if (targetProjects.isEmpty()) {
+        println("[VersionBuddy] No :lib: subprojects found")
+        return@afterEvaluate
+    }
+
+    // 并行异步查询所有模块的 Maven 版本
+    val versionFutures = targetProjects.associate { it.name to fetchVersionAsync(groupId, it.name) }
+
+    // 等待所有异步查询完成
     val mavenVersions = versionFutures.mapValues { (_, future) ->
         runCatching { future.get() }.getOrNull()
     }
 
     // 应用版本到各子项目
     targetProjects.forEach { subProject ->
-        val artifactId = subProject.name
-        val mavenVersion = mavenVersions[artifactId]
-        val finalVersion = resolveModuleVersion(groupId, artifactId, mavenVersion)
+        val mavenVersion = mavenVersions[subProject.name]
+        val finalVersion = resolveModuleVersion(mavenVersion)
 
-        versionCache[artifactId] = finalVersion
+        versionCache[subProject.name] = finalVersion
         subProject.version = finalVersion
 
-        val versionSource = when {
-            propertyVersion.isNotBlank() -> "property"
-            rootProjectVersion.isNotBlank() -> "rootProject"
-            mavenVersion.isNullOrBlank() -> "default"
-            else -> "maven($mavenVersion)+1"
-        }
-        println("[VersionBuddy] ${subProject.path} => $finalVersion [$versionSource]")
+        println("[VersionBuddy] ${subProject.path} => $finalVersion [${versionSource(mavenVersion)}]")
     }
 }
