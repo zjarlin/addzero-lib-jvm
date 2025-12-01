@@ -42,11 +42,18 @@ class MySQLCteStrategy : CteStrategy {
         
         return """
             WITH RECURSIVE 
-            ${recursiveDataUp}
+            ${recursiveDataUp},
+            
+            deduplicated_data AS (
+                SELECT rd.*,
+                       ROW_NUMBER() OVER (PARTITION BY rd.${id} ORDER BY rd.tree_depth ASC) as rn
+                FROM recursive_data_up rd
+                ${whereClause}
+            )
             
             SELECT *
-            FROM recursive_data_up
-            ${whereClause}
+            FROM deduplicated_data
+            WHERE rn = 1
             ORDER BY tree_depth;
         """.trimIndent()
     }
@@ -74,11 +81,18 @@ class MySQLCteStrategy : CteStrategy {
                 SELECT * FROM recursive_data_up WHERE tree_depth > 0
                 UNION 
                 SELECT * FROM recursive_data_down
+            ),
+            
+            deduplicated_data AS (
+                SELECT cd.*,
+                       ROW_NUMBER() OVER (PARTITION BY cd.${id} ORDER BY cd.tree_depth ASC) as rn
+                FROM combined_data cd
             )
             
-            SELECT DISTINCT *
-            FROM combined_data
-            ${finalCustomSqlSegment}  
+            SELECT *
+            FROM deduplicated_data
+            WHERE rn = 1
+            ${finalCustomSqlSegment.let { if (it.isNotBlank()) "AND ${it.trim().removePrefix("WHERE").trim()}" else "" }}
             ORDER BY tree_direction, tree_depth;
         """.trimIndent()
     }
