@@ -9,7 +9,7 @@ abstract class GitDependencysExtension {
     abstract val zlibsName: Property<String>
     abstract val buildLogicName: Property<String>
     abstract val repoType: Property<RepoType>
-    abstract val auther: Property<String>
+    abstract val author: Property<String>
     abstract val branch: Property<String>
 
     init {
@@ -18,7 +18,7 @@ abstract class GitDependencysExtension {
         repoType.convention(RepoType.GITEE)
         zlibsName.convention("libs")
         buildLogicName.convention("build-logic")
-        auther.convention("zjarlin")
+        author.convention("zjarlin")
         branch.convention("master")
     }
 }
