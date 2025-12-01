@@ -11,8 +11,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-01T20:30:59.679319
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2025-12-01T20:35:06.628394
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 include(":lib:gradle-plugin:project-plugin:gradle-version-budy")
 include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
 include(":lib:json2kotlin-dataclass")
