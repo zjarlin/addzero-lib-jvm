@@ -11,7 +11,7 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-11-30T21:34:16.071250
+// Generated at: 2025-12-01T12:01:30.732036
 // Loaded: 1, Excluded: 0, Total: 1
-include(":lib:json2kotlin-dataclass")
+include(":lib:tool-jvm:database:tool-mybatis")
 // <<< Gradle Buddy: End Of Block <<<

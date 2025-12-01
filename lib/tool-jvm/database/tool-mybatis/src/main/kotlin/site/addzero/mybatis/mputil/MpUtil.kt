@@ -86,48 +86,58 @@ fun <P : Any> compareSaveOrUpdate(p: P, ops: EntityOps<P>): P? {
 fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityOps<P>): CompareSaveOrUpdateResult<P> {
     if (collection.isEmpty()) return CompareSaveOrUpdateResult.empty()
 
-    val diffAndInterResult = diffAndInter(collection, ops)
-    val diff = diffAndInterResult.diff
+    val (withId, withoutId) = collection.partition { entity ->
+        val field = ReflectUtil.getField(entity.javaClass, MpUtilConfig.idName)
+        field?.isAccessible = true
+        val idValue = field?.get(entity)
+        idValue != null && idValue.toString().isNotEmpty()
+    }
 
-    var insertSuccess = false
-    if (diff.isNotEmpty()) {
-        diff.forEach {
-            val javaClass = it.javaClass
-            val field = ReflectUtil.getField(javaClass, MpUtilConfig.idName)
-            field?.isAccessible = true
-            ReflectUtil.setFieldValue(it, field, null)
+    val toUpdate = mutableListOf<P>()
+    val toInsert = mutableListOf<P>()
+    var insertSuccess = true
+    var updateSuccess = true
+
+    if (withId.isNotEmpty()) {
+        toUpdate.addAll(withId)
+        updateSuccess = ops.updateBatchById(withId)
+    }
+
+    if (withoutId.isNotEmpty()) {
+        val diffAndInterResult = diffAndInter(withoutId.toMutableList(), ops)
+        val diff = diffAndInterResult.diff
+        val inter = diffAndInterResult.inter
+
+        if (diff.isNotEmpty()) {
+            diff.forEach {
+                val field = ReflectUtil.getField(it.javaClass, MpUtilConfig.idName)
+                field?.isAccessible = true
+                ReflectUtil.setFieldValue(it, field, null)
+            }
+            insertSuccess = ops.saveBatch(diff)
+            toInsert.addAll(diff)
         }
-        insertSuccess = ops.saveBatch(diff)
-    }
 
-    val inter = diffAndInterResult.inter
-
-    if (inter.isEmpty()) {
-        return CompareSaveOrUpdateResult(
-            toInsert = diff,
-            toUpdate = null,
-            insertSuccess = insertSuccess,
-            updateSuccess = true
-        )
-    }
-
-    var updateSuccess = false
-    val interSize = inter.size
-    val voSize = collection.size
-
-    if (interSize <= voSize) {
-        updateSuccess = ops.updateBatchById(inter)
-    } else {
-        val count = ops.countAll()
-        val equals: Boolean = NumberUtil.equals(count, interSize)
-        if (equals) {
-            throw RuntimeException("请检查唯一性校验注解,查询出交集应当修改的行数大于输入的行数,可能会误修改数据,因此中断更新!")
+        if (inter.isNotEmpty()) {
+            val interSize = inter.size
+            val withoutIdSize = withoutId.size
+            if (interSize <= withoutIdSize) {
+                val interUpdateSuccess = ops.updateBatchById(inter)
+                updateSuccess = updateSuccess && interUpdateSuccess
+                toUpdate.addAll(inter)
+            } else {
+                val count = ops.countAll()
+                val equals: Boolean = NumberUtil.equals(count, interSize)
+                if (equals) {
+                    throw RuntimeException("请检查唯一性校验注解,查询出交集应当修改的行数大于输入的行数,可能会误修改数据,因此中断更新!")
+                }
+            }
         }
     }
 
     return CompareSaveOrUpdateResult(
-        toInsert = diff,
-        toUpdate = inter,
+        toInsert = toInsert.ifEmpty { null }?.toMutableList(),
+        toUpdate = toUpdate.ifEmpty { null }?.toMutableList(),
         insertSuccess = insertSuccess,
         updateSuccess = updateSuccess
     )
