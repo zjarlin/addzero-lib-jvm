@@ -136,8 +136,8 @@ fun <P : Any> compareSaveOrUpdate(collection: MutableCollection<P>, ops: EntityO
     }
 
     return CompareSaveOrUpdateResult(
-        toInsert = toInsert.ifEmpty { null }?.toMutableList(),
-        toUpdate = toUpdate.ifEmpty { null }?.toMutableList(),
+        toInsert = toInsert.ifEmpty { mutableListOf() }.toMutableList(),
+        toUpdate = toUpdate.ifEmpty { mutableListOf() }.toMutableList(),
         insertSuccess = insertSuccess,
         updateSuccess = updateSuccess
     )

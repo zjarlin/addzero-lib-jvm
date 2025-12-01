@@ -26,7 +26,7 @@ data class CompareSaveOrUpdateResult<P>(
         get() = listOfNotNull(toInsert, toUpdate).flatten()
 
     companion object {
-        fun <P> empty(): CompareSaveOrUpdateResult<P> = CompareSaveOrUpdateResult(null, null,
+        fun <P> empty(): CompareSaveOrUpdateResult<P> = CompareSaveOrUpdateResult(mutableListOf<P>(), mutableListOf(),
             insertSuccess = false,
             updateSuccess = false
         )
