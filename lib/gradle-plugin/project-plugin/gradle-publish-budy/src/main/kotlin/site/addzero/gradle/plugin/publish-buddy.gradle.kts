@@ -5,142 +5,83 @@ import site.addzero.util.createExtension
 import java.time.LocalDate
 
 // 默认配置常量
-val DEFAULT_PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
-val DEFAULT_AUTH_NAME = "zjarlin"
-val DEFAULT_GIT_URL = "https://gitee.com/zjarlin/addzero.git"
-
-// License 默认配置
-val DEFAULT_LICENSE_NAME = "The Apache License, Version 2.0"
-val DEFAULT_LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-val DEFAULT_LICENSE_DISTRIBUTION = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+private object Defaults {
+    const val PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
+    const val AUTHOR_NAME = "zjarlin"
+    const val GIT_URL = "https://gitee.com/zjarlin/addzero.git"
+    const val EMAIL_DOMAIN = "outlook.com"
+    const val LICENSE_NAME = "The Apache License, Version 2.0"
+    const val LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+}
 
 plugins {
     id("com.vanniktech.maven.publish")
 }
 
 // 创建扩展并设置默认值
-val create = createExtension<PublishConventionExtension>().apply {
-    projectDescription.set(DEFAULT_PROJECT_DESCRIPTION)
-    authorName.set(DEFAULT_AUTH_NAME)
-    gitUrl.set(DEFAULT_GIT_URL)
-    emailDomain.set("outlook.com")
-    licenseName.set(DEFAULT_LICENSE_NAME)
-    licenseUrl.set(DEFAULT_LICENSE_URL)
-    licenseDistribution.set(DEFAULT_LICENSE_DISTRIBUTION)
+val publishExtension = createExtension<PublishConventionExtension>().apply {
+    projectDescription.set(Defaults.PROJECT_DESCRIPTION)
+    authorName.set(Defaults.AUTHOR_NAME)
+    gitUrl.set(Defaults.GIT_URL)
+    emailDomain.set(Defaults.EMAIL_DOMAIN)
+    licenseName.set(Defaults.LICENSE_NAME)
+    licenseUrl.set(Defaults.LICENSE_URL)
+    licenseDistribution.set(Defaults.LICENSE_URL)
 }
 
-// 直接访问扩展配置的计算属性
-val projectDescription get() = create.projectDescription.get()
-val authName get() = create.authorName.get()
-val gitUrl get() = create.gitUrl.get()
+// Git URL 解析工具函数
+fun String.toGitHost() = substringAfter("://").substringBefore("/")
+fun String.toGitRepoName() = substringAfter("://").substringAfter("/").removeSuffix(".git")
+fun String.toGitBaseUrl() = removeSuffix(".git")
 
-// License 计算属性
-val licenseName get() = create.licenseName.get()
-val licenseUrl get() = create.licenseUrl.get()
-val licenseDistribution get() = create.licenseDistribution.get()
+// 延迟配置 mavenPublishing，确保用户配置已生效
+afterEvaluate {
+    val ext = publishExtension
+    val gitUrl = ext.gitUrl.get()
+    val gitHost = gitUrl.toGitHost()
+    val gitRepoName = gitUrl.toGitRepoName()
+    val gitBaseUrl = gitUrl.toGitBaseUrl()
+    val authorName = ext.authorName.get()
+    val authorEmail = "${authorName}@${ext.emailDomain.get()}"
 
-fun String.toGitRepoPath() = this.substringAfter("://").substringAfter("/")
+    mavenPublishing {
+        publishToMavenCentral(automaticRelease = true)
+        signAllPublications()
+        coordinates(project.group.toString(), project.name, project.version.toString())
 
-// 基于全局配置的扩展属性
-val gitBaseUrl get() = gitUrl.removeSuffix(".git")
-val gitRepoPath get() = gitUrl.toGitRepoPath()
-val gitHost get() = gitUrl.substringAfter("://").substringBefore("/")
-val gitRepoName get() = gitUrl.toGitRepoPath().removeSuffix(".git")
-val authEmail get() = "$authName@outlook.com"
-
-//fun String.toScmConnection(host: String = gitHost, repoName: String = gitRepoName): String =
-//    "scm:git:git://$host/$repoName.git"
-
-//fun String.toDeveloperConnection(host: String = gitHost, repoName: String = gitRepoName): String =
-//    "scm:git:ssh://$host/$repoName.git"
-
-
-// 从扩展配置获取值的便捷函数
-//fun PublishConventionExtension.getAuthEmail(): String = "${authorName.get()}@${emailDomain.get()}"
-//fun PublishConventionExtension.getGitBaseUrl(): String = gitUrl.get().removeSuffix(".git")
-//fun PublishConventionExtension.getGitHost(): String = gitUrl.get().substringAfter("://").substringBefore("/")
-//fun PublishConventionExtension.getGitRepoName(): String = gitUrl.get().substringAfter("://").substringAfter("/").removeSuffix(".git")
-
-
-val pjVersion = project.version.toString()
-
-
-
-mavenPublishing {
-    publishToMavenCentral(automaticRelease = true)
-    signAllPublications()
-    coordinates(project.group.toString(), project.name, pjVersion)
-
-    pom {
-        name.set(project.name)
-        description.set(projectDescription)
-        inceptionYear.set(LocalDate.now().year.toString())
-        url.set(gitBaseUrl)
-        licenses {
-            license {
-                name.set(licenseName)
-                url.set(licenseUrl)
-                distribution.set(licenseDistribution)
-            }
-        }
-        developers {
-            developer {
-                id.set(authName)
-                name.set(authName)
-                email.set(authEmail)
-            }
-        }
-
-        scm {
-            connection.set("scm:git:git://$gitHost/$gitRepoName.git")
-            developerConnection.set("scm:git:ssh://$gitHost/$gitRepoName.git")
+        pom {
+            name.set(project.name)
+            description.set(ext.projectDescription.get())
+            inceptionYear.set(LocalDate.now().year.toString())
             url.set(gitBaseUrl)
+
+            licenses {
+                license {
+                    name.set(ext.licenseName.get())
+                    url.set(ext.licenseUrl.get())
+                    distribution.set(ext.licenseDistribution.get())
+                }
+            }
+
+            developers {
+                developer {
+                    id.set(authorName)
+                    name.set(authorName)
+                    email.set(authorEmail)
+                }
+            }
+
+            scm {
+                connection.set("scm:git:git://$gitHost/$gitRepoName.git")
+                developerConnection.set("scm:git:ssh://$gitHost/$gitRepoName.git")
+                url.set(gitBaseUrl)
+            }
         }
     }
 }
-
 
 subprojects {
-    if (!path.startsWith(":lib:")) {
-        "path not startwith :lib,skip module ${project.name}"
-        return@subprojects
-    }
-    listOf(
-        "site.addzero.buildlogic.gradle.plugin.publish-buddy",
-    ).forEach {
-        apply(plugin = it)
-    }
+    if (!path.startsWith(":lib:")) return@subprojects
+    apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
 }
 
-// 创建一个自定义任务，用于在禁用配置缓存的情况下运行发布
-tasks.register("safePublishToMavenCentral") {
-    group = "publishing"
-    description = "Publishes all publications to Maven Central with configuration cache temporarily disabled"
-
-    doFirst {
-        logger.lifecycle("🚀 Preparing to publish to Maven Central...")
-        logger.lifecycle("⚠️  Configuration cache will be temporarily disabled for this operation")
-    }
-
-    doLast {
-        logger.lifecycle("✅ Publishing to Maven Central completed")
-        logger.lifecycle("🔄 You can re-enable configuration cache for other tasks")
-    }
-}
-
-
-// 提供关于配置缓存和发布任务的说明
-gradle.taskGraph.whenReady {
-    val publishTasks = allTasks.filter { task ->
-        task.name.contains("publish", ignoreCase = true) &&
-        task.name.contains("MavenCentral", ignoreCase = true)
-    }
-
-    if (publishTasks.isNotEmpty() && gradle.startParameter.isConfigurationCacheRequested) {
-        logger.warn("⚠️  注意: 检测到您正在执行发布到Maven Central的任务，同时启用了配置缓存")
-        logger.warn("💡 建议: 为确保发布任务正常运行，请使用以下命令之一:")
-        logger.warn("   ./gradlew publishToMavenCentral")
-        logger.warn("   或")
-        logger.warn("   ./gradlew safePublishToMavenCentral")
-    }
-}
