@@ -11,8 +11,8 @@ package site.addzero.mybatis.mputil
  * @author zjarlin
  */
 data class CompareSaveOrUpdateResult<P>(
-    val toInsert: MutableList<P>?,
-    val toUpdate: MutableList<P>?,
+    val toInsert: MutableList<P>,
+    val toUpdate: MutableList<P>,
     val insertSuccess: Boolean,
     val updateSuccess: Boolean
 ) {
@@ -26,7 +26,7 @@ data class CompareSaveOrUpdateResult<P>(
         get() = listOfNotNull(toInsert, toUpdate).flatten()
 
     companion object {
-        fun <P> empty(): CompareSaveOrUpdateResult<P> = CompareSaveOrUpdateResult(mutableListOf<P>(), mutableListOf(),
+        fun <P> empty() = CompareSaveOrUpdateResult(mutableListOf<P>(), mutableListOf(),
             insertSuccess = false,
             updateSuccess = false
         )
