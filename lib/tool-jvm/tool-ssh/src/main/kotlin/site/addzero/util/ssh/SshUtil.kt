@@ -2,7 +2,6 @@
 
 package site.addzero.util.ssh
 
-import kotlin.jvm.JvmName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,9 +20,8 @@ import java.io.File
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 
-object SshUtil {
 
-    fun connect(config: SshConfig): SshSession = SshSession(config)
+fun connect(config: SshConfig): SshSession = SshSession(config)
 
     inline fun <T> use(config: SshConfig, block: (SshSession) -> T): T {
         return SshSession(config).use(block)
@@ -54,7 +52,6 @@ object SshUtil {
             session.downloadFile(remotePath, localPath)
         }
     }
-}
 
 class SshSession(private val config: SshConfig) : Closeable {
     private val client: SSHClient = SSHClient().apply {
