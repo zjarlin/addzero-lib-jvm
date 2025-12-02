@@ -11,7 +11,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-02T21:52:29.546395
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2025-12-02T22:25:43.992825
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:tool-jvm:network-call:tool-api-maven")
 include(":lib:tool-jvm:tool-jvmstr")
+include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<

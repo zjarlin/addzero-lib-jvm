@@ -3,12 +3,10 @@ package site.addzero.network.call.maven.util
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import okhttp3.Response
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_DOWNLOAD_TEMPLATE
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_ALL_VERSIONS_TEMPLATE
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_BY_ARTIFACT_TEMPLATE
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_BY_CLASS_TEMPLATE
-import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_BY_COORDINATES_TEMPLATE
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_BY_FC_TEMPLATE
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_BY_GROUP_TEMPLATE
 import site.addzero.network.call.maven.util.MavenCentralApiTemplates.CURL_SEARCH_BY_KEYWORD_TEMPLATE
@@ -60,7 +58,9 @@ object MavenCentralSearchUtil {
      * @return 最新版本号，如果未找到则返回null
      */
     fun getLatestVersion(groupId: String, artifactId: String): String? {
-        val artifacts = searchByCoordinates(groupId, artifactId, 1)
+        val artifacts = searchByArtifactId(artifactId, 100)
+            .filter { it.groupId == groupId }
+            .take(1)
         return artifacts.firstOrNull()?.latestVersion
     }
 
@@ -98,17 +98,18 @@ object MavenCentralSearchUtil {
      * 通过groupId和artifactId精确搜索工件
      * 返回该工件的最新版本信息
      *
+     * 注意: 使用 a:artifactId 搜索然后过滤 groupId，因为 g:xxx AND a:xxx 查询不会返回最新版本
+     * 参考: https://search.maven.org/solrsearch/select?q=a:artifactId&rows=N&wt=json
+     *
      * @param groupId 组ID
      * @param artifactId 工件ID
      * @param rows 返回结果数量，默认20
      * @return 工件列表
      */
     fun searchByCoordinates(groupId: String, artifactId: String, rows: Int = 20): List<MavenArtifact> {
-        val curl = CURL_SEARCH_BY_COORDINATES_TEMPLATE
-            .replace("{{groupId}}", groupId)
-            .replace("{{artifactId}}", artifactId)
-            .replace("{{rows}}", rows.toString())
-        return executeCurlAndParse(curl)
+        return searchByArtifactId(artifactId, rows * 5)
+            .filter { it.groupId == groupId }
+            .take(rows)
     }
 
     /**
@@ -152,7 +153,7 @@ object MavenCentralSearchUtil {
         packaging?.let { conditions.add("p:$it") }
         classifier?.let { conditions.add("l:$it") }
         val query = conditions.joinToString("+AND+")
-        
+
         val curl = CURL_SEARCH_TEMPLATE
             .replace("{{query}}", query)
             .replace("{{rows}}", rows.toString())
