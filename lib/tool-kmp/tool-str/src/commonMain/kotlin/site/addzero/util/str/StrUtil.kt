@@ -808,48 +808,73 @@ fun extractKeyValuePairs(input: String): MutableMap<String?, Any?> {
     return keyValueMap
 }
 
-    fun String.escapeSpecialCharacters(): String {
-        return this
-            // 基础转义字符
+fun String.escapeSpecialCharacters(): String {
+    return this
+        // 基础转义字符
 //            .replace("\\", "\\\\")  // 反斜杠
 //            .replace("\"", "\\\"")  // 双引号
 //            .replace("\b", "\\b")   // 退格
 //            .replace("\n", "\\n")   // 换行
 //            .replace("\r", "\\r")   // 回车
 //            .replace("\t", "\\t")   // 制表符
-            .replace("\u000C", "\\f") // 换页
-            .replace("'", "\\'")    // 单引号
+        .replace("\u000C", "\\f") // 换页
+        .replace("'", "\\'")    // 单引号
 
-            // 正则表达式特殊字符
-            .replace(Regex("[\\[\\]{}()^$.|*+?]")) { "\\${it.value}" }
+        // 正则表达式特殊字符
+        .replace(Regex("[\\[\\]{}()^$.|*+?]")) { "\\${it.value}" }
 
-            // Unicode 字符
-            .replace(Regex("[\\x00-\\x1F\\x7F]")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
+        // Unicode 字符
+        .replace(Regex("[\\x00-\\x1F\\x7F]")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
 
-            // HTML/XML 特殊字符
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("&", "&amp;")
+        // HTML/XML 特殊字符
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("&", "&amp;")
 
-            // SQL 注入防护字符
-            .replace(";", "\\;")
-            .replace("--", "\\--")
-            .replace("/*", "\\/\\*")
-            .replace("*/", "*\\/")
+        // SQL 注入防护字符
+        .replace(";", "\\;")
+        .replace("--", "\\--")
+        .replace("/*", "\\/\\*")
+        .replace("*/", "*\\/")
 
-            // Shell 特殊字符
-            .replace("`", "\\`")
-            .replace("$", "\\$")
-            .replace("!", "\\!")
+        // Shell 特殊字符
+        .replace("`", "\\`")
+        .replace("$", "\\$")
+        .replace("!", "\\!")
 
-            // 其他常见特殊字符
-            .replace("%", "\\%")
+        // 其他常见特殊字符
+        .replace("%", "\\%")
 //            .replace("@", "\\@")
-            .replace("#", "\\#")
-            .replace("~", "\\~")
-            .replace("=", "\\=")
-            .replace("+", "\\+")
+        .replace("#", "\\#")
+        .replace("~", "\\~")
+        .replace("=", "\\=")
+        .replace("+", "\\+")
 
-            // 控制字符
-            .replace(Regex("\\p{Cntrl}")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
-    }
+        // 控制字符
+        .replace(Regex("\\p{Cntrl}")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
+}
+
+/**
+ * 将字符串转换为 kebab-case 格式
+ * 例如: "helloWorld" -> "hello-world"
+ *      "HelloWorld" -> "hello-world"
+ *      "hello_world" -> "hello-world"
+ *      "hello world" -> "hello-world"
+ * @param this@toKebabCase 输入字符串
+ * @return kebab-case 格式字符串
+ */
+@Suppress("unused")
+fun String.toKebabCase(): String {
+    if (isEmpty()) return this
+
+    // 使用正则表达式处理驼峰命名和下划线分隔
+    return replace(Regex("(?<!^)([A-Z])"), "-$1")
+        // 将下划线和空格替换为连字符
+        .replace(Regex("[_\\s]+"), "-")
+        // 转换为小写
+        .lowercase()
+        // 移除多余的连字符
+        .replace(Regex("-{2,}"), "-")
+        // 移除开头和结尾的连字符
+        .trim('-')
+}
