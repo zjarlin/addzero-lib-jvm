@@ -7,48 +7,51 @@ plugins {
     id("me.champeau.includegit")
 }
 
-val gitDependencys = extensions.create<GitDependencysExtension>("implementationRemoteGit")
-val enableZlibs = gitDependencys.enableZlibs.get()
-val zlibsName = gitDependencys.zlibsName.get()
-val buidlogicName = gitDependencys.buildLogicName.get()
-val remoteGits = gitDependencys.remoteGits.get()
+val gitDependencies = extensions.create<GitDependencysExtension>("implementationRemoteGit")
 
-
-val repoType = gitDependencys.repoType.get()
-val auth = gitDependencys.auther.get()
-val branchName = gitDependencys.branch.get()
-
-if (enableZlibs) {
-   includeBuild("checkouts/$buidlogicName")
-}
-fun GitIncludeExtension.includeGitProject(
-    repoName: String,
-) {
+fun GitIncludeExtension.includeGitProject(repoName: String) {
+    val repoType = gitDependencies.repoType.get()
+    val author = gitDependencies.author.get()
+    val branchName = gitDependencies.branch.get()
     include(repoName) {
-        uri.set(repoType.urlTemplate.format(auth, repoName))
+        uri.set(repoType.urlTemplate.format(author, repoName))
         branch.set(branchName)
     }
 }
+
+// 显式函数调用，在用户配置扩展后调用
+fun Settings.includeRemoteGits(vararg repos: String) {
+    gitRepositories {
+        repos.forEach { includeGitProject(it) }
+    }
+}
+
+// enableZlibs 的默认行为：包含 build-logic
 gitRepositories {
+    if (gitDependencies.enableZlibs.get()) {
+        includeGitProject(gitDependencies.buildLogicName.get())
+    }
+}
+
+gradle.settingsEvaluated {
+    val enableZlibs = gitDependencies.enableZlibs.get()
+    val zlibsName = gitDependencies.zlibsName.get()
+    val buildLogicName = gitDependencies.buildLogicName.get()
+    val remoteGits = gitDependencies.remoteGits.get()
+
+    // 处理通过属性配置的 remoteGits（备选方案，推荐使用 includeRemoteGits 函数）
     if (remoteGits.isNotEmpty()) {
-        remoteGits.forEach {
-            includeGitProject(it)
+        gitRepositories {
+            remoteGits.forEach { includeGitProject(it) }
         }
     }
 
     if (enableZlibs) {
-        includeGitProject(buidlogicName)
-    }
-
-
-}
-
-gradle.settingsEvaluated {
-    if (enableZlibs) {
+        includeBuild("checkouts/$buildLogicName")
         dependencyResolutionManagement {
             versionCatalogs {
                 create(zlibsName) {
-                    from(files("./checkouts/$buidlogicName/gradle/libs.versions.toml"))
+                    from(files("./checkouts/$buildLogicName/gradle/libs.versions.toml"))
                 }
             }
         }
