@@ -8,8 +8,10 @@ kotlin{
     jvmToolchain(8)
     jvm {
         compilations.all {
-            compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_1_8)
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_1_8)
+                }
             }
         }
     }
