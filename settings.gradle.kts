@@ -11,8 +11,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-01T16:19:00.565254
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2025-12-02T11:26:41.771392
+// Loaded: 3, Excluded: 0, Total: 3
 include(":lib:tool-jvm:database:tool-mybatis")
+include(":lib:tool-jvm:tool-reflection")
 include(":lib:tool-jvm:tool-ssh")
 // <<< Gradle Buddy: End Of Block <<<

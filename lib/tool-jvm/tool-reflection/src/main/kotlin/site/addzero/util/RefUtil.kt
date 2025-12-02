@@ -8,8 +8,6 @@ import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
 import cn.hutool.core.util.TypeUtil
 import com.alibaba.fastjson2.JSON
-import sun.util.calendar.BaseCalendar
-import sun.util.calendar.Gregorian
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
@@ -152,12 +150,11 @@ object RefUtil {
         if (clazz == String::class.java) {
             return false
         }
-        if (obj is Gregorian) {
+        if (obj is GregorianCalendar) {
             return false
 
         }
-        val assignableFrom = BaseCalendar::class.java.isAssignableFrom(clazz)
-        if (assignableFrom) {
+        if (Calendar::class.java.isAssignableFrom(clazz)) {
             return false
         }
         // 快速排除：基本类型、字符串、数组、集合、枚举、注解、Class对象
@@ -175,7 +172,7 @@ object RefUtil {
                 Class::class,
                 Date::class,
                 Calendar::class,
-                Gregorian::class,
+                GregorianCalendar::class,
                 TimeZone::class,
                 Locale::class,
                 LocalDate::class,
