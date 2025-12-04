@@ -1,5 +1,6 @@
 package site.addzero.apt.feign
 
+import site.addzero.util.lsi_impl.impl.apt.clazz.AptLsiClass
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
@@ -61,12 +62,13 @@ class Controller2FeignProcessor : AbstractProcessor() {
             "[Controller2Feign] Found ${controllers.size} controller(s)"
         )
 
-        val extractor = ControllerMetadataExtractor(processingEnv)
         val generator = FeignCodeGenerator(processingEnv.filer, outputPackage, serviceName)
 
         controllers.filterIsInstance<TypeElement>().forEach { controller ->
             try {
-                val metadata = extractor.extract(controller)
+                val docComment = processingEnv.elementUtils.getDocComment(controller)
+                val lsiClass = AptLsiClass(controller, docComment)
+                val metadata = ControllerMetadataExtractor.extract(lsiClass)
                 if (metadata.methods.isNotEmpty()) {
                     generator.generate(metadata)
                     processingEnv.messager.printMessage(
