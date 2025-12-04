@@ -5,12 +5,12 @@ import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
-@SupportedAnnotationTypes("org.springframework.web.bind.annotation.RestController")
+@SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 class Controller2FeignProcessor : AbstractProcessor() {
 
-    private var metadataExtractor: ControllerMetadataExtractor? = null
-    private var codeGenerator: FeignCodeGenerator? = null
+    private var outputPackage: String = "site.addzero.generated.feign"
+    private var enabled = true
     private var processed = false
 
     override fun getSupportedOptions(): Set<String> = setOf(
@@ -22,64 +22,64 @@ class Controller2FeignProcessor : AbstractProcessor() {
         super.init(processingEnv)
 
         val options = processingEnv.options
-        val enabled = options["feignEnabled"]?.toBoolean() ?: true
-
-        if (!enabled) {
-            processingEnv.messager.printMessage(
-                Diagnostic.Kind.NOTE,
-                "[Controller2Feign] Processor disabled via feignEnabled=false"
-            )
-            return
-        }
-
-        val outputPackage = options["feignOutputPackage"] ?: "site.addzero.generated.feign"
-
-        metadataExtractor = ControllerMetadataExtractor(processingEnv)
-        codeGenerator = FeignCodeGenerator(processingEnv.filer, outputPackage)
+        enabled = options["feignEnabled"]?.toBoolean() ?: true
+        outputPackage = options["feignOutputPackage"] ?: "site.addzero.generated.feign"
 
         processingEnv.messager.printMessage(
             Diagnostic.Kind.NOTE,
-            "[Controller2Feign] Initialized with outputPackage=$outputPackage"
+            "[Controller2Feign] Initialized with outputPackage=$outputPackage, enabled=$enabled"
         )
     }
 
     override fun process(annotations: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
-        if (processed || roundEnv.processingOver()) return false
-        if (metadataExtractor == null || codeGenerator == null) return false
+        if (!enabled || processed || roundEnv.processingOver()) return false
 
-        processed = true
-
-        val controllers = roundEnv.getElementsAnnotatedWith(
-            processingEnv.elementUtils.getTypeElement("org.springframework.web.bind.annotation.RestController")
-        )
-
-        if (controllers.isEmpty()) {
+        val restControllerType = processingEnv.elementUtils
+            .getTypeElement("org.springframework.web.bind.annotation.RestController")
+        
+        if (restControllerType == null) {
             processingEnv.messager.printMessage(
                 Diagnostic.Kind.NOTE,
-                "[Controller2Feign] No @RestController found"
+                "[Controller2Feign] RestController annotation not found in classpath"
             )
             return false
         }
 
+        val controllers = roundEnv.getElementsAnnotatedWith(restControllerType)
+
+        if (controllers.isEmpty()) {
+            return false
+        }
+
+        processed = true
+        
         processingEnv.messager.printMessage(
             Diagnostic.Kind.NOTE,
             "[Controller2Feign] Found ${controllers.size} controller(s)"
         )
 
+        val extractor = ControllerMetadataExtractor(processingEnv)
+        val generator = FeignCodeGenerator(processingEnv.filer, outputPackage)
+
         controllers.filterIsInstance<TypeElement>().forEach { controller ->
             try {
-                val metadata = metadataExtractor!!.extract(controller)
+                val metadata = extractor.extract(controller)
                 if (metadata.methods.isNotEmpty()) {
-                    codeGenerator!!.generate(metadata)
+                    generator.generate(metadata)
                     processingEnv.messager.printMessage(
                         Diagnostic.Kind.NOTE,
                         "[Controller2Feign] Generated FeignClient for ${metadata.className}"
                     )
+                } else {
+                    processingEnv.messager.printMessage(
+                        Diagnostic.Kind.NOTE,
+                        "[Controller2Feign] Skipped ${metadata.className} (no HTTP methods)"
+                    )
                 }
             } catch (e: Exception) {
                 processingEnv.messager.printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "[Controller2Feign] Error processing ${controller.simpleName}: ${e.message}\n${e.stackTraceToString()}"
+                    Diagnostic.Kind.WARNING,
+                    "[Controller2Feign] Error processing ${controller.simpleName}: ${e.message}"
                 )
             }
         }

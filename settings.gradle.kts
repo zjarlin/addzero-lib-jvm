@@ -7,7 +7,7 @@ plugins {
 //    id("site.addzero.gradle.plugin.modules-buddy") version "+"
 }
 implementationRemoteGit{
-    remoteGits=listOf("addzero-lib-jvm-stable")
+    remoteGits=listOf("addzero-lib-jvm-stable","metaprogramming-lsi")
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
