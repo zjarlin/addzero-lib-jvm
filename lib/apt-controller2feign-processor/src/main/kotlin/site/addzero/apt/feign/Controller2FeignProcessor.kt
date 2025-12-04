@@ -7,15 +7,16 @@ import javax.tools.Diagnostic
 
 @SupportedAnnotationTypes("org.springframework.web.bind.annotation.RestController")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedOptions(
-    "feignOutputPackage",
-    "feignEnabled"
-)
 class Controller2FeignProcessor : AbstractProcessor() {
 
     private var metadataExtractor: ControllerMetadataExtractor? = null
     private var codeGenerator: FeignCodeGenerator? = null
     private var processed = false
+
+    override fun getSupportedOptions(): Set<String> = setOf(
+        "feignOutputPackage",
+        "feignEnabled"
+    )
 
     override fun init(processingEnv: ProcessingEnvironment) {
         super.init(processingEnv)
