@@ -11,9 +11,13 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-02T22:25:43.992825
-// Loaded: 3, Excluded: 0, Total: 3
-include(":lib:tool-jvm:network-call:tool-api-maven")
-include(":lib:tool-jvm:tool-jvmstr")
+// Generated at: 2025-12-04T10:35:16.770831
+// Loaded: 7, Excluded: 0, Total: 7
+include(":lib:tool-jvm:database:mybatis-auto-wrapper")
+include(":lib:tool-jvm:database:mybatis-auto-wrapper-core")
+include(":lib:tool-jvm:database:tool-mybatis")
+include(":lib:tool-jvm:jimmer:jimmer-ext-dynamic-datasource")
+include(":lib:tool-jvm:tool-reflection")
+include(":lib:tool-jvm:tool-ssh")
 include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<
