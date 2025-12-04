@@ -10,12 +10,14 @@ import javax.tools.Diagnostic
 class Controller2FeignProcessor : AbstractProcessor() {
 
     private var outputPackage: String = "site.addzero.generated.feign"
+    private var serviceName: String? = null
     private var enabled = true
     private var processed = false
 
     override fun getSupportedOptions(): Set<String> = setOf(
         "feignOutputPackage",
-        "feignEnabled"
+        "feignEnabled",
+        "feignServiceName"
     )
 
     override fun init(processingEnv: ProcessingEnvironment) {
@@ -24,10 +26,11 @@ class Controller2FeignProcessor : AbstractProcessor() {
         val options = processingEnv.options
         enabled = options["feignEnabled"]?.toBoolean() ?: true
         outputPackage = options["feignOutputPackage"] ?: "site.addzero.generated.feign"
+        serviceName = options["feignServiceName"]
 
         processingEnv.messager.printMessage(
             Diagnostic.Kind.NOTE,
-            "[Controller2Feign] Initialized with outputPackage=$outputPackage, enabled=$enabled"
+            "[Controller2Feign] Initialized with outputPackage=$outputPackage, enabled=$enabled, serviceName=${serviceName ?: "(auto)"}"
         )
     }
 
@@ -59,7 +62,7 @@ class Controller2FeignProcessor : AbstractProcessor() {
         )
 
         val extractor = ControllerMetadataExtractor(processingEnv)
-        val generator = FeignCodeGenerator(processingEnv.filer, outputPackage)
+        val generator = FeignCodeGenerator(processingEnv.filer, outputPackage, serviceName)
 
         controllers.filterIsInstance<TypeElement>().forEach { controller ->
             try {

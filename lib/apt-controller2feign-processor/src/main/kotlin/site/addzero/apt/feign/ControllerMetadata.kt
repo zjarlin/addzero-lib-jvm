@@ -4,6 +4,7 @@ data class ControllerMeta(
     val className: String,
     val packageName: String,
     val basePath: String,
+    val comment: String?,
     val methods: List<MethodMeta>
 )
 
@@ -12,6 +13,7 @@ data class MethodMeta(
     val httpMethod: HttpMethod,
     val path: String,
     val returnType: String,
+    val comment: String?,
     val parameters: List<ParamMeta>
 )
 

@@ -1,27 +1,30 @@
 package site.addzero.apt.feign
 
+import site.addzero.util.lsi_impl.impl.apt.anno.classComment
+import site.addzero.util.lsi_impl.impl.apt.anno.methodComment
+import site.addzero.util.str.firstNotBlank
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
-import javax.tools.Diagnostic
 
 class ControllerMetadataExtractor(private val processingEnv: ProcessingEnvironment) {
 
-    private val messager = processingEnv.messager
-    private val typeUtils = processingEnv.typeUtils
     private val elementUtils = processingEnv.elementUtils
 
     fun extract(controllerElement: TypeElement): ControllerMeta {
         val className = controllerElement.simpleName.toString()
         val packageName = elementUtils.getPackageOf(controllerElement).qualifiedName.toString()
         val basePath = extractBasePath(controllerElement)
+        val docComment = elementUtils.getDocComment(controllerElement)
+        val classComment = firstNotBlank(docComment, controllerElement.annotationMirrors.classComment())
+        
         val methods = controllerElement.enclosedElements
             .filterIsInstance<ExecutableElement>()
             .filter { it.kind == ElementKind.METHOD && hasHttpAnnotation(it) }
             .mapNotNull { extractMethodMeta(it, basePath) }
 
-        return ControllerMeta(className, packageName, basePath, methods)
+        return ControllerMeta(className, packageName, basePath, classComment, methods)
     }
 
     private fun extractBasePath(element: TypeElement): String {
@@ -36,12 +39,16 @@ class ControllerMetadataExtractor(private val processingEnv: ProcessingEnvironme
         val fullPath = combinePath(basePath, httpInfo.second)
         val returnType = extractReturnType(method.returnType)
         val parameters = method.parameters.map { extractParamMeta(it) }
+        
+        val docComment = elementUtils.getDocComment(method)
+        val methodComment = firstNotBlank(docComment, method.annotationMirrors.methodComment())
 
         return MethodMeta(
             name = method.simpleName.toString(),
             httpMethod = httpInfo.first,
             path = fullPath,
             returnType = returnType,
+            comment = methodComment,
             parameters = parameters
         )
     }
