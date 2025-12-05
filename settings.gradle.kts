@@ -11,16 +11,17 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-04T16:09:59.387142
-// Loaded: 8, Excluded: 0, Total: 8
+// Generated at: 2025-12-05T09:52:46.188187
+// Loaded: 9, Excluded: 0, Total: 9
 include(":checkouts:metaprogramming-lsi:lsi-apt")
 include(":checkouts:metaprogramming-lsi:lsi-core")
-include(":checkouts:metaprogramming-lsi:lsi-intellij")
 include(":checkouts:metaprogramming-lsi:lsi-kt")
 include(":checkouts:metaprogramming-lsi:lsi-psi")
-include(":checkouts:metaprogramming-lsi:lsi-psiandkt")
 include(":checkouts:metaprogramming-lsi:lsi-reflection")
 include(":lib:apt-controller2feign-processor")
+include(":lib:apt-dict-processor")
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
+include(":lib:tool-jvm:tool-jvmstr")
 // <<< Gradle Buddy: End Of Block <<<
 
 // Controller2Feign Processors

@@ -38,18 +38,21 @@ class Controller2FeignProcessor : AbstractProcessor() {
     override fun process(annotations: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
         if (!enabled || processed || roundEnv.processingOver()) return false
 
+        log("Processing round started, annotations: ${annotations.map { it.qualifiedName }}")
+
         val restControllerType = processingEnv.elementUtils
             .getTypeElement("org.springframework.web.bind.annotation.RestController")
         
         if (restControllerType == null) {
-            processingEnv.messager.printMessage(
-                Diagnostic.Kind.NOTE,
-                "[Controller2Feign] RestController annotation not found in classpath"
-            )
+            log("RestController annotation not found in classpath")
             return false
         }
 
+        log("RestController type found: ${restControllerType.qualifiedName}")
+
         val controllers = roundEnv.getElementsAnnotatedWith(restControllerType)
+
+        log("Found ${controllers.size} controller(s) in this round")
 
         if (controllers.isEmpty()) {
             return false
@@ -66,29 +69,48 @@ class Controller2FeignProcessor : AbstractProcessor() {
 
         controllers.filterIsInstance<TypeElement>().forEach { controller ->
             try {
+                log("Processing controller: ${controller.qualifiedName}")
+                
                 val docComment = processingEnv.elementUtils.getDocComment(controller)
                 val lsiClass = AptLsiClass(controller, docComment)
+                
+                log("LsiClass created: name=${lsiClass.name}, qualifiedName=${lsiClass.qualifiedName}")
+                log("LsiClass annotations: ${lsiClass.annotations.map { it.simpleName }}")
+                log("LsiClass methods count: ${lsiClass.methods.size}")
+                
+                lsiClass.methods.forEach { method ->
+                    log("  Method: ${method.name}, annotations=${method.annotations.map { it.simpleName }}")
+                    log("    returnType=${method.returnTypeName}, params=${method.parameters.map { "${it.name}:${it.typeName}" }}")
+                }
+                
                 val metadata = ControllerMetadataExtractor.extract(lsiClass)
+                
+                log("Extracted metadata: className=${metadata.className}, packageName=${metadata.packageName}")
+                log("Extracted basePath=${metadata.basePath}, methods count=${metadata.methods.size}")
+                
+                metadata.methods.forEach { m ->
+                    log("  Extracted method: ${m.name}, httpMethod=${m.httpMethod}, path=${m.path}")
+                    log("    returnType=${m.returnType}, params=${m.parameters.map { "${it.name}:${it.type}@${it.annotation}" }}")
+                }
+                
                 if (metadata.methods.isNotEmpty()) {
                     generator.generate(metadata)
-                    processingEnv.messager.printMessage(
-                        Diagnostic.Kind.NOTE,
-                        "[Controller2Feign] Generated FeignClient for ${metadata.className}"
-                    )
+                    log("Generated FeignClient for ${metadata.className}")
                 } else {
-                    processingEnv.messager.printMessage(
-                        Diagnostic.Kind.NOTE,
-                        "[Controller2Feign] Skipped ${metadata.className} (no HTTP methods)"
-                    )
+                    log("Skipped ${metadata.className} (no HTTP methods found after extraction)")
                 }
             } catch (e: Exception) {
                 processingEnv.messager.printMessage(
                     Diagnostic.Kind.WARNING,
-                    "[Controller2Feign] Error processing ${controller.simpleName}: ${e.message}"
+                    "[Controller2Feign] Error processing ${controller.simpleName}: ${e.message}\n${e.stackTraceToString()}"
                 )
             }
         }
 
         return false
+    }
+
+    private fun log(message: String) {
+        processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, "[Controller2Feign] $message")
     }
 }

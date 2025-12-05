@@ -9,13 +9,46 @@ class ControllerMetadataExtractor(private val logger: KSPLogger) {
         val className = controller.simpleName.asString()
         val packageName = controller.packageName.asString()
         val basePath = extractBasePath(controller)
+        val description = extractApiDescription(controller)
         
         val methods = controller.getAllFunctions()
             .filter { it.isPublic() && it.hasHttpAnnotation() }
             .mapNotNull { extractMethodMeta(it, basePath) }
             .toList()
 
-        return ControllerMeta(className, packageName, basePath, methods)
+        return ControllerMeta(className, packageName, basePath, methods, description)
+    }
+
+    private fun extractApiDescription(controller: KSClassDeclaration): String {
+        val apiAnno = controller.annotations.find { 
+            it.shortName.asString() == "Api" 
+        } ?: return controller.docString?.trim() ?: ""
+        
+        val tagsArg = apiAnno.arguments.find { it.name?.asString() == "tags" }
+        val valueArg = apiAnno.arguments.find { it.name?.asString() == "value" }
+        
+        return extractStringValue(tagsArg?.value) 
+            ?: extractStringValue(valueArg?.value) 
+            ?: controller.docString?.trim() 
+            ?: ""
+    }
+
+    private fun extractApiOperationValue(function: KSFunctionDeclaration): String {
+        val apiOpAnno = function.annotations.find { 
+            it.shortName.asString() == "ApiOperation" 
+        } ?: return function.docString?.trim() ?: ""
+        
+        val valueArg = apiOpAnno.arguments.find { it.name?.asString() == "value" }
+        return extractStringValue(valueArg?.value) ?: function.docString?.trim() ?: ""
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun extractStringValue(value: Any?): String? {
+        return when (value) {
+            is String -> value.takeIf { it.isNotBlank() }
+            is List<*> -> (value.firstOrNull() as? String)?.takeIf { it.isNotBlank() }
+            else -> null
+        }
     }
 
     private fun extractBasePath(controller: KSClassDeclaration): String {
@@ -30,13 +63,15 @@ class ControllerMetadataExtractor(private val logger: KSPLogger) {
         val fullPath = combinePath(basePath, httpInfo.second)
         val returnType = extractReturnType(function)
         val parameters = function.parameters.map { extractParamMeta(it) }
+        val description = extractApiOperationValue(function)
 
         return MethodMeta(
             name = function.simpleName.asString(),
             httpMethod = httpInfo.first,
             path = fullPath,
             returnType = returnType,
-            parameters = parameters
+            parameters = parameters,
+            description = description
         )
     }
 
