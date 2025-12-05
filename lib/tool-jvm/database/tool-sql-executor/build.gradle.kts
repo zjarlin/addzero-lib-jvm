@@ -16,5 +16,8 @@ dependencies {
 //    compileOnly("com.aliyun:polardb-jdbc:1.0.0")
 //    compileOnly("io.tidb:tidb-jdbc:0.1.0")
     compileOnly("com.ibm.db2:jcc:11.5.8.0")
+//    compileOnly("com.taosdata:taos-jdbcdriver:3.2.7")
+
+   compileOnly("com.taosdata.jdbc:taos-jdbcdriver:3.7.8")
 //    compileOnly("com.sybase:jconn4:7.0")
 }

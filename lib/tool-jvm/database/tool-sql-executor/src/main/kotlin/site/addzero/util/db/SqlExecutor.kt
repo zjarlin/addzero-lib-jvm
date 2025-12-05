@@ -32,6 +32,7 @@ class SqlExecutor(
             url.startsWith("jdbc:tidb") -> Class.forName("io.tidb.jdbc.TiDBDriver")
             url.startsWith("jdbc:db2") -> Class.forName("com.ibm.db2.jcc.DB2Driver")
             url.startsWith("jdbc:sybase") -> Class.forName("com.sybase.jdbc4.jdbc.SybDriver")
+            url.startsWith("jdbc:TAOS-RS") -> Class.forName("com.taosdata.jdbc.rs.RestfulDriver")
             else -> throw IllegalArgumentException("Unsupported database type: $url")
         }
     }
