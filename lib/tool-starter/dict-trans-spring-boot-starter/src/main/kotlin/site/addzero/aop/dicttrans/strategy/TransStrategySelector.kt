@@ -15,10 +15,9 @@ class TransStrategySelector (
 ){
     @Autowired
    lateinit var transStrategys: List<TransStrategy<*>>
-    fun getStrategy(t: Any): TransStrategy<Any>? {
-        val firstOrNull = transStrategys.firstOrNull { it.support(t) }
-        val strategy = firstOrNull
-        return strategy as TransStrategy<Any>?
+    fun getStrategy(t: Any?): TransStrategy<Any>? {
+        t ?: return null
+        return transStrategys.firstOrNull { it.support(t) } as TransStrategy<Any>?
     }
 
 
