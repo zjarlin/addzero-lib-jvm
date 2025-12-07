@@ -13,9 +13,10 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-07T13:38:06.223815
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2025-12-07T13:51:19.465457
+// Loaded: 4, Excluded: 0, Total: 4
 include(":checkouts:metaprogramming-lsi:lsi-core")
 include(":lib:tool-jvm:database:tool-ddlgenerator")
+include(":lib:tool-jvm:network-call:tool-api-maven")
 include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<
