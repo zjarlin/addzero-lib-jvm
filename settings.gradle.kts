@@ -15,8 +15,8 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-07T09:14:01.115375
-// Loaded: 9, Excluded: 0, Total: 9
+// Generated at: 2025-12-07T10:59:52.006023
+// Loaded: 11, Excluded: 0, Total: 11
 include(":lib:apt-controller2feign-processor")
 include(":lib:apt-dict-processor")
 include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
@@ -24,7 +24,9 @@ include(":lib:json2kotlin-dataclass")
 include(":lib:tool-jvm:database:tool-database-model")
 include(":lib:tool-jvm:database:tool-sql-executor")
 include(":lib:tool-jvm:tool-jvmstr")
+include(":lib:tool-jvm:tool-mybatis-generator")
 include(":lib:tool-jvm:tool-template-jte")
+include(":lib:tool-kmp:tool-str")
 include(":lib:tool-starter:dict-trans-spring-boot-starter")
 // <<< Gradle Buddy: End Of Block <<<
 
