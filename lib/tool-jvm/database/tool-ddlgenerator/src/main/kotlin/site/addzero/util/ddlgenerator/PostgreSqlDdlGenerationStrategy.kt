@@ -1,7 +1,11 @@
 package site.addzero.util.ddlgenerator
 
 import site.addzero.util.ddlgenerator.inter.TableContext
-import site.addzero.util.ddlgenerator.model.*
+import site.addzero.util.lsi.clazz.LsiClass
+import site.addzero.util.lsi.clazz.guessTableName
+import site.addzero.util.lsi.field.LsiField
+import site.addzero.util.lsi.field.isNullable
+import site.addzero.util.lsi.database.*
 
 /**
  * PostgreSQL方言的DDL生成策略
@@ -13,13 +17,16 @@ class PostgreSqlDdlGenerationStrategy : DdlGenerationStrategy {
         return dialect == Dialect.POSTGRESQL
     }
     
-    override fun generateCreateTable(table: TableDefinition): String {
-        val columnsSql = table.columns.joinToString(",\n  ") { column ->
-            buildColumnDefinition(column)
+    override fun generateCreateTable(lsiClass: LsiClass): String {
+        val tableName = lsiClass.guessTableName
+        val columns = lsiClass.databaseFields
+        
+        val columnsSql = columns.joinToString(",\n  ") { field ->
+            buildColumnDefinition(field)
         }
         
         return """
-            |CREATE TABLE "${table.name}" (
+            |CREATE TABLE "$tableName" (
             |  $columnsSql
             |);
             """.trimMargin()
@@ -29,8 +36,8 @@ class PostgreSqlDdlGenerationStrategy : DdlGenerationStrategy {
         return "DROP TABLE IF EXISTS \"$tableName\";"
     }
 
-    override fun generateAddColumn(tableName: String, column: ColumnDefinition): String {
-        val columnDefinition = buildColumnDefinition(column)
+    override fun generateAddColumn(tableName: String, field: LsiField): String {
+        val columnDefinition = buildColumnDefinition(field)
         return "ALTER TABLE \"$tableName\" ADD COLUMN $columnDefinition;"
     }
 
@@ -38,34 +45,36 @@ class PostgreSqlDdlGenerationStrategy : DdlGenerationStrategy {
         return "ALTER TABLE \"$tableName\" DROP COLUMN \"$columnName\";"
     }
     
-    override fun generateAddForeignKey(tableName: String, foreignKey: ForeignKeyDefinition): String {
-        return "ALTER TABLE \"$tableName\" ADD CONSTRAINT \"${foreignKey.name}\" FOREIGN KEY (\"${foreignKey.columnName}\") REFERENCES \"${foreignKey.referencedTable}\" (\"${foreignKey.referencedColumnName}\");"
+    override fun generateAddForeignKey(tableName: String, foreignKey: ForeignKeyInfo): String {
+        return "ALTER TABLE \"$tableName\" ADD CONSTRAINT \"${foreignKey.name}\" FOREIGN KEY (\"${foreignKey.columnName}\") REFERENCES \"${foreignKey.referencedTable}\" (\"${foreignKey.referencedColumn}\");"
     }
     
-    override fun generateAddComment(table: TableDefinition): String {
+    override fun generateAddComment(lsiClass: LsiClass): String {
         val statements = mutableListOf<String>()
+        val tableName = lsiClass.guessTableName
         
         // 表注释
-        if (table.comment != null) {
-            statements.add("COMMENT ON TABLE \"${table.name}\" IS '${table.comment}';")
+        if (lsiClass.comment != null) {
+            statements.add("COMMENT ON TABLE \"$tableName\" IS '${lsiClass.comment}';")
         }
         
         // 列注释
-        table.columns.filter { it.comment != null }.forEach { column ->
-            statements.add("COMMENT ON COLUMN \"${table.name}\".\"${column.name}\" IS '${column.comment}';")
+        lsiClass.databaseFields.filter { it.comment != null }.forEach { field ->
+            val columnName = field.columnName ?: field.name ?: return@forEach
+            statements.add("COMMENT ON COLUMN \"$tableName\".\"$columnName\" IS '${field.comment}';")
         }
         
         return statements.joinToString("\n")
     }
 
-    override fun generateSchema(tables: List<TableDefinition>): String {
-        val createTableStatements = tables.map { table -> generateCreateTable(table) }
-        val addConstraintsStatements = tables.flatMap { table ->
-            val foreignKeyStatements = table.foreignKeys.map { fk -> 
-                generateAddForeignKey(table.name, fk)
+    override fun generateSchema(lsiClasses: List<LsiClass>): String {
+        val createTableStatements = lsiClasses.map { lsiClass -> generateCreateTable(lsiClass) }
+        val addConstraintsStatements = lsiClasses.flatMap { lsiClass ->
+            val foreignKeyStatements = lsiClass.getDatabaseForeignKeys().map { fk -> 
+                generateAddForeignKey(lsiClass.guessTableName, fk)
             }
-            val commentStatements = if (table.comment != null || table.columns.any { it.comment != null }) {
-                listOf(generateAddComment(table))
+            val commentStatements = if (lsiClass.comment != null || lsiClass.databaseFields.any { it.comment != null }) {
+                listOf(generateAddComment(lsiClass))
             } else {
                 emptyList()
             }
@@ -77,17 +86,17 @@ class PostgreSqlDdlGenerationStrategy : DdlGenerationStrategy {
 
     override fun generateSchema(context: TableContext): String {
         // 根据依赖关系解析表的创建顺序
-        val orderedTables = dependencyResolver.resolveCreationOrder(context)
-        return generateSchema(orderedTables)
+        val orderedLsiClasses = dependencyResolver.resolveCreationOrder(context)
+        return generateSchema(orderedLsiClasses)
     }
 
-    override fun getColumnTypeName(columnType: ColumnType, precision: Int?, scale: Int?): String {
+    override fun getColumnTypeName(columnType: DatabaseColumnType, precision: Int?, scale: Int?): String {
         return when (columnType) {
-            ColumnType.INT -> "INTEGER"
-            ColumnType.BIGINT -> "BIGINT"
-            ColumnType.SMALLINT -> "SMALLINT"
-            ColumnType.TINYINT -> "SMALLINT"
-            ColumnType.DECIMAL -> {
+            DatabaseColumnType.INT -> "INTEGER"
+            DatabaseColumnType.BIGINT -> "BIGINT"
+            DatabaseColumnType.SMALLINT -> "SMALLINT"
+            DatabaseColumnType.TINYINT -> "SMALLINT"
+            DatabaseColumnType.DECIMAL -> {
                 if (precision != null && scale != null) {
                     "DECIMAL($precision, $scale)"
                 } else if (precision != null) {
@@ -96,51 +105,54 @@ class PostgreSqlDdlGenerationStrategy : DdlGenerationStrategy {
                     "DECIMAL"
                 }
             }
-            ColumnType.FLOAT -> "REAL"
-            ColumnType.DOUBLE -> "DOUBLE PRECISION"
-            ColumnType.VARCHAR -> {
+            DatabaseColumnType.FLOAT -> "REAL"
+            DatabaseColumnType.DOUBLE -> "DOUBLE PRECISION"
+            DatabaseColumnType.VARCHAR -> {
                 if (precision != null) {
                     "VARCHAR($precision)"
                 } else {
                     "VARCHAR(255)"
                 }
             }
-            ColumnType.CHAR -> {
+            DatabaseColumnType.CHAR -> {
                 if (precision != null) {
                     "CHAR($precision)"
                 } else {
                     "CHAR(255)"
                 }
             }
-            ColumnType.TEXT -> "TEXT"
-            ColumnType.LONGTEXT -> "TEXT"
-            ColumnType.DATE -> "DATE"
-            ColumnType.TIME -> "TIME"
-            ColumnType.DATETIME -> "TIMESTAMP"
-            ColumnType.TIMESTAMP -> "TIMESTAMP"
-            ColumnType.BOOLEAN -> "BOOLEAN"
-            ColumnType.BLOB -> "BYTEA"
-            ColumnType.BYTES -> "BYTEA"
+            DatabaseColumnType.TEXT -> "TEXT"
+            DatabaseColumnType.LONGTEXT -> "TEXT"
+            DatabaseColumnType.DATE -> "DATE"
+            DatabaseColumnType.TIME -> "TIME"
+            DatabaseColumnType.DATETIME -> "TIMESTAMP"
+            DatabaseColumnType.TIMESTAMP -> "TIMESTAMP"
+            DatabaseColumnType.BOOLEAN -> "BOOLEAN"
+            DatabaseColumnType.BLOB -> "BYTEA"
+            DatabaseColumnType.BYTES -> "BYTEA"
         }
     }
     
-    private fun buildColumnDefinition(column: ColumnDefinition): String {
+    private fun buildColumnDefinition(field: LsiField): String {
         val builder = StringBuilder()
-        builder.append("\"${column.name}\" ${getColumnTypeName(column.type)}")
+        val columnName = field.columnName ?: field.name ?: "unknown"
+        val columnType = field.getDatabaseColumnType()
         
-        if (!column.nullable) {
+        builder.append("\"$columnName\" ${getColumnTypeName(columnType)}")
+        
+        if (!field.isNullable) {
             builder.append(" NOT NULL")
         }
         
-        if (column.autoIncrement) {
+        if (field.isAutoIncrement) {
             builder.append(" GENERATED BY DEFAULT AS IDENTITY")
         }
         
-        if (column.defaultValue != null) {
-            builder.append(" DEFAULT ${column.defaultValue}")
+        if (field.defaultValue != null) {
+            builder.append(" DEFAULT ${field.defaultValue}")
         }
         
-        if (column.primaryKey) {
+        if (field.isPrimaryKey) {
             builder.append(" PRIMARY KEY")
         }
         

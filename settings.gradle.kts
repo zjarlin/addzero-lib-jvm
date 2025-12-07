@@ -8,12 +8,14 @@ plugins {
 }
 implementationRemoteGit{
     remoteGits=listOf("addzero-lib-jvm-stable"
-//        ,"metaprogramming-lsi"
+        ,"metaprogramming-lsi"
     )
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-07T12:30:27.410622
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2025-12-07T13:38:06.223815
+// Loaded: 3, Excluded: 0, Total: 3
+include(":checkouts:metaprogramming-lsi:lsi-core")
 include(":lib:tool-jvm:database:tool-ddlgenerator")
+include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<

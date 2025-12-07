@@ -1,6 +1,6 @@
 package site.addzero.util.ddlgenerator.inter
 
-import site.addzero.util.ddlgenerator.model.TableDefinition
+import site.addzero.util.lsi.clazz.LsiClass
 
 /**
  * 表上下文接口，由用户实现
@@ -8,14 +8,14 @@ import site.addzero.util.ddlgenerator.model.TableDefinition
  */
 interface TableContext {
     /**
-     * 获取所有表定义
+     * 获取所有 LSI 类
      */
-    fun getTableDefinitions(): List<TableDefinition>
+    fun getLsiClasses(): List<LsiClass>
     
     /**
-     * 根据表名获取表定义
+     * 根据表名获取 LSI 类
      */
-    fun getTableDefinition(tableName: String): TableDefinition?
+    fun getLsiClass(tableName: String): LsiClass?
     
     /**
      * 获取表之间的依赖关系

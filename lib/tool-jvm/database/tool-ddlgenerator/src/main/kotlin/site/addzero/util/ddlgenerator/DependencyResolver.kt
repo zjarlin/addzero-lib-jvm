@@ -1,7 +1,8 @@
 package site.addzero.util.ddlgenerator
 
 import site.addzero.util.ddlgenerator.inter.TableContext
-import site.addzero.util.ddlgenerator.model.TableDefinition
+import site.addzero.util.lsi.clazz.LsiClass
+import site.addzero.util.lsi.clazz.guessTableName
 
 /**
  * 依赖解析器
@@ -13,19 +14,20 @@ class DependencyResolver {
      * 根据依赖关系对表进行排序
      * 使用拓扑排序算法确保依赖表在被依赖表之前创建
      */
-    fun resolveCreationOrder(context: TableContext): List<TableDefinition> {
+    fun resolveCreationOrder(context: TableContext): List<LsiClass> {
         val dependencies = context.getTableDependencies()
-        val tables = context.getTableDefinitions()
-        val tableNameToDefinition = tables.associateBy { it.name }
+        val lsiClasses = context.getLsiClasses()
+        val tableNameToLsiClass = lsiClasses.associateBy { it.guessTableName }
         
         // 构建依赖图
         val graph = mutableMapOf<String, MutableList<String>>()
-        for (table in tables) {
-            graph[table.name] = dependencies[table.name]?.toMutableList() ?: mutableListOf()
+        for (lsiClass in lsiClasses) {
+            val tableName = lsiClass.guessTableName
+            graph[tableName] = dependencies[tableName]?.toMutableList() ?: mutableListOf()
         }
         
         // 拓扑排序
-        val result = mutableListOf<TableDefinition>()
+        val result = mutableListOf<LsiClass>()
         val visited = mutableSetOf<String>()
         val tempMark = mutableSetOf<String>()
         
@@ -43,13 +45,14 @@ class DependencyResolver {
                 tempMark.remove(node)
                 visited.add(node)
                 
-                tableNameToDefinition[node]?.let { result.add(it) }
+                tableNameToLsiClass[node]?.let { result.add(it) }
             }
         }
         
-        for (table in tables) {
-            if (!visited.contains(table.name)) {
-                visit(table.name)
+        for (lsiClass in lsiClasses) {
+            val tableName = lsiClass.guessTableName
+            if (!visited.contains(tableName)) {
+                visit(tableName)
             }
         }
         
@@ -59,7 +62,7 @@ class DependencyResolver {
     /**
      * 获取删除顺序（与创建顺序相反）
      */
-    fun resolveDeletionOrder(context: TableContext): List<TableDefinition> {
+    fun resolveDeletionOrder(context: TableContext): List<LsiClass> {
         return resolveCreationOrder(context).reversed()
     }
 }

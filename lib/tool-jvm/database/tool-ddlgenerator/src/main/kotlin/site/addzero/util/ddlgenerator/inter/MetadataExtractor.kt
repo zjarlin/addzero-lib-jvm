@@ -1,6 +1,6 @@
 package site.addzero.util.ddlgenerator.inter
 
-import site.addzero.util.ddlgenerator.model.TableDefinition
+import site.addzero.util.lsi.clazz.LsiClass
 
 /**
  * 元数据提取器接口
@@ -8,9 +8,9 @@ import site.addzero.util.ddlgenerator.model.TableDefinition
  */
 interface MetadataExtractor {
     /**
-     * 从元数据中提取表定义
+     * 从元数据中提取 LSI 类
      */
-    fun extractTableDefinition(): TableDefinition
+    fun extractLsiClass(): LsiClass
     
     /**
      * 提取表之间的依赖关系
