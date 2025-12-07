@@ -42,7 +42,7 @@ class Controller2FeignProcessor : AbstractProcessor() {
 
         val restControllerType = processingEnv.elementUtils
             .getTypeElement("org.springframework.web.bind.annotation.RestController")
-        
+
         if (restControllerType == null) {
             log("RestController annotation not found in classpath")
             return false
@@ -59,7 +59,7 @@ class Controller2FeignProcessor : AbstractProcessor() {
         }
 
         processed = true
-        
+
         processingEnv.messager.printMessage(
             Diagnostic.Kind.NOTE,
             "[Controller2Feign] Found ${controllers.size} controller(s)"
@@ -70,29 +70,29 @@ class Controller2FeignProcessor : AbstractProcessor() {
         controllers.filterIsInstance<TypeElement>().forEach { controller ->
             try {
                 log("Processing controller: ${controller.qualifiedName}")
-                
+
                 val docComment = processingEnv.elementUtils.getDocComment(controller)
                 val lsiClass = AptLsiClass(controller, docComment)
-                
+
                 log("LsiClass created: name=${lsiClass.name}, qualifiedName=${lsiClass.qualifiedName}")
                 log("LsiClass annotations: ${lsiClass.annotations.map { it.simpleName }}")
                 log("LsiClass methods count: ${lsiClass.methods.size}")
-                
+
                 lsiClass.methods.forEach { method ->
                     log("  Method: ${method.name}, annotations=${method.annotations.map { it.simpleName }}")
                     log("    returnType=${method.returnTypeName}, params=${method.parameters.map { "${it.name}:${it.typeName}" }}")
                 }
-                
+
                 val metadata = ControllerMetadataExtractor.extract(lsiClass)
-                
+
                 log("Extracted metadata: className=${metadata.className}, packageName=${metadata.packageName}")
                 log("Extracted basePath=${metadata.basePath}, methods count=${metadata.methods.size}")
-                
+
                 metadata.methods.forEach { m ->
                     log("  Extracted method: ${m.name}, httpMethod=${m.httpMethod}, path=${m.path}")
                     log("    returnType=${m.returnType}, params=${m.parameters.map { "${it.name}:${it.type}@${it.annotation}" }}")
                 }
-                
+
                 if (metadata.methods.isNotEmpty()) {
                     generator.generate(metadata)
                     log("Generated FeignClient for ${metadata.className}")

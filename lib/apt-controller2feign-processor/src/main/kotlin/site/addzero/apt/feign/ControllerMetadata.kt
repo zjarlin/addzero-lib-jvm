@@ -25,10 +25,10 @@ data class ParamMeta(
 
 enum class HttpMethod { GET, POST, PUT, DELETE, PATCH }
 
-enum class ParamAnnotation { 
-    PATH_VARIABLE, 
-    REQUEST_PARAM, 
-    REQUEST_BODY, 
-    REQUEST_HEADER, 
-    NONE 
+enum class ParamAnnotation {
+    PATH_VARIABLE,
+    REQUEST_PARAM,
+    REQUEST_BODY,
+    REQUEST_HEADER,
+    NONE
 }
