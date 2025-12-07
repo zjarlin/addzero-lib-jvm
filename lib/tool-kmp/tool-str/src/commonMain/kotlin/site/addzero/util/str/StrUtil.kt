@@ -879,3 +879,6 @@ fun String.toKebabCase(): String {
         .trim('-')
 }
 
+fun String.makeSurroundWithBrackets(): String {
+    return this.addSuffixIfNot("(").addSuffixIfNot(")")
+}
