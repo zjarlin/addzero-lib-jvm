@@ -44,12 +44,7 @@ class MySqlDdlGenerationStrategy : DdlGenerationStrategy {
     }
     
     override fun generateAddForeignKey(tableName: String, foreignKey: ForeignKeyDefinition): String {
-        return """
-            |ALTER TABLE `$tableName` 
-            |ADD CONSTRAINT `${foreignKey.name}` 
-            |FOREIGN KEY (`${foreignKey.columnName}`) 
-            |REFERENCES `${foreignKey.referencedTable}` (`${foreignKey.referencedColumnName}`);
-            """.trimMargin()
+        return "ALTER TABLE `$tableName` ADD CONSTRAINT `${foreignKey.name}` FOREIGN KEY (`${foreignKey.columnName}`) REFERENCES `${foreignKey.referencedTable}` (`${foreignKey.referencedColumnName}`);"
     }
     
     override fun generateAddComment(table: TableDefinition): String {
