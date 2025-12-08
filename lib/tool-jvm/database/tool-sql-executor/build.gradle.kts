@@ -20,4 +20,6 @@ dependencies {
 
    compileOnly("com.taosdata.jdbc:taos-jdbcdriver:3.7.8")
 //    compileOnly("com.sybase:jconn4:7.0")
+    
+    testImplementation("com.h2database:h2:2.1.214")
 }
