@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.aptbuddy
+package site.addzero.gradle.plugin.assist
 
 import org.gradle.api.Project
 import java.io.File

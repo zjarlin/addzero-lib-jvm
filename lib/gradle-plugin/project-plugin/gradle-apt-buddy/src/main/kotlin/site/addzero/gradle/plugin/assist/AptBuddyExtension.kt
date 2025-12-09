@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.aptbuddy
+package site.addzero.gradle.plugin.assist
 
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property

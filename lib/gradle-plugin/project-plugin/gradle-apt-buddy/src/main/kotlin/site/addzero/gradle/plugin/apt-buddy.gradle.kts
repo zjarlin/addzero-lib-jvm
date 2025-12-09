@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.aptbuddy
+package site.addzero.gradle.plugin
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -8,6 +8,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
+import site.addzero.gradle.plugin.assist.AptBuddyExtension
 import java.io.File
 
 val GEN_DIR = "build-logic/src/main/kotlin/conventions/generated"
