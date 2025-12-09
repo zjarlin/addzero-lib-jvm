@@ -61,6 +61,13 @@ class DictEnumCodeGenerator(
                 }
 
                 generatedClassNames.add(enumName)
+                
+                // 打印字典类型和生成的枚举名
+                messager.printMessage(
+                    Diagnostic.Kind.NOTE,
+                    "[INFO] 字典类型: ${dictMetadata.dictCode} -> 枚举类名: Enum$enumName"
+                )
+                
                 generateEnumClass(dictMetadata, enumName)
             } catch (e: Exception) {
                 messager.printMessage(

@@ -1,4 +1,4 @@
-import org.gradle.plugins.signing.Sign
+//import org.gradle.plugins.signing.Sign
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
@@ -53,6 +53,6 @@ aptBuddy {
 }
 
 // 禁用签名任务（临时用于本地发布）
-tasks.withType<Sign>().configureEach {
-    enabled = false
-}
+//tasks.withType<Sign>().configureEach {
+//    enabled = false
+//}
