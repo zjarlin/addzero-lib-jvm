@@ -185,9 +185,19 @@ class DictEnumCodeGenerator(
 
     /**
      * 转换为驼峰命名
+     * 支持下划线格式（sys_yes_no）和小驼峰格式（propSource）
      */
     private fun String.toCamelCase(capitalizeFirst: Boolean): String {
-        val words = this.replace(Regex("[_\\-\\s]+"), " ").split(" ")
+        // 先处理下划线、连字符、空格分隔的情况
+        val withUnderscores = this.contains(Regex("[_\\-\\s]"))
+        
+        val words = if (withUnderscores) {
+            // 下划线格式：直接按分隔符拆分
+            this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }
+        } else {
+            // 小驼峰格式：按大写字母拆分
+            this.split(Regex("(?=[A-Z])")).filter { it.isNotEmpty() }
+        }
 
         return words.withIndex().joinToString("") { (index, word) ->
             when {

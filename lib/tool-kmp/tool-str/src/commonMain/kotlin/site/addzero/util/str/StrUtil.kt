@@ -164,19 +164,47 @@ fun String.containsAnyIgnoreCase(vararg substrings: String): Boolean {
     return substrings.any { it.lowercase() in lowerThis }
 }
 
+/**
+ * 将字符串转换为大驼峰命名（PascalCase）
+ * 支持下划线、中划线、空格分隔的格式
+ * 
+ * 示例：
+ * - "user_name" -> "UserName"
+ * - "user-name" -> "UserName"
+ * - "user name" -> "UserName"
+ * - "userName" -> "UserName"（首字母大写）
+ */
 fun String.toBigCamelCase(): String {
-    return this.split("_").joinToString("") {
-        it.replaceFirstChar { it.uppercase() }
-    }
+    if (isEmpty()) return this
+    
+    // 支持下划线、中划线、空格分隔
+    return this.split(Regex("[_\\-\\s]+"))
+        .filter { it.isNotEmpty() }
+        .joinToString("") {
+            it.replaceFirstChar { char -> char.uppercase() }
+        }
 }
 
 /**
- * 将列名转换为驼峰命名
+ * 将字符串转换为小驼峰命名（camelCase）
+ * 支持下划线、中划线、空格分隔的格式
+ * 
+ * 示例：
+ * - "user_name" -> "userName"
+ * - "user-name" -> "userName"
+ * - "user name" -> "userName"
+ * - "UserName" -> "userName"（首字母小写）
  */
 fun String.toLowCamelCase(): String {
-    return this.split("_").joinToString("") {
-        it.replaceFirstChar { c -> c.uppercase() }
-    }.replaceFirstChar { it -> it.lowercase() }
+    if (isEmpty()) return this
+    
+    // 支持下划线、中划线、空格分隔
+    val words = this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }
+    if (words.isEmpty()) return this
+    
+    return words.first().lowercase() + words.drop(1).joinToString("") {
+        it.replaceFirstChar { char -> char.uppercase() }
+    }
 }
 
 infix fun String.ignoreCaseLike(other: String): Boolean {
