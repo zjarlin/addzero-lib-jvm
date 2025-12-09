@@ -46,7 +46,12 @@ afterEvaluate {
 
     mavenPublishing {
         publishToMavenCentral(automaticRelease = true)
-        signAllPublications()
+        // 只在有签名配置时才签名
+        if (project.hasProperty("signing.keyId") || 
+            project.hasProperty("signing.password") || 
+            project.hasProperty("signing.secretKeyRingFile")) {
+            signAllPublications()
+        }
         coordinates(project.group.toString(), project.name, project.version.toString())
 
         pom {
@@ -82,6 +87,8 @@ afterEvaluate {
 
 subprojects {
     if (!path.startsWith(":lib:")) return@subprojects
+    // 排除不需要签名的项目
+    if (path == ":lib:apt-dict-processor") return@subprojects
     apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
 }
 
