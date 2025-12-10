@@ -121,11 +121,28 @@ class MySQLCteStrategy : CteStrategy {
                            cd.tree_depth ASC
                        ) as rn
                 FROM combined_data cd
+            ),
+            
+            final_data AS (
+                SELECT t.*, dd.tree_depth, dd.tree_direction, dd.tree_path, dd.cycle_detection_path, dd.rn,
+                       CASE 
+                           WHEN dd.tree_depth = 0 AND dd.${pid} IS NOT NULL THEN
+                               -- 对于有父节点的锚点节点，面包屑应该是父节点+当前节点
+                               (SELECT CONCAT(parent.${breadcrumbColumn ?: id}, ',', dd.${breadcrumbColumn ?: id})
+                                FROM deduplicated_data parent 
+                                WHERE parent.${id} = dd.${pid} AND parent.rn = 1)
+                           WHEN dd.tree_depth > 0 AND dd.${pid} IS NULL THEN
+                               -- 对于根节点，面包屑应该只是自己的ID
+                               dd.${breadcrumbColumn ?: id}
+                           ELSE dd.tree_breadcrumb
+                       END as tree_breadcrumb
+                FROM deduplicated_data dd
+                JOIN ${tableName} t ON t.${id} = dd.${id}
+                WHERE dd.rn = 1
             )
             
             SELECT *
-            FROM deduplicated_data
-            WHERE rn = 1
+            FROM final_data
             ${finalCondition}
             ORDER BY tree_direction, tree_depth, ${id};
         """.trimIndent()

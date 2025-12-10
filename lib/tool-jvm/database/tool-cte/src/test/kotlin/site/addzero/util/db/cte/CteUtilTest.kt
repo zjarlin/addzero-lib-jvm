@@ -62,10 +62,9 @@ class CteUtilTest {
         val pid = "parent_device_id"
         val databaseType = DatabaseType.MYSQL
         
-        // 不使用WHERE条件作为锚点查询，而是使用空条件获取所有记录
-        // 然后通过combinedDataWrapperContext来过滤最终结果
-        val cteWrapperContext = WrapperContext("", emptyMap())
-        val combinedDataWrapperContext = WrapperContext("WHERE device_id LIKE 'CNC%' OR parent_device_id LIKE 'CNC%'", emptyMap())
+        // 使用有父节点的子节点作为锚点，让CTE向上递归找到父节点
+        val cteWrapperContext = WrapperContext("WHERE parent_device_id IS NOT NULL AND device_id LIKE 'CNC%'", emptyMap())
+        val combinedDataWrapperContext = WrapperContext("", emptyMap())
         val returnBreadcrumb = true
         val breadcrumbColumn = "device_id"
 
@@ -103,13 +102,29 @@ class CteUtilTest {
             println("ID: ${row["device_id"]}, Parent ID: ${row["parent_device_id"]}, Breadcrumb: ${row["tree_breadcrumb"]}, Depth: ${row["tree_depth"]}")
         }
         
-        // 验证根节点
-        rootNodes.forEach { row ->
+        // 验证锚点节点（有父节点的子节点）
+        childNodes.forEach { row ->
             val depth = (row["tree_depth"] as Number?)?.toInt() ?: 0
             val breadcrumb = row["tree_breadcrumb"] as String?
             
             assert(depth == 0) { 
-                "根节点的深度应该为0，但实际为: $depth" 
+                "锚点节点（子节点）的深度应该为0，但实际为: $depth" 
+            }
+            
+            if (breadcrumb != null) {
+                assert(breadcrumb.contains(",")) { 
+                    "子节点的面包屑应该包含逗号（从父到子的路径）: $breadcrumb" 
+                }
+            }
+        }
+        
+        // 验证根节点（通过递归找到的父节点）
+        rootNodes.forEach { row ->
+            val depth = (row["tree_depth"] as Number?)?.toInt() ?: 0
+            val breadcrumb = row["tree_breadcrumb"] as String?
+            
+            assert(depth > 0) { 
+                "根节点（通过递归找到）的深度应该大于0，但实际为: $depth" 
             }
             
             if (breadcrumb != null) {
