@@ -48,12 +48,29 @@ class MySQLCteStrategy : CteStrategy {
                 SELECT rd.*,
                        ROW_NUMBER() OVER (PARTITION BY rd.${id} ORDER BY rd.tree_depth ASC) as rn
                 FROM recursive_data_up rd
+            ),
+            
+            final_data AS (
+                SELECT t.*, dd.tree_depth, dd.tree_direction, dd.tree_path, dd.cycle_detection_path, dd.rn,
+                       CASE 
+                           WHEN dd.tree_depth = 0 AND dd.${pid} IS NOT NULL THEN
+                               -- 对于有父节点的锚点节点，面包屑应该是父节点+当前节点
+                               (SELECT CONCAT(parent.${breadcrumbColumn ?: id}, ',', dd.${breadcrumbColumn ?: id})
+                                FROM deduplicated_data parent 
+                                WHERE parent.${id} = dd.${pid} AND parent.rn = 1)
+                           WHEN dd.tree_depth > 0 AND dd.${pid} IS NULL THEN
+                               -- 对于根节点，面包屑应该只是自己的ID
+                               dd.${breadcrumbColumn ?: id}
+                           ELSE dd.tree_breadcrumb
+                       END as tree_breadcrumb
+                FROM deduplicated_data dd
+                JOIN ${tableName} t ON t.${id} = dd.${id}
+                WHERE dd.rn = 1
             )
             
             SELECT *
-            FROM deduplicated_data
+            FROM final_data
             ${whereClause}
-            AND rn = 1
             ORDER BY tree_depth, ${id};
         """.trimIndent()
     }
@@ -201,7 +218,12 @@ class MySQLCteStrategy : CteStrategy {
                     ru.tree_depth + 1 as tree_depth,
                     'up' as tree_direction,
                     CONCAT(t.${id}, ',', ru.tree_path) as tree_path,
-                    CAST(t.${breadcrumbField} AS CHAR(1000)) as tree_breadcrumb,
+                    CASE 
+                        WHEN ru.tree_breadcrumb IS NOT NULL AND ru.tree_breadcrumb != '' THEN
+                            CONCAT(ru.tree_breadcrumb, ',', t.${breadcrumbField})
+                        ELSE
+                            CAST(t.${breadcrumbField} AS CHAR(1000))
+                    END as tree_breadcrumb,
                     CONCAT(t.${id}, ',', ru.cycle_detection_path) as cycle_detection_path
                 FROM ${tableName} t
                 INNER JOIN recursive_data_up ru ON t.${id} = ru.${pid} AND ru.${pid} IS NOT NULL

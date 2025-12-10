@@ -215,9 +215,9 @@ class CteUtilTest {
         val pid = "parent_device_id"
         val databaseType = DatabaseType.MYSQL
         
-        // 使用一个更通用的查询条件来获取完整的树结构
-        val cteWrapperContext = WrapperContext("", emptyMap())
-        val combinedDataWrapperContext = WrapperContext("WHERE device_id LIKE 'CNC%' OR parent_device_id LIKE 'CNC%'", emptyMap())
+        // 使用特定的子节点作为锚点，然后向上递归查找父节点
+        val cteWrapperContext = WrapperContext("WHERE device_id IN ('CNC2160', 'CNC2161', 'CNC634')", emptyMap())
+        val combinedDataWrapperContext = WrapperContext("", emptyMap())
         val returnBreadcrumb = true
         val breadcrumbColumn = "device_id"
 
