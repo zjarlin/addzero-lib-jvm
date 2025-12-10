@@ -1,8 +1,12 @@
+import site.addzero.gradle.plugin.aptbuddy.SettingContextConfig
+
+//import site.addzero.gradle.plugin.aptbuddy.SettingContextConfig
+
 //import org.gradle.plugins.signing.Sign
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
-    id("site.addzero.apt-buddy") version "2025.11.28"
+    id("site.addzero.gradle.plugin.apt-buddy") version "2025.12.04"
 }
 
 
@@ -42,7 +46,7 @@ aptBuddy {
 
     // 启用生成 Java 配置类（Settings 和 SettingContext）
     settingContext.set(
-        site.addzero.gradle.plugin.aptbuddy.SettingContextConfig(
+        SettingContextConfig(
             contextClassName = "DictProcessorSettings",
             settingsClassName = "DictProcessorConfig",
             packageName = "site.addzero.apt.config",

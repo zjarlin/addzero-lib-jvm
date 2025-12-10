@@ -16,7 +16,7 @@ APT Buddy 是一个 Gradle 插件，用于简化 Java 注解处理器 (APT) 的�
 
 ```kotlin
 plugins {
-    id("site.addzero.apt-buddy") version "+"
+    id("site.addzero.gradle.plugin.apt-buddy") version "+"
 }
 ```
 

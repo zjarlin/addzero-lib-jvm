@@ -161,7 +161,7 @@ tasks.withType<JavaCompile> {
 ```kotlin
 plugins {
     id("java")
-    id("site.addzero.apt-buddy") version "2025.11.27"
+    id("site.addzero.gradle.plugin.apt-buddy") version "2025.11.27"
 }
 
 dependencies {
