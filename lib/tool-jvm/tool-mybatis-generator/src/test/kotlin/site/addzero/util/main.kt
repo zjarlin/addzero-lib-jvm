@@ -5,14 +5,13 @@ import org.junit.jupiter.api.Test
 import site.addzero.lib_adaptor.MpGeneratorSettingsImpl
 
 class MpGeneratorTest {
-
     @Test
     fun `test generate mybatis plus code`() {
         val outputPath = getGenDir()
         val mpGenerator = MpGenerator(MpGeneratorSettingsImpl())
         val genList = arrayOf(
 //        "iot_product_device_access",
-            "biz_company",
+            "iot_device_type",
 //        "iot_industrial_protocol",
 //        "iot_product_connection_param_act",
 //        "iot_product_connection_param"

@@ -18,8 +18,8 @@ dependencies {
     compileOnly("com.ibm.db2:jcc:11.5.8.0")
 //    compileOnly("com.taosdata:taos-jdbcdriver:3.2.7")
 
-   compileOnly("com.taosdata.jdbc:taos-jdbcdriver:3.7.8")
+   implementation("com.taosdata.jdbc:taos-jdbcdriver:3.7.8")
 //    compileOnly("com.sybase:jconn4:7.0")
-    
+
     testImplementation("com.h2database:h2:2.1.214")
 }

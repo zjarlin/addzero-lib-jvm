@@ -6,6 +6,38 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SqlExecutorTest {
+    @Test
+    fun `taosdata`() {
+                val url = "jdbc:TAOS-RS://1.194.161.16:6041/iot_data?useSSL=false"
+        val username = "root"
+        val password = "Zljkj@20251120"
+        val trimIndent = """
+           select * from acquisition WHERE (((energy_type_id IN (1,2,3,4,5,6,7,8))) AND ((product_id IN ('PROD001','PROD002','PROD003','PROD016'))) AND ((device_id IN ('DEV013','DEV002','DEV012','DEV001','DEV015','DEV003','DEV011','DEV016'))) AND ((ts >= '2024-12-11 13:44:20')) AND ((ts <= '2026-12-11 13:44:20'))) ORDER BY ts DESC
+ 
+        """.trimIndent()
+
+
+        val trimIndent1 = """
+           select * from acquisition WHERE (((energy_type_id IN (1,2,3,4,5,6,7,8))) AND ((product_id IN ('PROD001','PROD002','PROD003','PROD016'))) AND ((device_id IN ('DEV013','DEV002','DEV012','DEV001','DEV015','DEV003','DEV011','DEV016'))) AND ((ts >= '2024-12-11 13:44:20')) AND ((ts <= '2026-12-11 13:44:20'))) ORDER BY ts DESC
+ 
+        """.trimIndent()
+        val trimIndent2 = """ select * from acquisition 
+           WHERE 
+           ((product_id IN ('PROD017','PROD018','PROD019')))
+           AND 
+          
+          AND ((ts >= '2024-12-11 13:44:20')) AND ((ts <= '2026-12-11 13:44:20'))) ORDER BY ts DESC
+ 
+        """.trimIndent()
+        val sqlExecutor = SqlExecutor(url, username, password)
+                   val result = sqlExecutor.queryForList(trimIndent2)
+
+
+        println()
+
+
+
+    }
 
     @Test
     fun testSqlExecutor() {
@@ -21,7 +53,7 @@ class SqlExecutorTest {
 
             assert(result.isNotEmpty())
             assert(result[0]["test"] == 1)
-            
+
             println("SQL执行器测试通过!")
         } catch (e: Exception) {
             println("测试执行过程中出现异常: ${e.message}")
@@ -30,13 +62,13 @@ class SqlExecutorTest {
             sqlExecutor.close()
         }
     }
-    
+
     @Test
     fun `test H2 in-memory database with arbitrary SQL`() {
         val url = "jdbc:h2:mem:store-db;database_to_upper=true"
         val username = "sa"
         val password = ""
-        
+
         SqlExecutor(url, username, password).use { executor ->
             // 创建表
             executor.execute("""
@@ -48,28 +80,28 @@ class SqlExecutorTest {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """.trimIndent())
-            
+
             // 插入测试数据
             listOf(
                 "INSERT INTO products (name, price, stock) VALUES ('Laptop', 5999.99, 10)",
                 "INSERT INTO products (name, price, stock) VALUES ('Mouse', 99.99, 50)",
                 "INSERT INTO products (name, price, stock) VALUES ('Keyboard', 299.99, 30)"
             ).forEach(executor::execute)
-            
+
             // 查询所有产品
             executor.queryForList("SELECT * FROM products ORDER BY id")
                 .also { products ->
                     assertEquals(3, products.size, "应该有3个产品")
                     products.forEach { println("产品: $it") }
                 }
-            
+
             // 条件查询
             executor.queryForList("SELECT * FROM products WHERE price > 100")
                 .also { expensiveProducts ->
                     assertEquals(2, expensiveProducts.size, "价格>100的产品应该有2个")
                     assertTrue(expensiveProducts.all { (it["PRICE"] as? Number)?.toDouble()?.let { price -> price > 100 } == true })
                 }
-            
+
             // 聚合查询
             executor.queryForList("SELECT COUNT(*) as total, SUM(stock) as total_stock FROM products")
                 .first()
@@ -77,16 +109,16 @@ class SqlExecutorTest {
                     assertEquals(3, (result["TOTAL"] as Number).toInt(), "总产品数应为3")
                     assertEquals(90, (result["TOTAL_STOCK"] as Number).toInt(), "总库存应为90")
                 }
-            
+
             // 更新操作
             executor.executeUpdate("UPDATE products SET stock = stock + 5 WHERE name = 'Laptop'")
                 .also { affected -> assertEquals(1, affected, "应该更新1条记录") }
-            
+
             // 验证更新
             executor.queryForList("SELECT stock FROM products WHERE name = 'Laptop'")
                 .first()["STOCK"]
                 .also { stock -> assertEquals(15, (stock as Number).toInt(), "Laptop库存应为15") }
-            
+
             // 复杂查询：JOIN和子查询（在删除之前先创建订单表和数据）
             executor.execute("""
                 CREATE TABLE orders (
@@ -96,18 +128,18 @@ class SqlExecutorTest {
                     FOREIGN KEY (product_id) REFERENCES products(id)
                 )
             """.trimIndent())
-            
+
             executor.execute("INSERT INTO orders (product_id, quantity) VALUES (1, 2), (2, 5)")
-            
+
             // 删除操作（删除没有订单的产品）
             executor.executeUpdate("DELETE FROM products WHERE id = 3")
                 .also { affected -> assertEquals(1, affected, "应该删除1条记录") }
-            
+
             // 验证删除
             executor.queryForList("SELECT COUNT(*) as count FROM products")
                 .first()["COUNT"]
                 .also { count -> assertEquals(2, (count as Number).toInt(), "剩余产品应为2个") }
-            
+
             executor.queryForList("""
                 SELECT p.name, p.price, o.quantity, (p.price * o.quantity) as total
                 FROM products p
@@ -119,24 +151,24 @@ class SqlExecutorTest {
                     println("订单详情:")
                     orderDetails.forEach { println("  $it") }
                 }
-            
+
             // 事务测试：批量操作
             listOf(
                 "CREATE TABLE logs (id INT PRIMARY KEY, message VARCHAR(255))",
                 "INSERT INTO logs VALUES (1, 'Test log 1')",
                 "INSERT INTO logs VALUES (2, 'Test log 2')"
             ).forEach(executor::execute)
-            
+
             executor.queryForList("SELECT * FROM logs")
                 .also { logs ->
                     assertEquals(2, logs.size)
                     logs.forEach { println("日志: $it") }
                 }
-            
+
             println("✅ H2内存数据库任意SQL执行测试通过!")
         }
     }
-    
+
     @Test
     fun `test H2 with DDL operations`() {
         SqlExecutor("jdbc:h2:mem:test-ddl", "sa", "").use { executor ->
@@ -148,7 +180,7 @@ class SqlExecutorTest {
                     email VARCHAR(100)
                 )
             """.trimIndent())
-            
+
             executor.execute("""
                 CREATE TABLE user_profiles (
                     user_id BIGINT PRIMARY KEY,
@@ -157,14 +189,14 @@ class SqlExecutorTest {
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             """.trimIndent())
-            
+
             // ALTER TABLE 操作
             executor.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-            
+
             // 插入数据
             executor.execute("INSERT INTO users (id, username, email) VALUES (1, 'alice', 'alice@example.com')")
             executor.execute("INSERT INTO user_profiles (user_id, bio) VALUES (1, 'Hello, I am Alice')")
-            
+
             // 查询验证
             executor.queryForList("""
                 SELECT u.username, u.email, p.bio
@@ -176,15 +208,15 @@ class SqlExecutorTest {
                     assertEquals("alice", user["USERNAME"])
                     assertEquals("Hello, I am Alice", user["BIO"])
                 }
-            
+
             // DROP 操作
             executor.execute("DROP TABLE user_profiles")
             executor.execute("DROP TABLE users")
-            
+
             println("✅ H2 DDL操作测试通过!")
         }
     }
-    
+
     @Test
     fun `test H2 with stored procedures and functions`() {
         SqlExecutor("jdbc:h2:mem:test-functions", "sa", "").use { executor ->
@@ -196,14 +228,14 @@ class SqlExecutorTest {
                 }
                 $$;
             """.trimIndent())
-            
+
             // 使用自定义函数
             executor.queryForList("SELECT CALCULATE_TAX(100.0) as tax")
                 .first()["TAX"]
                 .also { tax ->
                     assertEquals(13.0, (tax as Number).toDouble(), 0.01)
                 }
-            
+
             println("✅ H2 自定义函数测试通过!")
         }
     }
