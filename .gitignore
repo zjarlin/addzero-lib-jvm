@@ -3,7 +3,7 @@
 **/.gradle
 !*/.gradle
 .autoddl
-
+settings.gradle.kts
 checkouts/**
 checkouts
 

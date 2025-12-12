@@ -1,4 +1,4 @@
-import site.addzero.gradle.plugin.aptbuddy.SettingContextConfig
+import site.addzero.gradle.plugin.assist.SettingContextConfig
 
 //import site.addzero.gradle.plugin.aptbuddy.SettingContextConfig
 
