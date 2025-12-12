@@ -9,13 +9,13 @@ dependencies {
 
     implementation(libs.byte.buddy)
     api("site.addzero:dict-trans-core:${libs.versions.addzero.lib.get()}")
-    
+
     // 添加Spring Boot核心依赖
     implementation(libs.spring.boot.autoconfigure)
     // 添加Spring Boot配置处理器依赖
-    compileOnly("org.springframework.boot:spring-boot-configuration-processor")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    
+//    compileOnly("org.springframework.boot:spring-boot-configuration-processor")
+//    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
     // 配置处理器 - 重要！
 //    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 //    implementation("org.springframework.boot:spring-boot-configuration-processor")

@@ -13,11 +13,13 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-12T09:36:09.585596
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:apt-dict-processor")
+// Generated at: 2025-12-12T10:39:39.596286
+// Loaded: 7, Excluded: 0, Total: 7
+include(":lib:apt:apt-dict-annotations")
+include(":lib:apt:apt-dict-processor")
+include(":lib:apt:dict-trans:apt-dict-annotations")
+include(":lib:apt:dict-trans:apt-dict-processor")
 include(":lib:gradle-plugin:project-plugin:gradle-apt-buddy")
-include(":lib:gradle-plugin:project-plugin:gradle-ksp-buddy")
 include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
-include(":lib:tool-kmp:tool-str")
+include(":lib:tool-starter:dict-trans-spring-boot-starter")
 // <<< Gradle Buddy: End Of Block <<<
