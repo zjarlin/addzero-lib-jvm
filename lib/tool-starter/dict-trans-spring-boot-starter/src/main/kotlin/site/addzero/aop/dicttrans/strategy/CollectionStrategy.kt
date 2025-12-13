@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil
 import cn.hutool.core.util.ObjectUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import site.addzero.aop.dicttrans.config.MemoryManagementProperties
 import site.addzero.aop.dicttrans.inter.TransStrategy
 import site.addzero.aop.dicttrans.limits.ProcessingAction
@@ -49,7 +50,7 @@ class CollectionStrategy @Autowired constructor(
             logger.warn("Skipping collection processing due to memory pressure: {}", memoryDecision.reason)
             limitManager.recordFailure(context, RuntimeException("Memory pressure: ${memoryDecision.reason}"))
             return when (memoryDecision.suggestedAction) {
-                ProcessingAction.ABORT -> emptyList()
+                ProcessingAction.ABORT -> emptyList<Any>() as Collection<*>
                 else -> inVOs // Return original collection
             }
         }
@@ -71,7 +72,7 @@ class CollectionStrategy @Autowired constructor(
                 }
                 ProcessingAction.ABORT -> {
                     limitManager.recordFailure(context, RuntimeException("Collection size exceeds limits"))
-                    return emptyList()
+                    return emptyList<Any>() as Collection<*>
                 }
                 ProcessingAction.RETRY_LATER -> {
                     logger.info("Circuit breaker open, returning original collection")

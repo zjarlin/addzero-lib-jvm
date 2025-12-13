@@ -8,7 +8,7 @@ import cn.hutool.core.util.StrUtil
 import cn.hutool.extra.spring.SpringUtil
 import org.slf4j.LoggerFactory
 import site.addzero.aop.dicttrans.anno.Dict
-import site.addzero.aop.dicttrans.dictaop.CommonConstant
+import site.addzero.aop.dicttrans.dictaop.DictConstant
 import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
 import site.addzero.aop.dicttrans.dictaop.entity.TabMultiIn
 import site.addzero.aop.dicttrans.dictaop.entity.TransInfo
@@ -57,7 +57,7 @@ internal object TransInternalUtil {
             }
             
             // 跟踪当前对象
-            weakReferenceTracker.track(currentObj)
+            currentObj?.let { weakReferenceTracker.track(it) }
 
             val aClass: Class<*> = currentObj.javaClass
 
@@ -77,7 +77,7 @@ internal object TransInternalUtil {
                     dictAnnotations.forEach { anno ->
                         val alias = anno.serializationAlias
                         val nameColumn = StrUtil.toCamelCase(anno.nameColumn)
-                        val other = field.name + CommonConstant.DICT_TEXT_SUFFIX
+                        val other = field.name + DictConstant.DICT_TEXT_SUFFIX
                         val firstNonBlank = CharSequenceUtil.firstNonBlank(alias, nameColumn, other)
 
                         val transInfo = TransInfo(
@@ -92,7 +92,7 @@ internal object TransInternalUtil {
                             afterObjectClass = null,
                             translatedAttributeNames = firstNonBlank,
                             attributeNameBeforeTranslation = field.name,
-                            valueBeforeTranslation = fieldValue,
+                            valueBeforeTranslation = fieldValue!!,
                             translatedValue = null,
                             translatedType = anno.spelValueType.java,
                             classificationOfTranslation = null,
@@ -118,11 +118,11 @@ internal object TransInternalUtil {
                     }
                 }
                 // 处理嵌套实体字段
-                else if (RefUtil.isT(fieldValue)) {
+                else if (fieldValue != null && RefUtil.isT(fieldValue)) {
                     // 检查循环引用
                     if (fieldValue == currentObj || fieldValue == rootObj) {
                         logger.debug("Detected circular reference in object field: {} of class: {}", 
-                            field.name, currentObj.javaClass.name)
+                            field.name, currentObj?.javaClass?.name)
                         weakReferenceTracker.markCircularReference(fieldValue)
                     } else {
                         // 将嵌套对象加入队列，等待处理
@@ -260,7 +260,7 @@ internal object TransInternalUtil {
                         one?.label ?: ""
                     }.filter { it.isNotBlank() }.joinToString(",")
 
-                    EnhancedRefUtil.setFieldValue(rootObject, EnhancedRefUtil.getField(rootObject.javaClass, e.translatedAttributeNames)!!, collect)
+                    EnhancedRefUtil.setFieldValue(rootObject, EnhancedRefUtil.getField(rootObject.javaClass, e.translatedAttributeNames)!!, collect as Any)
                     //                    return;
                 }
                 val one = dictModels?.find { it.value == flipPastValues }
@@ -272,7 +272,7 @@ internal object TransInternalUtil {
                 //                e.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + e.getTranslatedAttributeNames());
                 val field = EnhancedRefUtil.getField(rootObject.javaClass, e.translatedAttributeNames)
                 if (field != null) {
-                    EnhancedRefUtil.setFieldValue(rootObject, field, label)
+                    EnhancedRefUtil.setFieldValue(rootObject, field, label as Any)
                 }
             }
         }

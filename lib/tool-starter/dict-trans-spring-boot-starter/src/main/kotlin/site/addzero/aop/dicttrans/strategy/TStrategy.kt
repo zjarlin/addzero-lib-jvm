@@ -15,7 +15,7 @@ import site.addzero.aop.dicttrans.inter.TPredicate
  * @since 2023/11/8 11:15
  */
 @Component
-class TStrategy (
+class TStrategy @Autowired constructor(
     private val tPredicate: TPredicate,
     private val collectionStrategy: CollectionStrategy
 ) : TransStrategy<Any?> {
