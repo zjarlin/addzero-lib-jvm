@@ -54,7 +54,7 @@ data class UserVO(
  * val enhancedUser = user.toEnhanced()
  * 
  * // 执行字典翻译
- * enhancedUser.translate(dictService)
+ * enhancedUser.translate(transApi)
  * 
  * // 现在可以访问翻译后的字段
  * println(enhancedUser.statusName) // "正常"

@@ -1,231 +1,491 @@
 package site.addzero.apt.dict.processor
 
-import com.google.devtools.ksp.processing.*
-import com.google.devtools.ksp.symbol.*
-import com.google.devtools.ksp.validate
-import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.ksp.toClassName
-import com.squareup.kotlinpoet.ksp.writeTo
-import site.addzero.apt.dict.annotations.DictTranslate
+import com.google.auto.service.AutoService
+import site.addzero.apt.dict.annotations.Dict
 import site.addzero.apt.dict.annotations.DictField
-import site.addzero.apt.dict.annotations.DictConfig
+import site.addzero.apt.dict.dsl.*
+import java.io.IOException
+import javax.annotation.processing.*
+import javax.lang.model.SourceVersion
+import javax.lang.model.element.*
+import javax.lang.model.type.TypeMirror
+import javax.tools.Diagnostic
+import javax.tools.StandardLocation
 
-class DictTranslateProcessor(
-    private val codeGenerator: CodeGenerator,
-    private val logger: KSPLogger
-) : SymbolProcessor {
+/**
+ * APT processor for compile-time dictionary translation
+ * 
+ * This processor generates enhanced entity classes at compile time using APT (Annotation Processing Tool)
+ * instead of runtime reflection, providing better performance and type safety.
+ * 
+ * The processor now generates pure Java code using JavaEntityEnhancer with Kotlin multiline strings.
+ */
+@AutoService(Processor::class)
+@SupportedAnnotationTypes("site.addzero.apt.dict.annotations.Dict")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+class DictTranslateProcessor : AbstractProcessor() {
 
-    override fun process(resolver: Resolver): List<KSAnnotated> {
-        val symbols = resolver.getSymbolsWithAnnotation(DictTranslate::class.qualifiedName!!)
-        val ret = symbols.filter { !it.validate() }.toList()
+    private val javaEntityEnhancer = JavaEntityEnhancer()
+    private lateinit var incrementalSupport: IncrementalCompilationSupport
+    private lateinit var errorHandler: ErrorHandlingManager
+    private lateinit var performanceMonitor: PerformanceMonitor
+    
+    override fun init(processingEnv: ProcessingEnvironment) {
+        super.init(processingEnv)
+        incrementalSupport = IncrementalCompilationSupport(processingEnv)
+        errorHandler = ErrorHandlingManager(processingEnv)
+        performanceMonitor = PerformanceMonitor(processingEnv)
         
-        symbols
-            .filter { it is KSClassDeclaration && it.validate() }
-            .forEach { it ->
-                val classDeclaration = it as KSClassDeclaration
-                processClass(classDeclaration)
+        performanceMonitor.takeMemorySnapshot("initialization")
+        errorHandler.reportInfo("APT Dictionary Translation Processor initialized")
+    }
+
+    override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
+        if (roundEnv == null) return false
+        
+        return performanceMonitor.measureTime("totalProcessing") {
+            performanceMonitor.takeMemorySnapshot("processing_start")
+            
+            try {
+                val annotatedElements = roundEnv.getElementsAnnotatedWith(Dict::class.java)
+                
+                errorHandler.reportInfo("Processing ${annotatedElements.size} annotated elements")
+                
+                for (element in annotatedElements) {
+                    if (element.kind != ElementKind.CLASS) {
+                        errorHandler.reportError(
+                            ErrorType.VALIDATION_ERROR,
+                            "@Dict can only be applied to classes",
+                            element
+                        )
+                        continue
+                    }
+                    
+                    try {
+                        performanceMonitor.measureTime("processClass") {
+                            processClass(element as TypeElement)
+                        }
+                    } catch (e: Exception) {
+                        val recovered = errorHandler.handleAnnotationError(element, "@Dict", e)
+                        if (!recovered && errorHandler.isErrorThresholdExceeded()) {
+                            errorHandler.reportError(
+                                ErrorType.ANNOTATION_PROCESSING_ERROR,
+                                "Error threshold exceeded, stopping processing",
+                                element,
+                                e
+                            )
+                            break
+                        }
+                    }
+                }
+                
+                performanceMonitor.takeMemorySnapshot("processing_end")
+                
+                // Report final statistics
+                val stats = errorHandler.getErrorStatistics()
+                errorHandler.reportInfo("Processing completed. ${stats}")
+                
+                // Report performance statistics
+                performanceMonitor.logPerformanceReport()
+                
+                // Check for performance issues
+                if (performanceMonitor.isPerformanceDegraded()) {
+                    val suggestions = performanceMonitor.getOptimizationSuggestions()
+                    suggestions.forEach { suggestion ->
+                        errorHandler.reportWarning("Performance optimization suggestion: $suggestion")
+                    }
+                }
+                
+                true
+                
+            } catch (e: Exception) {
+                errorHandler.reportError(
+                    ErrorType.ANNOTATION_PROCESSING_ERROR,
+                    "Fatal error during annotation processing",
+                    null,
+                    e
+                )
+                false
             }
-        
-        return ret
+        }
     }
     
-    private fun processClass(classDeclaration: KSClassDeclaration) {
-        val className = classDeclaration.simpleName.asString()
-        val packageName = classDeclaration.packageName.asString()
+    private fun processClass(typeElement: TypeElement) {
+        val className = typeElement.simpleName.toString()
+        val packageName = processingEnv.elementUtils.getPackageOf(typeElement).qualifiedName.toString()
         
-        // 获取 @DictTranslate 注解
-        val dictTranslateAnnotation = classDeclaration.annotations
-            .find { it.shortName.asString() == "DictTranslate" }
-        
-        val suffix = dictTranslateAnnotation?.arguments
-            ?.find { it.name?.asString() == "suffix" }?.value as? String ?: "Enhanced"
+        try {
+            // 获取 @Dict 注解
+            val dictAnnotation = typeElement.getAnnotation(Dict::class.java)
             
-        val generateExtensions = dictTranslateAnnotation?.arguments
-            ?.find { it.name?.asString() == "generateExtensions" }?.value as? Boolean ?: true
+            val suffix = dictAnnotation?.suffix ?: "Enhanced"
+            val generateExtensions = dictAnnotation?.generateExtensions ?: true
+            val generateBuilder = dictAnnotation?.generateBuilder ?: false
             
-        val generateBuilder = dictTranslateAnnotation?.arguments
-            ?.find { it.name?.asString() == "generateBuilder" }?.value as? Boolean ?: false
+            // 获取字典字段
+            val dictFields = extractDictFields(typeElement)
+            
+            if (dictFields.isEmpty()) {
+                errorHandler.reportWarning(
+                    "No @DictField annotations found in class $className",
+                    typeElement
+                )
+                return
+            }
+            
+            // 验证字典字段配置
+            validateDictFields(dictFields, typeElement)
+            
+            // 检查是否需要重新处理（增量编译支持）
+            if (!incrementalSupport.needsReprocessing(typeElement, dictFields)) {
+                errorHandler.reportInfo(
+                    "Skipping $className - no changes detected (incremental compilation)",
+                    typeElement
+                )
+                return
+            }
+            
+            // 创建DSL配置用于Java代码生成
+            val dslConfig = try {
+                createDslConfigFromAnnotations(typeElement, dictFields)
+            } catch (e: Exception) {
+                errorHandler.handleDslError("DSL config for $className", e)
+                return
+            }
+            
+            // 使用 JavaEntityEnhancer 生成纯Java代码
+            val javaCode = try {
+                performanceMonitor.measureTime("codeGeneration") {
+                    javaEntityEnhancer.generateEnhancedEntityJava(
+                        typeElement,
+                        dslConfig,
+                        packageName
+                    )
+                }
+            } catch (e: Exception) {
+                val recovered = errorHandler.handleCodeGenerationError(className, e)
+                if (!recovered) return
+                // Use fallback code if recovery succeeded
+                generateMinimalFallbackClass(className, packageName)
+            }
+            
+            // 写入Java文件
+            try {
+                performanceMonitor.measureTime("fileWriting") {
+                    writeJavaFile(packageName, "${className}${suffix}", javaCode)
+                }
+            } catch (e: Exception) {
+                errorHandler.reportError(
+                    ErrorType.FILE_WRITING_ERROR,
+                    "Failed to write Java file for $className",
+                    typeElement,
+                    e
+                )
+                return
+            }
+            
+            // 更新缓存
+            incrementalSupport.updateCache(typeElement, dictFields)
+            
+            errorHandler.reportInfo(
+                "Generated enhanced Java class: ${packageName}.${className}${suffix}",
+                typeElement
+            )
+            
+        } catch (e: Exception) {
+            errorHandler.reportError(
+                ErrorType.ANNOTATION_PROCESSING_ERROR,
+                "Unexpected error processing class $className",
+                typeElement,
+                e
+            )
+            throw e
+        }
+    }
+    
+    /**
+     * Creates DSL configuration from annotation data
+     */
+    private fun createDslConfigFromAnnotations(
+        typeElement: TypeElement,
+        dictFields: List<DictFieldInfo>
+    ): DslTemplateConfig {
+        val className = typeElement.simpleName.toString()
         
-        // 获取字典字段
-        val dictFields = extractDictFields(classDeclaration)
-        
-        if (dictFields.isEmpty()) {
-            logger.warn("No @DictField annotations found in class $className")
-            return
+        // Convert DictFieldInfo to DSL field rules
+        val fieldRules = dictFields.map { dictField ->
+            val dictConfigs = mutableListOf<DictConfig>()
+            
+            // Add system dictionary config if present
+            if (dictField.dictCode.isNotEmpty()) {
+                dictConfigs.add(
+                    DictConfig(
+                        type = TranslationType.SYSTEM_DICT,
+                        dictCode = dictField.dictCode
+                    )
+                )
+            }
+            
+            // Add table dictionary config if present
+            if (dictField.table.isNotEmpty()) {
+                dictConfigs.add(
+                    DictConfig(
+                        type = TranslationType.TABLE_DICT,
+                        table = dictField.table,
+                        codeColumn = dictField.codeColumn,
+                        nameColumn = dictField.nameColumn,
+                        condition = dictField.condition
+                    )
+                )
+            }
+            
+            // Add SPEL expression config if present
+            if (dictField.spelExp.isNotEmpty()) {
+                dictConfigs.add(
+                    DictConfig(
+                        type = TranslationType.SPEL,
+                        spelExpression = dictField.spelExp
+                    )
+                )
+            }
+            
+            FieldTranslationRule(
+                fieldName = dictField.sourceField,
+                translationType = if (dictConfigs.size > 1) TranslationType.MULTI_DICT 
+                                 else if (dictField.dictCode.isNotEmpty()) TranslationType.SYSTEM_DICT 
+                                 else TranslationType.TABLE_DICT,
+                dictConfigs = dictConfigs,
+                targetFieldName = dictField.targetField
+            )
         }
         
-        // 生成增强类
-        generateEnhancedClass(
-            packageName, 
-            className, 
-            suffix, 
-            classDeclaration, 
-            dictFields,
-            generateExtensions,
-            generateBuilder
+        val entityRule = EntityTranslationRule(
+            entityName = className,
+            fieldRules = fieldRules
+        )
+        
+        return DslTemplateConfig(
+            entityClass = className,
+            translationRules = listOf(entityRule)
         )
     }
     
-    private fun extractDictFields(classDeclaration: KSClassDeclaration): List<DictFieldInfo> {
+    /**
+     * Writes the generated Java code to a file
+     */
+    private fun writeJavaFile(packageName: String, className: String, javaCode: String) {
+        try {
+            val sourceFile = processingEnv.filer.createSourceFile("$packageName.$className")
+            sourceFile.openWriter().use { writer ->
+                writer.write(javaCode)
+            }
+        } catch (e: IOException) {
+            processingEnv.messager.printMessage(
+                Diagnostic.Kind.ERROR,
+                "Failed to write Java file: ${e.message}"
+            )
+        }
+    }
+    
+    private fun extractDictFields(typeElement: TypeElement): List<DictFieldInfo> {
         val dictFields = mutableListOf<DictFieldInfo>()
         
-        // 获取所有属性
-        classDeclaration.getAllProperties().forEach { property ->
-            property.annotations
-                .filter { it.shortName.asString() == "DictField" }
-                .forEach { annotation ->
-                    val dictFieldInfo = parseDictFieldAnnotation(property, annotation)
-                    dictFields.add(dictFieldInfo)
-                }
-        }
+        // 获取所有字段，包括嵌套字段
+        extractDictFieldsRecursively(typeElement, dictFields, "")
         
         return dictFields
     }
     
-    private fun parseDictFieldAnnotation(property: KSPropertyDeclaration, annotation: KSAnnotation): DictFieldInfo {
-        val args = annotation.arguments.associate { it.name?.asString() to it.value }
+    /**
+     * 递归提取字典字段，自动检测嵌套结构和 List
+     */
+    private fun extractDictFieldsRecursively(
+        typeElement: TypeElement, 
+        dictFields: MutableList<DictFieldInfo>,
+        fieldPrefix: String,
+        depth: Int = 0
+    ) {
+        // 防止无限递归
+        if (depth > 5) return
+        
+        for (enclosedElement in typeElement.enclosedElements) {
+            if (enclosedElement.kind == ElementKind.FIELD) {
+                val fieldElement = enclosedElement as VariableElement
+                val fieldName = fieldElement.simpleName.toString()
+                val fullFieldName = if (fieldPrefix.isEmpty()) fieldName else "$fieldPrefix.$fieldName"
+                
+                // 处理直接标注 @DictField 的字段
+                val dictFieldAnnotations = fieldElement.getAnnotationsByType(DictField::class.java)
+                for (annotation in dictFieldAnnotations) {
+                    val dictFieldInfo = parseDictFieldAnnotation(fieldElement, annotation, fullFieldName)
+                    dictFields.add(dictFieldInfo)
+                }
+                
+                // 自动检测嵌套结构
+                val fieldType = fieldElement.asType()
+                val fieldTypeString = fieldType.toString()
+                
+                // 检测 List 类型
+                if (isListType(fieldTypeString)) {
+                    val elementType = extractListElementType(fieldTypeString)
+                    if (elementType != null && isCustomType(elementType)) {
+                        val elementTypeElement = processingEnv.elementUtils.getTypeElement(elementType)
+                        if (elementTypeElement != null) {
+                            // 递归处理 List 元素类型
+                            extractDictFieldsRecursively(elementTypeElement, dictFields, "$fullFieldName[]", depth + 1)
+                        }
+                    }
+                }
+                // 检测嵌套对象
+                else if (isCustomType(fieldTypeString)) {
+                    val nestedTypeElement = processingEnv.elementUtils.getTypeElement(fieldTypeString)
+                    if (nestedTypeElement != null) {
+                        // 递归处理嵌套对象
+                        extractDictFieldsRecursively(nestedTypeElement, dictFields, fullFieldName, depth + 1)
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * 检测是否为 List 类型
+     */
+    private fun isListType(typeString: String): Boolean {
+        return typeString.startsWith("java.util.List<") || 
+               typeString.startsWith("List<") ||
+               typeString.startsWith("java.util.ArrayList<") ||
+               typeString.startsWith("ArrayList<")
+    }
+    
+    /**
+     * 提取 List 的元素类型
+     */
+    private fun extractListElementType(typeString: String): String? {
+        val startIndex = typeString.indexOf('<')
+        val endIndex = typeString.lastIndexOf('>')
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+            return typeString.substring(startIndex + 1, endIndex).trim()
+        }
+        return null
+    }
+    
+    /**
+     * 检测是否为自定义类型（非基本类型和常用 Java 类型）
+     */
+    private fun isCustomType(typeString: String): Boolean {
+        val primitiveTypes = setOf(
+            "int", "long", "double", "float", "boolean", "byte", "short", "char",
+            "java.lang.Integer", "java.lang.Long", "java.lang.Double", "java.lang.Float",
+            "java.lang.Boolean", "java.lang.Byte", "java.lang.Short", "java.lang.Character",
+            "java.lang.String", "java.util.Date", "java.time.LocalDateTime", "java.time.LocalDate",
+            "java.math.BigDecimal", "java.math.BigInteger"
+        )
+        
+        return !primitiveTypes.contains(typeString) && 
+               !typeString.startsWith("java.lang.") &&
+               !typeString.startsWith("java.util.") &&
+               !typeString.startsWith("java.time.") &&
+               !typeString.startsWith("java.math.")
+    }
+    
+    private fun parseDictFieldAnnotation(
+        fieldElement: VariableElement, 
+        annotation: DictField, 
+        fullFieldName: String = fieldElement.simpleName.toString()
+    ): DictFieldInfo {
+        val fieldName = fieldElement.simpleName.toString()
         
         return DictFieldInfo(
-            sourceField = property.simpleName.asString(),
-            sourceType = property.type.resolve().toClassName(),
-            dictCode = args["dictCode"] as? String ?: "",
-            table = args["table"] as? String ?: "",
-            codeColumn = args["codeColumn"] as? String ?: "",
-            nameColumn = args["nameColumn"] as? String ?: "",
-            targetField = args["targetField"] as? String ?: "${property.simpleName.asString()}Name",
-            spelExp = args["spelExp"] as? String ?: "",
-            ignoreNull = args["ignoreNull"] as? Boolean ?: true,
-            defaultValue = args["defaultValue"] as? String ?: "",
-            cached = args["cached"] as? Boolean ?: true
+            sourceField = fullFieldName,
+            targetField = if (annotation.targetField.isNotEmpty()) annotation.targetField else "${fullFieldName.replace(".", "_").replace("[]", "_list")}Text",
+            dictCode = annotation.dictCode,
+            table = annotation.table,
+            codeColumn = annotation.codeColumn,
+            nameColumn = annotation.nameColumn,
+            spelExp = annotation.spelExp,
+            condition = annotation.condition
         )
     }
     
-    private fun generateEnhancedClass(
-        packageName: String,
-        originalClassName: String,
-        suffix: String,
-        originalClass: KSClassDeclaration,
-        dictFields: List<DictFieldInfo>,
-        generateExtensions: Boolean,
-        generateBuilder: Boolean
-    ) {
-        val enhancedClassName = "${originalClassName}$suffix"
-        
-        // 创建增强类
-        val enhancedClassBuilder = TypeSpec.classBuilder(enhancedClassName)
-            .addModifiers(KModifier.DATA)
-        
-        // 添加原始类的所有属性
-        val constructorBuilder = FunSpec.constructorBuilder()
-        originalClass.getAllProperties().forEach { property ->
-            val propertyName = property.simpleName.asString()
-            val propertyType = property.type.resolve().toClassName()
+    /**
+     * Validates dictionary field configurations
+     */
+    private fun validateDictFields(dictFields: List<DictFieldInfo>, typeElement: TypeElement) {
+        dictFields.forEach { field ->
+            // Check that at least one translation type is configured
+            val hasSystemDict = field.dictCode.isNotEmpty()
+            val hasTableDict = field.table.isNotEmpty()
+            val hasSpelExp = field.spelExp.isNotEmpty()
             
-            enhancedClassBuilder.addProperty(
-                PropertySpec.builder(propertyName, propertyType)
-                    .initializer(propertyName)
-                    .build()
-            )
-            
-            constructorBuilder.addParameter(propertyName, propertyType)
-        }
-        
-        // 添加字典翻译后的属性
-        dictFields.forEach { dictField ->
-            enhancedClassBuilder.addProperty(
-                PropertySpec.builder(dictField.targetField, String::class.asTypeName().copy(nullable = true))
-                    .initializer("null")
-                    .mutable(true)
-                    .build()
-            )
-        }
-        
-        enhancedClassBuilder.primaryConstructor(constructorBuilder.build())
-        
-        // 添加翻译方法
-        enhancedClassBuilder.addFunction(generateTranslateMethod(dictFields))
-        
-        // 如果启用扩展函数，生成扩展函数
-        val fileBuilder = FileSpec.builder(packageName, enhancedClassName)
-            .addType(enhancedClassBuilder.build())
-        
-        if (generateExtensions) {
-            fileBuilder.addFunction(generateExtensionFunction(packageName, originalClassName, enhancedClassName, dictFields))
-        }
-        
-        if (generateBuilder) {
-            fileBuilder.addType(generateBuilderClass(enhancedClassName, originalClass, dictFields))
-        }
-        
-        // 写入文件
-        fileBuilder.build().writeTo(codeGenerator, Dependencies(true, originalClass.containingFile!!))
-    }
-    
-    private fun generateTranslateMethod(dictFields: List<DictFieldInfo>): FunSpec {
-        val methodBuilder = FunSpec.builder("translate")
-            .addParameter("dictService", ClassName("site.addzero.apt.dict.service", "DictService"))
-            .returns(UNIT)
-        
-        dictFields.forEach { dictField ->
-            if (dictField.dictCode.isNotEmpty()) {
-                // 系统字典翻译
-                methodBuilder.addStatement(
-                    "this.%L = dictService.translateByDictCode(%S, this.%L?.toString())",
-                    dictField.targetField,
-                    dictField.dictCode,
-                    dictField.sourceField
-                )
-            } else if (dictField.table.isNotEmpty()) {
-                // 自定义表翻译
-                methodBuilder.addStatement(
-                    "this.%L = dictService.translateByTable(%S, %S, %S, this.%L)",
-                    dictField.targetField,
-                    dictField.table,
-                    dictField.codeColumn,
-                    dictField.nameColumn,
-                    dictField.sourceField
+            if (!hasSystemDict && !hasTableDict && !hasSpelExp) {
+                errorHandler.reportError(
+                    ErrorType.VALIDATION_ERROR,
+                    "Field ${field.sourceField} has no translation configuration (dictCode, table, or spelExp)",
+                    typeElement
                 )
             }
+            
+            // Validate table dictionary configuration
+            if (hasTableDict) {
+                if (field.codeColumn.isEmpty() || field.nameColumn.isEmpty()) {
+                    errorHandler.reportError(
+                        ErrorType.VALIDATION_ERROR,
+                        "Table dictionary for field ${field.sourceField} must specify both codeColumn and nameColumn",
+                        typeElement
+                    )
+                }
+            }
+            
+            // Check for duplicate target fields
+            val duplicateTargets = dictFields.groupBy { it.targetField }
+                .filter { it.value.size > 1 }
+            
+            if (duplicateTargets.isNotEmpty()) {
+                duplicateTargets.forEach { (targetField, fields) ->
+                    errorHandler.reportError(
+                        ErrorType.VALIDATION_ERROR,
+                        "Duplicate target field '$targetField' used by fields: ${fields.map { it.sourceField }}",
+                        typeElement
+                    )
+                }
+            }
         }
-        
-        return methodBuilder.build()
     }
     
-    private fun generateExtensionFunction(
-        packageName: String,
-        originalClassName: String,
-        enhancedClassName: String,
-        dictFields: List<DictFieldInfo>
-    ): FunSpec {
-        return FunSpec.builder("toEnhanced")
-            .receiver(ClassName(packageName, originalClassName))
-            .returns(ClassName(packageName, enhancedClassName))
-            .addStatement("return %T(${originalClassName.lowercase()})", ClassName(packageName, enhancedClassName))
-            .build()
+    /**
+     * Generates a minimal fallback class when normal generation fails
+     */
+    private fun generateMinimalFallbackClass(className: String, packageName: String): String {
+        return """
+            package $packageName;
+            
+            /**
+             * Fallback enhanced class for $className
+             * Generated due to processing error - provides minimal functionality
+             */
+            public class ${className}Enhanced extends $className {
+                
+                public ${className}Enhanced() {
+                    super();
+                }
+                
+                /**
+                 * Minimal translation method - no-op due to processing error
+                 */
+                public void translate(site.addzero.apt.dict.service.TransApi transApi) {
+                    // No-op implementation due to processing error
+                }
+                
+                /**
+                 * Minimal async translation method
+                 */
+                public java.util.concurrent.CompletableFuture<Void> translateAsync(site.addzero.apt.dict.service.TransApi transApi) {
+                    return java.util.concurrent.CompletableFuture.completedFuture(null);
+                }
+            }
+        """.trimIndent()
     }
-    
-    private fun generateBuilderClass(
-        enhancedClassName: String,
-        originalClass: KSClassDeclaration,
-        dictFields: List<DictFieldInfo>
-    ): TypeSpec {
-        // Builder 模式实现
-        return TypeSpec.classBuilder("${enhancedClassName}Builder")
-            .addModifiers(KModifier.DATA)
-            .build()
-    }
+
 }
 
-data class DictFieldInfo(
-    val sourceField: String,
-    val sourceType: ClassName,
-    val dictCode: String,
-    val table: String,
-    val codeColumn: String,
-    val nameColumn: String,
-    val targetField: String,
-    val spelExp: String,
-    val ignoreNull: Boolean,
-    val defaultValue: String,
-    val cached: Boolean
-)

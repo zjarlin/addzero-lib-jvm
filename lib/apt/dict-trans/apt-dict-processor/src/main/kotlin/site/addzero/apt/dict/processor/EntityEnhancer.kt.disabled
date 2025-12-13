@@ -1,0 +1,435 @@
+package site.addzero.apt.dict.processor
+
+import com.squareup.kotlinpoet.*
+import javax.lang.model.element.*
+
+/**
+ * Enhanced Entity code generator for compile-time dictionary translation
+ * 
+ * This class is responsible for:
+ * 1. Generating enhanced entity classes that extend original entities
+ * 2. Managing inheritance hierarchy for enhanced entities
+ * 3. Adding translation field generation and mapping logic
+ * 4. Implementing metadata generation for translation context
+ */
+class EntityEnhancer {
+    
+    /**
+     * Generates an enhanced entity class based on the original entity and its @Dict annotations
+     * 
+     * @param originalClass The original entity class element
+     * @param dictFields List of dictionary field information extracted from annotations
+     * @param config Configuration for the enhanced entity generation
+     * @return Generated TypeSpec for the enhanced entity class
+     */
+    fun generateEnhancedEntity(
+        originalClass: TypeElement,
+        dictFields: List<DictFieldInfo>,
+        config: EnhancedEntityConfig
+    ): TypeSpec {
+        val originalClassName = originalClass.simpleName.toString()
+        val enhancedClassName = "${originalClassName}${config.suffix}"
+        
+        // Create enhanced class builder
+        val enhancedClassBuilder = TypeSpec.classBuilder(enhancedClassName)
+            .addModifiers(KModifier.DATA)
+            .addKdoc(generateClassDocumentation(originalClassName, enhancedClassName))
+        
+        // Handle inheritance hierarchy
+        setupInheritanceHierarchy(enhancedClassBuilder, originalClass, config)
+        
+        // Add constructor with original entity properties
+        val constructorBuilder = setupConstructor(originalClass, enhancedClassBuilder)
+        
+        // Add translation fields
+        addTranslationFields(enhancedClassBuilder, dictFields)
+        
+        // Add translation metadata
+        addTranslationMetadata(enhancedClassBuilder, originalClass, dictFields, config)
+        
+        // Add translation methods
+        addTranslationMethods(enhancedClassBuilder, dictFields, config)
+        
+        // Set primary constructor
+        enhancedClassBuilder.primaryConstructor(constructorBuilder.build())
+        
+        return enhancedClassBuilder.build()
+    }
+    
+    /**
+     * Sets up inheritance hierarchy for enhanced entities
+     * Ensures enhanced entities properly extend original entities without modifying their structure
+     */
+    private fun setupInheritanceHierarchy(
+        classBuilder: TypeSpec.Builder,
+        originalClass: TypeElement,
+        config: EnhancedEntityConfig
+    ) {
+        // Enhanced entities extend the original entity class
+        val packageName = getPackageName(originalClass)
+        val originalClassName = ClassName(packageName, originalClass.simpleName.toString())
+        
+        // Check if original class is open for inheritance
+        val modifiers = originalClass.modifiers
+        if (modifiers.contains(Modifier.FINAL)) {
+            // If original class is final (data class), we compose instead of inherit
+            // This maintains compatibility while providing enhanced functionality
+            classBuilder.addKdoc("Enhanced version of %T with dictionary translation support\n", originalClassName)
+        } else {
+            // If original class is open, we can inherit from it
+            classBuilder.superclass(originalClassName)
+        }
+    }
+    
+    private fun getPackageName(typeElement: TypeElement): String {
+        var element: Element = typeElement
+        while (element.kind != ElementKind.PACKAGE) {
+            element = element.enclosingElement
+        }
+        return (element as PackageElement).qualifiedName.toString()
+    }
+    
+    /**
+     * Sets up the constructor for the enhanced entity
+     * Includes all properties from the original entity
+     */
+    private fun setupConstructor(
+        originalClass: TypeElement,
+        classBuilder: TypeSpec.Builder
+    ): FunSpec.Builder {
+        val constructorBuilder = FunSpec.constructorBuilder()
+        
+        // Add all fields from original class to constructor and as properties
+        for (enclosedElement in originalClass.enclosedElements) {
+            if (enclosedElement.kind == ElementKind.FIELD) {
+                val fieldElement = enclosedElement as VariableElement
+                val fieldName = fieldElement.simpleName.toString()
+                val fieldType = getClassName(fieldElement.asType())
+                
+                // Add to constructor
+                constructorBuilder.addParameter(fieldName, fieldType)
+                
+                // Add as property in enhanced class
+                classBuilder.addProperty(
+                    PropertySpec.builder(fieldName, fieldType)
+                        .initializer(fieldName)
+                        .build()
+                )
+            }
+        }
+        
+        return constructorBuilder
+    }
+    
+    private fun getClassName(typeMirror: javax.lang.model.type.TypeMirror): ClassName {
+        val typeString = typeMirror.toString()
+        return when (typeString) {
+            "java.lang.String" -> ClassName("kotlin", "String")
+            "java.lang.Long", "long" -> ClassName("kotlin", "Long")
+            "java.lang.Integer", "int" -> ClassName("kotlin", "Int")
+            "java.lang.Boolean", "boolean" -> ClassName("kotlin", "Boolean")
+            else -> {
+                // 尝试解析包名和类名
+                val lastDot = typeString.lastIndexOf('.')
+                if (lastDot > 0) {
+                    val packageName = typeString.substring(0, lastDot)
+                    val className = typeString.substring(lastDot + 1)
+                    ClassName(packageName, className)
+                } else {
+                    ClassName("", typeString)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Adds translation fields to the enhanced entity
+     * These fields will hold the translated values
+     */
+    private fun addTranslationFields(
+        classBuilder: TypeSpec.Builder,
+        dictFields: List<DictFieldInfo>
+    ) {
+        dictFields.forEach { dictField ->
+            val translationFieldSpec = PropertySpec.builder(
+                dictField.targetField,
+                String::class.asTypeName().copy(nullable = true)
+            )
+                .initializer("null")
+                .mutable(true)
+                .addKdoc("Translation field for %L\n", dictField.sourceField)
+                .build()
+            
+            classBuilder.addProperty(translationFieldSpec)
+        }
+    }
+    
+    /**
+     * Adds translation metadata to the enhanced entity
+     * This metadata is used by the translation context for optimized batch processing
+     */
+    private fun addTranslationMetadata(
+        classBuilder: TypeSpec.Builder,
+        originalClass: TypeElement,
+        dictFields: List<DictFieldInfo>,
+        config: EnhancedEntityConfig
+    ) {
+        val metadataClassName = ClassName("site.addzero.apt.dict.metadata", "TranslationMetadata")
+        val dictFieldMetadataClassName = ClassName("site.addzero.apt.dict.metadata", "DictFieldMetadata")
+        
+        // Create metadata for each dictionary field
+        val fieldMetadataList = dictFields.map { dictField ->
+            CodeBlock.builder()
+                .add("%T(\n", dictFieldMetadataClassName)
+                .indent()
+                .add("sourceField = %S,\n", dictField.sourceField)
+                .add("targetField = %S,\n", dictField.targetField)
+                .add("dictCode = %S,\n", dictField.dictCode)
+                .add("table = %S,\n", dictField.table)
+                .add("codeColumn = %S,\n", dictField.codeColumn)
+                .add("nameColumn = %S,\n", dictField.nameColumn)
+                .add("spelExp = %S,\n", dictField.spelExp)
+                .add("ignoreNull = %L,\n", dictField.ignoreNull)
+                .add("defaultValue = %S,\n", dictField.defaultValue)
+                .add("cached = %L\n", dictField.cached)
+                .unindent()
+                .add(")")
+                .build()
+        }
+        
+        val packageName = getPackageName(originalClass)
+        val originalClassName = ClassName(packageName, originalClass.simpleName.toString())
+        
+        // Create companion object with metadata
+        val companionObject = TypeSpec.companionObjectBuilder()
+            .addProperty(
+                PropertySpec.builder("TRANSLATION_METADATA", metadataClassName)
+                    .initializer(
+                        CodeBlock.builder()
+                            .add("%T(\n", metadataClassName)
+                            .indent()
+                            .add("entityClass = %T::class,\n", originalClassName)
+                            .add("enhancedClass = %L::class,\n", "${originalClass.simpleName}${config.suffix}")
+                            .add("dictFields = listOf(\n")
+                            .indent()
+                            .apply {
+                                fieldMetadataList.forEachIndexed { index, metadata ->
+                                    add(metadata)
+                                    if (index < fieldMetadataList.size - 1) add(",")
+                                    add("\n")
+                                }
+                            }
+                            .unindent()
+                            .add(")\n")
+                            .unindent()
+                            .add(")")
+                            .build()
+                    )
+                    .build()
+            )
+            .build()
+        
+        classBuilder.addType(companionObject)
+    }
+    
+    /**
+     * Adds translation methods to the enhanced entity
+     * These methods handle the actual dictionary translation logic
+     */
+    private fun addTranslationMethods(
+        classBuilder: TypeSpec.Builder,
+        dictFields: List<DictFieldInfo>,
+        config: EnhancedEntityConfig
+    ) {
+        // Add synchronous translation method
+        classBuilder.addFunction(generateSyncTranslationMethod(dictFields))
+        
+        // Add batch translation method for optimized performance
+        classBuilder.addFunction(generateBatchTranslationMethod(dictFields))
+        
+        // Add context-based translation method for N+1 problem elimination
+        classBuilder.addFunction(generateContextTranslationMethod(dictFields))
+        
+        // Add async translation method if configured
+        if (config.generateAsync) {
+            classBuilder.addFunction(generateAsyncTranslationMethod(dictFields))
+        }
+    }
+    
+    /**
+     * Generates batch translation method using TransApi
+     * This method eliminates N+1 query problems by using batch operations
+     */
+    private fun generateSyncTranslationMethod(dictFields: List<DictFieldInfo>): FunSpec {
+        val transApiClassName = ClassName("site.addzero.apt.dict.service", "TransApi")
+        val dictModelClassName = ClassName("site.addzero.apt.dict.service", "DictModel")
+        
+        val methodBuilder = FunSpec.builder("translate")
+            .addParameter("transApi", transApiClassName)
+            .returns(UNIT)
+            .addKdoc("Performs batch dictionary translation for all annotated fields\n")
+            .addKdoc("Uses batch operations to eliminate N+1 query problems\n")
+            .addKdoc("@param transApi The translation API to use for batch translation\n")
+        
+        // Group fields by dictionary type for batch processing
+        val systemDictFields = dictFields.filter { it.dictCode.isNotEmpty() }
+        val tableDictFields = dictFields.filter { it.table.isNotEmpty() }
+        
+        // Generate system dictionary batch translation
+        if (systemDictFields.isNotEmpty()) {
+            val dictCodes = systemDictFields.joinToString(",") { it.dictCode }
+            methodBuilder.addStatement("// System dictionary batch translation")
+            methodBuilder.addStatement("val systemDictCodes = %S", dictCodes)
+            methodBuilder.addStatement("val systemKeys = listOfNotNull(%L).joinToString(\",\")", 
+                systemDictFields.joinToString(", ") { "this.${it.sourceField}?.toString()" })
+            methodBuilder.addStatement("val systemResults = transApi.translateDictBatchCode2name(systemDictCodes, systemKeys)")
+            methodBuilder.addStatement("val systemResultMap = systemResults.associateBy { \"\${it.dictCode}:\${it.value}\" }")
+            
+            systemDictFields.forEach { dictField ->
+                methodBuilder.addStatement(
+                    "this.%L = systemResultMap[\"%L:\${this.%L?.toString()}\"]?.label",
+                    dictField.targetField,
+                    dictField.dictCode,
+                    dictField.sourceField
+                )
+            }
+        }
+        
+        // Generate table dictionary batch translation
+        tableDictFields.groupBy { "${it.table}:${it.codeColumn}:${it.nameColumn}" }.forEach { (tableKey, fields) ->
+            val parts = tableKey.split(":")
+            val table = parts[0]
+            val codeColumn = parts[1] 
+            val nameColumn = parts[2]
+            
+            methodBuilder.addStatement("// Table dictionary batch translation for $table")
+            methodBuilder.addStatement("val tableKeys_${table.replace(".", "_")} = listOfNotNull(%L).joinToString(\",\")", 
+                fields.joinToString(", ") { "this.${it.sourceField}?.toString()" })
+            methodBuilder.addStatement("val tableResults_${table.replace(".", "_")} = transApi.translateTableBatchCode2name(%S, %S, %S, tableKeys_${table.replace(".", "_")})", 
+                table, nameColumn, codeColumn)
+            methodBuilder.addStatement("val tableResultMap_${table.replace(".", "_")} = tableResults_${table.replace(".", "_")}.associateBy { it[%S]?.toString() }", codeColumn)
+            
+            fields.forEach { dictField ->
+                methodBuilder.addStatement(
+                    "this.%L = tableResultMap_${table.replace(".", "_")}[this.%L?.toString()]?.get(%S) as? String",
+                    dictField.targetField,
+                    dictField.sourceField,
+                    nameColumn
+                )
+            }
+        }
+        
+        return methodBuilder.build()
+    }
+    
+    /**
+     * Generates batch translation method for optimized performance
+     */
+    private fun generateBatchTranslationMethod(dictFields: List<DictFieldInfo>): FunSpec {
+        val translationContextClassName = ClassName("site.addzero.apt.dict.context", "TranslationContext")
+        
+        return FunSpec.builder("translateWithContext")
+            .addParameter("context", translationContextClassName)
+            .returns(UNIT)
+            .addKdoc("Performs dictionary translation using pre-loaded translation context\n")
+            .addKdoc("This method eliminates N+1 query problems by using batch-loaded data\n")
+            .addKdoc("@param context The translation context containing pre-loaded dictionary data\n")
+            .apply {
+                dictFields.forEach { dictField ->
+                    when {
+                        dictField.dictCode.isNotEmpty() -> {
+                            addStatement(
+                                "this.%L = context.getSystemDictTranslation(%S, this.%L?.toString())",
+                                dictField.targetField,
+                                dictField.dictCode,
+                                dictField.sourceField
+                            )
+                        }
+                        dictField.table.isNotEmpty() -> {
+                            addStatement(
+                                "this.%L = context.getTableDictTranslation(%S, %S, %S, this.%L)",
+                                dictField.targetField,
+                                dictField.table,
+                                dictField.codeColumn,
+                                dictField.nameColumn,
+                                dictField.sourceField
+                            )
+                        }
+                    }
+                }
+            }
+            .build()
+    }
+    
+    /**
+     * Generates context-based translation method
+     */
+    private fun generateContextTranslationMethod(dictFields: List<DictFieldInfo>): FunSpec {
+        return FunSpec.builder("populateFromContext")
+            .addParameter("context", MAP.parameterizedBy(STRING, ANY.copy(nullable = true)))
+            .returns(UNIT)
+            .addKdoc("Populates translation fields from a context map\n")
+            .addKdoc("@param context Map containing translation data keyed by field names\n")
+            .apply {
+                dictFields.forEach { dictField ->
+                    addStatement(
+                        "this.%L = context[%S] as? String",
+                        dictField.targetField,
+                        dictField.targetField
+                    )
+                }
+            }
+            .build()
+    }
+    
+    /**
+     * Generates asynchronous translation method using TransApi
+     */
+    private fun generateAsyncTranslationMethod(dictFields: List<DictFieldInfo>): FunSpec {
+        val transApiClassName = ClassName("site.addzero.apt.dict.service", "TransApi")
+        val completableFutureClassName = ClassName("java.util.concurrent", "CompletableFuture")
+        
+        return FunSpec.builder("translateAsync")
+            .addParameter("transApi", transApiClassName)
+            .returns(completableFutureClassName.parameterizedBy(UNIT))
+            .addKdoc("Performs asynchronous batch dictionary translation for all annotated fields\n")
+            .addKdoc("Uses CompletableFuture for non-blocking translation operations\n")
+            .addKdoc("@param transApi The translation API to use for batch translation\n")
+            .addKdoc("@return CompletableFuture that completes when translation is finished\n")
+            .addStatement("return %T.supplyAsync { translate(transApi) }", completableFutureClassName)
+            .build()
+    }
+    
+    /**
+     * Generates class documentation
+     */
+    private fun generateClassDocumentation(originalClassName: String, enhancedClassName: String): String {
+        return """
+            Enhanced version of $originalClassName with compile-time dictionary translation support.
+            
+            This class extends the original entity with additional translation fields and methods.
+            Translation is performed at compile-time using APT (Annotation Processing Tool) for optimal performance.
+            
+            Features:
+            - Zero runtime reflection overhead
+            - Batch translation support for N+1 query elimination
+            - Type-safe translation field access
+            - Metadata-driven translation context
+            
+            Generated by EntityEnhancer at compile time.
+        """.trimIndent()
+    }
+}
+
+/**
+ * Configuration for enhanced entity generation
+ */
+data class EnhancedEntityConfig(
+    val suffix: String = "Enhanced",
+    val generateExtensions: Boolean = true,
+    val generateBuilder: Boolean = false,
+    val generateAsync: Boolean = false,
+    val batchTranslate: Boolean = true,
+    val batchSize: Int = 100
+)
+
