@@ -2,6 +2,7 @@ package site.addzero.apt.dict.processor
 
 import site.addzero.apt.dict.processor.unified.UnifiedMetaprogrammingProcessor
 import site.addzero.apt.dict.processor.unified.context.MetaprogrammingContext
+import site.addzero.apt.dict.processor.unified.context.MetaprogrammingContext.getAnnotatedFields
 import site.addzero.apt.dict.processor.unified.generator.UnifiedCodeGenerator
 import site.addzero.dict.trans.inter.PrecompiledSql
 import site.addzero.dict.trans.inter.TableTranslateContext
@@ -39,7 +40,7 @@ class DictTranslateProcessor : UnifiedMetaprogrammingProcessor() {
         lsiContext: LsiContext
     ): Boolean {
         // 使用LSI抽象获取@Dict注解的字段
-        val dictFields = metaprogrammingContext.getAnnotatedFields(lsiClass, "Dict")
+        val dictFields = lsiClass.getAnnotatedFields("Dict")
 
         if (dictFields.isEmpty()) {
             return true // 没有@Dict字段，跳过处理

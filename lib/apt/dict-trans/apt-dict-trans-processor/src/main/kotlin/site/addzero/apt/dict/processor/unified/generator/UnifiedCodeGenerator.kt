@@ -5,11 +5,11 @@ import site.addzero.util.lsi.field.LsiField
 
 /**
  * 统一代码生成器
- * 
+ *
  * 基于LSI抽象生成多语言代码，支持Java、Kotlin等
  */
 class UnifiedCodeGenerator {
-    
+
     /**
      * 生成Java类代码
      */
@@ -25,7 +25,7 @@ class UnifiedCodeGenerator {
         val fieldDeclarations = generateFieldDeclarations(fields)
         val constructor = generateConstructor(className, originalClass)
         val methods = generateMethods(additionalMethods)
-        
+
         return """
             package $packageName;
 
@@ -40,35 +40,7 @@ class UnifiedCodeGenerator {
             }
         """.trimIndent()
     }
-    
-    /**
-     * 生成Kotlin类代码
-     */
-    fun generateKotlinClass(
-        packageName: String,
-        className: String,
-        originalClass: LsiClass,
-        fields: List<LsiField>,
-        additionalMethods: List<String> = emptyList()
-    ): String {
-        val imports = generateKotlinImports()
-        val classDeclaration = generateKotlinClassDeclaration(className, originalClass)
-        val properties = generateKotlinProperties(fields)
-        val methods = generateKotlinMethods(additionalMethods)
-        
-        return """
-            package $packageName
 
-            $imports
-
-            $classDeclaration {
-                $properties
-                
-                $methods
-            }
-        """.trimIndent()
-    }
-    
     private fun generateImports(): String {
         return """
             import site.addzero.dict.trans.inter.TransApi;
@@ -78,26 +50,12 @@ class UnifiedCodeGenerator {
             import java.util.concurrent.CompletableFuture;
         """.trimIndent()
     }
-    
-    private fun generateKotlinImports(): String {
-        return """
-            import site.addzero.dict.trans.inter.TransApi
-            import site.addzero.dict.trans.inter.PrecompiledSql
-            import site.addzero.apt.dict.model.DictModel
-            import kotlinx.coroutines.*
-        """.trimIndent()
-    }
-    
+
     private fun generateClassDeclaration(className: String, originalClass: LsiClass): String {
         val originalClassName = originalClass.name ?: "Object"
         return "public class $className extends $originalClassName"
     }
-    
-    private fun generateKotlinClassDeclaration(className: String, originalClass: LsiClass): String {
-        val originalClassName = originalClass.name ?: "Any"
-        return "class $className : $originalClassName()"
-    }
-    
+
     private fun generateFieldDeclarations(fields: List<LsiField>): String {
         return fields.joinToString("\n") { field ->
             val fieldType = field.typeName ?: "Object"
@@ -105,7 +63,7 @@ class UnifiedCodeGenerator {
             "    private $fieldType ${fieldName}Translated;"
         }
     }
-    
+
     private fun generateKotlinProperties(fields: List<LsiField>): String {
         return fields.joinToString("\n") { field ->
             val fieldType = field.typeName ?: "Any"
@@ -113,7 +71,7 @@ class UnifiedCodeGenerator {
             "    var ${fieldName}Translated: $fieldType? = null"
         }
     }
-    
+
     private fun generateConstructor(className: String, originalClass: LsiClass): String {
         val originalClassName = originalClass.name ?: "Object"
         return """
@@ -125,12 +83,9 @@ class UnifiedCodeGenerator {
             }
         """.trimIndent()
     }
-    
+
     private fun generateMethods(additionalMethods: List<String>): String {
         return additionalMethods.joinToString("\n\n")
     }
-    
-    private fun generateKotlinMethods(additionalMethods: List<String>): String {
-        return additionalMethods.joinToString("\n\n")
-    }
+
 }

@@ -39,6 +39,7 @@ class ProcessingPipeline(
 
             for (element in elements) {
                 // 找到包含注解字段的类
+
                 val enclosingClass = when (element.kind) {
                     ElementKind.FIELD -> element.enclosingElement as? TypeElement
                     ElementKind.CLASS -> element as? TypeElement
