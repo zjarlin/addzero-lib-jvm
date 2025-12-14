@@ -14,11 +14,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-13T18:12:29.574692
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:apt:dict-trans:apt-dict-annotations")
-include(":lib:apt:dict-trans:apt-dict-processor")
-include(":lib:tool-jvm:tool-ai")
-include(":lib:tool-starter:dict-trans-core")
-include(":lib:tool-starter:dict-trans-spring-boot-starter")
+// Generated at: 2025-12-14T09:07:22.566639
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:apt:dict-trans")
+include(":lib:apt:dict-trans:apt-dict-trans-processor")
+include(":lib:apt:dict-trans:dict-trans-core")
 // <<< Gradle Buddy: End Of Block <<<
