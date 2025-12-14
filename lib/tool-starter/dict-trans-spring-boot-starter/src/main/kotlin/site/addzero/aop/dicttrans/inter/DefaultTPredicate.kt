@@ -1,5 +1,6 @@
 package site.addzero.aop.dicttrans.inter
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.stereotype.Component
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component
  * @since 2025/01/12
  */
 @Component
+@ConditionalOnMissingBean(TPredicate::class)
 class DefaultTPredicate : TPredicate {
     
     override fun tBlackList(): List<Class<out Any>> {

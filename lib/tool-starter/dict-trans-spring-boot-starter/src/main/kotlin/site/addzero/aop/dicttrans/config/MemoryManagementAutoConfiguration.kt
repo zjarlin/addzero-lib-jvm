@@ -27,10 +27,6 @@ import javax.annotation.PostConstruct
  */
 @Configuration
 @EnableConfigurationProperties(MemoryManagementProperties::class)
-@ComponentScan(basePackages = [
-    "site.addzero.aop.dicttrans.inter",
-    "site.addzero.aop.dicttrans.lifecycle"
-])
 @ConditionalOnProperty(
     prefix = "addzero.dict.memory",
     name = ["enabled"],

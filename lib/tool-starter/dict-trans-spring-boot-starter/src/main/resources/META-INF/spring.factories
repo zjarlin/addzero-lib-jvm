@@ -1,5 +1,4 @@
 # Auto Configuration
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 site.addzero.aop.dicttrans.config.MemoryManagementAutoConfiguration,\
-site.addzero.aop.dicttrans.config.DictContextAutoConfiguration,\
 site.addzero.rc.AddzeroDictTransAutoRc

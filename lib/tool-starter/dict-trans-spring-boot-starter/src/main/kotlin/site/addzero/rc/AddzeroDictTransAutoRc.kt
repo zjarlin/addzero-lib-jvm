@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Primary
 
 @Configuration
 @EnableAspectJAutoProxy
-@ComponentScan(basePackages = ["site.addzero"])
+@ComponentScan(basePackages = [
+    "site.addzero.aop",
+])
 @Primary
 class AddzeroDictTransAutoRc
