@@ -14,8 +14,8 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-14T13:54:00.158416
+// Generated at: 2025-12-14T13:57:42.399095
 // Loaded: 2, Excluded: 0, Total: 2
-include(":checkouts:metaprogramming-lsi:lsi-apt")
 include(":checkouts:metaprogramming-lsi:lsi-core")
+include(":checkouts:metaprogramming-lsi:lsi-ksp")
 // <<< Gradle Buddy: End Of Block <<<
