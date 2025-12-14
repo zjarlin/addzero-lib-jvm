@@ -3,7 +3,6 @@ package site.addzero.apt.dict.processor.generator
 import site.addzero.dict.trans.inter.PrecompiledSql
 import site.addzero.util.lsi.clazz.LsiClass
 import site.addzero.util.lsi.field.LsiField
-import site.addzero.util.lsi.field.hasAnnotation
 
 /**
  * 字典翻译代码生成器
@@ -30,8 +29,8 @@ import java.util.concurrent.CompletableFuture;
 import java.lang.reflect.Field;
 import site.addzero.dict.trans.inter.PrecompiledSql;
 import site.addzero.dict.trans.inter.TableTranslateContext;
-import site.addzero.aop.dicttrans.api.TransApi;
-import site.addzero.aop.dicttrans.model.DictModel;
+// Note: TransApi and DictModel imports removed as they may not be available at compile time
+// The generated code uses Object and Map instead for better compatibility
 
 /**
  * Generated dictionary DSL class for ${originalClass.name}
@@ -42,18 +41,16 @@ ${dictFields.joinToString("\n") { " * - ${it.name} (${it.typeName})" }}
  */
 public class $className {
     private final Object original;
-    private final TransApi transApi;
     
-    public $className(Object original, TransApi transApi) {
+    public $className(Object original) {
         this.original = original;
-        this.transApi = transApi;
     }
     
     /**
      * Main translation entry point
      */
-    public static $className translate(Object original, TransApi transApi) {
-        $className dsl = new $className(original, transApi);
+    public static $className translate(Object original) {
+        $className dsl = new $className(original);
         dsl.performTranslation();
         return dsl;
     }
