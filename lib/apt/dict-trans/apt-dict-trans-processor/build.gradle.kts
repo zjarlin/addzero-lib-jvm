@@ -4,8 +4,9 @@ plugins {
 
 dependencies {
     //用apt不要用kapt
-    implementation(":checkouts:metaprogramming-lsi:lsi-apt")
     implementation(project(":checkouts:metaprogramming-lsi:lsi-core"))
+    implementation(project(":checkouts:metaprogramming-lsi:lsi-apt"))
     api(project(":lib:apt:dict-trans:dict-trans-core"))
     implementation("com.squareup:javapoet:1.13.0")
 }
+
