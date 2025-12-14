@@ -3,7 +3,6 @@ package site.addzero.apt.dict.processor.unified.context
 import site.addzero.util.lsi.clazz.LsiClass
 import site.addzero.util.lsi.field.LsiField
 import javax.annotation.processing.ProcessingEnvironment
-import javax.tools.Diagnostic
 
 /**
  * 元编程上下文
@@ -12,60 +11,7 @@ import javax.tools.Diagnostic
  */
 class MetaprogrammingContext(
     val processingEnv: ProcessingEnvironment,
-    val lsiAdapter: AptLsiAdapter
 ) {
-
-    /**
-     * 报告错误信息
-     */
-    fun reportError(message: String, throwable: Throwable? = null) {
-        processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, message)
-        throwable?.printStackTrace()
-    }
-
-    /**
-     * 报告警告信息
-     */
-    fun reportWarning(message: String) {
-        processingEnv.messager.printMessage(Diagnostic.Kind.WARNING, message)
-    }
-
-    /**
-     * 报告信息
-     */
-    fun reportInfo(message: String) {
-        processingEnv.messager.printMessage(Diagnostic.Kind.NOTE, message)
-    }
-
-    /**
-     * 创建源文件
-     */
-    fun createSourceFile(qualifiedName: String, content: String) {
-        try {
-            val sourceFile = processingEnv.filer.createSourceFile(qualifiedName)
-            sourceFile.openWriter().use { writer ->
-                writer.write(content)
-            }
-        } catch (e: Exception) {
-            reportError("Failed to create source file $qualifiedName: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 获取处理器选项
-     */
-    fun getOption(key: String): String? {
-        return processingEnv.options[key]
-    }
-
-    /**
-     * 检查是否有指定注解的字段
-     */
-    fun hasAnnotatedFields(lsiClass: LsiClass, annotationName: String): Boolean {
-        return lsiClass.fields.any { field ->
-            field.annotations.any { it.simpleName == annotationName }
-        }
-    }
 
     /**
      * 获取指定注解的字段
