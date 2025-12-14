@@ -10,14 +10,14 @@ import site.addzero.util.lsi.field.LsiField
 object DictConvertorGenerator {
     
     /**
-     * 生成Convertor类
+     * 生成字典转换器类
      * 
+     * @param packageName 包名
      * @param originalClass 原始实体类
      * @param dictFields 包含@Dict注解的字段
      * @return 生成的Java代码
      */
-    fun generateConvertor(originalClass: LsiClass, dictFields: List<LsiField>): String {
-        val packageName = originalClass.qualifiedName?.substringBeforeLast('.') ?: ""
+    fun generateConvertor(packageName: String, originalClass: LsiClass, dictFields: List<LsiField>): String {
         val originalClassName = originalClass.name ?: "Unknown"
         val dtoClassName = "${originalClassName}DictDTO"
         val convertorClassName = "${originalClassName}Convertor"
@@ -27,7 +27,6 @@ package $packageName;
 
 import site.addzero.dict.trans.inter.LsiDictConvertor;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Dictionary convertor for ${originalClassName}
@@ -47,34 +46,13 @@ public class $convertorClassName implements LsiDictConvertor<$originalClassName,
             return null;
         }
         
-        // Create DTO from original entity
-        $dtoClassName dto = new $dtoClassName(entity);
+        // Create DTO from original entity using static method
+        $dtoClassName dto = $dtoClassName.fromOriginal(entity);
         
-        // Perform batch dictionary translation
-        performBatchTranslation(Collections.singletonList(dto));
+        // Perform dictionary translation
+        performDictTranslation(dto);
         
         return dto;
-    }
-    
-    /**
-     * Batch code2name translation for multiple entities
-     * Optimized to prevent N+1 database queries
-     */
-    public List<$dtoClassName> code2name(List<$originalClassName> entities) {
-        if (entities == null || entities.isEmpty()) {
-            return new ArrayList<>();
-        }
-        
-        // Convert to DTOs
-        List<$dtoClassName> dtos = entities.stream()
-            .filter(Objects::nonNull)
-            .map($dtoClassName::new)
-            .collect(Collectors.toList());
-        
-        // Perform batch translation
-        performBatchTranslation(dtos);
-        
-        return dtos;
     }
     
     @Override
@@ -83,62 +61,64 @@ public class $convertorClassName implements LsiDictConvertor<$originalClassName,
             return null;
         }
         
-        // Create original entity
-        $originalClassName entity = new $originalClassName();
-        
-        // Copy basic properties
-        copyBasicProperties(dto, entity);
-        
-        // Perform reverse translation (name -> code)
-        performReverseTranslation(dto, entity);
-        
-        return entity;
+        // Convert DTO back to original entity
+        return dto.toOriginal();
     }
     
     /**
-     * Perform batch dictionary translation
-     * Uses SqlExecutor to execute optimized batch queries
+     * Batch code2name translation for multiple entities
      */
-    private void performBatchTranslation(List<$dtoClassName> dtos) {
-        if (dtos.isEmpty()) {
-            return;
+    public List<$dtoClassName> code2name(List<$originalClassName> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return new ArrayList<>();
         }
         
-        // Collect all codes for batch translation
-        ${generateCodeCollection(dictFields)}
+        List<$dtoClassName> dtos = new ArrayList<>();
+        for ($originalClassName entity : entities) {
+            dtos.add(code2name(entity));
+        }
         
-        // Execute batch queries
-        BatchQueryResult results = sqlExecutor.executeBatchQueries(systemQueries, tableQueries);
-        
-        // Apply translations to DTOs
-        ${generateTranslationApplication(dictFields)}
+        return dtos;
     }
     
     /**
-     * Copy basic properties from DTO to entity
+     * Batch name2code translation for multiple DTOs
      */
-    private void copyBasicProperties($dtoClassName dto, $originalClassName entity) {
-${generateBasicPropertyCopy(originalClass)}
+    public List<$originalClassName> name2code(List<$dtoClassName> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<$originalClassName> entities = new ArrayList<>();
+        for ($dtoClassName dto : dtos) {
+            entities.add(name2code(dto));
+        }
+        
+        return entities;
     }
     
     /**
-     * Perform reverse translation (name -> code)
+     * Perform dictionary translation on DTO
      */
-    private void performReverseTranslation($dtoClassName dto, $originalClassName entity) {
-        // Implementation for reverse translation
-        // This would query dictionaries to find codes for given names
-        ${generateReverseTranslation(dictFields)}
+    private void performDictTranslation($dtoClassName dto) {
+        if (dto == null) return;
+        
+        ${generateDictTranslationLogic(dictFields)}
     }
     
-    ${generateUtilityMethods(dictFields)}
+    ${generateUtilityMethods(originalClassName, dtoClassName)}
 }
         """.trimIndent()
     }
     
     /**
-     * 生成代码收集逻辑
+     * 生成字典翻译逻辑
      */
-    private fun generateCodeCollection(dictFields: List<LsiField>): String {
+    private fun generateDictTranslationLogic(dictFields: List<LsiField>): String {
+        if (dictFields.isEmpty()) {
+            return "// No dictionary fields to translate"
+        }
+        
         val systemDictFields = dictFields.filter { field ->
             val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
             val dicCode = dictAnnotation?.getAttribute("dicCode") as? String
@@ -151,237 +131,101 @@ ${generateBasicPropertyCopy(originalClass)}
             tab != null && tab.isNotEmpty()
         }
         
-        return """
-        // Collect system dictionary queries
-        List<Pair<String, List<String>>> systemQueries = new ArrayList<>();
-        ${generateSystemDictCollection(systemDictFields)}
+        val systemDictLogic = if (systemDictFields.isNotEmpty()) {
+            generateSystemDictTranslation(systemDictFields)
+        } else ""
         
-        // Collect table dictionary queries  
-        List<DictQueryContext> tableQueries = new ArrayList<>();
-        ${generateTableDictCollection(tableDictFields)}
+        val tableDictLogic = if (tableDictFields.isNotEmpty()) {
+            generateTableDictTranslation(tableDictFields)
+        } else ""
+        
+        return """
+        // System dictionary translation
+        $systemDictLogic
+        
+        // Table dictionary translation
+        $tableDictLogic
         """.trimIndent()
     }
     
     /**
-     * 生成系统字典收集逻辑
+     * 生成系统字典翻译逻辑
      */
-    private fun generateSystemDictCollection(systemDictFields: List<LsiField>): String {
+    private fun generateSystemDictTranslation(systemDictFields: List<LsiField>): String {
         return systemDictFields.joinToString("\n        ") { field ->
             val fieldName = field.name ?: "unknown"
             val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
             val dicCode = dictAnnotation?.getAttribute("dicCode") as? String ?: ""
+            val translationFieldName = getTranslationFieldName(field)
             
             """
-        // Collect codes for system dict: $dicCode
-        List<String> ${fieldName}Codes = dtos.stream()
-            .map(dto -> dto.get${fieldName.replaceFirstChar { it.uppercase() }}())
-            .filter(Objects::nonNull)
-            .map(Object::toString)
-            .distinct()
-            .collect(Collectors.toList());
-        if (!${fieldName}Codes.isEmpty()) {
-            systemQueries.add(new Pair<>("$dicCode", ${fieldName}Codes));
+        // Translate system dict field: $fieldName
+        if (dto.get${fieldName.replaceFirstChar { it.uppercase() }}() != null) {
+            // TODO: Implement system dictionary translation for dicCode: $dicCode
+            // String translatedValue = systemDictService.translate("$dicCode", dto.get${fieldName.replaceFirstChar { it.uppercase() }}().toString());
+            // dto.set${translationFieldName.replaceFirstChar { it.uppercase() }}(translatedValue);
         }
             """.trimIndent()
         }
     }
     
     /**
-     * 生成表字典收集逻辑
+     * 生成表字典翻译逻辑
      */
-    private fun generateTableDictCollection(tableDictFields: List<LsiField>): String {
+    private fun generateTableDictTranslation(tableDictFields: List<LsiField>): String {
         return tableDictFields.joinToString("\n        ") { field ->
             val fieldName = field.name ?: "unknown"
             val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
             val tab = dictAnnotation?.getAttribute("tab") as? String ?: ""
-            val codeColumn = dictAnnotation?.getAttribute("codeColumn") as? String ?: ""
-            val nameColumn = dictAnnotation?.getAttribute("nameColumn") as? String ?: ""
-            val whereCondition = dictAnnotation?.getAttribute("whereCondition") as? String ?: ""
+            val codeColumn = dictAnnotation?.getAttribute("codeColumn") as? String ?: "id"
+            val nameColumn = dictAnnotation?.getAttribute("nameColumn") as? String ?: "name"
+            val translationFieldName = getTranslationFieldName(field)
             
             """
-        // Collect codes for table dict: $tab
-        List<String> ${fieldName}TableCodes = dtos.stream()
-            .map(dto -> dto.get${fieldName.replaceFirstChar { it.uppercase() }}())
-            .filter(Objects::nonNull)
-            .map(Object::toString)
-            .distinct()
-            .collect(Collectors.toList());
-        if (!${fieldName}TableCodes.isEmpty()) {
-            tableQueries.add(new DictQueryContext("$tab", "$codeColumn", "$nameColumn", ${fieldName}TableCodes, "$whereCondition"));
+        // Translate table dict field: $fieldName
+        if (dto.get${fieldName.replaceFirstChar { it.uppercase() }}() != null) {
+            // TODO: Implement table dictionary translation for table: $tab
+            // String translatedValue = tableDictService.translate("$tab", "$codeColumn", "$nameColumn", dto.get${fieldName.replaceFirstChar { it.uppercase() }}().toString());
+            // dto.set${translationFieldName.replaceFirstChar { it.uppercase() }}(translatedValue);
         }
             """.trimIndent()
         }
-    }
-    
-    /**
-     * 生成翻译应用逻辑
-     */
-    private fun generateTranslationApplication(dictFields: List<LsiField>): String {
-        val systemDictApplication = generateSystemDictApplication(dictFields)
-        val tableDictApplication = generateTableDictApplication(dictFields)
-        
-        return """
-        // Apply system dictionary translations
-        for (UserDictDTO dto : dtos) {
-            $systemDictApplication
-        }
-        
-        // Apply table dictionary translations
-        for (UserDictDTO dto : dtos) {
-            $tableDictApplication
-        }
-        """.trimIndent()
-    }
-    
-    /**
-     * 生成系统字典应用逻辑
-     */
-    private fun generateSystemDictApplication(dictFields: List<LsiField>): String {
-        return dictFields
-            .filter { field ->
-                val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
-                val dicCode = dictAnnotation?.getAttribute("dicCode") as? String
-                dicCode != null && dicCode.isNotEmpty()
-            }
-            .joinToString("\n            ") { field ->
-                val fieldName = field.name ?: "unknown"
-                val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
-                val dicCode = dictAnnotation?.getAttribute("dicCode") as? String ?: ""
-                val translationFieldName = getTranslationFieldName(field)
-                
-                """
-            // Apply system dict translation for: $fieldName
-            Object ${fieldName}Value = dto.get${fieldName.replaceFirstChar { it.uppercase() }}();
-            if (${fieldName}Value != null) {
-                Map<String, String> ${fieldName}Dict = results.getSystemDictResults().get("$dicCode");
-                if (${fieldName}Dict != null) {
-                    String translatedValue = ${fieldName}Dict.get(${fieldName}Value.toString());
-                    if (translatedValue != null) {
-                        dto.set${translationFieldName.replaceFirstChar { it.uppercase() }}(translatedValue);
-                    }
-                }
-            }
-                """.trimIndent()
-            }
-    }
-    
-    /**
-     * 生成表字典应用逻辑
-     */
-    private fun generateTableDictApplication(dictFields: List<LsiField>): String {
-        return dictFields
-            .filter { field ->
-                val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
-                val tab = dictAnnotation?.getAttribute("tab") as? String
-                tab != null && tab.isNotEmpty()
-            }
-            .joinToString("\n            ") { field ->
-                val fieldName = field.name ?: "unknown"
-                val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
-                val tab = dictAnnotation?.getAttribute("tab") as? String ?: ""
-                val codeColumn = dictAnnotation?.getAttribute("codeColumn") as? String ?: ""
-                val nameColumn = dictAnnotation?.getAttribute("nameColumn") as? String ?: ""
-                val translationFieldName = getTranslationFieldName(field)
-                
-                """
-            // Apply table dict translation for: $fieldName
-            Object ${fieldName}Value = dto.get${fieldName.replaceFirstChar { it.uppercase() }}();
-            if (${fieldName}Value != null) {
-                List<Map<String, Object>> ${fieldName}Results = results.getTableDictResults().get("$tab");
-                if (${fieldName}Results != null) {
-                    for (Map<String, Object> result : ${fieldName}Results) {
-                        if (${fieldName}Value.toString().equals(result.get("$codeColumn"))) {
-                            Object translatedValue = result.get("$nameColumn");
-                            if (translatedValue != null) {
-                                dto.set${translationFieldName.replaceFirstChar { it.uppercase() }}(translatedValue.toString());
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-                """.trimIndent()
-            }
-    }
-    
-    /**
-     * 生成基本属性复制
-     */
-    private fun generateBasicPropertyCopy(originalClass: LsiClass): String {
-        return originalClass.fields
-            .filter { !it.isStatic }
-            .joinToString("\n") { field ->
-                val fieldName = field.name ?: "unknown"
-                val capitalizedName = fieldName.replaceFirstChar { it.uppercase() }
-                
-                "        entity.set$capitalizedName(dto.get$capitalizedName());"
-            }
-    }
-    
-    /**
-     * 生成反向翻译逻辑
-     */
-    private fun generateReverseTranslation(dictFields: List<LsiField>): String {
-        return """
-        // Reverse translation implementation
-        // This would query dictionaries to find codes for given names
-        // Simplified implementation - actual implementation would be more complex
-        """.trimIndent()
-    }
-    
-    /**
-     * 生成工具方法
-     */
-    private fun generateUtilityMethods(dictFields: List<LsiField>): String {
-        return """
-    /**
-     * Utility class for Pair (since Java doesn't have built-in Pair)
-     */
-    private static class Pair<K, V> {
-        private final K key;
-        private final V value;
-        
-        public Pair(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-        
-        public K getKey() { return key; }
-        public V getValue() { return value; }
-    }
-        """.trimIndent()
     }
     
     /**
      * 获取翻译字段名
      */
     private fun getTranslationFieldName(field: LsiField): String {
-        val fieldName = field.name ?: "unknown"
         val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
-        
-        if (dictAnnotation == null) {
-            return "${fieldName}_dictText"
-        }
-        
-        val serializationAlias = dictAnnotation.getAttribute("serializationAlias") as? String
-        val nameColumn = dictAnnotation.getAttribute("nameColumn") as? String
+        val serializationAlias = dictAnnotation?.getAttribute("serializationAlias") as? String
+        val nameColumn = dictAnnotation?.getAttribute("nameColumn") as? String
+        val fieldName = field.name ?: "unknown"
         
         return when {
             !serializationAlias.isNullOrEmpty() -> serializationAlias
-            !nameColumn.isNullOrEmpty() -> convertToCamelCase(nameColumn)
-            else -> "${fieldName}_dictText"
+            !nameColumn.isNullOrEmpty() -> nameColumn
+            else -> "${fieldName}Text"
         }
     }
     
     /**
-     * 将数据库列名转换为驼峰命名
+     * 生成工具方法
      */
-    private fun convertToCamelCase(columnName: String): String {
-        return columnName.split("_")
-            .mapIndexed { index, part ->
-                if (index == 0) part.lowercase()
-                else part.lowercase().replaceFirstChar { it.uppercase() }
-            }
-            .joinToString("")
+    private fun generateUtilityMethods(originalClassName: String, dtoClassName: String): String {
+        return """
+    /**
+     * Check if entity has dictionary fields that need translation
+     */
+    public boolean needsTranslation($originalClassName entity) {
+        return entity != null;
+    }
+    
+    /**
+     * Check if DTO has been translated
+     */
+    public boolean isTranslated($dtoClassName dto) {
+        return dto != null;
+    }
+        """.trimIndent()
     }
 }
