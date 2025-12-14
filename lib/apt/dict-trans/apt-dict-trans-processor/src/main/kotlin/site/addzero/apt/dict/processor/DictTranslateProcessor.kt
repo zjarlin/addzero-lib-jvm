@@ -4,6 +4,7 @@ import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.dict.trans.inter.PrecompiledSql
 import site.addzero.dict.trans.inter.TableTranslateContext
 import site.addzero.util.lsi.field.LsiField
+import site.addzero.util.lsi_impl.impl.apt.field.AptLsiField
 import java.io.IOException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -35,6 +36,15 @@ class DictTranslateProcessor : AbstractProcessor() {
         // Find all elements annotated with @Dict
         val dictAnnotatedElements = roundEnv.getElementsAnnotatedWith(Dict::class.java)
 
+        dictAnnotatedElements
+            .filter {
+                it.kind == ElementKind.FIELD && it is VariableElement
+                AptLsiField( it)
+            }
+            .associateBy {
+                val enclosingClass = it.enclosingElement as? TypeElement
+                enclosingClass
+            }
         // Group by enclosing class
         val classToFields = mutableMapOf<TypeElement, MutableList<VariableElement>>()
 

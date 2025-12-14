@@ -13,8 +13,9 @@ subprojects {
     val now = LocalDate.now().toString().replace("-", ".")
     version = now
     println("项目版本为$now")
-    if (!path.startsWith(":checkouts:")) return@subprojects
-    apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
+    if (path.startsWith(":checkouts:")) {
+        apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
+    }
 }
 //}
 

@@ -418,7 +418,7 @@ String maleDesc = EnumSysUserSex._0.getDesc(); // "男"
 
 ## 相关项目
 
-- [gradle-apt-buddy](../gradle-plugin/project-plugin/gradle-apt-buddy) - Gradle APT 参数配置插件
+- [gradle-apt-buddy](../../gradle-plugin/project-plugin/gradle-apt-buddy) - Gradle APT 参数配置插件
 - [dict-trans-spring-boot-starter](../dict-trans-spring-boot-starter) - 字典翻译 Spring Boot Starter
 
 ## License
