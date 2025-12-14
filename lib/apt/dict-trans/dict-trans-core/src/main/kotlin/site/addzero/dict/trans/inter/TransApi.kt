@@ -1,6 +1,7 @@
 package site.addzero.dict.trans.inter
 
-import site.addzero.apt.dict.model.DictModel
+import site.addzero.dict.model.DictModel
+
 
 /**
  * 字典翻译API接口
@@ -8,6 +9,11 @@ import site.addzero.apt.dict.model.DictModel
  * 用户只需要提供批量查询接口，消除N+1查询问题
  */
 interface TransApi {
+
+    /**
+     * Get the cache implementation
+     */
+    val cache: DictCache
 
     /**
      * 内置字典的批量翻译(code2name)
@@ -28,5 +34,14 @@ interface TransApi {
      * @return List of Map containing translation results
      */
     fun translateTableBatchCode2name(table: String, text: String, code: String, keys: String): List<Map<String, Any?>>
+
+    /**
+     * Execute precompiled SQL for table dictionary translation
+     *
+     * @param precompiledSql The precompiled SQL template
+     * @param keys The actual keys to substitute
+     * @return List of Map containing translation results
+     */
+    fun executePrecompiledTableSql(precompiledSql: PrecompiledSql, keys: String): List<Map<String, Any?>>
 }
 

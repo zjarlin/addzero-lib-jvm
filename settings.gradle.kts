@@ -14,7 +14,8 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-14T09:23:22.702849
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2025-12-14T09:26:44.271809
+// Loaded: 2, Excluded: 0, Total: 2
 include(":lib:apt:dict-trans:apt-dict-trans-processor")
+include(":lib:apt:dict-trans:dict-trans-core")
 // <<< Gradle Buddy: End Of Block <<<

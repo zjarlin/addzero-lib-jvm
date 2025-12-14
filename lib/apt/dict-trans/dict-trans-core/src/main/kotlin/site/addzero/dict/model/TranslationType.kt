@@ -1,4 +1,4 @@
-package site.addzero.apt.dict.model
+package site.addzero.dict.model
 
 /**
  * Types of dictionary translation
