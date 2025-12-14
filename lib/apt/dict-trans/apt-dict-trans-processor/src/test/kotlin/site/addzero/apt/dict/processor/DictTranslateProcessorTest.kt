@@ -1,6 +1,6 @@
 package site.addzero.apt.dict.processor
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class DictTranslateProcessorTest {
 
