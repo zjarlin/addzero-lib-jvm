@@ -57,7 +57,7 @@ public class $sqlAssistClassName {
      * @param context List of all LsiClass in the processing context
      * @return Optimized SQL for system dictionary queries
      */
-    public static String getSystemDictSql() {
+    public static String getSystemDictSql(Object context) {
         if (context == null || context.isEmpty()) {
             return "";
         }
@@ -79,7 +79,7 @@ public class $sqlAssistClassName {
      * @param context List of all LsiClass in the processing context
      * @return Optimized SQL for table dictionary queries
      */
-    public static String getTableDictSql() {
+    public static String getTableDictSql(Object context) {
         if (context == null || context.isEmpty()) {
             return "";
         }
@@ -101,7 +101,7 @@ public class $sqlAssistClassName {
      * @param context List of all LsiClass in the processing context
      * @return Combined SQL execution plan
      */
-    public static Map<String, Object> getCombinedSqlPlan() {
+    public static Map<String, Object> getCombinedSqlPlan(Object context) {
         String systemSql = getSystemDictSql(context);
         String tableSql = getTableDictSql(context);
         
@@ -111,7 +111,7 @@ public class $sqlAssistClassName {
     /**
      * Extract system dictionary codes from context
      */
-    private static Set<String> extractSystemDictCodes() {
+    private static Set<String> extractSystemDictCodes(Object context) {
         Set<String> dictCodes = new HashSet<>();
         
         for (LsiClass lsiClass : context) {
@@ -124,7 +124,7 @@ public class $sqlAssistClassName {
     /**
      * Extract table dictionary configurations from context
      */
-    private static Map<String, Object> extractTableDictConfigs() {
+    private static Map<String, Object> extractTableDictConfigs(Object context) {
         Map<String, TableDictConfig> configs = new HashMap<>();
         
         for (LsiClass lsiClass : context) {
@@ -187,7 +187,7 @@ public class $sqlAssistClassName {
     /**
      * Check if system and table dict queries can execute in parallel
      */
-    private static boolean canExecuteInParallel() {
+    private static boolean canExecuteInParallel(Object context) {
         // Analyze dependencies between system and table dictionaries
         // Return true if no dependencies exist
         return true; // Simplified - actual implementation would analyze dependencies

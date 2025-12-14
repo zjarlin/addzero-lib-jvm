@@ -29,8 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.lang.reflect.Field;
 import site.addzero.dict.trans.inter.PrecompiledSql;
 import site.addzero.dict.trans.inter.TableTranslateContext;
-// Note: TransApi and DictModel imports removed as they may not be available at compile time
-// The generated code uses Object and Map instead for better compatibility
+// Note: Using basic types for better compatibility
 
 /**
  * Generated dictionary DSL class for ${originalClass.name}

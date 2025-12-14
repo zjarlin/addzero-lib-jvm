@@ -53,10 +53,19 @@ ${generateTranslationFields(dictFields)}
     }
     
     /**
-     * Constructor with field initialization
+     * Constructor from original entity (deprecated - use fromOriginal instead)
      */
-    public $dtoClassName(${generateConstructorParameters(allFields)}) {
-${generateConstructorBody(allFields)}
+    public $dtoClassName($originalClassName original) {
+        if (original != null) {
+            copyFromOriginal(original);
+        }
+    }
+    
+    /**
+     * Copy properties from original entity
+     */
+    private void copyFromOriginal($originalClassName original) {
+        ${generateFieldCopyLogic(allFields)}
     }
     
 ${generateUtilityMethods(originalClassName, allFields)}
@@ -109,7 +118,7 @@ ${generateUtilityMethods(originalClassName, allFields)}
         val translationFieldName = when {
             !serializationAlias.isNullOrEmpty() -> serializationAlias
             !nameColumn.isNullOrEmpty() -> nameColumn
-            else -> "${fieldName}Text"
+            else -> "${fieldName}_dictText"  // 使用下划线分隔，避免驼峰命名冲突
         }
         
         return """
@@ -151,8 +160,11 @@ ${generateUtilityMethods(originalClassName, allFields)}
         return when (typeName) {
             "String", "Integer", "Long", "Double", "Float", "Boolean", 
             "int", "long", "double", "float", "boolean",
-            "Date", "LocalDateTime", "LocalDate", "BigDecimal" -> false
-            else -> !typeName.startsWith("java.") && !typeName.startsWith("javax.")
+            "Date", "LocalDateTime", "LocalDate", "BigDecimal",
+            "Object", "Void", "void" -> false
+            else -> !typeName.startsWith("java.") && 
+                    !typeName.startsWith("javax.") &&
+                    !typeName.contains(".")  // 避免处理全限定名的嵌套类
         }
     }
     
