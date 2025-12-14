@@ -14,9 +14,10 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-14T11:16:42.976106
-// Loaded: 4, Excluded: 0, Total: 4
+// Generated at: 2025-12-14T12:04:51.640936
+// Loaded: 5, Excluded: 0, Total: 5
 include(":checkouts:metaprogramming-lsi:lsi-apt")
+include(":checkouts:metaprogramming-lsi:lsi-core")
 include(":lib:apt-dict-processor")
 include(":lib:apt:dict-trans:apt-dict-trans-processor")
 include(":lib:apt:dict-trans:dict-trans-core")
