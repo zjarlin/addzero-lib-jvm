@@ -54,7 +54,12 @@ class ProcessingPipeline(
             try {
                 // 转换为LSI抽象
                 val lsiClass = AptLsiClass(context.lsiAdapter.elements, typeElement)
-                val lsiContext = context.lsiAdapter.createLsiContext(lsiClass)
+                val lsiContext = LsiContext(
+                    currentClass = lsiClass,
+                    currentFile = null, // APT环境下通常不需要文件信息
+                    filePath = null,
+                    allClassesInFile = lsiClass?.let<LsiClass, List<LsiClass>> { listOf(it) } ?: emptyList()
+                )
 
                 // 执行具体处理逻辑
                 val result = processor(typeElement, lsiClass, lsiContext)

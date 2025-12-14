@@ -1,6 +1,5 @@
 package site.addzero.apt.dict.processor.unified.context
 
-import site.addzero.apt.dict.processor.unified.adapter.AptLsiAdapter
 import site.addzero.util.lsi.clazz.LsiClass
 import site.addzero.util.lsi.field.LsiField
 import javax.annotation.processing.ProcessingEnvironment
