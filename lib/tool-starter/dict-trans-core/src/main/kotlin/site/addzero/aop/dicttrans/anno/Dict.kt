@@ -40,6 +40,7 @@ annotation class Dict(
      */
     val serializationAlias: String = "",
     val serializationChinese: String = "",
-    val ignoreVo: Boolean = false
+    val ignoreVo: Boolean = false,
+    val whereCondition: String = "",
 ) {
 }
