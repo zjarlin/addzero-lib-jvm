@@ -2,7 +2,7 @@ package site.addzero.aop.dicttrans.strategy
 
 import org.springframework.stereotype.Component
 import site.addzero.aop.dicttrans.inter.TransStrategy
-import site.addzero.aop.dicttrans.util_internal.ByteBuddyUtil
+import site.addzero.aop.dicttrans.util_internal.OptimizedByteBuddyUtil
 import site.addzero.aop.dicttrans.util_internal.TransInternalUtil
 import java.util.*
 
@@ -27,13 +27,9 @@ class CollectionStrategy : TransStrategy<Collection<*>> {
             println("集合数量为$size,超过1000条跳过字典翻译")
         }
 
-        //这里字节码工具还有优化空间 不同形状的对象,可能 getNeedAddFields都不一样,其实找到字段(注解上指定的name)的并集 ,调用一次字节码生成最全字段的代理对象即可,这里先采用每个对象都创建新字节码的方式
-        val collect = inVOs.map { e ->
-            val o = ByteBuddyUtil.genChildObjectRecursion(e, {
-                val needAddFields = TransInternalUtil.getNeedAddFields(it)
-                needAddFields.toMutableList()
-            })
-            o
+        // 使用优化的批量处理工具，自动收集所有对象类型的字段需求并集，每个类型只生成一次字节码
+        val collect = OptimizedByteBuddyUtil.genChildObjectsBatch(inVOs.toList()) { obj ->
+            TransInternalUtil.getNeedAddFields(obj).toMutableList()
         }
 
         //翻译过程的全部信息都在这里了 对于单个字典翻译,会按照list中所有dictCode分组TransInfo集合 会调用系统字段批量翻译

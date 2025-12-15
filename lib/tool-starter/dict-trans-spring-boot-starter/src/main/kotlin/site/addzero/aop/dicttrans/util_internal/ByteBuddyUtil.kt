@@ -16,10 +16,12 @@ import java.util.function.Function
 
 /**
  * 字节码工具类
- *
+ * 
+ * @deprecated 使用 OptimizedByteBuddyUtil 替代，提供更好的性能和批量处理能力
  * @author zjarlin
  * @since 2023/01/12
  */
+@Deprecated("使用 OptimizedByteBuddyUtil.genChildObjectsBatch() 替代", ReplaceWith("OptimizedByteBuddyUtil"))
 internal class ByteBuddyUtil {
 
 
@@ -43,6 +45,7 @@ internal class ByteBuddyUtil {
             return b
         }
 
+        @Deprecated("使用 OptimizedByteBuddyUtil.genChildObjectsBatch() 替代，提供更好的性能")
         fun genChildObjectRecursion(
             o: Any?, getNeedAddInfoFun: Function<Any,
                     MutableList<NeedAddInfo>>
