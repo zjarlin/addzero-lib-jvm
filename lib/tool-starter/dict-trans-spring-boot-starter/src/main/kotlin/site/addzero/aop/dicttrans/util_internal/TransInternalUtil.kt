@@ -149,7 +149,8 @@ internal object TransInternalUtil {
 
     fun getNeedAddFields(obj: Any): List<NeedAddInfo> {
         val process = process(obj)
-        val needAddFields = process.map {
+        // 只返回当前对象的字段需求，不包括嵌套对象的字段需求
+        val needAddFields = process.filter { it.rootObject === obj }.map {
             val needAddInfo = NeedAddInfo(
                 rootObject = it.rootObject,
                 fieldName = it.translatedAttributeNames,
