@@ -30,11 +30,17 @@ class DictDTOGenerator(private val processingEnv: ProcessingEnvironment) {
                     }
                 }
             }
-            
+
             // 添加嵌套实体的导入
             entityInfo.nestedEntityFields.forEach { nestedField ->
                 if (nestedField.isCollection) {
                     imports.add("java.util.List")
+                }
+                // 如果嵌套实体在不同包，需要导入
+                nestedField.nestedEntityInfo?.let { nestedInfo ->
+                    if (nestedInfo.packageName != entityInfo.packageName) {
+                        imports.add("${nestedInfo.packageName}.${nestedInfo.simpleName}DictDTO")
+                    }
                 }
             }
             
@@ -57,33 +63,40 @@ class DictDTOGenerator(private val processingEnv: ProcessingEnvironment) {
                 val isNestedEntity = entityInfo.nestedEntityFields.any { it.fieldName == field.name }
                 if (!isNestedEntity) {
                     generateField(field)
-                } else {
-                    // 生成嵌套实体字段，类型改为对应的DictDTO
-                    val nestedField = entityInfo.nestedEntityFields.first { it.fieldName == field.name }
-                    if (nestedField.isCollection) {
-                        val elementType = nestedField.elementType ?: nestedField.fieldType
-                        appendLine("    /**")
-                        appendLine("     * ${field.name} - 嵌套实体集合")
-                        appendLine("     */")
-                        appendLine("    private List<${elementType}DictDTO> ${field.name};")
-                        appendLine()
-                    } else {
-                        appendLine("    /**")
-                        appendLine("     * ${field.name} - 嵌套实体")
-                        appendLine("     */")
-                        appendLine("    private ${nestedField.fieldType}DictDTO ${field.name};")
-                        appendLine()
-                    }
-                }
+                 } else {
+                     // 生成嵌套实体字段，类型改为对应的DictDTO
+                     val nestedField = entityInfo.nestedEntityFields.first { it.fieldName == field.name }
+                     val nestedInfo = nestedField.nestedEntityInfo
+                     val dtoTypeName = if (nestedInfo != null && nestedInfo.packageName != entityInfo.packageName) {
+                         "${nestedInfo.packageName}.${nestedInfo.simpleName}DictDTO"
+                     } else {
+                         "${nestedField.elementType ?: nestedField.fieldType}DictDTO"
+                     }
+                     if (nestedField.isCollection) {
+                         appendLine("    /**")
+                         appendLine("     * ${field.name} - 嵌套实体集合")
+                         appendLine("     */")
+                         appendLine("    private List<$dtoTypeName> ${field.name};")
+                         appendLine()
+                     } else {
+                         appendLine("    /**")
+                         appendLine("     * ${field.name} - 嵌套实体")
+                         appendLine("     */")
+                         appendLine("    private $dtoTypeName ${field.name};")
+                         appendLine()
+                     }
+                 }
             }
             
             // 生成字典字段
             entityInfo.dictFields.forEach { dictField ->
                 dictField.dictConfigs.forEach { config ->
-                    val dictFieldName = if (config.serializationAlias.isNullOrBlank()) {
+                    val dictFieldName = if (!config.serializationAlias.isNullOrBlank()) {
+                        config.serializationAlias!!
+                    } else if (config.isSystemDict) {
                         "${dictField.fieldName}_dictText"
                     } else {
-                        config.serializationAlias
+                        config.getGeneratedFieldName()
                     }
                     appendLine("    /**")
                     appendLine("     * ${dictField.fieldName} 的字典翻译字段")
@@ -98,25 +111,32 @@ class DictDTOGenerator(private val processingEnv: ProcessingEnvironment) {
                 val isNestedEntity = entityInfo.nestedEntityFields.any { it.fieldName == field.name }
                 if (!isNestedEntity) {
                     generateGetterSetter(field)
-                } else {
-                    // 生成嵌套实体字段的getter和setter
-                    val nestedField = entityInfo.nestedEntityFields.first { it.fieldName == field.name }
-                    if (nestedField.isCollection) {
-                        val elementType = nestedField.elementType ?: nestedField.fieldType
-                        generateGetterSetter(FieldInfo(field.name, "List<${elementType}DictDTO>"))
-                    } else {
-                        generateGetterSetter(FieldInfo(field.name, "${nestedField.fieldType}DictDTO"))
-                    }
-                }
+                 } else {
+                     // 生成嵌套实体字段的getter和setter
+                     val nestedField = entityInfo.nestedEntityFields.first { it.fieldName == field.name }
+                     val nestedInfo = nestedField.nestedEntityInfo
+                     val dtoTypeName = if (nestedInfo != null && nestedInfo.packageName != entityInfo.packageName) {
+                         "${nestedInfo.packageName}.${nestedInfo.simpleName}DictDTO"
+                     } else {
+                         "${nestedField.elementType ?: nestedField.fieldType}DictDTO"
+                     }
+                     if (nestedField.isCollection) {
+                         generateGetterSetter(FieldInfo(field.name, "List<$dtoTypeName>"))
+                     } else {
+                         generateGetterSetter(FieldInfo(field.name, dtoTypeName))
+                     }
+                 }
             }
             
             // 生成字典字段的getter和setter
             entityInfo.dictFields.forEach { dictField ->
                 dictField.dictConfigs.forEach { config ->
-                    val dictFieldName = if (config.serializationAlias.isNullOrBlank()) {
+                    val dictFieldName = if (!config.serializationAlias.isNullOrBlank()) {
+                        config.serializationAlias!!
+                    } else if (config.isSystemDict) {
                         "${dictField.fieldName}_dictText"
                     } else {
-                        config.serializationAlias
+                        config.getGeneratedFieldName()
                     }
                     generateGetterSetter(FieldInfo(dictFieldName, "String"))
                 }
@@ -135,7 +155,7 @@ class DictDTOGenerator(private val processingEnv: ProcessingEnvironment) {
     }
     
     private fun StringBuilder.generateGetterSetter(field: FieldInfo) {
-        val capitalizedName = field.name.replaceFirstChar { it.uppercase() }
+        val capitalizedName = field.name.replaceFirstChar { it.uppercase() }.toString()
         val fieldType = field.type
         
         // Getter

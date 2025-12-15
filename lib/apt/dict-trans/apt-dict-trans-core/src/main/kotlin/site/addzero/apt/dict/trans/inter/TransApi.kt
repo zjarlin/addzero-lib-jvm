@@ -31,6 +31,26 @@ interface TransApi {
      */
     fun translateTableBatchCode2name(table: String, text: String, code: String, keys: String): List<TableDictModelResult>
 
+    /**
+     * 内置字典的批量反向翻译(name2code)
+     *
+     * @param dictCodes 例如：user_status,sex 逗号隔开
+     * @param names     例如：正常,男  逗号隔开
+     * @return List of DictModel containing reverse translation results
+     */
+    fun translateDictBatchName2code(dictCodes: String, names: String?): List<SystemDictModelResult>
+
+    /**
+     * 任意表批量反向翻译(name2code)
+     *
+     * @param table 表名
+     * @param text  名称列
+     * @param code  编码列
+     * @param names 名称集合
+     * @return List of Map containing reverse translation results
+     */
+    fun translateTableBatchName2code(table: String, text: String, code: String, names: String): List<TableDictModelResult>
+
 
 }
 
