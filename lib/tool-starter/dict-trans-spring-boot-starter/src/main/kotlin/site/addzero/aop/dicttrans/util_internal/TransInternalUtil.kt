@@ -4,33 +4,26 @@ import cn.hutool.core.collection.CollUtil
 import cn.hutool.core.map.MapUtil
 import cn.hutool.core.text.CharSequenceUtil
 import cn.hutool.core.util.ObjUtil
+import cn.hutool.core.util.ReflectUtil
 import cn.hutool.core.util.StrUtil
 import cn.hutool.extra.spring.SpringUtil
-import org.slf4j.LoggerFactory
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.dictaop.CommonConstant
 import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
 import site.addzero.aop.dicttrans.dictaop.entity.TabMultiIn
 import site.addzero.aop.dicttrans.dictaop.entity.TransInfo
 import site.addzero.aop.dicttrans.inter.TransApi
-import site.addzero.aop.dicttrans.tracking.WeakReferenceTracker
 import org.springframework.core.annotation.AnnotatedElementUtils
 import site.addzero.util.RefUtil
 import java.util.*
 
 /**
- * 内部翻译api (Enhanced with weak reference tracking)
+ * 内部翻译api
  * @author zjarlin
  * @date 2025/08/06
  */
 internal object TransInternalUtil {
-    
-    private val logger = LoggerFactory.getLogger(TransInternalUtil::class.java)
-    
-    // Lazy initialization to avoid circular dependencies
-    private val weakReferenceTracker: WeakReferenceTracker by lazy {
-        SpringUtil.getBean(WeakReferenceTracker::class.java)
-    }
+
 
     fun process(rootObj: Any): List<TransInfo<Dict>> {
         val result = mutableListOf<TransInfo<Dict>>()
@@ -38,36 +31,25 @@ internal object TransInternalUtil {
         val queue = LinkedList<Any>()
         queue.add(rootObj)
 
-        // 使用弱引用跟踪器避免循环引用和重复处理
+        // 对象去重，避免循环引用和重复处理
+        val processedObjects = mutableSetOf<Any>()
+
         while (queue.isNotEmpty()) {
             val currentObj = queue.poll()
 
             // 避免重复处理相同对象和null对象
-            if (currentObj == null) {
+            if (currentObj == null || !processedObjects.add(currentObj)) {
                 continue
             }
-            
-            // 使用弱引用跟踪器检查是否已处理
-            if (weakReferenceTracker.isTracked(currentObj)) {
-                // 检查是否存在循环引用
-                if (weakReferenceTracker.hasCircularReference(currentObj)) {
-                    logger.debug("Skipping object with known circular reference: {}", currentObj.javaClass.name)
-                }
-                continue
-            }
-            
-            // 跟踪当前对象
-            weakReferenceTracker.track(currentObj)
 
             val aClass: Class<*> = currentObj.javaClass
 
-            // 遍历所有字段 (使用缓存的反射操作)
-            val fields = EnhancedRefUtil.getFields(aClass)
-            for (field in fields) {
+            // 遍历所有字段
+            ReflectUtil.getFields(aClass) { field ->
                 field.isAccessible = true
-                val fieldValue = EnhancedRefUtil.getFieldValue(currentObj, field)
+                val fieldValue = ReflectUtil.getFieldValue(currentObj, field)
                 if (ObjUtil.isEmpty(fieldValue)) {
-                    continue
+                    return@getFields false
                 }
 
                 // 检查字段是否有 Dict 注解
@@ -102,46 +84,22 @@ internal object TransInternalUtil {
                     }
                 }
 
-                // 处理集合类型字段 (使用缓存的类型检查)
-                if (EnhancedRefUtil.isCollectionField(field)) {
+                // 处理集合类型字段
+                if (RefUtil.isCollectionField(field)) {
                     val collection = fieldValue as? MutableCollection<*>
                     collection?.filterNotNull()?.forEach { item ->
-                        // 检查循环引用
-                        if (item == currentObj || item == rootObj) {
-                            logger.debug("Detected circular reference in collection field: {} of class: {}", 
-                                field.name, currentObj.javaClass.name)
-                            weakReferenceTracker.markCircularReference(item)
-                        } else {
-                            // 将集合中的元素加入队列，等待处理
-                            queue.add(item)
-                        }
+                        // 将集合中的元素加入队列，等待处理
+                        queue.add(item)
                     }
                 }
                 // 处理嵌套实体字段
                 else if (RefUtil.isT(fieldValue)) {
-                    // 检查循环引用
-                    if (fieldValue == currentObj || fieldValue == rootObj) {
-                        logger.debug("Detected circular reference in object field: {} of class: {}", 
-                            field.name, currentObj.javaClass.name)
-                        weakReferenceTracker.markCircularReference(fieldValue)
-                    } else {
-                        // 将嵌套对象加入队列，等待处理
-                        queue.add(fieldValue)
-                    }
+                    // 将嵌套对象加入队列，等待处理
+                    queue.add(fieldValue)
                 }
-            }
-        }
 
-        // 处理完成后触发清理
-        try {
-            weakReferenceTracker.cleanup()
-            
-            // 记录统计信息
-            val stats = weakReferenceTracker.getStatistics()
-            logger.debug("Processing completed. Tracking stats: tracked={}, cleaned={}, circular={}", 
-                stats.currentlyTracked, stats.cleanedUp, stats.circularReferences)
-        } catch (e: Exception) {
-            logger.error("Error during weak reference cleanup", e)
+                true
+            }
         }
 
         return result
@@ -260,7 +218,7 @@ internal object TransInternalUtil {
                         one?.label ?: ""
                     }.filter { it.isNotBlank() }.joinToString(",")
 
-                    EnhancedRefUtil.setFieldValue(rootObject, EnhancedRefUtil.getField(rootObject.javaClass, e.translatedAttributeNames)!!, collect)
+                    ReflectUtil.setFieldValue(rootObject, e.translatedAttributeNames, collect)
                     //                    return;
                 }
                 val one = dictModels?.find { it.value == flipPastValues }
@@ -270,10 +228,7 @@ internal object TransInternalUtil {
                 val label = one?.label
                 e.translatedValue = label
                 //                e.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + e.getTranslatedAttributeNames());
-                val field = EnhancedRefUtil.getField(rootObject.javaClass, e.translatedAttributeNames)
-                if (field != null) {
-                    EnhancedRefUtil.setFieldValue(rootObject, field, label)
-                }
+                ReflectUtil.setFieldValue(rootObject, e.translatedAttributeNames, label)
             }
         }
     }
@@ -380,10 +335,7 @@ internal object TransInternalUtil {
 
                     //                            needSetInfo.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + needSetInfo.getTranslatedAttributeNames());
                     if (Objects.nonNull(rootObject)) {
-                        val field = EnhancedRefUtil.getField(rootObject.javaClass, translatedName)
-                        if (field != null) {
-                            EnhancedRefUtil.setFieldValue(rootObject, field, collect1)
-                        }
+                        ReflectUtil.setFieldValue(rootObject, translatedName, collect1)
                     }
                     //                            return;
                 }
@@ -395,10 +347,7 @@ internal object TransInternalUtil {
                 val nameValue = one?.get(nameColumn1).toString()
                 needSetInfo.translatedValue = nameValue
                 //                        needSetInfo.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + needSetInfo.getTranslatedAttributeNames());
-                val field = EnhancedRefUtil.getField(rootObject.javaClass, translatedName)
-                if (field != null) {
-                    EnhancedRefUtil.setFieldValue(rootObject, field, nameValue)
-                }
+                ReflectUtil.setFieldValue(rootObject, translatedName, nameValue)
             }
         }
     }
