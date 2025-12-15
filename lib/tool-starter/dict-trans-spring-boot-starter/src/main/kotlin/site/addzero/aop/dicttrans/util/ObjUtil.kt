@@ -5,7 +5,7 @@ package site.addzero.aop.dicttrans.util
  * 
  * @author zjarlin
  */
-object ObjUtil {
+internal object ObjUtil {
     
     /**
      * 判断对象是否为null

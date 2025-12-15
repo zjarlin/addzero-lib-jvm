@@ -5,7 +5,7 @@ package site.addzero.aop.dicttrans.util
  * 
  * @author zjarlin
  */
-object StrUtil {
+internal object StrUtil {
     
     /**
      * 判断字符串是否为空白

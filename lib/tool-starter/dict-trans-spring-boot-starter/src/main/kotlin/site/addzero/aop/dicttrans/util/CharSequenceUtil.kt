@@ -5,7 +5,7 @@ package site.addzero.aop.dicttrans.util
  * 
  * @author zjarlin
  */
-object CharSequenceUtil {
+internal object CharSequenceUtil {
     
     /**
      * 判断字符序列是否为空白

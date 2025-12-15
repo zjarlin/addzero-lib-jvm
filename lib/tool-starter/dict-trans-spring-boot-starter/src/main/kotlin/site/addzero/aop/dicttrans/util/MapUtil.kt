@@ -5,7 +5,7 @@ package site.addzero.aop.dicttrans.util
  * 
  * @author zjarlin
  */
-object MapUtil {
+internal object MapUtil {
     
     /**
      * 判断Map是否为空
