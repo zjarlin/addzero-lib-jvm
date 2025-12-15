@@ -3,8 +3,6 @@ package site.addzero.apt.dict.processor.test;
 import site.addzero.apt.dict.trans.inter.TransApi;
 import site.addzero.apt.dict.trans.model.out.SystemDictModelResult;
 import site.addzero.apt.dict.trans.model.out.TableDictModelResult;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +10,6 @@ import java.util.List;
 /**
  * 测试用的TransApi实现
  */
-@Component
 public class TestTransApi implements TransApi {
     
     @Override

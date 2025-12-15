@@ -14,5 +14,8 @@ dependencies {
     // Spring依赖（用于生成的转换器）
     compileOnly("org.springframework:spring-context:5.3.21")
     compileOnly("org.springframework:spring-beans:5.3.21")
+    
+    // 测试时也需要处理器
+    testAnnotationProcessor(project(":lib:apt:dict-trans:apt-dict-trans-processor"))
 }
 

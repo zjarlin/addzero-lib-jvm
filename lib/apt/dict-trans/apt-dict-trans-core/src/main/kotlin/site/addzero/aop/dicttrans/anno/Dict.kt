@@ -9,7 +9,7 @@ package site.addzero.aop.dicttrans.anno
     AnnotationTarget.FIELD,
 )
 @Retention(
-    AnnotationRetention.RUNTIME
+    AnnotationRetention.SOURCE
 )
 @Repeatable
 annotation class Dict(

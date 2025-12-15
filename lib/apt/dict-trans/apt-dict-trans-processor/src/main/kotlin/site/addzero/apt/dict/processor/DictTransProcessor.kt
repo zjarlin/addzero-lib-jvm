@@ -45,19 +45,28 @@ class DictTransProcessor : AbstractProcessor() {
     
     override fun process(annotations: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
         try {
+            messager.printMessage(Diagnostic.Kind.NOTE, "开始处理注解，注解数量: ${annotations.size}")
+            
             // 收集所有包含@Dict注解的类
             val annotatedElements = roundEnv.getElementsAnnotatedWith(Dict::class.java)
+            messager.printMessage(Diagnostic.Kind.NOTE, "找到 @Dict 注解的元素数量: ${annotatedElements.size}")
+            
             val entityClasses = mutableSetOf<TypeElement>()
             
             for (element in annotatedElements) {
+                messager.printMessage(Diagnostic.Kind.NOTE, "处理元素: ${element.simpleName}, 类型: ${element.kind}")
                 if (element.kind == ElementKind.FIELD) {
                     val enclosingClass = element.enclosingElement as TypeElement
                     entityClasses.add(enclosingClass)
+                    messager.printMessage(Diagnostic.Kind.NOTE, "添加实体类: ${enclosingClass.qualifiedName}")
                 }
             }
             
+            messager.printMessage(Diagnostic.Kind.NOTE, "需要处理的实体类数量: ${entityClasses.size}")
+            
             // 处理每个实体类
             for (entityClass in entityClasses) {
+                messager.printMessage(Diagnostic.Kind.NOTE, "开始处理实体类: ${entityClass.qualifiedName}")
                 processEntity(entityClass)
             }
             
