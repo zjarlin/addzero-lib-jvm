@@ -100,13 +100,15 @@ class DictConvertorGenerator(private val processingEnv: ProcessingEnvironment) {
                 // 批量查询系统字典
                 systemDictFields.forEach { dictField ->
                     dictField.dictConfigs.filter { it.isSystemDict }.forEach { config ->
-                        appendLine("        Map<String, String> ${dictField.fieldName}_${config.dictCode}_map = new HashMap<>();")
+                        appendLine("        final Map<String, String> ${dictField.fieldName}_${config.dictCode}_map;")
                         appendLine("        if (!${dictField.fieldName}_${config.dictCode}_keys.isEmpty()) {")
-                        appendLine("            String dictCodes = \"${config.dictCode}\";")
-                        appendLine("            String keys = String.join(\",\", ${dictField.fieldName}_${config.dictCode}_keys);")
-                        appendLine("            List<SystemDictModelResult> results = transApi.translateDictBatchCode2name(dictCodes, keys);")
-                        appendLine("            ${dictField.fieldName}_${config.dictCode}_map = results.stream()")
+                        appendLine("            String ${dictField.fieldName}_${config.dictCode}_dictCodes = \"${config.dictCode}\";")
+                        appendLine("            String ${dictField.fieldName}_${config.dictCode}_keysStr = String.join(\",\", ${dictField.fieldName}_${config.dictCode}_keys);")
+                        appendLine("            List<SystemDictModelResult> ${dictField.fieldName}_${config.dictCode}_results = transApi.translateDictBatchCode2name(${dictField.fieldName}_${config.dictCode}_dictCodes, ${dictField.fieldName}_${config.dictCode}_keysStr);")
+                        appendLine("            ${dictField.fieldName}_${config.dictCode}_map = ${dictField.fieldName}_${config.dictCode}_results.stream()")
                         appendLine("                .collect(Collectors.toMap(r -> r.getValue(), r -> r.getLabel()));")
+                        appendLine("        } else {")
+                        appendLine("            ${dictField.fieldName}_${config.dictCode}_map = new HashMap<>();")
                         appendLine("        }")
                         appendLine()
                     }
@@ -131,13 +133,15 @@ class DictConvertorGenerator(private val processingEnv: ProcessingEnvironment) {
                         appendLine("            .collect(Collectors.toSet());")
                         appendLine()
                         
-                        appendLine("        Map<String, String> ${mapKey}_map = new HashMap<>();")
+                        appendLine("        final Map<String, String> ${mapKey}_map;")
                         appendLine("        if (!${mapKey}_keys.isEmpty()) {")
                         appendLine("            String ${mapKey}_keysStr = String.join(\",\", ${mapKey}_keys);")
                         appendLine("            List<TableDictModelResult> ${mapKey}_results = transApi.translateTableBatchCode2name(")
                         appendLine("                \"${config.tableName}\", \"${config.nameColumn}\", \"${config.codeColumn}\", ${mapKey}_keysStr);")
                         appendLine("            ${mapKey}_map = ${mapKey}_results.stream()")
                         appendLine("                .collect(Collectors.toMap(r -> r.getCodeColumnValue(), r -> r.getNameColumnValue()));")
+                        appendLine("        } else {")
+                        appendLine("            ${mapKey}_map = new HashMap<>();")
                         appendLine("        }")
                         appendLine()
                     }

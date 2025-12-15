@@ -19,3 +19,7 @@ dependencies {
     testAnnotationProcessor(project(":lib:apt:dict-trans:apt-dict-trans-processor"))
 }
 
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-Xdiags:verbose")
+}
+
