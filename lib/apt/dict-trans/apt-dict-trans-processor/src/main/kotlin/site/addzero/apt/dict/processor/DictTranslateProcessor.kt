@@ -6,6 +6,7 @@ import site.addzero.apt.dict.processor.generator.DictClassHelperIocContextGenera
 import site.addzero.apt.dict.processor.generator.ProcessedClassInfo
 import site.addzero.apt.dict.processor.generator.DictDtoGenerator
 import site.addzero.apt.dict.processor.generator.DictConvertorGenerator
+import site.addzero.apt.dict.processor.generator.DictFieldInfo
 import site.addzero.apt.dict.processor.generator.SqlAssistGenerator
 import site.addzero.dict.trans.inter.PrecompiledSql
 import site.addzero.dict.trans.inter.TableTranslateContext
@@ -36,7 +37,7 @@ class DictTranslateProcessor : AbstractProcessor() {
     private lateinit var elementUtils: Elements
     private lateinit var codeGenerator: DictCodeGenerator
     private lateinit var lsiLogger: LsiLogger
-    
+
     // 收集所有处理过的类信息
     private val processedClasses = mutableListOf<ProcessedClassInfo>()
 
@@ -72,7 +73,7 @@ class DictTranslateProcessor : AbstractProcessor() {
             if (processedClasses.isNotEmpty()) {
                 generateIocContext()
             }
-            
+
             return true
         } catch (e: Exception) {
             lsiLogger.error("Error processing annotations: ${e.message}")
@@ -129,14 +130,14 @@ class DictTranslateProcessor : AbstractProcessor() {
      */
     private fun extractPackageName(qualifiedName: String): String {
         if (qualifiedName.isEmpty()) return ""
-        
+
         // 分割全限定名
         val parts = qualifiedName.split('.')
         if (parts.size <= 1) return ""
-        
+
         // 找到第一个大写字母开头的部分（类名）
         val firstClassIndex = parts.indexOfFirst { it.isNotEmpty() && it[0].isUpperCase() }
-        
+
         return if (firstClassIndex > 0) {
             parts.subList(0, firstClassIndex).joinToString(".")
         } else {
@@ -154,16 +155,16 @@ class DictTranslateProcessor : AbstractProcessor() {
 
             // 1. 生成DictDTO类（支持递归嵌套）
             generateDictDTO(packageName, originalClassName, lsiClass, allFields, dictFields)
-            
+
             // 2. 生成Convertor类（实现LsiDictConvertor接口）
             generateConvertor(packageName, originalClassName, lsiClass, dictFields)
-            
+
             // 3. 生成SqlAssist类
             generateSqlAssist(packageName, originalClassName, lsiClass, dictFields)
-            
+
             // 4. 保持原有的DictDsl类生成（向后兼容）
             generateDictDsl(packageName, originalClassName, lsiClass, dictFields)
-            
+
             // 5. 收集类信息用于生成IoC上下文
             collectProcessedClassInfo(packageName, originalClassName, lsiClass, dictFields)
 
@@ -172,14 +173,14 @@ class DictTranslateProcessor : AbstractProcessor() {
             messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate dict classes: ${e.message}")
         }
     }
-    
+
     private fun collectProcessedClassInfo(packageName: String, originalClassName: String, lsiClass: LsiClass, dictFields: List<LsiField>) {
         val originalFullName = lsiClass.qualifiedName ?: "$packageName.$originalClassName"
         val dtoClassName = "${originalClassName}DictDTO"
         val dtoFullName = "$packageName.$dtoClassName"
         val convertorClassName = "${originalClassName}Convertor"
         val convertorFullName = "$packageName.$convertorClassName"
-        
+
         processedClasses.add(
             ProcessedClassInfo(
                 originalClassName = originalClassName,
@@ -197,50 +198,51 @@ class DictTranslateProcessor : AbstractProcessor() {
         try {
             val dtoClassName = "${originalClassName}DictDTO"
             val javaCode = DictDtoGenerator.generateDictDTO(packageName, lsiClass, allFields, dictFields)
-            
+
             val sourceFile = filer.createSourceFile("$packageName.$dtoClassName")
             sourceFile.openWriter().use { writer ->
                 writer.write(javaCode)
             }
-            
+
             lsiLogger.info("Generated DictDTO class: $packageName.$dtoClassName")
         } catch (e: Exception) {
             lsiLogger.error("Failed to generate DictDTO for $originalClassName: ${e.message}")
         }
     }
-    
+
     private fun generateConvertor(packageName: String, originalClassName: String, lsiClass: LsiClass, dictFields: List<LsiField>) {
         try {
             val convertorClassName = "${originalClassName}Convertor"
-            val javaCode = DictConvertorGenerator.generateConvertor(lsiClass, dictFields)
-            
+            val dictFieldsInfo = convertLsiFieldsToDictFieldInfo(dictFields, originalClassName)
+            val javaCode = DictConvertorGenerator.generateConvertor(packageName, originalClassName, dictFieldsInfo)
+
             val sourceFile = filer.createSourceFile("$packageName.$convertorClassName")
             sourceFile.openWriter().use { writer ->
                 writer.write(javaCode)
             }
-            
+
             lsiLogger.info("Generated Convertor class: $packageName.$convertorClassName")
         } catch (e: Exception) {
             lsiLogger.error("Failed to generate Convertor for $originalClassName: ${e.message}")
         }
     }
-    
+
     private fun generateSqlAssist(packageName: String, originalClassName: String, lsiClass: LsiClass, dictFields: List<LsiField>) {
         try {
             val sqlAssistClassName = "${originalClassName}SqlAssist"
             val javaCode = SqlAssistGenerator.generateSqlAssist(lsiClass, dictFields)
-            
+
             val sourceFile = filer.createSourceFile("$packageName.$sqlAssistClassName")
             sourceFile.openWriter().use { writer ->
                 writer.write(javaCode)
             }
-            
+
             lsiLogger.info("Generated SqlAssist class: $packageName.$sqlAssistClassName")
         } catch (e: Exception) {
             lsiLogger.error("Failed to generate SqlAssist for $originalClassName: ${e.message}")
         }
     }
-    
+
     private fun generateDictDsl(packageName: String, originalClassName: String, lsiClass: LsiClass, dictFields: List<LsiField>) {
         try {
             val dslClassName = "${originalClassName}DictDsl"
@@ -487,6 +489,100 @@ public class $className {
 
         return directFields + nestedFields
     }
+
+    /**
+     * 将 LsiField 列表转换为 DictFieldInfo 列表，支持嵌套类前缀
+     */
+    private fun convertLsiFieldsToDictFieldInfo(dictFields: List<LsiField>, rootClassName: String = ""): List<DictFieldInfo> {
+        return dictFields.mapNotNull { field ->
+            val dictAnnotation = field.annotations.find { it.simpleName == "Dict" }
+            if (dictAnnotation != null) {
+                val fieldName = field.name ?: "unknown"
+                val fieldType = field.type?.name ?: "Object"
+                val translationFieldName = "${fieldName}Name"
+
+                // 构建嵌套类前缀
+                val nestedPrefix = buildNestedClassPrefix(field, rootClassName)
+
+                // 从注解中提取字典配置
+                val dictType = dictAnnotation.getAttribute("type")?.toString() ?: "system"
+                val dictConfig = when (dictType) {
+                    "system" -> dictAnnotation.getAttribute("dicCode")?.toString() ?: ""
+                    "table" -> {
+                        val table = dictAnnotation.getAttribute("table")?.toString() ?: ""
+                        val codeColumn = dictAnnotation.getAttribute("codeColumn")?.toString() ?: "code"
+                        val nameColumn = dictAnnotation.getAttribute("nameColumn")?.toString() ?: "name"
+                        val whereCondition = dictAnnotation.getAttribute("whereCondition")?.toString() ?: ""
+                        "$table|$codeColumn|$nameColumn|$whereCondition"
+                    }
+                    else -> ""
+                }
+
+                DictFieldInfo(
+                    fieldName = fieldName,
+                    fieldType = fieldType,
+                    translationFieldName = translationFieldName,
+                    dictType = dictType,
+                    dictConfig = dictConfig,
+                    nestedClassPrefix = nestedPrefix
+                )
+            } else {
+                null
+            }
+        }
+    }
+
+    /**
+     * 构建嵌套类前缀
+     * 基于字段的声明类和全限定名来推断嵌套结构
+     */
+    private fun buildNestedClassPrefix(field: LsiField, rootClassName: String): String {
+        val declaringClass = field.declaringClass ?: return ""
+        val declaringClassName = declaringClass.name ?: return ""
+        val qualifiedName = declaringClass.qualifiedName ?: return ""
+        
+        // 如果声明类就是根类，不需要前缀
+        if (declaringClassName == rootClassName) {
+            return ""
+        }
+        
+        try {
+            val packageName = extractPackageName(qualifiedName)
+            val classPath = qualifiedName.removePrefix("$packageName.")
+            
+            // 处理嵌套类的情况
+            when {
+                // Java 内部类：使用 $ 分隔符
+                classPath.contains("$") -> {
+                    val nestedPath = classPath.replace("$", ".")
+                    return if (nestedPath.startsWith(rootClassName)) {
+                        nestedPath.substringBeforeLast(".$declaringClassName")
+                    } else {
+                        "$rootClassName.$declaringClassName"
+                    }
+                }
+                
+                // Kotlin 嵌套类或其他情况：使用 . 分隔符
+                classPath.contains(".") -> {
+                    return if (classPath.startsWith(rootClassName)) {
+                        classPath.substringBeforeLast(".$declaringClassName")
+                    } else {
+                        "$rootClassName.$declaringClassName"
+                    }
+                }
+                
+                // 简单情况：可能是直接的嵌套类
+                else -> {
+                    return "$rootClassName.$declaringClassName"
+                }
+            }
+        } catch (e: Exception) {
+            // 如果解析失败，返回简单的前缀
+            lsiLogger.warn("Failed to build nested class prefix for field ${field.name} in class $declaringClassName: ${e.message}")
+            return "$rootClassName.$declaringClassName"
+        }
+    }
+
     /**
      * 生成IoC上下文类
      */
@@ -498,17 +594,17 @@ public class $className {
             } else {
                 "generated"
             }
-            
+
             val javaCode = DictClassHelperIocContextGenerator.generateIocContext(packageName, processedClasses)
-            
+
             // 写入文件
             val sourceFile = filer.createSourceFile("$packageName.DictClassHelperIocContext")
             sourceFile.openWriter().use { writer ->
                 writer.write(javaCode)
             }
-            
+
             lsiLogger.info("Generated DictClassHelperIocContext with ${processedClasses.size} class mappings")
-            
+
         } catch (e: Exception) {
             lsiLogger.error("Failed to generate IoC context: ${e.message}")
         }

@@ -8,13 +8,18 @@ plugins {
 //    id("site.addzero.gradle.plugin.modules-buddy") version "+"
 }
 implementationRemoteGit{
-    remoteGits=listOf("addzero-lib-jvm-stable"
+    remoteGits=listOf(
+
+        "addzero-lib-jvm-stable"
         ,"metaprogramming-lsi"
     )
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-14T17:17:58.584460
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2025-12-14T20:26:32.134184
+// Loaded: 4, Excluded: 0, Total: 4
+include(":checkouts:metaprogramming-lsi:lsi-apt")
+include(":checkouts:metaprogramming-lsi:lsi-core")
+include(":lib:apt:dict-trans:apt-dict-trans-core")
 include(":lib:apt:dict-trans:apt-dict-trans-processor")
 // <<< Gradle Buddy: End Of Block <<<
