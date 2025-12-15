@@ -9,6 +9,5 @@ dependencies {
 
     // fastjson2 支持（用于JSON序列化兜底验证）
     implementation(libs.fastjson2.kotlin)
+    
 }
-
-

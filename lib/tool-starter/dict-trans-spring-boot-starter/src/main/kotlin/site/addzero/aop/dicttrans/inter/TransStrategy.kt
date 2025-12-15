@@ -1,8 +1,6 @@
 package site.addzero.aop.dicttrans.inter
 
-import cn.hutool.core.util.TypeUtil
 import site.addzero.util.RefUtil
-import java.lang.reflect.ParameterizedType
 
 /**
  * @author zjarlin

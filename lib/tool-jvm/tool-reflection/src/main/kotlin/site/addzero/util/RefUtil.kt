@@ -24,6 +24,11 @@ import java.util.*
  * @since 2022/06/29
  */
 object RefUtil {
+    /**
+     * 注意：Hutool 的 ReflectUtil 存在内存泄漏风险，建议使用 ImprovedReflectUtil 替代
+     * 
+     * @see ImprovedReflectUtil
+     */
 
     fun Any?.isNotNew(): Boolean {
         if (this == null) {

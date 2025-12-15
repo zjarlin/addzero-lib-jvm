@@ -2,7 +2,7 @@ plugins {
     id("site.addzero.buildlogic.spring.spring-starter")
 }
 dependencies {
-    implementation(libs.hutool.all)
+//    implementation(libs.hutool.all)
     implementation(libs.fastjson2.kotlin)
 //    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
     implementation("site.addzero:tool-reflection:2025.10.20")

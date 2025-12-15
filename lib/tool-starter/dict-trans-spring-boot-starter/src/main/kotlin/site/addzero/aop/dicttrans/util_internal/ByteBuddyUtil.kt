@@ -23,17 +23,6 @@ internal class ByteBuddyUtil {
 
 
     companion object {
-        fun 判断能不能跳出去(o: Any, getNeedAddInfoFun: Function<Any, MutableList<NeedAddInfo>>): Boolean {
-            val fields = ReflectUtil.getFields(o.javaClass)
-            val b = Arrays.stream<Field>(fields).anyMatch { field: Field ->
-                val objectField: Boolean = RefUtil.isObjectField(o, field)
-                val collectionField: Boolean = RefUtil.isCollectionField(field)
-                val apply = getNeedAddInfoFun.apply(o)
-                val b1 = apply.size == 0
-                objectField || collectionField || b1
-            }
-            return !b
-        }
 
         /**
          * 只要有一个集合或者字段就不能跳出去
