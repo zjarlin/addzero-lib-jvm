@@ -1,12 +1,13 @@
 package site.addzero.aop.dicttrans.util_internal
 
-import cn.hutool.core.bean.BeanUtil
-import cn.hutool.core.collection.CollUtil
-import cn.hutool.core.util.ArrayUtil
-import cn.hutool.core.util.ReflectUtil
+import site.addzero.aop.dicttrans.util.BeanUtil
+import site.addzero.aop.dicttrans.util.CollUtil
+import site.addzero.aop.dicttrans.util.ArrayUtil
+import site.addzero.aop.dicttrans.util.ReflectUtil
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.dynamic.DynamicType
 import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
+
 import site.addzero.util.RefUtil
 import java.lang.reflect.Field
 import java.lang.reflect.Type

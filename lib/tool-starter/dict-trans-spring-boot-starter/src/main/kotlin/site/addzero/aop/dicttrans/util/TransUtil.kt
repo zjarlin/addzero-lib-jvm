@@ -1,8 +1,8 @@
 package site.addzero.aop.dicttrans.util
 
-import cn.hutool.core.collection.CollUtil
-import cn.hutool.core.util.ReflectUtil
-import cn.hutool.extra.spring.SpringUtil
+import site.addzero.aop.dicttrans.util.CollUtil
+import site.addzero.aop.dicttrans.util.ReflectUtil
+import site.addzero.aop.dicttrans.util.SpringUtil
 import site.addzero.aop.dicttrans.inter.TransApi
 import site.addzero.aop.dicttrans.util_internal.TransInternalUtil
 

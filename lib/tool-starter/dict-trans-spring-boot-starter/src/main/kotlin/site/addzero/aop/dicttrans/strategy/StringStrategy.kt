@@ -1,8 +1,7 @@
 package site.addzero.aop.dicttrans.strategy
 
-import cn.hutool.core.text.CharSequenceUtil.isBlank
-import cn.hutool.core.util.StrUtil
-import cn.hutool.extra.spring.SpringUtil
+import site.addzero.aop.dicttrans.util.StrUtil
+import site.addzero.aop.dicttrans.util.SpringUtil
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.inter.TransApi
 import site.addzero.aop.dicttrans.inter.TransStrategy
@@ -21,7 +20,7 @@ open class StringStrategy() : TransStrategy<String> {
 
 
     public override fun trans(s: String): String {
-        if (isBlank(s)) {
+        if (StrUtil.isBlank(s)) {
             return s
         }
         return extractSingleAttributeTranslation(s, dict)

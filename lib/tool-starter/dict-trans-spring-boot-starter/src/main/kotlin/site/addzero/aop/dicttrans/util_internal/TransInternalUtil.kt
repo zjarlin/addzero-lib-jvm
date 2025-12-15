@@ -1,12 +1,12 @@
 package site.addzero.aop.dicttrans.util_internal
 
-import cn.hutool.core.collection.CollUtil
-import cn.hutool.core.map.MapUtil
-import cn.hutool.core.text.CharSequenceUtil
-import cn.hutool.core.util.ObjUtil
-import cn.hutool.core.util.ReflectUtil
-import cn.hutool.core.util.StrUtil
-import cn.hutool.extra.spring.SpringUtil
+import site.addzero.aop.dicttrans.util.CollUtil
+import site.addzero.aop.dicttrans.util.MapUtil
+import site.addzero.aop.dicttrans.util.CharSequenceUtil
+import site.addzero.aop.dicttrans.util.ObjUtil
+import site.addzero.aop.dicttrans.util.ReflectUtil
+import site.addzero.aop.dicttrans.util.StrUtil
+import site.addzero.aop.dicttrans.util.SpringUtil
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.dictaop.CommonConstant
 import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
@@ -60,7 +60,7 @@ internal object TransInternalUtil {
                         val alias = anno.serializationAlias
                         val nameColumn = StrUtil.toCamelCase(anno.nameColumn)
                         val other = field.name + CommonConstant.DICT_TEXT_SUFFIX
-                        val firstNonBlank = CharSequenceUtil.firstNonBlank(alias, nameColumn, other)
+                        val firstNonBlank = CharSequenceUtil.firstNonBlank(alias, nameColumn, other) ?: other
 
                         val transInfo = TransInfo(
                             superObjectFieldTypeEnum = null,
@@ -74,7 +74,7 @@ internal object TransInternalUtil {
                             afterObjectClass = null,
                             translatedAttributeNames = firstNonBlank,
                             attributeNameBeforeTranslation = field.name,
-                            valueBeforeTranslation = fieldValue,
+                            valueBeforeTranslation = fieldValue ?: "",
                             translatedValue = null,
                             translatedType = anno.spelValueType.java,
                             classificationOfTranslation = null,
@@ -93,7 +93,7 @@ internal object TransInternalUtil {
                     }
                 }
                 // 处理嵌套实体字段
-                else if (RefUtil.isT(fieldValue)) {
+                else if (fieldValue != null && RefUtil.isT(fieldValue)) {
                     // 将嵌套对象加入队列，等待处理
                     queue.add(fieldValue)
                 }

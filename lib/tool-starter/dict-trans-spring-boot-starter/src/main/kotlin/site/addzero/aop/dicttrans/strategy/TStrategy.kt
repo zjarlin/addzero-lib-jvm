@@ -1,6 +1,6 @@
 package site.addzero.aop.dicttrans.strategy
 
-import cn.hutool.core.collection.CollUtil
+import site.addzero.aop.dicttrans.util.CollUtil
 import site.addzero.aop.dicttrans.inter.TransStrategy
 import site.addzero.util.RefUtil
 import org.springframework.stereotype.Component
