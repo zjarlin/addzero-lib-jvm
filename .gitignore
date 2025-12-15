@@ -11,7 +11,7 @@ checkouts
 xcuserdata
 
 
-
+kotlin-js-store
 
 !src/**/build/
 local.properties
