@@ -45,28 +45,27 @@ class DictTransProcessor : AbstractProcessor() {
     
     override fun process(annotations: Set<TypeElement>, roundEnv: RoundEnvironment): Boolean {
         try {
-            messager.printMessage(Diagnostic.Kind.NOTE, "开始处理注解，注解数量: ${annotations.size}")
-            
             // 收集所有包含@Dict注解的类
             val annotatedElements = roundEnv.getElementsAnnotatedWith(Dict::class.java)
-            messager.printMessage(Diagnostic.Kind.NOTE, "找到 @Dict 注解的元素数量: ${annotatedElements.size}")
-            
             val entityClasses = mutableSetOf<TypeElement>()
             
             for (element in annotatedElements) {
-                messager.printMessage(Diagnostic.Kind.NOTE, "处理元素: ${element.simpleName}, 类型: ${element.kind}")
                 if (element.kind == ElementKind.FIELD) {
                     val enclosingClass = element.enclosingElement as TypeElement
                     entityClasses.add(enclosingClass)
-                    messager.printMessage(Diagnostic.Kind.NOTE, "添加实体类: ${enclosingClass.qualifiedName}")
                 }
             }
             
-            messager.printMessage(Diagnostic.Kind.NOTE, "需要处理的实体类数量: ${entityClasses.size}")
+            // 同时收集所有可能的实体类（包括嵌套实体）
+            val allEntityClasses = mutableSetOf<TypeElement>()
+            allEntityClasses.addAll(entityClasses)
+            
+            for (entityClass in entityClasses) {
+                collectNestedEntities(entityClass, allEntityClasses)
+            }
             
             // 处理每个实体类
-            for (entityClass in entityClasses) {
-                messager.printMessage(Diagnostic.Kind.NOTE, "开始处理实体类: ${entityClass.qualifiedName}")
+            for (entityClass in allEntityClasses) {
                 processEntity(entityClass)
             }
             
@@ -76,6 +75,30 @@ class DictTransProcessor : AbstractProcessor() {
         }
         
         return true
+    }
+    
+    private fun collectNestedEntities(entityClass: TypeElement, allEntityClasses: MutableSet<TypeElement>) {
+        for (element in entityClass.enclosedElements) {
+            if (element.kind == ElementKind.FIELD) {
+                val field = element as VariableElement
+                val fieldType = field.asType()
+                
+                if (isCollectionType(fieldType)) {
+                    val elementType = getCollectionElementType(fieldType)
+                    if (elementType != null && isEntityType(elementType)) {
+                        val elementTypeElement = (elementType as DeclaredType).asElement() as TypeElement
+                        if (allEntityClasses.add(elementTypeElement)) {
+                            collectNestedEntities(elementTypeElement, allEntityClasses)
+                        }
+                    }
+                } else if (isEntityType(fieldType)) {
+                    val fieldTypeElement = (fieldType as DeclaredType).asElement() as TypeElement
+                    if (allEntityClasses.add(fieldTypeElement)) {
+                        collectNestedEntities(fieldTypeElement, allEntityClasses)
+                    }
+                }
+            }
+        }
     }
     
     private fun processEntity(entityClass: TypeElement) {
@@ -140,12 +163,10 @@ class DictTransProcessor : AbstractProcessor() {
                     ))
                 }
                 
-                // 检查是否为嵌套实体
-                if (isEntityType(field.asType())) {
-                    val nestedField = analyzeNestedField(field)
-                    if (nestedField != null) {
-                        nestedEntityFields.add(nestedField)
-                    }
+                // 检查是否为嵌套实体（包括集合类型）
+                val nestedField = analyzeNestedField(field)
+                if (nestedField != null) {
+                    nestedEntityFields.add(nestedField)
                 }
             }
         }
@@ -256,8 +277,6 @@ class DictTransProcessor : AbstractProcessor() {
             sourceFile.openWriter().use { writer ->
                 writer.write(dtoCode)
             }
-            
-            messager.printMessage(Diagnostic.Kind.NOTE, "生成DTO类: ${entityInfo.packageName}.$dtoClassName")
             
         } catch (e: IOException) {
             messager.printMessage(Diagnostic.Kind.ERROR, "生成DTO类失败: ${e.message}")
