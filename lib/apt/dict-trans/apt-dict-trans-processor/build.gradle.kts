@@ -10,7 +10,6 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     compileOnly("com.google.auto.service:auto-service:1.0.1")
     annotationProcessor("com.google.auto.service:auto-service:1.0.1")
-    
     // Spring依赖（用于生成的转换器）
     compileOnly("org.springframework:spring-context:5.3.21")
     compileOnly("org.springframework:spring-beans:5.3.21")
