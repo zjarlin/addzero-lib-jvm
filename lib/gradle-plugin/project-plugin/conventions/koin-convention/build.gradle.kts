@@ -1,4 +1,3 @@
-import org.gradle.accessors.dm.LibrariesForLibs
 import site.addzero.gradle.tool.configureJ8
 
 buildscript {
@@ -10,7 +9,6 @@ buildscript {
         classpath("site.addzero:gradle-tool-config-java:0.0.674")
     }
 }
-
 configureJ8("8")
 
 plugins {
@@ -24,9 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation("site.addzero:gradle-tool-config-java:0.0.674")
-    implementation("site.addzero.gradle.plugin.java-convention:site.addzero.gradle.plugin.java-convention.gradle.plugin:2025.12.19")
+    implementation("site.addzero:kotlin-convention:2025.12.20")
+    implementation("site.addzero:ksp-convention:2025.12.20")
     gradleApi()
 }
-
-

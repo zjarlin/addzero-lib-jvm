@@ -20,5 +20,8 @@ implementationRemoteGit{
 // Loaded: 3, Excluded: 0, Total: 3
 include(":lib:gradle-plugin:project-plugin:conventions:ktxjson-convention")
 include(":lib:gradle-plugin:project-plugin:conventions:lombok-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:koin-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:spring-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:kmp-convention")
 include(":lib:tool-jvm:network-call:tool-api-maven")
 // <<< Gradle Buddy: End Of Block <<<

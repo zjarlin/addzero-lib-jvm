@@ -8,8 +8,16 @@ plugins {
 
 val extension = the<KspConventionExtension>()
 
-kotlin {
+//kotlin {
+//    dependencies {
+//        implementation("com.google.devtools.ksp:symbol-processing-api:${extension.kspVersion.get()}")
+//    }
+//}
+
+afterEvaluate {
+    val version = extension.kspVersion.get()
     dependencies {
-        implementation("com.google.devtools.ksp:symbol-processing-api:${extension.kspVersion.get()}")
+        add("implementation", "com.google.devtools.ksp:symbol-processing-api:${extension.kspVersion.get()}")
     }
 }
+
