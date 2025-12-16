@@ -20,59 +20,42 @@ import site.addzero.aop.dicttrans.anno.Dict
 @Configuration
 @EnableConfigurationProperties(AddzeroDictTransProperties::class)
 class DictAopConfiguration {
-    // 定义注解切点
-    @Bean
-    fun dictAnnotationPointcut(): AspectJExpressionPointcut {
-        return AspectJExpressionPointcut().apply {
-            // 拦截所有带 @Dict 注解的方法
-            expression = "@annotation(site.addzero.aop.dicttrans.anno.Dict)"
-        }
-    }
 
     @Bean
     fun dictAdvisor(
         properties: AddzeroDictTransProperties,
-        dictAnnotationPointcut: AspectJExpressionPointcut,
         transStrategySelector: TransStrategySelector
     ): Advisor {
+        // 合并注解和包扫描条件到一个表达式中，减少Pointcut实例
+        val combinedExpression = "@annotation(site.addzero.aop.dicttrans.anno.Dict) && (${properties.expression})"
 
-        // 明确使用 Pointcut 构造 ComposablePointcut
-        val expressionPointcut = AspectJExpressionPointcut().apply {
-            expression = properties.expression
+        val pointcut = AspectJExpressionPointcut().apply {
+            expression = combinedExpression
         }
-        //       intersection() 表示&&
-
-        val compositePointcut = ComposablePointcut(expressionPointcut as Pointcut)
-            .intersection (dictAnnotationPointcut as Pointcut)
-
 
         val advice = object : MethodInterceptor {
             override fun invoke(invocation: MethodInvocation): Any? {
-
-                // 获取方法上的 @Dict 注解（如果存在）
+                // 由于表达式中已经包含了@Dict注解检查，这里可以直接获取
+                // 但为了向后兼容性和性能，仍然检查注解是否存在
                 val dict = AnnotationUtils.findAnnotation(
                     invocation.method,
                     Dict::class.java
-                )
+                ) ?: return invocation.proceed()
 
                 val outVO = invocation.proceed()
                 outVO ?: return outVO
 
-
                 val strategy = transStrategySelector.getStrategy(outVO) ?: return outVO
 
                 if (strategy is StringStrategy) {
-                    strategy.dict = dict?:return outVO
+                    strategy.dict = dict
                 }
                 val trans = strategy.trans(outVO)
                 return trans
-
-
             }
-
         }
 
-        return DefaultPointcutAdvisor(compositePointcut, advice)
+        return DefaultPointcutAdvisor(pointcut, advice)
     }
 
 

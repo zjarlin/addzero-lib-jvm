@@ -28,7 +28,7 @@ gradle.settingsEvaluated {
         include(repoName) {
             uri.set(repoType.urlTemplate.format(author, repoName))
             branch.set(branchName)
-            checkoutDirectory.set(file(checkoutDir))
+            checkoutDirectory.set(file("$checkoutDir/$repoName"))
         }
     }
 
