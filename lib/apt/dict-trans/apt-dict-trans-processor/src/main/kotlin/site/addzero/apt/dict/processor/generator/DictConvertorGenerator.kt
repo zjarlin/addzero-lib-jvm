@@ -41,10 +41,14 @@ class DictConvertorGenerator(private val processingEnv: ProcessingEnvironment) {
             appendLine()
             
             // 导入必要的类
+            appendLine("import org.springframework.beans.factory.InitializingBean;")
+            appendLine("import org.springframework.beans.factory.annotation.Autowired;")
+            appendLine("import org.springframework.stereotype.Component;")
             appendLine("import site.addzero.apt.dict.trans.inter.DictConvertor;")
             appendLine("import site.addzero.apt.dict.trans.inter.TransApi;")
             appendLine("import site.addzero.apt.dict.trans.model.out.SystemDictModelResult;")
             appendLine("import site.addzero.apt.dict.trans.model.out.TableDictModelResult;")
+            appendLine("import site.addzero.apt.dict.trans.registry.DictConvertorRegistry;")
             appendLine("import java.util.*;")
             appendLine("import java.util.stream.Collectors;")
 
@@ -70,7 +74,8 @@ class DictConvertorGenerator(private val processingEnv: ProcessingEnvironment) {
             appendLine(" * $entityClassName 的字典转换器")
             appendLine(" * 自动生成，请勿手动修改")
             appendLine(" */")
-            appendLine("public class $className implements DictConvertor<$entityClassName, $dtoClassName> {")
+            appendLine("@Component")
+            appendLine("public class $className implements DictConvertor<$entityClassName, $dtoClassName>, InitializingBean {")
             appendLine()
             
             appendLine("    private TransApi transApi;")
@@ -88,6 +93,7 @@ class DictConvertorGenerator(private val processingEnv: ProcessingEnvironment) {
                 appendLine()
             }
 
+            appendLine("    @Autowired")
             appendLine("    public $className(TransApi transApi) {")
             appendLine("        this.transApi = transApi;")
 
@@ -102,6 +108,13 @@ class DictConvertorGenerator(private val processingEnv: ProcessingEnvironment) {
                 appendLine("        this.${nestedField.fieldName}Convertor = new $nestedConverterType(transApi);")
             }
 
+            appendLine("    }")
+            appendLine()
+            
+            // 生成 afterPropertiesSet 方法
+            appendLine("    @Override")
+            appendLine("    public void afterPropertiesSet() {")
+            appendLine("        DictConvertorRegistry.register($entityClassName.class, $dtoClassName.class, this);")
             appendLine("    }")
             appendLine()
             

@@ -16,8 +16,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-16T20:20:55.467994
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2025-12-16T20:34:32.773391
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:apt:dict-trans:apt-dict-trans-processor")
 include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 include(":lib:gradle-plugin:project-plugin:gradle-version-budy")
 include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
