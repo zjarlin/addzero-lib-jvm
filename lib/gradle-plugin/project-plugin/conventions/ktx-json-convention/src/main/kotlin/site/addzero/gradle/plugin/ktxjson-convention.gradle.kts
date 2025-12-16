@@ -1,5 +1,4 @@
-// src/main/kotlin/site.addzero.gradle.plugin.ktxjson-convention.gradle.kts
-@file:Suppress("unused")
+package site.addzero.gradle.plugin
 
 import site.addzero.gradle.KtxJsonConventionExtension
 

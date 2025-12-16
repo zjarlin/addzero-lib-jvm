@@ -8,6 +8,7 @@ import site.addzero.gradle.tool.configureJUnitPlatform
 import site.addzero.gradle.tool.configureKotlinTestDependencies
 
 plugins {
+    kotlin("jvm")
     id("site.addzero.gradle.plugin.java-convention")
 }
 val javaConvention = the<JavaConventionExtension>()

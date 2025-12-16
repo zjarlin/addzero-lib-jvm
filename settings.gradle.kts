@@ -16,10 +16,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-16T09:01:03.903448
-// Loaded: 4, Excluded: 0, Total: 4
-include(":lib:gradle-plugin:project-plugin:conventions:java-convention")
-include(":lib:gradle-plugin:project-plugin:conventions:kotlin-convention")
+// Generated at: 2025-12-16T10:14:58.308563
+// Loaded: 3, Excluded: 0, Total: 3
 include(":lib:gradle-plugin:project-plugin:conventions:ktx-json-convention")
 include(":lib:gradle-plugin:project-plugin:conventions:lombok-convention")
+include(":lib:tool-jvm:network-call:tool-api-maven")
 // <<< Gradle Buddy: End Of Block <<<

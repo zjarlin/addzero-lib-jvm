@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation("site.addzero:kotlin-convention:2025.12.19")
+    implementation("site.addzero:kotlin-convention:2025.12.20")
 
 //    compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 //    implementation(libs.gradle.tool.config.java)
