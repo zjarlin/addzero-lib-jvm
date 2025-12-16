@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin
+package site.addzero.gradle
 
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -21,6 +21,7 @@ abstract class GitDependencysExtension {
         buildLogicName.convention("build-logic")
         author.convention("zjarlin")
         branch.convention("master")
-        checkoutDir.convention("checkouts")
+//        checkouts
+        checkoutDir.convention("lib-git")
     }
 }

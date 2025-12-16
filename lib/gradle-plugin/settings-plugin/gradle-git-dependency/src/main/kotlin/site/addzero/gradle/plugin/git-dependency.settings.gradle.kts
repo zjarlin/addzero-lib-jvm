@@ -2,6 +2,7 @@ package site.addzero.gradle.plugin
 
 import me.champeau.gradle.igp.GitIncludeExtension
 import me.champeau.gradle.igp.gitRepositories
+import site.addzero.gradle.GitDependencysExtension
 
 plugins {
     id("me.champeau.includegit")

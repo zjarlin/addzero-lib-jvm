@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin
+package site.addzero.gradle
 
 enum class RepoType(val urlTemplate: String) {
     GITEE("https://gitee.com/%s/%s.git"),

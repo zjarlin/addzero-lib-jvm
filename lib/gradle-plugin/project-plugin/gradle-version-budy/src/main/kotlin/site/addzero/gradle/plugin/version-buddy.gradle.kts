@@ -40,7 +40,7 @@ afterEvaluate {
         else -> "maven($mavenVersion)+1"
     }
 
-    val targetProjects = subprojects.filter { it.path.startsWith(":lib:") }
+    val targetProjects = subprojects.filter { it.path.startsWith(":lib") }
 
     if (targetProjects.isEmpty()) {
         println("[VersionBuddy] No :lib: subprojects found")

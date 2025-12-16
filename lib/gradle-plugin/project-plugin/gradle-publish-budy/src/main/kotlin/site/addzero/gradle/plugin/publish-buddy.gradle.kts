@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 // 默认配置常量
 private object Defaults {
-    const val PROJECT_DESCRIPTION = "addzero-kmp-scaffold"
+    const val PROJECT_DESCRIPTION = "Say goodbye to template code and embrace simplicity and elegance"
     const val AUTHOR_NAME = "zjarlin"
     const val GIT_URL = "https://gitee.com/zjarlin/addzero.git"
     const val EMAIL_DOMAIN = "outlook.com"
@@ -86,7 +86,7 @@ afterEvaluate {
 }
 
 subprojects {
-    if (!path.startsWith(":lib:")) return@subprojects
+    if (!path.startsWith(":lib")) return@subprojects
     // 排除不需要签名的项目
     if (path == ":lib:apt-dict-processor") return@subprojects
     apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
