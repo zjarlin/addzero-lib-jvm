@@ -10,16 +10,18 @@ plugins {
 implementationRemoteGit{
     remoteGits=listOf(
 
-        "addzero-lib-jvm-stable"
-        ,"metaprogramming-lsi"
+        "metaprogramming-lsi"
     )
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-16T20:34:32.773391
-// Loaded: 4, Excluded: 0, Total: 4
-include(":lib:apt:dict-trans:apt-dict-trans-processor")
-include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
-include(":lib:gradle-plugin:project-plugin:gradle-version-budy")
+// Generated at: 2025-12-16T20:57:44.322138
+// Loaded: 7, Excluded: 0, Total: 7
+include(":checkouts:addzero-lib-jvm-stable:lib:tool-jvm:tool-api-jvm")
+include(":lib:decompile:struct-java")
 include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
+include(":lib:kcp:kcp-annotations")
+include(":lib:kcp:kcp-i18n")
+include(":lib:kcp:kcp-plugin")
+include(":lib:tool-jvm:network-call:tool-api-ocr")
 // <<< Gradle Buddy: End Of Block <<<
