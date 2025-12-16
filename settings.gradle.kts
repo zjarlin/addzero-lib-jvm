@@ -15,10 +15,11 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-16T21:38:11.471927
-// Loaded: 4, Excluded: 0, Total: 4
+// Generated at: 2025-12-16T22:06:04.972297
+// Loaded: 5, Excluded: 0, Total: 5
 include(":lib:apt:dict-trans:apt-dict-trans-core")
 include(":lib:decompile:struct-java")
-include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
 include(":lib:kcp:kcp-annotations")
+include(":lib:kcp:kcp-plugin")
+include(":lib:tool-jvm:database:tool-sql-executor")
 // <<< Gradle Buddy: End Of Block <<<
