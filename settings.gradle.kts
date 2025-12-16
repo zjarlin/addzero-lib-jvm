@@ -16,12 +16,11 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-16T10:14:58.308563
-// Loaded: 3, Excluded: 0, Total: 3
-include(":lib:gradle-plugin:project-plugin:conventions:ktxjson-convention")
-include(":lib:gradle-plugin:project-plugin:conventions:lombok-convention")
+// Generated at: 2025-12-16T13:52:12.637325
+// Loaded: 5, Excluded: 0, Total: 5
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:intellij-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:koin-convention")
 include(":lib:gradle-plugin:project-plugin:conventions:koin-convention")
-include(":lib:gradle-plugin:project-plugin:conventions:spring-convention")
-include(":lib:gradle-plugin:project-plugin:conventions:kmp-convention")
-include(":lib:tool-jvm:network-call:tool-api-maven")
+include(":lib:gradle-plugin:project-plugin:conventions:ksp-convention")
+include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
 // <<< Gradle Buddy: End Of Block <<<

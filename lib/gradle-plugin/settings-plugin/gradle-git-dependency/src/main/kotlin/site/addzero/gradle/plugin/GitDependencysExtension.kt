@@ -11,6 +11,7 @@ abstract class GitDependencysExtension {
     abstract val repoType: Property<RepoType>
     abstract val author: Property<String>
     abstract val branch: Property<String>
+    abstract val checkoutDir: Property<String>
 
     init {
         remoteGits.convention(listOf<String>())
@@ -20,5 +21,6 @@ abstract class GitDependencysExtension {
         buildLogicName.convention("build-logic")
         author.convention("zjarlin")
         branch.convention("master")
+        checkoutDir.convention("checkouts")
     }
 }

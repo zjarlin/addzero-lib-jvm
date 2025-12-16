@@ -9,35 +9,44 @@ plugins {
 
 val gitDependencies = extensions.create<GitDependencysExtension>("implementationRemoteGit")
 
-fun GitIncludeExtension.includeGitProject(repoName: String) {
-    val repoType = gitDependencies.repoType.get()
-    val author = gitDependencies.author.get()
-    val branchName = gitDependencies.branch.get()
-    include(repoName) {
-        uri.set(repoType.urlTemplate.format(author, repoName))
-        branch.set(branchName)
-    }
-}
 
-// 显式函数调用，在用户配置扩展后调用
-fun Settings.includeRemoteGits(vararg repos: String) {
-    gitRepositories {
-        repos.forEach { includeGitProject(it) }
-    }
-}
-
-// enableZlibs 的默认行为：包含 build-logic
-gitRepositories {
-    if (gitDependencies.enableZlibs.get()) {
-        includeGitProject(gitDependencies.buildLogicName.get())
-    }
-}
 
 gradle.settingsEvaluated {
     val enableZlibs = gitDependencies.enableZlibs.get()
     val zlibsName = gitDependencies.zlibsName.get()
     val buildLogicName = gitDependencies.buildLogicName.get()
     val remoteGits = gitDependencies.remoteGits.get()
+    val checkoutDir = gitDependencies.checkoutDir.get()
+
+    fun GitIncludeExtension.includeGitProject(repoName: String) {
+        val repoType = gitDependencies.repoType.get()
+        val author = gitDependencies.author.get()
+        val branchName = gitDependencies.branch.get()
+//    https://melix.github.io/includegit-gradle-plugin/latest/index.html#_known_limitations
+
+
+        include(repoName) {
+            uri.set(repoType.urlTemplate.format(author, repoName))
+            branch.set(branchName)
+            checkoutDirectory.set(file(checkoutDir))
+        }
+    }
+
+    // 显式函数调用，在用户配置扩展后调用
+    fun Settings.includeRemoteGits(vararg repos: String) {
+        gitRepositories {
+            repos.forEach { includeGitProject(it) }
+        }
+    }
+
+
+// enableZlibs 的默认行为：包含 build-logic
+    gitRepositories {
+        if (gitDependencies.enableZlibs.get()) {
+            includeGitProject(buildLogicName)
+        }
+    }
+
 
     // 处理通过属性配置的 remoteGits（备选方案，推荐使用 includeRemoteGits 函数）
     if (remoteGits.isNotEmpty()) {
@@ -47,11 +56,11 @@ gradle.settingsEvaluated {
     }
 
     if (enableZlibs) {
-        includeBuild("checkouts/$buildLogicName")
+        includeBuild("$checkoutDir/$buildLogicName")
         dependencyResolutionManagement {
             versionCatalogs {
                 create(zlibsName) {
-                    from(files("./checkouts/$buildLogicName/gradle/libs.versions.toml"))
+                    from(files("./$checkoutDir/$buildLogicName/gradle/libs.versions.toml"))
                 }
             }
         }

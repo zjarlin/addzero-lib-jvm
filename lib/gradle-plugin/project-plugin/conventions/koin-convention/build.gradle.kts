@@ -1,16 +1,3 @@
-import site.addzero.gradle.tool.configureJ8
-
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
-    }
-}
-configureJ8("8")
-
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
@@ -22,7 +9,14 @@ repositories {
 }
 
 dependencies {
-    implementation("site.addzero:kotlin-convention:2025.12.20")
-    implementation("site.addzero:ksp-convention:2025.12.20")
     gradleApi()
+}
+
+gradlePlugin {
+    plugins {
+        create("koinConvention") {
+            id = "site.addzero.gradle.plugin.koin-convention"
+            implementationClass = "site.addzero.gradle.plugin.KoinConventionPlugin"
+        }
+    }
 }

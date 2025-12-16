@@ -1,6 +1,8 @@
 # Gradle Checkout Repos Plugin
 
 这是一个简化Git仓库检出配置的Gradle预编译脚本。
+参考 https://melix.github.io/includegit-gradle-plugin/latest/index.html#_known_limitations
+
 
 ## 功能
 
