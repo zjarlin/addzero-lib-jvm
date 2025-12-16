@@ -22,8 +22,10 @@ repositories {
 }
 
 dependencies {
-    compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-    implementation(libs.gradle.tool.config.java)
+    implementation("site.addzero:kotlin-convention:2025.12.19")
+
+//    compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+//    implementation(libs.gradle.tool.config.java)
     implementation(libs.gradlePlugin.kotlinSerialization)
     gradleApi()
 }

@@ -1,3 +1,4 @@
+import org.gradle.accessors.dm.LibrariesForLibs
 import site.addzero.gradle.tool.configureJ8
 
 buildscript {
@@ -9,6 +10,7 @@ buildscript {
         classpath("site.addzero:gradle-tool-config-java:0.0.674")
     }
 }
+
 configureJ8("8")
 
 plugins {
@@ -24,7 +26,6 @@ repositories {
 dependencies {
     compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradle.tool.config.java)
-    implementation(libs.gradlePlugin.kotlin)
     implementation("site.addzero.gradle.plugin.java-convention:site.addzero.gradle.plugin.java-convention.gradle.plugin:2025.12.19")
 
 //    testImplementation(libs.junit.jupiter.api)

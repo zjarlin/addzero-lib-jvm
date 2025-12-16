@@ -1,19 +1,20 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import site.addzero.gradle.JavaConventionExtension
 import site.addzero.gradle.tool.configureJUnitPlatform
 import site.addzero.gradle.tool.configureKotlinTestDependencies
 
 plugins {
     id("site.addzero.gradle.plugin.java-convention")
 }
-val libs = the<LibrariesForLibs>()
-val javaVersion = libs.versions.jdk.get()
-configureKotlinCompatibility()
-configureKotlinToolchain(javaVersion)
+val javaConvention = the<JavaConventionExtension>()
+afterEvaluate {
+    configureKotlinCompatibility()
+    configureKotlinToolchain(javaConvention.jdkVersion.get())
+}
 
 configureKotlinTestDependencies()
 configureJUnitPlatform()
