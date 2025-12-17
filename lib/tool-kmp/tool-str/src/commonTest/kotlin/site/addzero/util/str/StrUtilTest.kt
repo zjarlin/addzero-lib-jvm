@@ -203,4 +203,98 @@ class StrUtilTest {
         assertEquals("sysYesNo", "sys_yes_no".toCamelCase())
         assertEquals("userName", "user_name".toCamelCase())
     }
+
+    @Test
+    fun testToUnderLineCase_CamelCase() {
+        // 测试小驼峰转下划线
+        assertEquals("user_Name", "userName".toUnderLineCase())
+        assertEquals("hello_World", "helloWorld".toUnderLineCase())
+        assertEquals("my_Variable_Name", "myVariableName".toUnderLineCase())
+        assertEquals("prop_Source", "propSource".toUnderLineCase())
+
+        // 测试基本的驼峰命名
+        assertEquals("get_User_Info", "getUserInfo".toUnderLineCase())
+        assertEquals("set_User_Age", "setUserAge".toUnderLineCase())
+        assertEquals("calculate_Total_Price", "calculateTotalPrice".toUnderLineCase())
+    }
+
+    @Test
+    fun testToUnderLineCase_PascalCase() {
+        // 测试大驼峰转下划线
+        assertEquals("User_Name", "UserName".toUnderLineCase())
+        assertEquals("Hello_World", "HelloWorld".toUnderLineCase())
+        assertEquals("My_Variable_Name", "MyVariableName".toUnderLineCase())
+        assertEquals("Prop_Source", "PropSource".toUnderLineCase())
+
+        // 测试类名转换
+        assertEquals("UserInfo", "UserInfo".toUnderLineCase())
+        assertEquals("HelloWorld", "HelloWorld".toUnderLineCase())
+    }
+
+    @Test
+    fun testToUnderLineCase_BoundaryConditions() {
+        // 测试空字符串
+        assertEquals("", "".toUnderLineCase())
+
+        // 测试单个字符
+        assertEquals("a", "a".toUnderLineCase())
+        assertEquals("A", "A".toUnderLineCase())
+
+        // 测试全小写
+        assertEquals("hello", "hello".toUnderLineCase())
+        assertEquals("user_name", "user_name".toUnderLineCase()) // 已经是下划线格式
+
+        // 测试全大写
+        assertEquals("H_E_L_L_O", "HELLO".toUnderLineCase())
+        assertEquals("U_S_E_R_N_A_M_E", "USER_NAME".toUnderLineCase()) // 已经是全大写下划线格式
+    }
+
+    @Test
+    fun testToUnderLineCase_ComplexCases() {
+        // 测试复杂驼峰命名
+        assertEquals("X_M_L_Http_Request", "XMLHttpRequest".toUnderLineCase())
+        assertEquals("JSON_Parser", "JSONParser".toUnderLineCase())
+        assertEquals("TCP_Connection", "TCPConnection".toUnderLineCase())
+
+        // 测试连续大写字母的处理
+        assertEquals("My_HTTP_Client", "MyHTTPClient".toUnderLineCase())
+        assertEquals("XML_Element", "XMLElement".toUnderLineCase())
+    }
+
+    @Test
+    fun testToUnderLineCase_EdgeCases() {
+        // 测试数字
+        assertEquals("user1_Name", "user1Name".toUnderLineCase())
+        assertEquals("test2_Case", "test2Case".toUnderLineCase())
+        assertEquals("A1_B2_C3", "A1B2C3".toUnderLineCase())
+
+        // 测试数字在开头
+        assertEquals("1_Value", "1Value".toUnderLineCase())
+        assertEquals("2Nd_Value", "2NdValue".toUnderLineCase())
+
+        // 测试单个大写字母在开头
+        assertEquals("_A", "A".toUnderLineCase())
+        assertEquals("_B_C", "BC".toUnderLineCase())
+
+        // 测试单个大写字母在结尾
+        assertEquals("a_B", "aB".toUnderLineCase())
+        assertEquals("a_B_", "aB_".toUnderLineCase())
+    }
+
+    @Test
+    fun testToUnderLineCase_SingleWordWithCapital() {
+        // 测试单个大写字母在中间
+        assertEquals("a_B", "aB".toUnderLineCase())
+        assertEquals("a_B_C", "aBC".toUnderLineCase())
+        assertEquals("a_B_C_d", "aBCd".toUnderLineCase())
+
+        // 测试连续的大写字母
+        assertEquals("a_B_C", "aBc".toUnderLineCase())
+        assertEquals("a_B_C_d", "aBCd".toUnderLineCase())
+        assertEquals("a_B_C_D_e", "aBCDE".toUnderLineCase())
+
+        // 测试多个连续大写字母
+        assertEquals("a_BC_d", "aBCd".toUnderLineCase())
+        assertEquals("a_BCD_ef", "aBCDef".toUnderLineCase())
+    }
 }
