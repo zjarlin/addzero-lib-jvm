@@ -22,4 +22,5 @@ dependencies {
 //    compileOnly("com.sybase:jconn4:7.0")
 
     testImplementation("com.h2database:h2:2.1.214")
+    testImplementation("org.xerial:sqlite-jdbc:3.39.3.0")
 }

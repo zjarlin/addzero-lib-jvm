@@ -1,0 +1,24 @@
+2025-12-16 22:27:55 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "CREATE TABLE employees (\000a    id INTEGER PRIMARY KEY [*]AUTOINCREMENT,\000a    name TEXT NOT NULL,\000a    department_id INTEGER,\000a    hire_date DATE,\000a    salary DECIMAL(10,2),\000a    FOREIGN KEY (department_id) REFERENCES departments(id)\000a)"; expected "HASH, CONSTRAINT, COMMENT, UNIQUE, NOT NULL, NULL, CHECK, REFERENCES, AUTO_INCREMENT, ,, )"; SQL statement:
+CREATE TABLE employees (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    department_id INTEGER,
+    hire_date DATE,
+    salary DECIMAL(10,2),
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+) [42001-214]
+2025-12-16 22:29:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "DEPARTMENTS" already exists; SQL statement:
+CREATE TABLE departments (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    location VARCHAR(200)
+) [42101-214]
+2025-12-16 22:37:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "DEPARTMENTS" already exists; SQL statement:
+CREATE TABLE departments (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    location VARCHAR(200)
+) [42101-214]
