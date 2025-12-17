@@ -297,4 +297,58 @@ class StrUtilTest {
         assertEquals("a_BC_d", "aBCd".toUnderLineCase())
         assertEquals("a_BCD_ef", "aBCDef".toUnderLineCase())
     }
+
+    @Test
+    fun testToUnderlineLowerCase() {
+        // 测试驼峰转下划线小写
+        assertEquals("user_name", "userName".toUnderlineLowerCase())
+        assertEquals("hello_world", "helloWorld".toUnderlineLowerCase())
+        assertEquals("my_variable_name", "myVariableName".toUnderlineLowerCase())
+        assertEquals("prop_source", "propSource".toUnderlineLowerCase())
+        assertEquals("get_user_info", "getUserInfo".toUnderlineLowerCase())
+        assertEquals("set_user_age", "setUserAge".toUnderlineLowerCase())
+        assertEquals("calculate_total_price", "calculateTotalPrice".toUnderlineLowerCase())
+
+        // 测试大驼峰转下划线小写
+        assertEquals("user_name", "UserName".toUnderlineLowerCase())
+        assertEquals("hello_world", "HelloWorld".toUnderlineLowerCase())
+        assertEquals("my_variable_name", "MyVariableName".toUnderlineLowerCase())
+        assertEquals("prop_source", "PropSource".toUnderlineLowerCase())
+
+        // 测试下划线格式（保持不变并转为小写）
+        assertEquals("user_name", "user_name".toUnderlineLowerCase())
+        assertEquals("hello_world", "hello_world".toUnderlineLowerCase())
+        assertEquals("sys_yes_no", "sys_yes_no".toUnderlineLowerCase())
+
+        // 测试中划线格式（保持原样并转为小写）
+        assertEquals("user-name", "user-name".toUnderlineLowerCase())
+        assertEquals("hello-world", "hello-world".toUnderlineLowerCase())
+
+        // 测试空格格式（保持原样并转为小写）
+        assertEquals("hello world", "hello world".toUnderlineLowerCase())
+        assertEquals("user name", "user name".toUnderlineLowerCase())
+
+        // 测试边界情况
+        assertEquals("", "".toUnderlineLowerCase())
+        assertEquals("a", "a".toUnderlineLowerCase())
+        assertEquals("a", "A".toUnderlineLowerCase())
+
+        // 测试全大写
+        assertEquals("hello", "HELLO".toUnderlineLowerCase())
+        assertEquals("user_name", "USER_NAME".toUnderlineLowerCase())
+
+        // 测试复杂情况
+        assertEquals("x_m_l_http_request", "XMLHttpRequest".toUnderlineLowerCase())
+        assertEquals("json_parser", "JSONParser".toUnderlineLowerCase())
+        assertEquals("tcp_connection", "TCPConnection".toUnderlineLowerCase())
+
+        // 测试包含数字的情况
+        assertEquals("user1_name", "user1Name".toUnderlineLowerCase())
+        assertEquals("test2_case", "test2Case".toUnderlineLowerCase())
+        assertEquals("a1_b2_c3", "A1B2C3".toUnderlineLowerCase())
+
+        // 测试数字在开头
+        assertEquals("1_value", "1Value".toUnderlineLowerCase())
+        assertEquals("2nd_value", "2NdValue".toUnderlineLowerCase())
+    }
 }

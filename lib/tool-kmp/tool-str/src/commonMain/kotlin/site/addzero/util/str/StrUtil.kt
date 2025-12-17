@@ -288,6 +288,22 @@ fun String.toUnderLineCase(): String {
     return sb.toString()
 }
 
+/**
+ * 将字符串转换为下划线格式并转为小写
+ *
+ * 示例：
+ * - "helloWorld" -> "hello_world"
+ * - "HelloWorld" -> "hello_world"
+ * - "hello_world" -> "hello_world"
+ * - "hello-world" -> "hello-world"
+ * - "hello world" -> "hello world"
+ *
+ * @return 下划线格式并小写的字符串
+ */
+fun String.toUnderlineLowerCase(): String {
+    return this.toUnderLineCase().lowercase()
+}
+
 
 fun CharSequence.isNumber(): Boolean = matches(Regex("""^-?\d*\.?\d+$"""))
 

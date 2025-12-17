@@ -15,8 +15,7 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-16T22:45:26.696204
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
-include(":lib:tool-jvm:database:tool-sql-executor")
+// Generated at: 2025-12-17T13:56:34.286582
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<
