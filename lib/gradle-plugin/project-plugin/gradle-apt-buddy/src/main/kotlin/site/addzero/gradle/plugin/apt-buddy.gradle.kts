@@ -1,16 +1,5 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.register
-import site.addzero.gradle.plugin.assist.AptBuddyExtension
-import java.io.File
-
 val GEN_DIR = "build-logic/src/main/kotlin/conventions/generated"
 
 val extension = extensions.create<AptBuddyExtension>("aptBuddy")
@@ -29,10 +18,10 @@ val generateTask = tasks.register<GenerateAptScriptTask>("generateAptScript") {
     generatedCodeOutputDir.set(buildOutputDir)
     mustMap.set(extension.mustMap)
 
-    contextClassName.set(extension.settingContext.map { it.contextClassName })
-    settingsClassName.set(extension.settingContext.map { it.settingsClassName })
-    packageName.set(extension.settingContext.map { it.packageName })
-    settingContextEnabled.set(extension.settingContext.map { it.enabled })
+    contextClassName.set(extension.contextClassName)
+    settingsClassName.set(extension.settingsClassName)
+    packageName.set(extension.packageName)
+    settingContextEnabled.set(extension.settingContextEnabled)
     generateScript.set(extension.generatePrecompiledScript)
     projectPath.set(project.path)
 }
@@ -40,7 +29,7 @@ val generateTask = tasks.register<GenerateAptScriptTask>("generateAptScript") {
 afterEvaluate {
     val outputDir = generateTask.flatMap { it.generatedCodeOutputDir }
 
-    if (extension.settingContext.get().enabled && extension.mustMap.get().isNotEmpty()) {
+    if (extension.settingContextEnabled.get() && extension.mustMap.get().isNotEmpty()) {
         plugins.withId("java") {
             val sourceSets = extensions.getByType(SourceSetContainer::class.java)
             sourceSets.getByName("main").java.srcDir(outputDir)
@@ -167,7 +156,13 @@ abstract class GenerateAptScriptTask : DefaultTask() {
             generatedFiles.add(it)
             logger.lifecycle("✅ Generated: ${it.name}")
         }
-        generateSettingContextJavaClass(packageDir, contextClassName.get(), settingsClassName.get(), pkgName, mustMap.get())?.let {
+        generateSettingContextJavaClass(
+            packageDir,
+            contextClassName.get(),
+            settingsClassName.get(),
+            pkgName,
+            mustMap.get()
+        )?.let {
             generatedFiles.add(it)
             logger.lifecycle("✅ Generated: ${it.name}")
         }
@@ -176,7 +171,12 @@ abstract class GenerateAptScriptTask : DefaultTask() {
         return generatedFiles
     }
 
-    private fun generateSettingsJavaClass(packageDir: File, className: String, properties: Map<String, String>, packageName: String): File? {
+    private fun generateSettingsJavaClass(
+        packageDir: File,
+        className: String,
+        properties: Map<String, String>,
+        packageName: String
+    ): File? {
         if (properties.isEmpty()) return null
 
         val file = File(packageDir, "${className}.java")
@@ -216,7 +216,13 @@ abstract class GenerateAptScriptTask : DefaultTask() {
         return file
     }
 
-    private fun generateSettingContextJavaClass(packageDir: File, className: String, settingsClassName: String, packageName: String, properties: Map<String, String>): File? {
+    private fun generateSettingContextJavaClass(
+        packageDir: File,
+        className: String,
+        settingsClassName: String,
+        packageName: String,
+        properties: Map<String, String>
+    ): File? {
         if (properties.isEmpty()) return null
 
         val file = File(packageDir, "${className}.java")
@@ -254,7 +260,8 @@ abstract class GenerateAptScriptTask : DefaultTask() {
     private fun generateIdeRefreshHint(generatedFiles: List<File>) {
         val outputDir = generatedCodeOutputDir.get().asFile
         val hintFile = File(outputDir, "apt-buddy-ide-hints.txt")
-        hintFile.writeText("""
+        hintFile.writeText(
+            """
             |APT Buddy IDE Refresh Hints
             |============================
             |Generated files that may need IDE refresh:
@@ -266,7 +273,8 @@ abstract class GenerateAptScriptTask : DefaultTask() {
             |3. Restart IDE if necessary
             |
             |Generated at: ${System.currentTimeMillis()}
-        """.trimMargin())
+        """.trimMargin()
+        )
         logger.lifecycle("Generated IDE refresh hints: ${hintFile.absolutePath}")
     }
 }

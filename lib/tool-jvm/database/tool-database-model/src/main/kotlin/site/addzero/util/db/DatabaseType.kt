@@ -27,6 +27,33 @@ enum class DatabaseType(
     val code: String
         get() = this.name.lowercase()
 
+    companion object {
+        /**
+         * 根据代码名称获取数据库类型（不区分大小写）
+         */
+        fun fromCode(code: String): DatabaseType? {
+            return try {
+                DatabaseType.valueOf(code.uppercase())
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+
+        /**
+         * 根据描述获取数据库类型（模糊匹配）
+         */
+        fun fromDesc(desc: String): DatabaseType? {
+            return entries.find { it.desc.contains(desc, ignoreCase = true) }
+        }
+
+        /**
+         * 根据名称获取数据库类型（不区分大小写）
+         */
+        fun fromName(name: String): DatabaseType? {
+            return entries.find { it.name.equals(name, ignoreCase = true) }
+        }
+    }
+
 }
 
 /**
@@ -45,4 +72,31 @@ enum class NoSqlDatabaseType(
 
     val code: String
         get() = this.name.lowercase()
+
+    companion object {
+        /**
+         * 根据代码名称获取数据库类型（不区分大小写）
+         */
+        fun fromCode(code: String): NoSqlDatabaseType? {
+            return try {
+                NoSqlDatabaseType.valueOf(code.uppercase())
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+
+        /**
+         * 根据描述获取数据库类型（模糊匹配）
+         */
+        fun fromDesc(desc: String): NoSqlDatabaseType? {
+            return entries.find { it.desc.contains(desc, ignoreCase = true) }
+        }
+
+        /**
+         * 根据名称获取数据库类型（不区分大小写）
+         */
+        fun fromName(name: String): NoSqlDatabaseType? {
+            return entries.find { it.name.equals(name, ignoreCase = true) }
+        }
+    }
 }
