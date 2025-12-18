@@ -15,14 +15,10 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-17T15:52:40.125389
+// Generated at: 2025-12-18T11:16:04.927234
 // Loaded: 4, Excluded: 0, Total: 4
-include(":lib:ksp:serviceloader-demo:consumer")
-include(":lib:ksp:serviceloader-demo:processor")
-include(":lib:ksp:serviceloader-demo:service-impls")
-include(":lib:ksp:serviceloader-demo:test")
+include(":lib:apt:dict-trans:apt-dict-trans-processor")
+include(":lib:gradle-plugin:project-plugin:conventions:intellij-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:ktxjson-convention")
+include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
 // <<< Gradle Buddy: End Of Block <<<
-
-// ServiceLoader Demo Modules
-include(":lib:ksp:serviceloader-demo:consumer")
-include(":lib:ksp:serviceloader-demo:service-impls")

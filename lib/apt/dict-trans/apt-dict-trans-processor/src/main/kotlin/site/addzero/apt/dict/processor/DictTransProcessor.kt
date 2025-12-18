@@ -140,6 +140,13 @@ class DictTransProcessor : AbstractProcessor() {
         for (element in entityClass.enclosedElements) {
             if (element.kind == ElementKind.FIELD) {
                 val field = element as VariableElement
+                
+                // 过滤static和final字段(如serialVersionUID)
+                val modifiers = field.modifiers
+                if (modifiers.contains(Modifier.STATIC) || modifiers.contains(Modifier.FINAL)) {
+                    continue
+                }
+                
                 val fieldInfo = analyzeField(field)
                 allFields.add(fieldInfo)
                 

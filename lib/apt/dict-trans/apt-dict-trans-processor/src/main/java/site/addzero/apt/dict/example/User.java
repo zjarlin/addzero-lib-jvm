@@ -6,23 +6,29 @@ import java.util.List;
 
 public class User {
 
+    private static final long serialVersionUID = 1L;
+    
+    public static final String USER_TYPE = "NORMAL";
+    
+    private static int userCount = 0;
+
     private Long id;
 
     private String userName;
 
-    // 用户状态（字典编码：USER_STATUS），生成 label 字段 statusLabel
+    // user status (dict code: USER_STATUS), generates statusLabel field
 
-    @Dict( "USER_STATUS")
+    @Dict("USER_STATUS")
     private Integer status;
 
-    // 嵌套单个实体：部门（自动触发 Dept → DeptDictDTO 转换）
+    // nested single entity: department (auto triggers Dept → DeptDictDTO conversion)
 
     private Dept dept;
 
-    // 嵌套集合：角色列表（自动触发 List<Role> → List<RoleDictDTO> 转换）
+    // nested collection: role list (auto triggers List<Role> → List<RoleDictDTO> conversion)
 
     private List<Role> roles;
 
-    // 省略 getter/setter
+    // omit getter/setter
 
 }

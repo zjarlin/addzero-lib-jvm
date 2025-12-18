@@ -1,5 +1,6 @@
 package site.addzero.apt.dict.processor.test;
 
+import org.jetbrains.annotations.NotNull;
 import site.addzero.apt.dict.trans.inter.TransApi;
 import site.addzero.apt.dict.trans.model.out.SystemDictModelResult;
 import site.addzero.apt.dict.trans.model.out.TableDictModelResult;

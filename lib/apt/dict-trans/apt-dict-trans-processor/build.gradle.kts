@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":lib:apt:dict-trans:apt-dict-trans-core"))
+    api("site.addzero:apt-dict-trans-core:2025.12.16")
     implementation("com.squareup:javapoet:1.13.0")
 
     // 基本APT依赖
