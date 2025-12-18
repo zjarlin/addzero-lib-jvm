@@ -1,20 +1,17 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
     id("kmp-ksp")
 }
-kotlin {
-    dependencies {
 
-        implementation("site.addzero:addzero-ksp-support:2025.09.29")
-        implementation("site.addzero:addzero-ioc-core:2025.09.29")
-    }
+kotlin {
 
     sourceSets {
+        commonMain.dependencies {
+            implementation("site.addzero:addzero-ksp-support:2025.09.29")
+            implementation(projects.lib.ksp.metadata.ioc.iocCore)
+//            implementation(libs.kotlinpoet)
+        }
         jvmMain.dependencies {
-            implementation(libs.kotlinpoet.ksp)
+//            implementation(libs.kotlinpoet.ksp)
         }
     }
 }

@@ -3,12 +3,15 @@ package com.example.autoinit.ksp
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import site.addzero.ioc.annotation.Bean
+import site.addzero.ioc.annotation.Component
 import java.io.OutputStream
 
 // 定义常量
-private const val ANNOTATION_NAME = "site.addzero.ioc.annotation.Bean"
+private const val BEAN_ANNOTATION_NAME = "site.addzero.ioc.annotation.Bean"
+private const val COMPONENT_ANNOTATION_NAME = "site.addzero.ioc.annotation.Component"
 private const val GENERATED_PACKAGE = "site.addzero.ioc.generated"
 private const val CONTAINER_NAME = "IocContainer"
+private const val REGISTRY_NAME = "AutoBeanRegistry"
 
 // 存储函数信息的数据类
 private data class InitFunction(
@@ -21,6 +24,15 @@ private data class InitFunction(
     val isStatic: Boolean,        // 是否静态函数（伴生对象中）
     val initType: InitType,       // 初始化类型
     val hasParentheses: Boolean = false  // 类声明是否已包含括号
+)
+
+// 存储 Component 信息的数据类
+private data class ComponentInfo(
+    val className: String,        // 类全名
+    val packageName: String,      // 包名
+    val componentName: String,    // 组件名称
+    val isSingleton: Boolean = true,  // 是否单例（默认为单例）
+    val interfaces: List<String> = emptyList()  // 实现的接口列表
 )
 
 // 初始化类型枚举
@@ -130,14 +142,15 @@ class IocProcessor(
     private val logger: KSPLogger
 ) : SymbolProcessor {
     private val functions = mutableListOf<InitFunction>()
+    private val components = mutableListOf<ComponentInfo>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.warn("IocProcessor 开始处理...")
         System.out.println("IocProcessor 开始处理...")
 
         // 1. 扫描所有带@Bean注解的符号
-        logger.warn("查找注解: $ANNOTATION_NAME")
-        System.out.println("查找注解: $ANNOTATION_NAME")
+        logger.warn("查找注解: $BEAN_ANNOTATION_NAME")
+        System.out.println("查找注解: $BEAN_ANNOTATION_NAME")
         val autoInitSymbols = resolver.getSymbolsWithAnnotation(
             Bean::class
                 .qualifiedName!!
@@ -145,7 +158,17 @@ class IocProcessor(
         logger.warn("找到带@Bean注解的符号数量: ${autoInitSymbols.toList().size}")
         System.out.println("找到带@Bean注解的符号数量: ${autoInitSymbols.toList().size}")
 
-        // 2. 分别处理函数、类和对象
+        // 2. 扫描所有带@Component注解的类
+        logger.warn("查找注解: $COMPONENT_ANNOTATION_NAME")
+        System.out.println("查找注解: $COMPONENT_ANNOTATION_NAME")
+        val componentSymbols = resolver.getSymbolsWithAnnotation(
+            Component::class
+                .qualifiedName!!
+        )
+        logger.warn("找到带@Component注解的符号数量: ${componentSymbols.toList().size}")
+        System.out.println("找到带@Component注解的符号数量: ${componentSymbols.toList().size}")
+
+        // 3. 分别处理函数、类和对象
         val functionDeclarations = autoInitSymbols.filterIsInstance<KSFunctionDeclaration>()
         val classDeclarations = autoInitSymbols.filterIsInstance<KSClassDeclaration>()
             .filter { it.classKind == ClassKind.CLASS }
@@ -158,6 +181,13 @@ class IocProcessor(
         System.out.println("其中函数声明数量: ${functionDeclarations.toList().size}")
         System.out.println("其中类声明数量: ${classDeclarations.toList().size}")
         System.out.println("其中对象声明数量: ${objectDeclarations.toList().size}")
+
+        // 4. 处理 @Component 注解的类
+        val componentClassDeclarations = componentSymbols.filterIsInstance<KSClassDeclaration>()
+            .filter { it.classKind == ClassKind.CLASS }
+
+        logger.warn("处理 @Component 类数量: ${componentClassDeclarations.toList().size}")
+        System.out.println("处理 @Component 类数量: ${componentClassDeclarations.toList().size}")
 
         // 3. 提取函数信息
         functionDeclarations.forEach { function ->
@@ -201,6 +231,20 @@ class IocProcessor(
             }
         }
 
+        // 6. 处理 Component 类
+        componentClassDeclarations.forEach { clazz ->
+            try {
+                logger.warn("处理 Component 类: ${clazz.simpleName.asString()}")
+                System.out.println("处理 Component 类: ${clazz.simpleName.asString()}")
+                extractComponentInfo(clazz)
+                logger.warn("成功处理 Component 类: ${clazz.simpleName.asString()}")
+                System.out.println("成功处理 Component 类: ${clazz.simpleName.asString()}")
+            } catch (e: Exception) {
+                logger.error("处理 Component 类 ${clazz.simpleName} 失败: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+
         // 注意：不在process阶段生成代码，避免多轮处理时的覆盖问题
         logger.warn("IocProcessor 处理完成")
         System.out.println("IocProcessor 处理完成")
@@ -210,8 +254,11 @@ class IocProcessor(
     override fun finish() {
         // 在finish阶段生成代码，确保只生成一次
         logger.warn("总共收集到 ${functions.size} 个初始化项")
+        logger.warn("总共收集到 ${components.size} 个组件")
         System.out.println("总共收集到 ${functions.size} 个初始化项")
+        System.out.println("总共收集到 ${components.size} 个组件")
         generateAutoInitCode()
+        generateBeanRegistry()
     }
 
     // 提取函数信息
@@ -531,6 +578,141 @@ class IocProcessor(
 
         logger.warn("代码生成完成")
         System.out.println("代码生成完成")
+    }
+
+      // 提取 Component 信息
+    private fun extractComponentInfo(clazz: KSClassDeclaration) {
+        logger.warn("开始提取 Component 信息: ${clazz.simpleName.asString()}")
+        System.out.println("开始提取 Component 信息: ${clazz.simpleName.asString()}")
+
+        // 获取类名
+        val className = clazz.qualifiedName?.asString()
+        if (className == null) {
+            logger.error("无法获取类名: ${clazz.simpleName.asString()}")
+            return
+        }
+
+        // 获取包名
+        val packageName = clazz.packageName.asString().takeIf { it.isNotEmpty() } ?: ""
+
+        // 获取 @Component 注解的属性
+        val componentAnnotation = clazz.annotations.find { annotation ->
+            annotation.annotationType.resolve().declaration.qualifiedName?.asString() == COMPONENT_ANNOTATION_NAME
+        }
+
+        val componentName = componentAnnotation?.arguments?.find { it.name?.asString() == "value" }?.value?.toString()
+            ?.takeIf { it.isNotEmpty() }
+            ?: clazz.simpleName.asString().replaceFirstChar { it.lowercase() }
+
+        // 获取所有实现的接口
+        val interfaces = clazz.superTypes.mapNotNull { superType ->
+            val resolvedType = superType.resolve()
+            val declaration = resolvedType.declaration
+            // 只获取接口，不包括父类
+            if (declaration is KSClassDeclaration && declaration.classKind == ClassKind.INTERFACE) {
+                declaration.qualifiedName?.asString()
+            } else null
+        }.toList()
+
+        val componentInfo = ComponentInfo(
+            className = className,
+            packageName = packageName,
+            componentName = componentName,
+            isSingleton = true, // 默认为单例
+            interfaces = interfaces
+        )
+
+        components.add(componentInfo)
+        logger.warn("添加 Component 信息: $componentInfo")
+        System.out.println("添加 Component 信息: $componentInfo")
+    }
+
+    // 生成 BeanRegistry 代码
+    private fun generateBeanRegistry() {
+        if (components.isEmpty()) {
+            logger.warn("没有找到 @Component 注解的类，跳过 BeanRegistry 生成")
+            System.out.println("没有找到 @Component 注解的类，跳过 BeanRegistry 生成")
+            return
+        }
+
+        logger.warn("开始生成 BeanRegistry")
+        System.out.println("开始生成 BeanRegistry")
+
+        // 按包分组
+        val componentsByPackage = components.groupBy { it.packageName }
+
+        // 生成导入语句
+        val imports = (components.map { it.className } + components.flatMap { it.interfaces }).toSet()
+
+        // 生成注册代码
+        val registrationCode = buildString {
+            // 注册组件提供者
+            components.forEach { component ->
+                appendLine("        registerProvider(${component.className}::class) { ${component.className}() }")
+            }
+
+            appendLine()
+
+            // 注册接口实现关系
+            val interfaceMap = mutableMapOf<String, MutableList<String>>()
+            components.forEach { component ->
+                component.interfaces.forEach { interfaceName ->
+                    val implementations = interfaceMap.getOrPut(interfaceName) { mutableListOf() }
+                    implementations.add(component.className)
+                }
+            }
+
+            interfaceMap.forEach { (interfaceName, implementations) ->
+                implementations.forEach { implClass ->
+                    appendLine("        registerImplementation(${interfaceName}::class, ${implClass}::class)")
+                }
+            }
+        }
+
+        // 生成代码
+        val code = """
+            package $GENERATED_PACKAGE
+
+            ${imports.joinToString("\n") { "import $it" }}
+            import site.addzero.ioc.registry.DefaultBeanRegistry
+            import kotlin.reflect.KClass
+
+            /**
+             * 自动生成的 Bean 注册表
+             * 包含所有标记了 @Component 注解的类
+             */
+            public object $REGISTRY_NAME : DefaultBeanRegistry() {
+                init {
+                    // 注册所有 Component 类
+$registrationCode
+                }
+
+                /**
+                 * 获取所有已注册的组件名称
+                 */
+                fun getComponentNames(): Set<String> {
+                    return setOf(${components.map { "\"${it.componentName}\"" }.joinToString(", ")})
+                }
+
+                /**
+                 * 根据组件名称获取对应的类型
+                 */
+                fun getComponentType(name: String): KClass<*>? {
+                    return when (name) {
+${components.map { "                        \"${it.componentName}\" -> ${it.className}::class" }.joinToString("\n")}
+                        else -> null
+                    }
+                }
+            }
+        """.trimIndent()
+
+        // 写入生成的代码
+        val file = codeGenerator.createNewFile(Dependencies.ALL_FILES, GENERATED_PACKAGE, REGISTRY_NAME, "kt")
+        file.write(code.toByteArray())
+        file.close()
+
+        logger.warn("BeanRegistry 代码生成完成")
+        System.out.println("BeanRegistry 代码生成完成")
     }
 
     // 扩展函数用于向OutputStream写入字节数组
