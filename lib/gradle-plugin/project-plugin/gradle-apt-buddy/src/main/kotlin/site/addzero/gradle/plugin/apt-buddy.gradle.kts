@@ -95,7 +95,6 @@ abstract class GenerateAptScriptTask : DefaultTask() {
         printMavenPomConfiguration()
         val generatedFiles = generateSettingsAndContext()
         logger.lifecycle("APT Buddy: Generated ${generatedFiles.size} configuration files")
-        generateIdeRefreshHint(generatedFiles)
     }
 
     private fun printMavenPomConfiguration() {
@@ -255,26 +254,5 @@ abstract class GenerateAptScriptTask : DefaultTask() {
         file.writeText(content)
         logger.lifecycle("Generated SettingContext Java class to: ${file.absolutePath}")
         return file
-    }
-
-    private fun generateIdeRefreshHint(generatedFiles: List<File>) {
-        val outputDir = generatedCodeOutputDir.get().asFile
-        val hintFile = File(outputDir, "apt-buddy-ide-hints.txt")
-        hintFile.writeText(
-            """
-            |APT Buddy IDE Refresh Hints
-            |============================
-            |Generated files that may need IDE refresh:
-            |${generatedFiles.joinToString("\n") { "- ${it.absolutePath}" }}
-            |
-            |If you see compilation errors, try:
-            |1. Gradle -> Refresh Gradle Project (IntelliJ)
-            |2. File -> Reload Gradle Projects
-            |3. Restart IDE if necessary
-            |
-            |Generated at: ${System.currentTimeMillis()}
-        """.trimMargin()
-        )
-        logger.lifecycle("Generated IDE refresh hints: ${hintFile.absolutePath}")
     }
 }
