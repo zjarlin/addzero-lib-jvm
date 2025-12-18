@@ -648,12 +648,12 @@ class IocProcessor(
         val registrationCode = buildString {
             // 注册组件提供者
             components.forEach { component ->
-                appendLine("        registerProvider(${component.className}::class) { ${component.className}() }")
+                appendLine("        delegate.registerProvider(${component.className}::class) { ${component.className}() }")
             }
 
             appendLine()
 
-            // 注册接口实现关系
+            // 注册接口实现关系 - 直接使用 public 方法
             val interfaceMap = mutableMapOf<String, MutableList<String>>()
             components.forEach { component ->
                 component.interfaces.forEach { interfaceName ->
@@ -662,9 +662,14 @@ class IocProcessor(
                 }
             }
 
-            interfaceMap.forEach { (interfaceName, implementations) ->
-                implementations.forEach { implClass ->
-                    appendLine("        registerImplementation(${interfaceName}::class, ${implClass}::class)")
+            if (interfaceMap.isNotEmpty()) {
+                appendLine()
+                appendLine("        // 注册接口实现关系")
+
+                interfaceMap.forEach { (interfaceName, implementations) ->
+                    implementations.forEach { implClass ->
+                        appendLine("        delegate.registerImplementation(${interfaceName}::class, ${implClass}::class)")
+                    }
                 }
             }
         }
@@ -674,14 +679,34 @@ class IocProcessor(
             package $GENERATED_PACKAGE
 
             ${imports.joinToString("\n") { "import $it" }}
-            import site.addzero.ioc.registry.DefaultBeanRegistry
+            import site.addzero.ioc.registry.KmpBeanRegistry
+            import site.addzero.ioc.registry.BeanRegistry
             import kotlin.reflect.KClass
 
             /**
              * 自动生成的 Bean 注册表
              * 包含所有标记了 @Component 注解的类
+             * KMP 兼容实现
              */
-            public object $REGISTRY_NAME : DefaultBeanRegistry() {
+            public object $REGISTRY_NAME : BeanRegistry {
+                // 使用 KMP 兼容的注册表实现
+                private val delegate = KmpBeanRegistry()
+
+                // 实现 BeanRegistry 接口的所有方法
+                override fun <T : Any> getBean(clazz: KClass<T>): T? = delegate.getBean(clazz)
+
+                override fun <T : Any> getRequiredBean(clazz: KClass<T>): T = delegate.getRequiredBean(clazz)
+
+                override fun <T : Any> registerBean(clazz: KClass<T>, instance: T) = delegate.registerBean(clazz, instance)
+
+                override fun <T : Any> registerProvider(clazz: KClass<T>, provider: () -> T) = delegate.registerProvider(clazz, provider)
+
+                override fun containsBean(clazz: KClass<*>): Boolean = delegate.containsBean(clazz)
+
+                override fun getBeanTypes(): Set<KClass<*>> = delegate.getBeanTypes()
+
+                override fun <T : Any> injectList(clazz: KClass<T>): List<T> = delegate.injectList(clazz)
+
                 init {
                     // 注册所有 Component 类
 $registrationCode
