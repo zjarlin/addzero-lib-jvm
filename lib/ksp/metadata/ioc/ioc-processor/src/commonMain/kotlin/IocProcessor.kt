@@ -604,15 +604,57 @@ class IocProcessor(
             ?.takeIf { it.isNotEmpty() }
             ?: clazz.simpleName.asString().replaceFirstChar { it.lowercase() }
 
-        // 获取所有实现的接口
-        val interfaces = clazz.superTypes.mapNotNull { superType ->
+        // 获取所有实现的接口，包括从抽象类继承的接口
+        val interfaces = mutableListOf<String>()
+
+        // 收集当前类直接实现的接口
+        clazz.superTypes.forEach { superType ->
             val resolvedType = superType.resolve()
             val declaration = resolvedType.declaration
+
             // 只获取接口，不包括父类
             if (declaration is KSClassDeclaration && declaration.classKind == ClassKind.INTERFACE) {
-                declaration.qualifiedName?.asString()
-            } else null
-        }.toList()
+                declaration.qualifiedName?.asString()?.let { interfaces.add(it) }
+            }
+        }
+
+        // 递归收集父类（包括抽象类）实现的接口
+        fun collectSuperclassInterfaces(superClass: KSClassDeclaration) {
+            // 获取父类的接口
+            superClass.superTypes.forEach { superType ->
+                val resolvedType = superType.resolve()
+                val declaration = resolvedType.declaration
+
+                if (declaration is KSClassDeclaration) {
+                    when {
+                        declaration.classKind == ClassKind.INTERFACE -> {
+                            declaration.qualifiedName?.asString()?.let {
+                                if (!interfaces.contains(it)) {
+                                    interfaces.add(it)
+                                }
+                            }
+                        }
+                        declaration.classKind == ClassKind.CLASS &&
+                        declaration.modifiers.contains(Modifier.ABSTRACT) -> {
+                            // 递归处理抽象类
+                            collectSuperclassInterfaces(declaration)
+                        }
+                    }
+                }
+            }
+        }
+
+        // 查找并处理父类
+        clazz.superTypes.forEach { superType ->
+            val resolvedType = superType.resolve()
+            val declaration = resolvedType.declaration
+
+            if (declaration is KSClassDeclaration &&
+                declaration.classKind == ClassKind.CLASS &&
+                !declaration.qualifiedName?.asString().equals("kotlin.Any")) {
+                collectSuperclassInterfaces(declaration)
+            }
+        }
 
         val componentInfo = ComponentInfo(
             className = className,
