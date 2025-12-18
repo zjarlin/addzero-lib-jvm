@@ -1,6 +1,8 @@
 package site.addzero.apt.dict.processor.test;
 
 
+import lombok.Data;
+
 import java.util.Date;
 
 
@@ -15,6 +17,8 @@ import java.io.Serializable;
  * @author tll
  * @since 2022-10-25
  */
+@Data
+
 public class SysUpload implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -15,8 +15,10 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-18T11:25:40.725473
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:gradle-tool-config-java")
-include(":lib:gradle-plugin:project-plugin:conventions:intellij-convention")
+// Generated at: 2025-12-18T14:11:43.029414
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:apt:apt-dict-processor")
+include(":lib:apt:dict-trans:apt-dict-trans-core")
+include(":lib:apt:dict-trans:apt-dict-trans-processor")
+include(":lib:gradle-plugin:project-plugin:gradle-apt-buddy")
 // <<< Gradle Buddy: End Of Block <<<

@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.Data;
 import site.addzero.aop.dicttrans.anno.Dict;
 
 
@@ -17,6 +18,7 @@ import site.addzero.aop.dicttrans.anno.Dict;
 * @author zzsoft
 * @since 2024-12-09
 */
+@Data
 public class LsBuild  {
 
       private String buildName;

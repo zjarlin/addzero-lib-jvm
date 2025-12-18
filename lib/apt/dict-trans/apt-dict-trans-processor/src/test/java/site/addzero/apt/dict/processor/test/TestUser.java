@@ -1,9 +1,11 @@
 package site.addzero.apt.dict.processor.test;
 
+import lombok.Data;
 import site.addzero.aop.dicttrans.anno.Dict;
 
 import java.util.List;
 
+@Data
 public class TestUser {
 
     private Long id;
@@ -19,45 +21,4 @@ public class TestUser {
 
     // 嵌套集合：角色列表（自动触发 List<Role> → List<RoleDictDTO> 转换）
     private List<TestRole> roles;
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public TestDept getDept() {
-        return dept;
-    }
-
-    public void setDept(TestDept dept) {
-        this.dept = dept;
-    }
-
-    public List<TestRole> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<TestRole> roles) {
-        this.roles = roles;
-    }
 }

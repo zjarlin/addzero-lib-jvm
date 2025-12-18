@@ -1,6 +1,9 @@
 package site.addzero.apt.dict.processor.test;
 
+import lombok.Data;
 import site.addzero.aop.dicttrans.anno.Dict;
+
+@Data
 
 public class TestRole {
 
