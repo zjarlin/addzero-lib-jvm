@@ -10,8 +10,5 @@ kotlin {
             implementation(projects.lib.ksp.metadata.ioc.iocCore)
 //            implementation(libs.kotlinpoet)
         }
-        jvmMain.dependencies {
-//            implementation(libs.kotlinpoet.ksp)
-        }
     }
 }
