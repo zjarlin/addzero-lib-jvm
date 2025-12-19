@@ -15,11 +15,12 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-19T11:42:08.114368
-// Loaded: 5, Excluded: 0, Total: 5
+// Generated at: 2025-12-19T11:44:20.818466
+// Loaded: 6, Excluded: 0, Total: 6
 include(":lib:apt")
 include(":lib:apt:apt-ioc-processor")
 include(":lib:tool-jvm:database:tool-database-model")
 include(":lib:tool-jvm:database:tool-sql-executor")
+include(":lib:tool-jvm:tool-yml")
 include(":lib:tool-kmp:jdbc:tool-jdbc")
 // <<< Gradle Buddy: End Of Block <<<
