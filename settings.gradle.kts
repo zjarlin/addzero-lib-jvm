@@ -15,8 +15,10 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-18T19:34:16.718223
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2025-12-19T08:17:07.247487
+// Loaded: 4, Excluded: 0, Total: 4
 include(":lib:apt")
 include(":lib:apt:apt-ioc-processor")
+include(":lib:ksp:common:ksp-support-jdbc")
+include(":lib:tool-kmp:jdbc:tool-jdbc")
 // <<< Gradle Buddy: End Of Block <<<
