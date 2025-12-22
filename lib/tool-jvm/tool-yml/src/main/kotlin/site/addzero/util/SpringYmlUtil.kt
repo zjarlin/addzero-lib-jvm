@@ -18,20 +18,41 @@ class SpringYmlUtil(val customPath: String?) {
     }
 
 
-
     fun getYmlContent(resourceName: String): String {
-        val file = getResource(resourceName)
+        val file = getYmlResource(resourceName)
         return file.readText()
     }
 
-    private fun getResource(resourceName: String): File =
-        FileUtil.file( actPath, resourceName)
+    private fun getYmlResource(resourceName: String): File {
+        // 获取基准名称（去除扩展名）
+        val baseName = resourceName.removeSuffix(".yml").removeSuffix(".yaml")
+
+        // 按顺序尝试查找文件
+        val extensions = if (resourceName.contains(".")) listOf("", ".yml", ".yaml") else listOf(".yml", ".yaml")
+
+        for (ext in extensions) {
+            val file = FileUtil.file(actPath, "$baseName$ext")
+            if (file.exists()) {
+                return file
+            }
+        }
+
+        // 如果都没找到，返回第一个尝试的文件（保持原有行为）
+        return FileUtil.file(actPath, "$baseName${extensions.first()}")
+    }
 
 
     fun getActivateYml(): Map<String, Any> {
-        val activate = getActivateBydir(getResource("application.yml").absolutePath)
-        val ymlActivateAbsolutePath = getResource("application-$activate.yml").absolutePath
-        val loadYmlConfigMap = YmlUtil.loadYmlConfigMap(ymlActivateAbsolutePath)
+        // 先查找主配置文件，支持.yml和.yaml扩展名
+        val mainConfigFile = getYmlResource("application")
+        val activate = getActivateBydir(mainConfigFile.absolutePath)
+
+        // 查找激活的配置文件，支持.yml和.yaml扩展名
+        var activeConfigFile = getYmlResource("application-$activate")
+        if (activeConfigFile.exists().not()) {
+            activeConfigFile = mainConfigFile
+        }
+        val loadYmlConfigMap = YmlUtil.loadYmlConfigMap(activeConfigFile.absolutePath)
         return loadYmlConfigMap
     }
 
@@ -40,12 +61,13 @@ class SpringYmlUtil(val customPath: String?) {
         val configValue = YmlUtil.getConfigValue<T>(activateYml, pas)
         return configValue
     }
+
     fun getActivateYmlPropertiesString(pas: String): String? {
         val activateYml = getActivateYml()
         val configValue = YmlUtil.getConfigValue<String>(activateYml, pas)
-                      val replaceEnvInString = configValue.replaceEnvInString("")
+        val replaceEnvInString = configValue.replaceEnvInString("")
 
-       return replaceEnvInString
+        return replaceEnvInString
 //        return configValue
     }
 

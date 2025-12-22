@@ -1,5 +1,6 @@
 package site.addzero.ioc.registry
 
+import site.addzero.ioc.registry.GlobalBeanRegistry.injectList
 import kotlin.reflect.KClass
 
 /**
@@ -62,6 +63,12 @@ interface BeanRegistry {
      * @return 所有实现类的实例列表
      */
     fun <T : Any> injectList(clazz: KClass<T>): List<T>
+
+
+}
+
+inline fun <reified T : Any> getSupportStrategty(predicate: (T) -> Boolean): T? {
+    return injectList(T::class).firstOrNull(predicate)
 }
 
 /**
@@ -155,7 +162,8 @@ inline fun <reified T : Any> BeanRegistry.registerBean(instance: T) = registerBe
 /**
  * 扩展函数，方便注册 Bean 提供者
  */
-inline fun <reified T : Any> BeanRegistry.registerProvider(noinline provider: () -> T) = registerProvider(T::class, provider)
+inline fun <reified T : Any> BeanRegistry.registerProvider(noinline provider: () -> T) =
+    registerProvider(T::class, provider)
 
 /**
  * 扩展函数，方便注入指定类型的所有实现

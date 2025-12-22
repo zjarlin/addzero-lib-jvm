@@ -20,6 +20,13 @@ class DatabaseMetadataReader(
     private val sqlExecutor = SqlExecutor(url, username, password)
 
     /**
+     * 从 URL 中提取的默认 schema
+     */
+    private val defaultSchema: String by lazy {
+        extractSchemaFromUrl()
+    }
+
+    /**
      * 通配符匹配（支持 *）
      */
     private fun matchesWildcard(input: String, pattern: String): Boolean {
@@ -58,6 +65,106 @@ class DatabaseMetadataReader(
     }
 
     /**
+     * 从 JDBC URL 中提取 schema
+     */
+    private fun extractSchemaFromUrl(): String {
+        return when {
+            // PostgreSQL: jdbc:postgresql://host:port/database?schema=schema
+            url.startsWith("jdbc:postgresql:") -> {
+                val uri = url.substring("jdbc:postgresql:".length)
+                // 查找 schema 参数
+                val schemaParam = Regex("[?&]schema=([^&]*)").find(uri)?.groupValues?.get(1)
+                if (schemaParam != null) {
+                    schemaParam
+                } else {
+                    // PostgreSQL 默认使用用户名作为 schema
+                    username
+                }
+            }
+
+            // MySQL: jdbc:mysql://host:port/database
+            url.startsWith("jdbc:mysql:") -> {
+                val parts = url.substringAfter("jdbc:mysql://").split("/")
+                if (parts.size > 1) {
+                    // MySQL 使用数据库名
+                    parts[1].substringBefore("?")
+                } else {
+                    "mysql"
+                }
+            }
+
+            // Oracle: jdbc:oracle:thin:@host:port:sid
+            url.startsWith("jdbc:oracle:") -> {
+                username.uppercase()
+            }
+
+            // SQL Server: jdbc:sqlserver://host:port;databaseName=database
+            url.startsWith("jdbc:sqlserver:") -> {
+                val databaseParam = Regex("[?;]databaseName=([^;]*)").find(url)?.groupValues?.get(1)
+                databaseParam ?: "dbo"
+            }
+
+            // H2: jdbc:h2:mem:testdb or jdbc:h2:file:/path/to/database
+            url.startsWith("jdbc:h2:") -> {
+                when {
+                    url.contains("mem:") -> "PUBLIC"
+                    url.contains("file:") -> {
+                        val path = url.substringAfter("jdbc:h2:file:")
+                        path.substringAfterLast("/").substringBefore(";")
+                    }
+                    else -> "PUBLIC"
+                }
+            }
+
+            // SQLite: jdbc:sqlite:path/to/database.db
+            url.startsWith("jdbc:sqlite:") -> "main"
+
+            // 达梦: jdbc:dm://host:port/database
+            url.startsWith("jdbc:dm:") -> {
+                val parts = url.substringAfter("jdbc:dm://").split("/")
+                if (parts.size > 1) {
+                    parts[1].substringBefore("?")
+                } else {
+                    username.uppercase()
+                }
+            }
+
+            // 人大金仓: jdbc:kingbase8://host:port/database
+            url.startsWith("jdbc:kingbase:") -> {
+                val parts = url.substringAfter("jdbc:kingbase://").split("/")
+                if (parts.size > 1) {
+                    parts[1].substringBefore("?")
+                } else {
+                    username.uppercase()
+                }
+            }
+
+            // 高斯: jdbc:gaussdb://host:port/database
+            url.startsWith("jdbc:gaussdb:") -> {
+                val parts = url.substringAfter("jdbc:gaussdb://").split("/")
+                if (parts.size > 1) {
+                    parts[1].substringBefore("?")
+                } else {
+                    username
+                }
+            }
+
+            // DB2: jdbc:db2://host:port/database
+            url.startsWith("jdbc:db2:") -> {
+                val parts = url.substringAfter("jdbc:db2://").split("/")
+                if (parts.size > 1) {
+                    parts[1].substringBefore("?")
+                } else {
+                    username.uppercase()
+                }
+            }
+
+            // 其他数据库使用默认值
+            else -> "public"
+        }
+    }
+
+    /**
      * 获取数据库连接并执行操作
      */
     private fun <T> withConnection(block: (java.sql.Connection) -> T): T {
@@ -73,10 +180,11 @@ class DatabaseMetadataReader(
      * 获取所有表的元数据
      */
     fun getTableMetaData(
-        schema: String = "public",
+        schema: String? = null,
         includeRules: List<String>? = null,
         excludeRules: List<String>? = null
     ): List<JdbcTableMetadata> {
+        val actualSchema = schema ?: defaultSchema
         return withConnection { connection ->
             val metaData = connection.metaData
             val tables = mutableListOf<JdbcTableMetadata>()
@@ -84,7 +192,7 @@ class DatabaseMetadataReader(
             // 获取所有表
             val tablesResultSet = metaData.getTables(
                 connection.catalog,
-                schema,
+                actualSchema,
                 "%",
                 arrayOf("TABLE")
             )
@@ -101,7 +209,8 @@ class DatabaseMetadataReader(
                     val columns = getColumnsMetadata(schema, tableName)
 
                     // 获取表的主键信息
-                    val primaryKeys = getPrimaryKeysForTable(tableName, schema)
+                    val primaryKeys = getPrimaryKeysForTable(tableName, actualSchema
+                    )
 
                     // 标记主键列
                     val columnsWithPk = columns.map { column ->
@@ -111,7 +220,7 @@ class DatabaseMetadataReader(
                     // 创建表元数据
                     val tableMetadata = JdbcTableMetadata(
                         tableName = tableName,
-                        schema = schema,
+                        schema = actualSchema,
                         tableType = tableType,
                         remarks = remarks,
                         columns = columnsWithPk
@@ -127,9 +236,10 @@ class DatabaseMetadataReader(
     /**
      * 获取所有主键元数据
      */
-    fun getPrimaryKeysMetadata(schema: String = "public"): List<PrimaryKeyMetadata> {
+    fun getPrimaryKeysMetadata(schema: String? = null): List<PrimaryKeyMetadata> {
+        val actualSchema = schema ?: defaultSchema
         return withConnection { connection ->
-            getPrimaryKeysMetadataInternal(connection, schema)
+            getPrimaryKeysMetadataInternal(connection, actualSchema)
                 .sortedWith(compareBy({ it.tableName }, { it.keySeq }))
         }
     }
@@ -158,10 +268,11 @@ class DatabaseMetadataReader(
     /**
      * 获取所有外键元数据
      */
-    fun getForeignKeysMetadata(schema: String = "public"): List<ForeignKeyMetadata> {
+    fun getForeignKeysMetadata(schema: String? = null): List<ForeignKeyMetadata> {
+        val actualSchema = schema ?: defaultSchema
         return withConnection { connection ->
             val metadata = connection.metaData
-            val foreignKeys = metadata.getExportedKeys(null, schema, null)
+            val foreignKeys = metadata.getExportedKeys(null, actualSchema, null)
             val result = mutableListOf<ForeignKeyMetadata>()
 
             while (foreignKeys.next()) {
@@ -186,11 +297,12 @@ class DatabaseMetadataReader(
      * 获取列元数据
      */
     fun getColumnsMetadata(
-        schema: String = "public",
+        schema: String? = null,
         tableName: String? = null
     ): List<JdbcColumnMetadata> {
+        val actualSchema = schema ?: defaultSchema
         return withConnection { connection ->
-            getColumnsMetadataInternal(connection, schema, tableName)
+            getColumnsMetadataInternal(connection, actualSchema, tableName)
         }
     }
 
