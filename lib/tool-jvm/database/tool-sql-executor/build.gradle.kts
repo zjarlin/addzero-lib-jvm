@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation("org.owasp.encoder:encoder-esapi:1.4.0")
     compileOnly("mysql:mysql-connector-java:8.0.33")
     compileOnly("org.postgresql:postgresql:42.3.3")
     compileOnly("com.oracle.database.jdbc:ojdbc8:21.5.0.0")

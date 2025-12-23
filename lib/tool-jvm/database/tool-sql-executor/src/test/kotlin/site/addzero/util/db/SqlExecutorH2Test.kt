@@ -3,7 +3,6 @@ package site.addzero.util.db
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * H2数据库兼容性测试
@@ -70,6 +69,7 @@ class SqlExecutorH2Test {
         val executor = SqlExecutor(url, username, password)
         try {
             // 删除已存在的表（如果存在）
+//            executor.execute()
             executor.execute("DROP TABLE IF EXISTS employees")
             executor.execute("DROP TABLE IF EXISTS departments")
 

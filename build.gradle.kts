@@ -12,7 +12,7 @@ plugins {
 subprojects {
     val now = LocalDate.now().toString().replace("-", ".")
 //    version = now
-    version = "2025.12.24"
+    version = "2025.12.25"
     println("项目版本为$now")
     if (path.startsWith(":checkouts:")) {
         apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
