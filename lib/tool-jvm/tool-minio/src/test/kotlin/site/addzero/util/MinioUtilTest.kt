@@ -24,19 +24,13 @@ class MinioUtilTest {
 
     @BeforeAll
     fun setup() {
-        val resolvedConfig = MinioTestConfig.fromEnvironment()
-        assumeTrue(resolvedConfig != null) {
-            "Skipping MinIO integration tests. Set MINIO_TEST_ENDPOINT, MINIO_TEST_ACCESS_KEY, " +
-                "MINIO_TEST_SECRET_KEY and MINIO_TEST_BUCKET (or matching JVM system properties) to enable them."
-        }
-
-        config = resolvedConfig!!
+        config = MinioTestConfig.default()
         client = MinioUtil.createClient(config.endpoint, config.accessKey, config.secretKey)
 
         val ensureResult = MinioUtil.ensureBucket(client, bucketName)
-        assumeTrue(ensureResult !is MinioResult.Error) {
-            val error = ensureResult as MinioResult.Error
-            "Skipping MinIO integration tests. Unable to access bucket $bucketName: ${error.message}"
+        if (ensureResult is MinioResult.Error) {
+            val resultError = ensureResult as MinioResult.Error
+            error("MinIO integration tests require bucket $bucketName to be accessible: ${resultError.message}")
         }
 
         initialized = true
@@ -348,22 +342,13 @@ class MinioUtilTest {
         val bucketName: String
     ) {
         companion object {
-            private fun readConfig(envKey: String, propertyKey: String): String? {
-                return System.getenv(envKey)?.takeIf { it.isNotBlank() }
-                    ?: System.getProperty(propertyKey)?.takeIf { it.isNotBlank() }
-            }
-
-            fun fromEnvironment(): MinioTestConfig? {
-                val endpoint = readConfig("MINIO_TEST_ENDPOINT", "minio.test.endpoint")
-                val accessKey = readConfig("MINIO_TEST_ACCESS_KEY", "minio.test.accessKey")
-                val secretKey = readConfig("MINIO_TEST_SECRET_KEY", "minio.test.secretKey")
-                val bucketName = readConfig("MINIO_TEST_BUCKET", "minio.test.bucket")
-
-                if (endpoint == null || accessKey == null || secretKey == null || bucketName == null) {
-                    return null
-                }
-
-                return MinioTestConfig(endpoint, accessKey, secretKey, bucketName)
+            fun default(): MinioTestConfig {
+                return MinioTestConfig(
+                    endpoint = "http://addzero.site:19000",
+                    accessKey = "zjarlin",
+                    secretKey = "zhou9955",
+                    bucketName = "boxun"
+                )
             }
         }
     }
