@@ -1,7 +1,7 @@
 package site.addzero.gradle.plugin
 
-import me.champeau.gradle.igp.GitIncludeExtension
 import me.champeau.gradle.igp.gitRepositories
+import org.gradle.api.initialization.Settings
 import site.addzero.gradle.GitDependencysExtension
 
 plugins {
@@ -10,27 +10,16 @@ plugins {
 
 val gitDependencies = extensions.create<GitDependencysExtension>("implementationRemoteGit")
 
-fun GitIncludeExtension.includeGitProject(repoName: String, gitDependencysExtension: GitDependencysExtension) {
-    val repoType = gitDependencysExtension.repoType.get()
-    val author = gitDependencysExtension.author.get()
-    val branchName = gitDependencysExtension.branch.get()
-    val checkoutDir = gitDependencysExtension.checkoutDir.get()
-
-    include(repoName) {
-        uri.set(repoType.urlTemplate.format(author, repoName))
-        branch.set(branchName)
-        this.checkoutDirectory.set(file("$checkoutDir/$repoName"))
-    }
-}
-
 
 gradle.settingsEvaluated {
+    val scriptSettings: Settings = this
 
 
     // 显式函数调用，在用户配置扩展后调用
     fun Settings.includeRemoteGits(vararg repos: String) {
+        val targetSettings = this
         gitRepositories {
-            repos.forEach { includeGitProject(it, gitDependencies) }
+            repos.forEach { includeGitProject(targetSettings, it, gitDependencies) }
         }
     }
 
@@ -38,7 +27,7 @@ gradle.settingsEvaluated {
 
     if (remoteGits.isNotEmpty()) {
         gitRepositories {
-            remoteGits.forEach { includeGitProject(it, gitDependencies) }
+            remoteGits.forEach { includeGitProject(scriptSettings, it, gitDependencies) }
         }
     }
 }
