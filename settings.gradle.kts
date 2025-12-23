@@ -15,10 +15,9 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-23T14:35:05.863085
-// Loaded: 4, Excluded: 0, Total: 4
-include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
-include(":lib:tool-jvm:tool-minio")
-include(":lib:tool-jvm:tool-spring")
-include(":lib:tool-jvm:tool-yml")
+// Generated at: 2025-12-23T23:42:32.621752
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-jvm:tool-rustfs")
 // <<< Gradle Buddy: End Of Block <<<
+
+include(":lib:tool-jvm:tool-rustfs")
