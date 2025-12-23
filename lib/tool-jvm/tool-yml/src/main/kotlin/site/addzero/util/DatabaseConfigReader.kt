@@ -119,20 +119,20 @@ object DatabaseConfigReader {
 
             // 尝试所有单数据源配置路径
             for (urlPath in SINGLE_DATASOURCE_PATHS) {
-                val url = ymlUtil.getActivateYmlPropertiesString(urlPath)
+                val url = ymlUtil.readNonBlankProperty(urlPath)
                 if (url != null) {
                     // 根据找到的 URL 路径，推断对应的 username 和 password 路径
                     val basePath = extractBasePath(urlPath)
                     val usernamePath = "$basePath.username"
                     val passwordPath = "$basePath.password"
 
-                    val username = ymlUtil.getActivateYmlPropertiesString(usernamePath)
-                        ?: ymlUtil.getActivateYmlPropertiesString("spring.datasource.username")
-                        ?: ymlUtil.getActivateYmlPropertiesString("spring.r2dbc.username")
+                    val username = ymlUtil.readNonBlankProperty(usernamePath)
+                        ?: ymlUtil.readNonBlankProperty("spring.datasource.username")
+                        ?: ymlUtil.readNonBlankProperty("spring.r2dbc.username")
 
-                    val password = ymlUtil.getActivateYmlPropertiesString(passwordPath)
-                        ?: ymlUtil.getActivateYmlPropertiesString("spring.datasource.password")
-                        ?: ymlUtil.getActivateYmlPropertiesString("spring.r2dbc.password")
+                    val password = ymlUtil.readNonBlankProperty(passwordPath)
+                        ?: ymlUtil.readNonBlankProperty("spring.datasource.password")
+                        ?: ymlUtil.readNonBlankProperty("spring.r2dbc.password")
 
                     return DatabaseConfigSettings(
                         jdbcUrl = url,
@@ -174,11 +174,11 @@ object DatabaseConfigReader {
         )
 
         for (urlPath in urlPaths) {
-            val url = ymlUtil.getActivateYmlPropertiesString(urlPath)
+            val url = ymlUtil.readNonBlankProperty(urlPath)
             if (url != null) {
                 val basePath = extractBasePath(urlPath)
-                val username = ymlUtil.getActivateYmlPropertiesString("$basePath.username") ?: ""
-                val password = ymlUtil.getActivateYmlPropertiesString("$basePath.password") ?: ""
+                val username = ymlUtil.readNonBlankProperty("$basePath.username") ?: ""
+                val password = ymlUtil.readNonBlankProperty("$basePath.password") ?: ""
 
                 return DatabaseConfigSettings(
                     jdbcUrl = url,
@@ -200,5 +200,9 @@ object DatabaseConfigReader {
         return urlPath.substringBeforeLast(".")
             .removeSuffix(".jdbc")
             .removeSuffix(".r2dbc")
+    }
+
+    private fun SpringYmlUtil.readNonBlankProperty(path: String): String? {
+        return getActivateYmlPropertiesString(path)?.takeIf { it.isNotBlank() }
     }
 }

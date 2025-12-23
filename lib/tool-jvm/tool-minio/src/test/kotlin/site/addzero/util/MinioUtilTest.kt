@@ -3,37 +3,50 @@ package site.addzero.util
 import io.minio.MinioClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.io.File
 import java.nio.file.Files
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MinioUtilTest {
 
-    private val endpoint = "http://addzero.site:19000"
-    private val accessKey = "zjarlin"
-    private val secretKey = "zhou9955"
-    private val bucketName = "boxun"
+    private lateinit var config: MinioTestConfig
     private val testPrefix = "test/${UUID.randomUUID()}/"
 
     private lateinit var client: MinioClient
+    private var initialized = false
+
+    private val bucketName: String
+        get() = config.bucketName
 
     @BeforeAll
     fun setup() {
-        client = MinioUtil.createClient(endpoint, accessKey, secretKey)
-
-        MinioUtil.ensureBucket(client, bucketName).let { result ->
-            if (result is MinioResult.Error) {
-                println("Warning: ${result.message}")
-            }
+        val resolvedConfig = MinioTestConfig.fromEnvironment()
+        assumeTrue(resolvedConfig != null) {
+            "Skipping MinIO integration tests. Set MINIO_TEST_ENDPOINT, MINIO_TEST_ACCESS_KEY, " +
+                "MINIO_TEST_SECRET_KEY and MINIO_TEST_BUCKET (or matching JVM system properties) to enable them."
         }
+
+        config = resolvedConfig!!
+        client = MinioUtil.createClient(config.endpoint, config.accessKey, config.secretKey)
+
+        val ensureResult = MinioUtil.ensureBucket(client, bucketName)
+        assumeTrue(ensureResult !is MinioResult.Error) {
+            val error = ensureResult as MinioResult.Error
+            "Skipping MinIO integration tests. Unable to access bucket $bucketName: ${error.message}"
+        }
+
+        initialized = true
     }
 
     @AfterAll
     fun cleanup() {
+        if (!initialized) {
+            return
+        }
         val objects = MinioUtil.listObjects(client, bucketName, testPrefix)
         if (objects.isNotEmpty()) {
             MinioUtil.deleteObjects(client, bucketName, objects.map { it.objectName })
@@ -326,5 +339,32 @@ class MinioUtilTest {
         val recursive = MinioUtil.listObjects(client, bucketName, prefix, recursive = true)
 
         assertTrue(recursive.size >= nonRecursive.size, "Recursive should return more or equal items")
+    }
+
+    private data class MinioTestConfig(
+        val endpoint: String,
+        val accessKey: String,
+        val secretKey: String,
+        val bucketName: String
+    ) {
+        companion object {
+            private fun readConfig(envKey: String, propertyKey: String): String? {
+                return System.getenv(envKey)?.takeIf { it.isNotBlank() }
+                    ?: System.getProperty(propertyKey)?.takeIf { it.isNotBlank() }
+            }
+
+            fun fromEnvironment(): MinioTestConfig? {
+                val endpoint = readConfig("MINIO_TEST_ENDPOINT", "minio.test.endpoint")
+                val accessKey = readConfig("MINIO_TEST_ACCESS_KEY", "minio.test.accessKey")
+                val secretKey = readConfig("MINIO_TEST_SECRET_KEY", "minio.test.secretKey")
+                val bucketName = readConfig("MINIO_TEST_BUCKET", "minio.test.bucket")
+
+                if (endpoint == null || accessKey == null || secretKey == null || bucketName == null) {
+                    return null
+                }
+
+                return MinioTestConfig(endpoint, accessKey, secretKey, bucketName)
+            }
+        }
     }
 }
