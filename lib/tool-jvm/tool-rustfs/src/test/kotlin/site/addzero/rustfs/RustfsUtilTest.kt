@@ -5,14 +5,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class RustfsUtilTest {
 
-    // 集成测试配置：连接到本地 RustFS 服务
+    // 集成测试配置：连接到 RustFS 服务
     private val integrationConfig = RustfsConfig(
-        endpoint = "http://127.0.0.1:9000",
+        endpoint = "http://addzero.site:9000",
         accessKey = "rustfsadmin",
         secretKey = "rustfsadmin",
         region = "us-east-1"
@@ -50,7 +49,6 @@ class RustfsUtilTest {
     }
 
     @Test
-    @Disabled("手动启用此测试以验证与 RustFS 的集成")
     fun `upload and read object from boxun bucket`() {
         val client = RustfsUtil.createClient(integrationConfig)
         val bucket = "boxun"
@@ -78,7 +76,6 @@ class RustfsUtilTest {
     }
 
     @Test
-    @Disabled("手动启用此测试以验证与 RustFS 的集成")
     fun `upload and list objects in boxun bucket`() {
         val client = RustfsUtil.createClient(integrationConfig)
         val bucket = "boxun"
