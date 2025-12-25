@@ -27,6 +27,8 @@ interface BeanRegistry {
         return getBean(clazz) ?: throw IllegalArgumentException("No bean found for type")
     }
 
+
+
     /**
      * 注册 Bean 实例
      * @param T Bean 类型

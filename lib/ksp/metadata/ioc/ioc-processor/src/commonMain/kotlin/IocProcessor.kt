@@ -445,6 +445,12 @@ class IocProcessor(
 
     // 动态生成代码（只生成存在的函数类型）
     private fun generateAutoInitCode() {
+        if (functions.isEmpty()) {
+            logger.warn("没有找到 @Bean 注解的元素，跳过 IocContainer 生成")
+            System.out.println("没有找到 @Bean 注解的元素，跳过 IocContainer 生成")
+            return
+        }
+
         logger.warn("开始生成代码，初始化项总数: ${functions.size}")
         System.out.println("开始生成代码，初始化项总数: ${functions.size}")
 

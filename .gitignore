@@ -39,3 +39,4 @@ captures
 **/file-system.probe
 /.xcodemap
 /checkouts
+.ai
