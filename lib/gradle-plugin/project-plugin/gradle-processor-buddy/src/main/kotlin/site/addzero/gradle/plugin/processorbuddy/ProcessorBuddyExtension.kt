@@ -14,6 +14,8 @@ abstract class ProcessorBuddyExtension {
 
     abstract val settingContextEnabled: Property<Boolean>
 
+    abstract val settingsObjectEnabled: Property<Boolean>
+
     abstract val readmeEnabled: Property<Boolean>
 
     init {
@@ -21,6 +23,7 @@ abstract class ProcessorBuddyExtension {
         objectName.convention("Settings")
         packageName.convention("site.addzero.context")
         settingContextEnabled.convention(true)
+        settingsObjectEnabled.convention(true)
         readmeEnabled.convention(false)
     }
 }
