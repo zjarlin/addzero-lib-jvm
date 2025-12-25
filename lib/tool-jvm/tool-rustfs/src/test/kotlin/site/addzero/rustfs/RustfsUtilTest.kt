@@ -11,7 +11,7 @@ class RustfsUtilTest {
 
     // 集成测试配置：连接到 RustFS 服务
     private val integrationConfig = RustfsConfig(
-        endpoint = "http://addzero.site:9000",
+        endpoint = "http://addzero.site:9091",
         accessKey = "zjarlin",
         secretKey = "zhou9955",
         region = "us-east-1"
