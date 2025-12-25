@@ -15,10 +15,7 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-24T17:59:44.325542
-// Loaded: 4, Excluded: 0, Total: 4
-include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
-include(":lib:ksp:metadata:ioc:ioc-core")
-include(":lib:ksp:metadata:ioc:ioc-processor")
-include(":lib:tool-kmp:jdbc:tool-jdbc")
+// Generated at: 2025-12-25T11:27:06.970024
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
 // <<< Gradle Buddy: End Of Block <<<
