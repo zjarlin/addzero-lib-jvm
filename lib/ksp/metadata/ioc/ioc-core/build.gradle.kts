@@ -1,5 +1,7 @@
 plugins {
     id("kmp-core")
+//    id("kmp-koin-core")
+
 }
 
 kotlin {

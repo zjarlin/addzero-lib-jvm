@@ -1,5 +1,6 @@
 package site.addzero.util
 
+import site.addzero.assist.extractSchemaFromUrl
 import site.addzero.entity.ForeignKeyMetadata
 import site.addzero.entity.JdbcColumnMetadata
 import site.addzero.entity.JdbcTableMetadata
@@ -22,8 +23,8 @@ class DatabaseMetadataReader(
     /**
      * 从 URL 中提取的默认 schema
      */
-    private val defaultSchema: String by lazy {
-        extractSchemaFromUrl()
+    private val defaultSchema by lazy {
+        extractSchemaFromUrl(url)?:""
     }
 
     /**
@@ -62,106 +63,6 @@ class DatabaseMetadataReader(
 
         // 3. 默认包含所有表
         return true
-    }
-
-    /**
-     * 从 JDBC URL 中提取 schema
-     */
-    private fun extractSchemaFromUrl(): String {
-        return when {
-            // PostgreSQL: jdbc:postgresql://host:port/database?schema=schema
-            url.startsWith("jdbc:postgresql:") -> {
-                val uri = url.substring("jdbc:postgresql:".length)
-                // 查找 schema 参数
-                val schemaParam = Regex("[?&]schema=([^&]*)").find(uri)?.groupValues?.get(1)
-                if (schemaParam != null) {
-                    schemaParam
-                } else {
-                    // PostgreSQL 默认使用用户名作为 schema
-                    username
-                }
-            }
-
-            // MySQL: jdbc:mysql://host:port/database
-            url.startsWith("jdbc:mysql:") -> {
-                val parts = url.substringAfter("jdbc:mysql://").split("/")
-                if (parts.size > 1) {
-                    // MySQL 使用数据库名
-                    parts[1].substringBefore("?")
-                } else {
-                    "mysql"
-                }
-            }
-
-            // Oracle: jdbc:oracle:thin:@host:port:sid
-            url.startsWith("jdbc:oracle:") -> {
-                username.uppercase()
-            }
-
-            // SQL Server: jdbc:sqlserver://host:port;databaseName=database
-            url.startsWith("jdbc:sqlserver:") -> {
-                val databaseParam = Regex("[?;]databaseName=([^;]*)").find(url)?.groupValues?.get(1)
-                databaseParam ?: "dbo"
-            }
-
-            // H2: jdbc:h2:mem:testdb or jdbc:h2:file:/path/to/database
-            url.startsWith("jdbc:h2:") -> {
-                when {
-                    url.contains("mem:") -> "PUBLIC"
-                    url.contains("file:") -> {
-                        val path = url.substringAfter("jdbc:h2:file:")
-                        path.substringAfterLast("/").substringBefore(";")
-                    }
-                    else -> "PUBLIC"
-                }
-            }
-
-            // SQLite: jdbc:sqlite:path/to/database.db
-            url.startsWith("jdbc:sqlite:") -> "main"
-
-            // 达梦: jdbc:dm://host:port/database
-            url.startsWith("jdbc:dm:") -> {
-                val parts = url.substringAfter("jdbc:dm://").split("/")
-                if (parts.size > 1) {
-                    parts[1].substringBefore("?")
-                } else {
-                    username.uppercase()
-                }
-            }
-
-            // 人大金仓: jdbc:kingbase8://host:port/database
-            url.startsWith("jdbc:kingbase:") -> {
-                val parts = url.substringAfter("jdbc:kingbase://").split("/")
-                if (parts.size > 1) {
-                    parts[1].substringBefore("?")
-                } else {
-                    username.uppercase()
-                }
-            }
-
-            // 高斯: jdbc:gaussdb://host:port/database
-            url.startsWith("jdbc:gaussdb:") -> {
-                val parts = url.substringAfter("jdbc:gaussdb://").split("/")
-                if (parts.size > 1) {
-                    parts[1].substringBefore("?")
-                } else {
-                    username
-                }
-            }
-
-            // DB2: jdbc:db2://host:port/database
-            url.startsWith("jdbc:db2:") -> {
-                val parts = url.substringAfter("jdbc:db2://").split("/")
-                if (parts.size > 1) {
-                    parts[1].substringBefore("?")
-                } else {
-                    username.uppercase()
-                }
-            }
-
-            // 其他数据库使用默认值
-            else -> "public"
-        }
     }
 
     /**
@@ -209,8 +110,7 @@ class DatabaseMetadataReader(
                     val columns = getColumnsMetadata(schema, tableName)
 
                     // 获取表的主键信息
-                    val primaryKeys = getPrimaryKeysForTable(tableName, actualSchema
-                    )
+                    val primaryKeys = getPrimaryKeysForTable(tableName, defaultSchema )
 
                     // 标记主键列
                     val columnsWithPk = columns.map { column ->
