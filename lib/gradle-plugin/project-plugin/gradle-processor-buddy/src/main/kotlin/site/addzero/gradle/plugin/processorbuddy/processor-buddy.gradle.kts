@@ -416,7 +416,7 @@ val merged = $ifaceName.merge(config1, config2)
                 "String" -> parts.joinToString(", ") { "\"$it\"" }
                 "Int" -> parts.joinToString(", ") { it }
                 "Long" -> parts.joinToString(", ") { "${it}L" }
-                "Double" -> parts.joinToString(", ") { "${it}d" }
+                "Double" -> parts.joinToString(", ") { it }
                 "Boolean" -> parts.joinToString(", ") { it.lowercase() }
                 else -> parts.joinToString(", ")
             }
@@ -426,7 +426,7 @@ val merged = $ifaceName.merge(config1, config2)
                 "Boolean" -> value.toBoolean().toString()
                 "Int" -> (value.toIntOrNull() ?: 0).toString()
                 "Long" -> "${value.toLongOrNull() ?: 0L}L"
-                "Double" -> "${value.toDoubleOrNull() ?: 0.0}d"
+                "Double" -> "${value.toDoubleOrNull() ?: 0.0}"
                 else -> "\"$value\""
             }
         }
@@ -463,7 +463,7 @@ val merged = $ifaceName.merge(config1, config2)
             } else {
                 ""
             }
-            """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }$filterExpr ?: $defaultExpr"""
+            """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }?$filterExpr ?: $defaultExpr"""
         } else {
             when (type) {
                 "Boolean" -> """        this.$propertyName = options["$propertyName"]?.toBoolean() ?: $defaultExpr"""
