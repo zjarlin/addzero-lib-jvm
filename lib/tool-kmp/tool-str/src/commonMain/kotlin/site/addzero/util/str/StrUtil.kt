@@ -926,3 +926,133 @@ fun String.toKebabCase(): String {
 fun String.makeSurroundWithBrackets(): String {
     return this.addSuffixIfNot("(").addSuffixIfNot(")")
 }
+
+
+
+
+
+/**
+ * 跨平台的 String format 扩展函数（用于 KMP）
+ *
+ * 支持的格式说明符：
+ * - %s - 字符串
+ * - %d - 整数
+ * - %f - 浮点数
+ * - %x - 十六进制整数
+ * - %.Nf - 浮点数，N 位小数（如 %.2f）
+ * - %% - 百分号
+ *
+ * @param args 格式化参数
+ * @return 格式化后的字符串
+ */
+fun String.format(vararg args: Any?): String {
+    val result = StringBuilder()
+    var argIndex = 0
+    var i = 0
+
+    while (i < this.length) {
+        if (this[i] == '%' && i + 1 < this.length) {
+            val nextChar = this[i + 1]
+            when (nextChar) {
+                '%' -> {
+                    result.append('%')
+                    i += 2
+                }
+
+                's', 'S' -> {
+                    result.append(args.getOrNull(argIndex) ?: "null")
+                    argIndex++
+                    i += 2
+                }
+
+                'd' -> {
+                    val value = args.getOrNull(argIndex)
+                    result.append(value?.toString() ?: "null")
+                    argIndex++
+                    i += 2
+                }
+
+                'f' -> {
+                    val value = args.getOrNull(argIndex)
+                    val num = when (value) {
+                        is Number -> value.toDouble()
+                        else -> 0.0
+                    }
+                    result.append(num.toString())
+                    argIndex++
+                    i += 2
+                }
+
+                'x' -> {
+                    val value = args.getOrNull(argIndex)
+                    val num = when (value) {
+                        is Number -> value.toLong()
+                        else -> 0L
+                    }
+                    result.append(num.toString(16))
+                    argIndex++
+                    i += 2
+                }
+
+                '.' -> {
+                    // 解析精度格式，如 %.2f
+                    var j = i + 2
+                    val precisionStart = j
+                    while (j < this.length && this[j].isDigit()) {
+                        j++
+                    }
+                    if (j < this.length && this[j] == 'f') {
+                        val precision = this.substring(precisionStart, j).toIntOrNull() ?: 2
+                        val value = args.getOrNull(argIndex)
+                        val num = when (value) {
+                            is Number -> value.toDouble()
+                            else -> 0.0
+                        }
+                        result.append(formatFloat(num, precision))
+                        argIndex++
+                        i = j + 1
+                    } else {
+                        result.append(this[i])
+                        i++
+                    }
+                }
+
+                else -> {
+                    result.append(this[i])
+                    i++
+                }
+            }
+        } else {
+            result.append(this[i])
+            i++
+        }
+    }
+
+    return result.toString()
+}
+
+/**
+ * 格式化浮点数
+ */
+private fun formatFloat(value: Double, precision: Int): String {
+    val multiplier = pow10(precision)
+    val scaled = (value * multiplier).toLong()
+    val intPart = scaled / multiplier
+    val fracPart = (scaled % multiplier).toInt()
+
+    return if (precision > 0) {
+        val fracStr = fracPart.toString().padStart(precision, '0').take(precision)
+        "$intPart.$fracStr"
+    } else {
+        intPart.toString()
+    }
+}
+
+/**
+ * 计算 10 的 n 次方
+ */
+private fun pow10(n: Int): Long {
+    var result = 1L
+    repeat(n) { result *= 10 }
+    return result
+}
