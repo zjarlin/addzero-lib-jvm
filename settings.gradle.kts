@@ -4,15 +4,14 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "+"
     id("site.addzero.gradle.plugin.repo-buddy") version "+"
 //    https://melix.github.io/includegit-gradle-plugin/latest/index.html#_known_limitations
-    id("site.addzero.gradle.plugin.git-dependency") version "2025.12.04"
+    id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"
 //    id("site.addzero.gradle.plugin.modules-buddy") version "+"
 }
-implementationRemoteGit{
-    remoteGits=listOf(
-
-        "metaprogramming-lsi"
-    )
-}
+//implementationRemoteGit{
+//    remoteGits=listOf(
+//        ""
+//    )
+//}
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
 // Generated at: 2025-12-26T10:05:16.401653
