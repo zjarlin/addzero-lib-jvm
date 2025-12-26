@@ -15,8 +15,12 @@ implementationRemoteGit{
 }
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-25T23:00:57.849392
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:tool-jvm:tool-minio")
+// Generated at: 2025-12-26T10:05:16.401653
+// Loaded: 6, Excluded: 0, Total: 6
+include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
+include(":lib:ksp:metadata:ioc:ioc-core")
+include(":lib:ksp:metadata:ioc:ioc-processor")
+include(":lib:tool-jvm:models:common:common-models")
+include(":lib:tool-jvm:tool-common-jvm")
 include(":lib:tool-jvm:tool-rustfs")
 // <<< Gradle Buddy: End Of Block <<<
