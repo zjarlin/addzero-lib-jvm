@@ -16,7 +16,7 @@ data class RustfsConfig(
 ) {
     companion object {
         fun default(): RustfsConfig = RustfsConfig(
-            endpoint = "http://addzero.site:9000",
+            endpoint = "http://localhost:9000",
             accessKey = "rustfsadmin",
             secretKey = "rustfsadmin",
             region = "us-east-1"

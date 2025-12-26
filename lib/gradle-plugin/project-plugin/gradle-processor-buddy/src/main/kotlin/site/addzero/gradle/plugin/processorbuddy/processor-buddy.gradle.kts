@@ -212,28 +212,16 @@ val merged = $ifaceName.merge(config1, config2)
         }.joinToString("\n")
 
         val implProperties = propertyInfos.map { info ->
-            val default = when (info.type) {
-                "Boolean" -> info.defaultValue.toBoolean()
-                "Int" -> info.defaultValue.toIntOrNull() ?: 0
-                "Long" -> info.defaultValue.toLongOrNull() ?: 0L
-                "Double" -> info.defaultValue.toDoubleOrNull() ?: 0.0
-                else -> "\"${info.defaultValue}\""
-            }
+            val default = toDefaultValueExpression(info.defaultValue, info.type)
             "    override var ${info.name}: ${info.type} = $default"
         }.joinToString("\n")
 
         val toOptionsBody = propertyInfos.map {
-            """        "${it.name}" to ${it.name}.toString()"""
+            toSerializationExpression(it.name, it.type)
         }.joinToString(",\n")
 
         val setFromOptionsBody = propertyInfos.map { info ->
-            when (info.type) {
-                "Boolean" -> """        this.${info.name} = options["${info.name}"]?.toBoolean() ?: ${info.defaultValue.toBoolean()}"""
-                "Int" -> """        this.${info.name} = options["${info.name}"]?.toIntOrNull() ?: ${info.defaultValue.toIntOrNull() ?: 0}"""
-                "Long" -> """        this.${info.name} = options["${info.name}"]?.toLongOrNull() ?: ${info.defaultValue.toLongOrNull() ?: 0L}"""
-                "Double" -> """        this.${info.name} = options["${info.name}"]?.toDoubleOrNull() ?: ${info.defaultValue.toDoubleOrNull() ?: 0.0}"""
-                else -> """        this.${info.name} = options["${info.name}"] ?: "${info.defaultValue}""""
-            }
+            toFromOptionsExpression(info.name, info.type, info.defaultValue)
         }.joinToString("\n")
 
         val generatedFiles = mutableListOf<File>()
@@ -344,13 +332,7 @@ val merged = $ifaceName.merge(config1, config2)
                 implProperties
             } else {
                 propertyInfos.map { info ->
-                    val default = when (info.type) {
-                        "Boolean" -> info.defaultValue.toBoolean()
-                        "Int" -> info.defaultValue.toIntOrNull() ?: 0
-                        "Long" -> info.defaultValue.toLongOrNull() ?: 0L
-                        "Double" -> info.defaultValue.toDoubleOrNull() ?: 0.0
-                        else -> "\"${info.defaultValue}\""
-                    }
+                    val default = toDefaultValueExpression(info.defaultValue, info.type)
                     "    ${overrideModifier}var ${info.name}: ${info.type} = $default"
                 }.joinToString("\n")
             }
@@ -386,12 +368,110 @@ val merged = $ifaceName.merge(config1, config2)
     }
 
     private fun inferType(value: String): String {
+        // 优先检测列表类型
+        val listType = detectListType(value)
+        if (listType != null) {
+            return listType.second
+        }
         return when {
             value.equals("true", ignoreCase = true) || value.equals("false", ignoreCase = true) -> "Boolean"
             value.toIntOrNull() != null && !value.startsWith("0") && !value.contains(".") -> "Int"
             value.toLongOrNull() != null && !value.contains(".") -> "Long"
             value.toDoubleOrNull() != null && value.contains(".") -> "Double"
             else -> "String"
+        }
+    }
+
+    /**
+     * 检测值是否为逗号分隔的列表，并推断列表元素类型
+     */
+    private fun detectListType(value: String): Pair<Boolean, String>? {
+        if (!value.contains(",") || value.startsWith("\"")) {
+            return null
+        }
+        val parts = value.split(",").map { it.trim() }
+        if (parts.size < 2) return null
+
+        // 检测每个部分的类型是否一致
+        val elementType = when {
+            parts.all { it.equals("true", ignoreCase = true) || it.equals("false", ignoreCase = true) } -> "Boolean"
+            parts.all { it.toIntOrNull() != null && !it.startsWith("0") && !it.contains(".") } -> "Int"
+            parts.all { it.toLongOrNull() != null && !it.contains(".") } -> "Long"
+            parts.all { it.toDoubleOrNull() != null } -> "Double"
+            else -> "String"
+        }
+        return true to "List<$elementType>"
+    }
+
+    /**
+     * 将字符串值转换为 Kotlin 代码中的默认值表达式
+     */
+    private fun toDefaultValueExpression(value: String, type: String): String {
+        val listType = detectListType(value)
+        return if (listType != null && type.startsWith("List<")) {
+            val (isList, listTypeStr) = listType
+            val elementType = listTypeStr.removePrefix("List<").removeSuffix(">")
+            val parts = value.split(",").map { it.trim() }
+            val elementValues = when (elementType) {
+                "String" -> parts.joinToString(", ") { "\"$it\"" }
+                "Int" -> parts.joinToString(", ") { it }
+                "Long" -> parts.joinToString(", ") { "${it}L" }
+                "Double" -> parts.joinToString(", ") { "${it}d" }
+                "Boolean" -> parts.joinToString(", ") { it.lowercase() }
+                else -> parts.joinToString(", ")
+            }
+            "listOf($elementValues)"
+        } else {
+            when (type) {
+                "Boolean" -> value.toBoolean().toString()
+                "Int" -> (value.toIntOrNull() ?: 0).toString()
+                "Long" -> "${value.toLongOrNull() ?: 0L}L"
+                "Double" -> "${value.toDoubleOrNull() ?: 0.0}d"
+                else -> "\"$value\""
+            }
+        }
+    }
+
+    /**
+     * 将类型转换为可空类型用于 toOptions 序列化
+     */
+    private fun toSerializationExpression(propertyName: String, type: String): String {
+        return if (type.startsWith("List<")) {
+            """        "$propertyName" to ${propertyName}.joinToString(",")"""
+        } else {
+            """        "$propertyName" to ${propertyName}.toString()"""
+        }
+    }
+
+    /**
+     * 生成 fromOptions 中的赋值语句
+     */
+    private fun toFromOptionsExpression(propertyName: String, type: String, defaultValue: String): String {
+        val defaultExpr = toDefaultValueExpression(defaultValue, type)
+        return if (type.startsWith("List<")) {
+            val elementType = type.removePrefix("List<").removeSuffix(">")
+            val parseExpr = when (elementType) {
+                "String" -> "it"
+                "Int" -> "it.toIntOrNull()"
+                "Long" -> "it.toLongOrNull()"
+                "Double" -> "it.toDoubleOrNull()"
+                "Boolean" -> "it.toBoolean()"
+                else -> "it"
+            }
+            val filterExpr = if (elementType != "String") {
+                ".filterNotNull()"
+            } else {
+                ""
+            }
+            """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }$filterExpr ?: $defaultExpr"""
+        } else {
+            when (type) {
+                "Boolean" -> """        this.$propertyName = options["$propertyName"]?.toBoolean() ?: $defaultExpr"""
+                "Int" -> """        this.$propertyName = options["$propertyName"]?.toIntOrNull() ?: $defaultExpr"""
+                "Long" -> """        this.$propertyName = options["$propertyName"]?.toLongOrNull() ?: $defaultExpr"""
+                "Double" -> """        this.$propertyName = options["$propertyName"]?.toDoubleOrNull() ?: $defaultExpr"""
+                else -> """        this.$propertyName = options["$propertyName"] ?: $defaultExpr"""
+            }
         }
     }
 }
