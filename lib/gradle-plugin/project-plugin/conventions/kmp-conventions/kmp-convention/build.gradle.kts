@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath("site.addzero:gradle-tool-config-java:2025.11.29")
     }
 }
 
