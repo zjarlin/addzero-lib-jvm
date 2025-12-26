@@ -1,9 +1,7 @@
-@file:OptIn(ExperimentalWasmDsl::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+package site.addzero.gradle.plugin
 
 plugins {
-    id("kmp-convention")
+    id("site.addzero.gradle.plugin.kmp-convention")
 }
 
 kotlin {

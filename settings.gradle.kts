@@ -7,6 +7,7 @@ plugins {
     id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"
 //    id("site.addzero.gradle.plugin.modules-buddy") version "+"
 }
+includeBuild("checkouts/build-logic")
 //implementationRemoteGit{
 //    remoteGits=listOf(
 //        ""
@@ -14,12 +15,10 @@ plugins {
 //}
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-26T10:05:16.401653
-// Loaded: 6, Excluded: 0, Total: 6
-include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
-include(":lib:ksp:metadata:ioc:ioc-core")
-include(":lib:ksp:metadata:ioc:ioc-processor")
-include(":lib:tool-jvm:models:common:common-models")
+// Generated at: 2025-12-26T11:16:16.464458
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:java-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:kmp-conventions:kmp-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:koin-convention")
 include(":lib:tool-jvm:tool-common-jvm")
-include(":lib:tool-jvm:tool-rustfs")
 // <<< Gradle Buddy: End Of Block <<<

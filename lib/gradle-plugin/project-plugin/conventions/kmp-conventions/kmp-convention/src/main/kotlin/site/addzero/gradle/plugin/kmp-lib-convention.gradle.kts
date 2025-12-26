@@ -1,4 +1,6 @@
+
+package site.addzero.gradle.plugin
 plugins {
-    id("kmp-desktop-convention")
-    id("kmp-wasm-convention")
+    id("site.addzero.gradle.plugin.kmp-desktop-convention")
+    id("site.addzero.gradle.plugin.kmp-wasm-convention")
 }
