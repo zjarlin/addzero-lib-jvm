@@ -3,10 +3,12 @@ package site.addzero.common.kt_util
 import cn.hutool.core.collection.CollUtil
 import cn.hutool.core.date.DateUtil
 import cn.hutool.core.util.ObjUtil
+import java.time.temporal.TemporalAccessor
+import java.util.Date
 
 object JlObjUtil {
     // 判断是否是日期字符串
-    fun isDateValue(value: Any?): Boolean {
+    fun isDate(value: Any?): Boolean {
         return when (value) {
             is String -> try {
                 DateUtil.parse(value)
@@ -14,31 +16,11 @@ object JlObjUtil {
             } catch (e: Exception) {
                 false
             }
-
-            is java.util.Date, is java.time.temporal.TemporalAccessor -> true
+            is Date, is TemporalAccessor -> true
             else -> false
         }
     }
 }
-
-fun Any?.isNull(): Boolean {
-    return ObjUtil.isNull(this)
-}
-
-fun Any?.isNotNull(): Boolean {
-    return ObjUtil.isNotNull(this)
-}
-
-fun Any?.isEmpty(): Boolean {
-    return ObjUtil.isEmpty(this)
-}
-
-fun Any?.isNotEmpty(): Boolean {
-    return ObjUtil.isNotEmpty(this)
-}
-
-
-
 fun Iterator<*>?.isEmpty(): Boolean {
     return CollUtil.isEmpty(this)
 }

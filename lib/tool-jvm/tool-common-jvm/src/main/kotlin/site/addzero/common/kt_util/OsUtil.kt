@@ -3,13 +3,10 @@ package site.addzero.common.kt_util
 import cn.hutool.core.io.FileUtil
 import cn.hutool.system.SystemUtil
 import site.addzero.common.kt_util.OsUtil.getAppDataDir
+import site.addzero.util.str.containsAnyIgnoreCase
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-fun main() {
-    val appDataDir = getAppDataDir("second_brain")
-    println(appDataDir)
-}
 
 object OsUtil {
 
