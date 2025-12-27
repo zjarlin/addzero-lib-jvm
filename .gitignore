@@ -5,7 +5,7 @@
 .autoddl
 settings.gradle.kts
 checkouts/**
-checkouts
+#checkouts
 
 .ai
 **/build/
@@ -39,4 +39,3 @@ captures
 # Ignore Gradle file system probe in all directories
 **/file-system.probe
 /.xcodemap
-/checkouts

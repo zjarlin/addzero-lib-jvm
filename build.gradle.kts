@@ -1,4 +1,6 @@
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 plugins {
 //    id("site.addzero.gradle.plugin.version-buddy") version "2025.11.32"
@@ -10,13 +12,13 @@ plugins {
 }
 //afterEvaluate {
 subprojects {
-    val now = LocalDate.now().toString().replace("-", ".")
-//    version = now
-    version = "2025.12.30"
-    println("项目版本为$now")
+    val now = LocalDateTime.now()
+    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.ddHHmm"))
+    version = versionStr
+//    version = "2025.12.26.1800"
+    println("项目版本为$versionStr")
     if (path.startsWith(":checkouts:")) {
         apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
     }
 }
 //}
-
