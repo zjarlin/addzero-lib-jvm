@@ -8,7 +8,7 @@ import java.time.LocalDate
 private object Defaults {
     const val PROJECT_DESCRIPTION = "Say goodbye to template code and embrace simplicity and elegance"
     const val AUTHOR_NAME = "zjarlin"
-    const val GIT_URL = "https://gitee.com/zjarlin/addzero.git"
+    const val GIT_URL = "https://github.com/zjarlin/addzero-lib-jvm.git"
     const val EMAIL_DOMAIN = "outlook.com"
     const val LICENSE_NAME = "The Apache License, Version 2.0"
     const val LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"

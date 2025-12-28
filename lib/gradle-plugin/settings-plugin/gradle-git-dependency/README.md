@@ -7,7 +7,7 @@
 ## 功能
 
 - 简化Git仓库的检出配置
-- 支持Gitee和GitHub仓库
+- 支持GitHub和Gitee仓库
 - 默认作者为zjarlin
 - 默认分支为master
 - 只需要提供项目名即可使用
@@ -26,11 +26,11 @@ plugins {
 
 // 然后就可以使用简化的方法了
 gitRepositories {
-    // 方式1：简化方式 - 只需要项目名（使用默认配置：gitee, zjarlin, master）
+    // 方式1：简化方式 - 只需要项目名（使用默认配置：GitHub, zjarlin, master）
     includeProjects("project-a", "project-b", "project-c")
-    
+
     // 方式2：自定义方式
-    includeProject("custom-project", RepoType.GITHUB, "other-user", "develop")
+    includeProject("custom-project", RepoType.GITEE, "other-user", "develop")
 }
 ```
 
@@ -40,7 +40,7 @@ gitRepositories {
 - `includeProjects(vararg projectNames: String)` - 批量添加项目，使用默认配置
 
 ### 自定义方法
-- `includeProject(projectName: String, repoType: RepoType = RepoType.GITEE, owner: String = "zjarlin", branch: String = "master")` - 添加单个项目并自定义配置
+- `includeProject(projectName: String, repoType: RepoType = RepoType.GITHUB, owner: String = "zjarlin", branch: String = "master")` - 添加单个项目并自定义配置
 
 ## 依赖
 

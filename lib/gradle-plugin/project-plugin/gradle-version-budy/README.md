@@ -50,5 +50,5 @@ MavenCentralSearchUtil.getLatestVersionByGroupId("org.babyfish.jimmer")
 ```
 
 如果遇到latest版本 获取问题,或者您有更好的maven批量查询工具类 ,请请pr修复该工具类
-https://gitee.com/zjarlin/addzero-lib-jvm.git 
+https://github.com/zjarlin/addzero-lib-jvm.git
 addzero-lib-jvm/lib/tool-jvm/network-call/tool-api-maven/src/main/kotlin/site/addzero/network/call/maven/util

@@ -16,10 +16,7 @@ dependencyResolutionManagement {
 
 //Add it in your build.gradle.kts at the end of dependencies:
 
-ksp("com.gitee.zjarlin.jimmer-ksp-isomorphic:ksp-processor:v1.0.0")
-
-//或者用最新版(二者选其一)
-ksp("com.gitee.zjarlin.jimmer-ksp-isomorphic:ksp-processor:+")
+ksp("site.addzero:entity2iso-processor:+")
 
 
 
