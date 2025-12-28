@@ -10,11 +10,11 @@ import org.koin.mp.KoinPlatformTools
 
 @org.koin.core.annotation.KoinApplication
 object DefaultKoinApp
-
-@org.koin.core.annotation.Module
-@Configuration
-@ComponentScan("site.addzero")
-class AppModule
+//
+//@org.koin.core.annotation.Module
+//@Configuration
+//@ComponentScan("site.addzero")
+//class AppModule
 
 /**
  * 获取 Koin KSP 生成的默认模块（平台相关）

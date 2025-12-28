@@ -1056,3 +1056,7 @@ private fun pow10(n: Int): Long {
     repeat(n) { result *= 10 }
     return result
 }
+fun String.toSimpleName(): String {
+    val substringAfterLast = this.substringAfterLast('.')
+    return substringAfterLast
+}
