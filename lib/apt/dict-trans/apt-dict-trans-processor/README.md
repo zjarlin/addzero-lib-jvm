@@ -1,3 +1,5 @@
+# APT Dict Trans Processor (APT字典翻译处理器)
+
 让我们来清理无用代码
 首先给你两个需求 例如User举例
 1.生成伴生对象UserDictDTO

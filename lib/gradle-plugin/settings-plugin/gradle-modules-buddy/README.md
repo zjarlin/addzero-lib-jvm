@@ -1,3 +1,4 @@
+# Gradle Modules Buddy (Gradle模块自动扫描插件)
 
 自动模块插件，用于自动扫描项目目录并包含所有Gradle子项目。
 

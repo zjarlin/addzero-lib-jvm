@@ -41,5 +41,4 @@ captures
 /.xcodemap
 
 # Auto-generated documentation files
-/docs/README.md
-/docs/_sidebar.md
+/docs/**/*.md
