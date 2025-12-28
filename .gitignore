@@ -39,3 +39,7 @@ captures
 # Ignore Gradle file system probe in all directories
 **/file-system.probe
 /.xcodemap
+
+# Auto-generated documentation files
+/docs/README.md
+/docs/_sidebar.md
