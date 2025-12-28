@@ -30,8 +30,12 @@ include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-28T11:27:49.459799
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2025-12-28T11:29:58.302805
+// Loaded: 6, Excluded: 0, Total: 6
+include(":lib:apt:apt-controller2feign-processor")
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:koin-convention")
+include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
+include(":lib:ksp:metadata:ioc:ioc-processor")
 include(":lib:tool-jvm:tool-spctx")
 include(":lib:tool-kmp:tool-koin")
 // <<< Gradle Buddy: End Of Block <<<
