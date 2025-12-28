@@ -344,9 +344,9 @@ class MinioUtilTest {
         companion object {
             fun default(): MinioTestConfig {
                 return MinioTestConfig(
-                    endpoint = "http://addzero.site:9091",
-                    accessKey = "zjarlin",
-                    secretKey = "zhou9955",
+                    endpoint = "http://local.host:9091",
+                    accessKey = "minioadmin",
+                    secretKey = "minioadmin",
                     bucketName = "boxun"
                 )
             }
