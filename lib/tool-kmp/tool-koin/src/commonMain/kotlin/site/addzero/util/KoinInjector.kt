@@ -2,9 +2,24 @@ package site.addzero.util
 
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
 import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import org.koin.mp.KoinPlatformTools
+
+@org.koin.core.annotation.KoinApplication
+object DefaultKoinApp
+
+@org.koin.core.annotation.Module
+@Configuration
+@ComponentScan("site.addzero")
+class AppModule
+
+/**
+ * 获取 Koin KSP 生成的默认模块（平台相关）
+ */
+internal expect fun loadGeneratedKoinModule(): List<Module>
 
 /**
  * 提供跨模块的 Koin 注入能力。
@@ -14,7 +29,9 @@ import org.koin.mp.KoinPlatformTools
  * - 如宿主未使用 Koin，则内部创建独立的 KoinApplication
  */
 object KoinInjector {
-    private val registeredModules = mutableListOf<Module>()
+
+    var registeredModules = loadGeneratedKoinModule()
+
     private var embeddedKoinApp: KoinApplication? = null
     private var lastSyncedGlobalKoin: Koin? = null
 
@@ -45,8 +62,17 @@ object KoinInjector {
     /**
      * 根据条件筛选实例
      */
-    inline fun <reified T : Any> getSupportStrategty(predicate: (T) -> Boolean): T? {
+    inline fun <reified T : Any> getSupportStrategtyOrNull(predicate: (T) -> Boolean): T? {
         return injectList<T>().firstOrNull(predicate)
+    }
+
+    inline fun <reified T : Any> getSupportStrategty(
+        predicate: (T) -> Boolean,
+        msg: String = "No element matching predicate found"
+    ): T {
+        val supportStrategtyOrNull = getSupportStrategtyOrNull<T>(predicate)
+            ?: throw UnsupportedOperationException(msg)
+        return supportStrategtyOrNull
     }
 
     @PublishedApi

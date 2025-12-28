@@ -30,17 +30,8 @@ include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-27T21:57:25.570328
-// Loaded: 11, Excluded: 0, Total: 11
-include(":checkouts:lsi:lsi-core")
-include(":checkouts:lsi:lsi-ksp")
-include(":lib:kcp:kcp-reified:kcp-reified-annotations")
-include(":lib:kcp:kcp-reified:kcp-reified-gradle")
-include(":lib:kcp:kcp-reified:kcp-reified-plugin")
-include(":lib:kcp:kcp-reified:kcp-reified-test")
-include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
-include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
-include(":lib:ksp:metadata:ioc:ioc-core")
-include(":lib:ksp:metadata:ioc:ioc-processor")
+// Generated at: 2025-12-28T11:27:49.459799
+// Loaded: 2, Excluded: 0, Total: 2
+include(":lib:tool-jvm:tool-spctx")
 include(":lib:tool-kmp:tool-koin")
 // <<< Gradle Buddy: End Of Block <<<

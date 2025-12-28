@@ -13,7 +13,8 @@ plugins {
 //afterEvaluate {
 subprojects {
     val now = LocalDateTime.now()
-    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.ddHHmm"))
+//    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.ddHHmm"))
+    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
     version = versionStr
 //    version = "2025.12.26.1800"
     println("项目版本为$versionStr")

@@ -13,4 +13,8 @@ kotlin {
         implementation(libs.koin.annotations)
         implementation(libs.koin.core)
     }
+    sourceSets.jvmMain.dependencies {
+
+        implementation(libs.hutool.core)
+    }
 }
