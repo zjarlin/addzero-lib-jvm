@@ -1,5 +1,6 @@
 package site.addzero.gradle.plugin
 
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.dependencies
 import site.addzero.gradle.KoinConventionExtension
@@ -12,7 +13,7 @@ plugins {
 //    id("ksp")
 }
 
-val extension = the<KoinConventionExtension>()
+val extension = extensions.create<KoinConventionExtension>("koinConvention")
 val kspExtension = the<KspConventionExtension>()
 
 dependencies {
