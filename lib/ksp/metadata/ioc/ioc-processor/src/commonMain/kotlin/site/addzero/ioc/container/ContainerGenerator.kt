@@ -1,8 +1,13 @@
-package com.example.autoinit.ksp.container
+package site.addzero.ioc.container
 
-import com.example.autoinit.ksp.strategy.*
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
+import site.addzero.ioc.strategy.ClassInstanceStrategy
+import site.addzero.ioc.strategy.ComposableFunctionStrategy
+import site.addzero.ioc.strategy.InitType
+import site.addzero.ioc.strategy.ObjectInstanceStrategy
+import site.addzero.ioc.strategy.RegularFunctionStrategy
+import site.addzero.ioc.strategy.SuspendFunctionStrategy
 
 class ContainerGenerator(private val codeGenerator: CodeGenerator) {
     private val strategies = mapOf(

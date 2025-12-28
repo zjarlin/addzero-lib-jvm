@@ -1,4 +1,4 @@
-package com.example.autoinit.ksp.registry
+package site.addzero.ioc.registry
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies

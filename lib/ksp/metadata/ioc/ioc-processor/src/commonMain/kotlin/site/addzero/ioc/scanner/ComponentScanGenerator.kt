@@ -1,4 +1,4 @@
-package com.example.autoinit.ksp.scanner
+package site.addzero.ioc.scanner
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies

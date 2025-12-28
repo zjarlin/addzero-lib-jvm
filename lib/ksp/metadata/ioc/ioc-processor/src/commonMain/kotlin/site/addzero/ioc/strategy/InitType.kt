@@ -1,4 +1,4 @@
-package com.example.autoinit.ksp.strategy
+package site.addzero.ioc.strategy
 
 enum class InitType {
     TOP_LEVEL_FUNCTION,

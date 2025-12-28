@@ -1,4 +1,5 @@
-package com.example.autoinit.ksp.strategy
+package site.addzero.ioc.strategy
+
 
 class RegularFunctionStrategy : CodeGenerationStrategy {
     override fun generateCollectionCode(functions: List<Pair<String, InitType>>) = """
