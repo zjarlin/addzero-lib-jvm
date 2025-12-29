@@ -2,8 +2,6 @@ package site.addzero.util
 
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Configuration
 import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import org.koin.mp.KoinPlatformTools
@@ -67,8 +65,8 @@ object KoinInjector {
     }
 
     inline fun <reified T : Any> getSupportStrategty(
-        predicate: (T) -> Boolean,
-        msg: String = "No element matching predicate found"
+        msg: String = "No element matching predicate found",
+        predicate: (T) -> Boolean
     ): T {
         val supportStrategtyOrNull = getSupportStrategtyOrNull<T>(predicate)
             ?: throw UnsupportedOperationException(msg)
