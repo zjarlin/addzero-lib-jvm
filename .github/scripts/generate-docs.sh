@@ -1,8 +1,40 @@
 #!/bin/bash
 
-# 清理旧的文档文件
-find docs -type f -name "*.md" ! -name "index.html" -delete
+# 清理旧的文档文件（保留 index.html）
+find docs -type f -name "*.md" -delete
 find docs -type d -empty -delete
+
+# 创建 index.html
+cat > docs/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>addzero-lib-jvm Documentation</title>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'addzero-lib-jvm',
+      repo: 'https://github.com/zjarlin/addzero-lib-jvm',
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: 'auto',
+      relativePath: true,
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      }
+    }
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+</body>
+</html>
+EOF
 
 # 生成文档首页
 cat > docs/README.md << 'EOF'
