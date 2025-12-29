@@ -30,11 +30,12 @@ include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-29T09:57:02.517691
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
+// Generated at: 2025-12-29T11:29:57.373310
+// Loaded: 6, Excluded: 0, Total: 6
 include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 include(":lib:tool-jvm:tool-minio")
+include(":lib:tool-kmp:tool")
+include(":lib:tool-kmp:tool-coll")
 include(":lib:tool-kmp:tool-koin")
 include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<

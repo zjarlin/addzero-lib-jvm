@@ -1,4 +1,4 @@
-package site.addzero.core.validation
+package site.addzero.regex
 
 enum class RegexEnum(val pattern: String, val message: String) {
     PHONE("^1[3-9]\\d{9}$", "请输入正确的手机号"),
