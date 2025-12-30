@@ -15,5 +15,5 @@ abstract class KoinConventionExtension @Inject constructor(objects: ObjectFactor
     val toolKoinVersion: Property<String> = objects.property(String::class.java)
         .convention("2025.12.30")
 
-    val kspVersion:Property<String>  = objects.property(String::class.java).convention("2.2.0+")
+    val kspVersion:Property<String>  = objects.property(String::class.java).convention("2.2.21-2.0.4")
 }

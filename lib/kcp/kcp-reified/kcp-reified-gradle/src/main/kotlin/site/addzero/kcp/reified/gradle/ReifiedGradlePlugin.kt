@@ -27,7 +27,7 @@ class ReifiedGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = "site.addzero",
         artifactId = "kcp-reified-plugin",
-        version = "2025.12.2778958"
+        version = "2025.12.34"
     )
 
     override fun applyToCompilation(
@@ -37,7 +37,7 @@ class ReifiedGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
         // 自动添加注解依赖
         kotlinCompilation.dependencies {
-            implementation("site.addzero:kcp-reified-annotations:2025.12.2778233")
+            implementation("site.addzero:kcp-reified-annotations:2025.12.34")
 
         }
 

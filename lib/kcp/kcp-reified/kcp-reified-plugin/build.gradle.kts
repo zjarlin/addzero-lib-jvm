@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation("site.addzero:kcp-reified-annotations:2025.12.26222823")
+    implementation("site.addzero:kcp-reified-annotations:2025.12.34")
     implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable")
 }

@@ -11,7 +11,8 @@ interface AutoModulesPluginExtension {
 }
 
 val extension = extensions.create("autoModules", AutoModulesPluginExtension::class.java).apply {
-    excludeModules.convention(arrayOf())
+    val arrayOf = arrayOf<String>()
+    excludeModules.convention(arrayOf)
 }
 
 autoIncludeModules(*extension.excludeModules.get())

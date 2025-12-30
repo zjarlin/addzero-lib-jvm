@@ -51,7 +51,10 @@ fun getProjectDirConfigMap(blackDir: List<String> = BLACKLIST_DIRS, rootDir: Fil
  */
 fun generateProjectDirConfigMap(blackDir: List<String>, rootDir: File): List<ProjectModuleConfig> {
     val allProjectDirs = findAllProjectDirs(rootDir).filter { it != rootDir } // 排除根项目本身
-        .filter { !isBlacklisted(it, rootDir, blackDir) } // 排除黑名单目录
+        .filter {
+            val blackModuleName = blackDir.toTypedArray()
+            !it.isInBlackList(rootDir, *blackModuleName)
+        } // 排除黑名单目录
 
     val map = allProjectDirs.map { projectDir ->
         val relativePath = getRelativePath(rootDir, projectDir)
@@ -117,8 +120,25 @@ fun getProjectContext(
     val partition = modules.partition {
         predicate(it)
     }
-    val projectContext = ProjectContext(buildProj, partition.first.filterNot { it.name.startsWith("buildSrc") }, partition.second)
+    val projectContext =
+        ProjectContext(buildProj, partition.first.filterNot { it.name.startsWith("buildSrc") }, partition.second)
     return projectContext
+}
+
+fun File.isInBlackList(rootDir: File, vararg blackModuleName: String): Boolean {
+    if (this.name.startsWith(".")) return true
+    if (blackModuleName.isEmpty()) return false
+
+    val relativePath = FileUtils.getRelativePath(rootDir, this)
+    val moduleName = ":${relativePath.replace(File.separator, ":")}"
+    val leafModuleName = this.name
+
+    return blackModuleName.any { black ->
+        moduleName == black ||
+        leafModuleName == black ||
+        moduleName.startsWith(":$black:") ||
+        moduleName == ":$black"
+    }
 }
 
 
@@ -126,9 +146,8 @@ fun getProjectContext(
     rootDir: File, vararg blackModuleName: String
 ): ProjectContext {
     return getProjectContext(rootDir) {
-        val relativePath = FileUtils.getRelativePath(rootDir, it)
-        val moduleName = ":${relativePath.replace(File.separator, ":")}"
-        moduleName !in blackModuleName
+        val inBlackList = it.isInBlackList(rootDir, *blackModuleName)
+        !inBlackList
     }
 }
 
@@ -136,10 +155,8 @@ fun getProjectContext(
 fun Settings.autoIncludeModules(vararg blackModuleName: String) {
     val rootDir = settings.layout.rootDirectory.asFile
     settings.autoIncludeModules {
-        val relativePath = FileUtils.getRelativePath(rootDir, it)
-        val moduleName = ":${relativePath.replace(File.separator, ":")}"
-        val isIncluded = moduleName !in blackModuleName
-        isIncluded
+        val inBlackList = it.isInBlackList(rootDir, *blackModuleName)
+        !inBlackList
     }
 }
 
@@ -168,12 +185,12 @@ fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
 
 
 // 检查目录是否在黑名单中
-private fun isBlacklisted(projectDir: File, rootDir: File, blackDir: List<String>): Boolean {
-    val relativePath = getRelativePath(rootDir, projectDir)
-    return blackDir.any { blacklisted ->
-        relativePath == blacklisted || relativePath.startsWith("$blacklisted${File.separator}")
-    }
-}
+//private fun isBlacklisted(projectDir: File, rootDir: File, blackDir: List<String>): Boolean {
+//    val relativePath = getRelativePath(rootDir, projectDir)
+//    return blackDir.any { blacklisted ->
+//        relativePath == blacklisted || relativePath.startsWith("$blacklisted${File.separator}")
+//    }
+//}
 
 /**
  * 将路径转换为小驼峰命名

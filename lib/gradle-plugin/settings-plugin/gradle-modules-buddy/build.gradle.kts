@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
-   implementation("site.addzero:gradle-tool:2025.11.29")
+   implementation("site.addzero:gradle-tool:2026.01.01")
 }
 
 

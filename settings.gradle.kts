@@ -32,8 +32,8 @@ include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-29T18:32:29.101186
+// Generated at: 2025-12-30T12:37:54.223231
 // Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:gradle-tool")
 include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
+include(":lib:kcp:kcp-reified:kcp-reified-gradle")
 // <<< Gradle Buddy: End Of Block <<<

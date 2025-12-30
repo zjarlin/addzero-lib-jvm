@@ -6,7 +6,14 @@ import java.time.LocalDate
 
 // 默认配置常量
 private object Defaults {
-    const val PROJECT_DESCRIPTION = "Say goodbye to template code and embrace simplicity and elegance"
+    val description1 =run{
+        val description2 = project.description
+        if (description2.isNullOrBlank()) {
+        return@run "Say goodbye to template code and embrace simplicity and elegance"
+        }
+        description2
+    }
+    val PROJECT_DESCRIPTION =description1
     const val AUTHOR_NAME = "zjarlin"
     const val GIT_URL = "https://github.com/zjarlin/addzero-lib-jvm.git"
     const val EMAIL_DOMAIN = "outlook.com"
