@@ -9,8 +9,8 @@ plugins {
 
 dependencies {
     // KSP reified 处理器
-    ksp(project(":lib:kcp:kcp-reified:kcp-reified-ksp"))
-    api(project(":lib:kcp:kcp-reified:kcp-reified-annotations"))
+//    ksp(project(":lib:kcp:kcp-reified:kcp-reified-ksp"))
+//    api(project(":lib:kcp:kcp-reified:kcp-reified-annotations"))
 
 //    compileOnly("org.springframework:spring-jdbc:5.3.21")
     compileOnly("org.springframework:spring-context:5.3.21")

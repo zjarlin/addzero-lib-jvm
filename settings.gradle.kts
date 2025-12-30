@@ -22,19 +22,10 @@ implementationRemoteGit{
        ,"ddlgenerator"
    )
 }
-
-// kcp-reified modules
-include(":lib:kcp:kcp-reified:kcp-reified-annotations")
-include(":lib:kcp:kcp-reified:kcp-reified-plugin")
-include(":lib:kcp:kcp-reified:kcp-reified-gradle")
-include(":lib:kcp:kcp-reified:kcp-reified-ksp")
-// include(":lib:kcp:kcp-reified:kcp-reified-test")
-include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
-include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
-
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-30T14:11:18.470518
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:kcp:kcp-reified:kcp-reified-ksp")
-include(":lib:tool-jvm:tool-spctx")
+// Generated at: 2025-12-30T16:27:17.370312
+// Loaded: 3, Excluded: 0, Total: 3
+include(":checkouts:ddlgenerator")
+include(":lib:ksp:metadata:gen-reified:gen-reified-core")
+include(":lib:ksp:metadata:gen-reified:gen-reified-processor")
 // <<< Gradle Buddy: End Of Block <<<
