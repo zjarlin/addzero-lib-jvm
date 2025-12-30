@@ -19,13 +19,12 @@ plugins {
 includeBuild("checkouts/build-logic")
 implementationRemoteGit{
    remoteGits=listOf("lsi"
-       ,"ddlgenerator"
+//       ,"ddlgenerator"
    )
 }
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-30T16:27:17.370312
-// Loaded: 3, Excluded: 0, Total: 3
-include(":checkouts:ddlgenerator")
+// Generated at: 2025-12-30T17:06:30.743814
+// Loaded: 2, Excluded: 0, Total: 2
 include(":lib:ksp:metadata:gen-reified:gen-reified-core")
 include(":lib:ksp:metadata:gen-reified:gen-reified-processor")
 // <<< Gradle Buddy: End Of Block <<<

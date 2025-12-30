@@ -1,8 +1,10 @@
-package site.addzero.kcp.reified.ksp
+package site.addzero.genreified.ksp
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
+import site.addzero.kcp.annotations.GenerateReified
+import java.io.BufferedWriter
 
 class ReifiedSymbolProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
@@ -10,13 +12,15 @@ class ReifiedSymbolProcessorProvider : SymbolProcessorProvider {
     }
 }
 
+private val SITE_ADDZERO_KCP_ANNOTATIONS_GENERATE_REIFIED = GenerateReified::class.qualifiedName?:""
+
 class ReifiedSymbolProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val generateReifiedAnnotation = "site.addzero.kcp.annotations.GenerateReified"
+        val generateReifiedAnnotation = SITE_ADDZERO_KCP_ANNOTATIONS_GENERATE_REIFIED
 
         val annotatedSymbols = resolver
             .getSymbolsWithAnnotation(generateReifiedAnnotation)
@@ -83,7 +87,7 @@ class ReifiedSymbolProcessor(
         // 检查类是否已经有类级别的注解
         if (classDecl.annotations.any {
             it.annotationType.resolve().declaration.qualifiedName?.asString() ==
-            "site.addzero.kcp.annotations.GenerateReified"
+                    SITE_ADDZERO_KCP_ANNOTATIONS_GENERATE_REIFIED
         }) {
             // 类上已经有注解，跳过（已经在 processClass 中处理）
             return
@@ -116,7 +120,7 @@ class ReifiedSymbolProcessor(
     private fun KSFunctionDeclaration.hasGenerateReifiedAnnotation(): Boolean {
         return annotations.any {
             it.annotationType.resolve().declaration.qualifiedName?.asString() ==
-                "site.addzero.kcp.annotations.GenerateReified"
+                    SITE_ADDZERO_KCP_ANNOTATIONS_GENERATE_REIFIED
         }
     }
 
@@ -131,7 +135,7 @@ class ReifiedSymbolProcessor(
     }
 
     private fun generateReifiedFunction(
-        writer: java.io.BufferedWriter,
+        writer: BufferedWriter,
         classDecl: KSClassDeclaration,
         function: KSFunctionDeclaration
     ) {
@@ -150,7 +154,7 @@ class ReifiedSymbolProcessor(
         val customName = function.annotations
             .firstOrNull {
                 it.annotationType.resolve().declaration.qualifiedName?.asString() ==
-                    "site.addzero.kcp.annotations.GenerateReified"
+                        SITE_ADDZERO_KCP_ANNOTATIONS_GENERATE_REIFIED
             }
             ?.arguments
             ?.firstOrNull { it.name?.asString() == "value" }
