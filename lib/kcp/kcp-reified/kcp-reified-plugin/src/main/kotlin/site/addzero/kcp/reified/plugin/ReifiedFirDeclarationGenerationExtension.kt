@@ -1,6 +1,7 @@
 package site.addzero.kcp.reified.plugin
 
 import org.jetbrains.kotlin.GeneratedDeclarationKey
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSession
@@ -173,10 +174,22 @@ class ReifiedFirDeclarationGenerationExtension(session: FirSession) : FirDeclara
             name = wrapperCallableId.callableName
             symbol = wrapperSymbol
 
-            status = FirDeclarationStatusImpl(Visibilities.Public, originalFn.status.modality).apply {
+            status = FirDeclarationStatusImpl(
+                visibility = originalFn.status.visibility,
+                modality = Modality.FINAL
+            ).apply {
                 isInline = true
+                isExpect = false
+                isActual = false
+                isOverride = false
+                isOperator = originalFn.status.isOperator
+                isInfix = originalFn.status.isInfix
+                isExternal = false
+                isTailRec = false
+                isSuspend = originalFn.status.isSuspend
             }
             returnTypeRef = substitutedReturnTypeRef
+            dispatchReceiverType = originalFn.dispatchReceiverType
             receiverParameter = originalFn.receiverParameter
             contextParameters.addAll(originalFn.contextParameters)
             typeParameters.addAll(wrapperTypeParameters)

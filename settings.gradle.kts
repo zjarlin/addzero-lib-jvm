@@ -27,13 +27,14 @@ implementationRemoteGit{
 include(":lib:kcp:kcp-reified:kcp-reified-annotations")
 include(":lib:kcp:kcp-reified:kcp-reified-plugin")
 include(":lib:kcp:kcp-reified:kcp-reified-gradle")
-include(":lib:kcp:kcp-reified:kcp-reified-test")
+include(":lib:kcp:kcp-reified:kcp-reified-ksp")
+// include(":lib:kcp:kcp-reified:kcp-reified-test")
 include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-30T12:37:54.223231
+// Generated at: 2025-12-30T14:11:18.470518
 // Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
-include(":lib:kcp:kcp-reified:kcp-reified-gradle")
+include(":lib:kcp:kcp-reified:kcp-reified-ksp")
+include(":lib:tool-jvm:tool-spctx")
 // <<< Gradle Buddy: End Of Block <<<

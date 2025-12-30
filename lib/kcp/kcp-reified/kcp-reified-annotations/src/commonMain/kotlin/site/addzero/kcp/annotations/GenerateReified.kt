@@ -26,7 +26,7 @@ package site.addzero.kcp.annotations
  *              - 空字符串 (默认): 保留原始方法名
  *              - 指定名称: 使用指定的名称
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FILE)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FILE, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
 annotation class GenerateReified(
     val value: String = ""
