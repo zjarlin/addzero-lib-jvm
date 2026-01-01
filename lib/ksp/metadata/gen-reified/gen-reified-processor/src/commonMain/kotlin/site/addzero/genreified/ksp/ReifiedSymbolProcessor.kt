@@ -34,11 +34,24 @@ class ReifiedSymbolProcessor(
 
         // 处理方法级别的注解
         val annotatedFunctions = annotatedSymbols.filterIsInstance<KSFunctionDeclaration>()
-        annotatedFunctions.groupBy { it.parentDeclaration as? KSClassDeclaration }
+
+        // 分离类方法和顶层函数
+        val (topLevelFunctions, classFunctions) = annotatedFunctions.partition {
+            it.parentDeclaration !is KSClassDeclaration
+        }
+
+        // 处理类方法
+        classFunctions.groupBy { it.parentDeclaration as? KSClassDeclaration }
             .forEach { (classDecl, functions) ->
                 if (classDecl == null || !classDecl.validate()) return@forEach
-                // 只处理方法级别注解的函数
                 processClassWithSpecificFunctions(classDecl, functions)
+            }
+
+        // 处理顶层函数
+        topLevelFunctions.groupBy { it.containingFile }
+            .forEach { (file, functions) ->
+                if (file == null) return@forEach
+                processTopLevelFunctions(file, functions)
             }
 
         return emptyList()
@@ -117,6 +130,33 @@ class ReifiedSymbolProcessor(
         }
     }
 
+    private fun processTopLevelFunctions(
+        file: KSFile,
+        functions: List<KSFunctionDeclaration>
+    ) {
+        val packageName = file.packageName.asString()
+        val fileName = "${file.fileName.removeSuffix(".kt")}Reified"
+
+        val validFunctions = functions.filter { it.hasReifiableParams() }
+        if (validFunctions.isEmpty()) return
+
+        val outputFile = codeGenerator.createNewFile(
+            Dependencies(true, file),
+            packageName,
+            fileName
+        )
+
+        outputFile.bufferedWriter().use { writer ->
+            writer.write("@file:Suppress(\"NOTHING_TO_INLINE\")\n\n")
+            writer.write("package $packageName\n\n")
+            writer.write("import kotlin.reflect.KClass\n\n")
+
+            validFunctions.forEach { function ->
+                generateReifiedTopLevelFunction(writer, function)
+            }
+        }
+    }
+
     private fun KSFunctionDeclaration.hasGenerateReifiedAnnotation(): Boolean {
         return annotations.any {
             it.annotationType.resolve().declaration.qualifiedName?.asString() ==
@@ -125,10 +165,8 @@ class ReifiedSymbolProcessor(
     }
 
     private fun KSFunctionDeclaration.hasReifiableParams(): Boolean {
-        // 跳过有 vararg 参数的方法
-        if (parameters.any { it.isVararg }) return false
-
         return parameters.any { param ->
+            if (param.isVararg) return@any false
             val typeName = param.type.resolve().declaration.qualifiedName?.asString()
             typeName == "kotlin.reflect.KClass" || typeName == "java.lang.Class"
         }
@@ -140,6 +178,7 @@ class ReifiedSymbolProcessor(
         function: KSFunctionDeclaration
     ) {
         val reifiableParams = function.parameters.mapIndexedNotNull { index, param ->
+            if (param.isVararg) return@mapIndexedNotNull null
             val typeName = param.type.resolve().declaration.qualifiedName?.asString()
             when (typeName) {
                 "kotlin.reflect.KClass" -> index to "KClass"
@@ -198,7 +237,8 @@ class ReifiedSymbolProcessor(
         }
 
         writer.write(remainingParams.joinToString(", ") { param ->
-            "${param.name?.asString()}: ${param.type.resolve()}"
+            val varargPrefix = if (param.isVararg) "vararg " else ""
+            "$varargPrefix${param.name?.asString()}: ${param.type.resolve()}"
         })
 
         // 生成返回类型
@@ -226,7 +266,98 @@ class ReifiedSymbolProcessor(
                     else -> param.name?.asString() ?: ""
                 }
             } else {
-                param.name?.asString() ?: ""
+                val paramName = param.name?.asString() ?: ""
+                if (param.isVararg) "*$paramName" else paramName
+            }
+        }
+
+        writer.write(callArgs.joinToString(", "))
+        writer.write(")\n\n")
+    }
+
+    private fun generateReifiedTopLevelFunction(
+        writer: BufferedWriter,
+        function: KSFunctionDeclaration
+    ) {
+        val reifiableParams = function.parameters.mapIndexedNotNull { index, param ->
+            if (param.isVararg) return@mapIndexedNotNull null
+            val typeName = param.type.resolve().declaration.qualifiedName?.asString()
+            when (typeName) {
+                "kotlin.reflect.KClass" -> index to "KClass"
+                "java.lang.Class" -> index to "Class"
+                else -> null
+            }
+        }
+
+        if (reifiableParams.isEmpty()) return
+
+        // 获取自定义方法名（如果有）
+        val customName = function.annotations
+            .firstOrNull {
+                it.annotationType.resolve().declaration.qualifiedName?.asString() ==
+                        SITE_ADDZERO_KCP_ANNOTATIONS_GENERATE_REIFIED
+            }
+            ?.arguments
+            ?.firstOrNull { it.name?.asString() == "value" }
+            ?.value as? String
+
+        val generatedFunctionName = customName?.takeIf { it.isNotBlank() }
+            ?: function.simpleName.asString()
+
+        // 提取类型参数及其约束
+        val typeParams = reifiableParams.map { (paramIndex, _) ->
+            val param = function.parameters[paramIndex]
+            val typeArg = param.type.resolve().arguments.firstOrNull()?.type?.resolve()
+            val typeParamDecl = typeArg?.declaration as? KSTypeParameter
+            val typeParamName = typeParamDecl?.name?.asString() ?: "T"
+            val bounds = typeParamDecl?.bounds?.toList() ?: emptyList()
+            Triple(typeParamName, bounds, typeArg)
+        }
+
+        // 生成函数签名
+        writer.write("inline fun <")
+        writer.write(typeParams.joinToString(", ") { (name, bounds, _) ->
+            val boundsStr = bounds.takeIf { it.isNotEmpty() }
+                ?.joinToString(" & ") { it.resolve().toString() }
+                ?.let { " : $it" } ?: ""
+            "reified $name$boundsStr"
+        })
+        writer.write("> ")
+
+        writer.write("$generatedFunctionName(")
+
+        // 生成参数列表（排除 KClass/Class 参数）
+        val remainingParams = function.parameters.filterIndexed { index, _ ->
+            reifiableParams.none { it.first == index }
+        }
+
+        writer.write(remainingParams.joinToString(", ") { param ->
+            val varargPrefix = if (param.isVararg) "vararg " else ""
+            "$varargPrefix${param.name?.asString()}: ${param.type.resolve()}"
+        })
+
+        // 生成返回类型
+        val returnType = function.returnType?.resolve()?.toString() ?: "Unit"
+        writer.write("): $returnType")
+
+        // 生成函数体
+        writer.write(" = ")
+
+        writer.write("${function.simpleName.asString()}(")
+
+        val callArgs = function.parameters.mapIndexed { index, param ->
+            val reifiableIndex = reifiableParams.indexOfFirst { it.first == index }
+            if (reifiableIndex >= 0) {
+                val (_, kind) = reifiableParams[reifiableIndex]
+                val typeName = typeParams[reifiableIndex].first
+                when (kind) {
+                    "KClass" -> "$typeName::class"
+                    "Class" -> "$typeName::class.java"
+                    else -> param.name?.asString() ?: ""
+                }
+            } else {
+                val paramName = param.name?.asString() ?: ""
+                if (param.isVararg) "*$paramName" else paramName
             }
         }
 
