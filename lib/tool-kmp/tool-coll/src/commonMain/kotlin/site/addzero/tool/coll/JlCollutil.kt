@@ -14,19 +14,21 @@ fun <T, K> addAllIfAbsentByKey(
     }
     return modified
 }
+
 /**
- * 根据多个比较条件计算两个集合的差集。
+ * 根据多个比较条件计算两个不同泛型集合的差集，返回左边集合的元素。
  *
- * @param T 集合元素的类型
- * @param collection 当前集合
- * @param other 另一个集合
+ * @param T 左边集合元素的类型（返回类型）
+ * @param R 右边集合元素的类型
+ * @param collection 当前集合（左边）
+ * @param other 另一个集合（右边）
  * @param predicates 多个 lambda 表达式，用于自定义比较规则
- * @return 差集（当前集合中不存在于 `other` 集合中的元素）
+ * @return 差集（左边集合中不存在于右边集合中的元素）
  */
-fun <T> differenceBy(
+fun <T, R> differenceBy(
     collection: Collection<T>,
-    other: Collection<T>,
-    vararg predicates: (T, T) -> Boolean,
+    other: Collection<R>,
+    vararg predicates: (T, R) -> Boolean,
 ): List<T> {
     return collection.filter { item ->
         other.none { otherItem ->
@@ -35,19 +37,21 @@ fun <T> differenceBy(
     }
 }
 
+
 /**
- * 根据多个比较条件计算两个集合的交集。
+ * 根据多个比较条件计算两个不同泛型集合的交集，返回左边集合的元素。
  *
- * @param T 集合元素的类型
- * @param collection 当前集合
- * @param other 另一个集合
+ * @param T 左边集合元素的类型（返回类型）
+ * @param R 右边集合元素的类型
+ * @param collection 当前集合（左边）
+ * @param other 另一个集合（右边）
  * @param predicates 多个 lambda 表达式，用于自定义比较规则
- * @return 交集（同时存在于两个集合中的元素）
+ * @return 交集（左边集合中存在于右边集合中的元素）
  */
-fun <T> intersectBy(
+fun <T, R> intersectBy(
     collection: Collection<T>,
-    other: Collection<T>,
-    vararg predicates: (T, T) -> Boolean,
+    other: Collection<R>,
+    vararg predicates: (T, R) -> Boolean,
 ): List<T> {
     return collection.filter { item ->
         other.any { otherItem ->

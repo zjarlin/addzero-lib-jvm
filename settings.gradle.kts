@@ -23,8 +23,7 @@ implementationRemoteGit{
    )
 }
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2025-12-30T17:06:30.743814
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:ksp:metadata:gen-reified:gen-reified-core")
-include(":lib:ksp:metadata:gen-reified:gen-reified-processor")
+// Generated at: 2025-12-31T11:58:02.702388
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-kmp:tool-coll")
 // <<< Gradle Buddy: End Of Block <<<
