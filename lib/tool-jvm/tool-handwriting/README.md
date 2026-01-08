@@ -9,6 +9,10 @@ val options = HandwritingRenderOptions(
     randomSeed = 42L,
     maxContentWidth = 1024,
     fontSource = HandwritingFontSource.systemDefault(),
+    strokeStyle = HandwritingStrokeStyle(
+        outlineJitter = 1.1,
+        strokeWidthRange = 1.6..3.0
+    )
 )
 HandwritingImageTool.writeToFile(
     text = "习惯题写字是很难的，但坚持就会看到效果。",
@@ -33,6 +37,7 @@ val customOptions = HandwritingRenderOptions(
 
 - 任意 UTF-16 文本自动换行、支持段落缩进。
 - 抖动（baseline、横向、角度）可通过 `HandwritingRenderOptions` 调整，支持 `randomSeed` 获取可重复输出。
+- `strokeStyle` 默认启用，将字形轮廓打散成不规则路径并叠加半透明描边，让常规楷体也有手写质感，可自行调大 `outlineJitter`/`strokeWidthRange`。
 - 内置纸纹理生成器，可自定义行距、噪声、引导线。
 - `HandwritingImageTool.encode` 可以直接返回 PNG/JPG 字节，方便 HTTP 接口或数据库持久化。
 
