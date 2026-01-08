@@ -42,3 +42,7 @@ captures
 
 # Auto-generated documentation files
 /docs/**/*.md
+/.cursorignore
+/.editorconfig
+/.qoderignore
+/.warpindexignore

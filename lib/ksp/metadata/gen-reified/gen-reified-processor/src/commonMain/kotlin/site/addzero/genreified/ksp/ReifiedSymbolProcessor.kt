@@ -237,8 +237,12 @@ class ReifiedSymbolProcessor(
         }
 
         writer.write(remainingParams.joinToString(", ") { param ->
-            val varargPrefix = if (param.isVararg) "vararg " else ""
-            "$varargPrefix${param.name?.asString()}: ${param.type.resolve()}"
+            val modifiers = buildString {
+                if (param.isVararg) append("vararg ")
+                // 函数类型参数添加 noinline，因为只是传递给原函数
+                if (param.type.resolve().isFunctionType) append("noinline ")
+            }
+            "$modifiers${param.name?.asString()}: ${param.type.resolve()}"
         })
 
         // 生成返回类型
@@ -332,8 +336,12 @@ class ReifiedSymbolProcessor(
         }
 
         writer.write(remainingParams.joinToString(", ") { param ->
-            val varargPrefix = if (param.isVararg) "vararg " else ""
-            "$varargPrefix${param.name?.asString()}: ${param.type.resolve()}"
+            val modifiers = buildString {
+                if (param.isVararg) append("vararg ")
+                // 函数类型参数添加 noinline，因为只是传递给原函数
+                if (param.type.resolve().isFunctionType) append("noinline ")
+            }
+            "$modifiers${param.name?.asString()}: ${param.type.resolve()}"
         })
 
         // 生成返回类型

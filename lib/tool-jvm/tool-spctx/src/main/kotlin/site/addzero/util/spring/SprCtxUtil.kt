@@ -6,7 +6,10 @@ import org.springframework.core.ResolvableType
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import site.addzero.kcp.annotations.GenerateReified
-
+@GenerateReified
+inline fun <T> foo(clazz: Class<T>, noinline callback: () -> Unit, crossinline block: () -> Unit):Unit?{
+    return null
+}
 /**
  *
  * Spring 工具类 - 使用 KCP 插件生成 reified 方法

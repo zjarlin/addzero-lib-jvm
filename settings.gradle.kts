@@ -23,7 +23,9 @@ implementationRemoteGit{
    )
 }
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-01T12:10:23.219432
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-01-03T11:06:19.896906
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:ksp:metadata:gen-reified:gen-reified-core")
+include(":lib:ksp:metadata:gen-reified:gen-reified-processor")
 include(":lib:tool-jvm:tool-spctx")
 // <<< Gradle Buddy: End Of Block <<<
