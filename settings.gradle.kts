@@ -23,8 +23,9 @@ implementationRemoteGit{
    )
 }
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-08T11:25:31.833218
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-01-08T21:20:25.562591
+// Loaded: 2, Excluded: 0, Total: 2
+include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
 include(":lib:tool-jvm:tool-handwriting")
 // <<< Gradle Buddy: End Of Block <<<
 include(":lib:ksp:metadata:gen-reified:gen-reified-core")

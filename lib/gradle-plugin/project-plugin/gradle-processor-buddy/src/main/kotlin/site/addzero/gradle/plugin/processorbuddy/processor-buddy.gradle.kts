@@ -458,12 +458,8 @@ val merged = $ifaceName.merge(config1, config2)
                 "Boolean" -> "it.toBoolean()"
                 else -> "it"
             }
-            val filterExpr = if (elementType != "String") {
-                ".filterNotNull()"
-            } else {
-                ""
-            }
-            """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }?$filterExpr ?: $defaultExpr"""
+            val filterExpr = if (elementType != "String") ".filterNotNull()" else ""
+            """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }$filterExpr ?: $defaultExpr"""
         } else {
             when (type) {
                 "Boolean" -> """        this.$propertyName = options["$propertyName"]?.toBoolean() ?: $defaultExpr"""

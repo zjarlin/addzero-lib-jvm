@@ -21,6 +21,19 @@ HandwritingImageTool.writeToFile(
 )
 ```
 
+### 汉字头像
+
+```kotlin
+val avatar = HanziAvatarTool.render(
+    text = "零",
+    options = HanziAvatarOptions(
+        size = 320,
+        circle = true
+    )
+)
+HanziAvatarTool.writeToFile("张三", Paths.get("/tmp/zhangsan.png"))
+```
+
 ### 自定义字体
 
 ```kotlin
@@ -40,5 +53,6 @@ val customOptions = HandwritingRenderOptions(
 - `strokeStyle` 默认启用，将字形轮廓打散成不规则路径并叠加半透明描边，让常规楷体也有手写质感，可自行调大 `outlineJitter`/`strokeWidthRange`。
 - 内置纸纹理生成器，可自定义行距、噪声、引导线。
 - `HandwritingImageTool.encode` 可以直接返回 PNG/JPG 字节，方便 HTTP 接口或数据库持久化。
+- `HanziAvatarTool` 可以生成基于汉字的圆形/方形头像，颜色从固定调色板中按 hash 选择，也支持直接传入 TTF 字体字节避免依赖系统字体。
 
 详见 `HandwritingImageTool` 与 `HandwritingRenderOptions` KDoc 了解全部参数。
