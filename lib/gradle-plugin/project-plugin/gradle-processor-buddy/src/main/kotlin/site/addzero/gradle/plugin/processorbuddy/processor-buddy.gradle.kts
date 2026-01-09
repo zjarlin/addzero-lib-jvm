@@ -392,7 +392,7 @@ val merged = $mergeFuncName(config1, config2)
     private fun toDefaultValueExpression(value: String, type: String): String {
         val listType = detectListType(value)
         return if (listType != null && type.startsWith("List<")) {
-            val (isList, listTypeStr) = listType
+            val listTypeStr = listType.second
             val elementType = listTypeStr.removePrefix("List<").removeSuffix(">")
             val parts = value.split(",").map { it.trim() }
             val elementValues = when (elementType) {

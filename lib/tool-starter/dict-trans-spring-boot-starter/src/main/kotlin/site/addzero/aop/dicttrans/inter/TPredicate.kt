@@ -1,7 +1,5 @@
 package site.addzero.aop.dicttrans.inter
 
-import kotlin.reflect.KClass
-
 interface TPredicate {
-    fun tBlackList(): List<Class<out Any>>
+  fun tBlackList(): List<Class<out Any>>
 }

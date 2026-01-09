@@ -7,9 +7,9 @@ class ScanControllerProperties(
     /**
      * 支持占位符 ${pkg}，在 resolvedExpression 中会被替换成真实包名
      */
-    var expression: String = "execution(* ${'$'}{pkg}..*Controller*+.*(..))",
-    var excludePackages: List<String> = emptyList()
+    var expression: String = "execution(* ${'$'}{pkg}..*Controller*+.*(..))"
 ) {
+    @Suppress("unused")
     fun resolvedExpression(customExpression: String? = null, customPkg: String? = null): String {
         val expr = customExpression?.takeIf { it.isNotBlank() } ?: expression
         val pkgValue = customPkg?.takeIf { it.isNotBlank() } ?: pkg

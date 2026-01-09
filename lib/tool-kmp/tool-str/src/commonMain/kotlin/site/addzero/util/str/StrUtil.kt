@@ -2,6 +2,12 @@ package site.addzero.util.str
 
 import kotlin.text.isNullOrEmpty
 
+/**
+ * 判断所有字符串是否都为空白
+ */
+fun isAllBlank(vararg strs: CharSequence?): Boolean {
+  return strs.all { it.isBlank() }
+}
 
 /**
  * 清理字符串中的空白字符
@@ -14,62 +20,57 @@ import kotlin.text.isNullOrEmpty
  * @return 清理后的字符串
  */
 fun String?.cleanBlank(): String {
-    if (this.isNullOrEmpty()) return ""
+  if (this.isNullOrEmpty()) return ""
 
-    return this!!.trim().replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
-        .filter { it.isDefined() } // 移除不可见字符
+  return this!!.trim().replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
+    .filter { it.isDefined() } // 移除不可见字符
 }
 
 /**
  * 判断字符是否可见
  */
 private fun Char.isDefined(): Boolean {
-    return this.code in 32..126 || this.code in 0x4E00..0x9FFF
+  return this.code in 32..126 || this.code in 0x4E00..0x9FFF
 }
-
 
 fun <T> groupBySeparator(lines: List<T>, predicate: (T) -> Boolean): Map<T, List<T>> {
-    val separatorIndices = lines.indices.filter { predicate(lines[it]) }
-    return separatorIndices.mapIndexed { index, spe ->
-        val next = if (index + 1 < separatorIndices.size) {
-            separatorIndices[index + 1]
-        } else {
-            lines.size // 如果没有下一个分隔符，取行的总数
-        }
+  val separatorIndices = lines.indices.filter { predicate(lines[it]) }
+  return separatorIndices.mapIndexed { index, spe ->
+    val next = if (index + 1 < separatorIndices.size) {
+      separatorIndices[index + 1]
+    } else {
+      lines.size // 如果没有下一个分隔符，取行的总数
+    }
 
-        val subList = lines.subList(spe + 1, next)
-        lines[spe] to subList // 使用 Pair 进行配对
-    }.toMap()
+    val subList = lines.subList(spe + 1, next)
+    lines[spe] to subList // 使用 Pair 进行配对
+  }.toMap()
 }
-
 
 fun String?.makeSurroundWith(fix: String): String {
-    val addPrefixIfNot = this?.addPrefixIfNot(fix) ?: fix
-    val addSuffixIfNot = addPrefixIfNot.addSuffixIfNot(fix)
-    return addSuffixIfNot
+  val addPrefixIfNot = this?.addPrefixIfNot(fix) ?: fix
+  val addSuffixIfNot = addPrefixIfNot.addSuffixIfNot(fix)
+  return addSuffixIfNot
 }
-
 
 /**
  * 扩展函数：用HTML P标签包裹
  */
 fun String?.makeSurroundWithHtmlP(): String {
-    if (this.isNullOrBlank()) {
-        return ""
-    }
-    return this.addPrefixIfNot("<p>").addSuffixIfNot("</p>")
+  if (this.isNullOrBlank()) {
+    return ""
+  }
+  return this.addPrefixIfNot("<p>").addSuffixIfNot("</p>")
 }
-
 
 fun String?.removeNotChinese(): String {
-    if (this.isNullOrBlank()) {
-        return ""
-    }
-    val regex = "[^\u4E00-\u9FA5]"
-    val s1 = this.replace(regex.toRegex(), "")
-    return s1
+  if (this.isNullOrBlank()) {
+    return ""
+  }
+  val regex = "[^\u4E00-\u9FA5]"
+  val s1 = this.replace(regex.toRegex(), "")
+  return s1
 }
-
 
 /**
  * 如果字符串不以指定后缀结尾，则添加该后缀
@@ -79,42 +80,39 @@ fun String?.removeNotChinese(): String {
  * @return 添加后缀后的字符串
  */
 fun String?.addSuffixIfNot(suffix: String, ignoreCase: Boolean = false): String {
-    if (this == null) {
-        return suffix
-    }
+  if (this == null) {
+    return suffix
+  }
 
-    return if (this.endsWith(suffix, ignoreCase)) {
-        this
-    } else {
-        this + suffix
-    }
+  return if (this.endsWith(suffix, ignoreCase)) {
+    this
+  } else {
+    this + suffix
+  }
 }
-
 
 fun CharSequence?.isNotBlank(): Boolean {
-    return !this.isBlank()
+  return !this.isBlank()
 }
-
 
 /**
  * 扩展函数：提取路径部分
  */
 fun String.getPathFromRight(n: Int): String {
-    val parts = this.split(".").filter { it.isNotEmpty() }
+  val parts = this.split(".").filter { it.isNotEmpty() }
 
-    if (parts!!.size < n) {
-        return this // 输入字符串中的路径部分不足n个，返回整个输入字符串
-    }
+  if (parts!!.size < n) {
+    return this // 输入字符串中的路径部分不足n个，返回整个输入字符串
+  }
 
-    return parts.dropLast(n).joinToString(".")
+  return parts.dropLast(n).joinToString(".")
 }
 
-
 fun String?.lowerCase(): String {
-    if (this.isNullOrEmpty()) {
-        return ""
-    }
-    return this!!.lowercase()
+  if (this.isNullOrEmpty()) {
+    return ""
+  }
+  return this!!.lowercase()
 }
 
 /**
@@ -125,33 +123,30 @@ fun String?.lowerCase(): String {
  * @return 添加前缀后的字符串
  */
 fun String?.addPrefixIfNot(prefix: String, ignoreCase: Boolean = false): String {
-    if (this.isNullOrEmpty()) return ""
-    return if (this.startsWith(prefix, ignoreCase)) this else prefix + this
+  if (this.isNullOrEmpty()) return ""
+  return if (this.startsWith(prefix, ignoreCase)) this else prefix + this
 }
-
 
 /**
  * 字符串首字母小写
  */
 fun String.lowerFirst(): String {
-    if (isEmpty()) return this
-    return first().lowercase() + substring(1)
+  if (isEmpty()) return this
+  return first().lowercase() + substring(1)
 }
-
 
 /**
  * 检查字符串是否不在列表中（不区分大小写）
  */
 infix fun String.ignoreCaseNotIn(collection: Collection<String>): Boolean {
-    val b = this ignoreCaseIn collection
-    return !b
+  val b = this ignoreCaseIn collection
+  return !b
 }
 
 /**
  * 检查字符串是否在列表中（不区分大小写）
  */
-infix fun String.ignoreCaseIn(collection: Collection<String>): Boolean =
-    collection.any { it.equals(this, ignoreCase = true) }
+infix fun String.ignoreCaseIn(collection: Collection<String>): Boolean = collection.any { it.equals(this, ignoreCase = true) }
 
 /**
  * 检查字符串是否包含任意一个给定的子字符串（忽略大小写）
@@ -159,15 +154,15 @@ infix fun String.ignoreCaseIn(collection: Collection<String>): Boolean =
  * @return 如果包含任意一个子字符串则返回true，否则返回false
  */
 fun String.containsAnyIgnoreCase(vararg substrings: String): Boolean {
-    if (substrings.isEmpty()) return false
-    val lowerThis = this.lowercase()
-    return substrings.any { it.lowercase() in lowerThis }
+  if (substrings.isEmpty()) return false
+  val lowerThis = this.lowercase()
+  return substrings.any { it.lowercase() in lowerThis }
 }
 
 /**
  * 将字符串转换为大驼峰命名（PascalCase）
  * 支持下划线、中划线、空格分隔的格式
- * 
+ *
  * 示例：
  * - "user_name" -> "UserName"
  * - "user-name" -> "UserName"
@@ -175,20 +170,18 @@ fun String.containsAnyIgnoreCase(vararg substrings: String): Boolean {
  * - "userName" -> "UserName"（首字母大写）
  */
 fun String.toBigCamelCase(): String {
-    if (isEmpty()) return this
-    
-    // 支持下划线、中划线、空格分隔
-    return this.split(Regex("[_\\-\\s]+"))
-        .filter { it.isNotEmpty() }
-        .joinToString("") {
-            it.replaceFirstChar { char -> char.uppercase() }
-        }
+  if (isEmpty()) return this
+
+  // 支持下划线、中划线、空格分隔
+  return this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }.joinToString("") {
+    it.replaceFirstChar { char -> char.uppercase() }
+  }
 }
 
 /**
  * 将字符串转换为小驼峰命名（camelCase）
  * 支持下划线、中划线、空格分隔的格式
- * 
+ *
  * 示例：
  * - "user_name" -> "userName"
  * - "user-name" -> "userName"
@@ -196,51 +189,50 @@ fun String.toBigCamelCase(): String {
  * - "UserName" -> "userName"（首字母小写）
  */
 fun String.toLowCamelCase(): String {
-    if (isEmpty()) return this
-    
-    // 支持下划线、中划线、空格分隔
-    val words = this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }
-    if (words.isEmpty()) return this
-    
-    return words.first().lowercase() + words.drop(1).joinToString("") {
-        it.replaceFirstChar { char -> char.uppercase() }
-    }
+  if (isEmpty()) return this
+
+  // 支持下划线、中划线、空格分隔
+  val words = this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }
+  if (words.isEmpty()) return this
+
+  return words.first().lowercase() + words.drop(1).joinToString("") {
+    it.replaceFirstChar { char -> char.uppercase() }
+  }
 }
 
 infix fun String.ignoreCaseLike(other: String): Boolean {
-    return this.contains(other, ignoreCase = true)
+  return this.contains(other, ignoreCase = true)
 }
 
 /**
  * 扩展函数：检查是否包含中文
  */
 fun CharSequence?.containsChinese(): Boolean {
-    if (this.isNullOrEmpty()) {
-        return false
-    }
-    val containsMatchIn = Regex("[\\u4e00-\\u9fa5]").containsMatchIn(this!!)
-    return containsMatchIn
+  if (this.isNullOrEmpty()) {
+    return false
+  }
+  val containsMatchIn = Regex("[\\u4e00-\\u9fa5]").containsMatchIn(this!!)
+  return containsMatchIn
 }
 
 fun join(split: String, vararg testStrs: CharSequence): String {
-    if (testStrs.isEmpty()) {
-        return ""
-    }
-    return testStrs.joinToString(split)
+  if (testStrs.isEmpty()) {
+    return ""
+  }
+  return testStrs.joinToString(split)
 }
 
 fun String.withPkg(pkg: String): String {
-    return "$this/${pkg.replace(".", "/")}"
+  return "$this/${pkg.replace(".", "/")}"
 }
 
 fun String.withFileName(fileName: String): String {
-    return "$this/$fileName"
+  return "$this/$fileName"
 }
 
 fun String.withFileSuffix(suffix: String = ".kt"): String {
-    return "$this$suffix"
+  return "$this$suffix"
 }
-
 
 /**
  * 从字符序列中移除所有指定的字符串片段
@@ -249,23 +241,21 @@ fun String.withFileSuffix(suffix: String = ".kt"): String {
  * @return 移除指定字符串片段后的新字符串
  */
 fun CharSequence?.removeAny(vararg stringsToRemove: String): String {
-    if (this == null) return ""
+  if (this == null) return ""
 
-    var result = this.toString()
-    for (toRemove in stringsToRemove) {
-        result = result.replace(toRemove, "")
-    }
-    return result
+  var result = this.toString()
+  for (toRemove in stringsToRemove) {
+    result = result.replace(toRemove, "")
+  }
+  return result
 }
-
 
 fun CharSequence.removeAnyQuote(): String {
-    if (this.isBlank()) {
-        return ""
-    }
-    return this.removeAny("\"", "\\")
+  if (this.isBlank()) {
+    return ""
+  }
+  return this.removeAny("\"", "\\")
 }
-
 
 /**
  * 删除空格或者引号
@@ -273,19 +263,18 @@ fun CharSequence.removeAnyQuote(): String {
  * @return [String]
  */
 fun CharSequence.removeBlankOrQuotation(): String {
-    return this.removeAny(" ", "\"")
+  return this.removeAny(" ", "\"")
 }
 
-
 fun String.toUnderLineCase(): String {
-    val sb = StringBuilder()
-    for ((index, char) in this.withIndex()) {
-        if (index > 0 && char.isUpperCase()) {
-            sb.append('_')
-        }
-        sb.append(char)
+  val sb = StringBuilder()
+  for ((index, char) in this.withIndex()) {
+    if (index > 0 && char.isUpperCase()) {
+      sb.append('_')
     }
-    return sb.toString()
+    sb.append(char)
+  }
+  return sb.toString()
 }
 
 /**
@@ -301,23 +290,21 @@ fun String.toUnderLineCase(): String {
  * @return 下划线格式并小写的字符串
  */
 fun String.toUnderlineLowerCase(): String {
-    return this.toUnderLineCase().lowercase()
+  return this.toUnderLineCase().lowercase()
 }
-
 
 fun CharSequence.isNumber(): Boolean = matches(Regex("""^-?\d*\.?\d+$"""))
 
 fun String.equalsIgnoreCase(string: String): Boolean {
-    val equals = this.equals(string, true)
-    return equals
+  val equals = this.equals(string, true)
+  return equals
 }
 
-
 fun Any?.toNotEmptyStr(): String {
-    if (this == null) {
-        return ""
-    }
-    return this.toString().removeBlankOrQuotation()
+  if (this == null) {
+    return ""
+  }
+  return this.toString().removeBlankOrQuotation()
 }
 
 /**
@@ -325,82 +312,82 @@ fun Any?.toNotEmptyStr(): String {
  * 只支持 %.nf 格式的浮点数格式化
  */
 fun String.kmpFormat(vararg args: Any?): String {
-    var result = this
-    var argIndex = 0
+  var result = this
+  var argIndex = 0
 
-    // 简单的 %.1f 替换
-    if (result.contains("%.1f") && argIndex < args.size) {
-        val formatted = when (val value = args[argIndex++]) {
-            is Double -> formatDouble(value, 1)
-            is Float -> formatDouble(value.toDouble(), 1)
-            is Number -> formatDouble(value.toDouble(), 1)
-            else -> value.toString()
-        }
-        result = result.replace("%.1f", formatted)
+  // 简单的 %.1f 替换
+  if (result.contains("%.1f") && argIndex < args.size) {
+    val formatted = when (val value = args[argIndex++]) {
+      is Double -> formatDouble(value, 1)
+      is Float -> formatDouble(value.toDouble(), 1)
+      is Number -> formatDouble(value.toDouble(), 1)
+      else -> value.toString()
     }
+    result = result.replace("%.1f", formatted)
+  }
 
-    // 简单的 %.0f 替换
-    if (result.contains("%.0f") && argIndex < args.size) {
-        val formatted = when (val value = args[argIndex++]) {
-            is Double -> formatDouble(value, 0)
-            is Float -> formatDouble(value.toDouble(), 0)
-            is Number -> formatDouble(value.toDouble(), 0)
-            else -> value.toString()
-        }
-        result = result.replace("%.0f", formatted)
+  // 简单的 %.0f 替换
+  if (result.contains("%.0f") && argIndex < args.size) {
+    val formatted = when (val value = args[argIndex++]) {
+      is Double -> formatDouble(value, 0)
+      is Float -> formatDouble(value.toDouble(), 0)
+      is Number -> formatDouble(value.toDouble(), 0)
+      else -> value.toString()
     }
+    result = result.replace("%.0f", formatted)
+  }
 
-    return result
+  return result
 }
 
 /**
  * 格式化双精度浮点数到指定小数位数
  */
 private fun formatDouble(value: Double, decimals: Int): String {
-    if (decimals == 0) {
-        return kotlin.math.round(value).toLong().toString()
-    }
+  if (decimals == 0) {
+    return kotlin.math.round(value).toLong().toString()
+  }
 
-    // 手动计算10的n次方，避免使用pow函数
-    var multiplier = 1.0
-    repeat(decimals) {
-        multiplier *= 10.0
-    }
+  // 手动计算10的n次方，避免使用pow函数
+  var multiplier = 1.0
+  repeat(decimals) {
+    multiplier *= 10.0
+  }
 
-    val rounded = kotlin.math.round(value * multiplier) / multiplier
+  val rounded = kotlin.math.round(value * multiplier) / multiplier
 
-    // 手动构建小数位数
-    val intPart = rounded.toLong()
-    val fracPart = kotlin.math.abs(rounded - intPart)
+  // 手动构建小数位数
+  val intPart = rounded.toLong()
+  val fracPart = kotlin.math.abs(rounded - intPart)
 
-    if (fracPart == 0.0) {
-        return "$intPart.${"0".repeat(decimals)}"
-    }
+  if (fracPart == 0.0) {
+    return "$intPart.${"0".repeat(decimals)}"
+  }
 
-    val fracStr = (fracPart * multiplier).toLong().toString().padStart(decimals, '0')
-    return "$intPart.$fracStr"
+  val fracStr = (fracPart * multiplier).toLong().toString().padStart(decimals, '0')
+  return "$intPart.$fracStr"
 }
 
 /**
  * 便捷的数字格式化函数
  */
 fun Double.formatDecimal(decimals: Int = 2): String {
-    return formatDouble(this, decimals)
+  return formatDouble(this, decimals)
 }
 
 fun Float.formatDecimal(decimals: Int = 2): String {
-    return formatDouble(this.toDouble(), decimals)
+  return formatDouble(this.toDouble(), decimals)
 }
 
 /**
  * 格式化为货币显示（保留指定小数位，默认0位）
  */
 fun Double.formatCurrency(decimals: Int = 0): String {
-    return formatDouble(this, decimals)
+  return formatDouble(this, decimals)
 }
 
 fun Float.formatCurrency(decimals: Int = 0): String {
-    return formatDouble(this.toDouble(), decimals)
+  return formatDouble(this.toDouble(), decimals)
 }
 
 /**
@@ -408,103 +395,103 @@ fun Float.formatCurrency(decimals: Int = 0): String {
  * 实现Knuth-Morris-Pratt字符串搜索算法，用于高效字符串匹配
  */
 class KMPUtil(pattern: String) {
-    private val pattern = pattern
-    private val lps: IntArray = computeLPSArray(pattern)
+  private val pattern = pattern
+  private val lps: IntArray = computeLPSArray(pattern)
 
-    /**
-     * 计算模式串的最长相等前后缀数组(LPS数组)
-     * LPS (Longest Proper Prefix which is also Suffix)
-     */
-    private fun computeLPSArray(pattern: String): IntArray {
-        val length = pattern.length
-        val lps = IntArray(length)
-        var len = 0
-        var i = 1
+  /**
+   * 计算模式串的最长相等前后缀数组(LPS数组)
+   * LPS (Longest Proper Prefix which is also Suffix)
+   */
+  private fun computeLPSArray(pattern: String): IntArray {
+    val length = pattern.length
+    val lps = IntArray(length)
+    var len = 0
+    var i = 1
 
-        while (i < length) {
-            when {
-                pattern[i] == pattern[len] -> {
-                    len++
-                    lps[i] = len
-                    i++
-                }
-
-                len != 0 -> {
-                    len = lps[len - 1]
-                }
-
-                else -> {
-                    lps[i] = 0
-                    i++
-                }
-            }
+    while (i < length) {
+      when {
+        pattern[i] == pattern[len] -> {
+          len++
+          lps[i] = len
+          i++
         }
-        return lps
-    }
 
-    /**
-     * 使用KMP算法搜索模式串
-     * @param text 文本串
-     * @return 匹配的起始位置，未找到返回-1
-     */
-    fun search(text: String): Int {
-        val m = pattern.length
-        val n = text.length
-        var i = 0 // text的索引
-        var j = 0 // pattern的索引
-
-        while (i < n) {
-            when {
-                pattern[j] == text[i] -> {
-                    j++
-                    i++
-                }
-            }
-
-            if (j == m) {
-                return i - j // 找到匹配
-            } else if (i < n && pattern[j] != text[i]) {
-                if (j != 0) {
-                    j = lps[j - 1]
-                } else {
-                    i++
-                }
-            }
+        len != 0 -> {
+          len = lps[len - 1]
         }
-        return -1 // 未找到匹配
-    }
 
-    /**
-     * 查找所有匹配位置
-     */
-    fun searchAll(text: String): List<Int> {
-        val matches = mutableListOf<Int>()
-        val m = pattern.length
-        val n = text.length
-        var i = 0
-        var j = 0
-
-        while (i < n) {
-            when {
-                pattern[j] == text[i] -> {
-                    j++
-                    i++
-                }
-            }
-
-            if (j == m) {
-                matches.add(i - j)
-                j = lps[j - 1]
-            } else if (i < n && pattern[j] != text[i]) {
-                if (j != 0) {
-                    j = lps[j - 1]
-                } else {
-                    i++
-                }
-            }
+        else -> {
+          lps[i] = 0
+          i++
         }
-        return matches
+      }
     }
+    return lps
+  }
+
+  /**
+   * 使用KMP算法搜索模式串
+   * @param text 文本串
+   * @return 匹配的起始位置，未找到返回-1
+   */
+  fun search(text: String): Int {
+    val m = pattern.length
+    val n = text.length
+    var i = 0 // text的索引
+    var j = 0 // pattern的索引
+
+    while (i < n) {
+      when {
+        pattern[j] == text[i] -> {
+          j++
+          i++
+        }
+      }
+
+      if (j == m) {
+        return i - j // 找到匹配
+      } else if (i < n && pattern[j] != text[i]) {
+        if (j != 0) {
+          j = lps[j - 1]
+        } else {
+          i++
+        }
+      }
+    }
+    return -1 // 未找到匹配
+  }
+
+  /**
+   * 查找所有匹配位置
+   */
+  fun searchAll(text: String): List<Int> {
+    val matches = mutableListOf<Int>()
+    val m = pattern.length
+    val n = text.length
+    var i = 0
+    var j = 0
+
+    while (i < n) {
+      when {
+        pattern[j] == text[i] -> {
+          j++
+          i++
+        }
+      }
+
+      if (j == m) {
+        matches.add(i - j)
+        j = lps[j - 1]
+      } else if (i < n && pattern[j] != text[i]) {
+        if (j != 0) {
+          j = lps[j - 1]
+        } else {
+          i++
+        }
+      }
+    }
+    return matches
+  }
 }
 
 /**
@@ -512,7 +499,7 @@ class KMPUtil(pattern: String) {
  * 使用KMP算法检查字符串是否包含指定模式
  */
 fun String.containsKMP(pattern: String): Boolean {
-    return KMPUtil(pattern).search(this) != -1
+  return KMPUtil(pattern).search(this) != -1
 }
 
 /**
@@ -521,7 +508,7 @@ fun String.containsKMP(pattern: String): Boolean {
  * @return 首次匹配的起始位置，未找到返回-1
  */
 fun String.indexOfKMP(pattern: String): Int {
-    return KMPUtil(pattern).search(this)
+  return KMPUtil(pattern).search(this)
 }
 
 /**
@@ -530,7 +517,7 @@ fun String.indexOfKMP(pattern: String): Int {
  * @return 所有匹配位置的列表
  */
 fun String.findAllKMP(pattern: String): List<Int> {
-    return KMPUtil(pattern).searchAll(this)
+  return KMPUtil(pattern).searchAll(this)
 }
 
 /**
@@ -540,22 +527,21 @@ fun String.findAllKMP(pattern: String): List<Int> {
  * @return 替换后的字符串
  */
 fun String.replaceKMP(pattern: String, replacement: String): String {
-    val indices = findAllKMP(pattern)
-    if (indices.isEmpty()) return this
+  val indices = findAllKMP(pattern)
+  if (indices.isEmpty()) return this
 
-    val result = StringBuilder()
-    var lastIndex = 0
+  val result = StringBuilder()
+  var lastIndex = 0
 
-    indices.forEach { index ->
-        result.append(this, lastIndex, index)
-        result.append(replacement)
-        lastIndex = index + pattern.length
-    }
+  indices.forEach { index ->
+    result.append(this, lastIndex, index)
+    result.append(replacement)
+    lastIndex = index + pattern.length
+  }
 
-    result.append(this, lastIndex, this.length)
-    return result.toString()
+  result.append(this, lastIndex, this.length)
+  return result.toString()
 }
-
 
 /**
  * 删除字符串中最后一次出现的指定字符。
@@ -565,38 +551,37 @@ fun String.replaceKMP(pattern: String, replacement: String): String {
  * @return 删除指定字符后的字符串
  */
 fun removeLastCharOccurrence(str: String?, ch: Char): String {
-    if (str.isNullOrBlank()) {
-        return ""
-    }
-    val lastIndex = str.lastIndexOf(ch) // 获取指定字符最后一次出现的位置
-    return if (lastIndex != -1) {
-        // 如果找到了指定字符，则删除它
-        str.take(lastIndex) + str.substring(lastIndex + 1)
-    } else {
-        // 如果没有找到指定字符，则返回原字符串
-        str
-    }
+  if (str.isNullOrBlank()) {
+    return ""
+  }
+  val lastIndex = str.lastIndexOf(ch) // 获取指定字符最后一次出现的位置
+  return if (lastIndex != -1) {
+    // 如果找到了指定字符，则删除它
+    str.take(lastIndex) + str.substring(lastIndex + 1)
+  } else {
+    // 如果没有找到指定字符，则返回原字符串
+    str
+  }
 }
-
 
 /**
  * 变量名类型
  */
 enum class VariableType {
-    /** 常量: 大写+下划线 (如: MAX_VALUE) */
-    CONSTANT,
+  /** 常量: 大写+下划线 (如: MAX_VALUE) */
+  CONSTANT,
 
-    /** 小驼峰变量名 (如: firstName) */
-    CAMEL_CASE,
+  /** 小驼峰变量名 (如: firstName) */
+  CAMEL_CASE,
 
-    /** ���驼峰类名 (如: UserInfo) */
-    PASCAL_CASE,
+  /** ���驼峰类名 (如: UserInfo) */
+  PASCAL_CASE,
 
-    /** 下划线分隔 (如: user_name) */
-    SNAKE_CASE,
+  /** 下划线分隔 (如: user_name) */
+  SNAKE_CASE,
 
-    /** 中划线分隔 (如: user-name) */
-    KEBAB_CASE
+  /** 中划线分隔 (如: user-name) */
+  KEBAB_CASE
 }
 
 /**
@@ -608,91 +593,86 @@ enum class VariableType {
  * @return 处理后的变量名
  */
 fun toValidVariableName(
-    input: String, type: VariableType = VariableType.CAMEL_CASE, prefix: String = "", suffix: String = ""
+  input: String, type: VariableType = VariableType.CAMEL_CASE, prefix: String = "", suffix: String = "",
 ): String {
-    if (input.isBlank()) return ""
+  if (input.isBlank()) return ""
 
-    // 检查是否为纯数字
-    if (input.all { it.isDigit() }) {
-        return "__${input}"  // 纯数字加双下划线前缀
+  // 检查是否为纯数字
+  if (input.all { it.isDigit() }) {
+    return "__${input}"  // 纯数字加双下划线前缀
+  }
+
+  // 1. 清理特殊字符，只保留字母、数字、空格、下划线、中划线
+  var result = input.replace(Regex("[^a-zA-Z0-9\\s_-]"), "")
+
+  if (result.isBlank()) {
+    return input
+  }
+  // 2. 处理数字开头的情况
+  if (result.first().isDigit()) {
+    result = "_$result"
+  }
+
+  // 3. 分词处理（按空格、下划线、中划线分割）
+  val words = result.split(Regex("[\\s_-]+")).filter { it.isNotBlank() }.map { it.lowercase() }
+
+  // 4. 根据类型格式化
+  result = when (type) {
+    VariableType.CONSTANT -> {
+      words.joinToString("_") { it.uppercase() }
     }
 
-    // 1. 清理特殊字符，只保留字母、数字、空格、下划线、中划线
-    var result = input.replace(Regex("[^a-zA-Z0-9\\s_-]"), "")
-
-    if (result.isBlank()) {
-        return input
-    }
-    // 2. 处理数字开头的情况
-    if (result.first().isDigit()) {
-        result = "_$result"
+    VariableType.CAMEL_CASE -> {
+      words.first() + words.drop(1).joinToString("") { it.capitalize() }
     }
 
-    // 3. 分词处理（按空格、下划线、中划线分割）
-    val words = result.split(Regex("[\\s_-]+")).filter { it.isNotBlank() }.map { it.lowercase() }
+    VariableType.PASCAL_CASE -> {
+      words.joinToString("") { it.capitalize() }
+    }
 
-    // 4. 根据类型格式化
+    VariableType.SNAKE_CASE -> {
+      words.joinToString("_") { it.lowercase() }
+    }
+
+    VariableType.KEBAB_CASE -> {
+      words.joinToString("-") { it.lowercase() }
+    }
+  }
+
+  // 5. 添加前缀和后缀
+  if (prefix.isNotBlank()) {
     result = when (type) {
-        VariableType.CONSTANT -> {
-            words.joinToString("_") { it.uppercase() }
-        }
-
-        VariableType.CAMEL_CASE -> {
-            words.first() + words.drop(1).joinToString("") { it.capitalize() }
-        }
-
-        VariableType.PASCAL_CASE -> {
-            words.joinToString("") { it.capitalize() }
-        }
-
-        VariableType.SNAKE_CASE -> {
-            words.joinToString("_") { it.lowercase() }
-        }
-
-        VariableType.KEBAB_CASE -> {
-            words.joinToString("-") { it.lowercase() }
-        }
+      VariableType.CONSTANT -> "${prefix.uppercase()}_$result"
+      VariableType.CAMEL_CASE -> prefix.lowercase() + result.capitalize()
+      VariableType.PASCAL_CASE -> prefix.capitalize() + result
+      VariableType.SNAKE_CASE -> "${prefix.lowercase()}_$result"
+      VariableType.KEBAB_CASE -> "${prefix.lowercase()}-$result"
     }
+  }
 
-    // 5. 添加前缀和后缀
-    if (prefix.isNotBlank()) {
-        result = when (type) {
-            VariableType.CONSTANT -> "${prefix.uppercase()}_$result"
-            VariableType.CAMEL_CASE -> prefix.lowercase() + result.capitalize()
-            VariableType.PASCAL_CASE -> prefix.capitalize() + result
-            VariableType.SNAKE_CASE -> "${prefix.lowercase()}_$result"
-            VariableType.KEBAB_CASE -> "${prefix.lowercase()}-$result"
-        }
+  if (suffix.isNotBlank()) {
+    result = when (type) {
+      VariableType.CONSTANT -> "${result}_${suffix.uppercase()}"
+      VariableType.CAMEL_CASE -> result + suffix.capitalize()
+      VariableType.PASCAL_CASE -> result + suffix.capitalize()
+      VariableType.SNAKE_CASE -> "${result}_${suffix.lowercase()}"
+      VariableType.KEBAB_CASE -> "${result}-${suffix.lowercase()}"
     }
+  }
 
-    if (suffix.isNotBlank()) {
-        result = when (type) {
-            VariableType.CONSTANT -> "${result}_${suffix.uppercase()}"
-            VariableType.CAMEL_CASE -> result + suffix.capitalize()
-            VariableType.PASCAL_CASE -> result + suffix.capitalize()
-            VariableType.SNAKE_CASE -> "${result}_${suffix.lowercase()}"
-            VariableType.KEBAB_CASE -> "${result}-${suffix.lowercase()}"
-        }
-    }
-
-    return result
+  return result
 }
 
 // 只使用扩展函数形式
-fun String.toConstantName(prefix: String = "", suffix: String = "") =
-    toValidVariableName(this, VariableType.CONSTANT, prefix, suffix)
+fun String.toConstantName(prefix: String = "", suffix: String = "") = toValidVariableName(this, VariableType.CONSTANT, prefix, suffix)
 
-fun String.toCamelCase(prefix: String = "", suffix: String = "") =
-    toValidVariableName(this, VariableType.CAMEL_CASE, prefix, suffix)
+fun String.toCamelCase(prefix: String = "", suffix: String = "") = toValidVariableName(this, VariableType.CAMEL_CASE, prefix, suffix)
 
-fun String.toPascalCase(prefix: String = "", suffix: String = "") =
-    toValidVariableName(this, VariableType.PASCAL_CASE, prefix, suffix)
+fun String.toPascalCase(prefix: String = "", suffix: String = "") = toValidVariableName(this, VariableType.PASCAL_CASE, prefix, suffix)
 
-fun String.toSnakeCase(prefix: String = "", suffix: String = "") =
-    toValidVariableName(this, VariableType.SNAKE_CASE, prefix, suffix)
+fun String.toSnakeCase(prefix: String = "", suffix: String = "") = toValidVariableName(this, VariableType.SNAKE_CASE, prefix, suffix)
 
-fun String.toKebabCase(prefix: String = "", suffix: String = "") =
-    toValidVariableName(this, VariableType.KEBAB_CASE, prefix, suffix)
+fun String.toKebabCase(prefix: String = "", suffix: String = "") = toValidVariableName(this, VariableType.KEBAB_CASE, prefix, suffix)
 
 fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
@@ -700,7 +680,7 @@ fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase(
  * 获取字符串长度
  */
 fun length(str: String?): Int {
-    return str?.length ?: 0
+  return str?.length ?: 0
 }
 
 /**
@@ -710,25 +690,25 @@ fun length(str: String?): Int {
  * @return 如果包含任意一个测试字符序列则返回true，否则返回false
  */
 fun CharSequence?.containsAny(vararg testStrs: CharSequence): Boolean {
-    if (this.isNullOrEmpty() || testStrs.isEmpty()) {
-        return false
-    }
-
-    for (testStr in testStrs) {
-        if (this!!.contains(testStr)) {
-            return true
-        }
-    }
-
+  if (this.isNullOrEmpty() || testStrs.isEmpty()) {
     return false
+  }
+
+  for (testStr in testStrs) {
+    if (this!!.contains(testStr)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 fun CharSequence?.isBlank(): Boolean {
-    return this == null || this.trim().isEmpty()
+  return this == null || this.trim().isEmpty()
 }
 
 fun CharSequence?.isNullOrEmpty(): Boolean {
-    return this == null || this.isEmpty()
+  return this == null || this.isEmpty()
 }
 
 /**
@@ -738,29 +718,28 @@ fun CharSequence?.isNullOrEmpty(): Boolean {
  * @return [String?]
  */
 fun removeDuplicateSymbol(source: String?, duplicateElement: String?): String? {
-    if (source.isNullOrEmpty() || duplicateElement.isNullOrEmpty()) {
-        return source
+  if (source.isNullOrEmpty() || duplicateElement.isNullOrEmpty()) {
+    return source
+  }
+  val sb = StringBuilder()
+  var previous = "" // 初始化前一个元素，用于比较
+  var i = 0
+  while (i < source.length) {
+    val elementLength = duplicateElement.length
+    if (i + elementLength <= source.length && source.substring(i, i + elementLength) == duplicateElement) {
+      if (previous != duplicateElement) {
+        sb.append(duplicateElement)
+        previous = duplicateElement
+      }
+      i += elementLength
+    } else {
+      sb.append(source[i])
+      previous = source[i].toString()
+      i++
     }
-    val sb = StringBuilder()
-    var previous = "" // 初始化前一个元素，用于比较
-    var i = 0
-    while (i < source.length) {
-        val elementLength = duplicateElement.length
-        if (i + elementLength <= source.length && source.substring(i, i + elementLength) == duplicateElement) {
-            if (previous != duplicateElement) {
-                sb.append(duplicateElement)
-                previous = duplicateElement
-            }
-            i += elementLength
-        } else {
-            sb.append(source[i])
-            previous = source[i].toString()
-            i++
-        }
-    }
-    return sb.toString()
+  }
+  return sb.toString()
 }
-
 
 /**
  * 提取p标签环绕的字符串
@@ -768,18 +747,18 @@ fun removeDuplicateSymbol(source: String?, duplicateElement: String?): String? {
  * @return [List<String>]
  */
 fun extractTextBetweenPTags(input: String?): List<String> {
-    if (input.isNullOrEmpty()) return emptyList()
+  if (input.isNullOrEmpty()) return emptyList()
 
-    // 判断字符串是否包含 <p> 标签
-    if ("<p>" !in input || "</p>" !in input) {
-        return emptyList() // 如果没有 <p> 标签，返回空列表
-    }
+  // 判断字符串是否包含 <p> 标签
+  if ("<p>" !in input || "</p>" !in input) {
+    return emptyList() // 如果没有 <p> 标签，返回空列表
+  }
 
-    // 定义正则表达式，用来匹配 <p> 和 </p> 之间的内容
-    val regex = Regex("<p>(.*?)</p>")
+  // 定义正则表达式，用来匹配 <p> 和 </p> 之间的内容
+  val regex = Regex("<p>(.*?)</p>")
 
-    // 提取所有匹配的内容
-    return regex.findAll(input).map { it.groupValues[1] }.toList()
+  // 提取所有匹配的内容
+  return regex.findAll(input).map { it.groupValues[1] }.toList()
 }
 
 /**
@@ -789,20 +768,19 @@ fun extractTextBetweenPTags(input: String?): List<String> {
  */
 
 fun cleanDocComment(docComment: String?): String {
-    if (docComment == null) return ""
+  if (docComment == null) return ""
 
-    // 使用正则表达式去除注释符号和多余空格
-    val trim = docComment.replace(Regex("""/\*\*?"""), "")  // 去除开头的 /* 或 /**
-        .replace(Regex("""\*"""), "")      // 去除行内的 *
-        .replace(Regex("""\*/"""), "")     // 去除结尾的 */
-        .replace(Regex("""/"""), "")     // 去除结尾的 */
-        .replace(Regex("""\n"""), " ")      // 将换行替换为空格
-        .replace(Regex("""\s+"""), " ")    // 合并多个空格为一个
-        .trim()
+  // 使用正则表达式去除注释符号和多余空格
+  val trim = docComment.replace(Regex("""/\*\*?"""), "")  // 去除开头的 /* 或 /**
+    .replace(Regex("""\*"""), "")      // 去除行内的 *
+    .replace(Regex("""\*/"""), "")     // 去除结尾的 */
+    .replace(Regex("""/"""), "")     // 去除结尾的 */
+    .replace(Regex("""\n"""), " ")      // 将换行替换为空格
+    .replace(Regex("""\s+"""), " ")    // 合并多个空格为一个
+    .trim()
 
-    return trim                             // 去除首尾空格
+  return trim                             // 去除首尾空格
 }
-
 
 /**
  * 从字符串数组中找到第一个非空字符串
@@ -810,25 +788,25 @@ fun cleanDocComment(docComment: String?): String {
  * @return 第一个非空字符串，如果都为空则返回空字符串
  */
 fun firstNotBlank(vararg strings: String?): String {
-    return strings.firstOrNull { !it.isNullOrBlank() } ?: ""
+  return strings.firstOrNull { !it.isNullOrBlank() } ?: ""
 }
 
 /**
  * 扩展函数：提取REST URL
  */
 fun String?.getRestUrl(): String {
-    if (this.isNullOrBlank()) {
-        return ""
-    }
+  if (this.isNullOrBlank()) {
+    return ""
+  }
 
-    val pattern = Regex(".*:\\d+(/[^/]+)(/.*)")
-    val matchResult = pattern.find(this)
+  val pattern = Regex(".*:\\d+(/[^/]+)(/.*)")
+  val matchResult = pattern.find(this)
 
-    return if (matchResult != null && matchResult.groupValues.size > 2) {
-        matchResult.groupValues[2]
-    } else {
-        ""
-    }
+  return if (matchResult != null && matchResult.groupValues.size > 2) {
+    matchResult.groupValues[2]
+  } else {
+    ""
+  }
 }
 
 /**
@@ -837,65 +815,54 @@ fun String?.getRestUrl(): String {
  * @return [MutableMap<String?, Any?>]
  */
 fun extractKeyValuePairs(input: String): MutableMap<String?, Any?> {
-    val keyValueMap = HashMap<String?, Any?>()
-    // 正则表达式匹配形如 "key : value" 或 "key：value" 的子串，考虑冒号和值周围的空白字符
-    val pattern = Regex("([\\p{L}\\p{N}_]+)[ \\t]*([:：])[ \\t]*([\\p{L}\\p{N}_]+)")
+  val keyValueMap = HashMap<String?, Any?>()
+  // 正则表达式匹配形如 "key : value" 或 "key：value" 的子串，考虑冒号和值周围的空白字符
+  val pattern = Regex("([\\p{L}\\p{N}_]+)[ \\t]*([:：])[ \\t]*([\\p{L}\\p{N}_]+)")
 
-    pattern.findAll(input)
-        .forEach { match ->
-            // 提取匹配到的key和value，去除空白字符
-            val key = match.groupValues[1].trim()
-            val value = match.groupValues[3].trim()
-            keyValueMap[key] = value
-        }
+  pattern.findAll(input).forEach { match ->
+    // 提取匹配到的key和value，去除空白字符
+    val key = match.groupValues[1].trim()
+    val value = match.groupValues[3].trim()
+    keyValueMap[key] = value
+  }
 
-    return keyValueMap
+  return keyValueMap
 }
 
 fun String.escapeSpecialCharacters(): String {
-    return this
-        // 基础转义字符
+  return this
+    // 基础转义字符
 //            .replace("\\", "\\\\")  // 反斜杠
 //            .replace("\"", "\\\"")  // 双引号
 //            .replace("\b", "\\b")   // 退格
 //            .replace("\n", "\\n")   // 换行
 //            .replace("\r", "\\r")   // 回车
 //            .replace("\t", "\\t")   // 制表符
-        .replace("\u000C", "\\f") // 换页
-        .replace("'", "\\'")    // 单引号
+    .replace("\u000C", "\\f") // 换页
+    .replace("'", "\\'")    // 单引号
 
-        // 正则表达式特殊字符
-        .replace(Regex("[\\[\\]{}()^$.|*+?]")) { "\\${it.value}" }
+    // 正则表达式特殊字符
+    .replace(Regex("[\\[\\]{}()^$.|*+?]")) { "\\${it.value}" }
 
-        // Unicode 字符
-        .replace(Regex("[\\x00-\\x1F\\x7F]")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
+    // Unicode 字符
+    .replace(Regex("[\\x00-\\x1F\\x7F]")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
 
-        // HTML/XML 特殊字符
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("&", "&amp;")
+    // HTML/XML 特殊字符
+    .replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
 
-        // SQL 注入防护字符
-        .replace(";", "\\;")
-        .replace("--", "\\--")
-        .replace("/*", "\\/\\*")
-        .replace("*/", "*\\/")
+    // SQL 注入防护字符
+    .replace(";", "\\;").replace("--", "\\--").replace("/*", "\\/\\*").replace("*/", "*\\/")
 
-        // Shell 特殊字符
-        .replace("`", "\\`")
-        .replace("$", "\\$")
-        .replace("!", "\\!")
+    // Shell 特殊字符
+    .replace("`", "\\`").replace("$", "\\$").replace("!", "\\!")
 
-        // 其他常见特殊字符
-        .replace("%", "\\%")
+    // 其他常见特殊字符
+    .replace("%", "\\%")
 //            .replace("@", "\\@")
-        .replace("#", "\\#")
-        .replace("~", "\\~")
-        .replace("=", "\\=")
-        .replace("+", "\\+")
+    .replace("#", "\\#").replace("~", "\\~").replace("=", "\\=").replace("+", "\\+")
 
-        // 控制字符
-        .replace(Regex("\\p{Cntrl}")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
+    // 控制字符
+    .replace(Regex("\\p{Cntrl}")) { "\\u${it.value[0].code.toString(16).padStart(4, '0')}" }
 }
 
 /**
@@ -909,27 +876,23 @@ fun String.escapeSpecialCharacters(): String {
  */
 @Suppress("unused")
 fun String.toKebabCase(): String {
-    if (isEmpty()) return this
+  if (isEmpty()) return this
 
-    // 使用正则表达式处理驼峰命名和下划线分隔
-    return replace(Regex("(?<!^)([A-Z])"), "-$1")
-        // 将下划线和空格替换为连字符
-        .replace(Regex("[_\\s]+"), "-")
-        // 转换为小写
-        .lowercase()
-        // 移除多余的连字符
-        .replace(Regex("-{2,}"), "-")
-        // 移除开头和结尾的连字符
-        .trim('-')
+  // 使用正则表达式处理驼峰命名和下划线分隔
+  return replace(Regex("(?<!^)([A-Z])"), "-$1")
+    // 将下划线和空格替换为连字符
+    .replace(Regex("[_\\s]+"), "-")
+    // 转换为小写
+    .lowercase()
+    // 移除多余的连字符
+    .replace(Regex("-{2,}"), "-")
+    // 移除开头和结尾的连字符
+    .trim('-')
 }
 
 fun String.makeSurroundWithBrackets(): String {
-    return this.addSuffixIfNot("(").addSuffixIfNot(")")
+  return this.addSuffixIfNot("(").addSuffixIfNot(")")
 }
-
-
-
-
 
 /**
  * 跨平台的 String format 扩展函数（用于 KMP）
@@ -946,117 +909,118 @@ fun String.makeSurroundWithBrackets(): String {
  * @return 格式化后的字符串
  */
 fun String.format(vararg args: Any?): String {
-    val result = StringBuilder()
-    var argIndex = 0
-    var i = 0
+  val result = StringBuilder()
+  var argIndex = 0
+  var i = 0
 
-    while (i < this.length) {
-        if (this[i] == '%' && i + 1 < this.length) {
-            val nextChar = this[i + 1]
-            when (nextChar) {
-                '%' -> {
-                    result.append('%')
-                    i += 2
-                }
+  while (i < this.length) {
+    if (this[i] == '%' && i + 1 < this.length) {
+      val nextChar = this[i + 1]
+      when (nextChar) {
+        '%' -> {
+          result.append('%')
+          i += 2
+        }
 
-                's', 'S' -> {
-                    result.append(args.getOrNull(argIndex) ?: "null")
-                    argIndex++
-                    i += 2
-                }
+        's', 'S' -> {
+          result.append(args.getOrNull(argIndex) ?: "null")
+          argIndex++
+          i += 2
+        }
 
-                'd' -> {
-                    val value = args.getOrNull(argIndex)
-                    result.append(value?.toString() ?: "null")
-                    argIndex++
-                    i += 2
-                }
+        'd' -> {
+          val value = args.getOrNull(argIndex)
+          result.append(value?.toString() ?: "null")
+          argIndex++
+          i += 2
+        }
 
-                'f' -> {
-                    val value = args.getOrNull(argIndex)
-                    val num = when (value) {
-                        is Number -> value.toDouble()
-                        else -> 0.0
-                    }
-                    result.append(num.toString())
-                    argIndex++
-                    i += 2
-                }
+        'f' -> {
+          val value = args.getOrNull(argIndex)
+          val num = when (value) {
+            is Number -> value.toDouble()
+            else -> 0.0
+          }
+          result.append(num.toString())
+          argIndex++
+          i += 2
+        }
 
-                'x' -> {
-                    val value = args.getOrNull(argIndex)
-                    val num = when (value) {
-                        is Number -> value.toLong()
-                        else -> 0L
-                    }
-                    result.append(num.toString(16))
-                    argIndex++
-                    i += 2
-                }
+        'x' -> {
+          val value = args.getOrNull(argIndex)
+          val num = when (value) {
+            is Number -> value.toLong()
+            else -> 0L
+          }
+          result.append(num.toString(16))
+          argIndex++
+          i += 2
+        }
 
-                '.' -> {
-                    // 解析精度格式，如 %.2f
-                    var j = i + 2
-                    val precisionStart = j
-                    while (j < this.length && this[j].isDigit()) {
-                        j++
-                    }
-                    if (j < this.length && this[j] == 'f') {
-                        val precision = this.substring(precisionStart, j).toIntOrNull() ?: 2
-                        val value = args.getOrNull(argIndex)
-                        val num = when (value) {
-                            is Number -> value.toDouble()
-                            else -> 0.0
-                        }
-                        result.append(formatFloat(num, precision))
-                        argIndex++
-                        i = j + 1
-                    } else {
-                        result.append(this[i])
-                        i++
-                    }
-                }
-
-                else -> {
-                    result.append(this[i])
-                    i++
-                }
+        '.' -> {
+          // 解析精度格式，如 %.2f
+          var j = i + 2
+          val precisionStart = j
+          while (j < this.length && this[j].isDigit()) {
+            j++
+          }
+          if (j < this.length && this[j] == 'f') {
+            val precision = this.substring(precisionStart, j).toIntOrNull() ?: 2
+            val value = args.getOrNull(argIndex)
+            val num = when (value) {
+              is Number -> value.toDouble()
+              else -> 0.0
             }
-        } else {
+            result.append(formatFloat(num, precision))
+            argIndex++
+            i = j + 1
+          } else {
             result.append(this[i])
             i++
+          }
         }
-    }
 
-    return result.toString()
+        else -> {
+          result.append(this[i])
+          i++
+        }
+      }
+    } else {
+      result.append(this[i])
+      i++
+    }
+  }
+
+  return result.toString()
 }
 
 /**
  * 格式化浮点数
  */
 private fun formatFloat(value: Double, precision: Int): String {
-    val multiplier = pow10(precision)
-    val scaled = (value * multiplier).toLong()
-    val intPart = scaled / multiplier
-    val fracPart = (scaled % multiplier).toInt()
+  val multiplier = pow10(precision)
+  val scaled = (value * multiplier).toLong()
+  val intPart = scaled / multiplier
+  val fracPart = (scaled % multiplier).toInt()
 
-    return if (precision > 0) {
-        val fracStr = fracPart.toString().padStart(precision, '0').take(precision)
-        "$intPart.$fracStr"
-    } else {
-        intPart.toString()
-    }
+  return if (precision > 0) {
+    val fracStr = fracPart.toString().padStart(precision, '0').take(precision)
+    "$intPart.$fracStr"
+  } else {
+    intPart.toString()
+  }
 }
 
 /**
  * 计算 10 的 n 次方
  */
 private fun pow10(n: Int): Long {
-    var result = 1L
-    repeat(n) { result *= 10 }
-    return result
+  var result = 1L
+  repeat(n) { result *= 10 }
+  return result
 }
+
 fun String.toSimpleName(): String {
-    val substringAfterLast = this.substringAfterLast('.')
-    return substringAfterLast
+  val substringAfterLast = this.substringAfterLast('.')
+  return substringAfterLast
 }

@@ -1,20 +1,19 @@
 package site.addzero.aop.dicttrans.util_internal
 
-import site.addzero.aop.dicttrans.util.CollUtil
-import site.addzero.aop.dicttrans.util.MapUtil
-import site.addzero.aop.dicttrans.util.CharSequenceUtil
-import site.addzero.aop.dicttrans.util.ObjUtil
-import site.addzero.aop.dicttrans.util.ReflectUtil
-import site.addzero.aop.dicttrans.util.StrUtil
-import site.addzero.aop.dicttrans.util.SpringUtil
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.dictaop.CommonConstant
 import site.addzero.aop.dicttrans.dictaop.entity.NeedAddInfo
 import site.addzero.aop.dicttrans.dictaop.entity.TabMultiIn
 import site.addzero.aop.dicttrans.dictaop.entity.TransInfo
 import site.addzero.aop.dicttrans.inter.TransApi
+import site.addzero.aop.dicttrans.util.ObjUtil
+import site.addzero.aop.dicttrans.util.SpringUtil
 import org.springframework.core.annotation.AnnotatedElementUtils
+import site.addzero.util.ImprovedReflectUtil
 import site.addzero.util.RefUtil
+import site.addzero.util.str.containsAny
+import site.addzero.util.str.isNotBlank
+import site.addzero.util.str.toCamelCase
 import java.util.*
 
 /**
@@ -45,22 +44,21 @@ internal object TransInternalUtil {
             val aClass: Class<*> = currentObj.javaClass
 
             // 遍历所有字段
-            ReflectUtil.getFields(aClass) { field ->
+            for (field in ImprovedReflectUtil.getFields(aClass)) {
                 field.isAccessible = true
-                val fieldValue = ReflectUtil.getFieldValue(currentObj, field)
+                val fieldValue = ImprovedReflectUtil.getFieldValue(currentObj, field)
                 if (ObjUtil.isEmpty(fieldValue)) {
-                    return@getFields false
+                    continue
                 }
 
                 // 检查字段是否有 Dict 注解
                 val dictAnnotations = AnnotatedElementUtils.getMergedRepeatableAnnotations(field, Dict::class.java)
-                if (CollUtil.isNotEmpty(dictAnnotations)) {
-                    // 处理带有 Dict 注解的字段
+                if (dictAnnotations.isNotEmpty()) {
                     dictAnnotations.forEach { anno ->
                         val alias = anno.serializationAlias
-                        val nameColumn = StrUtil.toCamelCase(anno.nameColumn)
+                        val nameColumn = anno.nameColumn.toCamelCase()
                         val other = field.name + CommonConstant.DICT_TEXT_SUFFIX
-                        val firstNonBlank = CharSequenceUtil.firstNonBlank(alias, nameColumn, other) ?: other
+                        val resolvedName = firstNonBlank(alias, nameColumn, other) ?: other
 
                         val transInfo = TransInfo(
                             superObjectFieldTypeEnum = null,
@@ -72,7 +70,7 @@ internal object TransInternalUtil {
                             rootObject = currentObj,
                             afterObject = null,
                             afterObjectClass = null,
-                            translatedAttributeNames = firstNonBlank,
+                            translatedAttributeNames = resolvedName,
                             attributeNameBeforeTranslation = field.name,
                             valueBeforeTranslation = fieldValue ?: "",
                             translatedValue = null,
@@ -84,21 +82,16 @@ internal object TransInternalUtil {
                     }
                 }
 
-                // 处理集合类型字段
-                if (RefUtil.isCollectionField(field)) {
-                    val collection = fieldValue as? MutableCollection<*>
-                    collection?.filterNotNull()?.forEach { item ->
-                        // 将集合中的元素加入队列，等待处理
-                        queue.add(item)
+                when {
+                    RefUtil.isCollectionField(field) -> {
+                        val collection = fieldValue as? Collection<*>
+                        collection?.filterNotNull()?.forEach(queue::add)
+                    }
+
+                    fieldValue != null && RefUtil.isT(fieldValue) -> {
+                        queue.add(fieldValue)
                     }
                 }
-                // 处理嵌套实体字段
-                else if (fieldValue != null && RefUtil.isT(fieldValue)) {
-                    // 将嵌套对象加入队列，等待处理
-                    queue.add(fieldValue)
-                }
-
-                true
             }
         }
 
@@ -125,14 +118,15 @@ internal object TransInternalUtil {
         /** 翻译前的值  */
         val valueBeforeTranslation: Any = transInfo.valueBeforeTranslation
         val string = valueBeforeTranslation.toString()
-        val isMulti = StrUtil.containsAny(string, ",")
+
+        val isMulti = string.containsAny(",")
         val dictCode = anno.dicCode.ifBlank { anno.value }
 
         val tab = anno.tab
         val codeColumn = anno.codeColumn
         val nameColumn = anno.nameColumn
-        val isUseSysDefaultDict = StrUtil.isNotBlank(dictCode) && StrUtil.isAllBlank(tab, codeColumn, nameColumn)
-        val useSpel = StrUtil.isNotBlank(anno.spelExp)
+        val isUseSysDefaultDict = dictCode.isNotBlank() && areAllBlank(tab, codeColumn, nameColumn)
+        val useSpel = anno.spelExp.isNotBlank()
 
         //内置字典多翻译    0
         val one = isMulti && isUseSysDefaultDict && !useSpel
@@ -169,67 +163,59 @@ internal object TransInternalUtil {
      * 处理内置字典翻译
      */
     fun processBuiltInDictionaryTranslation(translateTypeListMap: Map<Int?, List<TransInfo<Dict>>>) {
-        if (MapUtil.isEmpty(translateTypeListMap)) {
+        if (translateTypeListMap.isEmpty()) {
             return
         }
-        val dictCode = translateTypeListMap.entries.filter {
-            val translateType = it.key
-            translateType == 0 || translateType == 1
-        }.flatMap {
-            val transInfos = it.value
-            transInfos.map { it ->
-                val anno = it.anno
-                val value = anno.value
-                anno.dicCode.ifBlank { value }
-            }
-        }.distinct().joinToString(",")
-        val fieldRuntimeStrValue = translateTypeListMap.entries.filter { e ->
-            val translateType = e.key
-            translateType == 0 || translateType == 1
-        }.flatMap { e ->
-            val transInfos = e.value
-            val stringStream = transInfos.map { x -> x.valueBeforeTranslation.toString() }
-            stringStream
-        }.distinct().joinToString(",")
+
+        val dictCode = translateTypeListMap.entries
+            .filter { it.key == 0 || it.key == 1 }
+            .flatMap { entry -> entry.value.map { it.anno.dicCode.ifBlank { it.anno.value } } }
+            .distinct()
+            .joinToString(",")
+
+        if (dictCode.isBlank()) {
+            return
+        }
+
+        val fieldRuntimeStrValue = translateTypeListMap.entries
+            .filter { it.key == 0 || it.key == 1 }
+            .flatMap { it.value.map { info -> info.valueBeforeTranslation.toString() } }
+            .distinct()
+            .joinToString(",")
 
         val transApi = SpringUtil.getBean(TransApi::class.java)
+        val dictMap = transApi.translateDictBatchCode2name(dictCode, fieldRuntimeStrValue)
+            .groupBy { it.dictCode }
 
-        val map = transApi.translateDictBatchCode2name(dictCode,
-            fieldRuntimeStrValue).groupBy { it.dictCode }
-        if (MapUtil.isEmpty(map)) {
+        if (dictMap.isEmpty()) {
             return
         }
-        translateTypeListMap.forEach {
-            it.value.forEach { e ->
-                val rootObject = e.rootObject
-                val anno = e.anno
-                val dicCode = anno.dicCode.ifBlank { anno.value }
-                val dictModels = map.get(dicCode)
 
-                if (CollUtil.isEmpty(dictModels)) {
+        translateTypeListMap.forEach { (_, infos) ->
+            infos.forEach { info ->
+                val rootObject = info.rootObject
+                val dicCode = info.anno.dicCode.ifBlank { info.anno.value }
+                val dictModels = dictMap[dicCode].orEmpty()
+                if (dictModels.isEmpty()) {
                     return@forEach
                 }
-                /** 翻以前的值  */
-                val flipPastValues: String = e.valueBeforeTranslation.toString()
-                val multi: Boolean = StrUtil.containsAny(flipPastValues, ",")
-                if (multi) {
-                    val split1 = StrUtil.split(flipPastValues, ",")
-                    val collect = split1.map { row ->
-                        val one = dictModels?.find { it.value == row }
-                        one?.label ?: ""
-                    }.filter { it.isNotBlank() }.joinToString(",")
 
-                    ReflectUtil.setFieldValue(rootObject, e.translatedAttributeNames, collect)
-                    //                    return;
+                val rawValue = info.valueBeforeTranslation.toString()
+                val values = rawValue.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+
+                if (values.size > 1) {
+                    val translated = values.map { value ->
+                        dictModels.firstOrNull { it.value == value }?.label ?: ""
+                    }.filter { it.isNotBlank() }
+                        .joinToString(",")
+                    ImprovedReflectUtil.setFieldValue(rootObject, info.translatedAttributeNames, translated)
+                } else {
+                    val match = dictModels.firstOrNull { it.value == rawValue } ?: return@forEach
+                    info.translatedValue = match.label
+                    ImprovedReflectUtil.setFieldValue(rootObject, info.translatedAttributeNames, match.label)
                 }
-                val one = dictModels?.find { it.value == flipPastValues }
-                if (Objects.isNull(one)) {
-                    return@forEach
-                }
-                val label = one?.label
-                e.translatedValue = label
-                //                e.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + e.getTranslatedAttributeNames());
-                ReflectUtil.setFieldValue(rootObject, e.translatedAttributeNames, label)
             }
         }
     }
@@ -238,7 +224,7 @@ internal object TransInternalUtil {
      * 处理任意表翻译
      */
     fun processAnyTableTranslation(translateTypeListMap: Map<Int?, List<TransInfo<Dict>>>) {
-        if (MapUtil.isEmpty(translateTypeListMap)) {
+        if (translateTypeListMap.isEmpty()) {
             return
         }
         //按tab和code分组
@@ -303,7 +289,7 @@ internal object TransInternalUtil {
                 keys = fieldRuntimeStrValue.joinToString(",")
             )
 
-            if (CollUtil.isEmpty(info)) {
+            if (info.isNullOrEmpty()) {
                 return@forEach
             }
             //                    right.
@@ -322,33 +308,33 @@ internal object TransInternalUtil {
                 val valueBeforeTranslation = needSetInfo.valueBeforeTranslation.toString()
                 val multi = valueBeforeTranslation.contains(",")
                 if (multi) {
-                    val split = StrUtil.split(valueBeforeTranslation, ",")
+                    val split = valueBeforeTranslation.split(",")
                     val collect1 = split.map { singleValueBeforeTranslation ->
-                        val one = info.firstOrNull() { it[codeColumn1].toString() == singleValueBeforeTranslation }
-                        if (Objects.nonNull(one)) {
-                            val nameValue = one?.get(nameColumn1).toString()
+                        val one = info.firstOrNull { it[codeColumn1].toString() == singleValueBeforeTranslation }
+                        if (one != null) {
+                            val nameValue = one[nameColumn1].toString()
                             needSetInfo.translatedValue = nameValue
                             return@map nameValue
                         }
                         ""
-                    }.filter(StrUtil::isNotBlank).joinToString(",")
+                    }.filter { it.isNotBlank() }.joinToString(",")
                     needSetInfo.translatedValue = collect1
 
                     //                            needSetInfo.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + needSetInfo.getTranslatedAttributeNames());
                     if (Objects.nonNull(rootObject)) {
-                        ReflectUtil.setFieldValue(rootObject, translatedName, collect1)
+                        ImprovedReflectUtil.setFieldValue(rootObject, translatedName, collect1)
                     }
                     //                            return;
                 }
                 //                        Object 翻译前的值 = string;
-                val one = info.firstOrNull() { it[codeColumn1].toString() == valueBeforeTranslation }
-                if (Objects.isNull(one)) {
+                val one = info.firstOrNull { it[codeColumn1].toString() == valueBeforeTranslation }
+                if (one == null) {
                     return@forEach
                 }
-                val nameValue = one?.get(nameColumn1).toString()
+                val nameValue = one[nameColumn1].toString()
                 needSetInfo.translatedValue = nameValue
                 //                        needSetInfo.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + needSetInfo.getTranslatedAttributeNames());
-                ReflectUtil.setFieldValue(rootObject, translatedName, nameValue)
+                ImprovedReflectUtil.setFieldValue(rootObject, translatedName, nameValue)
             }
         }
     }
@@ -357,7 +343,7 @@ internal object TransInternalUtil {
 //     * 处理spel表达式
 //     */
 //    fun processingSpelExpressions(translateTypeListMap: MutableMap<Int, MutableList<TransInfo<Dict>>>) {
-//        if (MapUtil.isEmpty(translateTypeListMap)) {
+//        if (translateTypeListMap.isEmpty()) {
 //            return
 //        }
 //        translateTypeListMap.entries.filter { e -> e.key == 4 }
@@ -379,4 +365,10 @@ internal object TransInternalUtil {
 //                ReflectUtil.setFieldValue(rootObject, translatedAttributeNames, o)
 //            }
 //    }
+
+    private fun firstNonBlank(vararg candidates: String?): String? =
+        candidates.firstOrNull { !it.isNullOrBlank() }
+
+    private fun areAllBlank(vararg values: String?): Boolean =
+        values.all { it.isNullOrBlank() }
 }

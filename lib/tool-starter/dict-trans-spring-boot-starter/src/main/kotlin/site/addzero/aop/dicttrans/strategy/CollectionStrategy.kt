@@ -2,8 +2,9 @@ package site.addzero.aop.dicttrans.strategy
 
 import org.springframework.stereotype.Component
 import site.addzero.aop.dicttrans.inter.TransStrategy
-import site.addzero.aop.dicttrans.util_internal.OptimizedByteBuddyUtil
 import site.addzero.aop.dicttrans.util_internal.TransInternalUtil
+import site.addzero.tool.bytebuddy.ByteBuddyUtil
+import site.addzero.tool.bytebuddy.ByteBuddyUtil.DynamicFieldDefinition
 import java.util.*
 
 /**
@@ -28,8 +29,10 @@ class CollectionStrategy : TransStrategy<Collection<*>> {
         }
 
         // 使用优化的批量处理工具，自动收集所有对象类型的字段需求并集，每个类型只生成一次字节码
-        val collect = OptimizedByteBuddyUtil.genChildObjectsBatch(inVOs.toList()) { obj ->
-            TransInternalUtil.getNeedAddFields(obj).toMutableList()
+        val collect = ByteBuddyUtil.genChildObjectsBatch(inVOs.toList()) { obj ->
+            TransInternalUtil.getNeedAddFields(obj).map { need ->
+                DynamicFieldDefinition(need.fieldName, need.type)
+            }
         }
 
         //翻译过程的全部信息都在这里了 对于单个字典翻译,会按照list中所有dictCode分组TransInfo集合 会调用系统字段批量翻译

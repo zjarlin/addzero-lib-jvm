@@ -1,11 +1,12 @@
 package site.addzero.aop.dicttrans.strategy
 
-import site.addzero.aop.dicttrans.util.StrUtil
-import site.addzero.aop.dicttrans.util.SpringUtil
+import org.springframework.stereotype.Component
 import site.addzero.aop.dicttrans.anno.Dict
 import site.addzero.aop.dicttrans.inter.TransApi
 import site.addzero.aop.dicttrans.inter.TransStrategy
-import org.springframework.stereotype.Component
+import site.addzero.aop.dicttrans.util.SpringUtil
+import site.addzero.util.str.isNotBlank
+import site.addzero.util.str.toUnderLineCase
 
 /**
  * @author zjarlin
@@ -13,14 +14,9 @@ import org.springframework.stereotype.Component
  */
 @Component
 open class StringStrategy() : TransStrategy<String> {
-//    private val spelContextMap: MutableMap<String, Any> = HashMap<String, Any>()
-
     lateinit var dict: Dict
-
-
-
     public override fun trans(s: String): String {
-        if (StrUtil.isBlank(s)) {
+        if (s.isBlank()) {
             return s
         }
         return extractSingleAttributeTranslation(s, dict)
@@ -31,23 +27,23 @@ open class StringStrategy() : TransStrategy<String> {
     }
 
     private fun <T> extractSingleAttributeTranslation(fieldRuntimeValue: T, dict: Dict): String {
-        val transApi = SpringUtil.getBean<TransApi>(TransApi::class.java)
+        val transApi = SpringUtil.getBean(TransApi::class.java)
         val dictCode: String = dict.dicCode.ifBlank { dict.value }
         val tab: String = dict.tab
         var codeColumn = dict.codeColumn
         var nameColumn = dict.nameColumn
         val spelExp: String = dict.spelExp
-        if (StrUtil.isAllBlank(dictCode, tab, codeColumn, nameColumn)) {
+        if (listOf(dictCode, tab, codeColumn, nameColumn).all { it.isBlank() }) {
             return fieldRuntimeValue.toString()
         }
         val fieldRuntimeStrValue = fieldRuntimeValue.toString()
-        codeColumn = StrUtil.toUnderlineCase(codeColumn)
-        nameColumn = StrUtil.toUnderlineCase(nameColumn)
+        codeColumn = codeColumn.toUnderLineCase()
+        nameColumn = nameColumn.toUnderLineCase()
         //dictCode不空 这仨参数全是空说明是内置字典翻译
-        val isUseSysDefaultDict = StrUtil.isNotBlank(dictCode) && StrUtil.isAllBlank(tab, codeColumn, nameColumn)
+        val isUseSysDefaultDict = dictCode.isNotBlank() && listOf(tab, codeColumn, nameColumn).all { it.isBlank() }
         val string: String = fieldRuntimeStrValue
-        val isMulti: Boolean = StrUtil.contains(string, ",")
-        val useSpel = StrUtil.isNotBlank(spelExp)
+        val isMulti: Boolean = string.contains(",")
+        val useSpel = spelExp.isNotBlank()
         var retStr = ""
 
         if (!isUseSysDefaultDict ) {

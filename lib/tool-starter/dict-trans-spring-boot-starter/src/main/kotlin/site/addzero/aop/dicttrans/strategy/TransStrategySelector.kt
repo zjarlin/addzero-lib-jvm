@@ -1,24 +1,13 @@
 package site.addzero.aop.dicttrans.strategy
 
-import org.springframework.beans.factory.annotation.Autowired
 import site.addzero.aop.dicttrans.inter.TransStrategy
-import org.springframework.stereotype.Component
 
-
-/**
- * @author zjarlin
- * @since 2023/11/8 10:31
- */
-@Component
-class TransStrategySelector (
-//private val transStrategys: List<TransStrategy<*>>
-){
-    @Autowired
-   lateinit var transStrategys: List<TransStrategy<*>>
-    fun getStrategy(t: Any?): TransStrategy<Any>? {
-        t ?: return null
-        return transStrategys.firstOrNull { it.support(t) } as TransStrategy<Any>?
+class TransStrategySelector(
+    private val transStrategies: List<TransStrategy<*>>,
+) {
+    @Suppress("UNCHECKED_CAST")
+    fun getStrategy(target: Any?): TransStrategy<Any>? {
+        target ?: return null
+        return transStrategies.firstOrNull { it.support(target) } as TransStrategy<Any>?
     }
-
-
 }

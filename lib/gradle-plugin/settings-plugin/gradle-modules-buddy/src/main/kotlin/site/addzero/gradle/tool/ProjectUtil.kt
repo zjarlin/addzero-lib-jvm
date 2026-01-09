@@ -1,6 +1,5 @@
 package site.addzero.gradle.tool
 
-import org.apache.tools.ant.util.FileUtils
 import org.apache.tools.ant.util.FileUtils.getRelativePath
 import org.gradle.api.initialization.Settings
 import java.io.File
@@ -45,7 +44,7 @@ fun File.isInBlackList(rootDir: File, vararg blackModuleName: String): Boolean {
   // Skip any hidden directories (segments that start with ".")
   if (this.name.startsWith(".")) return true
 
-  val relativePath = FileUtils.getRelativePath(rootDir, this)
+  val relativePath = getRelativePath(rootDir, this)
   if (relativePath.split(File.separatorChar, '/').any { it.startsWith(".") }) {
     return true
   }
@@ -63,25 +62,16 @@ fun File.isInBlackList(rootDir: File, vararg blackModuleName: String): Boolean {
   }
 }
 
-fun getProjectContext(
-  rootDir: File, vararg blackModuleName: String,
-): ProjectContext {
-  return getProjectContext(rootDir) {
-    val inBlackList = it.isInBlackList(rootDir, *blackModuleName)
-    !inBlackList
-  }
-}
-
 fun Settings.autoIncludeModules(vararg blackModuleName: String) {
-  val rootDir = settings.layout.rootDirectory.asFile
-  settings.autoIncludeModules {
+  val rootDir = settings.rootDir
+  autoIncludeModules {
     val inBlackList = it.isInBlackList(rootDir, *blackModuleName)
     !inBlackList
   }
 }
 
 fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
-  val rootDir = settings.layout.rootDirectory.asFile
+  val rootDir = settings.rootDir
   val projectContext = getProjectContext(rootDir, predicate)
 
   val includedBuilds = mutableListOf<String>()
@@ -131,17 +121,3 @@ fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
 //        relativePath == blacklisted || relativePath.startsWith("$blacklisted${File.separator}")
 //    }
 //}
-
-/**
- * 将路径转换为小驼峰命名
- */
-private fun String.toCamelCase(): String {
-  val parts = this.split("-", ":")
-  return parts.mapIndexed { index, part ->
-    if (index == 0) {
-      part.replaceFirstChar { it.lowercase() }
-    } else {
-      part.replaceFirstChar { it.uppercase() }
-    }
-  }.joinToString("")
-}

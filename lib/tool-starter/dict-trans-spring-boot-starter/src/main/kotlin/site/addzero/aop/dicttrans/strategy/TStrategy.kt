@@ -1,6 +1,5 @@
 package site.addzero.aop.dicttrans.strategy
 
-import site.addzero.aop.dicttrans.util.CollUtil
 import site.addzero.aop.dicttrans.inter.TransStrategy
 import site.addzero.util.RefUtil
 import org.springframework.stereotype.Component
@@ -18,7 +17,7 @@ class TStrategy(private val tPredicate: TPredicate) : TransStrategy<Any?> {
         val list = mutableListOf(o)
         val collectionStrategy = CollectionStrategy()
         val trans = collectionStrategy.trans(list)
-        if (CollUtil.isEmpty(trans)) {
+        if (trans.isEmpty()) {
             return null
         }
         return trans.iterator().next()
