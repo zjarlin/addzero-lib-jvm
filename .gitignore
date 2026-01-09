@@ -47,3 +47,9 @@ captures
 /.qoderignore
 /.warpindexignore
 /.docs
+/AGENTS.md
+/GEMINI.md
+/CLAUDE.md
+/WARP.md
+/.skills
+/.factory
