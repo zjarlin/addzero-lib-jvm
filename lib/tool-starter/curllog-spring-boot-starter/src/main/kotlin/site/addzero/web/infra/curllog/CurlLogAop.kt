@@ -7,12 +7,14 @@ import org.aopalliance.intercept.MethodInvocation
 import org.springframework.aop.Advisor
 import org.springframework.aop.aspectj.AspectJExpressionPointcut
 import org.springframework.aop.support.DefaultPointcutAdvisor
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import javax.servlet.http.HttpServletRequest
+import org.springframework.context.annotation.EnableAspectJAutoProxy
+import site.addzero.rc.ExpressionScanAutoConfiguration
 
 class LogMethodInterceptor : MethodInterceptor {
     override fun invoke(invocation: MethodInvocation): Any? {
@@ -55,13 +57,15 @@ private fun dosth(req: HttpServletRequest?, arguments: Array<Any>) {
 }
 
 
-@Configuration
+@AutoConfiguration(after = [ExpressionScanAutoConfiguration::class])
+@Import(ExpressionScanAutoConfiguration::class)
+@EnableAspectJAutoProxy
 class CurlLogConfiguration {
 
     @Bean
     fun curlLogWhenErrorAdvisor(properties: ScanControllerProperties): Advisor {
         val pointcut = AspectJExpressionPointcut().apply {
-            expression = properties.expression
+            expression = properties.resolvedExpression()
         }
         return DefaultPointcutAdvisor(pointcut, LogMethodInterceptor())
     }

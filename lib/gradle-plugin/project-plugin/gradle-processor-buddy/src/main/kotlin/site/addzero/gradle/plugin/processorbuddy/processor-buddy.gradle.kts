@@ -2,9 +2,11 @@ package site.addzero.gradle.plugin.processorbuddy
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 import java.io.File
@@ -35,7 +37,10 @@ afterEvaluate {
     if (extension.settingContextEnabled.get() && extension.mustMap.get().isNotEmpty()) {
         plugins.withId("java") {
             val sourceSets = extensions.getByType(SourceSetContainer::class.java)
-            sourceSets.getByName("main").java.srcDir(outputDir)
+            val mainSourceSet = sourceSets.getByName("main")
+            mainSourceSet.java.srcDir(outputDir)
+            val kotlinSourceDir = mainSourceSet.extensions.findByName("kotlin") as? SourceDirectorySet
+            kotlinSourceDir?.srcDir(outputDir)
             logger.lifecycle("Added generated source directory to main sourceSet: ${outputDir.get().asFile.absolutePath}")
         }
     }
@@ -103,6 +108,7 @@ abstract class GenerateProcessorScriptTask : DefaultTask() {
         val ifaceName = interfaceName.get()
         val objName = objectName.get()
         val pkgName = packageName.get()
+        val mergeFuncName = "merge"
 
         return """
 # Processor Configuration
@@ -169,9 +175,11 @@ This generates:
 
 \`\`\`kotlin
 import $pkgName.$ifaceName
+import $pkgName.$objName
+import $pkgName.$mergeFuncName
 
-// Get singleton
-val config = $ifaceName.instance()
+// Default singleton
+val config: $ifaceName = $objName
 
 // Load config
 config.fromOptions(mapOf("key" to "value"))
@@ -180,7 +188,7 @@ config.fromOptions(mapOf("key" to "value"))
 val options = config.toOptions()
 
 // Merge configs (non-empty values win)
-val merged = $ifaceName.merge(config1, config2)
+val merged = $mergeFuncName(config1, config2)
 \`\`\`
         """.trimIndent()
     }
@@ -231,40 +239,29 @@ val merged = $ifaceName.merge(config1, config2)
             logger.lifecycle("Generating SettingContext interface in: ${packageDir.absolutePath}")
             val file = File(packageDir, "${ifaceName}.kt")
 
-            val companionContent = if (settingsObjectEnabled.get()) {
-                """
-            |    companion object {
-            |        /**
-            |         * Returns the default singleton instance.
-            |         */
-            |        @JvmStatic
-            |        fun instance(): $ifaceName = $objName
+        val mergeFuncName = "merge"
+        val topLevelFunctions = if (settingsObjectEnabled.get()) {
+            """
             |
-            |        /**
-            |         * Merges multiple $ifaceName instances.
-            |         * Later instances override earlier ones, but only for non-empty String values.
-            |         */
-            |        @JvmStatic
-            |        fun merge(vararg instances: $ifaceName?): $ifaceName {
-            |            val nonNullInstances = instances.filterNotNull()
-            |            if (nonNullInstances.isEmpty()) {
-            |                throw IllegalArgumentException("At least one non-null instance required for merge")
-            |            }
-            |            if (nonNullInstances.size == 1) {
-            |                return nonNullInstances[0]
-            |            }
+            |fun $mergeFuncName(vararg instances: $ifaceName): $ifaceName {
+            |    val providedInstances = instances.toList()
+            |    if (providedInstances.isEmpty()) {
+            |        throw IllegalArgumentException("At least one instance required for merge")
+            |    }
+            |    if (providedInstances.size == 1) {
+            |        return providedInstances[0]
+            |    }
             |
-            |            val merged = mutableMapOf<String, String>()
-            |            nonNullInstances.forEach {
-            |                it.toOptions().forEach { (key, value) ->
-            |                    if (value.isNotEmpty()) {
-            |                        merged[key] = value
-            |                    }
-            |                }
+            |    val merged = mutableMapOf<String, String>()
+            |    providedInstances.forEach {
+            |        it.toOptions().forEach { (key, value) ->
+            |            if (value.isNotEmpty()) {
+            |                merged[key] = value
             |            }
-            |            return $objName.apply { fromOptions(merged) }
             |        }
-            |    }"""
+            |    }
+            |    return $objName.apply { fromOptions(merged) }
+            |}"""
             } else {
                 ""
             }
@@ -272,24 +269,14 @@ val merged = $ifaceName.merge(config1, config2)
             val content = """
             |package $pkgName
             |
-            |/**
-            | * Processor configuration interface.
-            | * Generated by ProcessorBuddy.
-            | */
             |interface $ifaceName {
             |$propertyDeclarations
             |
-            |    /**
-            |     * Exports current properties to a Map.
-            |     */
             |    fun toOptions(): Map<String, String>
             |
-            |    /**
-            |     * Loads properties from a Map.
-            |     */
             |    fun fromOptions(options: Map<String, String>)
-            |$companionContent
             |}
+            |$topLevelFunctions
         """.trimMargin()
 
             file.writeText(content)
@@ -340,10 +327,6 @@ val merged = $ifaceName.merge(config1, config2)
             val content = """
             |package $pkgName
             |
-            |/**
-            | * Default implementation of $ifaceName.
-            | * Generated by ProcessorBuddy.
-            | */
             |object $objName$implementsClause {
             |$objProperties
             |
@@ -458,7 +441,7 @@ val merged = $ifaceName.merge(config1, config2)
                 "Boolean" -> "it.toBoolean()"
                 else -> "it"
             }
-            val filterExpr = if (elementType != "String") ".filterNotNull()" else ""
+            val filterExpr = if (elementType != "String") "?.filterNotNull()" else ""
             """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }$filterExpr ?: $defaultExpr"""
         } else {
             when (type) {

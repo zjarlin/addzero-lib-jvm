@@ -1,8 +1,5 @@
 package site.addzero.aop.dicttrans.dictaop
 
-import site.addzero.aop.dicttrans.strategy.StringStrategy
-import site.addzero.aop.dicttrans.strategy.TransStrategySelector
-import site.addzero.rc.AddzeroDictTransProperties
 import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
 import org.springframework.aop.Advisor
@@ -10,24 +7,37 @@ import org.springframework.aop.Pointcut
 import org.springframework.aop.aspectj.AspectJExpressionPointcut
 import org.springframework.aop.support.ComposablePointcut
 import org.springframework.aop.support.DefaultPointcutAdvisor
+import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.EnableAspectJAutoProxy
+import org.springframework.context.annotation.Import
 import org.springframework.core.annotation.AnnotationUtils
 import site.addzero.aop.dicttrans.anno.Dict
+import site.addzero.aop.dicttrans.strategy.StringStrategy
+import site.addzero.aop.dicttrans.strategy.TransStrategySelector
+import site.addzero.rc.AddzeroDictTransProperties
+import site.addzero.rc.ExpressionScanAutoConfiguration
+import site.addzero.rc.ScanControllerProperties
 
 
-@Configuration
+@AutoConfiguration(after = [ExpressionScanAutoConfiguration::class])
 @EnableConfigurationProperties(AddzeroDictTransProperties::class)
+@Import(ExpressionScanAutoConfiguration::class)
+@EnableAspectJAutoProxy
 class DictAopConfiguration {
 
     @Bean
     fun dictAdvisor(
         properties: AddzeroDictTransProperties,
+        scanControllerProperties: ScanControllerProperties,
         transStrategySelector: TransStrategySelector
     ): Advisor {
-        // 合并注解和包扫描条件到一个表达式中，减少Pointcut实例
-        val combinedExpression = "@annotation(site.addzero.aop.dicttrans.anno.Dict) && (${properties.expression})"
+        val resolvedExpression = scanControllerProperties.resolvedExpression(
+            customExpression = properties.expression,
+            customPkg = properties.pkg
+        )
+        val combinedExpression = "@annotation(site.addzero.aop.dicttrans.anno.Dict) && ($resolvedExpression)"
 
         val pointcut = AspectJExpressionPointcut().apply {
             expression = combinedExpression

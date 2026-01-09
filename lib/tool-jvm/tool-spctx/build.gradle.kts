@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     // KSP reified 处理器
-    ksp("site.addzero:gen-reified-processor:2026.01.03")
+    ksp("site.addzero:gen-reified-processor:2026.01.08")
     implementation("site.addzero:gen-reified-core:2026.01.01")
 
 //    compileOnly("org.springframework:spring-jdbc:5.3.21")

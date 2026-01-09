@@ -1,5 +1,5 @@
 plugins {
-    id("kmp-convention")
+    id("kmp-core")
 }
 
 kotlin {
