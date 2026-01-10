@@ -24,8 +24,8 @@ implementationRemoteGit {
 //  )
 }
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-10T11:40:45.762071
-// Loaded: 15, Excluded: 0, Total: 15
+// Generated at: 2026-01-10T11:56:45.896189
+// Loaded: 14, Excluded: 0, Total: 14
 include(":lib:apt:apt-controller2feign-processor")
 include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 include(":lib:lsi:lsi-apt")
@@ -35,7 +35,6 @@ include(":lib:tool-jvm:tool-bean")
 include(":lib:tool-jvm:tool-bytebuddy")
 include(":lib:tool-jvm:tool-jsr")
 include(":lib:tool-jvm:tool-reflection")
-include(":lib:tool-jvm:tool-spctx")
 include(":lib:tool-jvm:tool-spring")
 include(":lib:tool-kmp:tool-str")
 include(":lib:tool-starter:controller-autoconfigure")
