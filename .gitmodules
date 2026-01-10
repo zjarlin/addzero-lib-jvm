@@ -1,0 +1,3 @@
+[submodule "checkouts/lsi"]
+	path = checkouts/lsi
+	url = https://github.com/zjarlin/lsi.git

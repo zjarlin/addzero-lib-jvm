@@ -10,12 +10,12 @@ plugins {
 
 kotlin {
     dependencies {
-        implementation("site.addzero:addzero-ksp-support:2025.09.29")
+        implementation(libs.addzero.ksp.support)
 
     }
     sourceSets {
         commonMain.dependencies {
-            implementation("org.apache.velocity:velocity-engine-core:2.3")
+            implementation(libs.velocity.engine.core)
         }
     }
 

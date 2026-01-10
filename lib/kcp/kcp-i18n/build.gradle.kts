@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation("site.addzero:addzero-kcp-annotations:2025.09.29")
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:${org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION}")
+    implementation(libs.addzero.kcp.annotations)
+    implementation(libs.kotlin.compiler.embeddable)
 }
 
 

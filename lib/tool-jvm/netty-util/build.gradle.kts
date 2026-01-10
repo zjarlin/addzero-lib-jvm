@@ -5,10 +5,10 @@ plugins {
 
 dependencies {
     // Netty 核心依赖
-    implementation("io.netty:netty-all:4.1.104.Final")
+    implementation(libs.netty.all)
 
     // 日志依赖
-    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation(libs.slf4j.api)
 
     // JSON 处理
     implementation(libs.fastjson2.kotlin)

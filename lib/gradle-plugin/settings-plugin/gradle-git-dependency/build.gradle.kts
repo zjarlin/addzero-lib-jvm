@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath(libs.gradle.tool.config.java)
     }
 }
 configureJ8("8")
@@ -22,5 +22,5 @@ repositories {
 }
 
 dependencies {
-     implementation("me.champeau.includegit:me.champeau.includegit.gradle.plugin:0.3.2")
+     implementation(libs.me.champeau.includegit.gradle.plugin)
 }

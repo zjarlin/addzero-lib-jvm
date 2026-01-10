@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath(libs.gradle.tool.config.java)
     }
 }
 configureJ8("8")
@@ -22,8 +22,8 @@ repositories {
 }
 
 dependencies {
-//    implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.21-1.0.28")
-    implementation("site.addzero:kotlin-convention:2025.12.20")
-    implementation("site.addzero:ksp-convention:2025.12.21")
+//    implementation(libs.com.google.devtools.ksp.gradle.plugin)
+    implementation(libs.kotlin.convention)
+    implementation(libs.ksp.convention)
 //    gradleApi()
 }

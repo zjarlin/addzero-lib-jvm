@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation("site.addzero:tool-curl:0.0.672")
+    implementation(libs.tool.curl)
     implementation(libs.okhttp)
     implementation(libs.jackson.module.kotlin)
 }

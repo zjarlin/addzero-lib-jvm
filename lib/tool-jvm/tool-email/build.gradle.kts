@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     // Jakarta Mail API 用于发送邮件
-    implementation("com.sun.mail:jakarta.mail:2.0.1")
+    implementation(libs.jakarta.mail)
     
     // 日志记录
     implementation(libs.slf4j.api)
@@ -12,5 +12,5 @@ dependencies {
     // 测试依赖
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit.jupiter)
-    testImplementation("org.mockito:mockito-core:5.7.0")
+    testImplementation(libs.mockito.core)
 }

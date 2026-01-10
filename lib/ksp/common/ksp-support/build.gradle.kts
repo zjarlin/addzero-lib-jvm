@@ -5,12 +5,12 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation("site.addzero:addzero-tool-json:2025.09.29")
-            api("site.addzero:addzero-tool-str:2025.09.30")
+//            implementation(libs.addzero.tool.json)
+            api(libs.addzero.tool.str)
         }
         jvmMain.dependencies {
             implementation(libs.pinyin4j)
-            implementation("site.addzero:tool-io-codegen:${libs.versions.addzero.lib674.get()}")
+            implementation(libs.tool.io.codegen)
         }
     }
 }

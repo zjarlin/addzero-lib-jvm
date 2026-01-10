@@ -9,11 +9,11 @@ dependencies {
     implementation(libs.mybatis.plus.generator)
     implementation(libs.mybatis.plus.annotation)
     // 添加MyBatis Plus核心依赖，解决StringUtils类缺失问题
-    implementation("com.baomidou:mybatis-plus-core:3.5.3.1")
-    implementation("org.apache.velocity:velocity-engine-core:2.3")
-    implementation("mysql:mysql-connector-java:8.0.33")
-    implementation("site.addzero:tool-yml:+")
-    implementation("site.addzero:tool-cli-repl:+")
+    implementation(libs.mybatis.plus.core)
+    implementation(libs.velocity.engine.core)
+    implementation(libs.mysql.connector.java)
+    implementation(libs.tool.yml)
+    implementation(libs.tool.cli.repl)
 }
 
 application {

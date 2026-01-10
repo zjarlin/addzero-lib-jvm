@@ -7,7 +7,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("site.addzero:tool-str:2026.01.11")
+            implementation(libs.tool.str)
         }
 
     }

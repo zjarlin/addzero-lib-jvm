@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     // OkHttp 核心库
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.okhttp)
     implementation(libs.hutool.all)
     implementation(libs.fastjson2.kotlin)
 }

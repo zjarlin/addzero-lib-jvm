@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     // 添加Spring JDBC依赖用于数据库操作
-    compileOnly("org.springframework:spring-jdbc:5.3.21")
-    compileOnly("org.springframework:spring-context:5.3.21")
+    compileOnly(libs.spring.jdbc)
+    compileOnly(libs.spring.context)
 //    implementation(libs.hutool.all)
 }

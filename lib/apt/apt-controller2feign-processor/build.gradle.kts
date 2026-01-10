@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation("com.squareup:javapoet:1.13.0")
-    api("site.addzero:lsi-apt:2026.01.11")
-    api("site.addzero:lsi-core:2026.01.11")
+    implementation(libs.javapoet)
+    api(libs.lsi.apt)
+    api(libs.lsi.core)
     implementation(libs.tool.str)
 }

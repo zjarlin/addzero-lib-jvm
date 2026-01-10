@@ -5,12 +5,12 @@ plugins {
 
 dependencies {
 
-    compileOnly("org.springframework:spring-jdbc:5.3.21")
-    compileOnly("org.springframework:spring-context:5.3.21")
-    compileOnly("org.springframework:spring-web:5.3.21")
-    compileOnly("org.springframework:spring-webmvc:5.3.21")
+    compileOnly(libs.spring.jdbc)
+    compileOnly(libs.spring.context)
+    compileOnly(libs.spring.web)
+    compileOnly(libs.spring.webmvc)
 
     implementation(libs.hutool.all)
     implementation(libs.jackson.module.kotlin)
-    compileOnly("javax.servlet:javax.servlet-api:4.0.1")
+    compileOnly(libs.javax.servlet.api)
 }

@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath(libs.gradle.tool.config.java)
     }
 }
 configureJ8("8")
@@ -19,7 +19,7 @@ plugins {
 }
 dependencies {
     implementation(gradleApi())
-    implementation("site.addzero:gradle-script-core:2025.11.29")
-    implementation("site.addzero:tool-api-maven:2025.11.28")
+    implementation(libs.gradle.script.core)
+    implementation(libs.tool.api.maven)
 
 }

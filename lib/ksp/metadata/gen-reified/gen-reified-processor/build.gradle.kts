@@ -8,6 +8,6 @@ plugins {
 
 kotlin{
     dependencies {
-        implementation("site.addzero:gen-reified-core:2026.01.01")
+        implementation(libs.gen.reified.core)
     }
 }

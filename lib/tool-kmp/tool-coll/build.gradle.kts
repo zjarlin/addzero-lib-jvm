@@ -4,7 +4,7 @@ plugins {
 //kotlin {
 //    sourceSets {
 //        commonMain.dependencies {
-//            api("site.addzero:addzero-tool-str:2025.09.30")
+//            api(libs.addzero.tool.str)
 //        }
 //
 //    }

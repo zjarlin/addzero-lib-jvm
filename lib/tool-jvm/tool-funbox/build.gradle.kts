@@ -6,7 +6,7 @@ dependencies {
     implementation(libs.hutool.all)
 //    implementation(libs.jackson.module.kotlin)
     compileOnly(libs.fastjson2.kotlin)
-    implementation("io.swagger:swagger-annotations:1.6.12")
+    implementation(libs.swagger.annotations)
 
-    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
+    implementation(libs.tool.reflection)
 }

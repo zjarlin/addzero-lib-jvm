@@ -9,10 +9,10 @@ kotlin {
             implementation(libs.ksp.symbol.processing.api)
 
             // 基础工具
-            implementation("site.addzero:addzero-ksp-support:2025.09.29")
+            implementation(libs.addzero.ksp.support)
 
             // 实体分析支持
-            implementation("site.addzero:addzero-entity2analysed-support:2025.09.29")
+            implementation(libs.addzero.entity2analysed.support)
 
         }
 

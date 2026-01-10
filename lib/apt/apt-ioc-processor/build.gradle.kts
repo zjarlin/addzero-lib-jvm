@@ -6,7 +6,7 @@ plugins {
 
 
 dependencies {
-    implementation("site.addzero:ioc-core:2025.12.23")
-    testImplementation("site.addzero:ioc-core:2025.12.23")
+    implementation(libs.ioc.core)
+    testImplementation(libs.ioc.core)
     testAnnotationProcessor(projects.lib.apt.aptIocProcessor)
 }

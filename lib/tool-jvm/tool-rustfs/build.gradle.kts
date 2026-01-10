@@ -3,9 +3,8 @@ plugins {
 }
 
 dependencies {
-    val awsSdkVersion = "2.29.16"
-    implementation("software.amazon.awssdk:s3:$awsSdkVersion")
+    implementation(libs.s3)
     implementation(libs.slf4j.api)
     implementation(libs.caffeine)
-    implementation("site.addzero:addzero-tool-common-jvm:2025.09.29")
+    implementation(libs.addzero.tool.common.jvm)
 }

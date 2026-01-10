@@ -3,4 +3,4 @@ plugins {
 }
 dependencies {
 }
-//implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5")
+//implementation(libs.mybatis.spring.boot.starter)

@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath(libs.gradle.tool.config.java)
     }
 }
 
@@ -24,8 +24,8 @@ repositories {
 }
 
 dependencies {
-    implementation("site.addzero:gradle-tool-config-java:0.0.674")
-    implementation("site.addzero.gradle.plugin.java-convention:site.addzero.gradle.plugin.java-convention.gradle.plugin:2025.12.19")
+    implementation(libs.gradle.tool.config.java)
+    implementation(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
     gradleApi()
 }
 

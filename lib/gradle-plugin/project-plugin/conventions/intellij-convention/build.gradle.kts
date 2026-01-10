@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath(libs.gradle.tool.config.java)
     }
 }
 configureJ8("17")
@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.org.jetbrains.intellij.platform.base.gradle.plugin)
     implementation(libs.org.jetbrains.intellij.platform.module.gradle.plugin)
     implementation(libs.gradlePlugin.kotlin)
-    implementation("site.addzero:kotlin-convention:2025.12.19")
+    implementation(libs.kotlin.convention)
     gradleApi()
 }
 

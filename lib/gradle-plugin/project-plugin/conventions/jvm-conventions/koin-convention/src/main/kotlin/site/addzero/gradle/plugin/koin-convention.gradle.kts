@@ -11,11 +11,11 @@ val extension = extensions.create<KoinConventionExtension>("koinConvention")
 
 afterEvaluate {
     dependencies {
-        ksp("io.insert-koin:koin-ksp-compiler:${extension.kspVersion.get()}")
+        ksp(libs.koin.ksp.compiler)
         implementation(platform("io.insert-koin:koin-bom:${extension.koinBomVersion.get()}"))
-        implementation("io.insert-koin:koin-core:${extension.koinBomVersion.get()}")
-        implementation("io.insert-koin:koin-annotations:${extension.koinAnnotationsVersion.get()}")
-        implementation("site.addzero:tool-koin:${extension.toolKoinVersion.get()}")
+        implementation(libs.koin.core)
+        implementation(libs.koin.annotations)
+        implementation(libs.tool.koin)
     }
 
 }

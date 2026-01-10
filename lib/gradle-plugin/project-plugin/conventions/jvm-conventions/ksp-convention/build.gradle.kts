@@ -7,8 +7,8 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
-        classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.21-1.0.28")
+        classpath(libs.gradle.tool.config.java)
+        classpath(libs.com.google.devtools.ksp.gradle.plugin)
     }
 }
 configureJ8("8")
@@ -26,12 +26,12 @@ repositories {
 
 dependencies {
 //     implementation(libs.gradlePlugin.ksp)
-    implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.21-1.0.28")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20")
-//    implementation("site.addzero:java-convention:2025.12.19")
-    implementation("site.addzero:kotlin-convention:2025.12.20")
+    implementation(libs.com.google.devtools.ksp.gradle.plugin)
+    implementation(libs.kotlin.gradle.plugin)
+//    implementation(libs.java.convention)
+    implementation(libs.kotlin.convention)
 
-//    implementation("site.addzero:kotlin-convention:2025.12.20")
+//    implementation(libs.kotlin.convention)
     gradleApi()
 }
 

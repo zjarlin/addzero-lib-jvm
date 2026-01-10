@@ -3,5 +3,5 @@ plugins {
 //    id("kmp-json")
 }
 dependencies {
-//    implementation("site.addzero:addzero-tool-str:2025.09.30")
+//    implementation(libs.addzero.tool.str)
 }

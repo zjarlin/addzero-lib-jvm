@@ -10,7 +10,7 @@ val javaConvention = the<JavaConventionExtension>()
 
 afterEvaluate {
     dependencies {
-        implementation("org.projectlombok:lombok:${javaConvention.lombokVersion.get()}")
-        annotationProcessor("org.projectlombok:lombok:${javaConvention.lombokVersion.get()}")
+        implementation(libs.lombok)
+        annotationProcessor(libs.lombok)
     }
 }

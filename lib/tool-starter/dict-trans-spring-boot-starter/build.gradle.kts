@@ -4,13 +4,13 @@ plugins {
 dependencies {
 //    implementation(libs.hutool.all)
   implementation(libs.fastjson2.kotlin)
-//    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
-  implementation("site.addzero:tool-reflection:2026.01.11")
+//    implementation(libs.tool.reflection)
+  implementation(libs.tool.reflection)
   implementation(project(":lib:tool-jvm:tool-bean"))
-  implementation("site.addzero:tool-bytebuddy:2026.01.11")
-  implementation("site.addzero:tool-str:2025.12.30")
+  implementation(libs.tool.bytebuddy)
+  implementation(libs.tool.str)
 
-  api("site.addzero:dict-trans-core:${libs.versions.addzero.lib.get()}")
+  api(libs.dict.trans.core)
 
   // 添加Spring Boot核心依赖
 //  implementation(libs.spring.boot.autoconfigure)

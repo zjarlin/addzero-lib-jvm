@@ -8,7 +8,7 @@ kotlin {
         commonMain.dependencies {
         }
         jvmMain.dependencies {
-//            implementation("com.squareup:kotlinpoet:1.14.2")
+//            implementation(libs.kotlinpoet)
             implementation(libs.kotlinpoet.ksp)
         }
     }

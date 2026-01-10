@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("site.addzero:gradle-tool-config-java:0.0.674")
+        classpath(libs.gradle.tool.config.java)
     }
 }
 configureJ8("8")
@@ -25,7 +25,7 @@ dependencies {
     compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradle.tool.config.java)
     implementation(libs.gradlePlugin.kotlin)
-    api("site.addzero.gradle.plugin.java-convention:site.addzero.gradle.plugin.java-convention.gradle.plugin:2025.12.19")
+    api(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
 //    testImplementation(libs.junit.jupiter.api)
 //    testRuntimeOnly(libs.junit.jupiter.engine)
 

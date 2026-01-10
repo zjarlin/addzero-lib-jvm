@@ -4,7 +4,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("site.addzero:addzero-ksp-support:2025.09.29")
+            implementation(libs.addzero.ksp.support)
             implementation(libs.hutool.all)
         }
     }

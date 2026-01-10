@@ -4,11 +4,11 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("site.addzero:addzero-ksp-support:2025.09.29")
-            implementation("site.addzero:addzero-entity2form-core:2025.09.29")
+            implementation(libs.addzero.ksp.support)
+            implementation(libs.addzero.entity2form.core)
 
             // 实体分析支持
-            implementation("site.addzero:addzero-entity2analysed-support:2025.09.29")
+            implementation(libs.addzero.entity2analysed.support)
 
         }
     }
