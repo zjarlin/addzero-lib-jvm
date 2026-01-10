@@ -24,10 +24,8 @@ cat > docs/index.html << 'EOF'
       subMaxLevel: 3,
       auto2top: true,
       search: 'auto',
-      relativePath: true,
-      alias: {
-        '/.*/_sidebar.md': '/_sidebar.md'
-      }
+      homepage: 'README.md',
+      basePath: location.pathname.replace(/\/[^/]*$/, '/')
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
@@ -35,6 +33,9 @@ cat > docs/index.html << 'EOF'
 </body>
 </html>
 EOF
+
+# 禁用 Jekyll，避免 _sidebar.md 被忽略
+touch docs/.nojekyll
 
 # 生成文档首页
 cat > docs/README.md << 'EOF'
@@ -52,7 +53,7 @@ cat > docs/README.md << 'EOF'
 EOF
 
 # 生成侧边栏
-echo "- [首页](/)" > docs/_sidebar.md
+echo "- [首页](README.md)" > docs/_sidebar.md
 echo "" >> docs/_sidebar.md
 
 # 递归查找所有 README.md 文件并复制到 docs 目录
@@ -82,7 +83,7 @@ find . -name "README.md" -type f \
     fi
 
     # 生成侧边栏条目
-    echo "- [$title](/$rel_path)" >> docs/_sidebar.md
+    echo "- [$title]($rel_path)" >> docs/_sidebar.md
   done
 
 echo "文档生成完成！"

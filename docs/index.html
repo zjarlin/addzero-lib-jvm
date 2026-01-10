@@ -16,10 +16,8 @@
       subMaxLevel: 3,
       auto2top: true,
       search: 'auto',
-      relativePath: true,
-      alias: {
-        '/.*/_sidebar.md': '/_sidebar.md'
-      }
+      homepage: 'README.md',
+      basePath: location.pathname.replace(/\/[^/]*$/, '/')
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
