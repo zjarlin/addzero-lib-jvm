@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":lib:tool-jvm:tool-reflection"))
+    implementation("site.addzero:tool-reflection:2026.01.11")
 }

@@ -7,8 +7,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("site.addzero:addzero-ksp-support:2025.09.29")
-            implementation(project(":lib:ksp:metadata:ioc:ioc-core"))
-            implementation(project(":checkouts:lsi:lsi-ksp"))
+            implementation("site.addzero:addzero-ioc-core:2025.09.29")
+            implementation("site.addzero:lsi-ksp:2026.01.11")
         }
     }
 }

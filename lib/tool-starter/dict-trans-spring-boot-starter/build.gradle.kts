@@ -5,9 +5,9 @@ dependencies {
 //    implementation(libs.hutool.all)
   implementation(libs.fastjson2.kotlin)
 //    implementation("site.addzero:tool-reflection:${libs.versions.addzero.lib.get()}")
-  implementation(project(":lib:tool-jvm:tool-reflection"))
+  implementation("site.addzero:tool-reflection:2026.01.11")
   implementation(project(":lib:tool-jvm:tool-bean"))
-  implementation(project(":lib:tool-jvm:tool-bytebuddy"))
+  implementation("site.addzero:tool-bytebuddy:2026.01.11")
   implementation("site.addzero:tool-str:2025.12.30")
 
   api("site.addzero:dict-trans-core:${libs.versions.addzero.lib.get()}")

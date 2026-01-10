@@ -24,16 +24,11 @@ implementationRemoteGit {
 //  )
 }
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-10T10:29:50.299148
-// Loaded: 20, Excluded: 0, Total: 20
-include(":lib:ddlgenerator")
-include(":lib:gradle-plugin:gradle-tool")
-include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
+// Generated at: 2026-01-10T11:00:15.393146
+// Loaded: 15, Excluded: 0, Total: 15
+include(":lib:apt:apt-controller2feign-processor")
 include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 include(":lib:lsi:lsi-apt")
-include(":lib:lsi:lsi-core")
-include(":lib:lsi:lsi-intellij")
-include(":lib:lsi:lsi-ksp")
 include(":lib:tool-jvm:database:tool-sql-injection")
 include(":lib:tool-jvm:models:common:common-models")
 include(":lib:tool-jvm:tool-bean")

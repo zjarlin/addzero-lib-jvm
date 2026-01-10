@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation("com.squareup:javapoet:1.13.0")
-    api(project(":checkouts:lsi:lsi-apt"))
-    api(project(":checkouts:lsi:lsi-core"))
+    api("site.addzero:lsi-apt:2026.01.11")
+    api("site.addzero:lsi-core:2026.01.11")
     implementation(libs.tool.str)
 }

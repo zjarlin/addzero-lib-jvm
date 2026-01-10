@@ -7,5 +7,5 @@ dependencies {
     implementation("software.amazon.awssdk:s3:$awsSdkVersion")
     implementation(libs.slf4j.api)
     implementation(libs.caffeine)
-    implementation(project(":lib:tool-jvm:tool-common-jvm"))
+    implementation("site.addzero:addzero-tool-common-jvm:2025.09.29")
 }
