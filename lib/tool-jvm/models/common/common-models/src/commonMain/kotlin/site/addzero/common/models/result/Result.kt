@@ -1,4 +1,4 @@
-package site.addzero.common.result
+package site.addzero.common.models.result
 
 /**
  * 通用的操作结果类型
