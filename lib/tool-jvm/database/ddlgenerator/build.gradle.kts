@@ -1,7 +1,7 @@
 plugins {
   id("site.addzero.gradle.plugin.kotlin-convention") version "+"
   id("site.addzero.gradle.plugin.koin-convention") version "+"
-  id("site.addzero.gradle.plugin.processorbuddy.processor-buddy") version "2026.01.11"
+  id("site.addzero.gradle.plugin.processor-buddy") version "2026.01.11"
 }
 
 val jdbcConfigMap = mapOf(
@@ -29,13 +29,12 @@ val autoddlConfigMap = jdbcConfigMap + autoddlSwitch + mapOf(
 
 processorBuddy {
   mustMap.set(autoddlConfigMap)
-  packageName.set("org.babyfish.jimmer.config.autoddl")
-  readmeEnabled.set(true)
+//  packageName.set("org.babyfish.jimmer.config.autoddl")
+//  readmeEnabled.set(true)
 }
 dependencies {
   implementation(libs.jimmer.core)
   implementation(libs.tool.coll)
-//  implementation(libs.lsi.core)
   implementation(libs.tool.database.model)
   implementation(libs.tool.jdbc)
   implementation(libs.tool.yml)

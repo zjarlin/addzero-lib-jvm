@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.processorbuddy
+package site.addzero.gradle.plugin
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty

@@ -26,7 +26,8 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-12T12:13:05.044824
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-01-12T13:09:36.190236
+// Loaded: 2, Excluded: 0, Total: 2
+include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
 include(":lib:tool-jvm:database:ddlgenerator")
 // <<< Gradle Buddy: End Of Block <<<

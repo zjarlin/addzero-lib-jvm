@@ -1,4 +1,4 @@
-package site.addzero.gradle.plugin.processorbuddy
+package site.addzero.gradle.plugin
 
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
