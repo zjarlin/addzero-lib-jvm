@@ -23,3 +23,10 @@ implementationRemoteGit {
 ////       ,"ddlgenerator"
 //  )
 }
+
+
+// >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
+// Generated at: 2026-01-12T12:13:05.044824
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-jvm:database:ddlgenerator")
+// <<< Gradle Buddy: End Of Block <<<
