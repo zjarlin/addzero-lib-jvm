@@ -50,3 +50,6 @@ captures
 /.skills
 /.factory
 *.zip
+/checkouts/build-logic/.gradle/buildOutputCleanup/buildOutputCleanup.lock
+/checkouts/build-logic/.gradle/buildOutputCleanup/cache.properties
+/checkouts/build-logic/.gradle/file-system.probe
