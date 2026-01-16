@@ -198,8 +198,8 @@ class MusicDesignUtilTest {
     @Tag("suno")
     fun testCreateAndPollTask() {
         // Given
-        val songName = "你要的全拿走"
-        val artistName = "胡彦斌"
+        val songName = "早点早点"
+        val artistName = "沙一汀"
 
         // When - 创建任务
         val taskId = MusicDesignUtil.remixBySongName(songName, artistName, "pop, chinese, 黑人福音")

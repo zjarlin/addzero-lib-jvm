@@ -6,6 +6,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import site.addzero.network.call.suno.log.FileSunoLogStrategy
+import site.addzero.network.call.suno.log.SunoLogStrategy
 import site.addzero.network.call.suno.model.*
 import java.util.concurrent.TimeUnit
 
@@ -17,8 +19,13 @@ import java.util.concurrent.TimeUnit
  */
 class SunoClient(
     private val apiToken: String,
-    private val baseUrl: String = "https://api.vectorengine.ai"
+    private val baseUrl: String = "https://api.vectorengine.ai",
+    private var logStrategy: SunoLogStrategy = FileSunoLogStrategy()
 ) {
+    
+    fun setLogStrategy(strategy: SunoLogStrategy) {
+        this.logStrategy = strategy
+    }
     
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -36,8 +43,8 @@ class SunoClient(
      * @param request 生成请求
      * @return 任务 ID
      */
-    fun generateMusicInspiration(request: GenerateMusicInspirationRequest): String {
-        val response = post<String>("$baseUrl/suno/submit/music", request)
+    fun generateMusicInspiration(request: SunoSubmitRequest): String {
+        val response = post<String>("$baseUrl/suno/submit/music", request, "submit_inspiration")
         return response.data ?: throw RuntimeException("未返回任务 ID")
     }
     
@@ -56,12 +63,12 @@ class SunoClient(
         model: String = "chirp-v5",
         customPrompt: String = ""
     ): String {
-        val request = GenerateMusicInspirationRequest(
-            gptDescriptionPrompt = description,
-            makeInstrumental = instrumental,
-            mv = model,
+        val request = SunoSubmitRequest().apply {
+            gptDescriptionPrompt = description
+            makeInstrumental = instrumental
+            mv = model
             prompt = customPrompt
-        )
+        }
         return generateMusicInspiration(request)
     }
     
@@ -71,8 +78,8 @@ class SunoClient(
      * @param request 生成请求
      * @return 任务 ID
      */
-    fun generateMusicCustom(request: GenerateMusicCustomRequest): String {
-        val response = post<String>("$baseUrl/suno/submit/music", request)
+    fun generateMusicCustom(request: SunoSubmitRequest): String {
+        val response = post<String>("$baseUrl/suno/submit/music", request, "submit_custom")
         return response.data ?: throw RuntimeException("未返回任务 ID")
     }
     
@@ -91,12 +98,12 @@ class SunoClient(
         tags: String = "",
         model: String = "chirp-v5"
     ): String {
-        val request = GenerateMusicCustomRequest(
-            prompt = lyrics,
-            mv = model,
-            title = title,
-            tags = tags
-        )
+        val request = SunoSubmitRequest().apply {
+            prompt = lyrics
+            mv = model
+            this.title = title
+            this.tags = tags
+        }
         return generateMusicCustom(request)
     }
     
@@ -106,8 +113,8 @@ class SunoClient(
      * @param request 扩展请求
      * @return 任务 ID
      */
-    fun extendMusic(request: ExtendMusicRequest): String {
-        val response = post<String>("$baseUrl/suno/submit/music", request)
+    fun extendMusic(request: SunoSubmitRequest): String {
+        val response = post<String>("$baseUrl/suno/submit/music", request, "submit_extend")
         return response.data ?: throw RuntimeException("未返回任务 ID")
     }
     
@@ -130,15 +137,15 @@ class SunoClient(
         tags: String = "",
         model: String = "chirp-v5"
     ): String {
-        val request = ExtendMusicRequest(
-            prompt = lyrics,
-            mv = model,
-            title = title,
-            tags = tags,
-            continueAt = continueAt,
-            continueClipId = clipId,
+        val request = SunoSubmitRequest().apply {
+            prompt = lyrics
+            mv = model
+            this.title = title
+            this.tags = tags
+            this.continueAt = continueAt
+            continueClipId = clipId
             task = "extend"
-        )
+        }
         return extendMusic(request)
     }
     
@@ -150,7 +157,7 @@ class SunoClient(
      */
     fun generateLyrics(prompt: String): String {
         val request = GenerateLyricsRequest(prompt)
-        val response = post<String>("$baseUrl/suno/lyrics", request)
+        val response = post<String>("$baseUrl/suno/lyrics", request, "generate_lyrics")
         return response.data ?: throw RuntimeException("未返回歌词")
     }
     
@@ -161,8 +168,10 @@ class SunoClient(
      * @return 任务 ID
      */
     fun concatSongs(clipId: String): String {
-        val request = ConcatSongsRequest(clipId)
-        val response = post<String>("$baseUrl/suno/concat", request)
+        val request = SunoSubmitRequest().apply {
+            this.clipId = clipId
+        }
+        val response = post<String>("$baseUrl/suno/concat", request, "concat_songs")
         return response.data ?: throw RuntimeException("未返回任务 ID")
     }
     
@@ -189,6 +198,8 @@ class SunoClient(
                 throw RuntimeException("请求失败: ${response.code} - $responseBody")
             }
             
+            logStrategy.log("fetch_task_$taskId", "{}", responseBody)
+            
             val result = JSON.parseObject(responseBody, object : TypeReference<VectorEngineResponse<SunoTask>>() {})
             if (result.code != "success") {
                 throw RuntimeException("API 错误: ${result.message}")
@@ -206,7 +217,7 @@ class SunoClient(
      */
     fun batchFetchTasks(taskIds: List<String>): List<SunoTask> {
         val request = BatchFetchRequest(taskIds)
-        val response = post<List<SunoTask>>("$baseUrl/suno/fetch", request)
+        val response = post<List<SunoTask>>("$baseUrl/suno/fetch", request, "batch_fetch")
         return response.data ?: emptyList()
     }
     
@@ -286,7 +297,7 @@ class SunoClient(
         throw RuntimeException("任务超时，已等待 $maxWaitTimeSeconds 秒")
     }
     
-    private inline fun <reified T> post(url: String, body: Any): VectorEngineResponse<T> {
+    private inline fun <reified T> post(url: String, body: Any, bizName: String): VectorEngineResponse<T> {
         val jsonBody = JSON.toJSONString(body)
         val requestBody = jsonBody.toRequestBody(JSON_MEDIA_TYPE)
         
@@ -305,6 +316,8 @@ class SunoClient(
             if (!response.isSuccessful) {
                 throw RuntimeException("请求失败: ${response.code} - $responseBody")
             }
+            
+            logStrategy.log(bizName, jsonBody, responseBody)
             
             val result = JSON.parseObject(responseBody, object : TypeReference<VectorEngineResponse<T>>() {})
             if (result.code != "success") {

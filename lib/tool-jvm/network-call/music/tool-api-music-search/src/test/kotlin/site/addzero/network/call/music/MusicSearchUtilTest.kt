@@ -161,7 +161,7 @@ class MusicSearchUtilTest {
     @Tag("integration")
     fun testGetLyricBySongName() {
         // When
-        val lyric = MusicSearchUtil.getLyric("晴天", "周杰伦")
+        val lyric = MusicSearchUtil.getLyric("江湖夜雨十年灯", "空想之喵")
 
         // Then
         assertNotNull(lyric)
