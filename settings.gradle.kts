@@ -25,17 +25,12 @@ implementationRemoteGit {
 }
 
 
+
+
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-16T10:50:41.877461
-// Loaded: 10, Excluded: 0, Total: 10
-include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
-include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
-include(":lib:tool-jvm:database:ddlgenerator")
+// Generated at: 2026-01-16T16:18:33.256797
+// Loaded: 3, Excluded: 0, Total: 3
 include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
 include(":lib:tool-jvm:network-call:music:tool-music-design")
-include(":lib:tool-jvm:network-call:tool-api-maven")
-include(":lib:tool-jvm:network-call:tool-api-music-search")
-include(":lib:tool-jvm:network-call:tool-api-suno")
-include(":lib:tool-jvm:network-call:tool-music-design")
 // <<< Gradle Buddy: End Of Block <<<
