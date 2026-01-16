@@ -222,6 +222,26 @@ object MusicDesignUtil {
     }
     
     /**
+     * 获取任务信息
+     * 
+     * @param taskId 任务 ID
+     * @return 任务信息
+     */
+    fun fetchTask(taskId: String): SunoTask? {
+        return SunoUtil.fetchTask(taskId)
+    }
+    
+    /**
+     * 批量获取任务信息
+     * 
+     * @param taskIds 任务 ID 列表
+     * @return 任务信息列表
+     */
+    fun batchFetchTasks(taskIds: List<String>): List<SunoTask> {
+        return SunoUtil.batchFetchTasks(taskIds)
+    }
+    
+    /**
      * 清理歌词时间轴
      * 将 [00:00.00]歌词内容 格式转换为纯歌词文本
      * 

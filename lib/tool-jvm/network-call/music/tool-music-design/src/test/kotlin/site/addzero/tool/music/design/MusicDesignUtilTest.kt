@@ -123,10 +123,9 @@ class MusicDesignUtilTest {
     fun testBatchRemixBySongNames() {
         // Given
         val songInfos = listOf(
-            "晴天" to "周杰伦",
-            "稻香" to "周杰伦"
+            "你要的全拿走" to "胡彦斌"
         )
-        val tags = "pop, chinese"
+        val tags = "pop, chinese,黑人福音"
 
         // When
         val taskIds = MusicDesignUtil.batchRemixBySongNames(songInfos, tags)
@@ -141,4 +140,89 @@ class MusicDesignUtilTest {
             println("    ${index + 1}. $taskId")
         }
     }
+
+     @Test
+    @DisplayName("测试查看单个任务")
+    @Tag("integration")
+    @Tag("suno")
+    fun testFetchTask() {
+        // Given - 先创建一个任务
+        val taskId = MusicDesignUtil.remixBySongName("晴天", "周杰伦", "pop, chinese")
+        assertNotNull(taskId)
+
+        // When - 查看任务状态
+        val task = MusicDesignUtil.fetchTask(taskId!!)
+
+        // Then
+        assertNotNull(task)
+
+        println("✓ 查看任务成功")
+        println("  任务 ID: ${task?.id}")
+        println("  状态: ${task?.status}")
+        println("  标题: ${task?.title}")
+        if (task?.audioUrl != null) {
+            println("  音频 URL: ${task.audioUrl}")
+        }
+    }
+
+    @Test
+    @DisplayName("测试批量查看任务")
+    @Tag("integration")
+    @Tag("suno")
+    fun testBatchFetchTasks() {
+        // Given - 创建多个任务
+        val songInfos = listOf(
+            "晴天" to "周杰伦",
+            "稻香" to "周杰伦"
+        )
+        val taskIds = MusicDesignUtil.batchRemixBySongNames(songInfos, "pop, chinese")
+        assertTrue(taskIds.isNotEmpty())
+
+        // When - 批量查看任务
+        val tasks = MusicDesignUtil.batchFetchTasks(taskIds)
+
+        // Then
+        assertNotNull(tasks)
+        assertEquals(taskIds.size, tasks.size)
+
+        println("✓ 批量查看任务成功")
+        println("  查询了 ${tasks.size} 个任务:")
+        tasks.forEach { task ->
+            println("    - ${task.id}: ${task.status} - ${task.title}")
+        }
+    }
+
+    @Test
+    @DisplayName("测试创建任务后轮询查看状态")
+    @Tag("integration")
+    @Tag("suno")
+    fun testCreateAndPollTask() {
+        // Given
+        val songName = "你要的全拿走"
+        val artistName = "胡彦斌"
+
+        // When - 创建任务
+        val taskId = MusicDesignUtil.remixBySongName(songName, artistName, "pop, chinese, 黑人福音")
+        assertNotNull(taskId)
+        println("✓ 任务已创建: $taskId")
+
+        // Then - 轮询查看状态（最多 3 次）
+        repeat(3) { index ->
+            Thread.sleep(5000) // 等待 5 秒
+            val task = MusicDesignUtil.fetchTask(taskId!!)
+            println("  第 ${index + 1} 次查询 - 状态: ${task?.status}")
+
+            if (task?.status == "complete" || task?.status == "streaming") {
+                println("  ✓ 任务完成!")
+                println("    音频: ${task.audioUrl}")
+                println("    视频: ${task.videoUrl}")
+                return
+            }
+        }
+
+        println("  任务仍在处理中...")
+    }
+
 }
+
+

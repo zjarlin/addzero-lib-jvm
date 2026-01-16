@@ -8,13 +8,13 @@ import com.alibaba.fastjson2.annotation.JSONField
 data class GenerateMusicInspirationRequest(
     @JSONField(name = "gpt_description_prompt")
     val gptDescriptionPrompt: String,
-    
+
     @JSONField(name = "make_instrumental")
     val makeInstrumental: Boolean = false,
-    
+
     @JSONField(name = "mv")
     val mv: String = "chirp-v5",
-    
+
     val prompt: String = ""
 )
 
@@ -22,18 +22,14 @@ data class GenerateMusicInspirationRequest(
  * 生成音乐请求（自定义模式）
  */
 data class GenerateMusicCustomRequest(
+    @JSONField(name = "prompt")
     val prompt: String,
+    @JSONField(name = "mv")
     val mv: String = "chirp-v5",
-    val title: String = "",
-    val tags: String = "",
-    
-    @JSONField(name = "continue_at")
-    val continueAt: Int? = null,
-    
-    @JSONField(name = "continue_clip_id")
-    val continueClipId: String = "",
-    
-    val task: String = ""
+    @JSONField(name = "title")
+    val title: String? = null,
+    @JSONField(name = "tags")
+    val tags: String? = null
 )
 
 /**
@@ -44,13 +40,13 @@ data class ExtendMusicRequest(
     val mv: String = "chirp-v5",
     val title: String = "",
     val tags: String = "",
-    
+
     @JSONField(name = "continue_at")
-    val continueAt: Int,
-    
+    val continueAt: Int?,
+
     @JSONField(name = "continue_clip_id")
     val continueClipId: String,
-    
+
     val task: String = "extend"
 )
 
