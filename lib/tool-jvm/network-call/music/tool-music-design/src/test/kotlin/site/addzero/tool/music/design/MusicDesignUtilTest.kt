@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Disabled
+import site.addzero.network.call.music.MusicSearchUtil
 
 /**
  * 音乐设计工具类测试
@@ -13,30 +14,13 @@ import org.junit.jupiter.api.Disabled
 @Disabled("集成测试需要产生费用, 仅限手动调用")
 class MusicDesignUtilTest {
 
-    @Test
-    @DisplayName("测试预览歌曲歌词")
-    @Tag("integration")
-    fun testPreviewSongLyrics() {
-        // When
-        val result = MusicDesignUtil.previewSongLyrics("晴天", "周杰伦")
-
-        // Then
-        assertNotNull(result)
-        assertNotNull(result?.song)
-        assertNotNull(result?.lyric?.lrc?.lyric)
-
-        println("✓ 预览歌词成功")
-        println("  歌曲: ${result?.song?.name}")
-        println("  歌手: ${result?.song?.artists?.joinToString { it.name }}")
-        println("  歌词预览: ${result?.lyric?.lrc?.lyric?.take(100)}...")
-    }
 
     @Test
     @DisplayName("测试根据歌词片段预览")
     @Tag("integration")
     fun testPreviewByLyricFragment() {
         // When
-        val results = MusicDesignUtil.previewByLyricFragment("刮风这天我试过握着你手", limit = 3)
+      val results = MusicSearchUtil.getLyricsByFragment("刮风这天我试过握着你手", limit = 3, filterEmpty = true)
 
         // Then
         assertNotNull(results)

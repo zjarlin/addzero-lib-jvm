@@ -1,7 +1,6 @@
 package site.addzero.tool.music.design
 
 import site.addzero.network.call.music.MusicSearchUtil
-import site.addzero.network.call.music.model.SongWithLyric
 import site.addzero.network.call.suno.Suno
 import site.addzero.network.call.suno.model.SunoTask
 
@@ -121,30 +120,7 @@ object MusicDesignUtil {
         )
     }
 
-    /**
-     * 搜索歌曲并获取歌词（用于预览）
-     *
-     * @param songName 歌名
-     * @param artistName 歌手名（可选）
-     * @return 歌曲与歌词信息
-     */
-    fun previewSongLyrics(songName: String, artistName: String? = null): SongWithLyric? {
-        val results = MusicSearchUtil.searchWithLyrics(songName, artistName, filterEmpty = true)
-        return results.firstOrNull()
-    }
-
-    /**
-     * 根据歌词片段搜索歌曲（用于预览）
-     *
-     * @param lyricFragment 歌词片段
-     * @param limit 返回数量限制
-     * @return 歌曲与歌词列表
-     */
-    fun previewByLyricFragment(lyricFragment: String, limit: Int = 5): List<SongWithLyric> {
-        return MusicSearchUtil.getLyricsByFragment(lyricFragment, limit, filterEmpty = true)
-    }
-
-    /**
+  /**
      * 获取任务信息
      *
      * @param taskId 任务 ID

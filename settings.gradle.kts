@@ -28,12 +28,16 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-17T15:31:54.932616
-// Loaded: 5, Excluded: 0, Total: 5
+// Generated at: 2026-01-17T16:28:45.917875
+// Loaded: 9, Excluded: 0, Total: 9
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:koin-convention")
+include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:ksp-convention")
 include(":lib:ksp:metadata:singleton-adapter-api")
 include(":lib:ksp:metadata:singleton-adapter-processor")
 include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
 include(":lib:tool-jvm:network-call:music:tool-music-design")
+include(":lib:tool-jvm:tool-rustfs")
+include(":lib:tool-kmp:tool-koin")
 // <<< Gradle Buddy: End Of Block <<<
 include(":lib:ksp:metadata:singleton-adapter-api")

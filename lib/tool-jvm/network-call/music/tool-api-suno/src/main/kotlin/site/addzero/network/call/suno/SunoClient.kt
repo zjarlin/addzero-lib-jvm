@@ -1,17 +1,16 @@
 package site.addzero.network.call.suno
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import site.addzero.network.call.suno.log.FileSunoLogStrategy
+import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
 import site.addzero.network.call.suno.log.SunoLogStrategy
 import site.addzero.network.call.suno.model.*
+import site.addzero.util.KoinInjector.inject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-
-import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
 
 /**
  * VectorEngine Suno API 客户端
@@ -30,9 +29,9 @@ import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
 class SunoClient(
   private val apiKey: String,
   private val baseUrl: String = "https://api.vectorengine.ai",
-  private var logStrategy: SunoLogStrategy = FileSunoLogStrategy(),
 ) {
 
+  private val logStrategy = inject<SunoLogStrategy>()
 
   private val client = OkHttpClient.Builder()
     .connectTimeout(30, TimeUnit.SECONDS)
