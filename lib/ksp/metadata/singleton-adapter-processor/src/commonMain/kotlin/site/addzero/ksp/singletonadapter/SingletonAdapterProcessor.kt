@@ -85,11 +85,14 @@ class SingletonAdapterProcessor(
 
         classBuilder.addProperties(properties)
 
-        // 添加lazy client缓存（当参数与默认值相同时使用）
-        val lazyClient = PropertySpec.builder("_cachedClient", className.copy(nullable = true))
+        // 添加lazy缓存的默认实例
+        val defaultArgs = constructorParams.joinToString(", ") { param ->
+            val paramName = param.name!!.asString()
+            "this.$paramName" // 使用object的属性值
+        }
+        val lazyClient = PropertySpec.builder("_defaultClient", className)
             .addModifiers(KModifier.PRIVATE)
-            .mutable(true)
-            .initializer("null")
+            .delegate("lazy { %T($defaultArgs) }", className)
             .build()
         classBuilder.addProperty(lazyClient)
 
@@ -115,13 +118,23 @@ class SingletonAdapterProcessor(
                     funcBuilder.addParameter(pName, pType)
                 }
 
-                // 生成方法体：直接创建实例（object模式下不缓存，因为参数可能每次都不同）
+                // 生成方法体：使用缓存的默认实例或创建新实例
                 val constructorArgs = constructorParams.joinToString(", ") { it.name!!.asString() }
                 val methodArgs = func.parameters.joinToString(", ") { it.name!!.asString() }
 
+                // 检查参数是否都等于object的默认值
+                val paramChecks = constructorParams.joinToString(" && ") { param ->
+                    val paramName = param.name!!.asString()
+                    "$paramName == this.$paramName"
+                }
+
                 funcBuilder.addCode(
                     """
-                    val instance = %T($constructorArgs)
+                    val instance = if ($paramChecks) {
+                        _defaultClient
+                    } else {
+                        %T($constructorArgs)
+                    }
                     return instance.%N($methodArgs)
                     """.trimIndent(),
                     className, func.simpleName.asString()

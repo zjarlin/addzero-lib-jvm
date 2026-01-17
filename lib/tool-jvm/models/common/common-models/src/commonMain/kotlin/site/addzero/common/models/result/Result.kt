@@ -1,5 +1,7 @@
 package site.addzero.common.models.result
 
+import kotlin.math.round
+
 /**
  * 通用的操作结果类型
  *
@@ -13,7 +15,8 @@ sealed class Result<out T> {
      */
     data class Success<T>(
         val message: String,
-        val data: T? = null
+        val data: T? = null,
+        val code: Int = 200
     ) : Result<T>()
 
     /**
@@ -23,7 +26,8 @@ sealed class Result<out T> {
      */
     data class Error<T>(
         val message: String,
-        val cause: Throwable? = null
+        val cause: Throwable? = null,
+        val code: Int = 400
     ) : Result<T>()
 
     /**
@@ -35,7 +39,8 @@ sealed class Result<out T> {
     data class InProgress<T>(
         val message: String,
         val progress: Progress? = null,
-        val extra: String? = null
+        val extra: String? = null,
+        val code: Int = 202
     ) : Result<T>()
 
     /**
@@ -60,36 +65,36 @@ sealed class Result<out T> {
      * 映射成功时的数据
      */
     inline fun <R> mapData(transform: (T?) -> R?): Result<R> = when (this) {
-        is Success -> Success(message, transform(this.data))
-        is Error -> Error(message, this.cause)
-        is InProgress -> InProgress(message, progress, extra)
+        is Success -> Success(message, transform(this.data), code)
+        is Error -> Error(message, this.cause, code)
+        is InProgress -> InProgress(message, progress, extra, code)
     }
 
     /**
      * 映射消息
      */
     fun mapMessage(transform: (String) -> String): Result<T> = when (this) {
-        is Success -> Success(transform(message), this.data)
-        is Error -> Error(transform(message), this.cause)
-        is InProgress -> InProgress(transform(message), progress, extra)
+        is Success -> Success(transform(message), this.data, code)
+        is Error -> Error(transform(message), this.cause, code)
+        is InProgress -> InProgress(transform(message), progress, extra, code)
     }
 
     companion object {
         /**
          * 创建成功的 Result
          */
-        fun <T> success(message: String, data: T? = null): Result<T> = Success(message, data)
+        fun <T> success(message: String, data: T? = null, code: Int = 200): Result<T> = Success(message, data, code)
 
         /**
          * 创建失败的 Result
          */
-        fun <T> error(message: String, cause: Throwable? = null): Result<T> = Error(message, cause)
+        fun <T> error(message: String, cause: Throwable? = null, code: Int = 400): Result<T> = Error(message, cause, code)
 
         /**
          * 创建进行中的 Result
          */
-        fun <T> inProgress(message: String, progress: Progress? = null, extra: String? = null): Result<T> =
-            InProgress(message, progress, extra)
+        fun <T> inProgress(message: String, progress: Progress? = null, extra: String? = null, code: Int = 202): Result<T> =
+            InProgress(message, progress, extra, code)
 
         /**
          * 捕获异常并返回 Result
@@ -134,7 +139,7 @@ data class Progress(
     /** 格式化的进度字符串 */
     val formatted: String
         get() = buildString {
-            append(String.format("%.2f%%", percent))
+            append("${round(percent * 100) / 100}%")
             if (current != null && total != null) {
                 append(" ($current/$total)")
             }
@@ -149,12 +154,20 @@ data class Progress(
 
     companion object {
         fun formatBytes(bytes: Long): String {
-            return when {
-                bytes < 1024 -> "$bytes B"
-                bytes < 1024 * 1024 -> String.format("%.2f KB", bytes / 1024.0)
-                bytes < 1024 * 1024 * 1024 -> String.format("%.2f MB", bytes / (1024.0 * 1024))
-                else -> String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024))
+            val value = when {
+                bytes < 1024 -> bytes.toDouble()
+                bytes < 1024 * 1024 -> bytes / 1024.0
+                bytes < 1024L * 1024 * 1024 -> bytes / (1024.0 * 1024)
+                else -> bytes / (1024.0 * 1024 * 1024)
             }
+            val unit = when {
+                bytes < 1024 -> "B"
+                bytes < 1024 * 1024 -> "KB"
+                bytes < 1024L * 1024 * 1024 -> "MB"
+                else -> "GB"
+            }
+            val formattedValue = if (value == value.toLong().toDouble()) value.toLong().toString() else (round(value * 100) / 100).toString()
+            return "$formattedValue $unit"
         }
 
         fun formatSeconds(seconds: Long): String {

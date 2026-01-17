@@ -19,13 +19,6 @@ import java.util.concurrent.TimeUnit
  * @param baseUrl API 基础 URL，默认为 VectorEngine 官方地址
  * @param logStrategy 日志记录策略
  */
-@SingletonAdapter(
-  singletonName = "Suno",
-  inject = [
-    "apiKey=env:SUNO_API_TOKEN",
-    "baseUrl=const:https://api.vectorengine.ai"
-  ]
-)
 class SunoClient(
   private val apiKey: String,
   private val baseUrl: String = "https://api.vectorengine.ai",
