@@ -1,14 +1,13 @@
-
 plugins {
-//    id(kmp-core)
-    id("site.addzero.gradle.plugin.kmp-core-convention") version "+"
+  id("kmp-json")
+  id("site.addzero.gradle.plugin.kmp-core-convention") version "+"
 }
 // 配置 Kotlin 编译器选项以启用新特性
 kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.tool.str)
-        }
-
+  sourceSets {
+    commonMain.dependencies {
+      implementation(libs.tool.str)
     }
+
+  }
 }
