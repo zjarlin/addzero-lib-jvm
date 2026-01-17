@@ -1,8 +1,7 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.jvm-json")
 }
 
 dependencies {
     implementation(libs.okhttp)
-    implementation(libs.fastjson2.kotlin)
 }
