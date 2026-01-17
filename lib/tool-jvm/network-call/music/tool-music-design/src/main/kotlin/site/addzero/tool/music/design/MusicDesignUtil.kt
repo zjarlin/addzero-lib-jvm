@@ -38,7 +38,8 @@ object MusicDesignUtil {
             prompt = cleanLyrics,
             title = songName,
             tags = tags,
-            model = model
+            model = model,
+            instrumental = false
         )
     }
 
@@ -70,7 +71,8 @@ object MusicDesignUtil {
             prompt = cleanLyrics,
             title = result.song.name,
             tags = tags,
-            model = model
+            model = model,
+            instrumental = false
         )
     }
 
@@ -114,7 +116,8 @@ object MusicDesignUtil {
             prompt = cleanLyrics,
             title = title,
             tags = tags,
-            model = model
+            model = model,
+            instrumental = false
         )
     }
 

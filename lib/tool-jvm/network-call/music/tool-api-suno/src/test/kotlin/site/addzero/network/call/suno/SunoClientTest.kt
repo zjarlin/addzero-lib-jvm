@@ -2,10 +2,15 @@ package site.addzero.network.call.suno
 
 import site.addzero.network.call.suno.model.*
 
+import org.junit.jupiter.api.Test
+
 /**
  * VectorEngine Suno 客户端测试示例
  */
-fun main() {
+class SunoClientTest {
+
+    @Test
+    fun testSunoClient() {
     // 1. 动态配置示例 (可选，默认从环境变量读取)
     val apiToken = System.getenv("SUNO_API_TOKEN") 
         ?: "dummy-token-for-demo"
@@ -54,7 +59,7 @@ fun main() {
         
         // 4. 等待任务完成演示
         println("正在等待任务完成...")
-        val result = Suno.waitForCompletion(taskId2) { status ->
+        val result = Suno.waitForCompletion(taskId2, 600, 10) { status ->
             println("状态更新: $status")
         }
         println("标题: ${result.title}")
@@ -62,4 +67,5 @@ fun main() {
     } catch (e: Exception) {
         println("演示失败: ${e.message}")
     }
+}
 }

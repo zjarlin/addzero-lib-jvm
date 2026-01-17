@@ -28,9 +28,12 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-16T21:43:21.884148
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2026-01-17T15:31:54.932616
+// Loaded: 5, Excluded: 0, Total: 5
+include(":lib:ksp:metadata:singleton-adapter-api")
+include(":lib:ksp:metadata:singleton-adapter-processor")
 include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
 include(":lib:tool-jvm:network-call:music:tool-music-design")
 // <<< Gradle Buddy: End Of Block <<<
+include(":lib:ksp:metadata:singleton-adapter-api")

@@ -11,6 +11,8 @@ import site.addzero.network.call.suno.model.*
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
+
 /**
  * VectorEngine Suno API 客户端
  *
@@ -18,18 +20,19 @@ import java.util.concurrent.TimeUnit
  * @param baseUrl API 基础 URL，默认为 VectorEngine 官方地址
  * @param logStrategy 日志记录策略
  */
+@SingletonAdapter(
+  singletonName = "Suno",
+  inject = [
+    "apiKey=env:SUNO_API_TOKEN",
+    "baseUrl=const:https://api.vectorengine.ai"
+  ]
+)
 class SunoClient(
   private val apiKey: String,
   private val baseUrl: String = "https://api.vectorengine.ai",
   private var logStrategy: SunoLogStrategy = FileSunoLogStrategy(),
 ) {
 
-  fun getApiKey() = apiKey
-  fun getBaseUrl() = baseUrl
-
-  fun setLogStrategy(strategy: SunoLogStrategy) {
-    this.logStrategy = strategy
-  }
 
   private val client = OkHttpClient.Builder()
     .connectTimeout(30, TimeUnit.SECONDS)
@@ -345,63 +348,3 @@ class SunoClient(
   }
 }
 
-/**
- * Suno API 全局 entry point，支持动态配置
- */
-object Suno {
-  var apiKey: String = System.getenv("SUNO_API_TOKEN") ?: ""
-  var baseUrl: String = "https://api.vectorengine.ai"
-  private var logStrategy: SunoLogStrategy = FileSunoLogStrategy()
-
-  private var _cachedClient: SunoClient? = null
-
-  val client: SunoClient
-    get() {
-      val currentClient = _cachedClient
-      if (currentClient == null || currentClient.getApiKey() != apiKey || currentClient.getBaseUrl() != baseUrl) {
-        _cachedClient = SunoClient(apiKey, baseUrl, logStrategy)
-      }
-      return _cachedClient!!
-    }
-
-  fun setLogStrategy(strategy: SunoLogStrategy) {
-    this.logStrategy = strategy
-    _cachedClient = null // 强制重写 client 以应用新策略
-  }
-
-  /**
-   * 便捷方法：直接设置配置并触发客户端重载
-   */
-  fun config(apiKey: String, baseUrl: String = "https://api.vectorengine.ai") {
-    this.apiKey = apiKey
-    this.baseUrl = baseUrl
-    _cachedClient = null
-  }
-
-  // --- 代理 SunoClient 的所有主要方法 ---
-
-  fun submitMusic(request: SunoSubmitRequest) = client.submitMusic(request)
-
-  fun generateMusicInspiration(description: String, instrumental: Boolean = false, model: String = "chirp-v5") =
-    client.generateMusicInspiration(description, instrumental, model)
-
-  fun generateMusicCustom(prompt: String, title: String = "", tags: String = "", model: String = "chirp-v5", instrumental: Boolean = false) =
-    client.generateMusicCustom(prompt, title, tags, model, instrumental)
-
-  fun extendMusic(clipId: String, continueAt: Int, prompt: String = "", title: String = "", tags: String = "", model: String = "chirp-v5") =
-    client.extendMusic(clipId, continueAt, prompt, title, tags, model)
-
-  fun generateLyrics(prompt: String) = client.generateLyrics(prompt)
-
-  fun concatSongs(clipId: String, isInfill: Boolean = false) = client.concatSongs(clipId, isInfill)
-
-  fun fetchTask(taskId: String) = client.fetchTask(taskId)
-
-  fun batchFetchTasks(taskIds: List<String>) = client.batchFetchTasks(taskIds)
-
-  fun waitForCompletion(taskId: String, maxWaitTimeSeconds: Int = 600, pollIntervalSeconds: Int = 10, onStatusUpdate: ((String?) -> Unit)? = null) =
-    client.waitForCompletion(taskId, maxWaitTimeSeconds, pollIntervalSeconds, onStatusUpdate)
-
-  fun waitForBatchCompletion(taskIds: List<String>, maxWaitTimeSeconds: Int = 600, pollIntervalSeconds: Int = 10) =
-    client.waitForBatchCompletion(taskIds, maxWaitTimeSeconds, pollIntervalSeconds)
-}
