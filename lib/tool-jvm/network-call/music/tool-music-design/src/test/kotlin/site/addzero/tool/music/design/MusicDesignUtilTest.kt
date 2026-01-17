@@ -4,11 +4,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Disabled
 
 /**
  * 音乐设计工具类测试
  */
 @DisplayName("音乐设计工具类测试")
+@Disabled("集成测试需要产生费用, 仅限手动调用")
 class MusicDesignUtilTest {
 
     @Test
