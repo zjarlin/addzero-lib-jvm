@@ -2,7 +2,7 @@ package site.addzero.network.call.suno.example
 
 import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
 
-@SingletonAdapter(inlineToParameters = true, inject = ["apiKey=const:test-key", "baseUrl=const:https://api.example.com"])
+@SingletonAdapter(inlineToParameters = true, inject = ["apiKey=env:TEST_KEY", "baseUrl=const:https://api.example.com"])
 class InlineTestService(val apiKey: String, val baseUrl: String) {
 
     fun authenticateUser(username: String, password: String) {
