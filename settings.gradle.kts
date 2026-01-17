@@ -28,7 +28,7 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-17T16:28:45.917875
+// Generated at: 2026-01-17T18:12:44.648176
 // Loaded: 9, Excluded: 0, Total: 9
 include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:koin-convention")
 include(":lib:gradle-plugin:project-plugin:conventions:jvm-conventions:ksp-convention")

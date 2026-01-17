@@ -28,14 +28,130 @@ class SingletonAdapterProcessor(
         return invalid
     }
 
-    private fun generateSingleton(classDeclaration: KSClassDeclaration) {
-        val annotation = classDeclaration.annotations
-            .first { it.shortName.asString() == SingletonAdapter::class.simpleName }
-            
+    private fun generateInlineAdapter(classDeclaration: KSClassDeclaration, annotation: KSAnnotation) {
         val singletonName = getSingletonName(classDeclaration, annotation)
         val packageName = classDeclaration.packageName.asString()
         val className = classDeclaration.toClassName()
-        
+
+        // 解析注入配置
+        val injectConfig = parseInjectConfig(annotation)
+
+        // 获取构造函数参数
+        val constructorParams = classDeclaration.primaryConstructor?.parameters ?: emptyList()
+
+        // 生成新的object（单例）
+        val classBuilder = TypeSpec.objectBuilder(singletonName)
+
+        // 添加构造函数参数作为object属性（用于默认值）
+        val properties = mutableListOf<PropertySpec>()
+        constructorParams.forEach { param ->
+            val paramName = param.name!!.asString()
+            val paramType = param.type.resolve().toTypeName()
+
+            val propBuilder = PropertySpec.builder(paramName, paramType)
+                .mutable(true)
+
+            // 处理默认值初始化
+            val config = injectConfig[paramName]
+            if (config != null) {
+                when {
+                    config.startsWith("env:") -> {
+                        val envKey = config.substringAfter("env:")
+                        propBuilder.initializer("System.getenv(%S) ?: \"\"", envKey)
+                    }
+                    config.startsWith("const:") -> {
+                        val value = config.substringAfter("const:")
+                        propBuilder.initializer("%S", value)
+                    }
+                    else -> propBuilder.initializer("TODO(\"Unsupported inject type\")")
+                }
+            } else if (param.hasDefault) {
+                // 暂时无法获取默认值，假设它有默认值
+                if (paramType == String::class.asTypeName()) {
+                    propBuilder.initializer("\"\"")
+                } else {
+                    propBuilder.initializer("TODO(\"Missing injection or default value for $paramName\")")
+                }
+            } else {
+                // 必填参数且无配置
+                if (paramType == String::class.asTypeName()) {
+                    propBuilder.initializer("\"\"")
+                } else {
+                    propBuilder.initializer("TODO(\"Missing injection for $paramName\")")
+                }
+            }
+            properties.add(propBuilder.build())
+        }
+
+        classBuilder.addProperties(properties)
+
+        // 添加lazy client缓存（当参数与默认值相同时使用）
+        val lazyClient = PropertySpec.builder("_cachedClient", className.copy(nullable = true))
+            .addModifiers(KModifier.PRIVATE)
+            .mutable(true)
+            .initializer("null")
+            .build()
+        classBuilder.addProperty(lazyClient)
+
+        // 生成代理方法，将构造函数参数作为方法参数前缀
+        classDeclaration.getAllFunctions()
+            .filter { it.isPublic() && it.simpleName.asString() !in listOf("<init>", "equals", "hashCode", "toString") }
+            .forEach { func ->
+                val funcBuilder = FunSpec.builder(func.simpleName.asString())
+                    .addModifiers(func.modifiers.mapNotNull { it.toKModifier() })
+                    .returns(func.returnType!!.resolve().toTypeName())
+
+                // 先添加构造函数参数（不带默认值，改为在方法体中处理）
+                constructorParams.forEach { param ->
+                    val paramName = param.name!!.asString()
+                    val paramType = param.type.resolve().toTypeName()
+                    funcBuilder.addParameter(paramName, paramType)
+                }
+
+                // 再添加原有方法参数
+                func.parameters.forEach { param ->
+                    val pName = param.name!!.asString()
+                    val pType = param.type.resolve().toTypeName()
+                    funcBuilder.addParameter(pName, pType)
+                }
+
+                // 生成方法体：直接创建实例（object模式下不缓存，因为参数可能每次都不同）
+                val constructorArgs = constructorParams.joinToString(", ") { it.name!!.asString() }
+                val methodArgs = func.parameters.joinToString(", ") { it.name!!.asString() }
+
+                funcBuilder.addCode(
+                    """
+                    val instance = %T($constructorArgs)
+                    return instance.%N($methodArgs)
+                    """.trimIndent(),
+                    className, func.simpleName.asString()
+                )
+
+                classBuilder.addFunction(funcBuilder.build())
+            }
+
+        // 写文件
+        FileSpec.builder(packageName, singletonName)
+            .addType(classBuilder.build())
+            .build()
+            .writeTo(codeGenerator, Dependencies(true, classDeclaration.containingFile!!))
+    }
+
+    private fun generateSingleton(classDeclaration: KSClassDeclaration) {
+        val annotation = classDeclaration.annotations
+            .first { it.shortName.asString() == SingletonAdapter::class.simpleName }
+
+        val inlineToParameters = annotation.arguments.find { it.name?.asString() == "inlineToParameters" }?.value as? Boolean ?: false
+
+        if (inlineToParameters) {
+            generateInlineAdapter(classDeclaration, annotation)
+            return
+        }
+
+        val singletonName = getSingletonName(classDeclaration, annotation)
+        val packageName = classDeclaration.packageName.asString()
+        val className = classDeclaration.toClassName()
+
         // 1. 解析注入配置
         val injectConfig = parseInjectConfig(annotation)
 

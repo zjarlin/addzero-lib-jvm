@@ -8,14 +8,20 @@ annotation class SingletonAdapter(
      * 如果未指定，默认使用类名去掉 "Client" 后缀（如果存在），否则为类名 + "Adapter"。
      */
     val singletonName: String = "",
-    
+
     /**
      * 指定构造函数参数的注入策略。
      * 简单的键值对，格式为 "paramName=env:ENV_VAR_KEY" 或 "paramName=const:VALUE"。
-     * 
+     *
      * 例如：
      * apiKey=env:SUNO_API_TOKEN
      * baseUrl=const:https://api.vectorengine.ai
      */
-    val inject: Array<String> = []
+    val inject: Array<String> = [],
+
+    /**
+     * 如果为true，将构造函数参数内联到方法参数中，而不是生成单例包装类。
+     * 生成的方法将构造函数参数作为前缀参数，允许在调用时覆盖默认值。
+     */
+    val inlineToParameters: Boolean = false
 )

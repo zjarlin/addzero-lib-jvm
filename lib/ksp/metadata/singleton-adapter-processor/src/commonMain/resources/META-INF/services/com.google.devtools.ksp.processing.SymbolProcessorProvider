@@ -1,1 +1,2 @@
 site.addzero.ksp.singletonadapter.SingletonAdapterProcessorProvider
+site.addzero.ksp.singletonadapter.ParameterExtractorProcessorProvider
