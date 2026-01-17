@@ -9,5 +9,7 @@ dependencies {
   // KSP Singleton Adapter
   implementation(projects.lib.ksp.metadata.singletonAdapterApi)
   ksp(projects.lib.ksp.metadata.singletonAdapterProcessor)
+  // Common models
+  implementation(projects.lib.toolJvm.models.common.commonModels)
 
 }

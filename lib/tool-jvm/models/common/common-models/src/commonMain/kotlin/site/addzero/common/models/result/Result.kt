@@ -15,22 +15,22 @@ sealed class Result<out T> {
    * @param message 成功消息
    * @param data 成功时携带的数据
    */
-  @Serializable
-  data class Success<T>(
-    val message: String,
-    val data: T? = null,
-    val code: String = "200",
-  ) : Result<T>()
+   @Serializable
+   data class Success<T>(
+     val code: String,
+     val message: String? = null,
+     val data: T? = null,
+   ) : Result<T>()
 
   /**
    * 操作失败
    * @param message 错误消息
    */
-  @Serializable
-  data class Error<T>(
-    val message: String,
-    val code: String = "400",
-  ) : Result<T>()
+   @Serializable
+   data class Error<T>(
+     val code: String,
+     val message: String? = null,
+   ) : Result<T>()
 
   /**
    * 操作进行中（用于异步操作或断点续传）
@@ -38,13 +38,13 @@ sealed class Result<out T> {
    * @param progress 进度信息
    * @param extra 额外信息（如 uploadId）
    */
-  @Serializable
-  data class InProgress<T>(
-    val message: String,
-    val progress: Progress? = null,
-    val extra: String? = null,
-    val code: String = "202",
-  ) : Result<T>()
+   @Serializable
+   data class InProgress<T>(
+     val code: String = "202",
+     val message: String? = null,
+     val progress: Progress? = null,
+     val extra: String? = null,
+   ) : Result<T>()
 
   /**
    * 是否成功
@@ -67,46 +67,46 @@ sealed class Result<out T> {
   /**
    * 映射成功时的数据
    */
-  inline fun <R> mapData(transform: (T?) -> R?): Result<R> = when (this) {
-    is Success -> Success(message, transform(this.data), code)
-    is Error -> Error(message, code)
-    is InProgress -> InProgress(message, progress, extra, code)
-  }
+   inline fun <R> mapData(transform: (T?) -> R?): Result<R> = when (this) {
+     is Success -> Success(code, message, transform(this.data))
+     is Error -> Error(code, message)
+     is InProgress -> InProgress(code, message, progress, extra)
+   }
 
   /**
    * 映射消息
    */
-  fun mapMessage(transform: (String) -> String): Result<T> = when (this) {
-    is Success -> Success(transform(message), this.data, code)
-    is Error -> Error(transform(message), code)
-    is InProgress -> InProgress(transform(message), progress, extra, code)
-  }
+   fun mapMessage(transform: (String) -> String): Result<T> = when (this) {
+     is Success -> Success(code, message?.let(transform), this.data)
+     is Error -> Error(code, message?.let(transform))
+     is InProgress -> InProgress(code, message?.let(transform), progress, extra)
+   }
 
   companion object {
     /**
      * 创建成功的 Result
      */
-    fun <T> success(message: String, data: T? = null, code: String = "200"): Result<T> = Success(message, data, code)
+     fun <T> success(message: String? = null, data: T? = null, code: String = "200"): Result<T> = Success(code, message, data)
 
     /**
      * 创建失败的 Result
      */
-    fun <T> error(message: String, code: String = "400"): Result<T> = Error(message, code)
+     fun <T> error(message: String? = null, code: String = "400"): Result<T> = Error(code, message)
 
     /**
      * 创建进行中的 Result
      */
-    fun <T> inProgress(message: String, progress: Progress? = null, extra: String? = null, code: String = "202"): Result<T> =
-      InProgress(message, progress, extra, code)
+     fun <T> inProgress(message: String? = null, progress: Progress? = null, extra: String? = null, code: String = "202"): Result<T> =
+       InProgress(code, message, progress, extra)
 
     /**
      * 捕获异常并返回 Result
      */
-    inline fun <T> catch(message: String, block: () -> T): Result<T> = try {
-      success(message, block())
-    } catch (e: Exception) {
-      error(message)
-    }
+     inline fun <T> catch(message: String? = null, block: () -> T): Result<T> = try {
+       success(message, block())
+     } catch (e: Exception) {
+       error(message)
+     }
   }
 }
 

@@ -8,6 +8,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
 import site.addzero.network.call.suno.log.SunoLogStrategy
 import site.addzero.network.call.suno.model.*
+import site.addzero.common.models.result.Result
 import site.addzero.util.KoinInjector.inject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -205,7 +206,7 @@ class SunoClient(
       }
 
       val apiResponse = try {
-        json.decodeFromString<VectorEngineResponse<SunoTask>>(bodyString)
+        json.decodeFromString<Result.Success<SunoTask>>(bodyString)
       } catch (e: Exception) {
         throw RuntimeException("解析响应失败: ${e.message}, body: $bodyString", e)
       }
@@ -326,7 +327,7 @@ class SunoClient(
       }
 
       val apiResponse = try {
-        json.decodeFromString<VectorEngineResponse<T>>(responseString)
+        json.decodeFromString<Result.Success<T>>(responseString)
       } catch (e: Exception) {
         throw RuntimeException("解析响应失败: ${e.message}, body: $responseString", e)
       }

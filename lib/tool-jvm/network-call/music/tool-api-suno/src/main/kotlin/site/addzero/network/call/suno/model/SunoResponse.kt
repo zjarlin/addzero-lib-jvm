@@ -4,15 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
-/**
- * VectorEngine API 统一响应
- */
-@Serializable
-data class VectorEngineResponse<T>(
-    val code: String,
-    val message: String? = null,
-    val data: T? = null
-)
+
 
 /**
  * Suno 任务信息
