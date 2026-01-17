@@ -1,6 +1,5 @@
 package site.addzero.tool.music.design
 
-import site.addzero.network.call.music.MusicSearchUtil
 import site.addzero.network.call.suno.Suno
 import site.addzero.network.call.suno.model.SunoTask
 
