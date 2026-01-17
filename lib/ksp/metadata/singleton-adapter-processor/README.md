@@ -64,7 +64,7 @@ class MyService {
 The processor will generate a new class `MyServiceDelegate`:
 
 ```kotlin
-class MyServiceDelegate(
+class MyServiceDelegate private constructor(  // Private constructor
     val apiKey: String,
     val baseUrl: String,
     val delegate: MyService = MyService()  // Default instance if MyService has no-arg constructor
@@ -179,21 +179,19 @@ class ApiConfig(
 
 ### Standard Mode
 
-With the default delegate instance:
+The generated class has a private constructor to prevent direct instantiation and encourage proper usage patterns:
 
 ```kotlin
-// If MyService has a no-argument constructor, you can use:
-val service = MyServiceDelegate(apiKey = "my-key", baseUrl = "https://api.example.com")
-// This automatically creates MyService() as the delegate
-
-// Or provide your own instance:
-val customService = MyService(customConfig)
-val service = MyServiceDelegate(apiKey = "my-key", baseUrl = "https://api.example.com", delegate = customService)
-
-// Now use the simplified methods:
-service.method1(timeout = 5000)
-service.method2(retryCount = 3)
+class MyServiceDelegate private constructor(  // Cannot instantiate directly
+    val apiKey: String,
+    val baseUrl: String,
+    val delegate: MyService = MyService()
+) {
+    // Methods...
+}
 ```
+
+This design ensures that the delegate wrapper is used appropriately, typically through dependency injection or factory patterns rather than direct construction.
 
 ### Inline to Parameters Mode
 

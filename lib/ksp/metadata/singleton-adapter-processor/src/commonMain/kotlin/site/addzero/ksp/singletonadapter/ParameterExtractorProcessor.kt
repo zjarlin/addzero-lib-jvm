@@ -68,6 +68,7 @@ class ParameterExtractorProcessor(
         }
 
         val constructorBuilder = FunSpec.constructorBuilder()
+            .addModifiers(KModifier.PRIVATE)
         val properties = mutableListOf<PropertySpec>()
 
         // 添加共同参数作为属性
