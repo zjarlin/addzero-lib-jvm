@@ -7,4 +7,5 @@ dependencies {
     implementation(libs.hutool.all)
     api(libs.addzero.jimmer.model.lowquery)
 
+
 }
