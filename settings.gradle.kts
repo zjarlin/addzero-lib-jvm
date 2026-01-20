@@ -28,9 +28,10 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-20T15:08:45.280701
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2026-01-20T18:17:22.109844
+// Loaded: 4, Excluded: 0, Total: 4
 include(":lib:apt:apt-dict-processor")
+include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
 include(":lib:tool-jvm:network-call:chat:api-models-chat")
 include(":lib:tool-jvm:network-call:music:tool-music-design")
 // <<< Gradle Buddy: End Of Block <<<
