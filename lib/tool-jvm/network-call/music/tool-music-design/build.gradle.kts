@@ -1,12 +1,9 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 
 dependencies {
-    // 依赖音乐搜索模块
-    implementation(project(":lib:tool-jvm:network-call:music:tool-api-music-search"))
-    // 依赖 Suno API 模块
-    implementation(project(":lib:tool-jvm:network-call:music:tool-api-suno"))
-
+  implementation("site.addzero:tool-api-music-search:2026.01.20")
+  implementation("site.addzero:tool-api-suno:2026.01.20")
 }
 

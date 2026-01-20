@@ -28,10 +28,11 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-20T09:02:28.348536
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:tool-jvm:network-call:tool-api-video-parse")
-include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
+// Generated at: 2026-01-20T12:20:24.626571
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:tool-jvm:network-call:music:tool-api-music-search")
+include(":lib:tool-jvm:network-call:music:tool-api-suno")
+include(":lib:tool-jvm:network-call:music:tool-music-design")
 // <<< Gradle Buddy: End Of Block <<<
 include(":lib:ksp:metadata:singleton-adapter-api")
 include(":lib:ksp:metadata:singleton-adapter-processor")

@@ -8,7 +8,7 @@ dependencies {
   implementation(libs.okhttp)
   implementation(libs.fastjson2.kotlin)
 
-  implementation(projects.lib.ksp.metadata.singletonAdapterApi)
-  ksp(projects.lib.ksp.metadata.singletonAdapterProcessor)
+  implementation("site.addzero:singleton-adapter-api:2026.01.20")
+  ksp("site.addzero:singleton-adapter-processor:2026.01.20")
 
 }

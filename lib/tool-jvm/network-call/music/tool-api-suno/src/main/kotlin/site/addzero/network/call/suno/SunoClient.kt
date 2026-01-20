@@ -5,10 +5,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
+import site.addzero.common.models.result.Result
 import site.addzero.network.call.suno.log.SunoLogStrategy
 import site.addzero.network.call.suno.model.*
-import site.addzero.common.models.result.Result
 import site.addzero.util.KoinInjector.inject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
