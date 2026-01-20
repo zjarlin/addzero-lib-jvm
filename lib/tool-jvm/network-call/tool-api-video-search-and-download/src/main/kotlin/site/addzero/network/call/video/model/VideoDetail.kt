@@ -17,11 +17,6 @@ data class VideoDetail(
   val updateTime: Long?
 )
 
-data class PlayUrl(
-  val platform: String,
-  val url: String,
-  val quality: String
-)
 
 data class VideoEpisode(
   val episode: Int,
@@ -48,17 +43,3 @@ enum class DownloadStatus(val displayName: String) {
   CANCELLED("已取消")
 }
 
-enum class VideoPlatform(val displayName: String) {
-  QQ("腾讯视频"),
-  IQIYI("爱奇艺"),
-  YOUKU("优酷"),
-  MGTV("芒果TV"),
-  BILIBILI("哔哩哔哩"),
-  LETV("乐视"),
-  TUDOU("土豆"),
-  SOHU("搜狐视频"),
-  M1905("1905电影网"),
-  PPTV("PPTV"),
-  WASU("华数TV"),
-  ACFUN("AcFun")
-}

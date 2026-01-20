@@ -1,19 +1,5 @@
 package site.addzero.network.call.video.model
 
-data class VideoItem(
-  val id: String,
-  val title: String,
-  val cover: String?,
-  val year: String?,
-  val director: String?,
-  val actor: String?,
-  val area: String?,
-  val type: String,
-  val remark: String?,
-  val rating: Double?,
-  val playCount: Long?,
-  val source: String
-)
 
 enum class VideoType(val displayName: String) {
   MOVIE("电影"),
@@ -24,7 +10,7 @@ enum class VideoType(val displayName: String) {
   UNKNOWN("未知")
 }
 
-enum class VideoPlatform(val displayName: String) {
+enum class VideoPlatform(val displayName: String, string: String) {
   QQ("腾讯视频", "v.qq.com"),
   IQIYI("爱奇艺", "iqiyi.com"),
   YOUKU("优酷", "youku.com"),

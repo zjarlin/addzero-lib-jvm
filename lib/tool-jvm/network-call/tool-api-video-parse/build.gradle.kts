@@ -6,5 +6,4 @@ dependencies {
   implementation(libs.okhttp)
   implementation(libs.fastjson2.kotlin)
 
-  implementation(projects.lib.ksp.metadata.singletonAdapterApi)
 }

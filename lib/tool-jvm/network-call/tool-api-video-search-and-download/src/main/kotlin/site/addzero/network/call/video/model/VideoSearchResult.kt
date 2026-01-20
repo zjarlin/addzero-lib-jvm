@@ -18,4 +18,3 @@ data class VideoItem(
   val rating: Double?,
   val playUrl: String?
 )
-}
