@@ -28,10 +28,8 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-20T12:20:24.626571
-// Loaded: 3, Excluded: 0, Total: 3
-include(":lib:tool-jvm:network-call:music:tool-api-music-search")
-include(":lib:tool-jvm:network-call:music:tool-api-suno")
+// Generated at: 2026-01-20T12:25:41.000845
+// Loaded: 1, Excluded: 0, Total: 1
 include(":lib:tool-jvm:network-call:music:tool-music-design")
 // <<< Gradle Buddy: End Of Block <<<
 include(":lib:ksp:metadata:singleton-adapter-api")
