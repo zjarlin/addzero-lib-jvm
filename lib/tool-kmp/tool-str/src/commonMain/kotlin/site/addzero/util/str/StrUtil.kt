@@ -871,3 +871,38 @@ fun String.toSimpleName(): String {
   val substringAfterLast = this.substringAfterLast('.')
   return substringAfterLast
 }
+
+
+
+/**
+ * 定向替换字符串中的命名占位符（支持自定义占位符格式）
+ * 核心优势：
+ * 1. 只处理指定的占位符名称，避免全量扫描，效率更高；
+ * 2. 支持自定义占位符前缀/后缀（如 {}、${}、#{} 等）；
+ * 3. 精准匹配独立的占位符，不匹配JSON语法的{}或其他含特殊字符的符号；
+ * 4. 兼容所有字符串类型（JSON/普通文本/配置模板等）。
+ *
+ * @param placeholders 占位符键值对（key=占位符名称，value=替换值）
+ * @param prefix 占位符前缀（默认：{，支持 ${、#{ 等）
+ * @param suffix 占位符后缀（默认：}，支持 } 等）
+ * @return 替换后的字符串
+ */
+fun String.replaceNamedPlaceholders(
+    placeholders: Map<String, Any>,
+    prefix: String = "{",
+    suffix: String = "}"
+): String {
+    if (placeholders.isEmpty()) return this
+
+    var result = this
+    // 转义前缀/后缀中的特殊正则字符（如 $、#、{、} 等）
+    val escapedPrefix = Regex.escape(prefix)
+    val escapedSuffix = Regex.escape(suffix)
+
+    placeholders.forEach { (placeholderName, value) ->
+        // 构建精准匹配 [前缀+变量名+后缀] 的正则（单词边界确保只匹配独立变量名）
+        val regex = "$escapedPrefix\\b${Regex.escape(placeholderName)}\\b$escapedSuffix".toRegex()
+        result = result.replace(regex, value.toString())
+    }
+    return result
+}

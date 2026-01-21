@@ -8,6 +8,8 @@ buildscript {
         classpath(libs.gradle.tool.config.java)
     }
 }
+
+
 configureJ8("8")
 
 plugins {
