@@ -28,12 +28,11 @@ implementationRemoteGit {
 
 
 // >>> Gradle Buddy: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-20T18:17:22.109844
-// Loaded: 4, Excluded: 0, Total: 4
-include(":lib:apt:apt-dict-processor")
-include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
-include(":lib:tool-jvm:network-call:chat:api-models-chat")
+// Generated at: 2026-01-21T17:15:50.108657
+// Loaded: 3, Excluded: 0, Total: 3
 include(":lib:tool-jvm:network-call:music:tool-music-design")
+include(":lib:tool-kmp:models:common:common-models")
+include(":lib:tool-kmp:tool-str")
 // <<< Gradle Buddy: End Of Block <<<
 include(":lib:ksp:metadata:singleton-adapter-api")
 include(":lib:ksp:metadata:singleton-adapter-processor")
