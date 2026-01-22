@@ -24,7 +24,7 @@ repositories {
 dependencies {
   compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 
-  implementation(libs.gradlePlugin.ksp)
+  implementation(libs.gradle.plugin.ksp)
   implementation(libs.kotlin.convention)
   implementation(libs.ksp.convention)
 //    gradleApi()

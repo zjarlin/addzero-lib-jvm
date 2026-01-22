@@ -6,7 +6,7 @@ plugins {
 
 kotlin {
     wasmJs {
-        nodejs()
+//        nodejs()
         browser()
     }
 }

@@ -1,14 +1,13 @@
 plugins {
-  id("kmp-ksp")
+//  id("kmp-ksp")
+  id("site.addzero.gradle.plugin.kotlin-convention") version "+"
 }
 
 kotlin {
-  sourceSets {
-    commonMain.dependencies {
-      implementation("site.addzero:singleton-adapter-api:2026.01.20")
-    }
-    jvmMain.dependencies {
-      implementation(libs.kotlinpoet.ksp)
-    }
+  dependencies {
+    implementation("site.addzero:singleton-adapter-api:2026.01.20")
   }
+//  sourceSets.jvmMain.dependencies {
+//    implementation(libs.kotlinpoet.ksp)
+//  }
 }

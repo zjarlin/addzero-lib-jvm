@@ -8,7 +8,6 @@ buildscript {
     }
     dependencies {
         classpath(libs.gradle.tool.config.java)
-        classpath(libs.com.google.devtools.ksp.gradle.plugin)
     }
 }
 configureJ8("8")
@@ -26,8 +25,8 @@ repositories {
 
 dependencies {
 //     implementation(libs.gradlePlugin.ksp)
-    implementation(libs.com.google.devtools.ksp.gradle.plugin)
-    implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.gradle.plugin.ksp)
+    implementation(libs.gradlePlugin.kotlin)
 //    implementation(libs.java.convention)
     implementation(libs.kotlin.convention)
 

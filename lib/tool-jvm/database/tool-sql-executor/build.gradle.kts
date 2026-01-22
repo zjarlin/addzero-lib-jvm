@@ -10,7 +10,7 @@ dependencies {
     compileOnly(libs.mssql.jdbc)
     compileOnly(libs.h2)
     compileOnly(libs.sqlite.jdbc)
-    compileOnly(libs.dmjdbcdriver18)
+    compileOnly(libs.dameng.jdbc.driver)
     compileOnly(libs.kingbase8)
     compileOnly(libs.oceanbase.client)
 //    compileOnly(libs.gaussdb.jdbc)

@@ -1,5 +1,5 @@
 plugins {
-    id("kmp")
+    id("site.addzero.buildlogic.kmp.platform.kmp-test")
 }
 
 kotlin {

@@ -6,7 +6,7 @@ dependencies {
     api(libs.lsi.core)
     implementation(libs.tool.str)
     // KSP API dependencies
-    implementation(libs.symbol.processing.api)
+    implementation(libs.ksp.symbol.processing.api)
 
 //    // 测试依赖
 //    testImplementation(libs.junit.jupiter)

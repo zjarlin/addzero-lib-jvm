@@ -3,7 +3,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    id("kmp")
+    id("site.addzero.buildlogic.kmp.platform.kmp-test")
 }
 
 kotlin {
