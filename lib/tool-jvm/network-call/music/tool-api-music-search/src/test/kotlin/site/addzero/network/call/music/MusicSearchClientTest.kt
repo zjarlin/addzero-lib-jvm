@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Tag
 @DisplayName("音乐搜索客户端测试")
 class MusicSearchClientTest {
 
-    private val client = MusicSearchClient()
+    private val client = MusicSearchUtil
 
     @Test
     @DisplayName("测试搜索歌曲功能")

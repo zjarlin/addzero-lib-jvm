@@ -3,7 +3,6 @@ package site.addzero.network.call.music
 import com.alibaba.fastjson2.JSON
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import site.addzero.ksp.singletonadapter.anno.SingletonAdapter
 import site.addzero.network.call.music.model.*
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
@@ -14,10 +13,8 @@ import java.util.concurrent.TimeUnit
  *
  * @param baseUrl API 基础 URL，默认使用公开的网易云音乐 API
  */
-@SingletonAdapter(singletonName = "MusicSearchUtil")
-class MusicSearchClient(
-  private val baseUrl: String = "https://music.163.com/api",
-) {
+object MusicSearchUtil {
+  private const val baseUrl: String = "https://music.163.com/api"
 
   private val client = OkHttpClient.Builder()
     .connectTimeout(10, TimeUnit.SECONDS)

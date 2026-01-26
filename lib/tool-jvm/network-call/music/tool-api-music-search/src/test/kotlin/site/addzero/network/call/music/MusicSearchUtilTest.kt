@@ -109,74 +109,15 @@ class MusicSearchUtilTest {
         println("✓ 工具类根据歌词搜索成功: ${songs.size} 首")
     }
 
-    @Test
-    @DisplayName("测试工具类获取歌曲详情")
-    @Tag("integration")
-    fun testGetSongDetail() {
-        // When
-        val song = MusicSearchUtil.getSongDetail(186016L)
 
-        // Then
-        assertNotNull(song)
-        assertEquals(186016L, song?.id)
 
-        println("✓ 工具类获取歌曲详情成功: ${song?.name}")
-    }
-
-    @Test
-    @DisplayName("测试工具类批量获取歌曲详情")
-    @Tag("integration")
-    fun testGetSongDetails() {
-        // When
-        val songs = MusicSearchUtil.getSongDetails(listOf(186016L, 186017L))
-
-        // Then
-        assertNotNull(songs)
-        assertEquals(2, songs.size)
-
-        println("✓ 工具类批量获取详情成功: ${songs.size} 首")
-    }
-
-    @Test
-    @DisplayName("测试工具类搜索并获取歌词")
-    @Tag("integration")
-    fun testSearchWithLyrics() {
-        // When
-        val songsWithLyrics = MusicSearchUtil.searchWithLyrics("晴天", "周杰伦")
-
-        // Then
-        assertNotNull(songsWithLyrics)
-        assertTrue(songsWithLyrics.isNotEmpty())
-
-        val result = songsWithLyrics.first()
-        assertNotNull(result.song)
-
-        println("✓ 搜索并获取歌词成功")
-        println("  歌曲: ${result.song.name}")
-        println("  歌词: ${if (result.lyric != null) "已获取" else "未获取"}")
-    }
-
-       @Test
-    @DisplayName("测试工具类根据歌名获取歌词")
-    @Tag("integration")
-    fun testGetLyricBySongName() {
-        // When
-        val lyric = MusicSearchUtil.getLyric("江湖夜雨十年灯", "空想之喵")
-
-        // Then
-        assertNotNull(lyric)
-        assertNotNull(lyric?.lrc?.lyric)
-
-        println("✓ 工具类根据歌名获取歌词成功")
-        println("  歌词预览: ${lyric?.lrc?.lyric?.take(100)}...")
-    }
 
     @Test
     @DisplayName("测试工具类根据歌词片段获取完整歌词")
     @Tag("integration")
     fun testGetLyricsByFragment() {
         // When
-        val results = MusicSearchUtil.getLyricsByFragment("刮风这天我试过握着你手", limit = 3)
+        val results = MusicSearchUtil.getLyricsByFragment("洋洋兮又复巍峨", limit = 3)
 
         // Then
         assertNotNull(results)

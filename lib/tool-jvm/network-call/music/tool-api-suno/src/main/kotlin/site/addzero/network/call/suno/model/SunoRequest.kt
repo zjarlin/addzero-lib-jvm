@@ -4,165 +4,89 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * 统一的提交请求密封类
- * 用于封装所有 Suno 音乐生成的请求类型
+ * Suno 音乐生成统一请求
+ * 整合了所有生成模式的参数
  */
 @Serializable
-sealed class SunoSubmitRequest {
-    /** 模型版本，如 chirp-v5 */
-    abstract val mv: String
+data class SunoMusicRequest(
+    // ============ 通用字段 ============
+    /** 模型版本，如 chirp-v5, chirp-v4-tau */
+    val mv: String = "chirp-v5",
 
-    /**
-     * 灵感模式 (Inspiration Mode)
-     * 通过描述生成音乐，AI 自动创作歌词和旋律
-     */
-    @Serializable
-    @SerialName("inspiration")
-    data class Inspiration(
-        /** GPT 描述提示词，描述想要的音乐风格和内容 */
-        @SerialName("gpt_description_prompt")
-        val gptDescriptionPrompt: String,
+    // ============ 灵感模式 (Inspiration Mode) ============
+    /** GPT 描述提示词，描述想要的音乐风格和内容 */
+    @SerialName("gpt_description_prompt")
+    val gptDescriptionPrompt: String? = null,
 
-        /** 是否生成纯音乐（无人声） */
-        @SerialName("make_instrumental")
-        val makeInstrumental: Boolean = false,
 
-        /** 模型版本，默认 chirp-v5 */
-        override val mv: String = "chirp-v5"
-    ) : SunoSubmitRequest()
+  // ============ 自定义模式 (Custom Mode) + 续写模式 (Extend Mode) ============
+    /*任务完成后的回调通知地址*/
+    val notifyHook : String? = null,
 
-    /**
-     * 自定义模式 (Custom Mode)
-     * 使用自定义歌词和标签生成音乐
-     */
-    @Serializable
-    @SerialName("custom")
-    data class Custom(
-        /** 歌词内容 */
-        val prompt: String,
 
-        /** 音乐风格标签，如 "pop, rock, chinese" */
-        val tags: String = "",
+    // ============ 自定义模式 (Custom Mode) + 续写模式 (Extend Mode) ============
+    /** 歌曲标题 仅用于自定义模式*/
+    val title: String? = null,
 
-        /** 歌曲标题 */
-        val title: String = "",
+    /** 音乐风格标签，如 "pop, rock, chinese" */
+    val tags: String? = null,
 
-        /** 是否生成纯音乐（无人声） */
-        @SerialName("make_instrumental")
-        val makeInstrumental: Boolean = false,
+    /** 歌词内容/提示词 */
+    val prompt: String,
 
-        /** 模型版本，默认 chirp-v5 */
-        override val mv: String = "chirp-v5"
-    ) : SunoSubmitRequest()
+    /** 是否生成纯音乐（无人声） */
+    @SerialName("make_instrumental")
+    val makeInstrumental: Boolean? = false,
 
-    /**
-     * 续写模式 (Extend Mode)
-     * 基于现有音频片段继续生成
-     */
-    @Serializable
-    @SerialName("extend")
-    data class Extend(
-        /** 要续写的音频片段 ID */
-        @SerialName("continue_clip_id")
-        val continueClipId: String,
+    // ============ 续写模式 (Extend Mode) + 二次创作模式 (Remix) ============
 
-        /** 从第几秒开始续写 */
-        @SerialName("continue_at")
-        val continueAt: Int,
+    /** 任务ID，用于对已有任务进行操作（如续写），可以为 null*/
+    @SerialName("task_id")
+    val taskId: String? = null,
 
-        /** 续写的歌词内容 */
-        val prompt: String = "",
 
-        /** 音乐风格标签 */
-        val tags: String = "",
+    /** 要续写/二次创作的音频片段 ID 非必传参数，可以为 null*/
+    @SerialName("continue_clip_id")
+    val continueClipId: String? = null,
 
-        /** 歌曲标题 */
-        val title: String = "",
+    /** 从第几秒开始续写 非必传参数，可以为 null*/
+    @SerialName("continue_at")
+    val continueAt: Int? = null,
 
-        /** 模型版本，默认 chirp-v5 */
-        override val mv: String = "chirp-v5"
-    ) : SunoSubmitRequest()
+    // ============ 歌手风格模式 (Artist Consistency) ============
+    /** 歌手角色 ID */
+    @SerialName("persona_id")
+    val personaId: String? = null,
 
-    /**
-     * 歌手风格模式 (Artist Consistency / Persona)
-     * 使用特定歌手的声音风格生成音乐
-     */
-    @Serializable
-    @SerialName("artist_consistency")
-    data class ArtistConsistency(
-        /** 歌手角色 ID */
-        @SerialName("persona_id")
-        val personaId: String,
+    /** 歌手音频片段 ID，用于提取声音特征 */
+    @SerialName("artist_clip_id")
+    val artistClipId: String? = null,
 
-        /** 歌手音频片段 ID，用于提取声音特征 */
-        @SerialName("artist_clip_id")
-        val artistClipId: String,
+    /** 声音性别，如 "m", "f" */
+    @SerialName("vocal_gender")
+    val vocalGender: String? = "m",
 
-        /** 声音性别，如 "male", "female" */
-        @SerialName("vocal_gender")
-        val vocalGender: String? = "male",
+    /** 生成类型，默认 "TEXT" */
+    @SerialName("generation_type")
+    val generationType: String? = null,
 
-        /** 生成类型，默认 "TEXT" */
-        @SerialName("generation_type")
-        val generationType: String = "TEXT",
+    /** 负面标签，指定不想要的风格 */
+    @SerialName("negative_tags")
+    val negativeTags: String? = null,
 
-        /** 负面标签，指定不想要的风格 */
-        @SerialName("negative_tags")
-        val negativeTags: String? = null,
+    // ============ 拼接模式 (Concat Mode) ============
+    /** 要拼接的音频片段 ID */
+    @SerialName("clip_id")
+    val clipId: String? = null,
 
-        /** 任务类型标识 */
-        val task: String = "artist_consistency",
+    /** 是否填充中间部分 */
+    @SerialName("is_infill")
+    val isInfill: Boolean? = null,
 
-        /** 模型版本，默认推荐使用 chirp-v4-tau */
-        override val mv: String = "chirp-v4-tau"
-    ) : SunoSubmitRequest()
-
-    /**
-     * 二次创作/上传模式 (Remix / Upload Extend)
-     * 基于上传的音频进行二次创作
-     */
-    @Serializable
-    @SerialName("upload_extend")
-    data class Remix(
-        /** 上传的音频片段 ID */
-        @SerialName("continue_clip_id")
-        val continueClipId: String,
-
-        /** 创作提示词/歌词 */
-        val prompt: String = "",
-
-        /** 音乐风格标签 */
-        val tags: String = "",
-
-        /** 歌曲标题 */
-        val title: String = "",
-
-        /** 任务类型标识 */
-        val task: String = "upload_extend",
-
-        /** 模型版本，默认 chirp-v5 */
-        override val mv: String = "chirp-v5"
-    ) : SunoSubmitRequest()
-
-    /**
-     * 拼接模式 (Concat Mode)
-     * 将多个音频片段拼接成完整歌曲
-     */
-    @Serializable
-    @SerialName("concat")
-    data class Concat(
-        /** 要拼接的音频片段 ID */
-        @SerialName("clip_id")
-        val clipId: String,
-
-        /** 是否填充中间部分 */
-        @SerialName("is_infill")
-        val isInfill: Boolean = false,
-
-        /** 模型版本，默认 chirp-v5 */
-        override val mv: String = "chirp-v5"
-    ) : SunoSubmitRequest()
-}
+    // ============ 任务类型标识 ============
+    /** 任务类型：artist_consistency, upload_extend, extend 等 */
+    val task: String? = "extend"
+)
 
 /**
  * 生成歌词请求
@@ -182,4 +106,14 @@ data class GenerateLyricsRequest(
 data class BatchFetchRequest(
     /** 任务 ID 列表 */
     val ids: List<String>
+)
+
+/**
+ * 拼接歌曲请求
+ */
+@Serializable
+data class ConcatSongsRequest(
+    /** 音频片段 ID */
+    @SerialName("clip_id")
+    val clipId: String
 )

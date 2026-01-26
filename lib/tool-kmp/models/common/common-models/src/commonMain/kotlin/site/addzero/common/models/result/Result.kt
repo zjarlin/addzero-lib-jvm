@@ -9,7 +9,9 @@ import kotlin.math.round
  * @param T 成功时携带的数据类型
  */
 @Serializable
-sealed class Result<out T> {
+sealed class Result<T> {
+  abstract val code: String
+  abstract val message: String?
   /**
    * 操作成功
    * @param message 成功消息
@@ -17,8 +19,8 @@ sealed class Result<out T> {
    */
    @Serializable
    data class Success<T>(
-     val code: String,
-     val message: String? = null,
+     override val code: String,
+     override val message: String? = null,
      val data: T? = null,
    ) : Result<T>()
 
@@ -28,8 +30,8 @@ sealed class Result<out T> {
    */
    @Serializable
    data class Error<T>(
-     val code: String,
-     val message: String? = null,
+     override val code: String,
+     override val message: String? = null,
    ) : Result<T>()
 
   /**
@@ -40,8 +42,8 @@ sealed class Result<out T> {
    */
    @Serializable
    data class InProgress<T>(
-     val code: String = "202",
-     val message: String? = null,
+     override val code: String = "202",
+     override val message: String? = null,
      val progress: Progress? = null,
      val extra: String? = null,
    ) : Result<T>()
@@ -81,6 +83,77 @@ sealed class Result<out T> {
      is Error -> Error(code, message?.let(transform))
      is InProgress -> InProgress(code, message?.let(transform), progress, extra)
    }
+
+  /**
+   * 获取数据，如果失败则抛出异常
+   */
+  fun getOrThrow(): T {
+    return when (this) {
+      is Success -> data ?: throw RuntimeException("数据为空")
+      is Error -> throw RuntimeException("错误: $message (code: $code)")
+      is InProgress -> throw RuntimeException("任务进行中 (code: $code)")
+    }
+  }
+
+  /**
+   * 获取数据，如果失败则返回 null
+   */
+  fun getOrNull(): T? {
+    return when (this) {
+      is Success -> data
+      else -> null
+    }
+  }
+
+  /**
+   * 获取数据，如果失败则返回默认值
+   */
+  fun getOrDefault(default: T): T {
+    return when (this) {
+      is Success -> data ?: default
+      else -> default
+    }
+  }
+
+  /**
+   * 获取数据，如果失败则使用提供的函数计算默认值
+   */
+  inline fun getOrElse(default: () -> T): T {
+    return when (this) {
+      is Success -> data ?: default()
+      else -> default()
+    }
+  }
+
+  /**
+   * 对成功的结果执行操作
+   */
+  inline fun onSuccess(action: (T?) -> Unit): Result<T> {
+    if (this is Success) {
+      action(data)
+    }
+    return this
+  }
+
+  /**
+   * 对失败的结果执行操作
+   */
+  inline fun onError(action: (String?, String) -> Unit): Result<T> {
+    if (this is Error) {
+      action(message, code)
+    }
+    return this
+  }
+
+  /**
+   * 对进行中的结果执行操作
+   */
+  inline fun onInProgress(action: (Progress?, String?) -> Unit): Result<T> {
+    if (this is InProgress) {
+      action(progress, message)
+    }
+    return this
+  }
 
   companion object {
     /**

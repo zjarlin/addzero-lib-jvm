@@ -1,13 +1,17 @@
 plugins {
-  id("site.addzero.buildlogic.jvm.jvm-json")
-  id("site.addzero.buildlogic.jvm.jvm-ksp-plugin")
-  id("site.addzero.gradle.plugin.koin-convention")  version "2026.01.17"
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
+  kotlin("plugin.serialization") version "2.1.0"
 }
 
 dependencies {
   implementation(libs.okhttp)
-  // Common models
-  implementation("site.addzero:common-models:2026.01.20")
 
+  // Kotlinx Serialization
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+
+  // Common models
+  implementation(project(":lib:tool-kmp:models:common:common-models"))
 
 }
+
