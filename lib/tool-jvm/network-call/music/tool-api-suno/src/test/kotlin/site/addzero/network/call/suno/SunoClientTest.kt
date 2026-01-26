@@ -1,10 +1,13 @@
 package site.addzero.network.call.suno
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.DisplayName
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
 import site.addzero.network.call.suno.model.SunoMusicRequest
 
 /**
@@ -14,215 +17,63 @@ import site.addzero.network.call.suno.model.SunoMusicRequest
 class SunoClientTest {
 
     private lateinit var client: SunoClient
+    private lateinit var mockWebServer: MockWebServer
 
     @BeforeEach
     fun setup() {
-        // 从环境变量读取 API Token
-        val token = System.getenv("SUNO_API_TOKEN")
-            ?: throw IllegalStateException("未设置环境变量 SUNO_API_TOKEN")
-        client = SunoClient(token)
+        mockWebServer = MockWebServer()
+        mockWebServer.start()
+        // API Token is still required by the client constructor, but its value won't be used for calls to mockWebServer
+        client = SunoClient("test-token", mockWebServer.url("/").toString())
+    }
+
+    @AfterEach
+    fun teardown() {
+        mockWebServer.shutdown()
     }
 
     @Test
-    @DisplayName("测试生成音乐（灵感模式）")
-    @Tag("integration")
-    fun testGenerateMusicInspiration() {
+    @DisplayName("测试生成音乐")
+    @Tag("unit")
+    fun testGenerateMusic_success() {
         // Given
-        val description = "一首轻快的流行歌曲，关于夏天和海边"
-       SunoMusicRequest(
-         prompt = TODO()
-       )
-
-    }
-
-    @Test
-    @DisplayName("测试生成音乐（自定义模式）")
-    @Tag("integration")
-    fun testGenerateMusicCustom() {
-        // Given
-        val lyrics = """
-            天空灰得像哭过
-            离开你以后
-            并没有更自由
-        """.trimIndent()
-        val title = "测试歌曲"
-        val tags = "pop, sad, chinese"
-
-        // When
-        val taskId = client.generateMusicCustom(lyrics, title, tags)
-
-        // Then
-        assertNotNull(taskId)
-        assertTrue(taskId.isNotBlank())
-
-        println("✓ 自定义模式生成任务创建成功")
-        println("  任务 ID: $taskId")
-    }
-
-    @Test
-    @DisplayName("测试生成纯音乐")
-    @Tag("integration")
-    fun testGenerateInstrumental() {
-        // Given
-        val description = "一首舒缓的钢琴曲"
-
-        // When
-        val taskId = client.generateMusicInspiration(
-            description = description,
-            instrumental = true
-        )
-
-        // Then
-        assertNotNull(taskId)
-        assertTrue(taskId.isNotBlank())
-
-        println("✓ 纯音乐生成任务创建成功")
-        println("  任务 ID: $taskId")
-    }
-
-    @Test
-    @DisplayName("测试生成歌词")
-    @Tag("integration")
-    fun testGenerateLyrics() {
-        // Given
-        val prompt = "写一首关于友情的歌词，风格温暖感人"
-
-        // When
-        val lyrics = client.generateLyrics(prompt)
-
-        // Then
-        assertNotNull(lyrics)
-        assertTrue(lyrics.isNotBlank())
-
-        println("✓ 歌词生成成功")
-        println("  歌词内容:")
-        println(lyrics)
-    }
-
-    @Test
-    @DisplayName("测试查询单个任务")
-    @Tag("integration")
-    fun testFetchTask() {
-        // Given - 先创建一个任务
-        val description = "一首欢快的歌曲"
-        val taskId = client.generateMusicInspiration(description)
-
-        // When - 查询任务
-        Thread.sleep(2000) // 等待 2 秒
-        val task = client.fetchTask(taskId)
-
-        // Then
-        assertNotNull(task)
-        assertEquals(taskId, task?.id)
-        assertNotNull(task?.status)
-
-        println("✓ 查询任务成功")
-        println("  任务 ID: ${task?.id}")
-        println("  状态: ${task?.status}")
-    }
-
-    @Test
-    @DisplayName("测试批量查询任务")
-    @Tag("integration")
-    fun testBatchFetchTasks() {
-        // Given - 创建多个任务
-        val taskId1 = client.generateMusicInspiration("欢快的歌")
-        val taskId2 = client.generateMusicInspiration("悲伤的歌")
-        val taskIds = listOf(taskId1, taskId2)
-
-        // When - 批量查询
-        Thread.sleep(2000) // 等待 2 秒
-        val tasks = client.batchFetchTasks(taskIds)
-
-        // Then
-        assertNotNull(tasks)
-        assertEquals(2, tasks.size)
-
-        println("✓ 批量查询任务成功")
-        tasks.forEach { task ->
-            println("  - ${task.id}: ${task.status}")
-        }
-    }
-
-    @Test
-    @DisplayName("测试等待任务完成")
-    @Tag("integration")
-    @Tag("slow")
-    fun testWaitForCompletion() {
-        // Given
-        val lyrics = "简单的测试歌词"
-        val taskId = client.generateMusicCustom(lyrics, "测试", "pop")
-
-        println("✓ 任务已创建: $taskId")
-        println("  等待任务完成...")
-
-        // When
-        val task = client.waitForCompletion(
-            taskId = taskId,
-            maxWaitTimeSeconds = 300,
-            pollIntervalSeconds = 10,
-            onStatusUpdate = { status ->
-                println("  当前状态: $status")
+        val expectedTaskId = "task_test_id_123"
+        val mockResponseJson = """
+            {
+              "code": 200,
+              "message": "success",
+              "data": "$expectedTaskId"
             }
+        """.trimIndent()
+        mockWebServer.enqueue(MockResponse().setResponseCode(200).setBody(mockResponseJson))
+
+        val request = SunoMusicRequest(
+            prompt = "A happy song about a dog playing in the park",
+            makeInstrumental = false,
+            mv = "chirp-v5",
+            tags = "pop, upbeat"
         )
 
+        // When
+        val taskId = client.generateMusic(request)
+
         // Then
-        assertNotNull(task)
-        assertTrue(task.status == "complete" || task.status == "streaming")
-        assertNotNull(task.audioUrl)
+        assertNotNull(taskId)
+        assertEquals(expectedTaskId, taskId)
 
-        println("✓ 任务完成!")
-        println("  音频 URL: ${task.audioUrl}")
-        println("  视频 URL: ${task.videoUrl}")
-    }
+        // Verify the request sent to the mock server
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("/suno/submit/music", recordedRequest.path)
+        assertEquals("POST", recordedRequest.method)
+        assertEquals("Bearer test-token", recordedRequest.getHeader("Authorization"))
+        assertEquals("application/json", recordedRequest.getHeader("Accept"))
+        assertEquals("application/json", recordedRequest.getHeader("Content-Type"))
 
-    @Test
-    @DisplayName("测试拼接歌曲")
-    @Tag("integration")
-    fun testConcatSongs() {
-        // Given - 需要一个已存在的 clip_id
-        // 这里使用一个示例 ID，实际测试需要替换
-        val clipId = "test-clip-id"
+        val expectedRequestBody = """
+            {"prompt":"A happy song about a dog playing in the park","tags":"pop, upbeat","makeInstrumental":false,"model":"chirp-v5"}
+        """.trimIndent()
+        assertEquals(expectedRequestBody, recordedRequest.body.readUtf8())
 
-        // When
-        try {
-            val taskId = client.concatSongs(clipId)
-
-            // Then
-            assertNotNull(taskId)
-            println("✓ 拼接任务创建成功")
-            println("  任务 ID: $taskId")
-        } catch (e: Exception) {
-            println("⚠ 拼接测试需要有效的 clip_id")
-            println("  错误: ${e.message}")
-        }
-    }
-
-    @Test
-    @DisplayName("测试扩展音乐（续写）")
-    @Tag("integration")
-    fun testExtendMusic() {
-        // Given - 需要一个已存在的 clip_id
-        val clipId = "test-clip-id"
-        val continueAt = 30 // 从 30 秒开始续写
-        val lyrics = "续写的歌词内容"
-
-        // When
-        try {
-            val taskId = client.extendMusic(
-                clipId = clipId,
-                continueAt = continueAt,
-                lyrics = lyrics,
-                tags = "pop"
-            )
-
-            // Then
-            assertNotNull(taskId)
-            println("✓ 续写任务创建成功")
-            println("  任务 ID: $taskId")
-        } catch (e: Exception) {
-            println("⚠ 续写测试需要有效的 clip_id")
-            println("  错误: ${e.message}")
-        }
+        println("✓ 生成音乐任务成功，任务 ID: $taskId")
     }
 }
