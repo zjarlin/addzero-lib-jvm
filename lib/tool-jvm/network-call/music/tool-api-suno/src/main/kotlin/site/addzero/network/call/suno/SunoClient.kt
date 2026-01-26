@@ -37,14 +37,9 @@ class SunoClient(
     }
 
     /**
-     * 生成音乐（自定义模式）
-     * 使用自定义歌词和标签生成音乐
+     * 生成音乐
      *
-     * @param lyrics 歌词内容
-     * @param title 歌曲标题
-     * @param tags 音乐风格标签
-     * @param instrumental 是否为纯音乐
-     * @param model 模型版本，默认 chirp-v5
+     * @param request 音乐生成请求
      * @return 任务 ID
      */
     fun generateMusic(
@@ -53,8 +48,6 @@ class SunoClient(
         val response = postWithBody("$baseUrl/suno/submit/music", json.encodeToString(request))
         return json.decodeFromString<Result<String>>(response).getOrThrow()
     }
-
-
 
     /**
      * 生成歌词
@@ -104,8 +97,8 @@ class SunoClient(
             if (!response.isSuccessful) {
                 throw RuntimeException("请求失败: ${response.code} - $responseBody")
             }
-          val decodeFromString = json.decodeFromString<Result<SunoTask>>(responseBody)
-          return decodeFromString.getOrNull()
+            val decodeFromString = json.decodeFromString<Result<SunoTask>>(responseBody)
+            return decodeFromString.getOrNull()
         }
     }
 

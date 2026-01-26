@@ -70,7 +70,7 @@ class SunoClientTest {
         assertEquals("application/json", recordedRequest.getHeader("Content-Type"))
 
         val expectedRequestBody = """
-            {"prompt":"A happy song about a dog playing in the park","tags":"pop, upbeat","makeInstrumental":false,"model":"chirp-v5"}
+            {"prompt":"A happy song about a dog playing in the park","tags":"pop, upbeat","makeInstrumental":false,"mv":"chirp-v5"}
         """.trimIndent()
         assertEquals(expectedRequestBody, recordedRequest.body.readUtf8())
 
