@@ -37,9 +37,19 @@ implementationRemoteGit {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-25T18:48:38.876414
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2026-01-27T11:29:07.622689
+// Loaded: 13, Excluded: 0, Total: 13
+include(":lib:gradle-plugin:auto-jvmname")
+include(":lib:gradle-plugin:gradle-script")
+include(":lib:gradle-plugin:gradle-tool")
+include(":lib:gradle-plugin:tool-gradle-projectdir")
+include(":lib:gradle-plugin:tool:gradle-script")
+include(":lib:gradle-plugin:tool:gradle-script-core")
+include(":lib:gradle-plugin:tool:gradle-tool-config-java")
+include(":lib:gradle-plugin:tool:tool-gradle-projectdir")
 include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
+include(":lib:tool-jvm:tool-excel")
+include(":lib:tool-jvm:tool-yml")
 include(":lib:tool-kmp:models:common:common-models")
 // <<< Gradle Module Sleep: End Of Block <<<

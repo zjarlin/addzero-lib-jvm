@@ -7,7 +7,7 @@ buildscript {
     dependencies {
         classpath(libs.gradle.tool.config.java)
     
-    implementation(project(":lib:gradle-plugin:tool-gradle-projectdir"))
+    implementation(project(":lib:gradle-plugin:auto-jvmname"))
 }
 }
 configureJ8("8")
@@ -19,6 +19,8 @@ plugins {
 }
 dependencies {
     implementation(gradleApi())
+
+
 }
 
 

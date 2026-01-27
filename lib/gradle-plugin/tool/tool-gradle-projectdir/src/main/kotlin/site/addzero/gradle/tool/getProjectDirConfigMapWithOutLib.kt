@@ -1,3 +1,4 @@
+import java.io.File
 
 // 定义黑名单目录列表
 val BLACKLIST_DIRS = listOf("buildSrc,", "build-logic")

@@ -6,9 +6,7 @@ buildscript {
     }
     dependencies {
         classpath(libs.gradle.tool.config.java)
-    
-    implementation(project(":lib:gradle-plugin:tool-gradle-projectdir"))
-}
+    }
 }
 configureJ8("8")
 
