@@ -54,9 +54,6 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
         }
     }
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
 }
 
 compose.desktop {

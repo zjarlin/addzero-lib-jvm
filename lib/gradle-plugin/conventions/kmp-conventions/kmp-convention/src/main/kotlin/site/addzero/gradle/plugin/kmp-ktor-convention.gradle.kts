@@ -48,10 +48,23 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(compose.materialIconsExtended)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.logback)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            api(libs.ktor.client.cio)
+        }
+        wasmJsMain.dependencies {
+            api(libs.ktor.client.js)
+        }
+        nativeMain.dependencies {
+            api(libs.ktor.client.darwin)
         }
     }
     compilerOptions {

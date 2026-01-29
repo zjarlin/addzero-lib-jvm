@@ -9,19 +9,21 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import site.addzero.gradle.BuildSettings
 
+val libs = the<LibrariesForLibs>()
+
 plugins {
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.multiplatform")
 }
 
-val libs = the<LibrariesForLibs>()
-
 kotlin {
     jvm()
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
+        outputModuleName.set("composeApp")
+        binaries.executable()
         browser {
             val rootDirPath = project.rootDir.path
             val projectDirPath = project.projectDir.path

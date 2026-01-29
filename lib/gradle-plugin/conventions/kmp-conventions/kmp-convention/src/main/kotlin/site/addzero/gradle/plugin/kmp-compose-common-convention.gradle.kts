@@ -2,8 +2,6 @@ package site.addzero.gradle.plugin
 
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.kotlin.dsl.the
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import site.addzero.gradle.BuildSettings
 
 plugins {
     id("org.jetbrains.compose")
@@ -14,7 +12,6 @@ plugins {
 val libs = the<LibrariesForLibs>()
 
 kotlin {
-    jvm()
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -26,26 +23,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(compose.materialIconsExtended)
-        }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
-        }
-    }
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}
-
-compose.desktop {
-    application {
-        mainClass = BuildSettings.Desktop.MAIN_CLASS
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = BuildSettings.PACKAGE_NAME
-
-            packageVersion = "1.0.0"
         }
     }
 }

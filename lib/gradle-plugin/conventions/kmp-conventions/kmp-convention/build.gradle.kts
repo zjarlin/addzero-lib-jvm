@@ -24,8 +24,17 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.addzero.gradle.tool)
     implementation(libs.kotlin.convention)
+    implementation(libs.gradlePlugin.kotlin)
     implementation(libs.org.jetbrains.kotlin.multiplatform.gradle.plugin)
     implementation(libs.org.jetbrains.kotlin.plugin.serialization.gradle.plugin)
+    implementation(libs.gradlePlugin.jetbrainsCompose)
+    implementation(libs.gradlePlugin.composeCompiler)
+    implementation(libs.gradlePlugin.android)
+    implementation(libs.gradlePlugin.buildkonfig)
+    implementation(libs.gradlePlugin.buildkonfig.cp)
+    implementation(libs.gradlePlugin.ktorfit)
+    implementation(libs.gradle.plugin.ksp)
     gradleApi()
 }
