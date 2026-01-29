@@ -10,6 +10,8 @@ plugins {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-29T10:36:11.483701
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-01-29T14:16:05.401235
+// Loaded: 2, Excluded: 0, Total: 2
 include(":lib:compose:compose-native-component-glass")
+include(":lib:gradle-plugin:project-plugin:conventions:other-conventions")
+// <<< Gradle Module Sleep: End Of Block <<<

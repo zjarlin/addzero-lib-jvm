@@ -1,4 +1,4 @@
-package site.addzero.vibepocket.components.glass
+package site.addzero.component.glass
 
 /**
  * VibePocket 玻璃组件库

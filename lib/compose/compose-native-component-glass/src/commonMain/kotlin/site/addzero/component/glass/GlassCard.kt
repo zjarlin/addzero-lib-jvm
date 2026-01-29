@@ -1,4 +1,4 @@
-package site.addzero.vibepocket.components.glass
+package site.addzero.component.glass
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape

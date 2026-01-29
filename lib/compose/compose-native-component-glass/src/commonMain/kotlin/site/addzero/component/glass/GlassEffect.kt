@@ -1,4 +1,4 @@
-package site.addzero.vibepocket.components.glass
+package site.addzero.component.glass
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

@@ -1,4 +1,4 @@
-package site.addzero.vibepocket.components.glass
+package site.addzero.component.glass
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
