@@ -1,5 +1,7 @@
 package site.addzero.gradle.plugin
 
+import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.the
 import site.addzero.gradle.*
 
 plugins {
@@ -7,6 +9,7 @@ plugins {
 }
 
 val javaConvention = the<JavaConventionExtension>()
+val libs = the<LibrariesForLibs>()
 
 afterEvaluate {
     dependencies {

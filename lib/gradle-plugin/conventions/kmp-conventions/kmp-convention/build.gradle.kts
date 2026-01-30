@@ -10,7 +10,7 @@ buildscript {
     }
 }
 
-configureJ8("8")
+configureJ8(libs.versions.jdkHigh.get())
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.addzero.gradle.tool)
+    compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.kotlin.convention)
     implementation(libs.gradlePlugin.kotlin)
     implementation(libs.org.jetbrains.kotlin.multiplatform.gradle.plugin)

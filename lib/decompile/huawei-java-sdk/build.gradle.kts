@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.java-convention")
+    id("site.addzero.gradle.plugin.java-convention")
 }
 version = "3.2.6"
 dependencies {

@@ -6,8 +6,8 @@ plugins {
 
 val componentModules = rootProject.subprojects
     .filter {
-        it.name.startsWith("addzero-compose-native-component-") &&
-            it.name != "addzero-compose-native-component"
+        it.name.startsWith("compose-native-component-") &&
+            it.name != "compose-native-component"
     }
 
 kotlin {

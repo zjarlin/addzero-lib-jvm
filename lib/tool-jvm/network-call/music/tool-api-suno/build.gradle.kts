@@ -1,5 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.jvm.kotlin-convention")
+  id("site.addzero.gradle.plugin.kotlin-convention")
   kotlin("plugin.serialization") version "2.1.0"
 }
 

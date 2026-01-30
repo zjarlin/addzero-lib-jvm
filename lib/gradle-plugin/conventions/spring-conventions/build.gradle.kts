@@ -9,6 +9,7 @@ repositories {
 }
 
 dependencies {
+    compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradlePlugin.springBoot)
     implementation(libs.gradlePlugin.dependencyManagement)
     implementation(libs.gradlePlugin.kotlin)

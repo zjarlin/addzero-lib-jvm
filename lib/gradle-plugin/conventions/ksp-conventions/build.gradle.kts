@@ -10,6 +10,7 @@ repositories {
 
 dependencies {
     implementation(libs.gradle.plugin.ksp)
+    implementation(libs.gradlePlugin.kotlin)
     implementation(libs.tool.yml)
     gradleApi()
 }

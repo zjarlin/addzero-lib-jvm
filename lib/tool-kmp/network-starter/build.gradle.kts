@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.buildlogic.kmp.libs.kmp-ktor")
+    id("site.addzero.gradle.plugin.kmp-ktor-convention")
 }
 kotlin {
     sourceSets {

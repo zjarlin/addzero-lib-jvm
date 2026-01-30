@@ -12,3 +12,4 @@ dependencies {
     implementation(libs.org.graalvm.buildtools.native.gradle.plugin)
     gradleApi()
 }
+description = "GraalVM convention for JVM projects"

@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.lombok-convention")
+    id("site.addzero.gradle.plugin.lombok-convention")
 }
 
 dependencies {

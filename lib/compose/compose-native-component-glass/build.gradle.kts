@@ -1,5 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.kmp.composition.kmp-component")
-  id("site.addzero.buildlogic.kmp.composition.kmp-json-withtool")
+  id("site.addzero.gradle.plugin.kmp-component-convention")
+  id("site.addzero.gradle.plugin.kmp-json-withtool-convention")
 }
 

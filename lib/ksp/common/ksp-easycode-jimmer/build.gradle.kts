@@ -3,9 +3,9 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    id("site.addzero.buildlogic.kmp.libs.kmp-ksp")
-    id("site.addzero.buildlogic.kmp.composition.kmp-json-withtool")
-    id("site.addzero.buildlogic.kmp.libs.kmp-koin")
+    id("site.addzero.gradle.plugin.kmp-ksp-convention")
+    id("site.addzero.gradle.plugin.kmp-json-withtool-convention")
+    id("site.addzero.gradle.plugin.kmp-koin-convention")
 
 }
 kotlin {

@@ -26,12 +26,5 @@ dependencies {
     implementation(libs.gradle.tool.config.java)
     implementation(libs.gradlePlugin.kotlin)
     api(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
-//    testImplementation(libs.junit.jupiter.api)
-//    testRuntimeOnly(libs.junit.jupiter.engine)
-
-//    implementation(libs.gradlePlugin.kotlin)
-
-    gradleApi()
 }
-
 

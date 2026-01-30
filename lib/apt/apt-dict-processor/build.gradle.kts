@@ -5,7 +5,7 @@ import site.addzero.gradle.plugin.assist.SettingContextConfig
 //import org.gradle.plugins.signing.Sign
 
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.gradle.plugin.kotlin-convention")
     id("site.addzero.gradle.plugin.apt-buddy") version "2025.12.04"
 }
 

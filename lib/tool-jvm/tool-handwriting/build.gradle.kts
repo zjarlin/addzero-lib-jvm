@@ -1,3 +1,3 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.gradle.plugin.kotlin-convention")
 }

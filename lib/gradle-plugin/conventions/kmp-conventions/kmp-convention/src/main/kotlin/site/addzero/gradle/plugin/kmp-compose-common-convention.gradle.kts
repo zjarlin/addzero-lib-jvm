@@ -1,6 +1,9 @@
 package site.addzero.gradle.plugin
 
+import gradle.kotlin.dsl.accessors._031ce919f06ec46841aebfb5d89692d4.compose
+import gradle.kotlin.dsl.accessors._031ce919f06ec46841aebfb5d89692d4.debugImplementation
 import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.the
 
 plugins {
@@ -25,4 +28,8 @@ kotlin {
             implementation(compose.materialIconsExtended)
         }
     }
+
+}
+dependencies {
+  debugImplementation(compose.uiTooling)
 }

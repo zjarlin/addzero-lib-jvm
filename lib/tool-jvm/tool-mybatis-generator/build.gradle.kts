@@ -1,6 +1,6 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
-    id("site.addzero.buildlogic.jvm.graalvm-convention")
+    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.gradle.plugin.graalvm-convention")
     application
 }
 
