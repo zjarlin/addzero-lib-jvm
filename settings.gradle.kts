@@ -9,8 +9,7 @@ plugins {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-31T10:51:00.856890
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
-include(":lib:tool-jvm:tool-yml")
+// Generated at: 2026-01-31T12:17:32.830829
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:gradle-plugin:conventions:jvm-conventions:kotlin-convention")
 // <<< Gradle Module Sleep: End Of Block <<<
