@@ -1,6 +1,6 @@
 plugins {
 //    id("site.addzero.buildlogic.spring.spring-lib-convention")
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
 }
 
 dependencies {

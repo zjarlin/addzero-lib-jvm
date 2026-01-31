@@ -1,12 +1,12 @@
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.gradle.plugin.kotlin-convention") version "2026.02.02"
 }
 
 dependencies {
     compileOnly(libs.spring.jdbc)
     compileOnly(libs.spring.context)
     api(libs.tool.database.model)
-    
+
     // 添加测试依赖
     testImplementation(libs.spring.jdbc)
     testImplementation(libs.mysql.connector.java)

@@ -3,7 +3,7 @@ package site.addzero.gradle.plugin
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
 }
 
 val libs = the<LibrariesForLibs>()

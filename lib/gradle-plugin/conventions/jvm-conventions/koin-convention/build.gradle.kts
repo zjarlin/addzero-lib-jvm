@@ -16,13 +16,14 @@ plugins {
   `java-gradle-plugin`
 }
 
+
 repositories {
   mavenCentral()
   gradlePluginPortal()
 }
 
 dependencies {
-  compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+  implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
   implementation(libs.gradle.plugin.ksp)
   implementation(libs.kotlin.convention)
   implementation(libs.ksp.convention)

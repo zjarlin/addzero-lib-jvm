@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
+    id("site.addzero.gradle.plugin.kotlin-convention") version "+" version "+"
 }
 
 dependencies {

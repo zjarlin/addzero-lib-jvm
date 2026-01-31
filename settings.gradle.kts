@@ -9,7 +9,8 @@ plugins {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-01-31T12:17:32.830829
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-01-31T17:30:21.411221
+// Loaded: 2, Excluded: 0, Total: 2
+include(":lib:apt:apt-controller2feign-processor")
 include(":lib:gradle-plugin:conventions:jvm-conventions:kotlin-convention")
 // <<< Gradle Module Sleep: End Of Block <<<
