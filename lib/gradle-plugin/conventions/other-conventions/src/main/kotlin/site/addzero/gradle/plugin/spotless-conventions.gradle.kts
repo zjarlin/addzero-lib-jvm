@@ -2,7 +2,7 @@ package site.addzero.gradle.plugin
 
 plugins {
   id("com.diffplug.spotless")
-  id("site.addzero.gradle.plugin.repositories-conventions")
+  id("site.addzero.gradle.plugin.repositories-convention")
 }
 
 spotless {

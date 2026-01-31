@@ -5,7 +5,7 @@ import org.gradle.kotlin.dsl.the
 import org.gradle.accessors.dm.LibrariesForLibs
 plugins {
     kotlin("plugin.serialization")
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 val libs = the<LibrariesForLibs>()
 

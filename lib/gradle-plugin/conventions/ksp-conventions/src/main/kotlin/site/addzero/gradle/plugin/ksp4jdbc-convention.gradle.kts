@@ -1,5 +1,6 @@
 package site.addzero.gradle.plugin
 
+import site.addzero.util.DatabaseConfigReader
 import site.addzero.util.YmlUtil
 import site.addzero.util.YmlUtil.replaceEnvInString
 
@@ -9,6 +10,10 @@ plugins {
 
 val serverProject = project(":backend:server")
 val serverResourceDir = serverProject.projectDir.resolve("src/main/resources").absolutePath
+
+val fromSpringYml = DatabaseConfigReader.fromSpringYml(serverResourceDir)
+//fromSpringYml.sc
+
 val ymlPath = "$serverResourceDir/application.yml"
 
 val activate = YmlUtil.getActivateBydir(ymlPath)

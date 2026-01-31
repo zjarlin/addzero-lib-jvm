@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.the
 
 import org.gradle.accessors.dm.LibrariesForLibs
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.kotlin-convention")
     id("com.google.devtools.ksp")
 }
 val libs = the<LibrariesForLibs>()

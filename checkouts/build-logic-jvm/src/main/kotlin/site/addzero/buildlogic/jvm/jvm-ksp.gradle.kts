@@ -3,7 +3,7 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.kotlin.dsl.the
 
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 val libs = the<LibrariesForLibs>()
 kotlin {
