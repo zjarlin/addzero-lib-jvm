@@ -1,3 +1,5 @@
+import site.addzero.gradle.RepoType
+
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 plugins {
@@ -7,10 +9,14 @@ plugins {
   id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"
 //  id("site.addzero.gradle.plugin.modules-buddy") version "2026.01.11"
 }
+implementationRemoteGit{
+    repoType = RepoType.GITEE
+    branch = "master"
 
+}
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-02T19:37:51.721819
+// Generated at: 2026-02-02T20:21:31.094717
 // Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
-include(":lib:tool-jvm:network-call:music:tool-api-music-search")
-// <<< Gradle Module Sleep: End Of Block <<<
+//include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency") // excluded by Gradle Buddy
+include(":lib:ksp:logger-implementation")
+// <<< Gra
