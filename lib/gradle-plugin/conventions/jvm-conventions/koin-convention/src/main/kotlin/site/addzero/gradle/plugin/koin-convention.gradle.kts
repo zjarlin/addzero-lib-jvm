@@ -1,23 +1,24 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
+import site.addzero.gradle.KoinConventionExtension
 
 plugins {
   id("site.addzero.gradle.plugin.kspplugin-convention")
 }
 
-val libs = the<LibrariesForLibs>()
+val koinConvention = extensions.create("koinConvention", KoinConventionExtension::class.java)
 
-
-dependencies {
-  ksp(libs.koin.ksp.compiler)
-//        implementation(platform("io.insert-koin:koin-bom:${extension.koinBomVersion.get()}"))
-  implementation(platform(libs.koin.bom))
-  implementation(libs.koin.core)
-  implementation(libs.koin.annotations)
-  implementation(libs.tool.koin)
+afterEvaluate {
+  dependencies {
+    add("ksp", "io.insert-koin:koin-ksp-compiler:${koinConvention.kspCompilerVersion.get()}")
+    add("implementation", platform("io.insert-koin:koin-bom:${koinConvention.bomVersion.get()}"))
+    add("implementation", "io.insert-koin:koin-core:${koinConvention.coreVersion.get()}")
+    add("implementation", "io.insert-koin:koin-annotations:${koinConvention.annotationsVersion.get()}")
+    add("implementation", "site.addzero:tool-koin:${koinConvention.toolKoinVersion.get()}")
+  }
 }
+
 ksp {
   arg("KOIN_DEFAULT_MODULE", "true")
 }
-

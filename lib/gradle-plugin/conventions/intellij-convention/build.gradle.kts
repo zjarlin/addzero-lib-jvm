@@ -21,6 +21,7 @@ repositories {
     gradlePluginPortal()
 }
 
+version="2026.02.04"
 dependencies {
     /////////////////intellij///////////////
     implementation(libs.org.jetbrains.intellij.platform.gradle.plugin)

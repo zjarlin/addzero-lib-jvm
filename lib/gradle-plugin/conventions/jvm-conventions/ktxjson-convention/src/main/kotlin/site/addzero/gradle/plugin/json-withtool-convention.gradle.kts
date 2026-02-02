@@ -1,13 +1,17 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.the
+import site.addzero.gradle.JsonConventionExtension
 
 plugins {
     id("site.addzero.gradle.plugin.json-convention")
 }
 
-val libs = the<LibrariesForLibs>()
+val jsonConvention = the<JsonConventionExtension>()
 
-dependencies {
-    implementation(libs.tool.json)
+afterEvaluate {
+    dependencies {
+        add("implementation", "site.addzero:tool-json:${jsonConvention.toolJsonVersion.get()}")
+    }
 }

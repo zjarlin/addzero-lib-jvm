@@ -1,19 +1,19 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.the
-import site.addzero.gradle.*
+import site.addzero.gradle.JavaConventionExtension
 
 plugins {
     id("site.addzero.gradle.plugin.java-convention")
 }
 
 val javaConvention = the<JavaConventionExtension>()
-val libs = the<LibrariesForLibs>()
 
 afterEvaluate {
     dependencies {
-        implementation(libs.lombok)
-        annotationProcessor(libs.lombok)
+        val lombok = "org.projectlombok:lombok:${javaConvention.lombokVersion.get()}"
+        add("implementation", lombok)
+        add("annotationProcessor", lombok)
     }
 }

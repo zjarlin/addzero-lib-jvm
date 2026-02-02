@@ -20,9 +20,9 @@ abstract class GitDependencysExtension {
 
     init {
         remoteGits.convention(listOf<String>())
-        repoType.convention(RepoType.GITHUB)
+        repoType.convention(RepoType.GITEE)
         author.convention("zjarlin")
-        branch.convention("main")
+        branch.convention("master")
 //        checkouts
         checkoutDir.convention("checkouts")
 

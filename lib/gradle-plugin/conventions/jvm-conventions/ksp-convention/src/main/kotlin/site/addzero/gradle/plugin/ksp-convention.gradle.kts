@@ -1,15 +1,19 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
+import site.addzero.gradle.KspConventionExtension
 
 plugins {
     id("site.addzero.gradle.plugin.kotlin-convention") version "+"
 }
 
-val libs = the<LibrariesForLibs>()
+val kspConvention = extensions.create("kspConvention", KspConventionExtension::class.java)
 
-kotlin {
-    dependencies {
-        implementation(libs.ksp.symbol.processing.api)
+afterEvaluate {
+    kotlin {
+        dependencies {
+            val version = kspConvention.symbolProcessingApiVersion.get()
+            add("implementation", "com.google.devtools.ksp:symbol-processing-api:$version")
+        }
     }
 }

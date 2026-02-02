@@ -1,20 +1,27 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
+import site.addzero.gradle.JavaConventionExtension
 import site.addzero.gradle.tool.*
 
 plugins {
   `java-library`
 }
 
+val javaConvention = extensions.create("javaConvention", JavaConventionExtension::class.java)
+
 configureWithSourcesJar()
 configUtf8()
 configJunitPlatform()
 
-val libs = the<LibrariesForLibs>()
-configureJ8(libs.versions.jdk.get())
+afterEvaluate {
+  configureJ8(javaConvention.jdkVersion.get())
+}
 
-dependencies {
-  testImplementation(libs.junit.jupiter.api)
-  testRuntimeOnly(libs.junit.jupiter.engine)
+afterEvaluate {
+  dependencies {
+    val junitVersion = javaConvention.junitVersion.get()
+    add("testImplementation", "org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    add("testRuntimeOnly", "org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+  }
 }

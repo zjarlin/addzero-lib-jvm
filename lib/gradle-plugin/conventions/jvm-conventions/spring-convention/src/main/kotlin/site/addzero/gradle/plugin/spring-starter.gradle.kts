@@ -1,17 +1,21 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.the
+import site.addzero.gradle.SpringConventionExtension
 
 plugins {
     id("site.addzero.gradle.plugin.spring-common")
     kotlin("plugin.spring")
 }
-val libs = the<LibrariesForLibs>()
-val version = libs.versions.springBoot.get()
-dependencies {
-    compileOnly(libs.spring.boot.starter.web)
-    compileOnly(libs.spring.boot.autoconfigure)
-    annotationProcessor(libs.spring.boot.configurationProcessor)
 
+val springConvention = the<SpringConventionExtension>()
 
+afterEvaluate {
+    dependencies {
+        val bootVersion = springConvention.springBootVersion.get()
+        compileOnly("org.springframework.boot:spring-boot-starter-web:$bootVersion")
+        compileOnly("org.springframework.boot:spring-boot-autoconfigure:$bootVersion")
+        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor:$bootVersion")
+    }
 }

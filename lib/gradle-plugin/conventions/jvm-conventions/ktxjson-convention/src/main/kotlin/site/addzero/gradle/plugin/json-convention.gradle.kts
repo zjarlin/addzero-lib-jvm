@@ -1,14 +1,17 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.kotlin.dsl.dependencies
+import site.addzero.gradle.JsonConventionExtension
 
 plugins {
     kotlin("plugin.serialization")
     id("site.addzero.gradle.plugin.kotlin-convention") version "+"
 }
 
-val libs = the<LibrariesForLibs>()
+val jsonConvention = extensions.create("jsonConvention", JsonConventionExtension::class.java)
 
-dependencies {
-    implementation(libs.kotlinx.serialization)
+afterEvaluate {
+    dependencies {
+        add("implementation", "org.jetbrains.kotlinx:kotlinx-serialization-json:${jsonConvention.kotlinxSerializationVersion.get()}")
+    }
 }

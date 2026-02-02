@@ -20,12 +20,13 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
 }
-version="2026.02.02"
+version="2026.02.04"
 
 dependencies {
     api(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradle.tool.config.java)
     implementation(libs.gradlePlugin.kotlin)
+//  implementation("java-convention")
     api(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
 }
 

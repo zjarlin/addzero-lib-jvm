@@ -117,7 +117,7 @@ class MusicSearchUtilTest {
     @Tag("integration")
     fun testGetLyricsByFragment() {
         // When
-        val results = MusicSearchUtil.getLyricsByFragment("洋洋兮又复巍峨", limit = 3)
+        val results = MusicSearchUtil.getLyricsByFragment("阿刁", limit = 3)
 
         // Then
         assertNotNull(results)
