@@ -15,8 +15,8 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-03T13:01:41.990018
+// Generated at: 2026-02-03T18:14:09.117303
 // Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:conventions:spring-conventions")
 include(":lib:tool-jvm:network-call:music:tool-api-music-search")
+include(":lib:tool-kmp:models:common:common-models")
 // <<< Gradle Module Sleep: End Of Block <<<

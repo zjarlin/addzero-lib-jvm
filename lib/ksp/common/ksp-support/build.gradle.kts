@@ -1,6 +1,6 @@
 plugins {
     id("site.addzero.gradle.plugin.kmp-ksp-convention")
-    id("site.addzero.gradle.plugin.kmp-json-withtool-convention")
+    id("site.addzero.buildlogic.jvm.jvm-json-withtool")
 }
 kotlin {
     sourceSets {
