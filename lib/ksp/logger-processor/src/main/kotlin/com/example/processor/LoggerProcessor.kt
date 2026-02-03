@@ -12,6 +12,7 @@ class LoggerProcessor(
     private var processed = false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
+      logger.warn("1111111111111111")
         // Process only once to avoid repeated logs
         if (processed) {
             return emptyList()
@@ -32,7 +33,7 @@ class LoggerProcessor(
                 logger.warn("Found Logger implementation: ${loggerImpl::class.java.canonicalName}, Name: '${loggerImpl.name}'")
             }
         }
-        
+
         logger.warn("--- KSP LoggerProcessor: Search finished ---")
 
         processed = true

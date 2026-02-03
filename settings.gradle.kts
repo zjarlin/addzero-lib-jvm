@@ -15,8 +15,7 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-02T20:21:31.094717
-// Loaded: 2, Excluded: 0, Total: 2
-//include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency") // excluded by Gradle Buddy
-include(":lib:ksp:logger-implementation")
-// <<< Gra
+// Generated at: 2026-02-03T11:37:44.546235
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
+// <<< Gradle Module Sleep: End Of Block <<<

@@ -1,17 +1,16 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.jvm-ksp")
+  id("site.addzero.buildlogic.jvm.jvm-ksp")
+  id("site.addzero.buildlogic.jvm.jvm-ksp-plugin")
+
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-
-    // Depend on the API module so the processor knows about the Logger interface
-    implementation(project(":logger-api"))
-
-    // **CRITICAL**: Add the implementation to the processor's classpath
-    // so ServiceLoader can find it at compile time.
-    implementation(project(":logger-implementation"))
+  implementation(project(":lib:ksp:logger-api"))
+  kspTest(project(":lib:ksp:logger-implementation"))
+  kspTest(project(":lib:ksp:logger-processor"))
 }
+

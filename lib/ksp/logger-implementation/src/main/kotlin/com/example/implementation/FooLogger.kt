@@ -2,11 +2,11 @@ package com.example.implementation
 
 import com.example.api.Logger
 
-class ConsoleLogger : Logger {
-    override val name: String = "ConsoleLogger"
+class FooLogger : Logger {
+    override val name: String = "FooLogger"
 
     override fun log(message: String) {
-      println("consul")
+      println("foo")
         // At runtime, this would print to the console.
         println("[$name] $message")
     }
