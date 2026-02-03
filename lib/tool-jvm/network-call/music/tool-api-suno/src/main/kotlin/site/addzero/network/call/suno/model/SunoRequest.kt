@@ -62,7 +62,8 @@ data class SunoMusicRequest(
     @SerialName("artist_clip_id")
     val artistClipId: String? = null,
 
-    /** 声音性别，如 "m", "f" */
+    /** 声音性别男女，如 "m", "f" */
+
     @SerialName("vocal_gender")
     val vocalGender: String? = "m",
 

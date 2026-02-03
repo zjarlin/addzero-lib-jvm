@@ -45,8 +45,11 @@ class SunoClient(
     fun generateMusic(
         request: SunoMusicRequest
     ): String {
-        val response = postWithBody("$baseUrl/suno/submit/music", json.encodeToString(request))
-        return json.decodeFromString<Result<String>>(response).getOrThrow()
+      val jsonBody = json.encodeToString(request)
+      val response = postWithBody("$baseUrl/suno/submit/music", jsonBody)
+      println("gen music response: $response")
+      val decodeFromString = json.decodeFromString<Result<String>>(response)
+      return decodeFromString.getOrThrow()
     }
 
     /**
