@@ -1,6 +1,8 @@
 package site.addzero.common.models.result
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.math.round
 
 /**
@@ -9,6 +11,7 @@ import kotlin.math.round
  * @param T 成功时携带的数据类型
  */
 @Serializable
+@JsonClassDiscriminator("code")
 sealed class Result<T> {
   abstract val code: String
   abstract val message: String?
@@ -18,6 +21,7 @@ sealed class Result<T> {
    * @param data 成功时携带的数据
    */
    @Serializable
+   @SerialName("success")
    data class Success<T>(
      override val code: String,
      override val message: String? = null,
@@ -29,6 +33,7 @@ sealed class Result<T> {
    * @param message 错误消息
    */
    @Serializable
+   @SerialName("error")
    data class Error<T>(
      override val code: String,
      override val message: String? = null,
@@ -41,6 +46,7 @@ sealed class Result<T> {
    * @param extra 额外信息（如 uploadId）
    */
    @Serializable
+   @SerialName("in_progress")
    data class InProgress<T>(
      override val code: String = "202",
      override val message: String? = null,

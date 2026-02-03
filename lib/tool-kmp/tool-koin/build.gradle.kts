@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    id("site.addzero.gradle.plugin.kmp-core-convention") version "+"
+    id("site.addzero.buildlogic.kmp.platform.kmp-core") version "+"
 }
 
 kotlin {

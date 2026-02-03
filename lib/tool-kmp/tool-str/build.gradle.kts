@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("site.addzero.gradle.plugin.kmp-core-convention") version "+"
+    id("site.addzero.buildlogic.kmp.platform.kmp-core") version "+"
 }
 
 kotlin{
@@ -19,7 +19,7 @@ kotlin{
         jvmMain . dependencies {
             implementation(libs.tool.pinyin)
         }
-        
+
         commonTest {
             dependencies {
                 implementation(kotlin("test"))

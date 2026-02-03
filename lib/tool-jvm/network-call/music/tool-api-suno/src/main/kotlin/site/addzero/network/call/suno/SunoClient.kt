@@ -100,6 +100,7 @@ class SunoClient(
             if (!response.isSuccessful) {
                 throw RuntimeException("请求失败: ${response.code} - $responseBody")
             }
+          println("fetch suno task response: $responseBody")
             val decodeFromString = json.decodeFromString<Result<SunoTask>>(responseBody)
             return decodeFromString.getOrNull()
         }
