@@ -5,7 +5,7 @@ import site.addzero.gradle.JsonConventionExtension
 
 plugins {
     kotlin("plugin.serialization")
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
+    id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
 
 val jsonConvention = extensions.create("jsonConvention", JsonConventionExtension::class.java)

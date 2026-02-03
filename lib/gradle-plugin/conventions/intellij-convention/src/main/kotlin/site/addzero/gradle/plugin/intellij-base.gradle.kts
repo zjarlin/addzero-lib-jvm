@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.jetbrains.intellij.platform.base")
-    id("site.addzero.gradle.plugin.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 
 repositories {

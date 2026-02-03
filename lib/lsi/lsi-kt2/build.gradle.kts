@@ -1,7 +1,7 @@
 import site.addzero.gradle.plugin.KotlinConventionPlugin
 
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+" version "+"
+    id("site.addzero.buildlogic.jvm.kotlin-convention")  version "+"
 
     id("site.addzero.gradle.plugin.intellij-core")  version "2025.12.23"
 }

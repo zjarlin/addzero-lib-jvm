@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
+    id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
 
 dependencies {
@@ -9,5 +9,5 @@ dependencies {
 
     // fastjson2 支持（用于JSON序列化兜底验证）
     implementation(libs.fastjson2.kotlin)
-    
+
 }

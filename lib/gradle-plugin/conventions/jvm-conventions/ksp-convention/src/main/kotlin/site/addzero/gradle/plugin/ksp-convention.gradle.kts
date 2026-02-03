@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.dependencies
 import site.addzero.gradle.KspConventionExtension
 
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
+    id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
 
 val kspConvention = extensions.create("kspConvention", KspConventionExtension::class.java)

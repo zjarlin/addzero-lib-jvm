@@ -2,7 +2,7 @@ package site.addzero.gradle.plugin
 
 plugins {
   id("com.google.devtools.ksp")
-  id("site.addzero.gradle.plugin.kotlin-convention")
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 
 kotlin {

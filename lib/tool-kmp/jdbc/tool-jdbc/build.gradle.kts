@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+"
+    id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
 dependencies {
     api(libs.tool.jdbc.model)

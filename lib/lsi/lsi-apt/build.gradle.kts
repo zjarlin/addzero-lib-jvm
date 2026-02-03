@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "+" version "+"
+    id("site.addzero.buildlogic.jvm.kotlin-convention")  version "+"
 }
 
 dependencies {

@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.kotlin-convention") version "2026.02.02"
+    id("site.addzero.buildlogic.jvm.kotlin-convention") version "2026.02.02"
 }
 
 dependencies {
