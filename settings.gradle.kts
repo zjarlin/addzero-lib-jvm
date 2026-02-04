@@ -15,7 +15,7 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-04T18:18:46.299497
-// Loaded: 1, Excluded: 0, Total: 1
-include(":lib:gradle-plugin:tool:tool-gradle-projectdir")
+// Generated at: 2026-02-04T18:23:03.587472
+// Loaded: 0, Excluded: 1, Total: 1
+// Excluded (build infrastructure): :checkouts:build-logic
 // <<< Gradle Module Sleep: End Of Block <<<
