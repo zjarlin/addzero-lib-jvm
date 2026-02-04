@@ -21,6 +21,7 @@ data class SunoMusicRequest(
 
   // ============ 自定义模式 (Custom Mode) + 续写模式 (Extend Mode) ============
     /*任务完成后的回调通知地址*/
+    @SerialName("notify_hook")
     val notifyHook : String? = null,
 
 

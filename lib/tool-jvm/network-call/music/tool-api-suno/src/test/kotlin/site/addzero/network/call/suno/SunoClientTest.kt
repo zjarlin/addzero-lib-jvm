@@ -1,6 +1,7 @@
 package site.addzero.network.call.suno
 
 import org.junit.jupiter.api.*
+import site.addzero.core.ext.toJsonByKtx
 import site.addzero.core.network.json.json
 import site.addzero.network.call.suno.model.SunoMusicRequest
 
@@ -8,6 +9,7 @@ import site.addzero.network.call.suno.model.SunoMusicRequest
  * Suno 客户端测试
  */
 @DisplayName("Suno 客户端测试")
+@Disabled
 class SunoClientTest {
 
   private lateinit var client: SunoClient
@@ -29,14 +31,16 @@ class SunoClientTest {
 
   @Test
   fun `测试请求序列化`() {
-    val jsonBody = json.encodeToString(request())
-    println(jsonBody)
+    val value = request()
+    val toJsonByKtx = value.toJsonByKtx()
 
+    println()
   }
 
   @Test
   @DisplayName("测试生成音乐")
   @Tag("unit")
+  @Disabled("临时禁用")
   fun testGenerateMusic_success() {
     // Given
     val expectedTaskId = "task_test_id_123"

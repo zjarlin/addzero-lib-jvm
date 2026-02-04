@@ -15,7 +15,7 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-03T22:22:34.318873
+// Generated at: 2026-02-04T18:18:46.299497
 // Loaded: 1, Excluded: 0, Total: 1
-include(":lib:tool-kmp:tool-json")
+include(":lib:gradle-plugin:tool:tool-gradle-projectdir")
 // <<< Gradle Module Sleep: End Of Block <<<

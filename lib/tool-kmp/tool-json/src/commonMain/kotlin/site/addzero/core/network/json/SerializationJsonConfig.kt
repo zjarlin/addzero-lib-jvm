@@ -4,7 +4,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
 val json = Json {
-//    encodeDefaults = false
+    encodeDefaults = true
     //显示null
 //    explicitNulls = true
     ignoreUnknownKeys = true

@@ -16,7 +16,7 @@ subprojects {
 //    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.ddHHmm"))
     val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
     version = versionStr
-    version = "2026.02.02"
+//    version = "2026.02.02"
     println("项目版本为$versionStr")
     if (path.startsWith(":checkouts:")) {
         apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
