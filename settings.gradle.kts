@@ -15,7 +15,10 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-04T18:23:03.587472
-// Loaded: 0, Excluded: 1, Total: 1
-// Excluded (build infrastructure): :checkouts:build-logic
+// Generated at: 2026-02-06T13:56:50.199710
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:compose:compose-native-component-glass")
+include(":lib:gradle-plugin:conventions:kmp-conventions:kmp-convention")
+include(":lib:tool-jvm:network-call:music:tool-api-suno")
+include(":lib:tool-kmp:models:common:common-models")
 // <<< Gradle Module Sleep: End Of Block <<<
