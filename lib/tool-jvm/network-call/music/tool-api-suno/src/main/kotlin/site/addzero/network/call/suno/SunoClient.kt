@@ -9,6 +9,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import site.addzero.common.models.result.Result
 import site.addzero.network.call.suno.model.*
 import java.util.concurrent.TimeUnit
+import kotlin.getOrDefault
+import kotlin.getOrThrow
 
 /**
  * VectorEngine Suno API 客户端
