@@ -15,10 +15,9 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-06T19:54:30.809585
-// Loaded: 4, Excluded: 0, Total: 4
+// Generated at: 2026-02-08T17:15:33.772957
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:ksp:metadata:controller2api-processor")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
 include(":lib:tool-kmp:models:common:common-models")
-include(":lib:tool-kmp:tool-enum")
-include(":lib:tool-kmp:tool-exception")
 // <<< Gradle Module Sleep: End Of Block <<<

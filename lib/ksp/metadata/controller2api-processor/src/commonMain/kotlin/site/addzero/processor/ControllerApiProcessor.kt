@@ -556,7 +556,6 @@ package $packageName
 $importStatements
 
 /**
- * Ktorfit接口 - 由KSP自动生成
  * 原始Controller: ${controllerInfo.packageName}.${controllerInfo.originalClassName}
  * 基础路径: ${controllerInfo.basePath}
  */
