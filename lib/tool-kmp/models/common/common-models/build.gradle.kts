@@ -1,6 +1,6 @@
 plugins {
-  id("site.addzero.buildlogic.kmp.composition.kmp-json-withtool")
-  id("site.addzero.buildlogic.kmp.platform.kmp-core")
+  id("site.addzero.buildlogic.kmp.kmp-json-withtool")
+  id("site.addzero.buildlogic.kmp.kmp-core")
 }
 kotlin {
   sourceSets {

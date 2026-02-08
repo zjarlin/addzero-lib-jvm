@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.kmp-ksp-convention")
+    id("site.addzero.buildlogic.kmp.kmp-ksp")
 }
 kotlin {
     sourceSets {

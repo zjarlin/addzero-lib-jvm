@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.spring-starter-convention")
+    id("site.addzero.buildlogic.spring.spring-starter")
 }
 
 
