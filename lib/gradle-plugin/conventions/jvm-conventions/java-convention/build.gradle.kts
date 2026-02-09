@@ -26,10 +26,10 @@ repositories {
 dependencies {
     compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradle.tool.config.java)
-//    testImplementation(libs.junit.jupiter.api)
-//    testRuntimeOnly(libs.junit.jupiter.engine)
+//    testImplementation(libs.junit.junit.jupiter.api)
+//    testRuntimeOnly(libs.junit.junit.jupiter.engine)
 
-//    implementation(libs.gradlePlugin.kotlin)
+//    implementation(libs.kotlin.gradle.plugin)
 
     gradleApi()
 }

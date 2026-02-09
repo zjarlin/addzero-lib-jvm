@@ -6,10 +6,10 @@ dependencies {
     api(libs.lsi.core)
     implementation(libs.tool.str)
     // KSP API dependencies
-    implementation(libs.ksp.symbol.processing.api)
+    implementation(libs.symbol.processing.api)
 
 //    // 测试依赖
-//    testImplementation(libs.junit.jupiter)
+//    testImplementation(libs.junit.junit.jupiter)
 //    testImplementation(libs.kotest.runner.junit5)
 //    testImplementation(libs.kotest.assertions.core)
 //    testImplementation(libs.kotest.property)

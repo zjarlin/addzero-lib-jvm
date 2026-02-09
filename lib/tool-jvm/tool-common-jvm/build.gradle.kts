@@ -15,7 +15,7 @@ dependencies {
     implementation(libs.tool.str)
 
     // Kotlinx Serialization 用于 JSON 序列化
-//    implementation(libs.kotlinx.serialization.json)
+//    implementation(libs.kotlinx.serialization.json.json)
 
     // Kotlin 反射库（用于运行时访问注释）
 //    implementation("org.jetbrains.kotlin:kotlin-reflect")

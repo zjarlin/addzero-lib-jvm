@@ -26,7 +26,7 @@ kotlin {
     jvm()
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ksp.symbol.processing.api)
+            implementation(libs.symbol.processing.api)
         }
     }
 }

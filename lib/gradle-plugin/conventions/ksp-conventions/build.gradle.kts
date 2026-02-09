@@ -9,8 +9,8 @@ repositories {
 }
 
 dependencies {
-  implementation(libs.gradle.plugin.ksp)
-  implementation(libs.gradlePlugin.kotlin)
+  implementation(libs.com.google.devtools.ksp.gradle.plugin)
+  implementation(libs.kotlin.gradle.plugin)
   implementation(libs.tool.yml)
   implementation("site.addzero:tool-gradle-projectdir:2026.01.27")
   gradleApi()

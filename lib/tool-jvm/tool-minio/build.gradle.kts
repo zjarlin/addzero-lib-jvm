@@ -7,6 +7,6 @@ dependencies {
     implementation(libs.hutool.core)
     implementation(libs.slf4j.api)
 
-    testImplementation(libs.junit.jupiter.api)
-    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.junit.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.junit.jupiter.engine)
 }

@@ -7,7 +7,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.addzero.ksp.support)
-            implementation(libs.addzero.ioc.core)
+            implementation(libs.ioc.core)
             implementation(libs.lsi.ksp)
         }
     }

@@ -25,8 +25,8 @@ dependencies {
   compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
   implementation(libs.kotlin.convention)
    ////////////////spring//////////////
-  implementation(libs.gradlePlugin.dependencyManagement)
-  implementation(libs.gradlePlugin.springBoot)
-  implementation(libs.gradlePlugin.kotlinSpring)
+  implementation(libs.dependency.management.plugin)
+  implementation(libs.boot.org.springframework.boot.gradle.plugin)
+  implementation(libs.org.jetbrains.kotlin.plugin.spring.gradle.plugin)
 
 }

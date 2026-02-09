@@ -14,7 +14,7 @@ kotlin {
         implementation(libs.addzero.ksp.easycode)
         implementation(libs.addzero.entity2analysed.support)
 
-        implementation(libs.addzero.tool.koin)
+        implementation(libs.tool.koin)
 
     }
     sourceSets {

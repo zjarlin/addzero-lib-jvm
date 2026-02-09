@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // KSP 依赖
-//            implementation(libs.ksp.symbol.processing.api)
+//            implementation(libs.symbol.processing.api)
 
             // 基础工具
             implementation(libs.addzero.ksp.support)

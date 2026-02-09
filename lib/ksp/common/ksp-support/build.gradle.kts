@@ -5,8 +5,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation(libs.addzero.tool.json)
-            api(libs.addzero.tool.str)
+//            implementation(libs.tool.json)
+            api(libs.tool.str)
         }
         jvmMain.dependencies {
             implementation(libs.pinyin4j)

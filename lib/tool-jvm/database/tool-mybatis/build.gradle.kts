@@ -7,7 +7,7 @@ dependencies {
     compileOnly(libs.mybatis.plus)
     implementation(libs.mybatis.auto.wrapper)
 //    implementation(libs.mybatis.auto.wrapper)
-//    implementation(libs.addzero.tool.spring)
+//    implementation(libs.tool.spring)
     implementation(libs.hutool.core)
     implementation(libs.tool.spctx)
 //    compileOnly(projects.)

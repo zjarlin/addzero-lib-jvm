@@ -10,6 +10,6 @@ dependencies {
     // 添加测试依赖
     testImplementation(libs.spring.jdbc)
     testImplementation(libs.mysql.connector.java)
-    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.junit.jupiter)
     testImplementation(libs.tool.sql.executor)
 }

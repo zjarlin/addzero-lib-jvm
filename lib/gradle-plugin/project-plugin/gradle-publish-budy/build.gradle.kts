@@ -28,7 +28,7 @@ extensions.configure<JavaPluginExtension> {
 
 dependencies {
     gradleApi()
-    implementation(libs.gradlePlugin.mavenPublish)
+    implementation(libs.gradle.maven.publish.plugin)
     implementation(libs.gradle.script.core)
 
 }

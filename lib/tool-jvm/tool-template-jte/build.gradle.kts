@@ -8,7 +8,7 @@ dependencies {
 
     // 测试依赖
     testImplementation(libs.kotlin.test)
-    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.junit.jupiter)
 }
 
 description = "JTE Template Engine utilities"

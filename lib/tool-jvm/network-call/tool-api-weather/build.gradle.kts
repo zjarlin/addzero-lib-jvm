@@ -20,7 +20,7 @@ dependencies {
     implementation(libs.sqlite.jdbc)
 
     // JUnit for testing
-//    testImplementation(libs.junit.jupiter)
+//    testImplementation(libs.junit.junit.jupiter)
 
 
 }

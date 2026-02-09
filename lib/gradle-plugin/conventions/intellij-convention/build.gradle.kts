@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.org.jetbrains.intellij.platform.settings.gradle.plugin)
     implementation(libs.org.jetbrains.intellij.platform.base.gradle.plugin)
     implementation(libs.org.jetbrains.intellij.platform.module.gradle.plugin)
-    implementation(libs.gradlePlugin.kotlin)
+    implementation(libs.kotlin.gradle.plugin)
     implementation(libs.kotlin.convention)
     gradleApi()
 }

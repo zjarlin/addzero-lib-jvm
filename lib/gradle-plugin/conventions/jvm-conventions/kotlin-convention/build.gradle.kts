@@ -25,7 +25,7 @@ version="2026.02.04"
 dependencies {
     api(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.gradle.tool.config.java)
-    implementation(libs.gradlePlugin.kotlin)
+    implementation(libs.kotlin.gradle.plugin)
 //  implementation("java-convention")
     api(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
 }
