@@ -13,5 +13,5 @@ val libs = the<LibrariesForLibs>()
 dependencies {
     compileOnly(libs.spring.boot.starter.web)
     compileOnly(libs.spring.boot.autoconfigure)
-    annotationProcessor(libs.boot.spring.boot.configuration.processor)
+    annotationProcessor(libs.org.springframework.boot.spring.boot.configuration.processor)
 }

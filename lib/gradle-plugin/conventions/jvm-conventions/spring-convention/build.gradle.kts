@@ -26,7 +26,7 @@ dependencies {
   implementation(libs.kotlin.convention)
    ////////////////spring//////////////
   implementation(libs.dependency.management.plugin)
-  implementation(libs.boot.org.springframework.boot.gradle.plugin)
+  implementation(libs.org.springframework.boot.org.springframework.boot.gradle.plugin)
   implementation(libs.org.jetbrains.kotlin.plugin.spring.gradle.plugin)
 
 }
