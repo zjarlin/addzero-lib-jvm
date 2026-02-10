@@ -15,11 +15,15 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-08T20:59:46.201567
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:gradle-plugin:conventions:jvm-conventions:spring-convention")
+// Generated at: 2026-02-10T12:13:29.384201
+// Loaded: 9, Excluded: 0, Total: 9
+include(":lib:gradle-plugin:auto-jvmname")
 include(":lib:ksp:metadata:controller2api-processor")
+include(":lib:tool-jvm:database:tool-cte")
 include(":lib:tool-jvm:jimmer:jimmer-ext-dynamic-datasource")
+include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
+include(":lib:tool-kmp:ktor:ktor-banner")
 include(":lib:tool-kmp:models:common:common-models")
+include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
