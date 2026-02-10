@@ -6,7 +6,7 @@ plugins {
 
 
 dependencies {
-    implementation(libs.ioc.core)
-    testImplementation(libs.ioc.core)
+    implementation(libs.site.addzero.ioc.core)
+    testImplementation(libs.site.addzero.ioc.core)
     testAnnotationProcessor(projects.lib.apt.aptIocProcessor)
 }

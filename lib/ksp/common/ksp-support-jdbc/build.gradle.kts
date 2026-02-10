@@ -8,7 +8,7 @@ plugins {
 kotlin {
     sourceSets {
         jvmMain.dependencies {
-            api(libs.tool.jdbc) // PostgreSQL驱动
+            api(libs.site.addzero.tool.jdbc) // PostgreSQL驱动
             implementation(libs.org.postgresql.postgresql) // PostgreSQL驱动
             implementation(libs.com.h2database.h2) // h2驱动
             implementation(libs.mysql.mysql.connector.java) // MySQL驱动

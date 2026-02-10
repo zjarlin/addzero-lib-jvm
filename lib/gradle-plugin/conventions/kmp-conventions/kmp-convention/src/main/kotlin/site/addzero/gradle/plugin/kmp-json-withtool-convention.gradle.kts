@@ -14,7 +14,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json.json)
-            implementation(libs.tool.json)
+            implementation(libs.site.addzero.tool.json)
         }
     }
 }

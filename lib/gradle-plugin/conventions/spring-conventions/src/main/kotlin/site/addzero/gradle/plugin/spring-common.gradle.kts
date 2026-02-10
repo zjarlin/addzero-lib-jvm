@@ -11,7 +11,7 @@ val libs = the<LibrariesForLibs>()
 
 dependencies {
     val version = libs.versions.springBoot.get()
-    implementation(platform(libs.org.springframework.boot.spring.boot.dependencies))
+    implementation(platform(libs.org.springframework.boot.spring.boot.dependencies.v2))
 
     testImplementation(libs.org.springframework.boot.boot.spring.boot.starter.test)
     testImplementation(libs.junit.junit.junit.jupiter.api)

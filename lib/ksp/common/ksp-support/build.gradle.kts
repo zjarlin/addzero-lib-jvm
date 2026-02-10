@@ -5,7 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation(libs.tool.json)
+//            implementation(libs.site.addzero.tool.json)
             api(libs.site.addzero.tool.str)
         }
         jvmMain.dependencies {

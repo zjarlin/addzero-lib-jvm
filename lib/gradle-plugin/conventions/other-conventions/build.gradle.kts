@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.com.diffplug.spotless.gradle.plugin)
-    implementation(libs.dokka.gradle.plugin)
+    implementation(libs.com.diffplug.spotless.com.diffplug.spotless.gradle.plugin)
+    implementation(libs.org.jetbrains.dokka.dokka.gradle.plugin)
     gradleApi()
 }

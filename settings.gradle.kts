@@ -3,7 +3,7 @@ import site.addzero.gradle.RepoType
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 plugins {
-  id("org.gradle.toolchains.foojay-resolver-convention") version "+"
+//  id("org.gradle.toolchains.foojay-resolver-convention") version "+"
   id("site.addzero.gradle.plugin.repo-buddy") version "+"
 //    https://melix.github.io/includegit-gradle-plugin/latest/index.html#_known_limitations
   id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"

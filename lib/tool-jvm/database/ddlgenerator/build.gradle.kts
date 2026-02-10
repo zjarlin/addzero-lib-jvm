@@ -36,7 +36,7 @@ dependencies {
   implementation(libs.org.babyfish.jimmer.jimmer.core)
   implementation(libs.site.addzero.tool.coll)
   implementation(libs.site.addzero.tool.database.model)
-  implementation(libs.tool.jdbc)
+  implementation(libs.site.addzero.tool.jdbc)
   implementation(libs.site.addzero.tool.yml)
   implementation(libs.site.addzero.tool.str)
   implementation(libs.site.addzero.tool.sql.executor)
