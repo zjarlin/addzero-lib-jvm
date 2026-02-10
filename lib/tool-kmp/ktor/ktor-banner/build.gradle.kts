@@ -6,6 +6,6 @@ plugins {
 
 dependencies {
     // 仅依赖 ktor-server-core，不引入 netty 等具体引擎
-
+    implementation(libs.ktor.server.core)
 }
 
