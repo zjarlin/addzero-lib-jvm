@@ -6,6 +6,6 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.lsi.core)
-    implementation(libs.tool.str)
+    implementation(libs.site.addzero.lsi.core)
+    implementation(libs.site.addzero.tool.str)
 }

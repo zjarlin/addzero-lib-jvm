@@ -11,9 +11,9 @@ plugins {
 
 
 dependencies {
-    implementation(libs.postgresql)
-    implementation(libs.mysql.connector.java)
-    implementation(libs.tool.str)
+    implementation(libs.org.postgresql.postgresql)
+    implementation(libs.mysql.mysql.connector.java)
+    implementation(libs.site.addzero.tool.str)
 }
 
 

@@ -3,17 +3,17 @@ plugins {
 }
 
 dependencies {
-    api(libs.apt.dict.trans.core)
-    implementation(libs.javapoet)
+    api(libs.site.addzero.apt.dict.trans.core)
+    implementation(libs.com.squareup.javapoet)
 
     // 基本APT依赖
-    implementation(libs.javax.annotation.api)
+    implementation(libs.javax.annotation.javax.annotation.api)
     // Spring依赖（用于生成的转换器）
 
     // 测试时也需要处理器
-    testImplementation(libs.spring.beans)
-    testImplementation(libs.lombok)
-    testImplementation(libs.spring.context)
+    testImplementation(libs.org.springframework.spring.beans)
+    testImplementation(libs.org.projectlombok.lombok)
+    testImplementation(libs.org.springframework.spring.context)
 //    testImplementation("org.springframework.boot:spring-boot-starter-web")
     testAnnotationProcessor(project(":lib:apt:dict-trans:apt-dict-trans-processor"))
 }

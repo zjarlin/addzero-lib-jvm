@@ -9,15 +9,15 @@ plugins {
 
 dependencies {
     // KSP reified 处理器
-    ksp(libs.gen.reified.processor)
-    implementation(libs.gen.reified.core)
+    ksp(libs.site.addzero.gen.reified.processor)
+    implementation(libs.site.addzero.gen.reified.core)
 
-//    compileOnly(libs.spring.jdbc)
-    compileOnly(libs.spring.context)
-//    compileOnly(libs.spring.web)
-    compileOnly(libs.spring.webmvc)
+//    compileOnly(libs.org.springframework.spring.jdbc)
+    compileOnly(libs.org.springframework.spring.context)
+//    compileOnly(libs.org.springframework.spring.web)
+    compileOnly(libs.org.springframework.spring.webmvc)
 
-//    compileOnly(libs.hutool.all)
-//    implementation(libs.jackson.module.kotlin)
-//    compileOnly(libs.javax.servlet.api)
+//    compileOnly(libs.cn.hutool.hutool.all)
+//    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
+//    compileOnly(libs.javax.servlet.javax.servlet.api)
 }

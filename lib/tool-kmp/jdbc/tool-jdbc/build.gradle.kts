@@ -2,6 +2,6 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
 dependencies {
-    api(libs.tool.jdbc.model)
-    implementation(libs.tool.sql.executor)
+    api(libs.site.addzero.tool.jdbc.model)
+    implementation(libs.site.addzero.tool.sql.executor)
 }

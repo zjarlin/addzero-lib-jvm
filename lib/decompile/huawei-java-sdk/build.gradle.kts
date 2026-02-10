@@ -1,20 +1,20 @@
 plugins {
-    id("site.addzero.gradle.plugin.java-convention")
+    id("site.addzero.buildlogic.jvm.java-convention")
 }
 version = "3.2.6"
 dependencies {
 
 
-    implementation(libs.httpclient)
-    implementation(libs.okhttp) {
+    implementation(libs.org.apache.httpcomponents.httpclient)
+    implementation(libs.com.squareup.okhttp3.okhttp) {
         exclude(group = "com.squareup.okio", module = "okio")
     }
-    implementation(libs.okio) {
+    implementation(libs.com.squareup.okio.okio) {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-common")
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
     }
-    implementation(libs.slf4j.api)
-    implementation(libs.bcprov.jdk15to18)
-    implementation(libs.bgmprovider)
+    implementation(libs.org.slf4j.slf4j.api)
+    implementation(libs.org.bouncycastle.bcprov.jdk15to18)
+    implementation(libs.org.openeuler.bgmprovider)
 
 }

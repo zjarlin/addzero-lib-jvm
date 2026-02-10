@@ -6,11 +6,11 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
 //            implementation(libs.tool.json)
-            api(libs.tool.str)
+            api(libs.site.addzero.tool.str)
         }
         jvmMain.dependencies {
-            implementation(libs.pinyin4j)
-            implementation(libs.tool.io.codegen)
+            implementation(libs.com.belerweb.pinyin4j)
+            implementation(libs.site.addzero.tool.io.codegen)
         }
     }
 }

@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.tool.curl)
-    implementation(libs.okhttp)
-    implementation(libs.jackson.module.kotlin)
+    implementation(libs.site.addzero.tool.curl)
+    implementation(libs.com.squareup.okhttp3.okhttp)
+    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
 }

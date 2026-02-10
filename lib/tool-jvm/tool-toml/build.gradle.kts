@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-        implementation(libs.tomlj)
-    implementation(libs.hutool.all)
+        implementation(libs.org.tomlj.tomlj)
+    implementation(libs.cn.hutool.hutool.all)
 
 
 }

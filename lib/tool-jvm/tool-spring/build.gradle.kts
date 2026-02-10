@@ -5,12 +5,12 @@ plugins {
 
 dependencies {
 
-    compileOnly(libs.spring.jdbc)
-    compileOnly(libs.spring.context)
-    compileOnly(libs.spring.web)
-    compileOnly(libs.spring.webmvc)
+    compileOnly(libs.org.springframework.spring.jdbc)
+    compileOnly(libs.org.springframework.spring.context)
+    compileOnly(libs.org.springframework.spring.web)
+    compileOnly(libs.org.springframework.spring.webmvc)
 
-    implementation(libs.hutool.all)
-    implementation(libs.jackson.module.kotlin)
-    compileOnly(libs.javax.servlet.api)
+    implementation(libs.cn.hutool.hutool.all)
+    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
+    compileOnly(libs.javax.servlet.javax.servlet.api)
 }

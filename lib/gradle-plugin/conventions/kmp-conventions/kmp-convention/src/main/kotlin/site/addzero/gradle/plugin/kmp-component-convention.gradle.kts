@@ -45,13 +45,13 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.lifecycle.viewmodel.compose)
-            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.viewmodel.compose)
+            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.runtime.compose)
             implementation(compose.materialIconsExtended)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.swing)
         }
     }
 }

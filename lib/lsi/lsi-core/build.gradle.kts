@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.tool.str)
+    implementation(libs.site.addzero.tool.str)
 }
 
 description = "语言无关的不完备抽象层"

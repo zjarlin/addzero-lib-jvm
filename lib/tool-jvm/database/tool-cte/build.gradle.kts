@@ -3,13 +3,13 @@ plugins {
 }
 
 dependencies {
-    compileOnly(libs.spring.jdbc)
-    compileOnly(libs.spring.context)
-    api(libs.tool.database.model)
+    compileOnly(libs.org.springframework.spring.jdbc)
+    compileOnly(libs.org.springframework.spring.context)
+    api(libs.site.addzero.tool.database.model)
 
     // 添加测试依赖
-    testImplementation(libs.spring.jdbc)
-    testImplementation(libs.mysql.connector.java)
-    testImplementation(libs.junit.junit.jupiter)
-    testImplementation(libs.tool.sql.executor)
+    testImplementation(libs.org.springframework.spring.jdbc)
+    testImplementation(libs.mysql.mysql.connector.java)
+    testImplementation(libs.org.junit.jupiter.junit.jupiter)
+    testImplementation(libs.site.addzero.tool.sql.executor)
 }

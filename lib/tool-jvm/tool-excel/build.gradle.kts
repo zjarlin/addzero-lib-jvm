@@ -4,11 +4,11 @@ plugins {
 
 dependencies{
 
-    implementation(libs.fastexcel)
-    implementation(libs.hutool.all)
-//    implementation(libs.byte.buddy)
-    implementation(libs.byte.buddy)
-    implementation(libs.kotlin.reflect)
-    implementation(libs.jackson.module.kotlin)
+    implementation(libs.cn.idev.excel.fastexcel)
+    implementation(libs.cn.hutool.hutool.all)
+//    implementation(libs.net.bytebuddy.byte.buddy)
+    implementation(libs.net.bytebuddy.byte.buddy)
+    implementation(libs.org.jetbrains.kotlin.kotlin.reflect)
+    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
 }
 

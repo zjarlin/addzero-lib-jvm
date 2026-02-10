@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.gson)
-    implementation(libs.okhttp)
+    implementation(libs.com.google.code.gson.gson)
+    implementation(libs.com.squareup.okhttp3.okhttp)
 
 }

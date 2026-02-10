@@ -7,9 +7,9 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.lsi.core)
-    implementation(libs.lsi.intellij)
-    implementation(libs.tool.str)
+    implementation(libs.site.addzero.lsi.core)
+    implementation(libs.site.addzero.lsi.intellij)
+    implementation(libs.site.addzero.tool.str)
 
     // K2 Analysis API 通过 Kotlin 插件捆绑提供
 //    intellijPlatform {

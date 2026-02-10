@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.sshj)
-    implementation(libs.slf4j.api)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    implementation(libs.com.hierynomus.sshj)
+    implementation(libs.org.slf4j.slf4j.api)
 }

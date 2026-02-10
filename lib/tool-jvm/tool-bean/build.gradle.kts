@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.tool.reflection)
+    implementation(libs.site.addzero.tool.reflection)
 }

@@ -4,5 +4,5 @@ plugins {
 
 dependencies {
     // Caffeine cache for high-performance caching
-    implementation(libs.caffeine)
+    implementation(libs.com.github.ben.manes.caffeine.caffeine)
 }

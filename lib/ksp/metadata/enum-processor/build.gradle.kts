@@ -8,8 +8,8 @@ kotlin {
         commonMain.dependencies {
         }
         jvmMain.dependencies {
-//            implementation(libs.kotlinpoet)
-            implementation(libs.kotlinpoet.ksp)
+//            implementation(libs.com.squareup.kotlinpoet)
+            implementation(libs.com.squareup.kotlinpoet.ksp)
         }
     }
 }

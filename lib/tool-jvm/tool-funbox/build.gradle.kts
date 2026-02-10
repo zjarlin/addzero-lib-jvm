@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.hutool.all)
-//    implementation(libs.jackson.module.kotlin)
-    compileOnly(libs.fastjson2.kotlin)
-    implementation(libs.swagger.annotations)
+    implementation(libs.cn.hutool.hutool.all)
+//    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
+    compileOnly(libs.com.alibaba.fastjson2.fastjson2.kotlin)
+    implementation(libs.io.swagger.swagger.annotations)
 
-    implementation(libs.tool.reflection)
+    implementation(libs.site.addzero.tool.reflection)
 }

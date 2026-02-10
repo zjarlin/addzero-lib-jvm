@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.jimmer.sql.kotlin)
-    implementation(libs.hutool.all)
-    api(libs.addzero.jimmer.model.lowquery)
+    implementation(libs.org.babyfish.jimmer.jimmer.sql.kotlin)
+    implementation(libs.cn.hutool.hutool.all)
+    api(libs.site.addzero.addzero.jimmer.model.lowquery)
 
 }

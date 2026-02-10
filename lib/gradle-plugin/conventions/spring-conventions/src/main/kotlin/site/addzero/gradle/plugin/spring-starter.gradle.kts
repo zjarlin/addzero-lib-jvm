@@ -11,7 +11,7 @@ plugins {
 val libs = the<LibrariesForLibs>()
 
 dependencies {
-    compileOnly(libs.spring.boot.starter.web)
-    compileOnly(libs.spring.boot.autoconfigure)
+    compileOnly(libs.org.springframework.boot.spring.boot.starter.web)
+    compileOnly(libs.org.springframework.boot.spring.boot.autoconfigure)
     annotationProcessor(libs.org.springframework.boot.spring.boot.configuration.processor)
 }

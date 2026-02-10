@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.tool.pinyin)
+    implementation(libs.site.addzero.tool.pinyin)
 }

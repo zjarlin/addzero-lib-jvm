@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.kotlin.reflect)
+    implementation(libs.org.jetbrains.kotlin.kotlin.reflect)
 }

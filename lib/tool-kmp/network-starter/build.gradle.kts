@@ -4,8 +4,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktorfit.lib)
-            implementation(libs.addzero.tool.json)
+            implementation(libs.de.jensklingenberg.ktorfit.ktorfit.lib)
+            implementation(libs.site.addzero.tool.json)
         }
     }
 }

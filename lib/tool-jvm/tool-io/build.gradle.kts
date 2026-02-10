@@ -3,5 +3,5 @@ plugins {
 //    id("kmp-json")
 }
 dependencies {
-//    implementation(libs.tool.str)
+//    implementation(libs.site.addzero.tool.str)
 }

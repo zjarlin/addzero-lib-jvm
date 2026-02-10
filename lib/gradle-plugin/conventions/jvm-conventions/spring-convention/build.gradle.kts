@@ -6,7 +6,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath(libs.gradle.tool.config.java)
+    classpath(libs.site.addzero.gradle.tool.config.java)
   }
 }
 configureJ8("8")
@@ -23,10 +23,10 @@ repositories {
 
 dependencies {
   compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-  implementation(libs.kotlin.convention)
+  implementation(libs.site.addzero.kotlin.convention)
    ////////////////spring//////////////
   implementation(libs.dependency.management.plugin)
   implementation(libs.org.springframework.boot.org.springframework.boot.gradle.plugin)
-  implementation(libs.org.jetbrains.kotlin.plugin.spring.gradle.plugin)
+  implementation(libs.org.jetbrains.kotlin.plugin.spring.org.jetbrains.kotlin.plugin.spring.gradle.plugin)
 
 }

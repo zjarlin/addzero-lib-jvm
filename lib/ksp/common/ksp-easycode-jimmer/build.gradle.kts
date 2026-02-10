@@ -10,16 +10,16 @@ plugins {
 }
 kotlin {
     dependencies {
-        implementation(libs.addzero.ksp.support)
-        implementation(libs.addzero.ksp.easycode)
-        implementation(libs.addzero.entity2analysed.support)
+        implementation(libs.site.addzero.addzero.ksp.support)
+        implementation(libs.site.addzero.addzero.ksp.easycode)
+        implementation(libs.site.addzero.addzero.entity2analysed.support)
 
-        implementation(libs.tool.koin)
+        implementation(libs.site.addzero.tool.koin)
 
     }
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.velocity.engine.core)
+            implementation(libs.org.apache.velocity.velocity.engine.core)
         }
     }
 

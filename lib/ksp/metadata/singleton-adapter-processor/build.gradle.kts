@@ -8,6 +8,6 @@ kotlin {
     implementation("site.addzero:singleton-adapter-api:2026.01.20")
   }
 //  sourceSets.jvmMain.dependencies {
-//    implementation(libs.kotlinpoet.ksp)
+//    implementation(libs.com.squareup.kotlinpoet.ksp)
 //  }
 }

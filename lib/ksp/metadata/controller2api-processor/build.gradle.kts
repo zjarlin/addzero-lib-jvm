@@ -4,8 +4,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.addzero.ksp.support)
-            implementation(libs.hutool.all)
+            implementation(libs.site.addzero.addzero.ksp.support)
+            implementation(libs.cn.hutool.hutool.all)
         }
     }
 }

@@ -17,7 +17,7 @@ kotlin{
     }
     sourceSets {
         jvmMain . dependencies {
-            implementation(libs.tool.pinyin)
+            implementation(libs.site.addzero.tool.pinyin)
         }
 
         commonTest {

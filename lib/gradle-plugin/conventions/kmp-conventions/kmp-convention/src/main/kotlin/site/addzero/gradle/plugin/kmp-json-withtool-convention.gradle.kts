@@ -13,7 +13,7 @@ val libs = the<LibrariesForLibs>()
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json.json)
             implementation(libs.tool.json)
         }
     }

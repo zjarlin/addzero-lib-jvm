@@ -13,6 +13,6 @@ dependencies {
     implementation(libs.org.springframework.boot.org.springframework.boot.gradle.plugin)
     implementation(libs.dependency.management.plugin)
     implementation(libs.kotlin.gradle.plugin)
-    implementation(libs.org.jetbrains.kotlin.plugin.spring.gradle.plugin)
+    implementation(libs.org.jetbrains.kotlin.plugin.spring.org.jetbrains.kotlin.plugin.spring.gradle.plugin)
     gradleApi()
 }

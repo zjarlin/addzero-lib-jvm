@@ -6,5 +6,5 @@ plugins {
 
 
 dependencies {
-    implementation(libs.slf4j.api)
+    implementation(libs.org.slf4j.slf4j.api)
 }

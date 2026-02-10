@@ -9,12 +9,12 @@ plugins {
 
 kotlin {
     dependencies {
-        implementation(project.dependencies.platform(libs.koin.bom))
-        implementation(libs.koin.annotations)
-        implementation(libs.koin.core)
+        implementation(project.dependencies.platform(libs.io.insert.koin.koin.bom))
+        implementation(libs.io.insert.koin.koin.annotations)
+        implementation(libs.io.insert.koin.koin.core)
     }
     sourceSets.jvmMain.dependencies {
 
-        implementation(libs.hutool.core)
+        implementation(libs.cn.hutool.hutool.core)
     }
 }

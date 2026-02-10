@@ -7,5 +7,5 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.lsi.core)
+    implementation(libs.site.addzero.lsi.core)
 }

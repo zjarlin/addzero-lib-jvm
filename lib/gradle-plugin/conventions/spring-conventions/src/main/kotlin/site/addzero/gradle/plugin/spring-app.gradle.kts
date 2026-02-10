@@ -12,5 +12,5 @@ plugins {
 val libs = the<LibrariesForLibs>()
 
 dependencies {
-    implementation(libs.spring.boot.starter.web)
+    implementation(libs.org.springframework.boot.spring.boot.starter.web)
 }

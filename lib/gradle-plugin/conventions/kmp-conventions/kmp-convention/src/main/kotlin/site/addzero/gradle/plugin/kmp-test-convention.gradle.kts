@@ -15,7 +15,7 @@ val libs = the<LibrariesForLibs>()
 kotlin {
     sourceSets {
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(libs.org.jetbrains.kotlin.kotlin.test)
         }
     }
 }

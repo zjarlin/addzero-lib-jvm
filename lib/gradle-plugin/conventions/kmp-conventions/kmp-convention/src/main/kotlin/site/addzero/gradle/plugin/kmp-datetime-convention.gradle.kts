@@ -12,7 +12,7 @@ val libs = the<LibrariesForLibs>()
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlinx.datetime)
+            implementation(libs.org.jetbrains.kotlinx.kotlinx.datetime)
         }
     }
 }

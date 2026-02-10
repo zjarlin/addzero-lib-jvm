@@ -5,12 +5,12 @@ plugins {
 
 dependencies {
 
-//    compileOnly(libs.spring.jdbc)
-    compileOnly(libs.spring.context)
-//    compileOnly(libs.spring.web)
-//    compileOnly(libs.spring.webmvc)
-    implementation(libs.spring.expression)
+//    compileOnly(libs.org.springframework.spring.jdbc)
+    compileOnly(libs.org.springframework.spring.context)
+//    compileOnly(libs.org.springframework.spring.web)
+//    compileOnly(libs.org.springframework.spring.webmvc)
+    implementation(libs.org.springframework.spring.expression)
 
 
-    compileOnly(libs.hutool.extra)
+    compileOnly(libs.cn.hutool.hutool.extra)
 }

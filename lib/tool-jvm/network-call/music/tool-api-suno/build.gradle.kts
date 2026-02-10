@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  implementation(libs.okhttp)
+  implementation(libs.com.squareup.okhttp3.okhttp)
 
   // Common models
   implementation("site.addzero:common-models:2026.02.06")

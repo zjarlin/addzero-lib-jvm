@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  implementation(libs.okhttp)
-  implementation(libs.fastjson2.kotlin)
+  implementation(libs.com.squareup.okhttp3.okhttp)
+  implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
 
 }

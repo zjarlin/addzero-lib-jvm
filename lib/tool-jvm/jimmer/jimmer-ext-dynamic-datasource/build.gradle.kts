@@ -4,7 +4,7 @@ plugins {
 
 
 dependencies {
-//    implementation(libs.jimmer.sql.kotlin)
-       implementation(libs.jimmer.spring.boot.starter)
+//    implementation(libs.org.babyfish.jimmer.jimmer.sql.kotlin)
+       implementation(libs.org.babyfish.jimmer.jimmer.spring.boot.starter)
 
 }

@@ -4,6 +4,6 @@ plugins {
 }
 
 dependencies {
-    api(libs.hivemq.mqtt.client)
+    api(libs.com.hivemq.hivemq.mqtt.client)
 }
 

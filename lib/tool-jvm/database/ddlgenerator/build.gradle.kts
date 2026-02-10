@@ -33,12 +33,12 @@ processorBuddy {
 //  readmeEnabled.set(true)
 }
 dependencies {
-  implementation(libs.jimmer.core)
-  implementation(libs.tool.coll)
-  implementation(libs.tool.database.model)
+  implementation(libs.org.babyfish.jimmer.jimmer.core)
+  implementation(libs.site.addzero.tool.coll)
+  implementation(libs.site.addzero.tool.database.model)
   implementation(libs.tool.jdbc)
-  implementation(libs.tool.yml)
-  implementation(libs.tool.str)
-  implementation(libs.tool.sql.executor)
+  implementation(libs.site.addzero.tool.yml)
+  implementation(libs.site.addzero.tool.str)
+  implementation(libs.site.addzero.tool.sql.executor)
 }
 description = "ddl生成工具类"

@@ -5,14 +5,14 @@ plugins {
 
 dependencies {
     // Netty 核心依赖
-    implementation(libs.netty.all)
+    implementation(libs.io.netty.netty.all)
 
     // 日志依赖
-    implementation(libs.slf4j.api)
+    implementation(libs.org.slf4j.slf4j.api)
 
     // JSON 处理
-    implementation(libs.fastjson2.kotlin)
+    implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
 
     // 工具类
-    implementation(libs.hutool.all)
+    implementation(libs.cn.hutool.hutool.all)
 }

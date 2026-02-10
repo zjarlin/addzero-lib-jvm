@@ -6,7 +6,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath(libs.gradle.tool.config.java)
+    classpath(libs.site.addzero.gradle.tool.config.java)
   }
 }
 configureJ8("17")
@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
   implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-  implementation(libs.com.google.devtools.ksp.gradle.plugin)
-  implementation(libs.kotlin.convention)
-  implementation(libs.ksp.convention)
+  implementation(libs.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
+  implementation(libs.site.addzero.kotlin.convention)
+  implementation(libs.site.addzero.ksp.convention)
 }

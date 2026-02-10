@@ -34,7 +34,7 @@ kotlin {
 }
 kotlin {
     dependencies {
-        implementation(libs.addzero.ksp.support.jdbc)
-        implementation(libs.addzero.ksp.support)
+        implementation(libs.site.addzero.addzero.ksp.support.jdbc)
+        implementation(libs.site.addzero.addzero.ksp.support)
     }
 }

@@ -13,7 +13,7 @@ val libs = the<LibrariesForLibs>()
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktorfit.lib)
+            implementation(libs.de.jensklingenberg.ktorfit.ktorfit.lib)
         }
     }
 }

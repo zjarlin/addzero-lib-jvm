@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath(libs.gradle.tool.config.java)
+        classpath(libs.site.addzero.gradle.tool.config.java)
     }
 }
 
@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-    implementation(libs.gradle.tool.config.java)
-    implementation(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
+    implementation(libs.site.addzero.gradle.tool.config.java)
+    implementation(libs.site.addzero.gradle.plugin.java.convention.site.addzero.gradle.plugin.java.convention.gradle.plugin)
     gradleApi()
 }

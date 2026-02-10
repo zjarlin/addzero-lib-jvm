@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-  implementation(libs.byte.buddy)
-  implementation(libs.tool.reflection)
+  implementation(libs.net.bytebuddy.byte.buddy)
+  implementation(libs.site.addzero.tool.reflection)
 }

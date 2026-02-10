@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.minio)
-    implementation(libs.hutool.core)
-    implementation(libs.slf4j.api)
+    implementation(libs.io.minio.minio)
+    implementation(libs.cn.hutool.hutool.core)
+    implementation(libs.org.slf4j.slf4j.api)
 
-    testImplementation(libs.junit.junit.jupiter.api)
-    testRuntimeOnly(libs.junit.junit.jupiter.engine)
+    testImplementation(libs.junit.junit.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.junit.junit.jupiter.engine)
 }

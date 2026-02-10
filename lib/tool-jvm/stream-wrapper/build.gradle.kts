@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-//    implementation(libs.hutool.all)
-    implementation(libs.mybatis.plus.core)
-//    implementation(libs.mybatis.plus)
-    implementation(libs.commons.lang3)
+//    implementation(libs.cn.hutool.hutool.all)
+    implementation(libs.com.baomidou.mybatis.plus.core)
+//    implementation(libs.com.baomidou.mybatis.plus)
+    implementation(libs.org.apache.commons.commons.lang3)
 
 }

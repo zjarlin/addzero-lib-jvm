@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath(libs.gradle.tool.config.java)
+        classpath(libs.site.addzero.gradle.tool.config.java)
     }
 }
 
@@ -25,9 +25,9 @@ repositories {
 
 dependencies {
     compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-    implementation(libs.gradle.tool.config.java)
-//    testImplementation(libs.junit.junit.jupiter.api)
-//    testRuntimeOnly(libs.junit.junit.jupiter.engine)
+    implementation(libs.site.addzero.gradle.tool.config.java)
+//    testImplementation(libs.junit.junit.junit.jupiter.api)
+//    testRuntimeOnly(libs.junit.junit.junit.jupiter.engine)
 
 //    implementation(libs.kotlin.gradle.plugin)
 

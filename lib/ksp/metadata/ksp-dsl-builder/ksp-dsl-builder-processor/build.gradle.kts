@@ -6,10 +6,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.addzero.ksp.dsl.builder.core)
+            implementation(libs.site.addzero.addzero.ksp.dsl.builder.core)
+
         }
         jvmMain.dependencies {
-            implementation(libs.hutool.all)
+            implementation(libs.cn.hutool.hutool.all)
         }
     }
 }

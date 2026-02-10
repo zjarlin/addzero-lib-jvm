@@ -7,7 +7,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath(libs.gradle.tool.config.java)
+        classpath(libs.site.addzero.gradle.tool.config.java)
     }
 }
 configureJ8("8")
@@ -26,7 +26,7 @@ repositories {
 dependencies {
     compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 //     implementation(libs.gradlePlugin.ksp)
-    implementation(libs.com.google.devtools.ksp.gradle.plugin)
+    implementation(libs.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
     implementation(libs.kotlin.gradle.plugin)
-    implementation(libs.kotlin.convention)
+    implementation(libs.site.addzero.kotlin.convention)
 }

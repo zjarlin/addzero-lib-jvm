@@ -6,10 +6,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // KSP 依赖
-//            implementation(libs.symbol.processing.api)
+//            implementation(libs.com.google.devtools.ksp.symbol.processing.api)
 
             // 基础工具
-            implementation(libs.addzero.ksp.support)
+            implementation(libs.site.addzero.addzero.ksp.support)
 
 
 //            implementation(projects.lib.kld.addzeroKaleidoscopeKsp)

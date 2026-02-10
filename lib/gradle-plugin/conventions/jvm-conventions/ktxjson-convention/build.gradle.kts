@@ -6,7 +6,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath(libs.gradle.tool.config.java)
+    classpath(libs.site.addzero.gradle.tool.config.java)
   }
 }
 configureJ8("8")
@@ -24,5 +24,5 @@ repositories {
 dependencies {
   compileOnly(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
   implementation(libs.kotlin.serialization)
-  implementation(libs.kotlin.convention)
+  implementation(libs.site.addzero.kotlin.convention)
 }

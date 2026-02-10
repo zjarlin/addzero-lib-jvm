@@ -45,26 +45,26 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.lifecycle.viewmodel.compose)
-            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.viewmodel.compose)
+            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.runtime.compose)
             implementation(compose.materialIconsExtended)
 
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.logback.classic)
+            implementation(libs.io.ktor.ktor.client.core)
+            implementation(libs.io.ktor.ktor.client.content.negotiation)
+            implementation(libs.io.ktor.ktor.serialization.kotlinx.json)
+            implementation(libs.io.ktor.ktor.client.logging)
+            implementation(libs.ch.qos.logback.logback.classic.classic)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-            api(libs.ktor.client.cio)
+            implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.swing)
+            api(libs.io.ktor.ktor.client.cio)
         }
         wasmJsMain.dependencies {
-            api(libs.ktor.client.js)
+            api(libs.io.ktor.ktor.client.js)
         }
         nativeMain.dependencies {
-            api(libs.ktor.client.darwin)
+            api(libs.io.ktor.ktor.client.darwin)
         }
     }
     compilerOptions {

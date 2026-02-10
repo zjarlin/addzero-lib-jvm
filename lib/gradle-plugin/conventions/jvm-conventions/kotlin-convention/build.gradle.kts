@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath(libs.gradle.tool.config.java)
+        classpath(libs.site.addzero.gradle.tool.config.java)
     }
 }
 configureJ8("8")
@@ -24,9 +24,9 @@ version="2026.02.04"
 
 dependencies {
     api(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
-    implementation(libs.gradle.tool.config.java)
+    implementation(libs.site.addzero.gradle.tool.config.java)
     implementation(libs.kotlin.gradle.plugin)
 //  implementation("java-convention")
-    api(libs.site.addzero.gradle.plugin.java.convention.gradle.plugin)
+    api(libs.site.addzero.gradle.plugin.java.convention.site.addzero.gradle.plugin.java.convention.gradle.plugin)
 }
 

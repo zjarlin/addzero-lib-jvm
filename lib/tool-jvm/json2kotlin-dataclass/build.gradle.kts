@@ -3,11 +3,11 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.gson)
-    implementation(libs.tool.jvmstr)
+    implementation(libs.com.google.code.gson.gson)
+    implementation(libs.site.addzero.tool.jvmstr)
     // JTE Template Engine
-//    implementation(libs.jte)
-//    implementation(libs.jte.kotlin)
+//    implementation(libs.gg.jte.jte)
+//    implementation(libs.gg.jte.jte.kotlin)
 }
 
 

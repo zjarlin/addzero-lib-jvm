@@ -3,8 +3,8 @@ plugins {
 //    id("kmp-json")
 }
 dependencies {
-    implementation(libs.snakeyaml)
-    implementation(libs.hutool.core)
+    implementation(libs.org.yaml.snakeyaml)
+    implementation(libs.cn.hutool.hutool.core)
 
 }
 

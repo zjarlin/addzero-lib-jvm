@@ -11,15 +11,15 @@ plugins {
 val libs = the<LibrariesForLibs>()
 
 dependencies {
-    kspCommonMainMetadata(libs.koin.ksp.compiler)
+    kspCommonMainMetadata(libs.io.insert.koin.koin.ksp.compiler)
 }
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform(libs.koin.bom))
-            implementation(libs.koin.annotations)
-            implementation(libs.koin.core)
+            implementation(project.dependencies.platform(libs.io.insert.koin.koin.bom))
+            implementation(libs.io.insert.koin.koin.annotations)
+            implementation(libs.io.insert.koin.koin.core)
         }
     }
 }
