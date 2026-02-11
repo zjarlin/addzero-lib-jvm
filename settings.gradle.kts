@@ -15,17 +15,17 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-10T17:18:27.515994
+// Generated at: 2026-02-11T16:23:59.591697
 // Loaded: 14, Excluded: 0, Total: 14
 include(":lib:decompile:huawei-java-sdk")
 include(":lib:gradle-plugin:auto-jvmname")
 include(":lib:gradle-plugin:settings-plugin:gradle-repo-buddy")
 include(":lib:ksp:common:ksp-easycode")
 include(":lib:ksp:metadata:controller2api-processor")
+include(":lib:ksp:metadata:ioc:ioc-core")
+include(":lib:ksp:metadata:ioc:ioc-processor")
 include(":lib:ksp:metadata:ksp-dsl-builder:ksp-dsl-builder-processor")
 include(":lib:tool-jvm:database:tool-cte")
-include(":lib:tool-jvm:jimmer:jimmer-ext-dynamic-datasource")
-include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 include(":lib:tool-jvm:network-call:music:tool-api-suno")
 include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
 include(":lib:tool-kmp:ktor:ktor-banner")

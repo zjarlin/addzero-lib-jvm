@@ -2,9 +2,9 @@ package site.addzero.ioc.strategy
 
 
 class RegularFunctionStrategy : CodeGenerationStrategy {
-    override fun generateCollectionCode(functions: List<Pair<String, InitType>>) = """
+    override fun generateCollectionCode(functions: List<BeanInfo>) = """
     val collectRegular = listOf(
-        ${functions.joinToString(",\n        ") { (name, _) -> "{ $name() }" }}
+        ${functions.joinToString(",\n        ") { "{ ${it.name}() }" }}
     )
     """.trimIndent()
 
@@ -16,9 +16,9 @@ class RegularFunctionStrategy : CodeGenerationStrategy {
 }
 
 class ClassInstanceStrategy : CodeGenerationStrategy {
-    override fun generateCollectionCode(functions: List<Pair<String, InitType>>) = """
+    override fun generateCollectionCode(functions: List<BeanInfo>) = """
     val collectClassInstance = listOf(
-        ${functions.joinToString(",\n        ") { (name, _) -> "{ $name() }" }}
+        ${functions.joinToString(",\n        ") { "{ ${it.name}() }" }}
     )
     """.trimIndent()
 
@@ -30,9 +30,9 @@ class ClassInstanceStrategy : CodeGenerationStrategy {
 }
 
 class ObjectInstanceStrategy : CodeGenerationStrategy {
-    override fun generateCollectionCode(functions: List<Pair<String, InitType>>) = """
+    override fun generateCollectionCode(functions: List<BeanInfo>) = """
     val collectObjectInstance = listOf(
-        ${functions.joinToString(",\n        ") { (name, _) -> "{ $name }" }}
+        ${functions.joinToString(",\n        ") { "{ ${it.name} }" }}
     )
     """.trimIndent()
 
@@ -44,9 +44,9 @@ class ObjectInstanceStrategy : CodeGenerationStrategy {
 }
 
 class SuspendFunctionStrategy : CodeGenerationStrategy {
-    override fun generateCollectionCode(functions: List<Pair<String, InitType>>) = """
+    override fun generateCollectionCode(functions: List<BeanInfo>) = """
     val collectSuspend = listOf(
-        ${functions.joinToString(",\n        ") { (name, _) -> "suspend { $name() }" }}
+        ${functions.joinToString(",\n        ") { "suspend { ${it.name}() }" }}
     )
     """.trimIndent()
 
@@ -58,9 +58,9 @@ class SuspendFunctionStrategy : CodeGenerationStrategy {
 }
 
 class ComposableFunctionStrategy : CodeGenerationStrategy {
-    override fun generateCollectionCode(functions: List<Pair<String, InitType>>) = """
+    override fun generateCollectionCode(functions: List<BeanInfo>) = """
     val collectComposable = listOf(
-        ${functions.joinToString(",\n        ") { (name, _) -> "@androidx.compose.runtime.Composable { $name() }" }}
+        ${functions.joinToString(",\n        ") { "@androidx.compose.runtime.Composable { ${it.name}() }" }}
     )
     """.trimIndent()
 

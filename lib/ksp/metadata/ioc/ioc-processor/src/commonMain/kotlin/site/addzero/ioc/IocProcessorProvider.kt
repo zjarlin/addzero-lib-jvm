@@ -15,6 +15,7 @@ import site.addzero.ioc.container.ContainerGenerator
 import site.addzero.ioc.registry.RegistryGenerator
 import site.addzero.ioc.scanner.ComponentScanGenerator
 import site.addzero.ioc.scanner.ComponentScanInfo
+import site.addzero.ioc.strategy.BeanInfo
 import site.addzero.ioc.strategy.InitType
 import site.addzero.util.lsi.clazz.LsiClass
 import site.addzero.util.lsi.clazz.hasNoArgConstructor
@@ -26,19 +27,30 @@ import site.addzero.util.lsi_impl.impl.ksp.toLsiMethod
 
 class IocProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment) = object : SymbolProcessor {
-        private val functions = mutableListOf<Pair<String, InitType>>()
+        private val beans = mutableListOf<BeanInfo>()
         private val components = mutableListOf<LsiClass>()
         private val componentScans = mutableListOf<ComponentScanInfo>()
+
+        private fun extractOrder(annotated: KSAnnotated): Int {
+            val beanAnnotation = annotated.annotations.firstOrNull {
+                it.shortName.asString() == "Bean"
+            } ?: return 0
+            return beanAnnotation.arguments.firstOrNull {
+                it.name?.asString() == "order"
+            }?.value as? Int ?: 0
+        }
 
         private fun extractClassInfo(clazz: KSClassDeclaration, resolver: Resolver) {
             val lsiClass = clazz.toLsiClass(resolver)
             if (!lsiClass.hasNoArgConstructor) return
-            lsiClass.qualifiedName?.let { functions.add(it to InitType.CLASS_INSTANCE) }
+            val order = extractOrder(clazz)
+            lsiClass.qualifiedName?.let { beans.add(BeanInfo(it, InitType.CLASS_INSTANCE, order)) }
         }
 
         private fun extractObjectInfo(obj: KSClassDeclaration, resolver: Resolver) {
             val lsiClass = obj.toLsiClass(resolver)
-            lsiClass.qualifiedName?.let { functions.add(it to InitType.OBJECT_INSTANCE) }
+            val order = extractOrder(obj)
+            lsiClass.qualifiedName?.let { beans.add(BeanInfo(it, InitType.OBJECT_INSTANCE, order)) }
         }
 
         private fun extractFunctionInfo(function: KSFunctionDeclaration, resolver: Resolver) {
@@ -47,24 +59,38 @@ class IocProcessorProvider : SymbolProcessorProvider {
 
             val parentClass = lsiMethod.parentClass
             val packageName = function.packageName.asString().takeIf { it.isNotEmpty() }
+            val order = extractOrder(function)
+
+            val isExtension = function.extensionReceiver != null
+
             val initType = when {
+                isExtension && parentClass == null -> InitType.EXTENSION_FUNCTION
                 parentClass == null -> InitType.TOP_LEVEL_FUNCTION
                 parentClass.isCompanionObject -> InitType.COMPANION_OBJECT
                 else -> InitType.CLASS_INSTANCE
             }
 
-            val fullName = if (initType == InitType.TOP_LEVEL_FUNCTION) {
-                val name = if (lsiMethod.isComposable) {
-                    lsiMethod.name?.replaceFirstChar { it.uppercase() }
-                } else lsiMethod.name
-                if (packageName != null && name != null) "$packageName.$name" else name ?: ""
-            } else {
-                parentClass?.qualifiedName ?: ""
+            val fullName = when (initType) {
+                InitType.EXTENSION_FUNCTION -> {
+                    val receiverType = function.extensionReceiver!!.resolve()
+                        .declaration.qualifiedName?.asString() ?: ""
+                    val funcName = function.simpleName.asString()
+                    val funcPackage = packageName ?: ""
+                    "$receiverType::$funcPackage.$funcName"
+                }
+                InitType.TOP_LEVEL_FUNCTION -> {
+                    val name = if (lsiMethod.isComposable) {
+                        lsiMethod.name?.replaceFirstChar { it.uppercase() }
+                    } else lsiMethod.name
+                    if (packageName != null && name != null) "$packageName.$name" else name ?: ""
+                }
+                else -> {
+                    parentClass?.qualifiedName ?: ""
+                }
             }
 
-            functions.add(fullName to initType)
+            beans.add(BeanInfo(fullName, initType, order))
         }
-
 
         override fun process(resolver: Resolver): List<KSAnnotated> {
             resolver.getSymbolsWithAnnotation(Bean::class.qualifiedName!!)
@@ -96,18 +122,23 @@ class IocProcessorProvider : SymbolProcessorProvider {
 
                     val packages = (annotation?.getAttribute("packages") as? Array<*>)
                         ?.mapNotNull { it as? String } ?: emptyList()
+                    val excludePackages = (annotation?.getAttribute("excludePackages") as? Array<*>)
+                        ?.mapNotNull { it as? String } ?: emptyList()
                     val defaultNamespace = annotation?.getAttribute("defaultNamespace") as? String
                         ?: "site.addzero.ioc.metadata"
 
-                    componentScans.add(ComponentScanInfo(lsiClass, packages, defaultNamespace))
+                    componentScans.add(ComponentScanInfo(lsiClass, packages, excludePackages, defaultNamespace))
                 }
 
             return emptyList()
         }
 
         override fun finish() {
+            // sort by order before generating
+            val sortedBeans = beans.sortedBy { it.order }
+
             val codeGenerator = environment.codeGenerator
-            ContainerGenerator(codeGenerator).generate(functions)
+            ContainerGenerator(codeGenerator).generate(sortedBeans)
             RegistryGenerator(codeGenerator).apply {
                 generate(components)
                 generateMetadata(components)

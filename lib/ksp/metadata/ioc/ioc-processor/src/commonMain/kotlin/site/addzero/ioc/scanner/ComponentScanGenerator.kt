@@ -8,6 +8,7 @@ import site.addzero.util.lsi.clazz.packageName
 data class ComponentScanInfo(
     val targetClass: LsiClass,
     val packages: List<String>,
+    val excludePackages: List<String>,
     val defaultNamespace: String
 )
 
@@ -20,11 +21,17 @@ class ComponentScanGenerator(private val codeGenerator: CodeGenerator) {
     }
 
     private fun generateScanner(scanInfo: ComponentScanInfo, allComponents: List<LsiClass>) {
-        val packagesToScan = scanInfo.packages.ifEmpty { listOf(scanInfo.defaultNamespace) }
+        // packages 为空时，回退到声明类自身的包名，再回退到 defaultNamespace
+        val packagesToScan = scanInfo.packages.ifEmpty {
+            val selfPackage = scanInfo.targetClass.packageName
+            if (!selfPackage.isNullOrEmpty()) listOf(selfPackage) else listOf(scanInfo.defaultNamespace)
+        }
 
         val matchedComponents = allComponents.filter { component ->
             val qualifiedName = component.qualifiedName ?: return@filter false
-            packagesToScan.any { pkg -> qualifiedName.startsWith(pkg) }
+            val inScanScope = packagesToScan.any { pkg -> qualifiedName.startsWith(pkg) }
+            val excluded = scanInfo.excludePackages.any { pkg -> qualifiedName.startsWith(pkg) }
+            inScanScope && !excluded
         }
 
         if (matchedComponents.isEmpty()) return
@@ -66,12 +73,12 @@ class ComponentScanGenerator(private val codeGenerator: CodeGenerator) {
                     "${component.qualifiedName}()"
                 } else {
                     val paramCalls = params.joinToString(", ") { param ->
-                        "registry.getRequiredBean(${param.type?.qualifiedName}::class)"
+                        "delegate.getRequiredBean(${param.type?.qualifiedName}::class)"
                     }
                     "${component.qualifiedName}($paramCalls)"
                 }
 
-                appendLine("            registry.registerProvider(${component.qualifiedName}::class) { $constructorCall }")
+                appendLine("            delegate.registerProvider(${component.qualifiedName}::class) { $constructorCall }")
             }
             appendLine()
 
@@ -87,7 +94,7 @@ class ComponentScanGenerator(private val codeGenerator: CodeGenerator) {
                 appendLine("            // Register interface implementations")
                 interfaceMap.forEach { (interfaceName, implementations) ->
                     implementations.forEach { implClass ->
-                        appendLine("            registry.registerImplementation(${interfaceName}::class, ${implClass}::class)")
+                        appendLine("            delegate.registerImplementation(${interfaceName}::class, ${implClass}::class)")
                     }
                 }
             }
@@ -99,22 +106,37 @@ class ComponentScanGenerator(private val codeGenerator: CodeGenerator) {
             ${imports.joinToString("\n") { "import $it" }}
             import site.addzero.ioc.registry.KmpBeanRegistry
             import site.addzero.ioc.registry.BeanRegistry
+            import site.addzero.ioc.registry.TypeKey
             import kotlin.reflect.KClass
 
-            object $className {
-                private val registry = KmpBeanRegistry()
+            object $className : BeanRegistry {
+                private val delegate = KmpBeanRegistry()
 
                 init {
 $registrationCode
                 }
 
-                fun getRegistry(): BeanRegistry = registry
+                fun getRegistry(): BeanRegistry = delegate
 
-                inline fun <reified T : Any> getBean(): T? = registry.getBean(T::class)
+                // BeanRegistry delegation
+                override fun <T : Any> getBean(clazz: KClass<T>): T? = delegate.getBean(clazz)
+                override fun getBean(name: String): Any? = delegate.getBean(name)
+                override fun <T : Any> registerBean(clazz: KClass<T>, instance: T) = delegate.registerBean(clazz, instance)
+                override fun <T : Any> registerProvider(clazz: KClass<T>, provider: () -> T) = delegate.registerProvider(clazz, provider)
+                override fun <T : Any> registerProvider(name: String, clazz: KClass<T>, provider: () -> T) = delegate.registerProvider(name, clazz, provider)
+                override fun <R : Any> registerExtension(receiverClass: KClass<R>, name: String, extension: R.() -> Any?) = delegate.registerExtension(receiverClass, name, extension)
+                override fun <R : Any> getExtensions(receiverClass: KClass<R>) = delegate.getExtensions(receiverClass)
+                override fun <R : Any> getExtension(receiverClass: KClass<R>, name: String) = delegate.getExtension(receiverClass, name)
+                override fun containsBean(clazz: KClass<*>): Boolean = delegate.containsBean(clazz)
+                override fun getBeanTypes(): Set<KClass<*>> = delegate.getBeanTypes()
+                override fun <T : Any> injectList(clazz: KClass<T>): List<T> = delegate.injectList(clazz)
+                override fun <T : Any> getBean(typeKey: TypeKey): T? = delegate.getBean(typeKey)
+                override fun <T : Any> registerBean(typeKey: TypeKey, instance: T) = delegate.registerBean(typeKey, instance)
+                override fun <T : Any> registerProvider(typeKey: TypeKey, provider: () -> T) = delegate.registerProvider(typeKey, provider)
 
-                inline fun <reified T : Any> getRequiredBean(): T = registry.getRequiredBean(T::class)
-
-                inline fun <reified T : Any> injectList(): List<T> = registry.injectList(T::class)
+                inline fun <reified T : Any> getBean(): T? = delegate.getBean(T::class)
+                inline fun <reified T : Any> getRequiredBean(): T = delegate.getRequiredBean(T::class)
+                inline fun <reified T : Any> injectList(): List<T> = delegate.injectList(T::class)
 
                 fun getScannedPackages(): List<String> = listOf(${scannedPackages.joinToString(", ") { "\"$it\"" }})
 

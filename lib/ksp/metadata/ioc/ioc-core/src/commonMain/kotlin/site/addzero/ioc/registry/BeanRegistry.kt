@@ -1,6 +1,5 @@
 package site.addzero.ioc.registry
 
-import site.addzero.ioc.registry.GlobalBeanRegistry.injectList
 import kotlin.reflect.KClass
 
 /**
@@ -27,7 +26,27 @@ interface BeanRegistry {
         return getBean(clazz) ?: throw IllegalArgumentException("No bean found for type")
     }
 
+    /**
+     * 根据名称获取 Bean 实例
+     * @param name Bean 名称（函数名、类名等）
+     * @return Bean 实例，如果不存在则返回 null
+     */
+    fun getBean(name: String): Any?
 
+    /**
+     * 根据名称获取 Bean 实例，如果不存在则抛出异常
+     */
+    fun getRequiredBean(name: String): Any {
+        return getBean(name) ?: throw IllegalArgumentException("No bean found for name: $name")
+    }
+
+    /**
+     * 根据名称获取指定类型的 Bean
+     */
+    fun <T : Any> getBean(name: String, clazz: KClass<T>): T? {
+        @Suppress("UNCHECKED_CAST")
+        return getBean(name) as? T
+    }
 
     /**
      * 注册 Bean 实例
@@ -44,6 +63,29 @@ interface BeanRegistry {
      * @param provider Bean 提供者函数
      */
     fun <T : Any> registerProvider(clazz: KClass<T>, provider: () -> T)
+
+    /**
+     * 注册带名称的 Bean 提供者
+     */
+    fun <T : Any> registerProvider(name: String, clazz: KClass<T>, provider: () -> T)
+
+    /**
+     * 注册扩展函数 Bean
+     * @param receiverClass receiver 类型
+     * @param name 扩展函数名称
+     * @param extension 扩展函数引用
+     */
+    fun <R : Any> registerExtension(receiverClass: KClass<R>, name: String, extension: R.() -> Any?)
+
+    /**
+     * 获取指定 receiver 类型的所有扩展函数
+     */
+    fun <R : Any> getExtensions(receiverClass: KClass<R>): Map<String, R.() -> Any?>
+
+    /**
+     * 获取指定 receiver 类型的指定名称的扩展函数
+     */
+    fun <R : Any> getExtension(receiverClass: KClass<R>, name: String): (R.() -> Any?)?
 
     /**
      * 检查是否包含指定类型的 Bean
@@ -66,85 +108,32 @@ interface BeanRegistry {
      */
     fun <T : Any> injectList(clazz: KClass<T>): List<T>
 
+    // ============ 泛型 Bean 支持 ============
 
-}
+    /**
+     * 根据 TypeKey 获取泛型 Bean
+     */
+    fun <T : Any> getBean(typeKey: TypeKey): T?
 
-inline fun <reified T : Any> getSupportStrategty(predicate: (T) -> Boolean): T? {
-    return injectList(T::class).firstOrNull(predicate)
-}
-
-/**
- * 默认的 Bean 注册表实现
- */
-class DefaultBeanRegistry : BeanRegistry {
-    private val beanMap = mutableMapOf<KClass<*>, Any>()
-    private val providerMap = mutableMapOf<KClass<*>, () -> Any>()
-
-    // 存储接口/父类与实现类的关系
-    private val implementationMap = mutableMapOf<KClass<*>, Set<KClass<*>>>()
-
-    override fun <T : Any> getBean(clazz: KClass<T>): T? {
-        // 先尝试从已创建的实例中获取
-        @Suppress("UNCHECKED_CAST")
-        val instance = beanMap[clazz] as? T
-        if (instance != null) {
-            return instance
-        }
-
-        // 如果没有实例，尝试从提供者创建
-        val provider = providerMap[clazz] as? (() -> T)
-        if (provider != null) {
-            val newInstance = provider()
-            beanMap[clazz] = newInstance
-            return newInstance
-        }
-
-        return null
-    }
-
-    override fun <T : Any> registerBean(clazz: KClass<T>, instance: T) {
-        beanMap[clazz] = instance
-    }
-
-    override fun <T : Any> registerProvider(clazz: KClass<T>, provider: () -> T) {
-        providerMap[clazz] = provider
-    }
-
-    override fun containsBean(clazz: KClass<*>): Boolean {
-        return beanMap.containsKey(clazz) || providerMap.containsKey(clazz)
-    }
-
-    override fun getBeanTypes(): Set<KClass<*>> {
-        return (beanMap.keys + providerMap.keys).toSet()
-    }
-
-    override fun <T : Any> injectList(clazz: KClass<T>): List<T> {
-        val implementationClasses = implementationMap[clazz] ?: emptySet()
-
-        @Suppress("UNCHECKED_CAST")
-        return implementationClasses.mapNotNull { implClass ->
-            getBean(implClass) as? T
-        }
+    /**
+     * 根据 TypeKey 获取泛型 Bean，不存在则抛异常
+     */
+    fun <T : Any> getRequiredBean(typeKey: TypeKey): T {
+        return getBean(typeKey) ?: throw IllegalArgumentException("No bean found for type: $typeKey")
     }
 
     /**
-     * 注册实现类到接口/父类的映射
-     * 这个方法由生成的代码调用
+     * 注册泛型 Bean 实例
      */
-    internal fun <T : Any, R : T> registerImplementation(
-        interfaceClass: KClass<T>,
-        implementationClass: KClass<R>
-    ) {
-        val currentImplementations = implementationMap[interfaceClass]?.toMutableSet() ?: mutableSetOf()
-        currentImplementations.add(implementationClass)
-        implementationMap[interfaceClass] = currentImplementations
-    }
-}
+    fun <T : Any> registerBean(typeKey: TypeKey, instance: T)
 
-/**
- * 全局 Bean 注册表实例
- */
-object GlobalBeanRegistry : BeanRegistry by DefaultBeanRegistry()
+    /**
+     * 注册泛型 Bean 提供者
+     */
+    fun <T : Any> registerProvider(typeKey: TypeKey, provider: () -> T)
+
+
+}
 
 /**
  * 扩展函数，方便获取 Bean
@@ -171,3 +160,37 @@ inline fun <reified T : Any> BeanRegistry.registerProvider(noinline provider: ()
  * 扩展函数，方便注入指定类型的所有实现
  */
 inline fun <reified T : Any> BeanRegistry.injectList(): List<T> = injectList(T::class)
+
+/**
+ * 按名称获取指定类型的 Bean
+ */
+inline fun <reified T : Any> BeanRegistry.getBean(name: String): T? = getBean(name, T::class)
+
+/**
+ * 按名称获取指定类型的 Bean，不存在则抛异常
+ */
+inline fun <reified T : Any> BeanRegistry.getRequiredBean(name: String): T =
+    getBean(name, T::class) ?: throw IllegalArgumentException("No bean found for name: $name, type: ${T::class.simpleName}")
+
+/**
+ * 获取指定 receiver 类型的所有扩展函数
+ */
+inline fun <reified R : Any> BeanRegistry.getExtensions(): Map<String, R.() -> Any?> = getExtensions(R::class)
+
+/**
+ * 获取指定 receiver 类型的指定名称的扩展函数
+ */
+inline fun <reified R : Any> BeanRegistry.getExtension(name: String): (R.() -> Any?)? = getExtension(R::class, name)
+
+/**
+ * 在 receiver 上执行所有注册的扩展函数
+ */
+inline fun <reified R : Any> BeanRegistry.applyExtensions(receiver: R) {
+    getExtensions<R>().values.forEach { ext -> receiver.ext() }
+}
+
+/**
+ * 注册扩展函数
+ */
+inline fun <reified R : Any> BeanRegistry.registerExtension(name: String, noinline extension: R.() -> Any?) =
+    registerExtension(R::class, name, extension)

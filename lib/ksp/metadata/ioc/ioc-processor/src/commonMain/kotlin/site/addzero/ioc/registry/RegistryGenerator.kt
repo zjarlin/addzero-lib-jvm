@@ -48,6 +48,7 @@ class RegistryGenerator(private val codeGenerator: CodeGenerator) {
             import site.addzero.ioc.registry.KmpBeanRegistry
             import site.addzero.ioc.registry.BeanRegistry
             import site.addzero.ioc.registry.MetadataLoader
+            import site.addzero.ioc.registry.TypeKey
             import kotlin.reflect.KClass
 
             public object AutoBeanRegistry : BeanRegistry {
@@ -55,11 +56,19 @@ class RegistryGenerator(private val codeGenerator: CodeGenerator) {
 
                 override fun <T : Any> getBean(clazz: KClass<T>): T? = delegate.getBean(clazz)
                 override fun <T : Any> getRequiredBean(clazz: KClass<T>): T = delegate.getRequiredBean(clazz)
+                override fun getBean(name: String): Any? = delegate.getBean(name)
                 override fun <T : Any> registerBean(clazz: KClass<T>, instance: T) = delegate.registerBean(clazz, instance)
                 override fun <T : Any> registerProvider(clazz: KClass<T>, provider: () -> T) = delegate.registerProvider(clazz, provider)
+                override fun <T : Any> registerProvider(name: String, clazz: KClass<T>, provider: () -> T) = delegate.registerProvider(name, clazz, provider)
+                override fun <R : Any> registerExtension(receiverClass: KClass<R>, name: String, extension: R.() -> Any?) = delegate.registerExtension(receiverClass, name, extension)
+                override fun <R : Any> getExtensions(receiverClass: KClass<R>) = delegate.getExtensions(receiverClass)
+                override fun <R : Any> getExtension(receiverClass: KClass<R>, name: String) = delegate.getExtension(receiverClass, name)
                 override fun containsBean(clazz: KClass<*>): Boolean = delegate.containsBean(clazz)
                 override fun getBeanTypes(): Set<KClass<*>> = delegate.getBeanTypes()
                 override fun <T : Any> injectList(clazz: KClass<T>): List<T> = delegate.injectList(clazz)
+                override fun <T : Any> getBean(typeKey: TypeKey): T? = delegate.getBean(typeKey)
+                override fun <T : Any> registerBean(typeKey: TypeKey, instance: T) = delegate.registerBean(typeKey, instance)
+                override fun <T : Any> registerProvider(typeKey: TypeKey, provider: () -> T) = delegate.registerProvider(typeKey, provider)
 
                 init {
 $registrationCode

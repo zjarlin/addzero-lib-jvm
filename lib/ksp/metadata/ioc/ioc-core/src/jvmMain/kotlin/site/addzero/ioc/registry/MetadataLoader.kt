@@ -24,14 +24,12 @@ object MetadataLoader {
      * @return 组件元数据列表
      */
     fun loadComponentMetadata(): List<ComponentMetadata> {
-        val result = mutableListOf<ComponentMetadata>()
+        val result = mutableMapOf<String, ComponentMetadata>()
 
         try {
-            // 获取类加载器
             val classLoader = Thread.currentThread().contextClassLoader
                 ?: MetadataLoader::class.java.classLoader
 
-            // 查找所有 META-INF/ioc-components.properties 资源
             val resources = classLoader.getResources(METADATA_PATH)
             while (resources.hasMoreElements()) {
                 val url = resources.nextElement()
@@ -39,35 +37,18 @@ object MetadataLoader {
                     val properties = java.util.Properties()
                     properties.load(stream)
                     properties.forEach { (key, value) ->
-                        result.add(ComponentMetadata(key as String, value as String))
-                    }
-                }
-            }
-
-            // 也尝试从当前线程的类加载器获取
-            val threadResources = Thread.currentThread().contextClassLoader?.getResources(METADATA_PATH)
-            threadResources?.let {
-                while (it.hasMoreElements()) {
-                    val url = it.nextElement()
-                    // 避免重复处理
-                    if (!result.any { it.className == url.toString() }) {
-                        url.openStream().use { stream ->
-                            val properties = java.util.Properties()
-                            properties.load(stream)
-                            properties.forEach { (key, value) ->
-                                result.add(ComponentMetadata(key as String, value as String))
-                            }
-                        }
+                        val name = key as String
+                        val className = value as String
+                        // 以 className 为 key 去重
+                        result.putIfAbsent(className, ComponentMetadata(name, className))
                     }
                 }
             }
         } catch (e: Exception) {
-            // 如果扫描失败，返回空列表
-            // 日志输出
             System.err.println("Warning: Failed to load component metadata: ${e.message}")
         }
 
-        return result
+        return result.values.toList()
     }
 
     /**
