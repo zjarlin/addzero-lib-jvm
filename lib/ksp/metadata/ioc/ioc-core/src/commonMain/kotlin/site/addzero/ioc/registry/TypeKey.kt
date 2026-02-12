@@ -10,8 +10,8 @@ import kotlin.reflect.KClass
  *
  * 用法:
  *   val key = TypeKey.of<IService<User>>()
- *   registry.registerBean(key, UserServiceImpl())
- *   val service = registry.getBean<IService<User>>(key)
+ *   registry.register(key, UserServiceImpl())
+ *   val service = registry.get<IService<User>>(key)
  */
 data class TypeKey(
     val rawType: KClass<*>,

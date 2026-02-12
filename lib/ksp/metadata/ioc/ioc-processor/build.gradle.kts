@@ -13,4 +13,4 @@ kotlin {
     }
 }
 
-version="2026.02.13"
+version="2026.02.17"

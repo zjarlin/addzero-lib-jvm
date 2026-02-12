@@ -3,27 +3,26 @@ package site.addzero.ioc.registry
 import kotlin.reflect.KClass
 
 /**
- * KMP 兼容的 Bean 注册表实现
- * 支持接口实现关系、泛型 Bean、循环依赖检测
+ * KMP-compatible BeanRegistry implementation.
+ * Supports interface-implementation mapping, generic beans, circular dependency detection.
  */
-class KmpBeanRegistry : BeanRegistry {
+class KmpBeanRegistry : MutableBeanRegistry {
     private val beanMap = mutableMapOf<KClass<*>, Any>()
     private val providerMap = mutableMapOf<KClass<*>, () -> Any>()
     private val nameMap = mutableMapOf<String, Any>()
     private val nameProviderMap = mutableMapOf<String, () -> Any>()
     private val extensionMap = mutableMapOf<KClass<*>, MutableMap<String, Any.() -> Any?>>()
     private val implementationMap = mutableMapOf<KClass<*>, MutableSet<KClass<*>>>()
-
-    // 泛型 Bean 存储
     private val typedBeanMap = mutableMapOf<TypeKey, Any>()
     private val typedProviderMap = mutableMapOf<TypeKey, () -> Any>()
+    private val tagMap = mutableMapOf<KClass<*>, MutableSet<String>>()
 
-    // 循环依赖检测：正在创建中的 bean
-    private val creating = mutableSetOf<Any>() // KClass 或 TypeKey 或 String
+    // circular dependency detection
+    private val creating = mutableSetOf<Any>()
 
     private fun <T> withCircularCheck(key: Any, block: () -> T): T {
         if (key in creating) {
-            throw IllegalStateException("循环依赖: $key 正在创建中。依赖链: ${creating.joinToString(" -> ")} -> $key")
+            throw IllegalStateException("Circular dependency: $key is being created. Chain: ${creating.joinToString(" -> ")} -> $key")
         }
         creating.add(key)
         try {
@@ -33,7 +32,9 @@ class KmpBeanRegistry : BeanRegistry {
         }
     }
 
-    override fun <T : Any> getBean(clazz: KClass<T>): T? {
+    // ============ get by type ============
+
+    override fun <T : Any> get(clazz: KClass<T>): T? {
         @Suppress("UNCHECKED_CAST")
         val instance = beanMap[clazz] as? T
         if (instance != null) return instance
@@ -47,11 +48,9 @@ class KmpBeanRegistry : BeanRegistry {
         }
     }
 
-    override fun <T : Any> getRequiredBean(clazz: KClass<T>): T {
-        return getBean(clazz) ?: throw IllegalArgumentException("No bean found for type: ${clazz.simpleName}")
-    }
+    // ============ get by name ============
 
-    override fun getBean(name: String): Any? {
+    override fun get(name: String): Any? {
         val instance = nameMap[name]
         if (instance != null) return instance
 
@@ -63,10 +62,10 @@ class KmpBeanRegistry : BeanRegistry {
         }
     }
 
-    // ============ 泛型 Bean ============
+    // ============ get by TypeKey ============
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> getBean(typeKey: TypeKey): T? {
+    override fun <T : Any> get(typeKey: TypeKey): T? {
         val instance = typedBeanMap[typeKey] as? T
         if (instance != null) return instance
 
@@ -78,17 +77,25 @@ class KmpBeanRegistry : BeanRegistry {
         }
     }
 
-    override fun <T : Any> registerBean(typeKey: TypeKey, instance: T) {
-        typedBeanMap[typeKey] = instance
+    // ============ getAll ============
+
+    override fun <T : Any> getAll(clazz: KClass<T>): List<T> {
+        val implClasses = implementationMap[clazz] ?: emptySet()
+        @Suppress("UNCHECKED_CAST")
+        return implClasses.mapNotNull { implClass -> get(implClass) as? T }
     }
 
-    override fun <T : Any> registerProvider(typeKey: TypeKey, provider: () -> T) {
-        typedProviderMap[typeKey] = provider
+    override fun <T : Any> getAll(clazz: KClass<T>, tag: String): List<T> {
+        val implClasses = implementationMap[clazz] ?: emptySet()
+        @Suppress("UNCHECKED_CAST")
+        return implClasses
+            .filter { tagMap[it]?.contains(tag) == true }
+            .mapNotNull { implClass -> get(implClass) as? T }
     }
 
-    // ============ 基础注册 ============
+    // ============ register ============
 
-    override fun <T : Any> registerBean(clazz: KClass<T>, instance: T) {
+    override fun <T : Any> register(clazz: KClass<T>, instance: T) {
         beanMap[clazz] = instance
     }
 
@@ -101,7 +108,21 @@ class KmpBeanRegistry : BeanRegistry {
         nameProviderMap[name] = provider
     }
 
-    // ============ 扩展函数 ============
+    override fun <T : Any> register(typeKey: TypeKey, instance: T) {
+        typedBeanMap[typeKey] = instance
+    }
+
+    override fun <T : Any> registerProvider(typeKey: TypeKey, provider: () -> T) {
+        typedProviderMap[typeKey] = provider
+    }
+
+    // ============ interface implementation ============
+
+    override fun <T : Any, R : T> registerImplementation(interfaceClass: KClass<T>, implClass: KClass<R>) {
+        implementationMap.getOrPut(interfaceClass) { mutableSetOf() }.add(implClass)
+    }
+
+    // ============ extensions ============
 
     @Suppress("UNCHECKED_CAST")
     override fun <R : Any> registerExtension(receiverClass: KClass<R>, name: String, extension: R.() -> Any?) {
@@ -119,26 +140,34 @@ class KmpBeanRegistry : BeanRegistry {
         return extensionMap[receiverClass]?.get(name) as? (R.() -> Any?)
     }
 
-    // ============ 接口实现关系 ============
+    // ============ tags ============
 
-    fun <T : Any, R : T> registerImplementation(
-        interfaceClass: KClass<T>,
-        implementationClass: KClass<R>
-    ) {
-        implementationMap.getOrPut(interfaceClass) { mutableSetOf() }.add(implementationClass)
+    override fun <T : Any> tagBean(clazz: KClass<T>, tags: List<String>) {
+        if (tags.isNotEmpty()) {
+            tagMap.getOrPut(clazz) { mutableSetOf() }.addAll(tags)
+        }
     }
 
-    override fun containsBean(clazz: KClass<*>): Boolean {
+    // ============ query ============
+
+    override fun contains(clazz: KClass<*>): Boolean {
         return beanMap.containsKey(clazz) || providerMap.containsKey(clazz)
     }
 
-    override fun getBeanTypes(): Set<KClass<*>> {
+    override fun types(): Set<KClass<*>> {
         return (beanMap.keys + providerMap.keys).toSet()
     }
 
-    override fun <T : Any> injectList(clazz: KClass<T>): List<T> {
-        val implementationClasses = implementationMap[clazz] ?: emptySet()
-        @Suppress("UNCHECKED_CAST")
-        return implementationClasses.mapNotNull { implClass -> getBean(implClass) as? T }
+    override fun clear() {
+        beanMap.clear()
+        providerMap.clear()
+        nameMap.clear()
+        nameProviderMap.clear()
+        extensionMap.clear()
+        implementationMap.clear()
+        typedBeanMap.clear()
+        typedProviderMap.clear()
+        tagMap.clear()
+        creating.clear()
     }
 }
