@@ -15,11 +15,8 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-14T11:42:17.424421
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:gradle-plugin:auto-jvmname")
+// Generated at: 2026-02-14T12:16:33.188208
+// Loaded: 2, Excluded: 0, Total: 2
 include(":lib:gradle-plugin:settings-plugin:gradle-repo-buddy")
 include(":lib:gradle-plugin:tool:gradle-script")
-include(":lib:ksp:metadata:apiprovider-processor")
-include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 // <<< Gradle Module Sleep: End Of Block <<<
