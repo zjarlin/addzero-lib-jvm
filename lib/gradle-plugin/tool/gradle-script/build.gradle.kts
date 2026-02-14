@@ -6,8 +6,6 @@ buildscript {
     }
     dependencies {
         classpath(libs.site.addzero.gradle.tool.config.java)
-    
-    implementation(project(":lib:gradle-plugin:auto-jvmname"))
 }
 }
 configureJ8("8")
