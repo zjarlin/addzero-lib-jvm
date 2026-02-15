@@ -4,12 +4,17 @@ plugins {
   id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 //    id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
 }
-//dependencies {
+dependencies {
 //    kspCommonMainMetadata("io.github.ltttttttttttt:LazyPeopleHttp:2.2.5")
-//}
+//    kspCommonMainMetadata("io.github.ltttttttttttt:LazyPeopleHttp:2.2.5")
+  kspCommonMainMetadata(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-processor"))
+}
 
 kotlin {
   dependencies {
+
+    implementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-api"))
+
     implementation(libs.site.addzero.network.starter)
 
     implementation(project(":lib:tool-jvm:network-call:music:api-music-spi"))
