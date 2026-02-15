@@ -31,6 +31,8 @@ dependencies {
 ```
 
 **代码示例：**
+注意 :   @SemanticVariation是一个可重复注解 
+
 ```kotlin
 interface UserRepository {
     /**
@@ -43,7 +45,14 @@ interface UserRepository {
         args = ["mode=SaveMode.UPSERT", "associatedMode=AssociatedSaveMode.REPLACE"],
         doc = "变体的方法注释"
     )
+    @SemanticVariation(
+      //变体(特化)方法名
+      name = "saveVariation1",
+      args = ["mode=SaveMode.UPSERT1", "associatedMode=AssociatedSaveMode.REPLACE1"],
+      doc = "变体的方法注释1"
+    )
     fun save( mode: SaveMode, associatedMode: AssociatedSaveMode)
+    
 }
 ```
 
