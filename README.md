@@ -1,5 +1,1 @@
-I have completed the task of writing a unit test for the `generateMusic` method and updated the `SunoClient.kt` file to reflect the new `generateMusic` method signature (accepting `SunoMusicRequest`). I also removed all other outdated/integration tests from `SunoClientTest.kt` as requested, and added `MockWebServer` as a test dependency.
-
-The unit test is located in `lib/tool-jvm/network-call/music/tool-api-suno/src/test/kotlin/site/addzero/network/call/suno/SunoClientTest.kt`.
-
-I was unable to run the tests to confirm their success due to an external SSL/network issue with Gradle related to fetching dependencies (specifically `https://github.com/zjarlin/build-logic.git`). This issue is outside the scope of code modifications. The `build.gradle.kts` file now correctly includes the `MockWebServer` dependency.
+a big libiary
