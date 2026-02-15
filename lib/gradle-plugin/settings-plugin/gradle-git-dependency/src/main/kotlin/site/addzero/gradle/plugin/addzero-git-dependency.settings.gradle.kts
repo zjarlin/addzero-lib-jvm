@@ -5,7 +5,7 @@ import site.addzero.gradle.GitDependencysExtension
 
 plugins {
     id("site.addzero.gradle.plugin.git-dependency")
-}
+     }
 
 val gitDependencies = the<GitDependencysExtension>()
 gradle.settingsEvaluated {

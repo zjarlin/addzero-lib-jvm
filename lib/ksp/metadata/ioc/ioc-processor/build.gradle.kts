@@ -6,11 +6,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.site.addzero.addzero.ksp.support)
+//            implementation(libs.site.addzero.ksp.support)
             implementation(libs.site.addzero.ioc.core)
             implementation(libs.site.addzero.lsi.ksp)
         }
     }
 }
 
-version="2026.02.17"
+version="2026.02.18"
