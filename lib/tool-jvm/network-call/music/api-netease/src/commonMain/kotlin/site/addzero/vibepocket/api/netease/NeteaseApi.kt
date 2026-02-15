@@ -22,7 +22,7 @@ interface NeteaseApi {
   @SemanticVariation(name = "searchLyric", args = ["type=site.addzero.vibepocket.api.netease.model.MusicSearchType.LYRIC.value"], doc = "搜索歌词")
   suspend fun search(
     @Query s: String,
-    @Query type: Int = MusicSearchType.SONG.value,
+    @Query type: Int ,
     @Query limit: Int = 30,
     @Query offset: Int = 0,
   ): NeteaseSearchRes
