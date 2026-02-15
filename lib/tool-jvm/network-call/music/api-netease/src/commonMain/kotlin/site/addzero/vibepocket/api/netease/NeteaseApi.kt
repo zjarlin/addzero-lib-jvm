@@ -1,12 +1,12 @@
 package site.addzero.vibepocket.api.netease
 
-import de.jensklingenberg.ktorfit.http.*
+import de.jensklingenberg.ktorfit.http.GET
+import de.jensklingenberg.ktorfit.http.Query
+import site.addzero.ksp.metadata.semantic.annotations.SemanticVariation
 import site.addzero.vibepocket.api.netease.model.LyricRes
 import site.addzero.vibepocket.api.netease.model.MusicSearchType
 import site.addzero.vibepocket.api.netease.model.NeteaseSearchRes
 import site.addzero.vibepocket.api.netease.model.SongDetailResponse
-
-import site.addzero.ksp.metadata.semantic.annotations.SemanticVariation
 
 /**
  * 网易云音乐 API 接口定义（Ktorfit 声明式）
@@ -18,8 +18,8 @@ interface NeteaseApi {
 
   /** 通用搜索（按 type 区分搜索类型） */
   @GET("search/get/web")
-  @SemanticVariation(name = "searchSongs", args = ["type=1"], doc = "搜索歌曲")
-  @SemanticVariation(name = "searchAlbums", args = ["type=10"], doc = "搜索专辑")
+//  @SemanticVariation(name = "searchSongs", args = ["type=site.addzero.vibepocket.api.netease.model.MusicSearchType.SONG.value"], doc = "搜索歌曲")
+//  @SemanticVariation(name = "searchAlbums", args = ["type=site.addzero.vibepocket.api.netease.model.MusicSearchType.ALBUM.value"], doc = "搜索专辑")
   suspend fun search(
     @Query s: String,
     @Query type: Int = MusicSearchType.SONG.value,

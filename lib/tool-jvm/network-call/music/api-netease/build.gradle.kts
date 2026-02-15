@@ -8,6 +8,7 @@ dependencies {
 //    kspCommonMainMetadata("io.github.ltttttttttttt:LazyPeopleHttp:2.2.5")
 //    kspCommonMainMetadata("io.github.ltttttttttttt:LazyPeopleHttp:2.2.5")
   kspCommonMainMetadata(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-processor"))
+//  kspCommonMainMetadata(project(":lib:tool-jvm:network-call:music:api-netease-semantic-impl"))
 }
 
 kotlin {

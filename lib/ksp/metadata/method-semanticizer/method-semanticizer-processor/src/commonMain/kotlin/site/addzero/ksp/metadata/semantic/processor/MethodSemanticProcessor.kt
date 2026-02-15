@@ -19,6 +19,8 @@ class MethodSemanticProcessor(
     private val logger: KSPLogger
 ) : SymbolProcessor {
 
+    private var invoked = false
+
     private val providers: List<SemanticMappingProvider> by lazy {
         ServiceLoader.load(SemanticMappingProvider::class.java, MethodSemanticProcessor::class.java.classLoader).toList()
     }
@@ -27,6 +29,9 @@ class MethodSemanticProcessor(
 
     @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        if (invoked) return emptyList()
+        invoked = true
+
         // 1. 获取所有显式标记了 @AutoSemantic 的类
         val annotatedClasses = resolver.getSymbolsWithAnnotation(AutoSemantic::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
@@ -92,7 +97,11 @@ class MethodSemanticProcessor(
             }
         }
 
-        fileSpec.build().writeTo(codeGenerator, Dependencies(true, classDec.containingFile!!))
+        try {
+            fileSpec.build().writeTo(codeGenerator, Dependencies(true, classDec.containingFile!!))
+        } catch (e: Exception) {
+            // Ignore if file already exists in this round or target
+        }
     }
 
     private fun parseArgs(args: Array<String>): Map<String, Any?> {
@@ -127,7 +136,16 @@ class MethodSemanticProcessor(
             .receiver(receiverType)
             .addModifiers(KModifier.PUBLIC)
 
+        // 1. 继承泛型参数 (Type Parameters)
+        val typeVariables = originMethod.typeParameters.map { it.toTypeVariableName() }
+        builder.addTypeVariables(typeVariables)
+
+        // 2. 继承修饰符 (Modifiers)
         if (originMethod.modifiers.contains(Modifier.SUSPEND)) builder.addModifiers(KModifier.SUSPEND)
+        if (originMethod.modifiers.contains(Modifier.INLINE)) builder.addModifiers(KModifier.INLINE)
+        if (originMethod.modifiers.contains(Modifier.INFIX)) builder.addModifiers(KModifier.INFIX)
+        if (originMethod.modifiers.contains(Modifier.OPERATOR)) builder.addModifiers(KModifier.OPERATOR)
+
         if (definition.doc != null) builder.addKdoc(definition.doc!!)
 
         val fixedParamNames = definition.fixedParameters.keys
@@ -137,11 +155,21 @@ class MethodSemanticProcessor(
 
         builder.returns(originMethod.returnType?.toTypeName() ?: UNIT)
 
+        // 3. 构建调用体，显式传递泛型参数
         val codeBody = StringBuilder()
-        if (originMethod.returnType?.resolve()?.declaration?.qualifiedName?.asString() != "kotlin.Unit") codeBody.append("return ")
-        codeBody.append("%N(")
+        if (originMethod.returnType?.resolve()?.declaration?.qualifiedName?.asString() != "kotlin.Unit") {
+            codeBody.append("return ")
+        }
+        
+        val typeArgs = if (typeVariables.isNotEmpty()) {
+            typeVariables.joinToString(", ", prefix = "<", postfix = ">") { it.name }
+        } else {
+            ""
+        }
+        
+        codeBody.append("%N$typeArgs(")
 
-        val args = mutableListOf<Any?>()
+        val args = mutableListOf<Any>()
         args.add(originMethod.simpleName.asString())
 
         originMethod.parameters.forEachIndexed { index, param ->
@@ -153,10 +181,12 @@ class MethodSemanticProcessor(
                 codeBody.append("${pName} = %N")
                 args.add(pName)
             }
-            if (index < originMethod.parameters.size - 1) codeBody.append(", ")
+            if (index < originMethod.parameters.size - 1) {
+                codeBody.append(", ")
+            }
         }
         codeBody.append(")")
-        builder.addStatement(codeBody.toString(), *arrayOf(args.toTypedArray()))
+        builder.addStatement(codeBody.toString(), *args.toTypedArray())
         return builder.build()
     }
 
