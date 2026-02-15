@@ -18,7 +18,7 @@ interface MusicService {
     ): List<MusicTrack>
 
     /** 根据平台音乐 ID 查详情 */
-    suspend fun getTrackDetail(trackId: String): MusicTrack?
+    suspend fun getDetail(trackId: String): MusicTrack?
 
     /** 获取歌词（原始 LRC 文本） */
     suspend fun getLyric(trackId: String): MusicLyric?

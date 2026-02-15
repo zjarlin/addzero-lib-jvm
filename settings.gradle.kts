@@ -15,8 +15,9 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-15T10:11:30.110953
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2026-02-15T12:03:46.362183
+// Loaded: 3, Excluded: 0, Total: 3
 include(":lib:tool-jvm:network-call:music:api-music-spi")
 include(":lib:tool-jvm:network-call:music:api-netease")
+include(":lib:tool-jvm:network-call:music:tool-api-music-search")
 // <<< Gradle Module Sleep: End Of Block <<<

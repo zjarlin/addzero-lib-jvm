@@ -17,8 +17,9 @@ object MusicSearchClient {
 
     var mytoken: String? = null
 
-    init {
-        apiClient.config {
+    private val music163Ktorfit = Ktorfit.Builder()
+        .baseUrl(BASE_URL)
+        .httpClient(apiClient.config {
             defaultRequest {
                 url(BASE_URL)
             }
@@ -29,14 +30,7 @@ object MusicSearchClient {
                     }
                 }
             }
-        }
-
-
-    }
-
-    private val music163Ktorfit = Ktorfit.Builder()
-        .baseUrl(BASE_URL)
-        .httpClient(apiClient)
+        })
         .build()
 
     val musicApi = music163Ktorfit.createNeteaseApi()
