@@ -55,7 +55,7 @@ interface UserRepository {
 
 ### 业务对照关系示例 (Jimmer 保存模式)
 
-我们将复杂的参数组合建模为语义化方法：
+假设有以下对照表,可以将其遍历为List<SemanticMethodDefinition>(方法名禁用做举例说明,随便起的)：
 
 | SaveMode (根对象) | AssociatedSaveMode (关联对象) | 目标方法名 | 业务语义 |
 | :--- | :--- | :--- | :--- |
