@@ -41,7 +41,7 @@ interface UserRepository {
       //变体(特化)方法名
         name = "saveVariation", 
         args = ["mode=SaveMode.UPSERT", "associatedMode=AssociatedSaveMode.REPLACE"],
-        doc = "全量同步用户信息"
+        doc = "变体的方法注释"
     )
     fun save( mode: SaveMode, associatedMode: AssociatedSaveMode)
 }
