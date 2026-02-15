@@ -15,8 +15,8 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-15T09:45:11.159220
+// Generated at: 2026-02-15T10:11:30.110953
 // Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
-include(":lib:ksp:metadata:ioc:ioc-processor")
+include(":lib:tool-jvm:network-call:music:api-music-spi")
+include(":lib:tool-jvm:network-call:music:api-netease")
 // <<< Gradle Module Sleep: End Of Block <<<
