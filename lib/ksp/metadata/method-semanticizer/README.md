@@ -64,7 +64,7 @@ interface UserRepository {
 
 ### 业务对照关系示例 (Jimmer 保存模式)
 
-假设有以下对照表,可以将其遍历为List<SemanticMethodDefinition>(方法名禁用做举例说明,随便起的)：
+假设有以下对照表,可以将其遍历为List<SemanticMethodDefinition>(方法名随便起的,只是举例说明)：
 
 | SaveMode (根对象) | AssociatedSaveMode (关联对象) | 目标方法名 | 业务语义 |
 | :--- | :--- | :--- | :--- |

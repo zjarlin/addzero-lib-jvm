@@ -13,11 +13,8 @@ dependencies {
 
 kotlin {
   dependencies {
-
     implementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-api"))
-
     implementation(libs.site.addzero.network.starter)
-
     implementation(project(":lib:tool-jvm:network-call:music:api-music-spi"))
   }
 //    sourceSets {
