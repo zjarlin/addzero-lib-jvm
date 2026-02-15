@@ -5,7 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(kotlin("stdlib"))
+//            implementation(kotlin("stdlib"))
         }
     }
 }
