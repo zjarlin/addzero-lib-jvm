@@ -133,3 +133,73 @@ dependencies {
 - **泛型镜像**: 支持 `reified` 泛型和 `inline` 函数，生成的扩展函数会自动带上泛型定义并显式透传类型参数。
 - **修饰符继承**: 自动保留 `suspend`, `inline`, `infix`, `operator` 等。
 - **参数智能剥离**: 生成的方法会自动剔除已绑定的参数，仅保留用户需要传入的参数。
+
+---
+更新后的 README.md 后半部分预览：
+
+  4. 生成代码预览 (Generated Code Examples)
+
+
+  以下展示了在不同配置下，插件自动生成的 Kotlin 扩展函数。
+
+
+  场景 A：普通方法特化 (Jimmer 风格)
+  配置： variation("sync", "mode" to "SaveMode.UPSERT", "associatedMode" to "AssociatedSaveMode.REPLACE")
+  生成结果：
+```kotlin
+
+
+/** 全量同步实体及其关联对象 */
+public fun <T : Any> UserRepository<T>.sync(entity: T): T {
+   // 仅保留了未固定的 entity 参数，其余参数已自动填充
+   return save(
+       entity = entity,
+       mode = org.babyfish.jimmer.sql.ast.mutation.SaveMode.UPSERT,
+       associatedMode = org.babyfish.jimmer.sql.ast.mutation.AssociatedSaveMode.REPLACE
+       )
+   }
+
+```
+
+  场景 B：挂起函数与 Raw Code (网络请求)
+  配置： @SemanticVariation(name = "searchSongs", args = ["type=1"])
+  生成结果：
+
+```kotlin
+
+
+1 /** 搜索歌曲 */
+public suspend fun NeteaseApi.searchSongs(
+  s: String,
+  limit: Int,
+  offset: Int
+): NeteaseSearchRes {
+  // 保持了 suspend 异步特性，并将 type 固定为 1
+  return search(
+    s = s,
+     type = 1,
+     limit = limit,
+     offset = offset
+       )
+   }
+
+```
+
+  场景 C：复杂泛型与内联 (高级特化)
+  配置： 针对 inline fun <reified T> search(...)
+  生成结果：
+```kotlin
+    /** 搜索并转换为指定类型 */
+public inline fun <reified T : Any> MusicClient.searchAs(s: String): List<T> {
+  //  生成的方法保留了reified 泛型 T
+  return search<T>(
+    s = s,
+    type = 1
+  )
+}
+
+
+```
+
+
+  ---
