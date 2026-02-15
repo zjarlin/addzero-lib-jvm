@@ -15,14 +15,14 @@ implementationRemoteGit{
 
 }
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-02-15T17:48:05.972690
+// Generated at: 2026-02-15T18:20:36.283479
 // Loaded: 9, Excluded: 0, Total: 9
-//include(":lib:ksp")
-//include(":lib:ksp:metadata:method-semanticizer:api")
+include(":lib:ksp")
+include(":lib:ksp:metadata:method-semanticizer:api")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-api")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-processor")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi")
-include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-impl")
+include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
 include(":lib:tool-jvm:network-call:music:api-music-spi")
 include(":lib:tool-jvm:network-call:music:api-netease")
 include(":lib:tool-jvm:network-call:music:api-netease-semantic-impl")
