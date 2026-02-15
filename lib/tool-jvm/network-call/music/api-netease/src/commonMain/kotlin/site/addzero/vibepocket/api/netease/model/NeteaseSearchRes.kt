@@ -56,26 +56,9 @@ data class NeteaseLyricSearchResponse(
 
 @Serializable
 data class NeteaseLyricSearchResult(
-    val songs: List<NeteaseLyricSearchSong>? = null,
+    val songs: List<NeteaseSearchSong>? = null,
     val songCount: Int? = null,
 )
-
-@Serializable
-data class NeteaseLyricSearchSong(
-  val id: Long,
-  val name: String,
-  val artists: List<NeteaseArtist> = emptyList(),
-  val album: NeteaseAlbum? = null,
-  val duration: Long = 0,
-  /** 匹配到的歌词片段（API 返回 List<String>，每项可能含 HTML 高亮标签） */
-    val lyrics: List<String>? = null,
-) {
-    val artistNames get() = artists.joinToString(", ") { it.name }
-    val coverUrl: String? get() = album?.picUrl
-    /** 提取匹配的歌词文本（去掉 HTML 高亮标签，合并为一行） */
-    val matchedLyricText: String?
-        get() = lyrics?.joinToString(" ") { it.replace(Regex("<[^>]+>"), "") }
-}
 
 @Serializable
 data class NeteaseLyricResponse(

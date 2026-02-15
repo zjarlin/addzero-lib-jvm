@@ -17,7 +17,10 @@
       auto2top: true,
       search: 'auto',
       homepage: 'README.md',
-      basePath: location.pathname.replace(/\/[^/]*$/, '/')
+      // 自动检测基础路径，解决 GitHub Pages 子路径 404 问题
+      basePath: window.location.pathname.indexOf('/addzero-lib-jvm') !== -1
+        ? '/addzero-lib-jvm/' 
+        : '/'
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
