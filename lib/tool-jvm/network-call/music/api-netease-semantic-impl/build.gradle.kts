@@ -5,7 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi"))
+            implementation("site.addzero:method-semanticizer-spi:2026.02.15")
             implementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper"))
         }
     }

@@ -10,10 +10,10 @@ dependencies {
   kspCommonMainMetadata(libs.method.semanticizer.processor)
 //  kspCommonMainMetadata(project(":lib:tool-jvm:network-call:music:api-netease-semantic-impl"))
 }
-version = "2026.02.16"
+version = "2026.02.17"
 kotlin {
   dependencies {
-    implementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-api"))
+    implementation(libs.method.semanticizer.api)
     implementation(libs.site.addzero.network.starter)
 //    implementation(project(":lib:tool-jvm:network-call:music:api-music-spi"))
   }
