@@ -9,6 +9,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
+import org.gradle.util.internal.TextUtil.toLowerCamelCase
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import java.io.File
@@ -231,7 +232,7 @@ val merged = $mergeFuncName(config1, config2)
 
         val propertyInfos = properties.map { (key, value) ->
             val type = inferType(value)
-            PropertyInfo(toCamelCase(key), key, value, type)
+            PropertyInfo(toLowerCamelCase(key), key, value, type)
         }
 
         val propertyDeclarations = propertyInfos.joinToString("\n") {
@@ -369,13 +370,6 @@ val merged = $mergeFuncName(config1, config2)
         return generatedFiles
     }
 
-    private fun toCamelCase(str: String): String {
-        val parts = str.split(".")
-        return parts.mapIndexed { index, part ->
-            if (index == 0) part.lowercase()
-            else part.replaceFirstChar { it.uppercase() }
-        }.joinToString("")
-    }
 
     private fun inferType(value: String): String {
         // 优先检测列表类型

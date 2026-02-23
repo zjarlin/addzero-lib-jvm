@@ -191,21 +191,23 @@ fun String.toBigCamelCase(): String {
 fun String.toLowCamelCase(): String {
   if (isEmpty()) return this
 
-  // 如果已经是小驼峰（首字母小写且包含大写），直接返回
-  if (this[0].isLowerCase() && this.any { it.isUpperCase() }) {
-    return this
+  // 如果没有分隔符（. _ - 空格），检查是否是已经是小驼峰
+  if (!this.contains(Regex("[._\\-\\s]"))) {
+    // 已经是小驼峰（首字母小写且包含大写），直接返回
+    if (this[0].isLowerCase() && this.any { it.isUpperCase() }) {
+      return this
+    }
+    // 已经是大驼峰（首字母大写且包含大写），转为小驼峰
+    if (this[0].isUpperCase() && this.any { it.isUpperCase() }) {
+      return this.replaceFirstChar { it.lowercase() }
+    }
   }
 
-  // 如果已经是大驼峰（首字母大写且包含大写），转为小驼峰
-  if (this[0].isUpperCase() && this.any { it.isUpperCase() }) {
-    return this.replaceFirstChar { it.lowercase() }
-  }
-
-  // 支持下划线、中划线、空格分隔
-  val words = this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }
+  // 支持下划线、中划线、空格、点分隔
+  val words = this.split(Regex("[_\\-\\s.]+")).filter { it.isNotEmpty() }
   if (words.isEmpty()) return this
 
-  return words.first().lowercase() + words.drop(1).joinToString("") {
+  return words.first() + words.drop(1).joinToString("") {
     it.replaceFirstChar { char -> char.uppercase() }
   }
 }

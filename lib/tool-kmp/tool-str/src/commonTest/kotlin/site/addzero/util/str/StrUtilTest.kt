@@ -56,6 +56,12 @@ class StrUtilTest {
         // 测试带数字的普通字符串
         assertEquals("user123", "user123".toLowCamelCase())
         assertEquals("test123", "test_123".toLowCamelCase())
+
+        // 测试点分隔的格式（processor-buddy 场景）
+        assertEquals("jimmerImmutableIsModuleRequired", "jimmerImmutableIsModuleRequired".toLowCamelCase())
+        assertEquals("jimmerImmutableIsModuleRequired", "jimmer.immutable.is.module.required".toLowCamelCase())
+        assertEquals("jimmerDtoDirs", "jimmer.dtoDirs".toLowCamelCase())
+        assertEquals("jimmerDtoDirs", "jimmer.dto.dirs".toLowCamelCase())
     }
 
     @Test

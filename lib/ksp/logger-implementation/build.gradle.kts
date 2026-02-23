@@ -1,6 +1,6 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
-
+    id("site.addzero.buildlogic.jvm.jvm-ksp")
+    id("site.addzero.buildlogic.ksp.ksp-conventions")
 }
 
 repositories {
@@ -8,6 +8,7 @@ repositories {
 }
 
 dependencies {
-  implementation(project(":lib:ksp:logger-api"))
-    // Depend on the API module
+    implementation(project(":lib:ksp:logger-api"))
+//    compileOnly("com.google.auto.service:auto-service-annotations:1.1.0")
+//    ksp("dev.zacsweers.autoservice:auto-service-ksp:1.2.0")
 }
