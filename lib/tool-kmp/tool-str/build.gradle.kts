@@ -19,11 +19,5 @@ kotlin{
         jvmMain . dependencies {
             implementation(libs.site.addzero.tool.pinyin)
         }
-
-        commonTest {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
     }
 }

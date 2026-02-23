@@ -69,8 +69,8 @@ afterEvaluate {
         }
 
     gradle.taskGraph.whenReady {
-        val isSync = gradle.taskGraph.allTasks.any { task -> 
-            task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport" 
+        val isSync = gradle.taskGraph.allTasks.any { task ->
+            task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport"
         }
         if (isSync) {
             generateTask.get().generate()
@@ -227,28 +227,28 @@ val merged = $mergeFuncName(config1, config2)
 
         val properties = mustMap.get()
 
-        data class PropertyInfo(val name: String, val defaultValue: String, val type: String)
+        data class PropertyInfo(val propertyName: String, val optionKey: String, val defaultValue: String, val type: String)
 
         val propertyInfos = properties.map { (key, value) ->
             val type = inferType(value)
-            PropertyInfo(key, value, type)
+            PropertyInfo(toCamelCase(key), key, value, type)
         }
 
         val propertyDeclarations = propertyInfos.joinToString("\n") {
-            "    var ${it.name}: ${it.type}"
+            "    var ${it.propertyName}: ${it.type}"
         }
 
         val implProperties = propertyInfos.joinToString("\n") { info ->
             val default = toDefaultValueExpression(info.defaultValue, info.type)
-            "    override var ${info.name}: ${info.type} = $default"
+            "    override var ${info.propertyName}: ${info.type} = $default"
         }
 
         val toOptionsBody = propertyInfos.joinToString(",\n") {
-            toSerializationExpression(it.name, it.type)
+            toSerializationExpression(it.optionKey, it.propertyName, it.type)
         }
 
         val setFromOptionsBody = propertyInfos.joinToString("\n") { info ->
-            toFromOptionsExpression(info.name, info.type, info.defaultValue)
+            toFromOptionsExpression(info.optionKey, info.propertyName, info.type, info.defaultValue)
         }
 
         val generatedFiles = mutableListOf<File>()
@@ -339,7 +339,7 @@ val merged = $mergeFuncName(config1, config2)
             } else {
                 propertyInfos.joinToString("\n") { info ->
                     val default = toDefaultValueExpression(info.defaultValue, info.type)
-                    "    ${overrideModifier}var ${info.name}: ${info.type} = $default"
+                    "    ${overrideModifier}var ${info.propertyName}: ${info.type} = $default"
                 }
             }
 
@@ -369,6 +369,14 @@ val merged = $mergeFuncName(config1, config2)
         return generatedFiles
     }
 
+    private fun toCamelCase(str: String): String {
+        val parts = str.split(".")
+        return parts.mapIndexed { index, part ->
+            if (index == 0) part.lowercase()
+            else part.replaceFirstChar { it.uppercase() }
+        }.joinToString("")
+    }
+
     private fun inferType(value: String): String {
         // 优先检测列表类型
         val listType = detectListType(value)
@@ -393,13 +401,15 @@ val merged = $mergeFuncName(config1, config2)
         }
         val parts = value.split(",").map { it.trim() }
         if (parts.size < 2) return null
+        val nonEmptyParts = parts.filter { it.isNotEmpty() }
+        if (nonEmptyParts.isEmpty()) return null
 
         // 检测每个部分的类型是否一致
         val elementType = when {
-            parts.all { it.equals("true", ignoreCase = true) || it.equals("false", ignoreCase = true) } -> "Boolean"
-            parts.all { it.toIntOrNull() != null && !it.startsWith("0") && !it.contains(".") } -> "Int"
-            parts.all { it.toLongOrNull() != null && !it.contains(".") } -> "Long"
-            parts.all { it.toDoubleOrNull() != null } -> "Double"
+            nonEmptyParts.all { it.equals("true", ignoreCase = true) || it.equals("false", ignoreCase = true) } -> "Boolean"
+            nonEmptyParts.all { it.toIntOrNull() != null && !it.startsWith("0") && !it.contains(".") } -> "Int"
+            nonEmptyParts.all { it.toLongOrNull() != null && !it.contains(".") } -> "Long"
+            nonEmptyParts.all { it.toDoubleOrNull() != null } -> "Double"
             else -> "String"
         }
         return true to "List<$elementType>"
@@ -413,7 +423,10 @@ val merged = $mergeFuncName(config1, config2)
         return if (listType != null && type.startsWith("List<")) {
             val listTypeStr = listType.second
             val elementType = listTypeStr.removePrefix("List<").removeSuffix(">")
-            val parts = value.split(",").map { it.trim() }
+            val parts = value.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            if (parts.isEmpty()) {
+                return "emptyList()"
+            }
             val elementValues = when (elementType) {
                 "String" -> parts.joinToString(", ") { "\"$it\"" }
                 "Int" -> parts.joinToString(", ") { it }
@@ -437,18 +450,18 @@ val merged = $mergeFuncName(config1, config2)
     /**
      * 将类型转换为可空类型用于 toOptions 序列化
      */
-    private fun toSerializationExpression(propertyName: String, type: String): String {
+    private fun toSerializationExpression(optionKey: String, propertyName: String, type: String): String {
         return if (type.startsWith("List<")) {
-            """        "$propertyName" to ${propertyName}.joinToString(",")"""
+            """        "$optionKey" to ${propertyName}.joinToString(",")"""
         } else {
-            """        "$propertyName" to ${propertyName}.toString()"""
+            """        "$optionKey" to ${propertyName}.toString()"""
         }
     }
 
     /**
      * 生成 fromOptions 中的赋值语句
      */
-    private fun toFromOptionsExpression(propertyName: String, type: String, defaultValue: String): String {
+    private fun toFromOptionsExpression(optionKey: String, propertyName: String, type: String, defaultValue: String): String {
         val defaultExpr = toDefaultValueExpression(defaultValue, type)
         return if (type.startsWith("List<")) {
             val elementType = type.removePrefix("List<").removeSuffix(">")
@@ -461,14 +474,14 @@ val merged = $mergeFuncName(config1, config2)
                 else -> "it"
             }
             val filterExpr = if (elementType != "String") "?.filterNotNull()" else ""
-            """        this.$propertyName = options["$propertyName"]?.split(",")?.map { $parseExpr }$filterExpr ?: $defaultExpr"""
+            """        this.$propertyName = options["$optionKey"]?.split(",")?.filter { it.isNotEmpty() }?.map { $parseExpr }$filterExpr ?: $defaultExpr"""
         } else {
             when (type) {
-                "Boolean" -> """        this.$propertyName = options["$propertyName"]?.toBoolean() ?: $defaultExpr"""
-                "Int" -> """        this.$propertyName = options["$propertyName"]?.toIntOrNull() ?: $defaultExpr"""
-                "Long" -> """        this.$propertyName = options["$propertyName"]?.toLongOrNull() ?: $defaultExpr"""
-                "Double" -> """        this.$propertyName = options["$propertyName"]?.toDoubleOrNull() ?: $defaultExpr"""
-                else -> """        this.$propertyName = options["$propertyName"] ?: $defaultExpr"""
+                "Boolean" -> """        this.$propertyName = options["$optionKey"]?.toBoolean() ?: $defaultExpr"""
+                "Int" -> """        this.$propertyName = options["$optionKey"]?.toIntOrNull() ?: $defaultExpr"""
+                "Long" -> """        this.$propertyName = options["$optionKey"]?.toLongOrNull() ?: $defaultExpr"""
+                "Double" -> """        this.$propertyName = options["$optionKey"]?.toDoubleOrNull() ?: $defaultExpr"""
+                else -> """        this.$propertyName = options["$optionKey"] ?: $defaultExpr"""
             }
         }
     }

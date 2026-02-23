@@ -195,6 +195,11 @@ fun String.toLowCamelCase(): String {
   val words = this.split(Regex("[_\\-\\s]+")).filter { it.isNotEmpty() }
   if (words.isEmpty()) return this
 
+  // 如果只有一个词且已经是小驼峰（首字母小写），直接返回
+  if (words.size == 1 && this[0].isLowerCase() && this.any { it.isUpperCase() }) {
+    return this
+  }
+
   return words.first().lowercase() + words.drop(1).joinToString("") {
     it.replaceFirstChar { char -> char.uppercase() }
   }

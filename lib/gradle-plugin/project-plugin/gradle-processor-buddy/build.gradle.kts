@@ -24,4 +24,5 @@ repositories {
 dependencies {
     gradleApi()
     implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)
+  implementation(libs.site.addzero.tool.str)
 }
