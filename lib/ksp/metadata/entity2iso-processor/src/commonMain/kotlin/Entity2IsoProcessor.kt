@@ -1,9 +1,10 @@
-import site.addzero.context.SettingContext
 import site.addzero.entity.analysis.model.EntityMetadata
 import site.addzero.entity.analysis.processor.BaseJimmerProcessor
 import com.google.devtools.ksp.processing.*
 import generator.IsoCodeGenerator
+import site.addzero.context.SettingContext
 import java.io.File
+import site.addzero.context.Settings
 
 /**
  * 实体转同构体处理器提供者
@@ -40,10 +41,13 @@ class Entity2IsoProcessor(
 
     override fun processEntities(entities: List<EntityMetadata>) {
         logger.warn("开始生成同构体类...")
+        Settings.fromOptions(options)
 
         // 从 Settings 中获取配置（outputDir 由扩展属性计算）
-        val packageName = SettingContext.settings.isomorphicPackageName
-        val outputDir = SettingContext.settings.isomorphicOutputDir
+        val packageName = Settings.isomorphicPkg
+        val outputDir = Settings.isomorphicGenDir
+//      val packageName = ""
+//      val outputDir = ""
 
         entities.forEach { metadata ->
             try {

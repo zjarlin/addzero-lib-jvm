@@ -23,4 +23,5 @@ repositories {
 
 dependencies {
     gradleApi()
+    implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)
 }

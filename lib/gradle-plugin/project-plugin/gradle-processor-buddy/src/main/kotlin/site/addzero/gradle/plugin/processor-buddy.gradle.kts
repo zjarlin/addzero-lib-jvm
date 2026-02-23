@@ -9,6 +9,8 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import java.io.File
 
 val extension = extensions.create<ProcessorBuddyExtension>("processorBuddy")
@@ -35,26 +37,43 @@ afterEvaluate {
     val outputDir = generateTask.flatMap { it.generatedCodeOutputDir }
 
     if (extension.settingContextEnabled.get() && extension.mustMap.get().isNotEmpty()) {
+        plugins.withId("org.jetbrains.kotlin.multiplatform") {
+            val kotlinExt = extensions.getByType(KotlinMultiplatformExtension::class.java)
+            kotlinExt.sourceSets.getByName(KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME).kotlin.srcDir(generateTask)
+            logger.lifecycle("ProcessorBuddy (KMP): Added generated source directory to commonMain: ${outputDir.get().asFile.absolutePath}")
+        }
+
+        // 处理纯 Java/Kotlin JVM 项目
         plugins.withId("java") {
-            val sourceSets = extensions.getByType(SourceSetContainer::class.java)
-            val mainSourceSet = sourceSets.getByName("main")
-            mainSourceSet.java.srcDir(outputDir)
-            val kotlinSourceDir = mainSourceSet.extensions.findByName("kotlin") as? SourceDirectorySet
-            kotlinSourceDir?.srcDir(outputDir)
-            logger.lifecycle("Added generated source directory to main sourceSet: ${outputDir.get().asFile.absolutePath}")
+            // 如果已经作为 KMP 处理过，则跳过（避免重复添加）
+            if (!plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+                val sourceSets = extensions.getByType(SourceSetContainer::class.java)
+                val mainSourceSet = sourceSets.getByName("main")
+                mainSourceSet.java.srcDir(generateTask)
+                val kotlinSourceDir = mainSourceSet.extensions.findByName("kotlin") as? SourceDirectorySet
+                kotlinSourceDir?.srcDir(generateTask)
+                logger.lifecycle("ProcessorBuddy (JVM): Added generated source directory to main sourceSet: ${outputDir.get().asFile.absolutePath}")
+            }
         }
     }
 
-    tasks.findByName("compileKotlin")?.dependsOn(generateTask)
-    tasks.findByName("compileJava")?.dependsOn(generateTask)
+    // 确保在所有 Kotlin 编译之前运行
+    tasks.matching { it.name.startsWith("compile") && it.name.contains("Kotlin") }.all {
+        dependsOn(generateTask)
+    }
 
-    tasks.matching { task -> task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") }
-        .forEach { it.dependsOn(generateTask) }
+    // 处理 IDEA 同步
+    tasks.matching { task -> task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport" }
+        .all {
+            dependsOn(generateTask)
+        }
 
     gradle.taskGraph.whenReady {
-        val isSync = gradle.taskGraph.allTasks.any { task -> task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") }
+        val isSync = gradle.taskGraph.allTasks.any { task -> 
+            task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport" 
+        }
         if (isSync) {
-            generateTask.get()
+            generateTask.get().generate()
         }
     }
 }
@@ -143,7 +162,7 @@ ${properties.map { (key, value) -> """    <apt.$key>$value</apt.$key>""" }.joinT
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
                 <compilerArgs>
-${properties.map { (key, _) -> """                    <arg>-A$key=$""" + """{apt.$key}</arg>""" }.joinToString("\n")}
+${properties.map { (key, _) -> """                    <arg>-A$key=${'$'}{apt.$key}</arg>""" }.joinToString("\n")}
                 </compilerArgs>
             </configuration>
         </plugin>
@@ -215,22 +234,22 @@ val merged = $mergeFuncName(config1, config2)
             PropertyInfo(key, value, type)
         }
 
-        val propertyDeclarations = propertyInfos.map {
+        val propertyDeclarations = propertyInfos.joinToString("\n") {
             "    var ${it.name}: ${it.type}"
-        }.joinToString("\n")
+        }
 
-        val implProperties = propertyInfos.map { info ->
+        val implProperties = propertyInfos.joinToString("\n") { info ->
             val default = toDefaultValueExpression(info.defaultValue, info.type)
             "    override var ${info.name}: ${info.type} = $default"
-        }.joinToString("\n")
+        }
 
-        val toOptionsBody = propertyInfos.map {
+        val toOptionsBody = propertyInfos.joinToString(",\n") {
             toSerializationExpression(it.name, it.type)
-        }.joinToString(",\n")
+        }
 
-        val setFromOptionsBody = propertyInfos.map { info ->
+        val setFromOptionsBody = propertyInfos.joinToString("\n") { info ->
             toFromOptionsExpression(info.name, info.type, info.defaultValue)
-        }.joinToString("\n")
+        }
 
         val generatedFiles = mutableListOf<File>()
 
@@ -318,10 +337,10 @@ val merged = $mergeFuncName(config1, config2)
             val objProperties = if (settingContextEnabled.get()) {
                 implProperties
             } else {
-                propertyInfos.map { info ->
+                propertyInfos.joinToString("\n") { info ->
                     val default = toDefaultValueExpression(info.defaultValue, info.type)
                     "    ${overrideModifier}var ${info.name}: ${info.type} = $default"
-                }.joinToString("\n")
+                }
             }
 
             val content = """
