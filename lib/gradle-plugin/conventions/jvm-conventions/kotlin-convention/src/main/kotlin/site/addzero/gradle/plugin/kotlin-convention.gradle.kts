@@ -13,7 +13,7 @@ val javaConvention = the<JavaConventionExtension>()
 kotlin {
   compilerOptions {
     freeCompilerArgs.set(listOf("-Xjsr305=strict", "-Xjvm-default=all"))
-    jvmTarget.set(javaConvention.jdkVersion.map { JvmTarget.fromTarget(it) })
+    jvmTarget.set(javaConvention.jdkVersion.map { v -> JvmTarget.fromTarget(if (v == "8") "1.8" else v) })
   }
   jvmToolchain(javaConvention.jdkVersion.get().toInt())
 
