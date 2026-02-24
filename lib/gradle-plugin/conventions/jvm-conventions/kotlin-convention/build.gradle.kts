@@ -20,7 +20,6 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
 }
-version="2026.02.04"
 
 dependencies {
     api(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
