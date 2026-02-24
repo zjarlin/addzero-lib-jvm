@@ -372,6 +372,20 @@ val merged = $mergeFuncName(config1, config2)
 
 
     private fun inferType(value: String): String {
+        // 支持三引号包裹的 Kotlin 表达式
+        if (value.trimStart().startsWith("\"\"\"")) {
+            val expr = value.trim().removeSurrounding("\"\"\"")
+            return inferTypeFromKotlinExpr(expr)
+        }
+
+        // 支持转义形式的 Kotlin 表达式: listOf(\"a\")
+        if (value.contains("\\\"") || value.contains("\\\"")) {
+            val expr = value
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\")
+            return inferTypeFromKotlinExpr(expr.trim())
+        }
+
         // 优先检测列表类型
         val listType = detectListType(value)
         if (listType != null) {
@@ -387,6 +401,49 @@ val merged = $mergeFuncName(config1, config2)
     }
 
     /**
+     * 从 Kotlin 表达式推断类型
+     */
+    private fun inferTypeFromKotlinExpr(expr: String): String {
+        val trimmed = expr.trim()
+        return when {
+            trimmed.startsWith("listOf(") -> {
+                val inner = trimmed.removePrefix("listOf(").removeSuffix(")")
+                val elementType = inferElementTypeFromListInner(inner)
+                "List<$elementType>"
+            }
+            trimmed.startsWith("setOf(") -> {
+                val inner = trimmed.removePrefix("setOf(").removeSuffix(")")
+                val elementType = inferElementTypeFromListInner(inner)
+                "Set<$elementType>"
+            }
+            trimmed.startsWith("emptyList()") -> "List<Any>"
+            trimmed.startsWith("emptySet()") -> "Set<Any>"
+            trimmed.equals("true", ignoreCase = true) || trimmed.equals("false", ignoreCase = true) -> "Boolean"
+            trimmed.toIntOrNull() != null && !trimmed.startsWith("0") && !trimmed.contains(".") -> "Int"
+            trimmed.toLongOrNull() != null && !trimmed.contains(".") -> "Long"
+            trimmed.toDoubleOrNull() != null && trimmed.contains(".") -> "Double"
+            else -> "String"
+        }
+    }
+
+    /**
+     * 从 listOf/setOf 内部推断元素类型
+     */
+    private fun inferElementTypeFromListInner(inner: String): String {
+        val parts = inner.split(",").map { it.trim() }
+        if (parts.isEmpty()) return "Any"
+
+        return when {
+            parts.all { it.equals("true", ignoreCase = true) || it.equals("false", ignoreCase = true) } -> "Boolean"
+            parts.all { it.toIntOrNull() != null && !it.startsWith("0") && !it.contains(".") } -> "Int"
+            parts.all { it.toLongOrNull() != null && !it.contains(".") } -> "Long"
+            parts.all { it.toDoubleOrNull() != null } -> "Double"
+            parts.all { it.startsWith("\"") && it.endsWith("\"") } -> "String"
+            else -> "String"
+        }
+    }
+
+    /**
      * 检测值是否为逗号分隔的列表，并推断列表元素类型
      */
     private fun detectListType(value: String): Pair<Boolean, String>? {
@@ -396,7 +453,11 @@ val merged = $mergeFuncName(config1, config2)
         val parts = value.split(",").map { it.trim() }
         if (parts.size < 2) return null
         val nonEmptyParts = parts.filter { it.isNotEmpty() }
-        if (nonEmptyParts.isEmpty()) return null
+
+        // 如果全是空字符串，也视为空列表
+        if (nonEmptyParts.isEmpty()) {
+            return true to "List<String>"
+        }
 
         // 检测每个部分的类型是否一致
         val elementType = when {
@@ -413,6 +474,18 @@ val merged = $mergeFuncName(config1, config2)
      * 将字符串值转换为 Kotlin 代码中的默认值表达式
      */
     private fun toDefaultValueExpression(value: String, type: String): String {
+        // 支持三引号包裹的 Kotlin 表达式
+        if (value.trimStart().startsWith("\"\"\"")) {
+            return value.trim().removeSurrounding("\"\"\"")
+        }
+
+        // 支持转义形式的 Kotlin 表达式: listOf(\"a\")
+        if (value.contains("\\\"") || value.contains("\\\"")) {
+            return value
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\")
+        }
+
         val listType = detectListType(value)
         return if (listType != null && type.startsWith("List<")) {
             val listTypeStr = listType.second
