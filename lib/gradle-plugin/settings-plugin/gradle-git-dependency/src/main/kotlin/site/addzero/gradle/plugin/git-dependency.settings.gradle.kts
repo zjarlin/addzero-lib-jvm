@@ -14,20 +14,10 @@ val gitDependencies = extensions.create<GitDependencysExtension>("implementation
 gradle.settingsEvaluated {
     val scriptSettings: Settings = this
 
-
-    // 显式函数调用，在用户配置扩展后调用
-    fun Settings.includeRemoteGits(vararg repos: String) {
-        val targetSettings = this
+    val allRepos = gitDependencies.allResolved()
+    if (allRepos.isNotEmpty()) {
         gitRepositories {
-            repos.forEach { includeGitProject(targetSettings, it, gitDependencies) }
-        }
-    }
-
-    val remoteGits = gitDependencies.remoteGits.get()
-
-    if (remoteGits.isNotEmpty()) {
-        gitRepositories {
-            remoteGits.forEach { includeGitProject(scriptSettings, it, gitDependencies) }
+            allRepos.forEach { includeGitProject(scriptSettings, it) }
         }
     }
 }
