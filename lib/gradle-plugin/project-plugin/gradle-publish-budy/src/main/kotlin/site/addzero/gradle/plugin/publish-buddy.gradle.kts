@@ -1,8 +1,11 @@
 package site.addzero.gradle.plugin
 
+import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import site.addzero.gradle.PublishConventionExtension
 import site.addzero.util.createExtension
 import java.time.LocalDate
+import java.util.ArrayDeque
 
 // 默认配置常量
 object Defaults {
@@ -35,6 +38,89 @@ val publishExtension = createExtension<PublishConventionExtension>().apply {
 fun String.toGitHost() = substringAfter("://").substringBefore("/")
 fun String.toGitRepoName() = substringAfter("://").substringAfter("/").removeSuffix(".git")
 fun String.toGitBaseUrl() = removeSuffix(".git")
+fun String.toPascalFromPath() =
+    split(":")
+        .filter { it.isNotBlank() }
+        .joinToString("") { segment -> segment.replaceFirstChar { c -> c.uppercase() } }
+
+fun Project.directProjectDependencies(): Set<Project> =
+    configurations
+        .flatMap { cfg ->
+            cfg.dependencies
+                .withType(ProjectDependency::class.java)
+                .mapNotNull { dep -> rootProject.findProject(dep.path) }
+        }
+        .toSet()
+
+fun Project.recursiveProjectDependencies(): Set<Project> {
+    val visited = linkedSetOf<Project>()
+    val queue = ArrayDeque<Project>()
+    directProjectDependencies().forEach(queue::addLast)
+
+    while (queue.isNotEmpty()) {
+        val current = queue.removeFirst()
+        if (!visited.add(current)) continue
+        current.directProjectDependencies()
+            .filterNot { it == this || visited.contains(it) }
+            .forEach(queue::addLast)
+    }
+    return visited
+}
+
+fun Project.publishTaskPathsForProjectDependencies(): List<String> =
+    recursiveProjectDependencies()
+        .mapNotNull { dep -> dep.tasks.findByName("publishToMavenCentral")?.path }
+        .distinct()
+
+fun Project.configureAggregatePublishTasksByParentDir() {
+    if (this != rootProject) return
+
+    gradle.projectsEvaluated {
+        val grouped = subprojects
+            .groupBy { subProject -> subProject.path.substringBeforeLast(":", "") }
+            .filterKeys { parentPath -> parentPath.isNotBlank() }
+            .mapValues { (_, children) ->
+                children
+                    .mapNotNull { child -> child.tasks.findByName("publishToMavenCentral")?.path }
+                    .distinct()
+            }
+            .filterValues { publishPaths -> publishPaths.isNotEmpty() }
+
+        val shortNameCounts = grouped.keys
+            .map { parentPath -> parentPath.substringAfterLast(":") }
+            .groupingBy { it }
+            .eachCount()
+
+        grouped.forEach { (parentPath, publishTaskPaths) ->
+            val canonicalTaskName = "publish${parentPath.toPascalFromPath()}ToMavenCentral"
+            val canonicalTask = tasks.findByName(canonicalTaskName) ?: tasks.create(canonicalTaskName)
+            canonicalTask.group = "publishing"
+            canonicalTask.description = "Publish all modules directly under $parentPath"
+            canonicalTask.dependsOn(publishTaskPaths)
+
+            val shortSegment = parentPath.substringAfterLast(":")
+            val canCreateShortAlias = shortSegment.isNotBlank() && shortNameCounts[shortSegment] == 1
+            if (canCreateShortAlias) {
+                val aliasTaskName = "publish${shortSegment.replaceFirstChar { c -> c.uppercase() }}ToMavenCentral"
+                if (aliasTaskName != canonicalTaskName && tasks.findByName(aliasTaskName) == null) {
+                    tasks.register(aliasTaskName) {
+                        group = "publishing"
+                        description = "Alias of $canonicalTaskName"
+                        dependsOn(canonicalTask)
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name == "publishToMavenCentral") {
+        dependsOn(provider { project.publishTaskPathsForProjectDependencies() })
+    }
+}
+
+project.configureAggregatePublishTasksByParentDir()
 
 // 延迟配置 mavenPublishing，确保用户配置已生效
 afterEvaluate {
