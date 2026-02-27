@@ -124,6 +124,12 @@ object WindsurfCardBinding {
     page.getByLabel("省/州").selectOption(card.province)
     println("[WindsurfCardBinding] selected province: ${card.province}")
 
+    // 城市
+    val cityInput = page.getByPlaceholder("市")
+    cityInput.click()
+    cityInput.fill(card.city)
+    println("[WindsurfCardBinding] filled city: ${card.city}")
+
     // 区/县
     val districtInput = page.getByPlaceholder("地区")
     districtInput.click()

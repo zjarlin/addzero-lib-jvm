@@ -75,21 +75,44 @@ class WindsurfRegisterAutomationTest {
   }
 
   /**
-   * 仅测试卡号生成器
+   * 测试卡号生成器（BIN 前缀 + Luhn 校验，参考 creditcardcrack）
+   * 覆盖 Visa / MasterCard / Discover / JCB 四种卡类型
    */
   @Test
-  fun `should generate valid card info`() {
-    repeat(5) {
-      val card = WindsurfCardGenerator.generate()
-      println("[Test] generated card: number=${card.cardNumber}, expiry=${card.expiry}, cvc=${card.cvc}, name=${card.holderName}")
-      println("[Test]   address: ${card.province} ${card.district} ${card.addressLine1} ${card.addressLine2 ?: ""}")
+  fun `should generate valid card info for all card types`() {
+    for (type in CardType.entries) {
+      println("\n[Test] ── ${type.name} ──")
+      repeat(3) {
+        val card = WindsurfCardGenerator.generate(type)
+        val digits = card.cardNumber.replace(" ", "")
+        val pipe = WindsurfCardGenerator.formatPipe(card)
 
-      // 验证卡号格式
-      val digits = card.cardNumber.replace(" ", "")
-      assertTrue(digits.length == 16, "card number should be 16 digits: $digits")
-      assertTrue(luhnCheck(digits), "card number should pass Luhn check: $digits")
-      assertTrue(card.cvc.length == 3, "CVC should be 3 digits")
-      assertTrue(card.expiry.matches(Regex("\\d{2} / \\d{2}")), "expiry should be MM / YY format")
+        println("[Test] $pipe  name=${card.holderName}  addr=${card.province}${card.district}${card.addressLine1}")
+
+        assertTrue(digits.length == 16, "card number should be 16 digits: $digits")
+        assertTrue(WindsurfCardGenerator.luhnValid(digits), "card number should pass Luhn check: $digits")
+        assertTrue(card.cvc.length == 3, "CVC should be 3 digits: ${card.cvc}")
+        assertTrue(card.expiry.matches(Regex("\\d{2} / \\d{2}")), "expiry should be MM / YY format: ${card.expiry}")
+
+        // 验证 BIN 前缀属于对应卡类型
+        val matchesBin = type.bins.any { digits.startsWith(it) }
+        assertTrue(matchesBin, "${type.name} card should start with one of ${type.bins}: $digits")
+      }
+    }
+  }
+
+  /**
+   * 测试批量生成
+   */
+  @Test
+  fun `should batch generate cards`() {
+    val cards = WindsurfCardGenerator.generateBatch(10)
+    println("[Test] batch generated ${cards.size} cards:")
+    cards.forEach { println("  ${WindsurfCardGenerator.formatPipe(it)}") }
+
+    assertTrue(cards.size == 10, "should generate 10 cards")
+    cards.forEach { card ->
+      assertTrue(WindsurfCardGenerator.luhnValid(card.cardNumber), "all cards should pass Luhn")
     }
   }
 
@@ -115,18 +138,4 @@ class WindsurfRegisterAutomationTest {
     println("[Test] batch result: ${result.success}/${result.total} success, ${result.failed} failed")
   }
 
-  private fun luhnCheck(number: String): Boolean {
-    var sum = 0
-    var alternate = false
-    for (i in number.length - 1 downTo 0) {
-      var n = number[i] - '0'
-      if (alternate) {
-        n *= 2
-        if (n > 9) n -= 9
-      }
-      sum += n
-      alternate = !alternate
-    }
-    return sum % 10 == 0
-  }
 }
