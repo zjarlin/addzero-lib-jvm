@@ -6,6 +6,7 @@ plugins {
 // 动态获取 shared 目录（通常为 src/commonMain/kotlin）
 processorBuddy {
   val sharedDir = rootDir.resolve("shared/src/commonMain/kotlin").absolutePath
+  packageName.set("site.addzero.entity2iso.processor.context")
   mustMap.set(
     mapOf(
       "isomorphicPkg" to "site.addzero.entity2iso.generated",

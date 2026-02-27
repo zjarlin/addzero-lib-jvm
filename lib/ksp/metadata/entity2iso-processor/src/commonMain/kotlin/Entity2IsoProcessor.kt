@@ -2,9 +2,8 @@ import site.addzero.entity.analysis.model.EntityMetadata
 import site.addzero.entity.analysis.processor.BaseJimmerProcessor
 import com.google.devtools.ksp.processing.*
 import generator.IsoCodeGenerator
-import site.addzero.context.SettingContext
 import java.io.File
-import site.addzero.context.Settings
+import site.addzero.entity2iso.processor.context.Settings
 
 /**
  * 实体转同构体处理器提供者
