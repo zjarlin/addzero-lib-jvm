@@ -36,8 +36,9 @@ captures
 **/file-system.probe
 /.xcodemap
 
-# Auto-generated documentation files
-/docs/**/*.md
+# mdBook generated files
+/docs/src/
+/docs/book/
 /.cursorignore
 /.editorconfig
 /.qoderignore

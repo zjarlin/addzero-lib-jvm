@@ -1,116 +1,87 @@
 #!/bin/bash
+set -euo pipefail
 
-# 清理旧的文档文件
-rm -rf docs/lib
-rm -f docs/README.md docs/_sidebar.md
+# ── mdBook 文档生成脚本 ──
+# 收集仓库中所有 README.md，生成 SUMMARY.md，供 mdBook 构建。
 
-# 创建 index.html
-cat > docs/index.html << 'EOF'
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>addzero-lib-jvm Documentation</title>
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-</head>
-<body>
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-      name: 'addzero-lib-jvm',
-      repo: 'https://github.com/zjarlin/addzero-lib-jvm',
-      loadSidebar: true,
-      subMaxLevel: 3,
-      auto2top: true,
-      search: 'auto',
-      homepage: 'README.md',
-      // 自动检测基础路径，解决 GitHub Pages 子路径 404 问题
-      basePath: window.location.pathname.indexOf('/addzero-lib-jvm') !== -1
-        ? '/addzero-lib-jvm/' 
-        : '/'
-    }
-  </script>
-  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-</body>
-</html>
-EOF
+SRC_DIR="docs/src"
 
-# 禁用 Jekyll
-touch docs/.nojekyll
+rm -rf "$SRC_DIR"
+mkdir -p "$SRC_DIR"
 
-# 生成文档首页
-cat > docs/README.md << 'EOF'
+# ── 首页 ──
+if [ -f README.md ]; then
+  cp README.md "$SRC_DIR/README.md"
+else
+  cat > "$SRC_DIR/README.md" << 'EOF'
 # addzero-lib-jvm
 
-欢迎来到 addzero-lib-jvm 文档站点。
-
-这是一个 Kotlin/JVM 多模块项目，包含多个工具库和处理器。
-
-## 快速导航
-
-请通过左侧侧边栏查看各个模块的详细文档和用法说明。
+Kotlin/JVM 多模块工具库集合。
 EOF
+fi
 
-# 生成侧边栏
-echo "- [首页](README.md)" > docs/_sidebar.md
-echo "" >> docs/_sidebar.md
-
-# 递归查找所有 README.md 文件并处理
+# ── 收集子模块 README ──
 find . -name "README.md" -type f \
-  ! -path "./docs/*" \
   ! -path "./README.md" \
-  ! -path "*/node_modules/*" \
+  ! -path "./docs/*" \
   ! -path "*/.git/*" \
+  ! -path "*/node_modules/*" \
   ! -path "*/build/*" \
   ! -path "*/target/*" \
   | sort \
   | while read -r readme; do
-    # 获取相对路径
     rel_path="${readme#./}"
-    # 目标路径
-    target="docs/$rel_path"
-    # 创建目标目录
+    target="$SRC_DIR/$rel_path"
     mkdir -p "$(dirname "$target")"
-    
-    # 获取模块目录名作为 artifactId
+
     module_dir=$(dirname "$rel_path")
     module_name=$(basename "$module_dir")
-    
-    # 复制内容并追加用法说明
+
     {
       cat "$readme"
-      echo -e "\n\n---"
-      echo "## 如何使用 (Maven/Gradle)"
       echo ""
-      echo "此模块已发布至 Maven Central。"
+      echo "---"
       echo ""
-      echo "### Gradle (Kotlin)"
-      echo "\`\`\`kotlin"
+      echo "## Maven / Gradle"
+      echo ""
+      echo "已发布至 Maven Central。"
+      echo ""
+      echo '```kotlin'
       echo "implementation(\"site.addzero:$module_name:最新版本\")"
-      echo "\`\`\`"
+      echo '```'
       echo ""
-      echo "### Maven"
-      echo "\`\`\`xml"
+      echo '```xml'
       echo "<dependency>"
       echo "    <groupId>site.addzero</groupId>"
       echo "    <artifactId>$module_name</artifactId>"
       echo "    <version>最新版本</version>"
       echo "</dependency>"
-      echo "\`\`\`"
+      echo '```'
     } > "$target"
+  done
 
-    # 读取第一行标题
-    title=$(head -n 1 "$readme" | sed 's/^#\+\s*//')
+# ── 生成 SUMMARY.md ──
+SUMMARY="$SRC_DIR/SUMMARY.md"
+echo "# Summary" > "$SUMMARY"
+echo "" >> "$SUMMARY"
+echo "[首页](README.md)" >> "$SUMMARY"
+echo "" >> "$SUMMARY"
 
-    # 如果没有标题，使用模块名
+find "$SRC_DIR" -name "README.md" -type f \
+  ! -path "$SRC_DIR/README.md" \
+  | sort \
+  | while read -r mdfile; do
+    rel="${mdfile#$SRC_DIR/}"
+    module_dir=$(dirname "$rel")
+    module_name=$(basename "$module_dir")
+
+    title=$(head -n 5 "$mdfile" | grep -m1 '^#' | sed 's/^#*[[:space:]]*//' || true)
     if [ -z "$title" ]; then
       title="$module_name"
     fi
 
-    # 生成侧边栏条目
-    echo "- [$title]($rel_path)" >> docs/_sidebar.md
+    echo "- [$title]($rel)" >> "$SUMMARY"
   done
 
-echo "文档生成完成！"
+echo ""
+echo "文档生成完成！共处理 $(find "$SRC_DIR" -name "README.md" | wc -l | tr -d ' ') 个文档。"

@@ -1,0 +1,17 @@
+[book]
+title = "addzero-lib-jvm"
+authors = ["zjarlin"]
+language = "zh"
+src = "docs/src"
+
+[build]
+build-dir = "docs/book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/zjarlin/addzero-lib-jvm"
+edit-url-template = "https://github.com/zjarlin/addzero-lib-jvm/edit/main/{path}"
+
+[output.html.search]
+enable = true
