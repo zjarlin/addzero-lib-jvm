@@ -127,8 +127,7 @@ class WindsurfRegisterAutomationTest {
     val result = WindsurfBatchRegistration.run(
       count = 3,          // 先跑 1 个验证单流程，跑通后改大
       concurrency = 3,    // 串行，跑通后可改为 2~3 并发
-      bindCard = true,
-      mailProviderFactory = { TempMailProviderImpl() },
+//      bindCard = true,
     )
 
     assertTrue(result.success > 0, "at least one account should succeed")

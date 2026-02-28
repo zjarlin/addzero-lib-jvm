@@ -76,13 +76,14 @@ object WindsurfBatchRegistration {
     password: String? = "StrongPass123!",
     firstName: String? = "Auto",
     lastName: String? = "User",
-    bindCard: Boolean = true,
+    bindCard: Boolean = false,
     cardInfo: WindsurfCardInfo? = null,
     cdpUrl: String? = "http://localhost:9222",
     storageDir: Path = WindsurfAccountStorage.DEFAULT_DIR,
+
     timeoutMs: Double = 120_000.0,
     slowMoMs: Double = 500.0,
-    mailProviderFactory: () -> TempMailProvider = { TempMailProvider.loadFromSpi() ?: error("No TempMailProvider via SPI") },
+    mailProviderFactory: () -> TempMailProvider = { TempMailProvider.loadFromSpi() },
     interDelayMs: Long = 5_000,
   ): BatchResult {
     require(count > 0) { "count must be > 0" }

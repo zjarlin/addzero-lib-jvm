@@ -173,7 +173,19 @@ object PlaywrightSession {
       block(page, context)
     } finally {
       // 关闭本次创建的 tab，避免 Chrome 累积大量空 tab
-      runCatching { page?.close() }
+      // 但不要关闭最后一个 tab，否则 Chrome 会卡住或创建空白页
+      runCatching {
+        if (page != null) {
+          val context = page.context()
+          val pageCount = runCatching { context.pages().size }.getOrDefault(1)
+          if (pageCount > 1) {
+            page.close()
+          } else {
+            // 最后一个 tab：只导航到空白页，不关闭
+            runCatching { page.navigate("about:blank") }
+          }
+        }
+      }
       // CDP 模式不关闭浏览器，只断开连接
       runCatching { browser.close() }
       runCatching { playwright.close() }

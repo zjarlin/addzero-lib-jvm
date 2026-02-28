@@ -27,6 +27,8 @@ data class WindsurfAccount(
 enum class WindsurfAccountStatus {
   /** 已创建临时邮箱，但注册尚未完成 */
   EMAIL_CREATED,
+  /** 正在注册中（已被某线程认领） */
+  IN_PROGRESS,
   /** 注册成功 */
   REGISTERED,
   /** 注册失败 */

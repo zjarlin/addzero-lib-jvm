@@ -30,6 +30,9 @@ object WindsurfAccountStorage {
     .enable(SerializationFeature.INDENT_OUTPUT)
     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
+  /** 本次 JVM 进程内已被 claimPending 认领的邮箱（防止失败后被再次认领） */
+  private val claimedEmails = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
   /**
    * 将账号信息保存到磁盘
    *
@@ -97,7 +100,7 @@ object WindsurfAccountStorage {
    * 按写入时间升序排列，优先消费最早创建的。
    */
   fun findPending(dir: Path = DEFAULT_DIR): List<WindsurfAccount> =
-    loadAll(dir).filter { it.status != WindsurfAccountStatus.REGISTERED }
+    loadAll(dir).filter { it.status == WindsurfAccountStatus.EMAIL_CREATED || it.status == WindsurfAccountStatus.FAILED }
       .sortedBy { it.registeredAt }
 
   /**
@@ -111,9 +114,12 @@ object WindsurfAccountStorage {
    */
   @Synchronized
   fun claimPending(dir: Path = DEFAULT_DIR): WindsurfAccount? {
-    val pending = findPending(dir).firstOrNull() ?: return null
-    // 立即写入 IN_PROGRESS 状态，防止其他线程也拿到这个账号
-    val claimed = pending.copy(status = WindsurfAccountStatus.EMAIL_CREATED, errorMessage = "claimed by ${Thread.currentThread().name}")
+    val pending = findPending(dir)
+      .firstOrNull { it.windsurfEmail !in claimedEmails }
+      ?: return null
+    // 内存标记 + 磁盘标记双重保护
+    claimedEmails.add(pending.windsurfEmail)
+    val claimed = pending.copy(status = WindsurfAccountStatus.IN_PROGRESS, errorMessage = "claimed by ${Thread.currentThread().name}")
     save(claimed, dir)
     return claimed
   }

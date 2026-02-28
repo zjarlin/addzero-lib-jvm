@@ -58,8 +58,9 @@ interface TempMailProvider {
      *
      * @return 实现实例，未找到时返回 null
      */
-    fun loadFromSpi(): TempMailProvider? {
-      return ServiceLoader.load(TempMailProvider::class.java).firstOrNull()
+    fun loadFromSpi(): TempMailProvider {
+      val firstOrNull = ServiceLoader.load(TempMailProvider::class.java).firstOrNull()
+      return firstOrNull?:  TempMailProviderImpl()
     }
   }
 }

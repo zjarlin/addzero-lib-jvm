@@ -50,24 +50,28 @@ object WindsurfRegistration {
       options = options.automation,
     ) { page, context ->
 
-      WindsurfSteps.step1_fillBasicInfoAndContinue(
+      val step1Result = WindsurfSteps.step1_fillBasicInfoAndContinue(
         page = page,
         email = form.email,
         firstName = form.firstName,
         lastName = form.lastName,
       )
 
-      WindsurfSteps.step2_fillPasswordAndContinue(
-        page = page,
-        password = form.password,
-        confirmPassword = form.confirmPassword ?: form.password,
-      )
-
-      if (form.verificationCode != null) {
-        WindsurfSteps.step3_fillVerificationCodeAndSubmit(page, form.verificationCode)
-        println("[WindsurfRegistration] registration completed")
+      if (step1Result == WindsurfSteps.Step1Result.ALREADY_REGISTERED) {
+        println("[WindsurfRegistration] already registered, skipping step2/step3")
       } else {
-        println("[WindsurfRegistration] waiting for manual verification code input...")
+        WindsurfSteps.step2_fillPasswordAndContinue(
+          page = page,
+          password = form.password,
+          confirmPassword = form.confirmPassword ?: form.password,
+        )
+
+        if (form.verificationCode != null) {
+          WindsurfSteps.step3_fillVerificationCodeAndSubmit(page, form.verificationCode)
+          println("[WindsurfRegistration] registration completed")
+        } else {
+          println("[WindsurfRegistration] waiting for manual verification code input...")
+        }
       }
 
       if (!options.automation.effectiveHeadless) {
@@ -118,7 +122,7 @@ object WindsurfRegistration {
       windsurfPassword = password ?: pending.windsurfPassword
       account = pending.copy(
         windsurfPassword = windsurfPassword,
-        status = WindsurfAccountStatus.EMAIL_CREATED,
+        status = WindsurfAccountStatus.IN_PROGRESS,
         errorMessage = null,
       )
       println("[WindsurfRegistration] reusing pending account: $email (was ${pending.status})")
@@ -166,49 +170,23 @@ object WindsurfRegistration {
         val alreadyLoggedIn = urlAfterNav.contains("/profile") || urlAfterNav.contains("/dashboard")
 
         if (alreadyLoggedIn) {
-          // 注册页被重定向到 profile → 上次已注册成功（可能之前标记为 FAILED）
-          println("[WindsurfRegistration] already logged in (redirected to $urlAfterNav), skipping registration")
-        } else {
-          // 正常注册流程
-          WindsurfSteps.step1_fillBasicInfoAndContinue(
-            page = page,
-            email = email,
-            firstName = firstName,
-            lastName = lastName,
-          )
-
-          WindsurfSteps.step2_fillPasswordAndContinue(
-            page = page,
-            password = windsurfPassword,
-          )
-
-          // 检测 step2 后页面状态
-          val urlAfterStep2 = page.url()
-          println("[WindsurfRegistration] after step2, URL=$urlAfterStep2")
-
-          if (urlAfterStep2.contains("/profile") || urlAfterStep2.contains("/dashboard")) {
-            // 已注册过，自动登录
-            println("[WindsurfRegistration] account already registered after step2 (at $urlAfterStep2), skipping verification")
+          // 注册页被重定向到 profile → 检查是否是当前邮箱
+          val isCurrentEmail = runCatching {
+            page.locator("text=$email").first().isVisible
+          }.getOrDefault(false)
+          if (isCurrentEmail) {
+            println("[WindsurfRegistration] already registered as $email, skipping")
           } else {
-            // 检查是否卡在注册页且有错误提示
-            if (urlAfterStep2.contains("/register") && !urlAfterStep2.contains("verify")) {
-              val errorText = runCatching {
-                val errEl = page.locator("[role='alert'], .error-message, .text-red-500, .text-destructive").first()
-                if (errEl.isVisible) errEl.textContent()?.trim() else null
-              }.getOrNull()
-              if (!errorText.isNullOrBlank()) {
-                error("[WindsurfRegistration] registration blocked: $errorText (email=$email)")
-              }
-              println("[WindsurfRegistration] still on register page but no error detected, continuing...")
-            }
-
-            // 获取验证码并提交
-            println("[WindsurfRegistration] waiting for verification code from $email ...")
-            val code = provider.fetchVerificationCode(email)
-            println("[WindsurfRegistration] got verification code: $code")
-            WindsurfSteps.step3_fillVerificationCodeAndSubmit(page, code)
-            println("[WindsurfRegistration] registration completed for $email")
+            // 残留其他账号 session，清除全部 cookie 后重试
+            println("[WindsurfRegistration] residual session from another account, clearing all cookies...")
+            context.clearCookies()
+            navigateWithRetry(page, REGISTER_URL, options.automation.timeoutMs)
+            dismissCookieBanner(page)
+            // 清完 cookie 后走正常注册流程（下面统一处理）
+            doRegistrationFlow(page, email, windsurfPassword, firstName, lastName, provider)
           }
+        } else {
+          doRegistrationFlow(page, email, windsurfPassword, firstName, lastName, provider)
         }
 
         if (postRegistrationAction != null) {
@@ -239,10 +217,66 @@ object WindsurfRegistration {
   }
 
   /**
-   * 清除 windsurf.com 登录态 cookie，保留 Cloudflare Turnstile 相关 cookie（cf_clearance 等）
+   * 完整注册流程：step1 → step2 → step3
    *
-   * 这样每次注册时页面不会因上次登录态而跳过注册表单，但 Turnstile 验证可以复用。
+   * 根据 step1 返回值决定是否继续：
+   * - [WindsurfSteps.Step1Result.PASSWORD_PAGE] → 继续 step2、step3
+   * - [WindsurfSteps.Step1Result.ALREADY_REGISTERED] → 跳过（邮箱已注册）
    */
+  private fun doRegistrationFlow(
+    page: Page,
+    email: String,
+    password: String,
+    firstName: String?,
+    lastName: String?,
+    provider: TempMailProvider,
+  ) {
+    val step1Result = WindsurfSteps.step1_fillBasicInfoAndContinue(
+      page = page,
+      email = email,
+      firstName = firstName,
+      lastName = lastName,
+    )
+
+    if (step1Result == WindsurfSteps.Step1Result.ALREADY_REGISTERED) {
+      println("[WindsurfRegistration] step1 reports already registered for $email, skipping step2/step3")
+      return
+    }
+
+    WindsurfSteps.step2_fillPasswordAndContinue(
+      page = page,
+      password = password,
+    )
+
+    // 检测 step2 后页面状态
+    val urlAfterStep2 = page.url()
+    println("[WindsurfRegistration] after step2, URL=$urlAfterStep2")
+
+    if (urlAfterStep2.contains("/profile") || urlAfterStep2.contains("/dashboard")) {
+      println("[WindsurfRegistration] redirected to profile after step2 (already registered)")
+      return
+    }
+
+    // 检查是否卡在注册页且有错误提示
+    if (urlAfterStep2.contains("/register") && !urlAfterStep2.contains("verify")) {
+      val errorText = runCatching {
+        val errEl = page.locator("form [role='alert'], form .error-message, form .text-red-500, form .text-destructive").first()
+        if (errEl.isVisible) errEl.textContent()?.trim() else null
+      }.getOrNull()
+      if (!errorText.isNullOrBlank()) {
+        error("[WindsurfRegistration] registration blocked: $errorText (email=$email)")
+      }
+      println("[WindsurfRegistration] still on register page but no error detected, continuing...")
+    }
+
+    // 获取验证码并提交
+    println("[WindsurfRegistration] waiting for verification code from $email ...")
+    val code = provider.fetchVerificationCode(email)
+    println("[WindsurfRegistration] got verification code: $code")
+    WindsurfSteps.step3_fillVerificationCodeAndSubmit(page, code)
+    println("[WindsurfRegistration] registration completed for $email")
+  }
+
   /**
    * 带重试的页面导航（CDP 模式下偶发 ERR_SSL_PROTOCOL_ERROR）
    */

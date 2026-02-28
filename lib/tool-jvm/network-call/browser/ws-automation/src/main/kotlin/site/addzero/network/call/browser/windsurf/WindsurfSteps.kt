@@ -20,19 +20,29 @@ object WindsurfSteps {
   /** Create account 按钮的可能文本 */
   private val CREATE_ACCOUNT_NAMES = listOf("Create account", "创建帐户", "创建账户", "注册")
 
+  /** step1 执行结果 */
+  enum class Step1Result {
+    /** 正常跳转到密码页 */
+    PASSWORD_PAGE,
+    /** 被重定向到 profile/dashboard（邮箱已注册过） */
+    ALREADY_REGISTERED,
+  }
+
   // ────────────────────────────────────────────────────────────
   // 第一步：基本信息 + 勾选协议 + Continue
   // ────────────────────────────────────────────────────────────
 
   /**
    * 填写 firstName、lastName、email，勾选协议，等待 Turnstile 通过后点击 Continue
+   *
+   * @return [Step1Result] 指示页面跳转到了密码页还是 profile（已注册）
    */
   fun step1_fillBasicInfoAndContinue(
     page: Page,
     email: String,
     firstName: String? = null,
     lastName: String? = null,
-  ) {
+  ): Step1Result {
     // 先关闭所有 Chrome 原生弹框（恢复页面、密码保存、翻译栏等）
     dismissChromeDialogs(page)
 
@@ -79,34 +89,31 @@ object WindsurfSteps {
       }.getOrDefault(false)
       if (passwordVisible) {
         println("[WindsurfSteps] step1: password page appeared")
-        step1Transitioned = true
-        break
+        return Step1Result.PASSWORD_PAGE
       }
       // 信号2：被重定向到 profile/dashboard（已注册过）
       if ("profile" in currentUrl || "dashboard" in currentUrl) {
         println("[WindsurfSteps] step1: redirected to $currentUrl (already registered)")
-        step1Transitioned = true
-        break
+        return Step1Result.ALREADY_REGISTERED
       }
-      // 信号3：检测到页面错误提示
+      // 信号3：检测到注册表单内的错误提示（排除页面标题等无关元素）
       val errorText = runCatching {
-        val errEl = page.locator("[role='alert'], .error-message, .text-red-500, .text-destructive").first()
+        val errEl = page.locator("form [role='alert'], form .error-message, form .text-red-500, form .text-destructive").first()
         if (errEl.isVisible) errEl.textContent()?.trim() else null
       }.getOrNull()
-      if (!errorText.isNullOrBlank()) {
+      if (!errorText.isNullOrBlank() && !errorText.contains("|") && errorText.length < 200) {
         error("[WindsurfSteps] step1: registration error: $errorText (email=$email)")
       }
       Thread.sleep(1_000)
     }
-    if (!step1Transitioned) {
-      val finalUrl = runCatching { page.url() }.getOrDefault("unknown")
-      val screenshotPath = runCatching {
-        val tmpFile = java.io.File.createTempFile("step1-timeout-", ".png")
-        page.screenshot(Page.ScreenshotOptions().setPath(tmpFile.toPath()).setFullPage(true))
-        tmpFile.absolutePath
-      }.getOrNull()
-      error("[WindsurfSteps] step1: TIMEOUT (30s) waiting for password page. url=$finalUrl, screenshot=$screenshotPath")
-    }
+    // 超时
+    val finalUrl = runCatching { page.url() }.getOrDefault("unknown")
+    val screenshotPath = runCatching {
+      val tmpFile = java.io.File.createTempFile("step1-timeout-", ".png")
+      page.screenshot(Page.ScreenshotOptions().setPath(tmpFile.toPath()).setFullPage(true))
+      tmpFile.absolutePath
+    }.getOrNull()
+    error("[WindsurfSteps] step1: TIMEOUT (30s) waiting for password page. url=$finalUrl, screenshot=$screenshotPath")
   }
 
   // ────────────────────────────────────────────────────────────
