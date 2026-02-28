@@ -1,21 +1,19 @@
-import org.gradle.util.internal.TextUtil.toCamelCase
-import org.gradle.util.internal.TextUtil.toLowerCamelCase
+
+import cn.hutool.core.util.StrUtil
+import site.addzero.util.str.toLowCamelCase
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class TestStr {
 
   @Test
   fun `daoisjdo`() {
-    val toCamelCase = toLowerCamelCase("userName")
-    val toCamelCase1 = toLowerCamelCase("user.name")
-    println(toCamelCase)
-
+    val toLowCamelCase = "user.name".toLowCamelCase()
+    assertTrue { toLowCamelCase == "userName" }
   }
   @Test
   fun `dojaisdjo`() {
     val value = ",".split(",")?.filter { it.isNotEmpty() }?.map { it } ?: listOf("src/test/dto", "src/test/dto1")
-
-
     println()
   }
 }

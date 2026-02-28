@@ -125,8 +125,8 @@ class WindsurfRegisterAutomationTest {
   @Test
   fun `should batch register accounts`() {
     val result = WindsurfBatchRegistration.run(
-      count = 3,          // 先跑 1 个验证单流程，跑通后改大
-      concurrency = 3,    // 串行，跑通后可改为 2~3 并发
+      count = 30,          // 注册数量
+      concurrency = 1,    // 串行模式（邮箱 API 有 rate-limit，并发收益不大）
 //      bindCard = true,
     )
 

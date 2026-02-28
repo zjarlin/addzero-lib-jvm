@@ -89,6 +89,9 @@ object WindsurfBatchRegistration {
     require(count > 0) { "count must be > 0" }
     require(concurrency > 0) { "concurrency must be > 0" }
 
+    // 一致性修复：将历史 REGISTERED 账号同步到 success/
+    WindsurfAccountStorage.syncRegisteredToSuccess(storageDir)
+
     val successAccounts = ConcurrentLinkedQueue<WindsurfAccount>()
     val errors = ConcurrentLinkedQueue<BatchError>()
     val completed = AtomicInteger(0)
@@ -118,7 +121,7 @@ object WindsurfBatchRegistration {
       // 串行模式
       for (i in 1..count) {
         runSingle(
-          index = i, total = count,
+          index = i, total = count, concurrency = concurrency,
           password = password, firstName = firstName, lastName = lastName,
           options = options, storageDir = storageDir,
           postAction = postAction,
@@ -142,7 +145,7 @@ object WindsurfBatchRegistration {
             Thread.sleep(interDelayMs * ((i - 1L) % concurrency))
           }
           runSingle(
-            index = i, total = count,
+            index = i, total = count, concurrency = concurrency,
             password = password, firstName = firstName, lastName = lastName,
             options = options, storageDir = storageDir,
             postAction = postAction,
@@ -186,6 +189,7 @@ object WindsurfBatchRegistration {
   private fun runSingle(
     index: Int,
     total: Int,
+    concurrency: Int,
     password: String?,
     firstName: String?,
     lastName: String?,
@@ -204,12 +208,21 @@ object WindsurfBatchRegistration {
     println("───────────────────────────────────────────────────")
 
     try {
+      // 并发模式下为每个任务分配独立 CDP 端口，串行模式复用默认端口
+      val taskOptions = if (options.cdpPort != null || concurrency <= 1) {
+        options // 已指定端口或串行模式 → 直接复用
+      } else {
+        val cdpPort = site.addzero.network.call.browser.core.ChromeLauncher.findFreePort(startPort = 9222 + index - 1)
+        println("[Batch] [$threadName] #$index allocated CDP port: $cdpPort")
+        options.copy(cdpPort = cdpPort)
+      }
+      
       val account = WindsurfRegistration.registerWithTempMail(
         password = password,
         firstName = firstName,
         lastName = lastName,
         mailProvider = mailProviderFactory(),
-        options = options,
+        options = taskOptions,
         storageDir = storageDir,
         postRegistrationAction = postAction,
       )

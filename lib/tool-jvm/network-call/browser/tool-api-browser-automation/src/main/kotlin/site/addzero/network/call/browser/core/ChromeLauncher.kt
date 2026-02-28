@@ -29,17 +29,15 @@ object ChromeLauncher {
   private val IS_WINDOWS = "win" in OS
   private val IS_MAC = "mac" in OS || "darwin" in OS
 
-  /** 正在运行的 Chrome 进程（由本类启动的），用于 JVM 关闭时清理 */
-  @Volatile
-  private var managedProcess: Process? = null
+  /** 正在运行的 Chrome 进程（由本类启动的），按端口号索引，支持多实例并发 */
+  private val managedProcesses = java.util.concurrent.ConcurrentHashMap<Int, Process>()
 
   init {
     Runtime.getRuntime().addShutdownHook(Thread {
-      managedProcess?.let { proc ->
+      managedProcesses.forEach { (port, proc) ->
         runCatching {
-          println("[ChromeLauncher] shutting down managed Chrome process")
+          println("[ChromeLauncher] shutting down Chrome on port $port")
           if (IS_WINDOWS) {
-            // Windows 下 destroy 可能不够，用 taskkill
             Runtime.getRuntime().exec(arrayOf("taskkill", "/F", "/T", "/PID", proc.pid().toString()))
           } else {
             proc.destroy()
@@ -48,7 +46,34 @@ object ChromeLauncher {
           if (proc.isAlive) proc.destroyForcibly()
         }
       }
+      managedProcesses.clear()
     })
+  }
+
+  /**
+   * 查找一个可用的空闲端口（用于并发场景下动态分配 CDP 端口）
+   *
+   * @param startPort 起始端口（默认 9222）
+   * @param maxAttempts 最大尝试次数
+   * @return 可用端口号
+   */
+  fun findFreePort(startPort: Int = 9222, maxAttempts: Int = 100): Int {
+    for (offset in 0 until maxAttempts) {
+      val port = startPort + offset
+      if (!isPortInUse(port)) {
+        return port
+      }
+    }
+    error("No free port found in range $startPort..${startPort + maxAttempts - 1}")
+  }
+
+  /**
+   * 检查端口是否被占用
+   */
+  private fun isPortInUse(port: Int): Boolean {
+    return runCatching {
+      java.net.ServerSocket(port).use { false }
+    }.getOrDefault(true)
   }
 
   /**
@@ -63,7 +88,7 @@ object ChromeLauncher {
   fun ensureRunning(
     port: Int = 9222,
     userDataDir: String? = null,
-    startTimeoutMs: Long = 15_000,
+    startTimeoutMs: Long = 30_000,
   ): String {
     val cdpUrl = "http://localhost:$port"
 
@@ -119,7 +144,7 @@ object ChromeLauncher {
       .redirectErrorStream(true)
 
     val process = processBuilder.start()
-    managedProcess = process
+    managedProcesses[port] = process
 
     // 消费 stdout/stderr 防止缓冲区满导致进程挂起
     Thread({
@@ -136,7 +161,7 @@ object ChromeLauncher {
         // exit code 0 有时表示已有 Chrome 实例在运行（仅发了消息给已有实例）
         if (exitCode == 0 && isCdpReady(cdpUrl)) {
           println("[ChromeLauncher] Chrome delegated to existing instance, CDP ready at $cdpUrl")
-          managedProcess = null
+          managedProcesses.remove(port)
           return cdpUrl
         }
         error("[ChromeLauncher] Chrome process exited immediately with code $exitCode. Is another Chrome instance running without --remote-debugging-port?")
@@ -150,7 +175,7 @@ object ChromeLauncher {
 
     // 超时，清理
     process.destroyForcibly()
-    managedProcess = null
+    managedProcesses.remove(port)
     error("[ChromeLauncher] Chrome CDP did not become ready within ${startTimeoutMs}ms on port $port")
   }
 

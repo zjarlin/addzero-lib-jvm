@@ -157,33 +157,41 @@ object WindsurfSteps {
     // 点击 Continue（可能需要点 1~2 次，第一次可能触发 Turnstile，第二次才提交）
     val continueBtn1 = findButtonByNames(page, CONTINUE_NAMES, pickLast = true)
       ?: error("[WindsurfSteps] step2: Continue button not found (tried: $CONTINUE_NAMES)")
-    waitForEnabled(continueBtn1, "Continue（第二步-第1次点击）", page = page)
+    waitForEnabled(continueBtn1, "Continue（第二步-第1次点击）", timeoutMs = 30_000L, page = page)
     dismissChromeDialogs(page)
     forceClick(continueBtn1, "Continue（第二步-第1次点击）")
 
     // 等 2 秒观察页面是否已跳转，如果还在密码页则尝试第二次点击
     Thread.sleep(2_000)
     val urlAfterFirstClick = runCatching { page.url() }.getOrDefault("")
-    val stillOnPasswordPage = "register" in urlAfterFirstClick && "verify" !in urlAfterFirstClick
-      && runCatching { page.getByPlaceholder("Create password").isVisible }.getOrDefault(false)
+    // 只用 URL 判断是否还在注册页（不要检查密码输入框可见性，Turnstile 遮挡后会不可见）
+    val stillOnRegisterPage = "register" in urlAfterFirstClick && "verify" !in urlAfterFirstClick
+      && "profile" !in urlAfterFirstClick && "dashboard" !in urlAfterFirstClick
 
-    if (stillOnPasswordPage) {
-      println("[WindsurfSteps] step2: still on password page after 1st click, attempting 2nd Continue click...")
+    if (stillOnRegisterPage) {
+      // 仍在注册页 → 可能 Turnstile 还在验证中，或者需要第二次点击
       val continueBtn2 = findButtonByNames(page, CONTINUE_NAMES, pickLast = true)
       if (continueBtn2 != null) {
-        waitForEnabled(continueBtn2, "Continue（第二步-第2次点击）", page = page)
-        dismissChromeDialogs(page)
-        forceClick(continueBtn2, "Continue（第二步-第2次点击）")
+        val btn2Enabled = runCatching { continueBtn2.isEnabled }.getOrDefault(false)
+        if (btn2Enabled) {
+          println("[WindsurfSteps] step2: still on register page, Continue enabled, clicking again...")
+          dismissChromeDialogs(page)
+          forceClick(continueBtn2, "Continue（第二步-第2次点击）")
+        } else {
+          println("[WindsurfSteps] step2: still on register page, Continue disabled (Turnstile pending), will retry in polling loop")
+        }
       }
     } else {
-      println("[WindsurfSteps] step2: page already transitioned after 1st click (url=$urlAfterFirstClick), skipping 2nd click")
+      println("[WindsurfSteps] step2: page already transitioned after 1st click (url=$urlAfterFirstClick)")
     }
 
     // 等待页面跳转：轮询多种信号（验证码页、profile 重定向、错误提示）
+    // Turnstile 验证通过后 Continue 按钮会重新变为 enabled，需要再次点击
     println("[WindsurfSteps] step2: waiting for next page after Continue...")
-    val step2Deadline = System.currentTimeMillis() + 30_000L
+    val step2Deadline = System.currentTimeMillis() + 120_000L
     var step2Resolved = false
     var step2PollCount = 0
+    var retriedContinueAfterTurnstile = false
     while (System.currentTimeMillis() < step2Deadline) {
       step2PollCount++
       val currentUrl = runCatching { page.url() }.getOrDefault("")
@@ -215,6 +223,20 @@ object WindsurfSteps {
         println("[WindsurfSteps] step2: verification code input detected on current page")
         step2Resolved = true
         break
+      }
+
+      // 信号4：Turnstile 验证已通过，Continue 按钮 enabled → 再次点击提交
+      if (!retriedContinueAfterTurnstile && "register" in currentUrl) {
+        val continueBtn = findButtonByNames(page, CONTINUE_NAMES, pickLast = true)
+        if (continueBtn != null) {
+          val btnEnabled = runCatching { continueBtn.isEnabled }.getOrDefault(false)
+          if (btnEnabled) {
+            println("[WindsurfSteps] step2: Turnstile passed, re-clicking Continue to submit...")
+            dismissChromeDialogs(page)
+            forceClick(continueBtn, "Continue（第二步-Turnstile后重试）")
+            retriedContinueAfterTurnstile = true
+          }
+        }
       }
 
       // 信号4：页面显示错误信息（邮箱已存在等）
@@ -290,36 +312,46 @@ object WindsurfSteps {
    * 轮询等待 locator 变为 enabled
    */
   fun waitForEnabled(locator: Locator, label: String, timeoutMs: Long = TURNSTILE_WAIT_MS, page: Page? = null) {
+    // 先检查是否已经 enabled（大多数情况下直接返回）
+    if (runCatching { locator.isEnabled }.getOrDefault(false)) return
+
+    println("[WindsurfSteps] waiting for $label to become enabled (Turnstile)...")
     val deadline = System.currentTimeMillis() + timeoutMs
-    var prompted = false
-    var turnstileAttempted = false
+    var pollCount = 0
 
     while (System.currentTimeMillis() < deadline) {
       if (runCatching { locator.isEnabled }.getOrDefault(false)) {
-        if (prompted) println("[WindsurfSteps] $label enabled ✓")
+        println("[WindsurfSteps] $label enabled ✓")
         return
       }
 
-      if (!prompted) {
-        println("[WindsurfSteps] waiting for $label to become enabled (Turnstile)...")
-        println("[WindsurfSteps] >>> 如果看到 'Please verify that you are human'，正在尝试自动点击...")
-        prompted = true
+      pollCount++
+
+      // 每 3 秒尝试自动点击 Turnstile
+      if (page != null && pollCount % 3 == 1) {
+        tryClickTurnstile(page)
       }
 
-      // 每 3 秒尝试自动点击 Turnstile checkbox
-      if (page != null && !turnstileAttempted) {
-        turnstileAttempted = tryClickTurnstile(page)
+      // 每 10 秒打印诊断信息
+      if (pollCount % 10 == 0) {
+        val elapsed = (System.currentTimeMillis() - (deadline - timeoutMs)) / 1000
+        val url = if (page != null) runCatching { page.url() }.getOrDefault("?") else "?"
+        val hasTurnstileIframe = if (page != null) {
+          runCatching { page.frames().any { it.url().contains("challenges.cloudflare.com") } }.getOrDefault(false)
+        } else false
+        println("[WindsurfSteps] waitForEnabled: ${elapsed}s elapsed, url=$url, turnstileIframe=$hasTurnstileIframe")
       }
 
       Thread.sleep(1_000)
-
-      // 每 5 秒重试一次 Turnstile 点击
-      if (page != null && (System.currentTimeMillis() % 5000) < 1100) {
-        tryClickTurnstile(page)
-      }
     }
 
-    error("$label 在 ${timeoutMs / 1000}s 内未变为 enabled，请手动点击 Turnstile 验证框")
+    // 超时：截图辅助调试
+    val screenshotPath = if (page != null) runCatching {
+      val tmpFile = java.io.File.createTempFile("waitForEnabled-timeout-", ".png")
+      page.screenshot(Page.ScreenshotOptions().setPath(tmpFile.toPath()).setFullPage(true))
+      tmpFile.absolutePath
+    }.getOrNull() else null
+    error("$label 在 ${timeoutMs / 1000}s 内未变为 enabled. screenshot=$screenshotPath")
   }
 
   /**

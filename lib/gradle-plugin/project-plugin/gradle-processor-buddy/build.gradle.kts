@@ -1,3 +1,7 @@
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.`java-gradle-plugin`
+import org.gradle.kotlin.dsl.kotlin
+import org.gradle.kotlin.dsl.`kotlin-dsl`
 import site.addzero.gradle.tool.configureJ8
 
 buildscript {
@@ -21,10 +25,11 @@ repositories {
   gradlePluginPortal()
 }
 
-version = "2026.03.01"
+version = "2026.03.02"
 dependencies {
   gradleApi()
   implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)
   implementation(libs.site.addzero.tool.str)
+  implementation(libs.cn.hutool.hutool.core)
   testImplementation(kotlin("test"))
 }

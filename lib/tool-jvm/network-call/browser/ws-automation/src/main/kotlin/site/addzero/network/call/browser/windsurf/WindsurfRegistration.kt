@@ -3,6 +3,7 @@ package site.addzero.network.call.browser.windsurf
 import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.WaitUntilState
+import site.addzero.network.call.browser.core.ChromeLauncher
 import site.addzero.network.call.browser.core.PlaywrightSession
 import java.nio.file.Paths
 
@@ -29,6 +30,9 @@ import java.nio.file.Paths
 object WindsurfRegistration {
 
   private const val REGISTER_URL = "https://windsurf.com/account/register"
+
+  /** 邮箱 API 调用的全局锁（串行化 TLS 连接，避免并发触发 rate-limit） */
+  private val mailApiLock = java.util.concurrent.locks.ReentrantLock()
 
   /** 账号文件默认保存目录，可通过 [WindsurfAccountStorage.DEFAULT_DIR] 查看实际路径 */
   val accountStorageDir get() = WindsurfAccountStorage.DEFAULT_DIR
@@ -117,43 +121,60 @@ object WindsurfRegistration {
     val windsurfPassword: String
     var account: WindsurfAccount
 
-    if (pending != null) {
-      email = pending.windsurfEmail
-      windsurfPassword = password ?: pending.windsurfPassword
-      account = pending.copy(
-        windsurfPassword = windsurfPassword,
-        status = WindsurfAccountStatus.IN_PROGRESS,
-        errorMessage = null,
-      )
-      println("[WindsurfRegistration] reusing pending account: $email (was ${pending.status})")
-      // 复用邮箱时需要让 provider 登录已有邮箱以便后续收验证码
-      provider.loginExisting(email, pending.mailPassword)
-    } else {
-      email = provider.createEmail()
-      windsurfPassword = password ?: provider.getMailPassword()
-      account = WindsurfAccount(
-        windsurfEmail = email,
-        windsurfPassword = windsurfPassword,
-        mailPassword = provider.getMailPassword(),
-        status = WindsurfAccountStatus.EMAIL_CREATED,
-      )
-      println("[WindsurfRegistration] created new temp email: $email")
-      // 新邮箱立即落盘
-      val createdPath = WindsurfAccountStorage.save(account, storageDir)
-      println("[WindsurfRegistration] temp mail saved: $createdPath")
+    // 串行化邮箱 API 调用（TLS 握手），避免并发触发 rate-limit
+    mailApiLock.lock()
+    try {
+      if (pending != null) {
+        email = pending.windsurfEmail
+        windsurfPassword = password ?: pending.windsurfPassword
+        account = pending.copy(
+          windsurfPassword = windsurfPassword,
+          status = WindsurfAccountStatus.IN_PROGRESS,
+          errorMessage = null,
+        )
+        println("[WindsurfRegistration] reusing pending account: $email (was ${pending.status})")
+        // 复用邮箱时需要让 provider 登录已有邮箱以便后续收验证码
+        provider.loginExisting(email, pending.mailPassword)
+      } else {
+        email = provider.createEmail()
+        windsurfPassword = password ?: provider.getMailPassword()
+        account = WindsurfAccount(
+          windsurfEmail = email,
+          windsurfPassword = windsurfPassword,
+          mailPassword = provider.getMailPassword(),
+          status = WindsurfAccountStatus.EMAIL_CREATED,
+        )
+        println("[WindsurfRegistration] created new temp email: $email")
+        // 新邮箱立即落盘
+        val createdPath = WindsurfAccountStorage.save(account, storageDir)
+        println("[WindsurfRegistration] temp mail saved: $createdPath")
+      }
+    } finally {
+      mailApiLock.unlock()
     }
 
-    // 共用同一 profile 目录（保留 Turnstile cf_clearance cookie，首次手动验证后后续自动通过）
-    val profileDir = Paths.get(
-      options.userDataDir ?: PlaywrightSession.defaultProfileDir().toString() + "-windsurf",
-    )
-    println("[WindsurfRegistration] using profile: $profileDir")
+    // 如果指定了 cdpPort，使用独立 Chrome 实例；否则使用默认 9222（共享模式）
+    val cdpPort = options.cdpPort ?: 9222
+    
+    // 每个 CDP 端口使用独立 profile 目录（Chrome 不允许多进程共享同一 user-data-dir）
+    val baseProfileDir = options.userDataDir ?: PlaywrightSession.defaultProfileDir().toString() + "-windsurf"
+    val profileDir = if (cdpPort == 9222) {
+      // 默认端口保持原路径（兼容旧行为）
+      Paths.get(baseProfileDir)
+    } else {
+      // 并发模式：每个端口独立目录
+      Paths.get("$baseProfileDir-$cdpPort")
+    }
+    println("[WindsurfRegistration] using profile: $profileDir (CDP port: $cdpPort)")
+
+    val cdpUrl = ChromeLauncher.ensureRunning(port = cdpPort, userDataDir = profileDir.toString())
+    val automationOptions = options.automation.copy(cdpUrl = cdpUrl)
 
     try {
       PlaywrightSession.withPersistentPage(
         url = null,
         profileDir = profileDir,
-        options = options.automation,
+        options = automationOptions,
       ) { page, context ->
 
         // 清除 Windsurf 登录态 cookie，保留 Cloudflare Turnstile cookie

@@ -1,7 +1,6 @@
 package site.addzero.gradle.plugin
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ProjectDependency
 import site.addzero.gradle.PublishConventionExtension
 import site.addzero.util.createExtension
 import java.time.LocalDate
@@ -98,14 +97,34 @@ fun Project.hasProjectDependencies(): Boolean =
         }}
     }
 
+private val directProjectDepsCache = mutableMapOf<String, Set<Project>>()
+
+/**
+ * 通过文本扫描 build.gradle.kts 提取 project(":...") 依赖路径，
+ * 完全避免遍历 configurations（KMP 项目 configuration 数量极多，遍历开销大）。
+ */
 fun Project.directProjectDependencies(): Set<Project> =
-    configurations
-        .flatMap { cfg ->
-            cfg.dependencies
-                .withType(ProjectDependency::class.java)
-                .mapNotNull { dep -> rootProject.findProject(dep.path) }
-        }
-        .toSet()
+    directProjectDepsCache.getOrPut(path) {
+        val kts = file("build.gradle.kts")
+        if (!kts.exists()) return@getOrPut emptySet()
+        val projectRefRegex = Regex("""project\s*\(\s*["'](:[^"']+)["']\s*\)""")
+        var inBlockComment = false
+        kts.useLines { lines ->
+            lines.flatMap { line ->
+                val trimmed = line.trim()
+                if (inBlockComment) {
+                    if ("*/" in trimmed) inBlockComment = false
+                    return@flatMap emptySequence<String>()
+                }
+                if (trimmed.startsWith("/*")) {
+                    inBlockComment = "*/" !in trimmed
+                    return@flatMap emptySequence<String>()
+                }
+                if (trimmed.startsWith("//")) return@flatMap emptySequence<String>()
+                projectRefRegex.findAll(trimmed).map { it.groupValues[1] }
+            }.toList()
+        }.mapNotNull { depPath -> rootProject.findProject(depPath) }.toSet()
+    }
 
 fun Project.recursiveProjectDependencies(): Set<Project> {
     val visited = linkedSetOf<Project>()
@@ -133,7 +152,7 @@ fun Project.publishTaskPathsForProjectDependencies(): List<String> {
 fun Project.configureAggregatePublishTasksByParentDir(enabled: Boolean) {
     if (this != rootProject) return
     if (!enabled) {
-        logger.lifecycle("[publish-buddy] aggregate publish tasks disabled (enableAggregatePublishTasksByParentDir=false)")
+        logger.debug("[publish-buddy] aggregate publish tasks disabled (enableAggregatePublishTasksByParentDir=false)")
         return
     }
 
@@ -177,11 +196,11 @@ fun Project.configureAggregatePublishTasksByParentDir(enabled: Boolean) {
     }
 }
 
-tasks.configureEach {
-    if (name == "publishToMavenCentral") {
+// 仅对 publishToMavenCentral task 添加依赖推断（避免 configureEach 遍历所有 task）
+runCatching {
+    tasks.named("publishToMavenCentral") {
         dependsOn(provider {
             if (!project.hasProjectDependencies()) {
-                project.logger.debug("[publish-buddy] ${project.path}: no project() deps in build script, skip recursive publish inference")
                 emptyList()
             } else {
                 project.publishTaskPathsForProjectDependencies()

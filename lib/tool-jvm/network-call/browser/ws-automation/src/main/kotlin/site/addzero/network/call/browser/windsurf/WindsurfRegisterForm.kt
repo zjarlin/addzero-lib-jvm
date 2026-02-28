@@ -27,4 +27,6 @@ data class WindsurfRegisterOptions(
   val automation: BrowserAutomationOptions = BrowserAutomationOptions(),
   /** 持久化浏览器 profile 目录，用于绕过 Cloudflare Turnstile。为 null 时使用临时目录 */
   val userDataDir: String? = null,
+  /** CDP 端口号。为 null 时使用默认 9222（共享模式）。并发场景下应为每个线程分配独立端口 */
+  val cdpPort: Int? = null,
 )
