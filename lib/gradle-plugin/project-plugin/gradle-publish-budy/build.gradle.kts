@@ -25,6 +25,7 @@ extensions.configure<JavaPluginExtension> {
     }
 }
 
+version = "2026.03.01"
 
 dependencies {
     gradleApi()

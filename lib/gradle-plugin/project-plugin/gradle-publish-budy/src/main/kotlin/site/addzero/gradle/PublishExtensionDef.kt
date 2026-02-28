@@ -9,6 +9,7 @@ interface PublishConventionExtension {
     val authorName: Property<String>
     val gitUrl: Property<String>
     val emailDomain: Property<String>
+    val enableAggregatePublishTasksByParentDir: Property<Boolean>
 
     // License 配置
     val licenseName: Property<String>

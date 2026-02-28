@@ -125,16 +125,10 @@ object PlaywrightSession {
   }
 
   /**
-   * CDP 模式：连接已运行的真实 Chrome 浏览器
+   * CDP 模式：连接真实 Chrome 浏览器（自动启动）
    *
    * 完全绕过 Cloudflare Turnstile 等反自动化检测，因为浏览器本身不是 Playwright 启动的。
-   *
-   * 使用前需手动启动 Chrome：
-   * ```bash
-   * /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
-   *   --remote-debugging-port=9222 \
-   *   --user-data-dir=/tmp/chrome-cdp-profile
-   * ```
+   * 如果指定端口没有 Chrome 在监听，会自动启动 Chrome 并开启 CDP 端口。
    *
    * @param url     导航目标 URL
    * @param options 配置（需设置 cdpUrl，如 `http://localhost:9222`）
@@ -145,17 +139,25 @@ object PlaywrightSession {
     options: BrowserAutomationOptions = BrowserAutomationOptions(),
     block: (page: Page, context: BrowserContext) -> T,
   ): T {
-    val cdpUrl = options.cdpUrl
+    val rawCdpUrl = options.cdpUrl
       ?: error("cdpUrl must be set for CDP mode")
+
+    // 从 cdpUrl 提取端口号，自动确保 Chrome 在该端口运行
+    val port = rawCdpUrl
+      .substringAfterLast(":")
+      .trimEnd('/')
+      .toIntOrNull() ?: 9222
+    val cdpUrl = ChromeLauncher.ensureRunning(port = port)
 
     println("[PlaywrightSession] connecting to Chrome via CDP: $cdpUrl")
     val playwright = Playwright.create()
     val browser = playwright.chromium().connectOverCDP(cdpUrl)
 
+    var page: Page? = null
     return try {
       val context = browser.contexts().firstOrNull()
         ?: error("No browser context found. Is Chrome running with --remote-debugging-port?")
-      val page = context.newPage()
+      page = context.newPage()
       page.setDefaultTimeout(options.timeoutMs)
 
       if (url != null) {
@@ -170,6 +172,8 @@ object PlaywrightSession {
       println("[PlaywrightSession] CDP connected, page ready")
       block(page, context)
     } finally {
+      // 关闭本次创建的 tab，避免 Chrome 累积大量空 tab
+      runCatching { page?.close() }
       // CDP 模式不关闭浏览器，只断开连接
       runCatching { browser.close() }
       runCatching { playwright.close() }
@@ -199,12 +203,14 @@ object PlaywrightSession {
   /** 反自动化检测启动参数 */
   private val STEALTH_ARGS = listOf(
     "--disable-blink-features=AutomationControlled",
-    "--disable-features=AutomationControlled",
+    "--disable-features=AutomationControlled,PasswordManager,PasswordManagerOnboarding,AutofillServerCommunication",
     "--disable-infobars",
     "--no-first-run",
     "--no-default-browser-check",
     "--disable-component-update",
     "--disable-background-networking",
+    "--disable-save-password-bubble",
+    "--password-store=basic",
   )
 
   /** 注入 JS 脚本隐藏 Playwright 自动化痕迹，帮助绕过 Cloudflare Turnstile */

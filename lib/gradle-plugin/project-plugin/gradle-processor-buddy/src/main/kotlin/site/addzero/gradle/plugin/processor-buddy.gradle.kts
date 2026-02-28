@@ -1,136 +1,126 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.register
-import org.gradle.util.internal.TextUtil.toLowerCamelCase
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import java.io.File
+import site.addzero.util.str.toLowCamelCase
 
 val extension = extensions.create<ProcessorBuddyExtension>("processorBuddy")
 
 val generateTask = tasks.register<GenerateProcessorScriptTask>("generateProcessorScript") {
-    description = "Generates processor configuration based on mustMap"
-    group = "build"
+  description = "Generates processor configuration based on mustMap"
+  group = "build"
 
-    readmeOutputFile = File(project.projectDir, "README.md")
+  readmeOutputFile = File(project.projectDir, "README.md")
 
-    val buildOutputDir = project.layout.buildDirectory.dir("generated/processor-buddy")
-    generatedCodeOutputDir.set(buildOutputDir)
+  val buildOutputDir = project.layout.buildDirectory.dir("generated/processor-buddy")
+  generatedCodeOutputDir.set(buildOutputDir)
 
-    mustMap.set(extension.mustMap)
-    interfaceName.set(extension.interfaceName)
-    objectName.set(extension.objectName)
-    packageName.set(extension.packageName)
-    settingContextEnabled.set(extension.settingContextEnabled)
-    settingsObjectEnabled.set(extension.settingsObjectEnabled)
-    readmeEnabled.set(extension.readmeEnabled)
+  mustMap.set(extension.mustMap)
+  interfaceName.set(extension.interfaceName)
+  objectName.set(extension.objectName)
+  packageName.set(extension.packageName)
+  settingContextEnabled.set(extension.settingContextEnabled)
+  settingsObjectEnabled.set(extension.settingsObjectEnabled)
+  readmeEnabled.set(extension.readmeEnabled)
 }
 
 afterEvaluate {
-    val outputDir = generateTask.flatMap { it.generatedCodeOutputDir }
+  val outputDir = generateTask.flatMap { it.generatedCodeOutputDir }
 
-    if (extension.settingContextEnabled.get() && extension.mustMap.get().isNotEmpty()) {
-        plugins.withId("org.jetbrains.kotlin.multiplatform") {
-            val kotlinExt = extensions.getByType(KotlinMultiplatformExtension::class.java)
-            kotlinExt.sourceSets.getByName(KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME).kotlin.srcDir(generateTask)
-            logger.lifecycle("ProcessorBuddy (KMP): Added generated source directory to commonMain: ${outputDir.get().asFile.absolutePath}")
-        }
-
-        // 处理纯 Java/Kotlin JVM 项目
-        plugins.withId("java") {
-            // 如果已经作为 KMP 处理过，则跳过（避免重复添加）
-            if (!plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-                val sourceSets = extensions.getByType(SourceSetContainer::class.java)
-                val mainSourceSet = sourceSets.getByName("main")
-                mainSourceSet.java.srcDir(generateTask)
-                val kotlinSourceDir = mainSourceSet.extensions.findByName("kotlin") as? SourceDirectorySet
-                kotlinSourceDir?.srcDir(generateTask)
-                logger.lifecycle("ProcessorBuddy (JVM): Added generated source directory to main sourceSet: ${outputDir.get().asFile.absolutePath}")
-            }
-        }
+  if (extension.settingContextEnabled.get() && extension.mustMap.get().isNotEmpty()) {
+    plugins.withId("org.jetbrains.kotlin.multiplatform") {
+      val kotlinExt = extensions.getByType(KotlinMultiplatformExtension::class.java)
+      kotlinExt.sourceSets.getByName(KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME).kotlin.srcDir(generateTask)
+      logger.lifecycle("ProcessorBuddy (KMP): Added generated source directory to commonMain: ${outputDir.get().asFile.absolutePath}")
     }
 
-    // 确保在所有 Kotlin 编译之前运行
-    tasks.matching { it.name.startsWith("compile") && it.name.contains("Kotlin") }.all {
-        dependsOn(generateTask)
+    // 处理纯 Java/Kotlin JVM 项目
+    plugins.withId("java") {
+      // 如果已经作为 KMP 处理过，则跳过（避免重复添加）
+      if (!plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+        val sourceSets = extensions.getByType(SourceSetContainer::class.java)
+        val mainSourceSet = sourceSets.getByName("main")
+        mainSourceSet.java.srcDir(generateTask)
+        val kotlinSourceDir = mainSourceSet.extensions.findByName("kotlin") as? SourceDirectorySet
+        kotlinSourceDir?.srcDir(generateTask)
+        logger.lifecycle("ProcessorBuddy (JVM): Added generated source directory to main sourceSet: ${outputDir.get().asFile.absolutePath}")
+      }
+    }
+  }
+
+  // 确保在所有 Kotlin 编译之前运行
+  tasks.matching { it.name.startsWith("compile") && it.name.contains("Kotlin") }.all {
+    dependsOn(generateTask)
+  }
+
+  // 处理 IDEA 同步
+  tasks.matching { task -> task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport" }
+    .all {
+      dependsOn(generateTask)
     }
 
-    // 处理 IDEA 同步
-    tasks.matching { task -> task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport" }
-        .all {
-            dependsOn(generateTask)
-        }
-
-    gradle.taskGraph.whenReady {
-        val isSync = gradle.taskGraph.allTasks.any { task ->
-            task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport"
-        }
-        if (isSync) {
-            generateTask.get().generate()
-        }
+  gradle.taskGraph.whenReady {
+    val isSync = gradle.taskGraph.allTasks.any { task ->
+      task.name == "ideaSyncTask" || task.name.endsWith("SyncTask") || task.name == "prepareKotlinIdeaImport"
     }
+    if (isSync) {
+      generateTask.get().generate()
+    }
+  }
 }
 
 abstract class GenerateProcessorScriptTask : DefaultTask() {
-    @get:Input
-    abstract val mustMap: MapProperty<String, String>
+  @get:Input
+  abstract val mustMap: MapProperty<String, String>
 
-    @get:Input
-    abstract val interfaceName: Property<String>
+  @get:Input
+  abstract val interfaceName: Property<String>
 
-    @get:Input
-    abstract val objectName: Property<String>
+  @get:Input
+  abstract val objectName: Property<String>
 
-    @get:Input
-    abstract val packageName: Property<String>
+  @get:Input
+  abstract val packageName: Property<String>
 
-    @get:Input
-    abstract val settingContextEnabled: Property<Boolean>
+  @get:Input
+  abstract val settingContextEnabled: Property<Boolean>
 
-    @get:Input
-    abstract val settingsObjectEnabled: Property<Boolean>
+  @get:Input
+  abstract val settingsObjectEnabled: Property<Boolean>
 
-    @get:Input
-    abstract val readmeEnabled: Property<Boolean>
+  @get:Input
+  abstract val readmeEnabled: Property<Boolean>
 
-    @get:Internal
-    abstract var readmeOutputFile: File
+  @get:Internal
+  abstract var readmeOutputFile: File
 
-    @get:OutputDirectory
-    abstract val generatedCodeOutputDir: DirectoryProperty
+  @get:OutputDirectory
+  abstract val generatedCodeOutputDir: DirectoryProperty
 
-    @TaskAction
-    fun generate() {
-        logger.lifecycle("ProcessorBuddy: Starting code generation...")
-        logger.lifecycle("ProcessorBuddy: mustMap contains ${mustMap.get().size} entries")
+  @TaskAction
+  fun generate() {
+    logger.lifecycle("ProcessorBuddy: Starting code generation...")
+    logger.lifecycle("ProcessorBuddy: mustMap contains ${mustMap.get().size} entries")
 
-        if (readmeEnabled.get()) {
-            readmeOutputFile.writeText(generateReadme())
-            logger.lifecycle("Generated README.md to: ${readmeOutputFile.absolutePath}")
-        } else {
-            logger.lifecycle("ProcessorBuddy: README.md generation is disabled")
-        }
-
-        val generatedFiles = generateSettingContextInterface()
-        logger.lifecycle("ProcessorBuddy: Generated ${generatedFiles.size} configuration files")
+    if (readmeEnabled.get()) {
+      readmeOutputFile.writeText(generateReadme())
+      logger.lifecycle("Generated README.md to: ${readmeOutputFile.absolutePath}")
+    } else {
+      logger.lifecycle("ProcessorBuddy: README.md generation is disabled")
     }
 
-    private fun generateReadme(): String {
-        val properties = mustMap.get()
-        val ifaceName = interfaceName.get()
-        val objName = objectName.get()
-        val pkgName = packageName.get()
-        val mergeFuncName = "merge"
+    val generatedFiles = generateSettingContextInterface()
+    logger.lifecycle("ProcessorBuddy: Generated ${generatedFiles.size} configuration files")
+  }
 
-        return """
+  private fun generateReadme(): String {
+    val properties = mustMap.get()
+    val ifaceName = interfaceName.get()
+    val objName = objectName.get()
+    val pkgName = packageName.get()
+    val mergeFuncName = "merge"
+
+    return """
 # Processor Configuration
 
 ## Consumer Usage
@@ -211,57 +201,58 @@ val options = config.toOptions()
 val merged = $mergeFuncName(config1, config2)
 \`\`\`
         """.trimIndent()
+  }
+
+  private fun generateSettingContextInterface(): List<File> {
+    if (!settingContextEnabled.get() && !settingsObjectEnabled.get()) {
+      logger.lifecycle("SettingContext and Settings generation are disabled")
+      return emptyList()
     }
 
-    private fun generateSettingContextInterface(): List<File> {
-        if (!settingContextEnabled.get() && !settingsObjectEnabled.get()) {
-            logger.lifecycle("SettingContext and Settings generation are disabled")
-            return emptyList()
-        }
+    val outputDir = generatedCodeOutputDir.get().asFile
+    val pkgName = packageName.get()
+    val ifaceName = interfaceName.get()
+    val objName = objectName.get()
+    val packageDir = File(outputDir, pkgName.replace(".", "/"))
+    packageDir.mkdirs()
 
-        val outputDir = generatedCodeOutputDir.get().asFile
-        val pkgName = packageName.get()
-        val ifaceName = interfaceName.get()
-        val objName = objectName.get()
-        val packageDir = File(outputDir, pkgName.replace(".", "/"))
-        packageDir.mkdirs()
+    val properties = mustMap.get()
 
-        val properties = mustMap.get()
+    data class PropertyInfo(val propertyName: String, val optionKey: String, val defaultValue: String, val type: String)
 
-        data class PropertyInfo(val propertyName: String, val optionKey: String, val defaultValue: String, val type: String)
+    val propertyInfos = properties.map { (key, value) ->
+      val type = inferType(value)
 
-        val propertyInfos = properties.map { (key, value) ->
-            val type = inferType(value)
-            PropertyInfo(toLowerCamelCase(key), key, value, type)
-        }
+      PropertyInfo(key.toLowCamelCase(), key, value, type)
+    }
 
-        val propertyDeclarations = propertyInfos.joinToString("\n") {
-            "    var ${it.propertyName}: ${it.type}"
-        }
+    val propertyDeclarations = propertyInfos.joinToString("\n") {
+      "    var ${it.propertyName}: ${it.type}"
+    }
 
-        val implProperties = propertyInfos.joinToString("\n") { info ->
-            val default = toDefaultValueExpression(info.defaultValue, info.type)
-            "    override var ${info.propertyName}: ${info.type} = $default"
-        }
+    val implProperties = propertyInfos.joinToString("\n") { info ->
+      val default = toDefaultValueExpression(info.defaultValue, info.type)
+      "    override var ${info.propertyName}: ${info.type} = $default"
+    }
 
-        val toOptionsBody = propertyInfos.joinToString(",\n") {
-            toSerializationExpression(it.optionKey, it.propertyName, it.type)
-        }
+    val toOptionsBody = propertyInfos.joinToString(",\n") {
+      toSerializationExpression(it.optionKey, it.propertyName, it.type)
+    }
 
-        val setFromOptionsBody = propertyInfos.joinToString("\n") { info ->
-            toFromOptionsExpression(info.optionKey, info.propertyName, info.type, info.defaultValue)
-        }
+    val setFromOptionsBody = propertyInfos.joinToString("\n") { info ->
+      toFromOptionsExpression(info.optionKey, info.propertyName, info.type, info.defaultValue)
+    }
 
-        val generatedFiles = mutableListOf<File>()
+    val generatedFiles = mutableListOf<File>()
 
-        // Generate interface
-        if (settingContextEnabled.get()) {
-            logger.lifecycle("Generating SettingContext interface in: ${packageDir.absolutePath}")
-            val file = File(packageDir, "${ifaceName}.kt")
+    // Generate interface
+    if (settingContextEnabled.get()) {
+      logger.lifecycle("Generating SettingContext interface in: ${packageDir.absolutePath}")
+      val file = File(packageDir, "${ifaceName}.kt")
 
-        val mergeFuncName = "merge"
-        val topLevelFunctions = if (settingsObjectEnabled.get()) {
-            """
+      val mergeFuncName = "merge"
+      val topLevelFunctions = if (settingsObjectEnabled.get()) {
+        """
             |
             |fun $mergeFuncName(vararg instances: $ifaceName): $ifaceName {
             |    val providedInstances = instances.toList()
@@ -282,11 +273,11 @@ val merged = $mergeFuncName(config1, config2)
             |    }
             |    return $objName.apply { fromOptions(merged) }
             |}"""
-            } else {
-                ""
-            }
+      } else {
+        ""
+      }
 
-            val content = """
+      val content = """
             |package $pkgName
             |
             |interface $ifaceName {
@@ -299,52 +290,52 @@ val merged = $mergeFuncName(config1, config2)
             |$topLevelFunctions
         """.trimMargin()
 
-            file.writeText(content)
-            generatedFiles.add(file)
-            logger.lifecycle("Generated SettingContext interface to: ${file.absolutePath}")
-        } else {
-            logger.lifecycle("SettingContext interface generation is disabled")
+      file.writeText(content)
+      generatedFiles.add(file)
+      logger.lifecycle("Generated SettingContext interface to: ${file.absolutePath}")
+    } else {
+      logger.lifecycle("SettingContext interface generation is disabled")
+    }
+
+    // Generate settings object
+    if (settingsObjectEnabled.get()) {
+      logger.lifecycle("Generating Settings object in: ${packageDir.absolutePath}")
+      val file = File(packageDir, "${objName}.kt")
+
+      val implementsClause = if (settingContextEnabled.get()) {
+        " : $ifaceName"
+      } else {
+        ""
+      }
+
+      val overrideModifier = if (settingContextEnabled.get()) {
+        "override "
+      } else {
+        ""
+      }
+
+      val toOptionsSignature = if (settingContextEnabled.get()) {
+        "override fun toOptions(): Map<String, String> = mapOf("
+      } else {
+        "fun toOptions(): Map<String, String> = mapOf("
+      }
+
+      val fromOptionsSignature = if (settingContextEnabled.get()) {
+        "override fun fromOptions(options: Map<String, String>) {"
+      } else {
+        "fun fromOptions(options: Map<String, String>) {"
+      }
+
+      val objProperties = if (settingContextEnabled.get()) {
+        implProperties
+      } else {
+        propertyInfos.joinToString("\n") { info ->
+          val default = toDefaultValueExpression(info.defaultValue, info.type)
+          "    ${overrideModifier}var ${info.propertyName}: ${info.type} = $default"
         }
+      }
 
-        // Generate settings object
-        if (settingsObjectEnabled.get()) {
-            logger.lifecycle("Generating Settings object in: ${packageDir.absolutePath}")
-            val file = File(packageDir, "${objName}.kt")
-
-            val implementsClause = if (settingContextEnabled.get()) {
-                " : $ifaceName"
-            } else {
-                ""
-            }
-
-            val overrideModifier = if (settingContextEnabled.get()) {
-                "override "
-            } else {
-                ""
-            }
-
-            val toOptionsSignature = if (settingContextEnabled.get()) {
-                "override fun toOptions(): Map<String, String> = mapOf("
-            } else {
-                "fun toOptions(): Map<String, String> = mapOf("
-            }
-
-            val fromOptionsSignature = if (settingContextEnabled.get()) {
-                "override fun fromOptions(options: Map<String, String>) {"
-            } else {
-                "fun fromOptions(options: Map<String, String>) {"
-            }
-
-            val objProperties = if (settingContextEnabled.get()) {
-                implProperties
-            } else {
-                propertyInfos.joinToString("\n") { info ->
-                    val default = toDefaultValueExpression(info.defaultValue, info.type)
-                    "    ${overrideModifier}var ${info.propertyName}: ${info.type} = $default"
-                }
-            }
-
-            val content = """
+      val content = """
             |package $pkgName
             |
             |object $objName$implementsClause {
@@ -360,26 +351,25 @@ val merged = $mergeFuncName(config1, config2)
             |}
         """.trimMargin()
 
-            file.writeText(content)
-            generatedFiles.add(file)
-            logger.lifecycle("Generated Settings object to: ${file.absolutePath}")
-        } else {
-            logger.lifecycle("Settings object generation is disabled")
-        }
-
-        return generatedFiles
+      file.writeText(content)
+      generatedFiles.add(file)
+      logger.lifecycle("Generated Settings object to: ${file.absolutePath}")
+    } else {
+      logger.lifecycle("Settings object generation is disabled")
     }
 
+    return generatedFiles
+  }
 
-    private fun inferType(value: String) = CodeGenHelper.inferType(value)
+  private fun inferType(value: String) = CodeGenHelper.inferType(value)
 
-    private fun toDefaultValueExpression(value: String, type: String) = CodeGenHelper.toDefaultValueExpression(value, type)
+  private fun toDefaultValueExpression(value: String, type: String) = CodeGenHelper.toDefaultValueExpression(value, type)
 
-    private fun toSerializationExpression(optionKey: String, propertyName: String, type: String) =
-        CodeGenHelper.toSerializationExpression(optionKey, propertyName, type)
+  private fun toSerializationExpression(optionKey: String, propertyName: String, type: String) =
+    CodeGenHelper.toSerializationExpression(optionKey, propertyName, type)
 
-    private fun toFromOptionsExpression(optionKey: String, propertyName: String, type: String, defaultValue: String) =
-        CodeGenHelper.toFromOptionsExpression(optionKey, propertyName, type, defaultValue)
+  private fun toFromOptionsExpression(optionKey: String, propertyName: String, type: String, defaultValue: String) =
+    CodeGenHelper.toFromOptionsExpression(optionKey, propertyName, type, defaultValue)
 
-    private fun detectListType(value: String) = CodeGenHelper.detectListType(value)
+  private fun detectListType(value: String) = CodeGenHelper.detectListType(value)
 }

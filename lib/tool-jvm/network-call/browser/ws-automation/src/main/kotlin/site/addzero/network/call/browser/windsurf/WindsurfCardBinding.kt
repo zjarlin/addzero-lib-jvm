@@ -3,6 +3,8 @@ package site.addzero.network.call.browser.windsurf
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
+import site.addzero.tool.creditcard.CreditCardGenerator
+import site.addzero.tool.creditcard.CreditCardInfo
 import java.util.regex.Pattern
 
 /**
@@ -23,7 +25,7 @@ object WindsurfCardBinding {
    * @param card     支付卡信息（为 null 时自动生成随机卡信息）
    */
   fun bindCard(page: Page, card: WindsurfCardInfo? = null) {
-    val cardInfo = card ?: WindsurfCardGenerator.generate()
+    val cardInfo = card ?: fromSharedGenerator(CreditCardGenerator.generate())
     println("[WindsurfCardBinding] starting card binding with card: ${cardInfo.cardNumber}")
 
     navigateToUpgrade(page)
@@ -33,6 +35,20 @@ object WindsurfCardBinding {
 
     println("[WindsurfCardBinding] card binding completed")
   }
+
+  private fun fromSharedGenerator(card: CreditCardInfo): WindsurfCardInfo = WindsurfCardInfo(
+    cardNumber = card.cardNumber,
+    expiry = card.expiry,
+    cvc = card.cvc,
+    holderName = card.holderName,
+    country = card.address.country,
+    postalCode = card.address.postalCode,
+    province = card.address.province,
+    city = card.address.city,
+    district = card.address.district,
+    addressLine1 = card.address.addressLine1,
+    addressLine2 = card.address.addressLine2,
+  )
 
   /**
    * 导航到 Profile → Upgrade to Pro

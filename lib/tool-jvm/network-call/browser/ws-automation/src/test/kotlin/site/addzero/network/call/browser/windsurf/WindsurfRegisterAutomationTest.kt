@@ -13,8 +13,7 @@ class WindsurfRegisterAutomationTest {
   /**
    * CDP 模式：连接真实 Chrome，完全绕过 Turnstile
    *
-   * 使用前先在终端启动 Chrome：
-   * /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-cdp-profile
+   * Chrome 会自动启动（跨平台 macOS/Windows/Linux），无需手动执行任何命令。
    */
   private val defaultOptions = WindsurfRegisterOptions(
     automation = BrowserAutomationOptions(
@@ -121,15 +120,13 @@ class WindsurfRegisterAutomationTest {
    *
    * 只需指定数量，全自动完成：创建邮箱 → 注册 → 绑卡
    * 改 count 即可控制注册数量，改 concurrency 即可并发
-   *
-   * 使用前先在终端启动 Chrome：
-   * /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-cdp-profile
+   * Chrome 会自动启动，无需手动执行任何命令。
    */
   @Test
   fun `should batch register accounts`() {
     val result = WindsurfBatchRegistration.run(
-      count = 1,          // 先跑 1 个验证单流程，跑通后改大
-      concurrency = 1,    // 串行，跑通后可改为 2~3 并发
+      count = 3,          // 先跑 1 个验证单流程，跑通后改大
+      concurrency = 3,    // 串行，跑通后可改为 2~3 并发
       bindCard = true,
       mailProviderFactory = { TempMailProviderImpl() },
     )

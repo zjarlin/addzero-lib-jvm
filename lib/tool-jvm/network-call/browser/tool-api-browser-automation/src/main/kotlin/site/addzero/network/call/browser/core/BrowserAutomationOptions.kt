@@ -16,13 +16,12 @@ data class BrowserAutomationOptions(
   val artifactsDir: String? = null,
   /**
    * Chrome DevTools Protocol 连接地址。
-   * 设置后通过 CDP 连接已运行的真实 Chrome（完全绕过 Turnstile 等反自动化检测）。
+   * 设置后通过 CDP 连接真实 Chrome（完全绕过 Turnstile 等反自动化检测）。
    *
-   * 使用方式：先手动启动 Chrome：
-   * ```
-   * /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-   * ```
-   * 然后设置 `cdpUrl = "http://localhost:9222"`
+   * 如果指定端口没有 Chrome 在监听，程序会**自动启动 Chrome** 并开启 CDP 端口（跨平台 macOS/Windows/Linux）。
+   * 无需手动在终端执行任何命令。
+   *
+   * 示例：`cdpUrl = "http://localhost:9222"`
    */
   val cdpUrl: String? = null,
 ) {

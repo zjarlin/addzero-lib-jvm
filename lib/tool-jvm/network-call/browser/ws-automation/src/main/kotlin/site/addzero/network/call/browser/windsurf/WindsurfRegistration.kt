@@ -105,8 +105,8 @@ object WindsurfRegistration {
       ?: TempMailProvider.loadFromSpi()
       ?: error("No TempMailProvider found. Provide one or register via SPI in META-INF/services/")
 
-    // 优先消费存储目录中未成功注册的账号，避免每次都创建新临时邮箱
-    val pending = WindsurfAccountStorage.findPending(storageDir).firstOrNull()
+    // 优先消费存储目录中未成功注册的账号（claimPending 是 synchronized 的，并发安全）
+    val pending = WindsurfAccountStorage.claimPending(storageDir)
     val reusing = pending != null
 
     val email: String
@@ -159,6 +159,9 @@ object WindsurfRegistration {
         // 导航到注册页（带重试，CDP 模式下偶发 ERR_SSL_PROTOCOL_ERROR）
         navigateWithRetry(page, REGISTER_URL, options.automation.timeoutMs)
 
+        // 关闭 cookie consent banner（"We use cookies" 弹框）
+        dismissCookieBanner(page)
+
         val urlAfterNav = page.url()
         val alreadyLoggedIn = urlAfterNav.contains("/profile") || urlAfterNav.contains("/dashboard")
 
@@ -179,11 +182,27 @@ object WindsurfRegistration {
             password = windsurfPassword,
           )
 
-          // 检测 step2 后是否跳转到 /profile（说明注册过程中自动登录了，无需验证码）
+          // 检测 step2 后页面状态
           val urlAfterStep2 = page.url()
+          println("[WindsurfRegistration] after step2, URL=$urlAfterStep2")
+
           if (urlAfterStep2.contains("/profile") || urlAfterStep2.contains("/dashboard")) {
+            // 已注册过，自动登录
             println("[WindsurfRegistration] account already registered after step2 (at $urlAfterStep2), skipping verification")
           } else {
+            // 检查是否卡在注册页且有错误提示
+            if (urlAfterStep2.contains("/register") && !urlAfterStep2.contains("verify")) {
+              val errorText = runCatching {
+                val errEl = page.locator("[role='alert'], .error-message, .text-red-500, .text-destructive").first()
+                if (errEl.isVisible) errEl.textContent()?.trim() else null
+              }.getOrNull()
+              if (!errorText.isNullOrBlank()) {
+                error("[WindsurfRegistration] registration blocked: $errorText (email=$email)")
+              }
+              println("[WindsurfRegistration] still on register page but no error detected, continuing...")
+            }
+
+            // 获取验证码并提交
             println("[WindsurfRegistration] waiting for verification code from $email ...")
             val code = provider.fetchVerificationCode(email)
             println("[WindsurfRegistration] got verification code: $code")
@@ -247,6 +266,32 @@ object WindsurfRegistration {
       }
     }
     throw lastError!!
+  }
+
+  /**
+   * 关闭 cookie consent banner（"We use cookies" 弹框）
+   *
+   * 点击 "Reject all" 拒绝所有 cookie（避免干扰自动化），
+   * 找不到则尝试 "Accept all"，都没有就跳过。
+   */
+  private fun dismissCookieBanner(page: Page) {
+    runCatching {
+      // 等最多 3 秒看 banner 是否出现
+      val rejectBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+        Page.GetByRoleOptions().setName("Reject all"))
+      if (rejectBtn.count() > 0 && rejectBtn.first().isVisible) {
+        rejectBtn.first().click(com.microsoft.playwright.Locator.ClickOptions().setTimeout(3000.0))
+        println("[WindsurfRegistration] dismissed cookie banner (Reject all)")
+        return
+      }
+      val acceptBtn = page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+        Page.GetByRoleOptions().setName("Accept all"))
+      if (acceptBtn.count() > 0 && acceptBtn.first().isVisible) {
+        acceptBtn.first().click(com.microsoft.playwright.Locator.ClickOptions().setTimeout(3000.0))
+        println("[WindsurfRegistration] dismissed cookie banner (Accept all)")
+        return
+      }
+    }
   }
 
   private fun clearWindsurfAuthCookies(context: BrowserContext) {

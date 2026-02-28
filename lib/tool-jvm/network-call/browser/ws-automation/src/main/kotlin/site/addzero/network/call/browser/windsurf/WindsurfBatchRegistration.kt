@@ -67,6 +67,7 @@ object WindsurfBatchRegistration {
    * @param timeoutMs   单个注册流程超时时间
    * @param slowMoMs    操作间延迟
    * @param mailProviderFactory 临时邮件提供者工厂，每个线程调用一次
+   * @param interDelayMs 每次注册之间的延迟（毫秒），用于降低触发 rate-limit / IP 封禁的风险。默认 5 秒。
    * @return [BatchResult] 批量注册结果
    */
   fun run(
@@ -82,6 +83,7 @@ object WindsurfBatchRegistration {
     timeoutMs: Double = 120_000.0,
     slowMoMs: Double = 500.0,
     mailProviderFactory: () -> TempMailProvider = { TempMailProvider.loadFromSpi() ?: error("No TempMailProvider via SPI") },
+    interDelayMs: Long = 5_000,
   ): BatchResult {
     require(count > 0) { "count must be > 0" }
     require(concurrency > 0) { "concurrency must be > 0" }
@@ -124,12 +126,20 @@ object WindsurfBatchRegistration {
           errors = errors,
           completed = completed,
         )
+        if (i < count && interDelayMs > 0) {
+          println("[Batch] waiting ${interDelayMs}ms before next registration (rate-limit mitigation)...")
+          Thread.sleep(interDelayMs)
+        }
       }
     } else {
       // 并发模式
       val executor = Executors.newFixedThreadPool(concurrency)
       for (i in 1..count) {
         executor.submit {
+          // 并发模式下按索引错开延迟，避免所有线程同时发起请求
+          if (i > 1 && interDelayMs > 0) {
+            Thread.sleep(interDelayMs * ((i - 1L) % concurrency))
+          }
           runSingle(
             index = i, total = count,
             password = password, firstName = firstName, lastName = lastName,

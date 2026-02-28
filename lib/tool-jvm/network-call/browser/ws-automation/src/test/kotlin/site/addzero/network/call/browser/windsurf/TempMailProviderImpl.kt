@@ -38,28 +38,31 @@ class TempMailProviderImpl : TempMailProvider {
     val token = mailbox?.token
       ?: error("createEmail() or loginExisting() must be called before fetchVerificationCode()")
 
+    // 先快照当前已有的邮件 ID，后续只从新邮件中提取验证码（避免拿到过期验证码）
+    val existingIds = runCatching { client.listMessages(token) }.getOrElse { emptyList() }
+      .map { it.id }.toSet()
+    println("[TempMailProviderImpl] snapshot: ${existingIds.size} existing messages, will only check new ones")
+
     val deadline = System.currentTimeMillis() + timeoutMs
     while (System.currentTimeMillis() < deadline) {
       val messages = runCatching { client.listMessages(token) }.getOrElse { emptyList() }
+        .filter { it.id !in existingIds } // 只看新到达的邮件
+        .sortedByDescending { it.createdAt }
 
-      val code = messages
-        .asSequence()
-        .mapNotNull { msg ->
-          extractCode(msg.subject)
-            ?: runCatching { client.getMessage(token, msg.id) }.getOrNull()?.let { detail ->
-              extractCode(detail.text)
-                ?: extractCode(detail.html)
-                ?: extractCode(detail.subject)
-            }
+      for (msg in messages) {
+        val code = extractCode(msg.subject)
+          ?: runCatching { client.getMessage(token, msg.id) }.getOrNull()?.let { detail ->
+            extractCode(detail.text)
+              ?: extractCode(detail.html)
+              ?: extractCode(detail.subject)
+          }
+        if (code != null) {
+          println("[TempMailProviderImpl] found code=$code from: subject='${msg.subject}', from=${msg.fromAddress}, createdAt=${msg.createdAt}")
+          return code
         }
-        .firstOrNull()
-
-      if (code != null) {
-        println("[TempMailProviderImpl] found code=$code from messages")
-        return code
       }
 
-      println("[TempMailProviderImpl] no code yet, retrying in 3s... (${(deadline - System.currentTimeMillis()) / 1000}s left)")
+      println("[TempMailProviderImpl] no new code yet (${messages.size} new messages), retrying in 3s... (${(deadline - System.currentTimeMillis()) / 1000}s left)")
       Thread.sleep(3_000)
     }
 

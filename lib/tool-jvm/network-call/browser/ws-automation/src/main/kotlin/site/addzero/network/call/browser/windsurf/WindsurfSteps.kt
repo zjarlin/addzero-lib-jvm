@@ -15,6 +15,11 @@ object WindsurfSteps {
   /** 按钮 enabled 等待超时（Cloudflare Turnstile） */
   private const val TURNSTILE_WAIT_MS = 120_000L
 
+  /** Continue 按钮的可能文本（英文 + Chrome 翻译后的中文） */
+  private val CONTINUE_NAMES = listOf("Continue", "继续", "下一步")
+  /** Create account 按钮的可能文本 */
+  private val CREATE_ACCOUNT_NAMES = listOf("Create account", "创建帐户", "创建账户", "注册")
+
   // ────────────────────────────────────────────────────────────
   // 第一步：基本信息 + 勾选协议 + Continue
   // ────────────────────────────────────────────────────────────
@@ -28,6 +33,9 @@ object WindsurfSteps {
     firstName: String? = null,
     lastName: String? = null,
   ) {
+    // 先关闭所有 Chrome 原生弹框（恢复页面、密码保存、翻译栏等）
+    dismissChromeDialogs(page)
+
     firstName?.let {
       page.getByPlaceholder("Your first name").click()
       page.getByPlaceholder("Your first name").fill(it)
@@ -53,9 +61,52 @@ object WindsurfSteps {
 
     page.getByLabel("By signing up you agree to").check()
 
-    val continueBtn = page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Continue"))
+    val continueBtn = findButtonByNames(page, CONTINUE_NAMES)
+      ?: error("[WindsurfSteps] step1: Continue button not found (tried: $CONTINUE_NAMES)")
     waitForEnabled(continueBtn, "Continue（第一步）", page = page)
+    dismissChromeDialogs(page)
     forceClick(continueBtn, "Continue（第一步）")
+
+    // 等待页面跳转到密码页（密码输入框出现 或 URL 变化 或 被重定向到 profile）
+    println("[WindsurfSteps] step1: waiting for page transition after Continue...")
+    val step1Deadline = System.currentTimeMillis() + 30_000L
+    var step1Transitioned = false
+    while (System.currentTimeMillis() < step1Deadline) {
+      val currentUrl = runCatching { page.url() }.getOrDefault("")
+      // 信号1：密码输入框出现
+      val passwordVisible = runCatching {
+        page.getByPlaceholder("Create password").isVisible
+      }.getOrDefault(false)
+      if (passwordVisible) {
+        println("[WindsurfSteps] step1: password page appeared")
+        step1Transitioned = true
+        break
+      }
+      // 信号2：被重定向到 profile/dashboard（已注册过）
+      if ("profile" in currentUrl || "dashboard" in currentUrl) {
+        println("[WindsurfSteps] step1: redirected to $currentUrl (already registered)")
+        step1Transitioned = true
+        break
+      }
+      // 信号3：检测到页面错误提示
+      val errorText = runCatching {
+        val errEl = page.locator("[role='alert'], .error-message, .text-red-500, .text-destructive").first()
+        if (errEl.isVisible) errEl.textContent()?.trim() else null
+      }.getOrNull()
+      if (!errorText.isNullOrBlank()) {
+        error("[WindsurfSteps] step1: registration error: $errorText (email=$email)")
+      }
+      Thread.sleep(1_000)
+    }
+    if (!step1Transitioned) {
+      val finalUrl = runCatching { page.url() }.getOrDefault("unknown")
+      val screenshotPath = runCatching {
+        val tmpFile = java.io.File.createTempFile("step1-timeout-", ".png")
+        page.screenshot(Page.ScreenshotOptions().setPath(tmpFile.toPath()).setFullPage(true))
+        tmpFile.absolutePath
+      }.getOrNull()
+      error("[WindsurfSteps] step1: TIMEOUT (30s) waiting for password page. url=$finalUrl, screenshot=$screenshotPath")
+    }
   }
 
   // ────────────────────────────────────────────────────────────
@@ -71,8 +122,23 @@ object WindsurfSteps {
     confirmPassword: String = password,
   ) {
     println("[WindsurfSteps] step2: current URL=${page.url()}")
+    // 先关闭所有 Chrome 原生弹框（恢复页面、密码保存等），否则会遮挡页面导致 waitFor 超时
+    dismissChromeDialogs(page)
     // 等待密码输入框出现，确保页面已从第一步切换过来
-    page.getByPlaceholder("Create password").waitFor()
+    try {
+      page.getByPlaceholder("Create password").waitFor(
+        Locator.WaitForOptions().setTimeout(30_000.0)
+      )
+    } catch (e: Exception) {
+      val currentUrl = runCatching { page.url() }.getOrDefault("unknown")
+      val screenshotPath = runCatching {
+        val tmpFile = java.io.File.createTempFile("step2-waitpwd-", ".png")
+        page.screenshot(Page.ScreenshotOptions().setPath(tmpFile.toPath()).setFullPage(true))
+        tmpFile.absolutePath
+      }.getOrNull()
+      val pageTitle = runCatching { page.title() }.getOrDefault("unknown")
+      error("[WindsurfSteps] step2: 'Create password' input not found within 30s. url=$currentUrl, title=$pageTitle, screenshot=$screenshotPath")
+    }
     println("[WindsurfSteps] step2: password page loaded, filling password (password=${password})")
 
     page.getByPlaceholder("Create password").click()
@@ -81,18 +147,98 @@ object WindsurfSteps {
     page.getByPlaceholder("Confirm password").click()
     page.getByPlaceholder("Confirm password").fill(confirmPassword)
 
-    // 页面上可能存在多个 Continue 按钮（第一步残影），精确定位第二步的按钮
-    val continueBtn = page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Continue")).last()
-    waitForEnabled(continueBtn, "Continue（第二步）", page = page)
-    forceClick(continueBtn, "Continue（第二步）")
+    // 点击 Continue（可能需要点 1~2 次，第一次可能触发 Turnstile，第二次才提交）
+    val continueBtn1 = findButtonByNames(page, CONTINUE_NAMES, pickLast = true)
+      ?: error("[WindsurfSteps] step2: Continue button not found (tried: $CONTINUE_NAMES)")
+    waitForEnabled(continueBtn1, "Continue（第二步-第1次点击）", page = page)
+    dismissChromeDialogs(page)
+    forceClick(continueBtn1, "Continue（第二步-第1次点击）")
 
-    // 等待页面跳转到验证码输入页（出现验证码提示文字或输入框）
-    println("[WindsurfSteps] step2: waiting for verification page...")
-    runCatching {
-      page.waitForURL("**/verify**", Page.WaitForURLOptions().setTimeout(15_000.0))
-    }.onFailure {
-      // URL 不一定含 verify，退而等待验证码输入框出现
-      runCatching { page.locator(".body2").first().waitFor() }
+    // 等 2 秒观察页面是否已跳转，如果还在密码页则尝试第二次点击
+    Thread.sleep(2_000)
+    val urlAfterFirstClick = runCatching { page.url() }.getOrDefault("")
+    val stillOnPasswordPage = "register" in urlAfterFirstClick && "verify" !in urlAfterFirstClick
+      && runCatching { page.getByPlaceholder("Create password").isVisible }.getOrDefault(false)
+
+    if (stillOnPasswordPage) {
+      println("[WindsurfSteps] step2: still on password page after 1st click, attempting 2nd Continue click...")
+      val continueBtn2 = findButtonByNames(page, CONTINUE_NAMES, pickLast = true)
+      if (continueBtn2 != null) {
+        waitForEnabled(continueBtn2, "Continue（第二步-第2次点击）", page = page)
+        dismissChromeDialogs(page)
+        forceClick(continueBtn2, "Continue（第二步-第2次点击）")
+      }
+    } else {
+      println("[WindsurfSteps] step2: page already transitioned after 1st click (url=$urlAfterFirstClick), skipping 2nd click")
+    }
+
+    // 等待页面跳转：轮询多种信号（验证码页、profile 重定向、错误提示）
+    println("[WindsurfSteps] step2: waiting for next page after Continue...")
+    val step2Deadline = System.currentTimeMillis() + 30_000L
+    var step2Resolved = false
+    var step2PollCount = 0
+    while (System.currentTimeMillis() < step2Deadline) {
+      step2PollCount++
+      val currentUrl = runCatching { page.url() }.getOrDefault("")
+
+      // 每 5 秒打印一次当前 URL，方便诊断
+      if (step2PollCount % 5 == 1) {
+        println("[WindsurfSteps] step2: polling... url=$currentUrl")
+      }
+
+      // 信号1：已跳转到验证码页
+      if ("verify" in currentUrl) {
+        println("[WindsurfSteps] step2: arrived at verification page: $currentUrl")
+        step2Resolved = true
+        break
+      }
+
+      // 信号2：已跳转到 profile/dashboard（邮箱已注册过，自动登录）
+      if ("profile" in currentUrl || "dashboard" in currentUrl) {
+        println("[WindsurfSteps] step2: redirected to $currentUrl (already registered)")
+        step2Resolved = true
+        break
+      }
+
+      // 信号3：验证码输入框已出现（URL 可能不含 verify）
+      val codeInputVisible = runCatching {
+        page.locator(".body2").first().isVisible
+      }.getOrDefault(false)
+      if (codeInputVisible) {
+        println("[WindsurfSteps] step2: verification code input detected on current page")
+        step2Resolved = true
+        break
+      }
+
+      // 信号4：页面显示错误信息（邮箱已存在等）
+      val errorText = runCatching {
+        val errEl = page.locator("[role='alert'], .error-message, .text-red-500, .text-destructive").first()
+        if (errEl.isVisible) errEl.textContent()?.trim() else null
+      }.getOrNull()
+      if (!errorText.isNullOrBlank()) {
+        println("[WindsurfSteps] step2: page shows error: $errorText")
+        step2Resolved = true
+        break
+      }
+
+      // Continue 之后可能出现新的 Turnstile 挑战或 Chrome 弹框阻止跳转
+      if (step2PollCount % 3 == 0) {
+        dismissChromeDialogs(page)
+        tryClickTurnstile(page)
+      }
+
+      Thread.sleep(1_000)
+    }
+
+    if (!step2Resolved) {
+      val finalUrl = runCatching { page.url() }.getOrDefault("unknown")
+      // 截图辅助调试
+      val screenshotPath = runCatching {
+        val tmpFile = java.io.File.createTempFile("step2-timeout-", ".png")
+        page.screenshot(Page.ScreenshotOptions().setPath(tmpFile.toPath()).setFullPage(true))
+        tmpFile.absolutePath
+      }.getOrNull()
+      error("[WindsurfSteps] step2: TIMEOUT (30s) waiting for page transition. url=$finalUrl, screenshot=$screenshotPath")
     }
     println("[WindsurfSteps] step2: done, now at URL=${page.url()}")
   }
@@ -112,6 +258,8 @@ object WindsurfSteps {
     }
     println("[WindsurfSteps] step3: filling verification code=$code at URL=${page.url()}")
 
+    // 等待验证码输入框出现
+    page.locator(".body2").first().waitFor()
     page.locator(".body2").first().click()
     page.locator(".body2").first().fill(code[0].toString())
     page.locator("input:nth-child(2)").fill(code[1].toString())
@@ -120,8 +268,10 @@ object WindsurfSteps {
     page.locator("input:nth-child(5)").fill(code[4].toString())
     page.locator("input:nth-child(6)").fill(code[5].toString())
 
-    val createBtn = page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Create account"))
+    val createBtn = findButtonByNames(page, CREATE_ACCOUNT_NAMES)
+      ?: error("[WindsurfSteps] step3: Create account button not found (tried: $CREATE_ACCOUNT_NAMES)")
     waitForEnabled(createBtn, "Create account", page = page)
+    dismissChromeDialogs(page)
     forceClick(createBtn, "Create account")
   }
 
@@ -248,12 +398,58 @@ object WindsurfSteps {
   }
 
   /**
+   * 关闭 Chrome 原生弹框（密码保存、翻译栏、自动填充等）
+   *
+   * Chrome 的“要保存密码吗？”弹框和 Google Translate 工具栏都是浏览器原生 UI，
+   * 会遮挡页面元素或翻译按钮文本导致自动化失败。
+   * 通过发送 Escape 键关闭所有弹框。
+   */
+  private fun dismissChromeDialogs(page: Page) {
+    runCatching {
+      page.keyboard().press("Escape")
+      Thread.sleep(200)
+    }
+  }
+
+  /**
+   * 在多个可能的按钮名称中查找第一个存在的按钮。
+   * 用于处理 Chrome 翻译把“Continue”翻译成“继续”等场景。
+   *
+   * @param names    候选按钮名称列表（先匹配先返回）
+   * @param pickLast 是否取最后一个匹配（用于 step2 存在多个同名按钮时取最后一个）
+   */
+  private fun findButtonByNames(page: Page, names: List<String>, pickLast: Boolean = false): Locator? {
+    for (name in names) {
+      val btn = page.getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName(name))
+      val count = runCatching { btn.count() }.getOrDefault(0)
+      if (count > 0) {
+        println("[WindsurfSteps] found button '$name' (count=$count, pickLast=$pickLast)")
+        return if (pickLast) btn.last() else btn.first()
+      }
+    }
+    // 兆底：CSSSelector 直接找所有 button
+    val allButtons = page.locator("button")
+    val count = runCatching { allButtons.count() }.getOrDefault(0)
+    if (count > 0) {
+      println("[WindsurfSteps] button name match failed (tried: $names), falling back to CSS button selector (found $count buttons)")
+      return if (pickLast) allButtons.last() else allButtons.first()
+    }
+    return null
+  }
+
+  /**
    * 绕过 Cloudflare 反自动化拦截的点击策略：
-   * 1. 普通 click（最自然）
-   * 2. dispatchEvent("click")（绕过 pointer-events 拦截）
-   * 3. JS evaluate click（最暴力，直接调用 DOM .click()）
+   * 1. 先尝试关闭 Chrome 原生弹框
+   * 2. 普通 click（最自然）
+   * 3. dispatchEvent("click")（绕过 pointer-events 拦截）
+   * 4. JS evaluate click（最暴力，直接调用 DOM .click()）
    */
   private fun forceClick(locator: Locator, label: String) {
+    // 先关闭可能存在的 Chrome 原生弹框（密码保存等）
+    runCatching {
+      locator.page().keyboard().press("Escape")
+      Thread.sleep(200)
+    }
     val el = locator.first()
 
     // 策略1：普通点击

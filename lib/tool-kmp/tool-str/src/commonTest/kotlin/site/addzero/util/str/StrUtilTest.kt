@@ -62,6 +62,7 @@ class StrUtilTest {
         assertEquals("jimmerImmutableIsModuleRequired", "jimmer.immutable.is.module.required".toLowCamelCase())
         assertEquals("jimmerDtoDirs", "jimmer.dtoDirs".toLowCamelCase())
         assertEquals("jimmerDtoDirs", "jimmer.dto.dirs".toLowCamelCase())
+        assertEquals("jimmerSourceIncludes", "jimmer.source.includes".toLowCamelCase())
     }
 
     @Test

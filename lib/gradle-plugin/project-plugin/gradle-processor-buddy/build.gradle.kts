@@ -21,10 +21,10 @@ repositories {
   gradlePluginPortal()
 }
 
-version="2026.02.28"
+version = "2026.03.01"
 dependencies {
   gradleApi()
   implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)
-//  implementation(libs.site.addzero.tool.str)
+  implementation(libs.site.addzero.tool.str)
   testImplementation(kotlin("test"))
 }

@@ -16,8 +16,36 @@ object Defaults {
     const val LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 }
 
-private val defaultDescription = project.description?.takeIf { it.isNotBlank() }
-    ?: "Say goodbye to template code and embrace simplicity and elegance"
+fun Project.readmeSummaryOrNull(): String? {
+    val candidates = listOf("README.md", "README.MD", "readme.md", "README")
+    val readme = candidates.map { file(it) }.firstOrNull { it.exists() && it.isFile } ?: return null
+    return try {
+        readme.useLines { lines ->
+            lines
+                .map { it.trim() }
+                .filter { line ->
+                    line.isNotBlank() &&
+                        !line.startsWith("#") &&
+                        !line.startsWith("![") &&
+                        !line.startsWith("[!") &&
+                        !line.startsWith("```") &&
+                        !line.startsWith("<") &&
+                        !line.startsWith("|") &&
+                        !line.startsWith("---")
+                }
+                .firstOrNull()
+                ?.take(240)
+        }
+    } catch (e: Exception) {
+        logger.debug("[publish-buddy] failed to read README for ${project.path}: ${e.message}")
+        null
+    }
+}
+
+private val defaultDescription =
+    project.readmeSummaryOrNull()
+        ?: project.description?.takeIf { it.isNotBlank() }
+        ?: "Say goodbye to template code and embrace simplicity and elegance"
 
 plugins {
     id("com.vanniktech.maven.publish")
@@ -29,6 +57,7 @@ val publishExtension = createExtension<PublishConventionExtension>().apply {
     authorName.set(Defaults.AUTHOR_NAME)
     gitUrl.set(Defaults.GIT_URL)
     emailDomain.set(Defaults.EMAIL_DOMAIN)
+    enableAggregatePublishTasksByParentDir.set(false)
     licenseName.set(Defaults.LICENSE_NAME)
     licenseUrl.set(Defaults.LICENSE_URL)
     licenseDistribution.set(Defaults.LICENSE_URL)
@@ -42,6 +71,32 @@ fun String.toPascalFromPath() =
     split(":")
         .filter { it.isNotBlank() }
         .joinToString("") { segment -> segment.replaceFirstChar { c -> c.uppercase() } }
+
+private val hasProjectDepsCache = mutableMapOf<String, Boolean>()
+
+/**
+ * 通过文本扫描 build.gradle.kts 判断是否含有 project(":...") 依赖，
+ * 避免遍历 configurations 带来的高开销。
+ */
+fun Project.hasProjectDependencies(): Boolean =
+    hasProjectDepsCache.getOrPut(path) {
+        val kts = file("build.gradle.kts")
+        if (!kts.exists()) return@getOrPut false
+        val regex = Regex("""project\s*\(\s*["':]""")
+        var inBlockComment = false
+        kts.useLines { lines -> lines.any { line ->
+            val trimmed = line.trim()
+            if (inBlockComment) {
+                if ("*/" in trimmed) inBlockComment = false
+                return@any false
+            }
+            if (trimmed.startsWith("/*")) {
+                inBlockComment = "*/" !in trimmed
+                return@any false
+            }
+            !trimmed.startsWith("//") && regex.containsMatchIn(trimmed)
+        }}
+    }
 
 fun Project.directProjectDependencies(): Set<Project> =
     configurations
@@ -60,6 +115,7 @@ fun Project.recursiveProjectDependencies(): Set<Project> {
     while (queue.isNotEmpty()) {
         val current = queue.removeFirst()
         if (!visited.add(current)) continue
+        if (!current.hasProjectDependencies()) continue
         current.directProjectDependencies()
             .filterNot { it == this || visited.contains(it) }
             .forEach(queue::addLast)
@@ -67,13 +123,19 @@ fun Project.recursiveProjectDependencies(): Set<Project> {
     return visited
 }
 
-fun Project.publishTaskPathsForProjectDependencies(): List<String> =
-    recursiveProjectDependencies()
+fun Project.publishTaskPathsForProjectDependencies(): List<String> {
+    if (!hasProjectDependencies()) return emptyList()
+    return recursiveProjectDependencies()
         .mapNotNull { dep -> dep.tasks.findByName("publishToMavenCentral")?.path }
         .distinct()
+}
 
-fun Project.configureAggregatePublishTasksByParentDir() {
+fun Project.configureAggregatePublishTasksByParentDir(enabled: Boolean) {
     if (this != rootProject) return
+    if (!enabled) {
+        logger.lifecycle("[publish-buddy] aggregate publish tasks disabled (enableAggregatePublishTasksByParentDir=false)")
+        return
+    }
 
     gradle.projectsEvaluated {
         val grouped = subprojects
@@ -93,7 +155,8 @@ fun Project.configureAggregatePublishTasksByParentDir() {
 
         grouped.forEach { (parentPath, publishTaskPaths) ->
             val canonicalTaskName = "publish${parentPath.toPascalFromPath()}ToMavenCentral"
-            val canonicalTask = tasks.findByName(canonicalTaskName) ?: tasks.create(canonicalTaskName)
+            val canonicalTask = tasks.findByName(canonicalTaskName)
+                ?: tasks.register(canonicalTaskName).get()
             canonicalTask.group = "publishing"
             canonicalTask.description = "Publish all modules directly under $parentPath"
             canonicalTask.dependsOn(publishTaskPaths)
@@ -116,11 +179,20 @@ fun Project.configureAggregatePublishTasksByParentDir() {
 
 tasks.configureEach {
     if (name == "publishToMavenCentral") {
-        dependsOn(provider { project.publishTaskPathsForProjectDependencies() })
+        dependsOn(provider {
+            if (!project.hasProjectDependencies()) {
+                project.logger.debug("[publish-buddy] ${project.path}: no project() deps in build script, skip recursive publish inference")
+                emptyList()
+            } else {
+                project.publishTaskPathsForProjectDependencies()
+            }
+        })
     }
 }
 
-project.configureAggregatePublishTasksByParentDir()
+project.configureAggregatePublishTasksByParentDir(
+    enabled = publishExtension.enableAggregatePublishTasksByParentDir.getOrElse(false),
+)
 
 // 延迟配置 mavenPublishing，确保用户配置已生效
 afterEvaluate {
@@ -135,8 +207,8 @@ afterEvaluate {
     mavenPublishing {
         publishToMavenCentral(automaticRelease = true)
         // 只在有签名配置时才签名
-        if (project.hasProperty("signing.keyId") || 
-            project.hasProperty("signing.password") || 
+        if (project.hasProperty("signing.keyId") ||
+            project.hasProperty("signing.password") ||
             project.hasProperty("signing.secretKeyRingFile")) {
             signAllPublications()
         }

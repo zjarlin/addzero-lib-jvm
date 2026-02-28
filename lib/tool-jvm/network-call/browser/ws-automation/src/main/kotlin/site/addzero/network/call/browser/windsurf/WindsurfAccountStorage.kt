@@ -100,6 +100,24 @@ object WindsurfAccountStorage {
     loadAll(dir).filter { it.status != WindsurfAccountStatus.REGISTERED }
       .sortedBy { it.registeredAt }
 
+  /**
+   * 原子地认领一个 pending 账号（并发安全）
+   *
+   * 通过将账号状态写为 IN_PROGRESS 实现乐观锁：
+   * 多个线程同时调用时，只有一个能成功写入 IN_PROGRESS 状态。
+   * 其余线程会发现状态已变，跳过该账号继续找下一个。
+   *
+   * @return 成功认领的账号，无可用 pending 账号时返回 null
+   */
+  @Synchronized
+  fun claimPending(dir: Path = DEFAULT_DIR): WindsurfAccount? {
+    val pending = findPending(dir).firstOrNull() ?: return null
+    // 立即写入 IN_PROGRESS 状态，防止其他线程也拿到这个账号
+    val claimed = pending.copy(status = WindsurfAccountStatus.EMAIL_CREATED, errorMessage = "claimed by ${Thread.currentThread().name}")
+    save(claimed, dir)
+    return claimed
+  }
+
   private fun emailToFileName(email: String): String =
     email.replace("@", "_at_").replace(Regex("[^a-zA-Z0-9._\\-]"), "_") + ".json"
 }
