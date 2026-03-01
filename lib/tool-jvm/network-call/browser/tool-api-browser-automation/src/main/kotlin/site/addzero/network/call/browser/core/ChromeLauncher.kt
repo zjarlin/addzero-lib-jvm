@@ -23,11 +23,12 @@ import java.util.concurrent.TimeUnit
  * // cdpUrl = "http://localhost:9222"
  * ```
  */
+@Suppress("SpellCheckingInspection")
 object ChromeLauncher {
 
   private val OS = System.getProperty("os.name", "").lowercase()
   private val IS_WINDOWS = "win" in OS
-  private val IS_MAC = "mac" in OS || "darwin" in OS
+  private val IS_MAC = "mac" in OS || "darwin" in OS  // macOS 或 Darwin 系统
 
   /** 正在运行的 Chrome 进程（由本类启动的），按端口号索引，支持多实例并发 */
   private val managedProcesses = java.util.concurrent.ConcurrentHashMap<Int, Process>()
@@ -38,7 +39,12 @@ object ChromeLauncher {
         runCatching {
           println("[ChromeLauncher] shutting down Chrome on port $port")
           if (IS_WINDOWS) {
-            Runtime.getRuntime().exec(arrayOf("taskkill", "/F", "/T", "/PID", proc.pid().toString()))
+            val pid = processPid(proc)
+            if (pid != null) {
+              Runtime.getRuntime().exec(arrayOf("taskkill", "/F", "/T", "/PID", pid.toString()))
+            } else {
+              proc.destroy()
+            }
           } else {
             proc.destroy()
           }
@@ -269,10 +275,12 @@ object ChromeLauncher {
 
     var json = existingJson.trimEnd()
     // 确保是有效 JSON 对象
-    if (!json.startsWith("{")) json = "{}"
+    val isJsonObject = json.startsWith("{")
+    if (!isJsonObject) json = "{}"
 
     for ((key, value) in patchEntries) {
-      if (key in json) {
+      val keyExists = key in json
+      if (keyExists) {
         // 已有该 key，替换其值
         json = json.replace(Regex("$key\\s*:\\s*\\w+"), "$key: $value")
       } else {
@@ -292,15 +300,17 @@ object ChromeLauncher {
       json = json.replaceFirst("{", """{ "translate_blocked_languages": ["zh-CN","zh-TW","en"],""")
     }
     // 防止"要恢复页面吗？"崩溃恢复弹框（Chrome 通过 exit_type 判断上次是否正常退出）
-    if ("\"exit_type\"" in json) {
-      json = json.replace(Regex("\"exit_type\"\\s*:\\s*\"[^\"]*\""), "\"exit_type\": \"Normal\"")
+    val hasExitType = "\"exit_type\"" in json
+    val hasExitedCleanly = "\"exited_cleanly\"" in json
+    json = if (hasExitType) {
+      json.replace(Regex("\"exit_type\"\\s*:\\s*\"[^\"]*\""), "\"exit_type\": \"Normal\"")
     } else {
-      json = json.replaceFirst("{", """{ "exit_type": "Normal",""")
+      json.replaceFirst("{", """{ "exit_type": "Normal",""")
     }
-    if ("\"exited_cleanly\"" in json) {
-      json = json.replace(Regex("\"exited_cleanly\"\\s*:\\s*\\w+"), "\"exited_cleanly\": true")
+    json = if (hasExitedCleanly) {
+      json.replace(Regex("\"exited_cleanly\"\\s*:\\s*\\w+"), "\"exited_cleanly\": true")
     } else {
-      json = json.replaceFirst("{", """{ "exited_cleanly": true,""")
+      json.replaceFirst("{", """{ "exited_cleanly": true,""")
     }
 
     Files.write(prefsFile, json.toByteArray())
@@ -314,5 +324,26 @@ object ChromeLauncher {
       IS_WINDOWS -> append("Install Chrome or add chrome.exe to PATH. Expected: C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
       else -> append("Install google-chrome or chromium and ensure it's in PATH.")
     }
+  }
+
+  private fun processPid(proc: Process): Long? {
+    // JDK 9+: Process.pid() exists. JDK 8: use reflection to access internal pid field.
+    runCatching {
+      val pidMethod = proc.javaClass.getMethod("pid")
+      val value = pidMethod.invoke(proc)
+      if (value is Long) return value
+      if (value is Int) return value.toLong()
+    }
+
+    return runCatching {
+      val pidField = proc.javaClass.getDeclaredField("pid")
+      pidField.isAccessible = true
+      val value = pidField.get(proc)
+      when (value) {
+        is Long -> value
+        is Int -> value.toLong()
+        else -> null
+      }
+    }.getOrNull()
   }
 }

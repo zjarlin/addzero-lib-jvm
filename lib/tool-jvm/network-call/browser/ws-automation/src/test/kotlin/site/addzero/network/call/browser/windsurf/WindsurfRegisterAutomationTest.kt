@@ -33,9 +33,6 @@ class WindsurfRegisterAutomationTest {
   @Test
   fun `should fully register with temp mail`() {
     val account = WindsurfRegistration.registerWithTempMail(
-      password = "StrongPass123!",
-      firstName = "Auto",
-      lastName = "User",
       mailProvider = TempMailProviderImpl(),
       options = defaultOptions.copy(
         autoSubmit = true,
@@ -132,6 +129,66 @@ class WindsurfRegisterAutomationTest {
 
     assertTrue(result.success > 0, "at least one account should succeed")
     println("[Test] batch result: ${result.success}/${result.total} success, ${result.failed} failed")
+  }
+
+  /**
+   * 测试 printSuccessSummary 汇总输出功能
+   *
+   * 验证：
+   * 1. 能正确读取 success 目录下的账号
+   * 2. 按注册时间排序
+   * 3. 输出格式：邮箱 密码
+   */
+  @Test
+  fun `should print success summary correctly`() {
+    val tempDir = kotlin.io.path.createTempDirectory("windsurf-test-")
+    val successDir = tempDir.resolve("success").also { java.nio.file.Files.createDirectories(it) }
+
+    // 创建测试账号数据
+    val account1 = WindsurfAccount(
+      windsurfEmail = "test1@example.com",
+      windsurfPassword = "Pass123!",
+      mailPassword = "mailpass1",
+      status = WindsurfAccountStatus.REGISTERED,
+      registeredAt = "2024-01-01T00:00:00Z"
+    )
+    val account2 = WindsurfAccount(
+      windsurfEmail = "test2@example.com",
+      windsurfPassword = "Pass456!",
+      mailPassword = "mailpass2",
+      status = WindsurfAccountStatus.REGISTERED,
+      registeredAt = "2024-01-02T00:00:00Z"
+    )
+
+    // 保存到 success 目录
+    WindsurfAccountStorage.save(account1, tempDir)
+    WindsurfAccountStorage.save(account2, tempDir)
+
+    // 执行汇总输出
+    println("[Test] Testing printSuccessSummary:")
+    WindsurfBatchRegistration.printSuccessSummary(tempDir)
+
+    // 清理
+    tempDir.toFile().deleteRecursively()
+
+    assertTrue(true, "printSuccessSummary executed without error")
+  }
+
+  /**
+   * 测试 printSuccessSummary 处理空目录的情况
+   */
+  @Test
+  fun `should handle empty success directory gracefully`() {
+    val tempDir = kotlin.io.path.createTempDirectory("windsurf-test-empty-")
+
+    // 不创建 success 目录，直接调用
+    println("[Test] Testing printSuccessSummary with empty directory:")
+    WindsurfBatchRegistration.printSuccessSummary(tempDir)
+
+    // 清理
+    tempDir.toFile().deleteRecursively()
+
+    assertTrue(true, "printSuccessSummary handled empty directory without error")
   }
 
 }

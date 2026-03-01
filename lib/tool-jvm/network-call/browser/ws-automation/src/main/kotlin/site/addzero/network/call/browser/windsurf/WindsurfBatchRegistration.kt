@@ -2,6 +2,7 @@ package site.addzero.network.call.browser.windsurf
 
 import com.microsoft.playwright.Page
 import site.addzero.network.call.browser.core.BrowserAutomationOptions
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
@@ -183,7 +184,44 @@ object WindsurfBatchRegistration {
     println("[Batch] accounts saved to: $storageDir")
     println("═══════════════════════════════════════════════════")
 
+    // 汇总输出 success 目录下的所有账号密码
+    printSuccessSummary(storageDir)
+
     return result
+  }
+
+  /**
+   * 汇总输出 success 目录下的所有成功账号
+   *
+   * 读取 storageDir/success/ 目录下所有已注册的账号，
+   * 按注册时间排序后输出格式：邮箱 密码
+   *
+   * @param storageDir 账号存储根目录
+   */
+  fun printSuccessSummary(storageDir: Path) {
+    val successDir = storageDir.resolve("success")
+    if (!Files.exists(successDir)) {
+      println("[Summary] success directory not found: $successDir")
+      return
+    }
+
+    val successAccounts = WindsurfAccountStorage.loadAll(successDir)
+      .filter { it.status == WindsurfAccountStatus.REGISTERED }
+      .sortedBy { it.registeredAt }
+
+    if (successAccounts.isEmpty()) {
+      println("[Summary] no successful accounts found in $successDir")
+      return
+    }
+
+    println()
+    println("═══════════════════════════════════════════════════")
+    println("[Batch] 成功账号汇总 (格式: 邮箱 密码):")
+    println("═══════════════════════════════════════════════════")
+    successAccounts.forEach { account ->
+      println("${account.windsurfEmail} ${account.windsurfPassword}")
+    }
+    println("═══════════════════════════════════════════════════")
   }
 
   private fun runSingle(
@@ -216,9 +254,8 @@ object WindsurfBatchRegistration {
         println("[Batch] [$threadName] #$index allocated CDP port: $cdpPort")
         options.copy(cdpPort = cdpPort)
       }
-      
+
       val account = WindsurfRegistration.registerWithTempMail(
-        password = password,
         firstName = firstName,
         lastName = lastName,
         mailProvider = mailProviderFactory(),

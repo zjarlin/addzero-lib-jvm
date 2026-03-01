@@ -16,7 +16,7 @@ class TempMailProviderImpl : TempMailProvider {
   private var mailbox: TempMailMailbox? = null
 
   override fun createEmail(): String {
-    val mb = client.createMailboxAndLogin(prefix = "ws")
+    val mb = client.createMailboxAndLogin(prefix = "qwq")
     mailbox = mb
     return mb.address
   }

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
+import java.util.stream.Collectors
 
 /**
  * Windsurf 账号持久化存储
@@ -20,7 +20,7 @@ import java.nio.file.StandardCopyOption
  * 并发安全性：多个线程/进程同时注册不同账号互不干扰（各写各的文件）；
  * 同一邮箱重复写入等幂（最终状态一致）。
  */
-@Suppress("unused")
+@Suppress("unused", "SpellCheckingInspection")
 object WindsurfAccountStorage {
 
   /** 默认账号存储目录 */
@@ -78,12 +78,14 @@ object WindsurfAccountStorage {
   fun loadAll(dir: Path = DEFAULT_DIR): List<WindsurfAccount> {
     if (!Files.exists(dir)) return emptyList()
     val paths = Files.list(dir).use { stream ->
-      stream.filter { path ->
-        val name = path.fileName.toString()
-        name.endsWith(".json") && !name.startsWith(".")
-      }.toList()
+      stream
+        .filter { path: Path ->
+          val name = path.fileName.toString()
+          name.endsWith(".json") && !name.startsWith(".")
+        }
+        .collect(Collectors.toList())
     }
-    return paths.mapNotNull { path ->
+    return paths.mapNotNull { path: Path ->
       runCatching { mapper.readValue<WindsurfAccount>(path.toFile()) }.getOrNull()
     }
   }

@@ -100,9 +100,9 @@ object WindsurfRegistration {
    * @return 注册结果的 [WindsurfAccount]（包含邮箱、Windsurf 密码、临时邮箱密码）
    */
   fun registerWithTempMail(
-    password: String? = null,
-    firstName: String? = null,
-    lastName: String? = null,
+    password: String ="StrongPass123!",
+    firstName: String? = WindsurfRandomNameGenerator.randomFirstName(),
+    lastName: String? = WindsurfRandomNameGenerator.randomLastName(),
     mailProvider: TempMailProvider? = null,
     options: WindsurfRegisterOptions = WindsurfRegisterOptions(),
     saveAccount: Boolean = true,
@@ -155,7 +155,7 @@ object WindsurfRegistration {
 
     // 如果指定了 cdpPort，使用独立 Chrome 实例；否则使用默认 9222（共享模式）
     val cdpPort = options.cdpPort ?: 9222
-    
+
     // 每个 CDP 端口使用独立 profile 目录（Chrome 不允许多进程共享同一 user-data-dir）
     val baseProfileDir = options.userDataDir ?: PlaywrightSession.defaultProfileDir().toString() + "-windsurf"
     val profileDir = if (cdpPort == 9222) {
