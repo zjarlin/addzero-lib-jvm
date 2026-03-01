@@ -1,5 +1,4 @@
 
-import cn.hutool.core.util.StrUtil
 import site.addzero.util.str.toLowCamelCase
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -8,7 +7,9 @@ class TestStr {
 
   @Test
   fun `daoisjdo`() {
-    val toLowCamelCase = "user.name".toLowCamelCase()
+
+    val string = "user.name"
+    val toLowCamelCase = string.toLowCamelCase()
     assertTrue { toLowCamelCase == "userName" }
   }
   @Test
