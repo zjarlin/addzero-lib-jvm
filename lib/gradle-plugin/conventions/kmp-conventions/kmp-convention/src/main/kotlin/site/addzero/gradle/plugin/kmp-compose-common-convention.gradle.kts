@@ -2,7 +2,9 @@ package site.addzero.gradle.plugin
 
 import gradle.kotlin.dsl.accessors._031ce919f06ec46841aebfb5d89692d4.compose
 import gradle.kotlin.dsl.accessors._031ce919f06ec46841aebfb5d89692d4.debugImplementation
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.the
 
@@ -12,7 +14,7 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 kotlin {
     sourceSets {
@@ -23,8 +25,8 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.viewmodel.compose)
-            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.runtime.compose)
+            implementation(libs.lib("org-jetbrains-androidx-lifecycle-lifecycle-viewmodel-compose"))
+            implementation(libs.lib("org-jetbrains-androidx-lifecycle-lifecycle-runtime-compose"))
             implementation(compose.materialIconsExtended)
         }
     }

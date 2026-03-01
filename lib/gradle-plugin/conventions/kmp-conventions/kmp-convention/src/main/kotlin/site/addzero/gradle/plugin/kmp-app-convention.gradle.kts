@@ -2,14 +2,16 @@
 
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import site.addzero.gradle.BuildSettings
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 plugins {
     id("org.jetbrains.compose")
@@ -47,13 +49,13 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.viewmodel.compose)
-            implementation(libs.org.jetbrains.androidx.lifecycle.lifecycle.runtime.compose)
+            implementation(libs.lib("org-jetbrains-androidx-lifecycle-lifecycle-viewmodel-compose"))
+            implementation(libs.lib("org-jetbrains-androidx-lifecycle-lifecycle-runtime-compose"))
             implementation(compose.materialIconsExtended)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.swing)
+            implementation(libs.lib("org-jetbrains-kotlinx-kotlinx-coroutines-swing"))
         }
     }
     compilerOptions {

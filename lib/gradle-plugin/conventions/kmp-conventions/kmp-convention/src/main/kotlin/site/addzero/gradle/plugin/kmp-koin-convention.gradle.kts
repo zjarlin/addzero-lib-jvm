@@ -1,6 +1,8 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.gradle.kotlin.dsl.the
 
 plugins {
@@ -8,21 +10,21 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 dependencies {
-    kspCommonMainMetadata(libs.io.insert.koin.koin.ksp.compiler)
+    kspCommonMainMetadata(libs.lib("io-insert-koin-koin-ksp-compiler"))
 }
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project.dependencies.platform(libs.io.insert.koin.koin.bom))
-            implementation(libs.io.insert.koin.koin.annotations)
-            implementation(libs.io.insert.koin.koin.core)
-            implementation(libs.io.insert.koin.koin.compose)
-            implementation(libs.io.insert.koin.koin.compose.viewmodel)
-            implementation(libs.io.insert.koin.koin.compose.viewmodel.navigation)
+            implementation(project.dependencies.platform(libs.lib("io-insert-koin-koin-bom")))
+            implementation(libs.lib("io-insert-koin-koin-annotations"))
+            implementation(libs.lib("io-insert-koin-koin-core"))
+            implementation(libs.lib("io-insert-koin-koin-compose"))
+            implementation(libs.lib("io-insert-koin-koin-compose-viewmodel"))
+            implementation(libs.lib("io-insert-koin-koin-compose-viewmodel-navigation"))
         }
     }
 }

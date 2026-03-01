@@ -1,6 +1,8 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.gradle.kotlin.dsl.the
 
 plugins {
@@ -9,8 +11,8 @@ plugins {
     id("io.spring.dependency-management")
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 dependencies {
-    implementation(libs.org.springframework.boot.spring.boot.starter.web)
+    implementation(libs.lib("org-springframework-boot-spring-boot-starter-web"))
 }

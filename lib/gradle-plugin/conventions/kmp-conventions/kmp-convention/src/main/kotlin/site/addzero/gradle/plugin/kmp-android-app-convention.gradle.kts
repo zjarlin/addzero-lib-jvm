@@ -2,13 +2,15 @@
 
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import site.addzero.gradle.BuildSettings
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 plugins {
   id("com.android.application")
@@ -19,26 +21,26 @@ kotlin {
   androidTarget {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
-      jvmTarget.set(JvmTarget.fromTarget(libs.versions.jdk.get()))
+      jvmTarget.set(JvmTarget.fromTarget(libs.ver("jdk")))
     }
   }
 
   sourceSets {
     androidMain.dependencies {
       implementation(compose.preview)
-      implementation(libs.androidx.activity.activity.compose)
+      implementation(libs.lib("androidx-activity-activity-compose"))
     }
   }
 }
 
 android {
   namespace = BuildSettings.PACKAGE_NAME
-  compileSdk = libs.versions.android.compileSdk.get().toInt()
+  compileSdk = libs.ver("android-compileSdk").toInt()
   defaultConfig {
     applicationId = BuildSettings.Android.ANDROID_APP_ID
-    minSdk = libs.versions.android.minSdk.get().toInt()
-    targetSdk = libs.versions.android.targetSdk.get().toInt()
-    val vname = libs.versions.android.biz.version.get()
+    minSdk = libs.ver("android-minSdk").toInt()
+    targetSdk = libs.ver("android-targetSdk").toInt()
+    val vname = libs.ver("android-biz-version")
     versionName = vname
     versionCode = vname.toDouble().toInt()
   }
@@ -54,7 +56,7 @@ android {
     }
   }
   compileOptions {
-    val toVersion = JavaVersion.toVersion(libs.versions.jdk.get())
+    val toVersion = JavaVersion.toVersion(libs.ver("jdk"))
     sourceCompatibility = toVersion
     targetCompatibility = toVersion
   }

@@ -1,6 +1,8 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 
@@ -8,7 +10,7 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 kotlin {
     jvmToolchain(8)
@@ -26,7 +28,7 @@ kotlin {
     jvm()
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.com.google.devtools.ksp.symbol.processing.api)
+            implementation(libs.lib("com-google-devtools-ksp-symbol-processing-api"))
         }
     }
 }

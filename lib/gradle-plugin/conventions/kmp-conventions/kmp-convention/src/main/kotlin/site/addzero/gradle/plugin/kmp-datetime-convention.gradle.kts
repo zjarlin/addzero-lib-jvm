@@ -1,18 +1,20 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.gradle.kotlin.dsl.the
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.org.jetbrains.kotlinx.kotlinx.datetime)
+            implementation(libs.lib("org-jetbrains-kotlinx-kotlinx-datetime"))
         }
     }
 }

@@ -1,6 +1,8 @@
 package site.addzero.gradle.plugin
 
-import org.gradle.accessors.dm.LibrariesForLibs
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import site.addzero.gradle.tool.lib
+import site.addzero.gradle.tool.ver
 import org.gradle.kotlin.dsl.the
 
 plugins {
@@ -8,10 +10,10 @@ plugins {
     kotlin("plugin.spring")
 }
 
-val libs = the<LibrariesForLibs>()
+val libs = the<VersionCatalogsExtension>().named("libs")
 
 dependencies {
-    compileOnly(libs.org.springframework.boot.spring.boot.starter.web)
-    compileOnly(libs.org.springframework.boot.spring.boot.autoconfigure)
-    annotationProcessor(libs.org.springframework.boot.spring.boot.configuration.processor.v2)
+    compileOnly(libs.lib("org-springframework-boot-spring-boot-starter-web"))
+    compileOnly(libs.lib("org-springframework-boot-spring-boot-autoconfigure"))
+    annotationProcessor(libs.lib("org-springframework-boot-spring-boot-configuration-processor-v2"))
 }
