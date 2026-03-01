@@ -1,0 +1,714 @@
+[versions]
+addzero = "2025.09.30"
+addzero-component-version = "2025.09.29"
+#addzero-lib = "2025.09.29"
+addzero-lib = "0.0.672"
+addzero-lib674 = "0.0.674"
+addzeroGradleToolVersion = "2025.09.24"
+addzeroJvmLTSVersion = "0.0.643"
+#implementation("site.addzero:addzero-gradle-tool:2025.09.24")
+#addzeroGradleToolVersion = "+"
+addzeroJvmVersion = "0.0.657"
+addzeroKspBuddyVersion = "2025.09.26"
+addzeroLTSVersion = "2025.10.07"
+agp = "9.0.0"
+akka-stream-netty-all-2-13-version = "0.1.18"
+# 本项目安卓应用版本定义
+android-biz-version = "1.0"
+android-compileSdk = "36"
+android-namespace = "site.addzero.ui.kmp"
+android-minSdk = "24"
+android-targetSdk = "36"
+androidx-activity-activity-compose = "1.11.0"
+androidx-appcompat-appcompat = "1.7.1"
+androidx-core-core-ktx = "1.17.0"
+androidx-lifecycle = "2.10.0-alpha08"
+androidx-navigation-navigation-compose = "2.9.7"
+androidx-test-espresso-espresso-core = "3.7.0"
+androidx-test-ext-junit = "1.3.0"
+ch-qos-logback-logback-classic = "1.5.24"
+cn-com-kingbase-kingbase8 = "8.6.0"
+cn-dev33-sa-token-spring-boot3-starter = "1.44.0"
+cn-idev-excel-fastexcel = "1.2.0"
+coil = "3.3.0"
+com-alibaba-fastjson2-fastjson2-kotlin = "2.0.58"
+com-aliyun-polardb-jdbc = "1.0.0"
+com-android-tools-build-gradle = "8.11.1"
+com-belerweb-pinyin4j = "2.5.1"
+com-dameng-dm-jdbc-driver18 = "8.1.3.140"
+com-diffplug-spotless-com-diffplug-spotless-gradle-plugin = "8.0.0"
+com-fasterxml-jackson-core-jackson-databind = "2.20.0"
+com-github-ajalt-clikt-clikt = "5.0.3"
+com-github-ben-manes-caffeine-caffeine = "2.9.1"
+com-github-victools-jsonschema-generator = "4.38.0"
+com-google-code-gson-gson = "2.10.1"
+com-google-inject-guice = "4.2.3"
+com-google-auto-service = "1.1.0"
+com-google-auto-service-annotations = "1.1.0"
+com-h2database-h2 = "2.1.214"
+com-hierynomus-sshj = "0.39.0"
+com-hivemq-hivemq-mqtt-client = "1.3.12"
+com-huawei-gauss-gaussdb-jdbc = "4.9.0"
+com-ibm-db2-jcc = "11.5.8.0"
+com-jcraft-jsch = "0.1.55"
+com-microsoft-sqlserver-mssql-jdbc = "10.2.0.jre8"
+# UI 组件版本
+com-mikepenz-multiplatform-markdown-renderer-m3 = "0.37.0"
+com-mohamedrejeb-dnd-compose-dnd = "0.4.0"
+com-mohamedrejeb-richeditor-richeditor-compose = "1.0.0-rc13"
+com-oceanbase-oceanbase-client = "2.4.5"
+com-oracle-database-jdbc-ojdbc8 = "21.5.0.0"
+com-squareup-javapoet = "1.13.0"
+com-squareup-kotlinpoet-v1 = "1.14.2"
+com-squareup-okhttp3-okhttp = "4.12.0"
+#com-squareup-okio-okio = "99999999999"
+com-squareup-okio-okio = "3.5.0"
+com-sun-mail-jakarta-mail = "2.0.1"
+com-sybase-jconn4 = "7.0"
+com-taosdata-jdbc-taos-jdbcdriver = "3.7.8"
+com-taosdata-taos-jdbcdriver = "3.2.7"
+com-vanniktech-gradle-maven-publish-plugin = "0.35.0"
+comCodingfelineBuildkonfigGradlePlugin = "0.17.1"
+commons = "1.2"
+composeHotReload = "1.0.0-beta07"
+composeMultiplatform = "1.11.0-alpha02"
+datastore = "1.2.0"
+de-jensklingenberg-ktorfit-ktorfit-lib-light = "2.7.2"
+dict-trans-core = "+"
+ecj = "3.39.0"
+enaium-jimmer-gradle = "0.0.34"
+fastexcel = "1.3.0"
+filekit-core-version = "0.12.0"
+flyway = "11.12.0"
+gadulka-version = "1.9.0"
+gradle-tool-config-java = "2025.11.29"
+h2 = "2.3.232"
+google-auto-service = "1.1.0"
+google-auto-service-annotations = "1.1.0"
+hutool = "+"
+hutoolAll = "5.8.40"
+io-github-khubaibkhan4-mediaplayer-kmp = "2.1.0"
+io-github-vinceglb-filekit-compose = "0.8.8"
+io-insert-koin-koin-annotations = "4.2.0-RC1"
+io-insert-koin-koin-compiler-gradle-plugin = "0.3.0"
+io-insert-koin-koin-core = "4.2.0-beta2"
+io-insert-koin-koin-ksp-compiler = "2.2.0"
+io-ktor-plugin-plugin = "3.4.0"
+io-minio-minio = "8.5.17"
+io-netty-netty-all = "4.1.104.Final"
+io-spring-gradle-dependency-management-plugin = "1.1.7"
+io-swagger-parser-v3-swagger-parser = "2.1.37"
+io-swagger-swagger-annotations = "1.6.12"
+io-tidb-tidb-jdbc = "0.1.0"
+ioc-core = "2026.02.16"
+ioc-processor-version = "2026.02.18"
+jackson = "2.18.2"
+jakarta-servlet-jakarta-servlet-api = "6.0.0"
+javax-annotation-javax-annotation-api = "1.3.2"
+javax-servlet-javax-servlet-api = "4.0.1"
+javax-validation-validation-api = "2.0.1.Final"
+jdk = "8"
+jdkHigh = "25"
+jimmer = "0.9.120"
+jimmer-ksp-version = "0.9.120"
+jte = "3.1.12"
+junit-junit = "4.13.2"
+jupiter = "5.8.1"
+koin = "4.2.0-RC1"
+# Koin 版本
+koin-compiler = "2.3.2-Beta1"
+koin-compiler-gradle-plugin = "0.3.0"
+koin-compose = "4.2.0-RC1"
+kotest = "6.1.1"
+kotlin = "2.3.20-RC"
+ksp = "2.3.5"
+#https://central.sonatype.com/artifact/org.jetbrains.kotlin.jvm/org.jetbrains.kotlin.jvm.gradle.plugin
+#kotlin = "2.2.0"
+# https://central.sonatype.com/artifact/com.google.devtools.ksp/com.google.devtools.ksp.gradle.plugin
+#ksp = "2.2.0-2.0.2"
+
+kotlinGradlePlugin = "2.2.20-RC2"
+kotlinpoet = "2.2.0"
+kotlinx-coroutines = "1.10.2"
+ktor = "3.4.0"
+ktor-banner-version = "2026.02.10"
+ktorfit = "2.7.2"
+lazyPeopleHttp = "2.2.5"
+material = "1.13.0"
+me-champeau-includegit-me-champeau-includegit-gradle-plugin = "0.3.2"
+#mybatisPlus = "3.5.3.1"
+mybatisPlus = "3.5.3.1"
+mysql = "8.0.33"
+mysql-mysql-connector-java = "8.0.33"
+net-bytebuddy-byte-buddy = "1.17.7"
+network-starter-version = "0.0.672"
+# OkHttp 版本
+okhttp = "4.12.0"
+openapi-generator = "7.12.0"
+org-apache-httpcomponents-httpclient = "4.5.14"
+org-apache-httpcomponents-httpcore = "4.4.13"
+# Android Lifecycle 版本
+org-aspectj-aspectjweaver = "1.9.24"
+org-bouncycastle-bcprov-jdk15to18 = "1.78"
+org-dromara-x-file-storage-x-file-storage-spring = "2.3.0"
+org-graalvm-buildtools-native-org-graalvm-buildtools-native-gradle-plugin = "0.11.0"
+org-jetbrains-androidx-navigation-navigation-compose = "2.9.0-rc02"
+org-jetbrains-androidx-navigation3-navigation3-ui = "1.1.0-alpha02"
+org-jetbrains-changelog-org-jetbrains-changelog-gradle-plugin = "2.4.0"
+org-jetbrains-compose-compose-gradle-plugin = "1.8.2"
+org-jetbrains-compose-material-material-icons-extended = "1.7.3"
+org-jetbrains-compose-material3-material3 = "1.10.0-alpha05"
+org-jetbrains-dokka-dokka-gradle-plugin = "2.0.0"
+org-jetbrains-intellij-platform-base-org-jetbrains-intellij-platform-base-gradle-plugin = "2.10.3"
+org-jetbrains-intellij-platform-migration-org-jetbrains-intellij-platform-migration-gradle-plugin = "2.10.3"
+org-jetbrains-intellij-platform-module-org-jetbrains-intellij-platform-module-gradle-plugin = "2.10.3"
+org-jetbrains-intellij-platform-org-jetbrains-intellij-platform-gradle-plugin = "2.10.3"
+org-jetbrains-intellij-platform-settings-org-jetbrains-intellij-platform-settings-gradle-plugin = "2.10.3"
+org-jetbrains-kotlin-multiplatform-org-jetbrains-kotlin-multiplatform-gradle-plugin = "2.3.0"
+org-jetbrains-kotlin-plugin-serialization-org-jetbrains-kotlin-plugin-serialization-gradle-plugin = "2.3.0"
+# CLI 版本
+org-jetbrains-kotlinx-kotlinx-cli = "0.3.6"
+org-jetbrains-kotlinx-kotlinx-datetime = "0.7.1-0.6.x-compat"
+org-jetbrains-kotlinx-kotlinx-serialization-core = "1.10.0-RC"
+org-jetbrains-kotlinx-kotlinx-serialization-json = "1.10.0"
+org-jsoup-jsoup = "1.15.3"
+org-junit-jupiter-junit-jupiter = "5.8.2"
+org-mockito-kotlin-mockito-kotlin = "6.1.0"
+org-mockito-mockito-core = "5.7.0"
+org-mybatis-spring-boot-mybatis-spring-boot-starter = "3.0.5"
+org-openeuler-bgmprovider = "1.0.6"
+org-owasp-encoder-encoder-esapi = "1.4.0"
+org-postgresql-postgresql = "42.7.7"
+org-projectlombok-lombok = "1.18.24"
+org-springframework-spring-beans = "5.3.21"
+org-springframework-spring-context = "5.3.21"
+org-springframework-spring-core = "6.1.14"
+org-springframework-spring-expression = "5.3.39"
+org-springframework-spring-jdbc = "5.3.21"
+org-springframework-spring-web = "5.3.21"
+org-springframework-spring-webmvc = "5.3.21"
+org-tomlj-tomlj = "1.1.1"
+org-xerial-sqlite-jdbc-v3 = "3.49.1.0"
+org-xerial-sqlite-jdbc-v3alt2 = "3.39.3.0"
+org-yaml-snakeyaml = "2.5"
+room = "2.8.4"
+site-addzero-apiprovider-processor = "2025.09.30"
+site-addzero-apt-dict-trans-core = "2025.12.16"
+site-addzero-compose-model-component = "2025.09.30"
+site-addzero-compose-native-component-table-pro = "2025.09.30"
+site-addzero-compose-props-annotations = "2025.09.30"
+site-addzero-controller-autoconfigure = "2026.01.11"
+site-addzero-dict-trans-core = "0.0.672"
+site-addzero-entity2form-core = "2025.09.30"
+site-addzero-entity2form-processor = "2025.09.30"
+site-addzero-entity2iso-processor = "+"
+site-addzero-entity2mcp-processor = "2025.09.30"
+site-addzero-gen-reified-core = "2026.01.01"
+site-addzero-gen-reified-processor = "2026.01.08"
+site-addzero-gradle-plugin-java-convention-site-addzero-gradle-plugin-java-convention-gradle-plugin = "2026.02.02"
+site-addzero-gradle-plugin-publish-buddy-version = "2026.01.01"
+site-addzero-gradle-script-core = "2025.11.29"
+site-addzero-gradle-tool = "2025.10.19"
+site-addzero-gradle-tool-config-java = "0.0.674"
+site-addzero-huawei-java-sdk = "0.0.672"
+site-addzero-ioc-core = "2025.12.23"
+site-addzero-ioc-processor-v2025 = "2025.12.28"
+site-addzero-ioc-processor-v2026 = "2026.02.17"
+site-addzero-java-convention = "2025.12.19"
+#agp = "8.12.3"
+site-addzero-jdbc2entity-processor = "2025.09.30"
+site-addzero-jimmer-model-lowquery-v2025 = "2025.10.20"
+site-addzero-jimmer-model-lowquery-v2025alt2 = "2025.09.29"
+site-addzero-json2kotlin-dataclass = "2025.11.33"
+site-addzero-kotlin-convention = "2026.02.04"
+site-addzero-ksp-convention = "2025.12.21"
+site-addzero-ksp-easycode = "2025.09.29"
+site-addzero-ksp-support = "2025.09.30"
+site-addzero-ktor-banner = "2026.02.10"
+site-addzero-lsi-apt = "2026.01.11"
+site-addzero-lsi-core = "2026.01.11"
+site-addzero-lsi-intellij = "2026.01.11"
+site-addzero-lsi-ksp = "2026.01.11"
+site-addzero-lsi-kt2 = "2026.01.11"
+site-addzero-lsi-psi = "2026.01.11"
+site-addzero-mybatis-auto-wrapper = "0.0.673"
+site-addzero-mybatis-auto-wrapper-core = "2025.11.24"
+site-addzero-network-starter-v0 = "0.0.672"
+site-addzero-network-starter-v2025 = "2025.09.30"
+site-addzero-route-core-v2025alt2 = "2025.09.30"
+site-addzero-tool = "2025.10.07"
+site-addzero-tool-ai = "0.0.673"
+site-addzero-tool-api-maven = "2025.11.28"
+site-addzero-tool-bytebuddy = "2026.01.11"
+site-addzero-tool-cli-repl = "+"
+site-addzero-tool-coll = "2026.01.01"
+site-addzero-tool-context = "0.0.672"
+site-addzero-tool-curl = "0.0.672"
+site-addzero-tool-database-model = "2025.11.15"
+site-addzero-tool-gradle-projectdir = "2026.01.27"
+site-addzero-tool-jdbc = "2025.12.24"
+site-addzero-tool-jdbc-model = "2025.09.30"
+site-addzero-tool-json = "2026.02.04"
+site-addzero-tool-jvmstr = "0.0.673"
+site-addzero-tool-koin-v2025 = "2025.12.30"
+site-addzero-tool-pinyin = "2025.10.07"
+site-addzero-tool-reflection = "0.0.672"
+site-addzero-tool-spctx = "2025.11.27"
+site-addzero-tool-spel = "2025.11.19"
+site-addzero-tool-sql-executor = "2025.11.26"
+site-addzero-tool-str = "2026.02.28"
+site-addzero-tool-toml = "0.0.672"
+site-addzero-tool-yml = "2025.12.26"
+slf4j = "2.0.16"
+software-amazon-awssdk-s3 = "2.29.16"
+#jimmer = "9.9.905"
+springAi = "1.0.1"
+springBoot = "2.7.18"
+springBoot4 = "4.1.0-M1"
+# JDK8兼容的Spring Boot版本
+springBootJdk8 = "2.7.18"
+sqlite = "2.6.2"
+sqlite-jdbc = "3.49.1.0"
+tool-api-maven = "2025.12.04"
+tool-database-model = "2025.11.15"
+tool-json = "2026.02.04"
+tool-json-version = "2026.02.04"
+tool-jvmstr = "2025.11.27"
+tool-pinyin = "2025.10.07"
+tool-reflection = "2025.10.20"
+tool-sql-executor = "2025.11.26"
+tool-str = "2025.12.04"
+velocity = "2.4.1"
+xerial = "3.44.1.0"
+ktor-server-netty-version = "+"
+method-semanticizer-processor-version = "2026.02.15"
+io-github-kyant0-shapes = "1.2.0"
+
+
+method-semanticizer-api-version = "2026.02.15"
+site-addzero-gradle-plugin-processor-buddy-version = "+"
+com-fasterxml-jackson-module-jackson-module-kotlin = "2.21.1"
+[libraries]
+#----------------------------- cn.hutool ------------------------------
+cn-hutool-hutool-all = { group = "cn.hutool", name = "hutool-all", version.ref = "hutoolAll" }
+cn-hutool-hutool-aop = { group = "cn.hutool", name = "hutool-aop", version.ref = "hutoolAll" }
+cn-hutool-hutool-bloom-filter = { group = "cn.hutool", name = "hutool-bloomFilter", version.ref = "hutoolAll" }
+cn-hutool-hutool-cache = { group = "cn.hutool", name = "hutool-cache", version.ref = "hutoolAll" }
+cn-hutool-hutool-captcha = { group = "cn.hutool", name = "hutool-captcha", version.ref = "hutoolAll" }
+# Hutool 细粒度模块依赖
+cn-hutool-hutool-core = { group = "cn.hutool", name = "hutool-core", version.ref = "hutoolAll" }
+cn-hutool-hutool-cron = { group = "cn.hutool", name = "hutool-cron", version.ref = "hutoolAll" }
+cn-hutool-hutool-crypto = { group = "cn.hutool", name = "hutool-crypto", version.ref = "hutoolAll" }
+cn-hutool-hutool-db = { group = "cn.hutool", name = "hutool-db", version.ref = "hutoolAll" }
+cn-hutool-hutool-dfa = { group = "cn.hutool", name = "hutool-dfa", version.ref = "hutoolAll" }
+cn-hutool-hutool-extra = { group = "cn.hutool", name = "hutool-extra", version.ref = "hutoolAll" }
+cn-hutool-hutool-http = { group = "cn.hutool", name = "hutool-http", version.ref = "hutoolAll" }
+cn-hutool-hutool-json = { group = "cn.hutool", name = "hutool-json", version.ref = "hutoolAll" }
+cn-hutool-hutool-jwt = { group = "cn.hutool", name = "hutool-jwt", version.ref = "hutoolAll" }
+cn-hutool-hutool-log = { group = "cn.hutool", name = "hutool-log", version.ref = "hutoolAll" }
+cn-hutool-hutool-poi = { group = "cn.hutool", name = "hutool-poi", version.ref = "hutoolAll" }
+cn-hutool-hutool-script = { group = "cn.hutool", name = "hutool-script", version.ref = "hutoolAll" }
+cn-hutool-hutool-setting = { group = "cn.hutool", name = "hutool-setting", version.ref = "hutoolAll" }
+cn-hutool-hutool-socket = { group = "cn.hutool", name = "hutool-socket", version.ref = "hutoolAll" }
+cn-hutool-hutool-system = { group = "cn.hutool", name = "hutool-system", version.ref = "hutoolAll" }
+#---------------------- com.android.tools.build -----------------------
+com-android-tools-build-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+com-android-tools-build-gradle-api = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
+#---------------------------- com.baomidou ----------------------------
+com-baomidou-mybatis-plus = { group = "com.baomidou", name = "mybatis-plus", version.ref = "mybatisPlus" }
+com-baomidou-mybatis-plus-annotation = { group = "com.baomidou", name = "mybatis-plus-annotation", version.ref = "mybatisPlus" }
+com-baomidou-mybatis-plus-core = { group = "com.baomidou", name = "mybatis-plus-core", version.ref = "mybatisPlus" }
+com-baomidou-mybatis-plus-generator = { group = "com.baomidou", name = "mybatis-plus-generator", version.ref = "mybatisPlus" }
+#-------------------- com.codingfeline.buildkonfig --------------------
+com-codingfeline-buildkonfig-buildkonfig-compiler = { group = "com.codingfeline.buildkonfig", name = "buildkonfig-compiler", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
+com-codingfeline-buildkonfig-buildkonfig-gradle-plugin = { group = "com.codingfeline.buildkonfig", name = "buildkonfig-gradle-plugin", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
+#---------------------- com.google.devtools.ksp -----------------------
+com-google-devtools-ksp-com-google-devtools-ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+com-google-devtools-ksp-symbol-processing-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+#---------------------------- com.squareup ----------------------------
+com-squareup-javapoet = { group = "com.squareup", name = "javapoet", version.ref = "com-squareup-javapoet" }
+com-squareup-kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
+com-squareup-kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
+#------------------------ com.squareup.okhttp3 ------------------------
+# HTTP和日志依赖
+com-squareup-okhttp3-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+com-squareup-okhttp3-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+#--------------------- de.jensklingenberg.ktorfit ---------------------
+de-jensklingenberg-ktorfit-de-jensklingenberg-ktorfit-gradle-plugin = { group = "de.jensklingenberg.ktorfit", name = "de.jensklingenberg.ktorfit.gradle.plugin", version.ref = "ktorfit" }
+de-jensklingenberg-ktorfit-ktorfit-lib = { group = "de.jensklingenberg.ktorfit", name = "ktorfit-lib", version.ref = "ktorfit" }
+de-jensklingenberg-ktorfit-ktorfit-lib-light = { group = "de.jensklingenberg.ktorfit", name = "ktorfit-lib-light", version.ref = "ktorfit" }
+#------------------------------- gg.jte -------------------------------
+gg-jte-jte = { group = "gg.jte", name = "jte", version.ref = "jte" }
+gg-jte-jte-kotlin = { group = "gg.jte", name = "jte-kotlin", version.ref = "jte" }
+#-------------------------- io.coil-kt.coil3 --------------------------
+
+io-coil-kt-coil3-coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+io-coil-kt-coil3-coil-network-ktor3 = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil" }
+io-coil-kt-coil3-coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
+
+#---------------------- io.github.ltttttttttttt -----------------------
+io-github-ltttttttttttt-lazy-people-http = { group = "io.github.ltttttttttttt", name = "LazyPeopleHttp", version.ref = "lazyPeopleHttp" }
+io-github-ltttttttttttt-lazy-people-http-lib = { group = "io.github.ltttttttttttt", name = "LazyPeopleHttp-lib", version.ref = "lazyPeopleHttp" }
+#------------------------- io.github.vinceglb -------------------------
+io-github-vinceglb-filekit-coil = { group = "io.github.vinceglb", name = "filekit-coil", version.ref = "filekit-core-version" }
+io-github-vinceglb-filekit-compose = { group = "io.github.vinceglb", name = "filekit-compose", version.ref = "io-github-vinceglb-filekit-compose" }
+io-github-vinceglb-filekit-core = { group = "io.github.vinceglb", name = "filekit-core", version.ref = "filekit-core-version" }
+io-github-vinceglb-filekit-dialogs = { group = "io.github.vinceglb", name = "filekit-dialogs", version.ref = "filekit-core-version" }
+io-github-vinceglb-filekit-dialogs-compose = { group = "io.github.vinceglb", name = "filekit-dialogs-compose", version.ref = "filekit-core-version" }
+#--------------------------- io.insert-koin ---------------------------
+io-insert-koin-koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "io-insert-koin-koin-annotations" }
+# Koin 依赖注入
+io-insert-koin-koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
+io-insert-koin-koin-compiler-gradle-plugin = { group = "io.insert-koin", name = "koin-compiler-gradle-plugin", version.ref = "io-insert-koin-koin-compiler-gradle-plugin" }
+io-insert-koin-koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+io-insert-koin-koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
+io-insert-koin-koin-compose-viewmodel-navigation = { group = "io.insert-koin", name = "koin-compose-viewmodel-navigation", version.ref = "koin" }
+io-insert-koin-koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+# Koin KSP 编译器
+io-insert-koin-koin-ksp-compiler = { group = "io.insert-koin", name = "koin-ksp-compiler", version.ref = "io-insert-koin-koin-ksp-compiler" }
+io-insert-koin-koin-ktor = { group = "io.insert-koin", name = "koin-ktor", version.ref = "koin" }
+io-insert-koin-koin-logger-slf4j = { group = "io.insert-koin", name = "koin-logger-slf4j", version.ref = "koin" }
+#----------------------------- io.kotest ------------------------------
+io-kotest-kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+io-kotest-kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotest" }
+io-kotest-kotest-runner-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+#------------------------------ io.ktor -------------------------------
+io-ktor-ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+io-ktor-ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+io-ktor-ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+io-ktor-ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
+io-ktor-ktor-client-js = { group = "io.ktor", name = "ktor-client-js", version.ref = "ktor" }
+io-ktor-ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+io-ktor-ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+io-ktor-ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+io-ktor-ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
+io-ktor-ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+io-ktor-ktor-server-core-jvm = { group = "io.ktor", name = "ktor-server-core-jvm", version.ref = "ktor" }
+io-ktor-ktor-server-netty-jvm = { group = "io.ktor", name = "ktor-server-netty-jvm", version.ref = "ktor" }
+io-ktor-ktor-server-openapi = { group = "io.ktor", name = "ktor-server-openapi", version.ref = "ktor" }
+io-ktor-ktor-server-routing-openapi = { group = "io.ktor", name = "ktor-server-routing-openapi", version.ref = "ktor" }
+io-ktor-ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
+io-ktor-ktor-server-swagger = { group = "io.ktor", name = "ktor-server-swagger", version.ref = "ktor" }
+io-ktor-ktor-server-test-host-jvm = { group = "io.ktor", name = "ktor-server-test-host-jvm", version.ref = "ktor" }
+#--------------------- org.apache.httpcomponents ----------------------
+org-apache-httpcomponents-httpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "org-apache-httpcomponents-httpclient" }
+org-apache-httpcomponents-httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "org-apache-httpcomponents-httpcore" }
+#------------------------ org.apache.velocity -------------------------
+org-apache-velocity-velocity = { group = "org.apache.velocity", name = "velocity", version.ref = "velocity" }
+org-apache-velocity-velocity-engine-core = { group = "org.apache.velocity", name = "velocity-engine-core", version.ref = "velocity" }
+#------------------------ org.babyfish.jimmer -------------------------
+org-babyfish-jimmer-jimmer-core = { group = "org.babyfish.jimmer", name = "jimmer-core", version.ref = "jimmer" }
+org-babyfish-jimmer-jimmer-ksp = { group = "org.babyfish.jimmer", name = "jimmer-ksp", version.ref = "jimmer" }
+org-babyfish-jimmer-jimmer-spring-boot-starter = { group = "org.babyfish.jimmer", name = "jimmer-spring-boot-starter", version.ref = "jimmer" }
+org-babyfish-jimmer-jimmer-sql-kotlin = { group = "org.babyfish.jimmer", name = "jimmer-sql-kotlin", version.ref = "jimmer" }
+#---------------------------- org.flywaydb ----------------------------
+org-flywaydb-flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+org-flywaydb-flyway-database-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway" }
+#------------------ org.jetbrains.androidx.lifecycle ------------------
+org-jetbrains-androidx-lifecycle-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+org-jetbrains-androidx-lifecycle-lifecycle-viewmodel-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+org-jetbrains-androidx-lifecycle-lifecycle-viewmodel-navigation3 = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+#---------------------- org.jetbrains.compose.ui ----------------------
+org-jetbrains-compose-ui-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "composeMultiplatform" }
+org-jetbrains-compose-ui-ui-tooling = { group = "org.jetbrains.compose.ui", name = "ui-tooling", version.ref = "composeMultiplatform" }
+org-jetbrains-compose-ui-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-tooling-preview", version.ref = "composeMultiplatform" }
+#------------------------ org.jetbrains.kotlin ------------------------
+org-jetbrains-kotlin-compose-compiler-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+org-jetbrains-kotlin-kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
+org-jetbrains-kotlin-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+org-jetbrains-kotlin-kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
+org-jetbrains-kotlin-kotlin-serialization = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
+org-jetbrains-kotlin-kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+org-jetbrains-kotlin-kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+#----------------------- org.jetbrains.kotlinx ------------------------
+org-jetbrains-kotlinx-kotlinx-cli = { group = "org.jetbrains.kotlinx", name = "kotlinx-cli", version.ref = "org-jetbrains-kotlinx-kotlinx-cli" }
+org-jetbrains-kotlinx-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+org-jetbrains-kotlinx-kotlinx-coroutines-reactor = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
+org-jetbrains-kotlinx-kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+org-jetbrains-kotlinx-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+org-jetbrains-kotlinx-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "org-jetbrains-kotlinx-kotlinx-datetime" }
+org-jetbrains-kotlinx-kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "org-jetbrains-kotlinx-kotlinx-serialization-core" }
+org-jetbrains-kotlinx-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "org-jetbrains-kotlinx-kotlinx-serialization-json" }
+#------------------------- org.junit.jupiter --------------------------
+org-junit-jupiter-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "org-junit-jupiter-junit-jupiter" }
+org-junit-jupiter-junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "jupiter" }
+# DUPLICATE: jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "jupiter" }
+org-junit-jupiter-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "jupiter" }
+#----------------------------- org.slf4j ------------------------------
+# DUPLICATE: org-projectlombok-lombok = { group = "org.projectlombok", name = "lombok", version.ref = "org-projectlombok-lombok" }
+org-slf4j-slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+org-slf4j-slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
+#------------------------ org.springframework -------------------------
+org-springframework-spring-beans = { group = "org.springframework", name = "spring-beans", version.ref = "org-springframework-spring-beans" }
+org-springframework-spring-context = { group = "org.springframework", name = "spring-context", version.ref = "org-springframework-spring-context" }
+org-springframework-spring-core = { group = "org.springframework", name = "spring-core", version.ref = "org-springframework-spring-core" }
+org-springframework-spring-expression = { group = "org.springframework", name = "spring-expression", version.ref = "org-springframework-spring-expression" }
+org-springframework-spring-jdbc = { group = "org.springframework", name = "spring-jdbc", version.ref = "org-springframework-spring-jdbc" }
+org-springframework-spring-web = { group = "org.springframework", name = "spring-web", version.ref = "org-springframework-spring-web" }
+org-springframework-spring-webmvc = { group = "org.springframework", name = "spring-webmvc" }
+#----------------------- org.springframework.ai -----------------------
+org-springframework-ai-spring-ai-bom = { group = "org.springframework.ai", name = "spring-ai-bom", version.ref = "springAi" }
+org-springframework-ai-spring-ai-starter-mcp-server-webflux = { group = "org.springframework.ai", name = "spring-ai-starter-mcp-server-webflux", version.ref = "springAi" }
+org-springframework-ai-spring-ai-starter-model-deepseek = { group = "org.springframework.ai", name = "spring-ai-starter-model-deepseek", version.ref = "springAi" }
+org-springframework-ai-spring-ai-starter-model-ollama = { group = "org.springframework.ai", name = "spring-ai-starter-model-ollama" }
+org-springframework-ai-spring-ai-starter-vector-store-pgvector = { group = "org.springframework.ai", name = "spring-ai-starter-vector-store-pgvector" }
+org-springframework-ai-spring-ai-tika-document-reader = { group = "org.springframework.ai", name = "spring-ai-tika-document-reader" }
+#---------------------- org.springframework.boot ----------------------
+org-springframework-boot-org-springframework-boot-gradle-plugin-v2 = { group = "org.springframework.boot", name = "org.springframework.boot.gradle.plugin", version.ref = "springBoot" }
+org-springframework-boot-org-springframework-boot-gradle-plugin-v4 = { group = "org.springframework.boot", name = "org.springframework.boot.gradle.plugin", version.ref = "springBoot4" }
+org-springframework-boot-spring-boot-autoconfigure = { group = "org.springframework.boot", name = "spring-boot-autoconfigure" }
+org-springframework-boot-spring-boot-configuration-processor-v2 = { group = "org.springframework.boot", name = "spring-boot-configuration-processor", version.ref = "springBoot" }
+org-springframework-boot-spring-boot-configuration-processor-v4 = { group = "org.springframework.boot", name = "spring-boot-configuration-processor", version.ref = "springBoot4" }
+org-springframework-boot-spring-boot-dependencies-v2 = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "springBoot" }
+org-springframework-boot-spring-boot-dependencies-v4 = { group = "org.springframework.boot", name = "spring-boot-dependencies", version.ref = "springBoot4" }
+org-springframework-boot-spring-boot-starter-test-v2 = { group = "org.springframework.boot", name = "spring-boot-starter-test", version.ref = "springBoot" }
+org-springframework-boot-spring-boot-starter-test-v4 = { group = "org.springframework.boot", name = "spring-boot-starter-test", version.ref = "springBoot4" }
+org-springframework-boot-spring-boot-starter-thymeleaf = { group = "org.springframework.boot", name = "spring-boot-starter-thymeleaf" }
+org-springframework-boot-spring-boot-starter-validation = { group = "org.springframework.boot", name = "spring-boot-starter-validation" }
+org-springframework-boot-spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web" }
+org-springframework-boot-spring-boot-starter-webflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux" }
+#----------------------------- org.xerial -----------------------------
+org-xerial-sqlite-jdbc-v3 = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "org-xerial-sqlite-jdbc-v3" }
+org-xerial-sqlite-jdbc-v3alt2 = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "org-xerial-sqlite-jdbc-v3alt2" }
+#---------------------------- site.addzero ----------------------------
+site-addzero-apiprovider-processor = { group = "site.addzero", name = "apiprovider-processor", version.ref = "site-addzero-apiprovider-processor" }
+site-addzero-apt-dict-trans-core = { group = "site.addzero", name = "apt-dict-trans-core", version.ref = "site-addzero-apt-dict-trans-core" }
+site-addzero-compose-klibs-component = { group = "site.addzero", name = "compose-klibs-component", version.ref = "addzero-lib674" }
+site-addzero-compose-model-component = { group = "site.addzero", name = "compose-model-component", version.ref = "site-addzero-compose-model-component" }
+site-addzero-compose-native-component = { group = "site.addzero", name = "compose-native-component", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-assist = { group = "site.addzero", name = "compose-native-component-assist", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-button = { group = "site.addzero", name = "compose-native-component-button", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-card = { group = "site.addzero", name = "compose-native-component-card", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-form = { group = "site.addzero", name = "compose-native-component-form", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-high-level = { group = "site.addzero", name = "compose-native-component-high-level", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-hook = { group = "site.addzero", name = "compose-native-component-hook", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-searchbar = { group = "site.addzero", name = "compose-native-component-searchbar", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-select = { group = "site.addzero", name = "compose-native-component-select", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-table = { group = "site.addzero", name = "compose-native-component-table", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-table-core = { group = "site.addzero", name = "compose-native-component-table-core", version.ref = "addzero-lib674" }
+site-addzero-compose-native-component-table-pro = { group = "site.addzero", name = "compose-native-component-table-pro", version.ref = "site-addzero-compose-native-component-table-pro" }
+site-addzero-compose-native-component-tree = { group = "site.addzero", name = "compose-native-component-tree", version.ref = "addzero-lib674" }
+site-addzero-compose-props-annotations = { group = "site.addzero", name = "compose-props-annotations", version.ref = "site-addzero-compose-props-annotations" }
+site-addzero-compose-props-processor = { group = "site.addzero", name = "compose-props-processor", version.ref = "addzeroLTSVersion" }
+site-addzero-controller-autoconfigure = { group = "site.addzero", name = "controller-autoconfigure", version.ref = "site-addzero-controller-autoconfigure" }
+site-addzero-controller2api-processor = { group = "site.addzero", name = "controller2api-processor", version.ref = "addzeroLTSVersion" }
+site-addzero-controller2iso2dataprovider-processor = { group = "site.addzero", name = "controller2iso2dataprovider-processor", version.ref = "addzeroLTSVersion" }
+site-addzero-dict-trans-core = { group = "site.addzero", name = "dict-trans-core", version.ref = "dict-trans-core" }
+site-addzero-entity2analysed-support = { group = "site.addzero", name = "entity2analysed-support", version.ref = "addzero" }
+site-addzero-entity2form-core = { group = "site.addzero", name = "entity2form-core", version.ref = "site-addzero-entity2form-core" }
+site-addzero-entity2form-processor = { group = "site.addzero", name = "entity2form-processor", version.ref = "site-addzero-entity2form-processor" }
+site-addzero-entity2iso-processor = { group = "site.addzero", name = "entity2iso-processor", version.ref = "site-addzero-entity2iso-processor" }
+site-addzero-entity2mcp-processor = { group = "site.addzero", name = "entity2mcp-processor", version.ref = "site-addzero-entity2mcp-processor" }
+site-addzero-gen-reified-core = { group = "site.addzero", name = "gen-reified-core", version.ref = "site-addzero-gen-reified-core" }
+site-addzero-gen-reified-processor = { group = "site.addzero", name = "gen-reified-processor", version.ref = "site-addzero-gen-reified-processor" }
+site-addzero-gradle-script-core = { group = "site.addzero", name = "gradle-script-core", version.ref = "site-addzero-gradle-script-core" }
+#addzero-gradle-tool = { group = "site.addzero", name = "gradle-tool", version.ref = "addzeroLTSVersion" }
+site-addzero-gradle-tool = { group = "site.addzero", name = "gradle-tool", version.ref = "site-addzero-gradle-tool" }
+site-addzero-gradle-tool-config-java = { group = "site.addzero", name = "gradle-tool-config-java", version.ref = "site-addzero-gradle-tool-config-java" }
+site-addzero-huawei-java-sdk = { group = "site.addzero", name = "huawei-java-sdk", version.ref = "site-addzero-huawei-java-sdk" }
+site-addzero-ioc-core = { group = "site.addzero", name = "ioc-core", version.ref = "ioc-core" }
+site-addzero-ioc-processor = { group = "site.addzero", name = "ioc-processor", version.ref = "ioc-processor-version" }
+site-addzero-java-convention = { group = "site.addzero", name = "java-convention", version.ref = "site-addzero-java-convention" }
+site-addzero-jdbc2entity-processor = { group = "site.addzero", name = "jdbc2entity-processor", version.ref = "site-addzero-jdbc2entity-processor" }
+site-addzero-jimmer-ext-dynamic-datasource = { group = "site.addzero", name = "jimmer-ext-dynamic-datasource", version.ref = "addzeroLTSVersion" }
+site-addzero-jimmer-ext-lowquery = { group = "site.addzero", name = "jimmer-ext-lowquery", version.ref = "addzeroLTSVersion" }
+site-addzero-jimmer-model-lowquery-v2025 = { group = "site.addzero", name = "jimmer-model-lowquery", version.ref = "site-addzero-jimmer-model-lowquery-v2025" }
+site-addzero-jimmer-model-lowquery-v2025alt2 = { group = "site.addzero", name = "jimmer-model-lowquery", version.ref = "site-addzero-jimmer-model-lowquery-v2025alt2" }
+site-addzero-json2kotlin-dataclass = { group = "site.addzero", name = "json2kotlin-dataclass", version.ref = "site-addzero-json2kotlin-dataclass" }
+site-addzero-kcp-annotations = { group = "site.addzero", name = "kcp-annotations", version.ref = "addzero" }
+site-addzero-kotlin-convention = { group = "site.addzero", name = "kotlin-convention", version.ref = "site-addzero-kotlin-convention" }
+site-addzero-ksp-convention = { group = "site.addzero", name = "ksp-convention", version.ref = "site-addzero-ksp-convention" }
+site-addzero-ksp-dsl-builder-core = { group = "site.addzero", name = "ksp-dsl-builder-core", version.ref = "addzero" }
+site-addzero-ksp-easycode = { group = "site.addzero", name = "ksp-easycode", version.ref = "site-addzero-ksp-easycode" }
+site-addzero-ksp-support = { group = "site.addzero", name = "ksp-support", version.ref = "site-addzero-ksp-support" }
+site-addzero-ksp-support-jdbc = { group = "site.addzero", name = "ksp-support-jdbc", version.ref = "addzero" }
+site-addzero-ktor-banner = { group = "site.addzero", name = "ktor-banner", version.ref = "ktor-banner-version" }
+site-addzero-lsi-apt = { group = "site.addzero", name = "lsi-apt", version.ref = "site-addzero-lsi-apt" }
+site-addzero-lsi-core = { group = "site.addzero", name = "lsi-core", version.ref = "site-addzero-lsi-core" }
+site-addzero-lsi-intellij = { group = "site.addzero", name = "lsi-intellij", version.ref = "site-addzero-lsi-intellij" }
+site-addzero-lsi-ksp = { group = "site.addzero", name = "lsi-ksp", version.ref = "site-addzero-lsi-ksp" }
+site-addzero-lsi-kt2 = { group = "site.addzero", name = "lsi-kt2", version.ref = "site-addzero-lsi-kt2" }
+site-addzero-lsi-psi = { group = "site.addzero", name = "lsi-psi", version.ref = "site-addzero-lsi-psi" }
+site-addzero-mybatis-auto-wrapper = { group = "site.addzero", name = "mybatis-auto-wrapper", version.ref = "site-addzero-mybatis-auto-wrapper" }
+site-addzero-mybatis-auto-wrapper-core = { group = "site.addzero", name = "mybatis-auto-wrapper-core", version.ref = "site-addzero-mybatis-auto-wrapper-core" }
+site-addzero-network-starter = { group = "site.addzero", name = "network-starter", version.ref = "network-starter-version" }
+site-addzero-route-core = { group = "site.addzero", name = "route-core", version.ref = "addzero" }
+site-addzero-route-processor = { group = "site.addzero", name = "route-processor", version.ref = "addzeroLTSVersion" }
+site-addzero-site-addzero-ksp-buddy-gradle-plugin = { group = "site.addzero", name = "site.addzero.ksp-buddy.gradle.plugin", version.ref = "addzeroLTSVersion" }
+site-addzero-site-addzero-publish-buddy-gradle-plugin = { group = "site.addzero", name = "site.addzero.publish-buddy.gradle.plugin", version.ref = "addzeroLTSVersion" }
+site-addzero-tool = { group = "site.addzero", name = "tool", version.ref = "site-addzero-tool" }
+site-addzero-tool-ai = { group = "site.addzero", name = "tool-ai", version.ref = "site-addzero-tool-ai" }
+site-addzero-tool-api-jvm = { group = "site.addzero", name = "tool-api-jvm", version.ref = "addzeroLTSVersion" }
+site-addzero-tool-api-maven = { group = "site.addzero", name = "tool-api-maven", version.ref = "site-addzero-tool-api-maven" }
+site-addzero-tool-bytebuddy = { group = "site.addzero", name = "tool-bytebuddy", version.ref = "site-addzero-tool-bytebuddy" }
+site-addzero-tool-cli-repl = { group = "site.addzero", name = "tool-cli-repl", version.ref = "site-addzero-tool-cli-repl" }
+site-addzero-tool-coll = { group = "site.addzero", name = "tool-coll", version.ref = "site-addzero-tool-coll" }
+site-addzero-tool-common-jvm = { group = "site.addzero", name = "tool-common-jvm", version.ref = "addzeroLTSVersion" }
+site-addzero-tool-context = { group = "site.addzero", name = "tool-context", version.ref = "site-addzero-tool-context" }
+site-addzero-tool-curl = { group = "site.addzero", name = "tool-curl", version.ref = "site-addzero-tool-curl" }
+site-addzero-tool-database-model = { group = "site.addzero", name = "tool-database-model", version.ref = "site-addzero-tool-database-model" }
+site-addzero-tool-gradle-projectdir = { group = "site.addzero", name = "tool-gradle-projectdir", version.ref = "site-addzero-tool-gradle-projectdir" }
+site-addzero-tool-io = { group = "site.addzero", name = "tool-io", version.ref = "addzeroLTSVersion" }
+site-addzero-tool-io-codegen = { group = "site.addzero", name = "tool-io-codegen", version.ref = "addzero-lib674" }
+site-addzero-tool-jdbc = { group = "site.addzero", name = "tool-jdbc", version.ref = "addzeroLTSVersion" }
+site-addzero-tool-jdbc-model = { group = "site.addzero", name = "tool-jdbc-model", version.ref = "site-addzero-tool-jdbc-model" }
+site-addzero-tool-json = { group = "site.addzero", name = "tool-json", version.ref = "site-addzero-tool-json" }
+site-addzero-tool-jvmstr = { group = "site.addzero", name = "tool-jvmstr", version.ref = "site-addzero-tool-jvmstr" }
+site-addzero-tool-koin-v2025 = { group = "site.addzero", name = "tool-koin", version.ref = "site-addzero-tool-koin-v2025" }
+site-addzero-tool-koin-v2025alt2 = { group = "site.addzero", name = "tool-koin", version.ref = "addzero" }
+site-addzero-tool-mqtt = { group = "site.addzero", name = "tool-mqtt", version.ref = "addzeroLTSVersion" }
+site-addzero-tool-pinyin = { group = "site.addzero", name = "tool-pinyin", version.ref = "site-addzero-tool-pinyin" }
+site-addzero-tool-reflection = { group = "site.addzero", name = "tool-reflection", version.ref = "site-addzero-tool-reflection" }
+site-addzero-tool-spctx = { group = "site.addzero", name = "tool-spctx", version.ref = "site-addzero-tool-spctx" }
+site-addzero-tool-spel = { group = "site.addzero", name = "tool-spel", version.ref = "site-addzero-tool-spel" }
+site-addzero-tool-spring = { group = "site.addzero", name = "tool-spring", version.ref = "addzeroLTSVersion" }
+site-addzero-tool-sql-executor = { group = "site.addzero", name = "tool-sql-executor", version.ref = "site-addzero-tool-sql-executor" }
+site-addzero-tool-str = { group = "site.addzero", name = "tool-str", version.ref = "site-addzero-tool-str" }
+site-addzero-tool-toml = { group = "site.addzero", name = "tool-toml", version.ref = "site-addzero-tool-toml" }
+site-addzero-tool-yml = { group = "site.addzero", name = "tool-yml", version.ref = "site-addzero-tool-yml" }
+#---------------------------- single group ----------------------------
+androidx-activity-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity-activity-compose" }
+androidx-appcompat-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat-appcompat" }
+androidx-core-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-core-ktx" }
+androidx-navigation-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidx-navigation-navigation-compose" }
+androidx-test-espresso-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso-espresso-core" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+ch-qos-logback-logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "ch-qos-logback-logback-classic" }
+cn-com-kingbase-kingbase8 = { group = "cn.com.kingbase", name = "kingbase8", version.ref = "cn-com-kingbase-kingbase8" }
+cn-dev33-sa-token-spring-boot3-starter = { group = "cn.dev33", name = "sa-token-spring-boot3-starter", version.ref = "cn-dev33-sa-token-spring-boot3-starter" }
+cn-idev-excel-fastexcel = { group = "cn.idev.excel", name = "fastexcel", version.ref = "fastexcel" }
+com-alibaba-fastjson2-fastjson2-kotlin = { group = "com.alibaba.fastjson2", name = "fastjson2-kotlin", version.ref = "com-alibaba-fastjson2-fastjson2-kotlin" }
+com-aliyun-polardb-jdbc = { group = "com.aliyun", name = "polardb-jdbc", version.ref = "com-aliyun-polardb-jdbc" }
+com-belerweb-pinyin4j = { group = "com.belerweb", name = "pinyin4j", version.ref = "com-belerweb-pinyin4j" }
+com-dameng-dm-jdbc-driver18 = { group = "com.dameng", name = "DmJdbcDriver18", version.ref = "com-dameng-dm-jdbc-driver18" }
+com-diffplug-spotless-com-diffplug-spotless-gradle-plugin = { group = "com.diffplug.spotless", name = "com.diffplug.spotless.gradle.plugin", version.ref = "com-diffplug-spotless-com-diffplug-spotless-gradle-plugin" }
+com-fasterxml-jackson-core-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "com-fasterxml-jackson-core-jackson-databind" }
+com-fasterxml-jackson-module-jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "com-fasterxml-jackson-module-jackson-module-kotlin" }
+com-github-ajalt-clikt-clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "com-github-ajalt-clikt-clikt" }
+com-github-ben-manes-caffeine-caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "com-github-ben-manes-caffeine-caffeine" }
+com-github-victools-jsonschema-generator = { group = "com.github.victools", name = "jsonschema-generator", version.ref = "com-github-victools-jsonschema-generator" }
+com-google-code-gson-gson = { group = "com.google.code.gson", name = "gson", version.ref = "com-google-code-gson-gson" }
+com-google-inject-guice = { group = "com.google.inject", name = "guice", version.ref = "com-google-inject-guice" }
+com-google-auto-service = { group = "com.google.auto.service", name = "auto-service", version.ref = "com-google-auto-service" }
+com-google-auto-service-annotations = { group = "com.google.auto.service", name = "auto-service-annotations", version.ref = "com-google-auto-service-annotations" }
+com-h2database-h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
+com-hierynomus-sshj = { group = "com.hierynomus", name = "sshj", version.ref = "com-hierynomus-sshj" }
+com-hivemq-hivemq-mqtt-client = { group = "com.hivemq", name = "hivemq-mqtt-client", version.ref = "com-hivemq-hivemq-mqtt-client" }
+com-huawei-gauss-gaussdb-jdbc = { group = "com.huawei.gauss", name = "gaussdb-jdbc", version.ref = "com-huawei-gauss-gaussdb-jdbc" }
+com-ibm-db2-jcc = { group = "com.ibm.db2", name = "jcc", version.ref = "com-ibm-db2-jcc" }
+com-jcraft-jsch = { group = "com.jcraft", name = "jsch", version.ref = "com-jcraft-jsch" }
+com-microsoft-sqlserver-mssql-jdbc = { group = "com.microsoft.sqlserver", name = "mssql-jdbc", version.ref = "com-microsoft-sqlserver-mssql-jdbc" }
+com-mikepenz-multiplatform-markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "com-mikepenz-multiplatform-markdown-renderer-m3" }
+com-mohamedrejeb-dnd-compose-dnd = { group = "com.mohamedrejeb.dnd", name = "compose-dnd", version.ref = "com-mohamedrejeb-dnd-compose-dnd" }
+com-mohamedrejeb-richeditor-richeditor-compose = { group = "com.mohamedrejeb.richeditor", name = "richeditor-compose", version.ref = "com-mohamedrejeb-richeditor-richeditor-compose" }
+com-oceanbase-oceanbase-client = { group = "com.oceanbase", name = "oceanbase-client", version.ref = "com-oceanbase-oceanbase-client" }
+com-oracle-database-jdbc-ojdbc8 = { group = "com.oracle.database.jdbc", name = "ojdbc8", version.ref = "com-oracle-database-jdbc-ojdbc8" }
+com-squareup-okio-okio = { group = "com.squareup.okio", name = "okio", version.ref = "com-squareup-okio-okio" }
+com-sun-mail-jakarta-mail = { group = "com.sun.mail", name = "jakarta.mail", version.ref = "com-sun-mail-jakarta-mail" }
+com-sybase-jconn4 = { group = "com.sybase", name = "jconn4", version.ref = "com-sybase-jconn4" }
+com-taosdata-jdbc-taos-jdbcdriver = { group = "com.taosdata.jdbc", name = "taos-jdbcdriver", version.ref = "com-taosdata-jdbc-taos-jdbcdriver" }
+com-vanniktech-gradle-maven-publish-plugin = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "com-vanniktech-gradle-maven-publish-plugin" }
+commons-codec-commons-codec = { group = "commons-codec", name = "commons-codec", version.ref = "commons" }
+commons-logging-commons-logging = { group = "commons-logging", name = "commons-logging", version.ref = "commons" }
+eu-iamkonstantin-gadulka-gadulka = { group = "eu.iamkonstantin.gadulka", name = "gadulka", version.ref = "gadulka-version" }
+eu-iamkonstantin-kotlin-gadulka = { group = "eu.iamkonstantin.kotlin", name = "gadulka", version.ref = "gadulka-version" }
+io-github-khubaibkhan4-mediaplayer-kmp = { group = "io.github.khubaibkhan4", name = "mediaplayer-kmp", version.ref = "io-github-khubaibkhan4-mediaplayer-kmp" }
+io-ktor-plugin-plugin = { group = "io.ktor.plugin", name = "plugin", version.ref = "io-ktor-plugin-plugin" }
+io-minio-minio = { group = "io.minio", name = "minio", version.ref = "io-minio-minio" }
+io-netty-netty-all = { group = "io.netty", name = "netty-all", version.ref = "io-netty-netty-all" }
+io-spring-gradle-dependency-management-plugin = { group = "io.spring.gradle", name = "dependency-management-plugin", version.ref = "io-spring-gradle-dependency-management-plugin" }
+io-swagger-parser-v3-swagger-parser = { group = "io.swagger.parser.v3", name = "swagger-parser", version.ref = "io-swagger-parser-v3-swagger-parser" }
+io-swagger-swagger-annotations = { group = "io.swagger", name = "swagger-annotations", version.ref = "io-swagger-swagger-annotations" }
+io-tidb-tidb-jdbc = { group = "io.tidb", name = "tidb-jdbc", version.ref = "io-tidb-tidb-jdbc" }
+jakarta-servlet-jakarta-servlet-api = { group = "jakarta.servlet", name = "jakarta.servlet-api", version.ref = "jakarta-servlet-jakarta-servlet-api" }
+javax-annotation-javax-annotation-api = { group = "javax.annotation", name = "javax.annotation-api", version.ref = "javax-annotation-javax-annotation-api" }
+javax-servlet-javax-servlet-api = { group = "javax.servlet", name = "javax.servlet-api", version.ref = "javax-servlet-javax-servlet-api" }
+javax-validation-validation-api = { group = "javax.validation", name = "validation-api", version.ref = "javax-validation-validation-api" }
+junit-junit = { group = "junit", name = "junit", version.ref = "junit-junit" }
+me-champeau-includegit-me-champeau-includegit-gradle-plugin = { group = "me.champeau.includegit", name = "me.champeau.includegit.gradle.plugin", version.ref = "me-champeau-includegit-me-champeau-includegit-gradle-plugin" }
+mysql-mysql-connector-java = { group = "mysql", name = "mysql-connector-java", version.ref = "mysql-mysql-connector-java" }
+net-bytebuddy-byte-buddy = { group = "net.bytebuddy", name = "byte-buddy" }
+org-apache-commons-commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons" }
+org-aspectj-aspectjweaver = { group = "org.aspectj", name = "aspectjweaver", version.ref = "org-aspectj-aspectjweaver" }
+org-bouncycastle-bcprov-jdk15to18 = { group = "org.bouncycastle", name = "bcprov-jdk15to18", version.ref = "org-bouncycastle-bcprov-jdk15to18" }
+org-dromara-x-file-storage-x-file-storage-spring = { group = "org.dromara.x-file-storage", name = "x-file-storage-spring", version.ref = "org-dromara-x-file-storage-x-file-storage-spring" }
+org-graalvm-buildtools-native-org-graalvm-buildtools-native-gradle-plugin = { group = "org.graalvm.buildtools.native", name = "org.graalvm.buildtools.native.gradle.plugin", version.ref = "org-graalvm-buildtools-native-org-graalvm-buildtools-native-gradle-plugin" }
+org-jetbrains-androidx-navigation-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "org-jetbrains-androidx-navigation-navigation-compose" }
+org-jetbrains-androidx-navigation3-navigation3-ui = { group = "org.jetbrains.androidx.navigation3", name = "navigation3-ui", version.ref = "org-jetbrains-androidx-navigation3-navigation3-ui" }
+org-jetbrains-changelog-org-jetbrains-changelog-gradle-plugin = { group = "org.jetbrains.changelog", name = "org.jetbrains.changelog.gradle.plugin", version.ref = "org-jetbrains-changelog-org-jetbrains-changelog-gradle-plugin" }
+org-jetbrains-compose-components-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "composeMultiplatform" }
+org-jetbrains-compose-compose-gradle-plugin = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "composeMultiplatform" }
+org-jetbrains-compose-foundation-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "composeMultiplatform" }
+org-jetbrains-compose-material-material-icons-extended = { group = "org.jetbrains.compose.material", name = "material-icons-extended", version.ref = "org-jetbrains-compose-material-material-icons-extended" }
+org-jetbrains-compose-material3-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "org-jetbrains-compose-material3-material3" }
+org-jetbrains-compose-runtime-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "composeMultiplatform" }
+org-jetbrains-dokka-dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "org-jetbrains-dokka-dokka-gradle-plugin" }
+org-jetbrains-intellij-platform-base-org-jetbrains-intellij-platform-base-gradle-plugin = { group = "org.jetbrains.intellij.platform.base", name = "org.jetbrains.intellij.platform.base.gradle.plugin", version.ref = "org-jetbrains-intellij-platform-base-org-jetbrains-intellij-platform-base-gradle-plugin" }
+org-jetbrains-intellij-platform-migration-org-jetbrains-intellij-platform-migration-gradle-plugin = { group = "org.jetbrains.intellij.platform.migration", name = "org.jetbrains.intellij.platform.migration.gradle.plugin", version.ref = "org-jetbrains-intellij-platform-migration-org-jetbrains-intellij-platform-migration-gradle-plugin" }
+org-jetbrains-intellij-platform-module-org-jetbrains-intellij-platform-module-gradle-plugin = { group = "org.jetbrains.intellij.platform.module", name = "org.jetbrains.intellij.platform.module.gradle.plugin", version.ref = "org-jetbrains-intellij-platform-module-org-jetbrains-intellij-platform-module-gradle-plugin" }
+org-jetbrains-intellij-platform-org-jetbrains-intellij-platform-gradle-plugin = { group = "org.jetbrains.intellij.platform", name = "org.jetbrains.intellij.platform.gradle.plugin", version.ref = "org-jetbrains-intellij-platform-org-jetbrains-intellij-platform-gradle-plugin" }
+org-jetbrains-intellij-platform-settings-org-jetbrains-intellij-platform-settings-gradle-plugin = { group = "org.jetbrains.intellij.platform.settings", name = "org.jetbrains.intellij.platform.settings.gradle.plugin", version.ref = "org-jetbrains-intellij-platform-settings-org-jetbrains-intellij-platform-settings-gradle-plugin" }
+org-jetbrains-kotlin-multiplatform-org-jetbrains-kotlin-multiplatform-gradle-plugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "org-jetbrains-kotlin-multiplatform-org-jetbrains-kotlin-multiplatform-gradle-plugin" }
+#gradlePlugin-atomicFu = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "atomicfu" }
+org-jetbrains-kotlin-plugin-compose-org-jetbrains-kotlin-plugin-compose-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.compose", name = "org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
+org-jetbrains-kotlin-plugin-serialization-org-jetbrains-kotlin-plugin-serialization-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "org-jetbrains-kotlin-plugin-serialization-org-jetbrains-kotlin-plugin-serialization-gradle-plugin" }
+org-jetbrains-kotlin-plugin-spring-org-jetbrains-kotlin-plugin-spring-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.spring", name = "org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
+# DUPLICATE: kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "org-jetbrains-kotlinx-kotlinx-serialization-core" }
+org-jsoup-jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "org-jsoup-jsoup" }
+org-mockito-kotlin-mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "org-mockito-kotlin-mockito-kotlin" }
+# DUPLICATE: jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "jupiter" }
+org-mockito-mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "org-mockito-mockito-core" }
+org-mybatis-spring-boot-mybatis-spring-boot-starter = { group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter", version.ref = "org-mybatis-spring-boot-mybatis-spring-boot-starter" }
+org-openeuler-bgmprovider = { group = "org.openeuler", name = "bgmprovider", version.ref = "org-openeuler-bgmprovider" }
+org-owasp-encoder-encoder-esapi = { group = "org.owasp.encoder", name = "encoder-esapi", version.ref = "org-owasp-encoder-encoder-esapi" }
+org-postgresql-postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "org-postgresql-postgresql" }
+# DUPLICATE: postgresql-driver = { group = "org.postgresql", name = "postgresql", version.ref = "org-postgresql-postgresql" }
+org-projectlombok-lombok = { group = "org.projectlombok", name = "lombok", version.ref = "org-projectlombok-lombok" }
+org-tomlj-tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "org-tomlj-tomlj" }
+org-yaml-snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "org-yaml-snakeyaml" }
+site-addzero-gradle-plugin-java-convention-site-addzero-gradle-plugin-java-convention-gradle-plugin = { group = "site.addzero.gradle.plugin.java-convention", name = "site.addzero.gradle.plugin.java-convention.gradle.plugin", version.ref = "site-addzero-gradle-plugin-java-convention-site-addzero-gradle-plugin-java-convention-gradle-plugin" }
+software-amazon-awssdk-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "software-amazon-awssdk-s3" }
+ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor-server-netty-version" }
+ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor-server-netty-version" }
+method-semanticizer-processor = { group = "site.addzero", name = "method-semanticizer-processor", version.ref = "method-semanticizer-processor-version" }
+io-github-kyant0-shapes = { group = "io.github.kyant0", name = "shapes", version.ref = "io-github-kyant0-shapes" }
+method-semanticizer-api = { group = "site.addzero", name = "method-semanticizer-api", version.ref = "method-semanticizer-api-version" }
+[plugins]
+addzeroKspBuddy = { id = "site.addzero.ksp-buddy", version.ref = "addzeroLTSVersion" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+com-google-devtools-ksp-com-google-devtools-ksp-gradle-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+de-jensklingenberg-ktorfit-ktorfit-lib-light = { id = "de.jensklingenberg.ktorfit", version.ref = "de-jensklingenberg-ktorfit-ktorfit-lib-light" }
+enaium-jimmer-gradle = { id = "cn.enaium.jimmer.gradle", version.ref = "enaium-jimmer-gradle" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "io-insert-koin-koin-compiler-gradle-plugin" }
+konfig = { id = "com.codingfeline.buildkonfig", version.ref = "comCodingfelineBuildkonfigGradlePlugin" }
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
+ktor-plugin = { id = "io.ktor.plugin", version.ref = "ktor" }
+openapi-generator = { id = "org.openapi.generator", version.ref = "openapi-generator" }
+site-addzero-gradle-plugin-publish-buddy = { id = "site.addzero.gradle.plugin.publish-buddy", version.ref = "site-addzero-gradle-plugin-publish-buddy-version" }
+site-addzero-gradle-plugin-processor-buddy = { id = "site.addzero.gradle.plugin.processor-buddy", version.ref = "site-addzero-gradle-plugin-processor-buddy-version" }
+[bundles]
+addzero-component = [
+  "site-addzero-compose-klibs-component",
+  "site-addzero-compose-native-component",
+  "site-addzero-compose-native-component-assist",
+  "site-addzero-compose-native-component-button",
+  "site-addzero-compose-native-component-card",
+  "site-addzero-compose-native-component-form",
+  "site-addzero-compose-native-component-high-level",
+  "site-addzero-compose-native-component-hook",
+  "site-addzero-compose-native-component-searchbar",
+  "site-addzero-compose-native-component-select",
+  "site-addzero-compose-native-component-table",
+  "site-addzero-compose-native-component-table-core",
+  "site-addzero-compose-native-component-table-pro",
+  "site-addzero-compose-native-component-tree",
+]
