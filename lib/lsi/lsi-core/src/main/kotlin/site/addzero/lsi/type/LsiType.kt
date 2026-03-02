@@ -12,7 +12,7 @@ interface LsiType {
     /**
      * 获取类型的名称
      */
-    val name: String?
+    val simpleName: String?
 
     /**
      * 获取类型的完全限定名

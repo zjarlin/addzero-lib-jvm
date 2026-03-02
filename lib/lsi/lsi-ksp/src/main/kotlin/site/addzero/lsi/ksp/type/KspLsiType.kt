@@ -14,7 +14,7 @@ class KspLsiType(
     private val ksType: KSType
 ) : LsiType {
 
-    override val name: String? by lazy {
+    override val simpleName: String? by lazy {
         ksType.declaration.simpleName.asString()
     }
 

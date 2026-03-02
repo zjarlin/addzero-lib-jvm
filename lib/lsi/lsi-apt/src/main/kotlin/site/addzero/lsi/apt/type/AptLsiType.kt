@@ -14,7 +14,7 @@ import javax.lang.model.util.Elements
 
 class AptLsiType(private val elements: Elements, private val typeMirror: TypeMirror) : LsiType {
 
-    override val name: String? by lazy {
+    override val simpleName: String? by lazy {
         typeMirror.toString().substringAfterLast('.')
     }
 

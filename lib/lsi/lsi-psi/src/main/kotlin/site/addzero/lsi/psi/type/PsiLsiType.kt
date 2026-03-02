@@ -10,9 +10,9 @@ import site.addzero.lsi.psi.clazz.PsiLsiClass
 
 /**
  * 基于 PSI 的 LsiType 实现
- * 
+ *
  * 性能优化：使用 lazy 委托
- * - name, presentableText：轻量级，直接计算
+ * - simpleName, presentableText：轻量级，直接计算
  * - qualifiedName：lazy加载（需要resolve）
  * - annotations, typeParameters：lazy加载（集合转换）
  * - lsiClass：lazy加载（复杂的泛型解析）
@@ -21,7 +21,7 @@ import site.addzero.lsi.psi.clazz.PsiLsiClass
 class PsiLsiType(private val psiType: PsiType) : LsiType {
 
     // 基础属性：轻量级，直接计算
-    override val name: String?
+    override val simpleName: String?
         get() = psiType.presentableText
 
     override val presentableText: String?

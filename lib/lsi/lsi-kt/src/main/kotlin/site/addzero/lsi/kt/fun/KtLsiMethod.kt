@@ -19,15 +19,15 @@ import site.addzero.lsi.kt.type.KtLsiType
  * 支持两种构造方式：直接传入 KtFunction 或使用反射
  */
 class KtLsiMethod : LsiMethod {
-    
+
     private val ktFunction: KtFunction?
     private val psiElement: PsiElement?
-    
+
     constructor(ktFunction: KtFunction) {
         this.ktFunction = ktFunction
         this.psiElement = null
     }
-    
+
     constructor(element: PsiElement, useReflection: Boolean) {
         if (useReflection) {
             this.ktFunction = null
@@ -38,9 +38,9 @@ class KtLsiMethod : LsiMethod {
             this.psiElement = null
         }
     }
-    
+
     override val name: String?
-        get() = ktFunction?.name ?: invokeMethod("getName") as? String
+        get() = ktFunction?.name ?: invokeMethod("getSimpleName") as? String
 
     override val returnTypeName: String?
         get() = ktFunction?.typeReference?.text ?: run {
@@ -77,7 +77,7 @@ class KtLsiMethod : LsiMethod {
             if (parent is KtClass) KtLsiClass(parent) else null
         }
     }
-    
+
     private fun invokeMethod(methodName: String): Any? {
         return psiElement?.let { element ->
             try {
@@ -87,7 +87,7 @@ class KtLsiMethod : LsiMethod {
             }
         }
     }
-    
+
     private fun invokeMethodOn(obj: Any, methodName: String): Any? {
         return try {
             obj::class.java.getMethod(methodName).invoke(obj)
@@ -99,13 +99,13 @@ class KtLsiMethod : LsiMethod {
 
 /**
  * 基于 Kotlin PSI 的 LsiParameter 实现
- * 
+ *
  * 性能优化：使用 lazy 委托
- * - name, typeName：轻量级，直接计算
+ * - simpleName, typeName：轻量级，直接计算
  * - type, annotations：lazy加载
  */
 class KtLsiParameter(private val ktParameter: KtParameter) : LsiParameter {
-    
+
     // 基础属性：轻量级，直接计算
     override val name: String?
         get() = ktParameter.name

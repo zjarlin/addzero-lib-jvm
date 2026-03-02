@@ -12,7 +12,7 @@ import site.addzero.lsi.reflection.clazz.isNullable
  * 基于 Java Class 的 LsiType 实现
  */
 class ClazzLsiType(private val clazz: Class<*>) : LsiType {
-    override val name: String?
+    override val simpleName: String?
         get() = clazz.simpleName
 
     override val qualifiedName: String?

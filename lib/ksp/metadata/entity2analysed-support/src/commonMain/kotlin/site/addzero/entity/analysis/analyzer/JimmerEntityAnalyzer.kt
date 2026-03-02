@@ -4,6 +4,7 @@ import com.google.devtools.ksp.symbol.*
 import site.addzero.entity.analysis.model.*
 import site.addzero.lsi.clazz.LsiClass
 import site.addzero.lsi.clazz.packageName
+import site.addzero.lsi.field.LsiField
 
 /**
  * Jimmer 实体分析器
@@ -25,7 +26,9 @@ object JimmerEntityAnalyzer {
     val imports = mutableSetOf<String>()
 
     // 提取实体描述
-    val description = extractEntityDescription(entity)
+    // 1. 优先使用 KDoc / 注释
+    val comment = entity.comment
+    val description = comment ?: ""
     // 分析属性
     val properties = entity.fields.map { prop ->
       analyzeProperty(prop, imports)
@@ -42,72 +45,12 @@ object JimmerEntityAnalyzer {
   }
 
   /**
-   * 提取实体描述信息 (KSP原生版本)
-   */
-  private fun extractEntityDescription(entity: LsiClass): String {
-    // 1. 优先使用 KDoc / 注释
-    val comment = entity.comment
-    if (!comment.isNullOrBlank()) {
-      return comment
-    }
-
-    // 2. 尝试从注解中提取
-    val descriptionFromAnnotation = entity.annotations.firstNotNullOfOrNull { annotation ->
-      val annotationName = annotation.simpleName
-      // 支持的描述注解类型（使用简单名称）
-      when (annotationName) {
-        "Schema" -> annotation.getAttribute("description")?.toString()
-        "ApiModel" -> annotation.getAttribute("description")?.toString()
-        "Entity" -> annotation.getAttribute("description")?.toString()
-        "Table" -> annotation.getAttribute("comment")?.toString()
-        "Comment" -> annotation.getAttribute("value")?.toString()
-        "Description" -> annotation.getAttribute("value")?.toString()
-        "JsonPropertyDescription" -> annotation.getAttribute("value")?.toString()
-        else -> null
-      }
-    }
-
-    if (!descriptionFromAnnotation.isNullOrBlank()) {
-      return descriptionFromAnnotation
-    }
-
-    // 3. 使用默认生成规则
-    return getDefaultEntityDescription(entity.simpleName ?: "")
-  }
-
-  /**
-   * 获取默认的实体描述
-   */
-  private fun getDefaultEntityDescription(className: String): String {
-    return when (className) {
-      "SysDict" -> "字典"
-      "SysUser" -> "用户"
-      "SysDept" -> "部门"
-      "SysRole" -> "角色"
-      "BizNote" -> "笔记"
-      "BizTag" -> "标签"
-      "BizDotfiles" -> "配置文件"
-      "SysWeather" -> "天气"
-      "SysDictItem" -> "字典项"
-      "SysAiPrompt" -> "AI提示词"
-      else -> {
-        // 默认转换：去掉Sys/Biz前缀，转换为中文描述
-        val simpleName = className
-          .removePrefix("Sys")
-          .removePrefix("Biz")
-
-        // 这里可以添加更多的转换规则
-        simpleName.lowercase()
-      }
-    }
-  }
-
-  /**
    * 分析属性 (KSP原生版本)
    */
-  fun analyzeProperty(prop: KSPropertyDeclaration, imports: MutableSet<String>): PropertyMetadata {
-    val name = prop.simpleName.asString()
-    val type = prop.type.resolve()
+  fun analyzeProperty(prop: LsiField, imports: MutableSet<String>): PropertyMetadata {
+    val name = prop.name
+    val type = prop.type
+    type.name
     val typeName = type.declaration.simpleName.asString()
     val qualifiedTypeName = type.declaration.qualifiedName?.asString()
     // ID 字段在同构体中强制可空，不论原实体中是否可空

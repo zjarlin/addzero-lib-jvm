@@ -24,7 +24,7 @@ class K2LsiType(
 ) : LsiType {
 
     // 在构造时就计算并存储这些值，避免 session 生命周期问题
-    override val name: String?
+    override val simpleName: String?
     override val qualifiedName: String?
     override val presentableText: String?
     override val annotations: List<LsiAnnotation>
@@ -38,7 +38,7 @@ class K2LsiType(
 
     init {
         with(session) {
-            name = when (kaType) {
+            simpleName = when (kaType) {
                 is KaClassType -> kaType.classId?.shortClassName?.asString()
                 is KaTypeParameterType -> kaType.name.asString()
                 else -> kaType.render(KaTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
@@ -71,7 +71,7 @@ class K2LsiType(
                 else -> null
             }
 
-            _isPrimitive = name?.let { TypeChecker.isKotlinPrimitiveType(it) } ?: false
+            _isPrimitive = simpleName?.let { TypeChecker.isKotlinPrimitiveType(it) } ?: false
         }
     }
 

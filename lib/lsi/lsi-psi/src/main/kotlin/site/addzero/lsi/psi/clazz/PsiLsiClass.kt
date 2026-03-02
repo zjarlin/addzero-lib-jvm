@@ -13,7 +13,7 @@ import site.addzero.lsi.psi.method.PsiLsiMethod
  * 基于 PSI 的 LsiClass 实现
  *
  * 性能优化：使用 lazy 委托实现按需加载和缓存
- * - 轻量属性（name, qualifiedName等）：直接计算，开销小
+ * - 轻量属性（simpleName, qualifiedName等）：直接计算，开销小
  * - 集合属性（fields, methods等）：lazy加载，首次访问时转换并缓存
  * - 嵌套转换（superClasses等）：lazy加载，避免级联转换开销
  */

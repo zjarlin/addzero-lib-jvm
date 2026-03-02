@@ -14,15 +14,15 @@ import com.intellij.psi.PsiParameter
 
 /**
  * 基于 PSI 的 LsiMethod 实现
- * 
+ *
  * 性能优化：使用 lazy 委托
- * - name, returnTypeName：轻量级，直接计算
+ * - simpleName, returnTypeName：轻量级，直接计算
  * - returnType：lazy加载（类型转换）
  * - comment, annotations, parameters：lazy加载
  * - declaringClass：lazy加载（嵌套转换）
  */
 class PsiLsiMethod(private val psiMethod: PsiMethod) : LsiMethod {
-    
+
     // 基础属性：轻量级，直接计算
     override val name: String?
         get() = psiMethod.name
@@ -64,13 +64,13 @@ class PsiLsiMethod(private val psiMethod: PsiMethod) : LsiMethod {
 
 /**
  * 基于 PSI 的 LsiParameter 实现
- * 
+ *
  * 性能优化：使用 lazy 委托
- * - name, typeName：轻量级，直接计算
+ * - simpleName, typeName：轻量级，直接计算
  * - type, annotations：lazy加载
  */
 class PsiLsiParameter(private val psiParameter: PsiParameter) : LsiParameter {
-    
+
     // 基础属性：轻量级，直接计算
     override val name: String?
         get() = psiParameter.name

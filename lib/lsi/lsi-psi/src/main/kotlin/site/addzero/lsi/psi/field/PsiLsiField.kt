@@ -17,7 +17,7 @@ import site.addzero.lsi.psi.type.isPrimitiveType
  * 基于 PSI 的 LsiField 实现
  *
  * 性能优化：使用 lazy 委托实现按需加载和缓存
- * - 轻量属性（name, typeName等）：直接计算
+ * - 轻量属性（simpleName, typeName等）：直接计算
  * - 计算属性（comment, annotations等）：lazy加载
  * - 嵌套转换（declaringClass, fieldTypeClass等）：lazy加载，避免级联转换
  * - 递归属性（children）：lazy加载，避免深层递归开销

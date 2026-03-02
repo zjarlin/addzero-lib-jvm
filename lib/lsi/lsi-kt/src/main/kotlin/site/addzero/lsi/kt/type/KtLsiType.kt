@@ -34,7 +34,7 @@ class KtLsiType : LsiType {
         }
     }
 
-    override val name: String?
+    override val simpleName: String?
         get() = ktType?.text ?: invokeMethod("getText") as? String
 
     override val qualifiedName: String?
@@ -50,19 +50,19 @@ class KtLsiType : LsiType {
         get() = ktType?.isCollectionType() ?: false
 
     override val isNullable: Boolean
-        get() = ktType?.typeElement?.text?.endsWith("?") ?: (name?.endsWith("?") ?: false)
+        get() = ktType?.typeElement?.text?.endsWith("?") ?: (simpleName?.endsWith("?") ?: false)
 
     override val typeParameters: List<LsiType>
         get() = ktType?.typeElement?.typeArgumentsAsTypes?.mapNotNull { it?.let { type -> KtLsiType(type) } } ?: emptyList()
 
     override val isPrimitive: Boolean
-        get() = name?.let { TypeChecker.isKotlinPrimitiveType(it) } ?: false
+        get() = simpleName?.let { TypeChecker.isKotlinPrimitiveType(it) } ?: false
 
     override val componentType: LsiType?
         get() = null
 
     override val isArray: Boolean
-        get() = name?.isArray() ?: false
+        get() = simpleName?.isArray() ?: false
 
     override val lsiClass: LsiClass?
         get() = null
