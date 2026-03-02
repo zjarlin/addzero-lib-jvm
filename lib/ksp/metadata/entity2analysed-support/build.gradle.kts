@@ -6,7 +6,10 @@ kotlin {
   sourceSets {
     commonMain.dependencies {}
     jvmMain.dependencies {
-      implementation("site.addzero:lsi-ksp:2026.02.26")
+
+      implementation(project(":lib:lsi:lsi-ksp"))
+
+//      implementation("site.addzero:lsi-ksp:2026.02.26")
     }
 
   }

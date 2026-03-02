@@ -6,7 +6,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.site.addzero.addzero.ksp.dsl.builder.core)
+            implementation(libs.site.addzero.ksp.dsl.builder.core)
 
         }
         jvmMain.dependencies {

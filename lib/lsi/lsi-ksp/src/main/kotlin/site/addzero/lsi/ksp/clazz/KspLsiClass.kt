@@ -2,6 +2,7 @@ package site.addzero.lsi.ksp.clazz
 
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.validate
 import site.addzero.lsi.anno.LsiAnnotation
 import site.addzero.lsi.assist.checkIsPojo
 import site.addzero.lsi.clazz.LsiClass
@@ -48,7 +49,8 @@ class KspLsiClass(
 
   override val annotations: List<LsiAnnotation> by lazy {
     try {
-      ksClassDeclaration.annotations
+//          ksClassDeclaration.annotations
+      ksClassDeclaration.annotations.filter { it.annotationType.resolve().declaration.validate() }
         .map { KspLsiAnnotation(it) }
         .toList()
     } catch (e: Exception) {

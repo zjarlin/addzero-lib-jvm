@@ -1,14 +1,141 @@
 package site.addzero.lsi.ksp.type
 
-import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.Nullability
+import com.google.devtools.ksp.symbol.*
 
+/**
+ * 构建函数类型字符串，如 (T) -> R, @Composable (T) -> Unit 等
+ */
+private fun KSType.buildFunctionTypeString(): String {
+  val declaration = this.declaration
+  val baseTypeName = declaration.qualifiedName?.asString() ?: declaration.simpleName.asString()
 
+  // 解析函数类型的参数数量
+  val functionNumber = when {
+    baseTypeName == "kotlin.Function0" -> 0
+    baseTypeName.startsWith("kotlin.Function") -> {
+      baseTypeName.removePrefix("kotlin.Function").toIntOrNull() ?: 0
+    }
 
+    else -> 0
+  }
 
+  val typeArguments = this.arguments
 
+  return buildString {
+    // 函数参数类型
+    if (functionNumber > 0 && typeArguments.size > functionNumber) {
+      append("(")
+      val paramTypes = typeArguments.take(functionNumber).map { arg ->
+        arg.type?.resolve()?.getCompleteTypeString() ?: "*"
+      }
+      append(paramTypes.joinToString(", "))
+      append(")")
+    } else if (functionNumber == 0) {
+      append("()")
+    }
 
+    append(" -> ")
 
+    // 返回类型
+    val returnType = typeArguments.lastOrNull()?.type?.resolve()?.getCompleteTypeString() ?: "Unit"
+    append(returnType)
+  }
+}
+
+/**
+ * 获取完整的类型字符串表达，包括泛型、注解、函数类型等
+ * 用于 @ComposeAssist 等需要精确类型信息的场景
+ */
+fun KSType.getCompleteTypeString(): String {
+  return buildString {
+    // 获取基础类型名称
+    val declaration = this@getCompleteTypeString.declaration
+    val baseTypeName = declaration.qualifiedName?.asString() ?: declaration.simpleName.asString()
+
+    // 处理函数类型
+    if (baseTypeName.startsWith("kotlin.Function")) {
+      // 对于函数类型，先处理注解
+      val annotations = this@getCompleteTypeString.annotations.toList()
+      if (annotations.isNotEmpty()) {
+        val annotationStrings = annotations.map { annotation ->
+          val shortName = annotation.shortName.asString()
+          val args = annotation.arguments
+          if (args.isNotEmpty()) {
+            val argString = args.joinToString(", ") { arg ->
+              "${arg.name?.asString() ?: ""}=${arg.value}"
+            }
+            "[$shortName($argString)]"
+          } else {
+            "[$shortName]"
+          }
+        }
+        append(annotationStrings.joinToString(" "))
+        append(" ")
+      }
+
+      // 构建函数类型字符串
+      val functionTypeString = buildFunctionTypeString()
+
+      // 处理可空性 - 对于函数类型，可空性标记应该包裹整个函数类型
+      if (this@getCompleteTypeString.isMarkedNullable) {
+        append("(")
+        append(functionTypeString)
+        append(")?")
+      } else {
+        append(functionTypeString)
+      }
+    } else {
+      // 对于非函数类型，处理注解
+      val annotations = this@getCompleteTypeString.annotations.toList()
+      if (annotations.isNotEmpty()) {
+        val annotationStrings = annotations.map { annotation ->
+          val shortName = annotation.shortName.asString()
+          val args = annotation.arguments
+          if (args.isNotEmpty()) {
+            val argString = args.joinToString(", ") { arg ->
+              "${arg.name?.asString() ?: ""}=${arg.value}"
+            }
+            "[$shortName($argString)]"
+          } else {
+            "[$shortName]"
+          }
+        }
+        append(annotationStrings.joinToString(" "))
+        append(" ")
+      }
+
+      append(baseTypeName)
+
+      // 处理泛型参数
+      val typeArguments = this@getCompleteTypeString.arguments
+      if (typeArguments.isNotEmpty()) {
+        append("<")
+        append(typeArguments.joinToString(", ") { arg ->
+          when (arg.variance) {
+            Variance.STAR -> "*"
+            Variance.CONTRAVARIANT -> "in ${arg.type?.resolve()?.getCompleteTypeString() ?: "*"}"
+            Variance.COVARIANT -> "out ${arg.type?.resolve()?.getCompleteTypeString() ?: "*"}"
+            else -> arg.type?.resolve()?.getCompleteTypeString() ?: "*"
+          }
+        })
+        append(">")
+      }
+
+      // 处理可空性
+      if (this@getCompleteTypeString.isMarkedNullable) {
+        append("?")
+      }
+    }
+  }
+}
+
+/**
+ * 获取简化的类型字符串，移除包名但保留泛型和注解
+ */
+fun KSType.getSimplifiedTypeString(): String {
+  return this.getCompleteTypeString().replace("kotlin.collections.", "").replace("kotlin.", "").replace("androidx.compose.runtime.", "")
+    .replace("androidx.compose.ui.", "").replace("androidx.compose.foundation.", "").replace("androidx.compose.material3.", "")
+}
 
 /**
  * 获取 KSType 的完整类型字符串,带泛型（简化版本）

@@ -1,8 +1,8 @@
 package site.addzero.lsi.ksp.clazz
 
 import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.ClassKind
-import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.*
+import site.addzero.lsi.assist.TypeChecker.toSimpleName
 import site.addzero.lsi.clazz.LsiClass
 
 fun KSClassDeclaration?.isEnum(): Boolean {
@@ -18,3 +18,36 @@ fun KSClassDeclaration?.isEnum(): Boolean {
  */
 fun KSClassDeclaration.toLsiClass(resolver: Resolver): LsiClass =
   KspLsiClass(resolver, this)
+
+/**
+ * 获取父类链
+ */
+fun KSClassDeclaration.getParentClasses(): List<KSClassDeclaration> {
+  val parents = mutableListOf<KSClassDeclaration>()
+  var current = parentDeclaration
+  while (current is KSClassDeclaration) {
+    parents.add(current)
+    current = current.parentDeclaration
+  }
+  return parents.reversed()
+}
+
+/**
+ * 检查类是否有指定的注解
+ */
+fun KSClassDeclaration.hasAnnotation(qualifiedName: String): Boolean {
+  return annotations.any {
+    it.annotationType.resolve().declaration.qualifiedName?.asString() == qualifiedName ||
+      it.shortName.asString() == qualifiedName.toSimpleName()
+  }
+}
+
+/**
+ * 获取类的特定注解
+ */
+fun KSClassDeclaration.getAnnotationByName(qualifiedName: String): KSAnnotation? {
+  return annotations.find {
+    it.annotationType.resolve().declaration.qualifiedName?.asString() == qualifiedName ||
+      it.shortName.asString() == qualifiedName.toSimpleName()
+  }
+}

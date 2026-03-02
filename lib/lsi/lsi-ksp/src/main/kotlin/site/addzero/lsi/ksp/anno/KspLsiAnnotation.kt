@@ -17,7 +17,8 @@ class KspLsiAnnotation(
 
   override val attributes: Map<String, Any?> by lazy {
     ksAnnotation.arguments.associate { argument ->
-      (argument.name?.asString() ?: "") to argument.value
+      val argument1 = argument
+      (argument1.name?.asString() ?: "") to argument1.value
     }
   }
 

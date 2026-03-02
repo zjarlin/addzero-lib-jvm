@@ -72,6 +72,22 @@ fun KSPropertyDeclaration.getQualifiedTypeString(): String {
   }
 }
 
+val KSPropertyDeclaration.resolveType get() = this.type.resolve()
+val KSPropertyDeclaration.isRequired get() = !this.resolveType.isMarkedNullable
+val KSPropertyDeclaration.typeDecl get() = resolveType.declaration
+
+val KSPropertyDeclaration.generics: List<KSClassDeclaration?>
+  get() {
+    // 正确的方式：通过 resolve() 获取类型参数
+    val resolvedType = this.type.resolve()
+    val firstTypeArgument = resolvedType.arguments.map {
+      val resolve = it.type?.resolve()
+      val clazz = resolve?.declaration as? KSClassDeclaration
+      clazz
+    }
+    return firstTypeArgument
+  }
+
 /**
  * 获取属性的简化类型字符串（不包含包名，但保留泛型）
  */

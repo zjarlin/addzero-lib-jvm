@@ -6,12 +6,16 @@ import site.addzero.lsi.field.LsiField
 import site.addzero.lsi.field.hasAnnotation
 import site.addzero.util.str.*
 
+fun LsiClass.getProperty(name: String): LsiField? {
+  val field = fields.find { it.name == name } ?: return null
+  return field
+}
+
 /**
  * 猜测常见注解的注释
  */
 fun LsiClass.guessComment(): String {
   val commentDoc = this.comment
-
   // 2. 尝试从注解中提取
   val descriptionFromAnnotation = this.annotations.firstNotNullOfOrNull { annotation ->
     val annotationName = annotation.simpleName
@@ -34,7 +38,7 @@ fun LsiClass.guessComment(): String {
 /**
  * 递归获取所有字段（包括嵌套字段）
  */
-fun LsiClass.getAllFieldsRecursively(maxDepth: Int = 5): List<LsiField> {
+fun LsiClass.getFields(maxDepth: Int = 5): List<LsiField> {
   val result = mutableListOf<LsiField>()
   collectFieldsRecursively(fields, result, 0, maxDepth)
   return result
@@ -137,6 +141,7 @@ fun LsiClass.hasAnnotation(vararg annotationNames: String): Boolean {
     }
   }
 }
+
 /**
  * 检查类是否具有指定的注解(短名称)
  * @param annotationSimpleNames 注解短名数组

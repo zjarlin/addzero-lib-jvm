@@ -1,5 +1,8 @@
 package site.addzero.lsi.field
 
+
+
+
 fun LsiField.defaultValue(): String {
 
   if (this.name == "id") {
