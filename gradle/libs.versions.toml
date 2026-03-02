@@ -192,6 +192,7 @@ org-xerial-sqlite-jdbc-v3 = "3.49.1.0"
 org-xerial-sqlite-jdbc-v3alt2 = "3.39.3.0"
 org-yaml-snakeyaml = "2.5"
 room = "2.8.4"
+room-compiler-processing = "2.6.1"
 site-addzero-apiprovider-processor = "2025.09.30"
 site-addzero-apt-dict-trans-core = "2025.12.16"
 site-addzero-compose-model-component = "2025.09.30"
@@ -289,6 +290,9 @@ method-semanticizer-api-version = "2026.02.15"
 site-addzero-gradle-plugin-processor-buddy-version = "+"
 com-fasterxml-jackson-module-jackson-module-kotlin = "2.21.1"
 [libraries]
+# Room XProcessing (跨平台注解处理抽象)
+androidx-room-compiler-processing = { group = "androidx.room", name = "room-compiler-processing", version.ref = "room-compiler-processing" }
+
 #----------------------------- cn.hutool ------------------------------
 cn-hutool-hutool-all = { group = "cn.hutool", name = "hutool-all", version.ref = "hutoolAll" }
 cn-hutool-hutool-aop = { group = "cn.hutool", name = "hutool-aop", version.ref = "hutoolAll" }

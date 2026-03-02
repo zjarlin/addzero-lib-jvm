@@ -2,7 +2,7 @@ package site.addzero.lsi.reflection.clazz
 
 import site.addzero.lsi.assist.guessTableNameOrNull
 import site.addzero.lsi.constant.COLLECTION_TYPES
-import site.addzero.lsi.reflection.anno.getArg
+import site.addzero.lsi.reflection.anno.getAttribute
 import site.addzero.lsi.reflection.anno.qualifiedName
 import site.addzero.util.str.toUnderLineCase
 import java.lang.reflect.Modifier
@@ -19,7 +19,7 @@ fun Class<*>.getArrayComponentType(): Class<*>? {
 fun Class<*>.guessTableNameOrNull(): String? {
     val annotations = this.annotations
     val iterator = annotations.iterator()
-    val guessTableNameOrNull = iterator.guessTableNameOrNull({ it.qualifiedName() }, { a, b -> a.getArg(b) })
+    val guessTableNameOrNull = iterator.guessTableNameOrNull({ it.qualifiedName() }, { a, b -> a.getAttribute(b) })
     return guessTableNameOrNull
 }
 fun Class<*>.isCollectionType(): Boolean {

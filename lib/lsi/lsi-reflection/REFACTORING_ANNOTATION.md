@@ -187,7 +187,7 @@ override val annotations: List<LsiAnnotation>
 ### 编译验证
 
 ```bash
-./gradlew :checkouts:lsi:lsi-reflection:compileKotlin
+./gradlew :lib:lsi:lsi-reflection:compileKotlin
 ```
 
 结果：✅ **BUILD SUCCESSFUL**

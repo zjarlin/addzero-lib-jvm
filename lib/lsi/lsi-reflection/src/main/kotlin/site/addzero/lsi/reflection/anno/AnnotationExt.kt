@@ -5,7 +5,7 @@ import site.addzero.lsi.assist.guessFieldCommentOrNull as guessFieldCommentOrNul
 
 /**
  * Java Annotation 反射扩展函数
- * 
+ *
  * 这些扩展提供了 Annotation 到 LsiAnnotation 的转换，以及常用的注解操作
  */
 
@@ -26,7 +26,7 @@ fun Array<Annotation>.toLsiAnnotations(): List<LsiAnnotation> = map { it.toLsiAn
 /**
  * 提取公共逻辑：通过反射调用注解方法获取字符串值
  */
-fun Annotation.getArg(methodName: String): String? {
+fun Annotation.getAttribute(methodName: String): String? {
     return try {
         val method = this.annotationClass.java.getDeclaredMethod(methodName)
         method.invoke(this) as? String
@@ -39,8 +39,8 @@ fun Annotation.getArg(methodName: String): String? {
 /**
  * 获取注解的 value 属性（默认属性）
  */
-fun Annotation.getArg(): String? {
-    return getArg("value")
+fun Annotation.getAttribute(): String? {
+    return getAttribute("value")
 }
 
 /**
@@ -60,9 +60,9 @@ fun Annotation.attributes(): Map<String, Any?> {
 
 /**
  * 从注解数组中提取字段注释
- * 
+ *
  * 委托给 lsi-core 的泛型方法 guessFieldCommentOrNull
- * 
+ *
  * 遍历所有注解，查找已知的注释注解（如 @Schema, @ApiModelProperty 等），
  * 并返回第一个非空的注释内容
  */
@@ -70,7 +70,7 @@ fun Array<Annotation>.fieldComment(): String? {
     return this.iterator().guessFieldCommentOrNullGeneric(
         getQualifiedName = { it.annotationClass.java.name },
         getAttributeValue = { annotation, attrName ->
-            annotation.getArg(attrName)
+            annotation.getAttribute(attrName)
         }
     )
 }

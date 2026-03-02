@@ -20,7 +20,7 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":checkouts:lsi:lsi-core"))
+    implementation(project(":lib:lsi:lsi-core"))
     implementation("site.addzero:tool-str:2026.02.23")
-    implementation(project(":checkouts:lsi:lsi-intellij"))
+    implementation(project(":lib:lsi:lsi-intellij"))
 }

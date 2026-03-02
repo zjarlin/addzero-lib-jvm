@@ -33,7 +33,7 @@ val PsiAnnotation.simpleNameOrEmpty: String
  * @param argName 属性名称，如 "value", "description" 等
  * @return 属性值的文本表示（未处理引号），如果不存在则返回 null
  */
-fun PsiAnnotation.getArg(argName: String): String? {
+fun PsiAnnotation.getAttribute(argName: String): String? {
     val text1 = this.findAttributeValue(argName)?.text
     return text1?.trim('"')
 }
@@ -41,8 +41,8 @@ fun PsiAnnotation.getArg(argName: String): String? {
 /**
  * 获取 PsiAnnotation 的默认属性值（value）
  */
-fun PsiAnnotation.getArg(): String? {
-    return getArg("value")
+fun PsiAnnotation.getAttribute(): String? {
+    return getAttribute("value")
 }
 
 /**
@@ -132,7 +132,7 @@ fun PsiAnnotation.getAnnotationsByShortName(vararg shortNames: String): List<Psi
 fun Array<out PsiAnnotation>?.guessTableName(): String? {
     this ?: return null
     val iterator = this.iterator()
-    val guessTableNameOrNull = iterator.guessTableNameOrNull({ it.qualifiedName!! }, { annotation, string -> annotation.getArg(string) })
+    val guessTableNameOrNull = iterator.guessTableNameOrNull({ it.qualifiedName!! }, { annotation, string -> annotation.getAttribute(string) })
     return guessTableNameOrNull
 }
 

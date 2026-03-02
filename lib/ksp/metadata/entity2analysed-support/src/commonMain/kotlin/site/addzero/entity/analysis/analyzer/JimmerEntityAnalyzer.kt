@@ -2,7 +2,8 @@ package site.addzero.entity.analysis.analyzer
 
 import com.google.devtools.ksp.symbol.*
 import site.addzero.entity.analysis.model.*
-import site.addzero.util.*
+import site.addzero.lsi.clazz.LsiClass
+import site.addzero.lsi.clazz.packageName
 
 /**
  * Jimmer 实体分析器
@@ -15,10 +16,10 @@ object JimmerEntityAnalyzer {
   /**
    * 分析单个实体 (KSP原生版本)
    */
-  fun analyzeEntity(entity: KSClassDeclaration): EntityMetadata {
-    val className = entity.simpleName.asString()
-    val packageName = entity.packageName.asString()
-    val qualifiedName = entity.qualifiedName?.asString() ?: ""
+  fun analyzeEntity(entity: LsiClass): EntityMetadata {
+    val className = entity.simpleName ?: ""
+    val packageName = entity.packageName ?: ""
+    val qualifiedName = entity.qualifiedName ?: ""
 
     // 收集导入信息
     val imports = mutableSetOf<String>()
@@ -26,7 +27,7 @@ object JimmerEntityAnalyzer {
     // 提取实体描述
     val description = extractEntityDescription(entity)
     // 分析属性
-    val properties = entity.getAllProperties().map { prop ->
+    val properties = entity.fields.map { prop ->
       analyzeProperty(prop, imports)
     }.toList()
     return EntityMetadata(
@@ -43,57 +44,35 @@ object JimmerEntityAnalyzer {
   /**
    * 提取实体描述信息 (KSP原生版本)
    */
-  private fun extractEntityDescription(entity: KSClassDeclaration): String {
-    entity.annotations.forEach { annotation ->
-      val annotationName = annotation.shortName.asString()
+  private fun extractEntityDescription(entity: LsiClass): String {
+    // 1. 优先使用 KDoc / 注释
+    val comment = entity.comment
+    if (!comment.isNullOrBlank()) {
+      return comment
+    }
+
+    // 2. 尝试从注解中提取
+    val descriptionFromAnnotation = entity.annotations.firstNotNullOfOrNull { annotation ->
+      val annotationName = annotation.simpleName
       // 支持的描述注解类型（使用简单名称）
       when (annotationName) {
-        "Schema" -> {
-          // Swagger/OpenAPI @Schema(description = "...")
-          val description = annotation.getArgStr("description")
-          if (description.isNotBlank()) return description
-        }
-
-        "ApiModel" -> {
-          // Swagger @ApiModel(description = "...")
-          val description = annotation.getArgStr("description")
-          if (description.isNotBlank()) return description
-        }
-
-        "Entity" -> {
-          // JPA @Entity(description = "...")
-          val description = annotation.getArgStr("description")
-          if (description.isNotBlank()) return description
-        }
-
-        "Table" -> {
-          // JPA @Table(comment = "...")
-          val description = annotation.getArgStr("comment")
-          if (description.isNotBlank()) return description
-        }
-
-        "Comment" -> {
-          // 自定义 @Comment("...")
-          val description = annotation.getArgStr("value")
-          if (description.isNotBlank()) return description
-        }
-
-        "Description" -> {
-          // 自定义 @Description("...")
-          val description = annotation.getArgStr("value")
-          if (description.isNotBlank()) return description
-        }
-
-        "JsonPropertyDescription" -> {
-          // Jackson @JsonPropertyDescription("...")
-          val description = annotation.getArgStr("value")
-          if (description.isNotBlank()) return description
-        }
+        "Schema" -> annotation.getAttribute("description")?.toString()
+        "ApiModel" -> annotation.getAttribute("description")?.toString()
+        "Entity" -> annotation.getAttribute("description")?.toString()
+        "Table" -> annotation.getAttribute("comment")?.toString()
+        "Comment" -> annotation.getAttribute("value")?.toString()
+        "Description" -> annotation.getAttribute("value")?.toString()
+        "JsonPropertyDescription" -> annotation.getAttribute("value")?.toString()
+        else -> null
       }
     }
 
-    // 如果没有找到注解描述，使用预定义的映射规则
-    return getDefaultEntityDescription(entity.simpleName.asString())
+    if (!descriptionFromAnnotation.isNullOrBlank()) {
+      return descriptionFromAnnotation
+    }
+
+    // 3. 使用默认生成规则
+    return getDefaultEntityDescription(entity.simpleName ?: "")
   }
 
   /**

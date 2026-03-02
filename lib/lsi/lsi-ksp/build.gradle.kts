@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":checkouts:lsi:lsi-core"))
+    api(project(":lib:lsi:lsi-core"))
     implementation("site.addzero:tool-str:2026.02.23")
     // KSP API dependencies
     implementation(libs.com.google.devtools.ksp.symbol.processing.api)

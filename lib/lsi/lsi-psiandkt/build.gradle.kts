@@ -19,9 +19,9 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":checkouts:lsi:lsi-core"))
-    implementation(project(":checkouts:lsi:lsi-intellij"))
-    api(project(":checkouts:lsi:lsi-k2"))
-    api(project(":checkouts:lsi:lsi-psi"))
+    implementation(project(":lib:lsi:lsi-core"))
+    implementation(project(":lib:lsi:lsi-intellij"))
+    api(project(":lib:lsi:lsi-k2"))
+    api(project(":lib:lsi:lsi-psi"))
 }
 

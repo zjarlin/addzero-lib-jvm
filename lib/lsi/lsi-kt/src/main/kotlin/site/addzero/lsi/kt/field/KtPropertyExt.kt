@@ -2,7 +2,7 @@ package site.addzero.lsi.kt.field
 
 import org.jetbrains.kotlin.asJava.toLightAnnotation
 import site.addzero.lsi.assist.isCollectionType
-import site.addzero.lsi.kt.anno.getArg
+import site.addzero.lsi.kt.anno.getAttribute
 import org.jetbrains.kotlin.idea.intentions.loopToCallChain.isConstant
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
@@ -56,13 +56,13 @@ fun KtProperty.getColumnName(): String? {
     val annotationEntries = this.annotationEntries
 
     // 优先检查 @JoinColumn 注解（用于一对一关系）
-    val joinColumnName = annotationEntries.getArg("JoinColumn", "name")
+    val joinColumnName = annotationEntries.getAttribute("JoinColumn", "name")
     if (joinColumnName != null) {
         return joinColumnName
     }
 
     // 然后检查 @Column 注解
-    val columnName = annotationEntries.getArg("Column", "name")
+    val columnName = annotationEntries.getAttribute("Column", "name")
     if (columnName != null) {
         return columnName
     }
@@ -95,7 +95,7 @@ fun KtProperty.guessFieldComment(idName: String): String {
     for (annotation in annotations) {
         val qualifiedName = annotation.shortName?.asString()
 
-        val arg1 = annotation.getArg("value")
+        val arg1 = annotation.getAttribute("value")
         val des = when (qualifiedName) {
             "ApiModelProperty" -> {
                 // 获取 description 参数值
@@ -104,7 +104,7 @@ fun KtProperty.guessFieldComment(idName: String): String {
 
             "Schema" -> {
                 // 获取 description 参数值
-                val des = annotation.getArg("description")
+                val des = annotation.getAttribute("description")
                 des
             }
 

@@ -1,6 +1,6 @@
 package site.addzero.lsi.kt.`fun`
 
-import site.addzero.lsi.kt.anno.getArg
+import site.addzero.lsi.kt.anno.getAttribute
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -32,11 +32,11 @@ fun KtFunction.getComment(): String? {
         val description = when (shortName) {
             "ApiModelProperty" -> {
                 // 获取第一个参数（value）
-                val arg = annotation.getArg()
+                val arg = annotation.getAttribute()
                 arg
             }
             "Schema" -> {
-                val arg = annotation.getArg("description")
+                val arg = annotation.getAttribute("description")
                 arg
             }
             else -> null

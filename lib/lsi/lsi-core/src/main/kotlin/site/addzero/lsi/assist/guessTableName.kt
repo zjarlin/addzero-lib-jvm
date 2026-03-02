@@ -18,10 +18,10 @@ fun guessTableName(fqName: String, getAttr: (String) -> Any?): Any? {
 
 }
 
-fun <T> Iterator<T>.guessTableNameOrNull(getQualifiedName: (T) -> String, getArg: (T, String) -> Any?): String? {
+fun <T> Iterator<T>.guessTableNameOrNull(getQualifiedName: (T) -> String, getAttribute: (T, String) -> Any?): String? {
     val tableNameFromAnno = this.asSequence().map { t ->
         val guessTableName = guessTableName(getQualifiedName(t)) {
-            getArg(t, it)
+            getAttribute(t, it)
         }
         guessTableName.toNotEmptyStr().toUnderLineCase()
     }.firstOrNull()

@@ -7,7 +7,7 @@ package site.addzero.lsi.field
  * @param parameterName 参数名称
  * @return 参数值，如果不存在则返回 null
  */
-fun LsiField.getArg(annotationSimpleName: String, parameterName: String = "value"): String? {
+fun LsiField.getAttribute(annotationSimpleName: String, parameterName: String = "value"): String? {
     val annotation = annotations.find { it.simpleName == annotationSimpleName } ?: return null
     val toString1 = annotation.getAttribute(parameterName)?.toString()
     val toString = toString1

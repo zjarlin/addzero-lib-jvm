@@ -3,7 +3,7 @@ package site.addzero.lsi.psi.field
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.CodeStyleManager
 import site.addzero.lsi.assist.getDefaultAnyValueForType
-import site.addzero.lsi.psi.anno.getArg
+import site.addzero.lsi.psi.anno.getAttribute
 import site.addzero.lsi.psi.anno.guessFieldCommentOrNull
 import site.addzero.lsi.psi.clazz.toDefaultValueMap
 import site.addzero.lsi.psi.type.handleListDefaultValue
@@ -41,7 +41,7 @@ fun PsiField.getColumnName(): String? {
         }
 
         if (joinColumnAnnotation != null) {
-            val columnName = joinColumnAnnotation.getArg("name")
+            val columnName = joinColumnAnnotation.getAttribute("name")
             if (columnName != null) {
                 return columnName
             }
@@ -54,7 +54,7 @@ fun PsiField.getColumnName(): String? {
     }
 
     if (jimmerColumnAnnotation != null) {
-        val columnName = jimmerColumnAnnotation.getArg("name")
+        val columnName = jimmerColumnAnnotation.getAttribute("name")
         if (columnName != null) {
             return columnName
         }
@@ -66,7 +66,7 @@ fun PsiField.getColumnName(): String? {
     }
 
     if (tableFieldAnnotation != null) {
-        val columnName = tableFieldAnnotation.getArg("value")
+        val columnName = tableFieldAnnotation.getAttribute("value")
         if (columnName != null) {
             return columnName
         }

@@ -30,7 +30,7 @@ val KtAnnotationEntry.simplaName: String?
  * @param argumentName 属性名称，如 "value", "description" 等
  * @return 属性值的文本表示（已移除引号），如果不存在则返回 null
  */
-fun KtAnnotationEntry.getArg(argumentName: String): String? {
+fun KtAnnotationEntry.getAttribute(argumentName: String): String? {
     // 尝试获取指定参数
     val trim = this.valueArguments.find {
         it.getArgumentName()?.asName?.asString() == argumentName
@@ -41,8 +41,8 @@ fun KtAnnotationEntry.getArg(argumentName: String): String? {
 /**
  * 获取 KtAnnotationEntry 的默认属性值（value）
  */
-fun KtAnnotationEntry.getArg(): String? {
-    return getArg("value")
+fun KtAnnotationEntry.getAttribute(): String? {
+    return getAttribute("value")
 }
 
 /**
@@ -178,9 +178,9 @@ fun List<KtAnnotationEntry>.getAnno(simpleName: String): KtAnnotationEntry? {
  * @param argumentName 参数名称
  * @return 参数值，如果不存在则返回 null
  */
-fun List<KtAnnotationEntry>.getArg(simpleName: String, argumentName: String): String? {
+fun List<KtAnnotationEntry>.getAttribute(simpleName: String, argumentName: String): String? {
     val anno = getAnno(simpleName)
-    val arg = anno?.getArg(argumentName)
+    val arg = anno?.getAttribute(argumentName)
     return arg
 }
 

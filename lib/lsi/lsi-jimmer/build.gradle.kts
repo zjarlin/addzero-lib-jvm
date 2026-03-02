@@ -1,11 +1,11 @@
 plugins {
-   id("site.addzero.gradle.plugin.kotlin-convention") version "+"
+  id("site.addzero.gradle.plugin.kotlin-convention") version "+"
 }
 
 dependencies {
-    api(project(":checkouts:lsi:lsi-core"))
-    api(project(":checkouts:lsi:lsi-ksp"))
-    compileOnly("com.squareup:kotlinpoet:2.2.0")
+  api(project(":lib:lsi:lsi-core"))
+  api(project(":lib:lsi:lsi-ksp"))
+  compileOnly("com.squareup:kotlinpoet:2.2.0")
 //    compileOnly(libs.kotlinpoet.ksp)
 }
 

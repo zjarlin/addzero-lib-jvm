@@ -3,7 +3,7 @@ package site.addzero.lsi.reflection.field
 import site.addzero.lsi.constant.COLLECTION_TYPES
 import site.addzero.lsi.constant.COLUMN_NAME_ANNOTATION_METHOD_MAP
 import site.addzero.lsi.constant.COMMENT_ANNOTATION_METHOD_MAP
-import site.addzero.lsi.reflection.anno.getArg
+import site.addzero.lsi.reflection.anno.getAttribute
 import site.addzero.util.str.toUnderLineCase
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -28,7 +28,7 @@ fun Field.comment(): String? {
         val methodName = COMMENT_ANNOTATION_METHOD_MAP[annotationName]
 
         if (methodName != null) {
-            val description = annotation.getArg(methodName)
+            val description = annotation.getAttribute(methodName)
             if (!description.isNullOrBlank()) {
                 return description
             }
@@ -43,7 +43,7 @@ fun Field.guessColumnName(): String {
     this.annotations.forEach { annotation ->
         val annotationName = annotation.annotationClass.java.name
         val methodName = COLUMN_NAME_ANNOTATION_METHOD_MAP[annotationName] ?: return toUnderLineCase
-        val value = annotation.getArg(methodName) ?: return toUnderLineCase
+        val value = annotation.getAttribute(methodName) ?: return toUnderLineCase
         return value
     }
     return toUnderLineCase

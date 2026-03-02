@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":checkouts:lsi:lsi-core"))
+    implementation(project(":lib:lsi:lsi-core"))
     implementation("site.addzero:tool-str:2026.02.23")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
 }

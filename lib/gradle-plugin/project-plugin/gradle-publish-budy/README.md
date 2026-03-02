@@ -28,7 +28,7 @@
 插件会按「父路径」自动生成聚合任务（在 root project 生效）：
 
 - 规范任务名：`publish<完整路径Pascal>ToMavenCentral`
-  - 例如 `:checkouts:lsi:*` => `publishCheckoutsLsiToMavenCentral`
+  - 例如 `:lib:lsi:*` => `publishCheckoutsLsiToMavenCentral`
 - 短别名任务（当末段唯一时）：`publish<末段Pascal>ToMavenCentral`
   - 例如 `publishLsiToMavenCentral`
 
@@ -77,7 +77,7 @@ extensions.configure<PublishConventionExtension> {
 ### 发布单个模块（会递归带上 project 依赖）
 
 ```bash
-./gradlew :checkouts:lsi:lsi-ksp:publishToMavenCentral
+./gradlew :lib:lsi:lsi-ksp:publishToMavenCentral
 ```
 
 ### 发布某一目录下全部叶子模块
