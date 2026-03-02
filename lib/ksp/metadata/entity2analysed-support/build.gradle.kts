@@ -9,7 +9,7 @@ kotlin {
 //            implementation(libs.com.google.devtools.ksp.symbol.processing.api)
 
             // 基础工具
-            implementation(libs.site.addzero.addzero.ksp.support)
+            implementation(libs.site.addzero.ksp.support)
 
 
 //            implementation(projects.lib.kld.addzeroKaleidoscopeKsp)
