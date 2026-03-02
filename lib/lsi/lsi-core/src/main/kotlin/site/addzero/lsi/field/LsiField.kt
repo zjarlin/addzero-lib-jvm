@@ -21,7 +21,7 @@ interface LsiField {
   val type: LsiType?
 
   /**
-   * 获取字段类型名称
+   * 获取字段类型名称(不含泛型,如需泛型可以调用对应的扩展函数)
    */
   val typeName: String?
 

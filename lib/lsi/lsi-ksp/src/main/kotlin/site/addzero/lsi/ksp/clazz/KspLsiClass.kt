@@ -23,7 +23,6 @@ class KspLsiClass(
       null
     }
   }
-
   override val qualifiedName: String? by lazy {
     try {
       ksClassDeclaration.qualifiedName?.asString()

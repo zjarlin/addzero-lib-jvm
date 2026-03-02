@@ -1,10 +1,10 @@
 package site.addzero.lsi.ksp.field
 
 import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.*
 import site.addzero.lsi.field.LsiField
 import site.addzero.lsi.ksp.clazz.isEnum
+import site.addzero.lsi.ksp.type.getFullQualifiedTypeString
 
 @Deprecated("use LsiField.typeName")
 fun KSPropertyDeclaration.typeName(): String {
@@ -51,34 +51,52 @@ fun KSPropertyDeclaration.isEnum(): Boolean {
   }
 }
 
-fun LsiField.defaultValue(): String {
-  if (this.name == "id") {
-    return "null"
-  }
-  val type = this.type
-  val typeDecl = type?.lsiClass
-  val fullTypeName = typeDecl?.qualifiedName
-  val typeName = typeDecl?.simpleName
-  val isNullable = type.isNullable
-  return when {
-
-    typeDecl.isEnum() -> {
-      if (isNullable) "null" else "${fullTypeName}.entries.first()"
+/**
+ * 获取属性的全限定类型字符串（包含泛型参数和可空性）
+ * 简化版本，只进行基础类型解析
+ */
+fun KSPropertyDeclaration.getQualifiedTypeString(): String {
+  return try {
+    val type = this.type.resolve()
+    type.getFullQualifiedTypeString()
+  } catch (e: Exception) {
+    // 如果类型解析失败，尝试使用原始类型字符串
+    val rawTypeString = this.type.toString()
+    if (rawTypeString.contains("<ERROR") ||
+      rawTypeString.any { !it.isLetterOrDigit() && it != '.' && it != '_' && it != '$' && it != '<' && it != '>' && it != '?' && it != ',' && it != ' ' }
+    ) {
+      "kotlin.Any"
+    } else {
+      rawTypeString
     }
-
-    isNullable -> "null"
-    typeName == "String" -> "\"\""
-    typeName == "Int" -> "0"
-    typeName == "Long" -> "0L"
-    typeName == "Double" -> "0.0"
-    typeName == "Float" -> "0f"
-    typeName == "Boolean" -> "false"
-    typeName == "List" -> "emptyList()"
-    typeName == "Set" -> "emptySet()"
-    typeName == "Map" -> "emptyMap()"
-    typeName == "LocalDateTime" -> "kotlin.time.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())"
-    typeName == "LocalDate" -> "kotlin.time.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).date"
-    typeName == "LocalTime" -> "kotlin.time.Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).time"
-    else -> ""
   }
 }
+
+/**
+ * 获取属性的简化类型字符串（不包含包名，但保留泛型）
+ */
+fun KSPropertyDeclaration.getSimpleTypeString(): String {
+  val type = this.type.resolve()
+  return buildString {
+    // 基础类型名称
+    append(type.declaration.simpleName.asString())
+
+    // 处理泛型参数
+    if (type.arguments.isNotEmpty()) {
+      append("<")
+      append(type.arguments.joinToString(", ") { arg ->
+        arg.type?.resolve()?.let {
+          it.declaration.simpleName.asString()
+        } ?: "*"
+      })
+      append(">")
+    }
+
+    // 处理可空性
+    if (type.nullability == Nullability.NULLABLE) {
+      append("?")
+    }
+  }
+}
+
+

@@ -10,8 +10,7 @@ import site.addzero.lsi.clazz.LsiClass
  * 供需要访问 KSP 原生类型系统（如 isAssignableFrom）的调用方使用。
  */
 fun LsiClass.toKSClassDeclaration(): KSClassDeclaration =
-    (this as? KspLsiClass)?.ksClassDeclaration
-        ?: error("LsiClass is not backed by KspLsiClass: ${this::class.qualifiedName}")
+  (this as? KspLsiClass)?.ksClassDeclaration ?: error("LsiClass is not backed by KspLsiClass: ${this::class.qualifiedName}")
 
 /**
  * KSP 环境下 LsiClass → kotlinpoet ClassName 的桥接扩展。
@@ -28,10 +27,10 @@ fun LsiClass.toKSClassDeclaration(): KSClassDeclaration =
  * @param nameTransformer 对 simpleName 的变换函数，默认不变换。
  */
 fun LsiClass.toClassName(nameTransformer: (String) -> String = { it }): ClassName {
-    val qn = requireNotNull(qualifiedName) { "LsiClass.qualifiedName must not be null" }
-    val pkg = qn.substringBeforeLast('.', missingDelimiterValue = "")
-    val simple = requireNotNull(simpleName) { "LsiClass.simpleName must not be null" }
-    return ClassName(pkg, nameTransformer(simple))
+  val qn = requireNotNull(qualifiedName) { "LsiClass.qualifiedName must not be null" }
+  val pkg = qn.substringBeforeLast('.', missingDelimiterValue = "")
+  val simple = requireNotNull(simpleName) { "LsiClass.simpleName must not be null" }
+  return ClassName(pkg, nameTransformer(simple))
 }
 
 /**
@@ -41,12 +40,12 @@ fun LsiClass.toClassName(nameTransformer: (String) -> String = { it }): ClassNam
  *   返回值将作为 [ClassName] 的 simpleNames 列表。
  */
 fun LsiClass.toNestedClassName(
-    namesTransformer: (String) -> List<String> = { listOf(it) }
+  namesTransformer: (String) -> List<String> = { listOf(it) },
 ): ClassName {
-    val qn = requireNotNull(qualifiedName) { "LsiClass.qualifiedName must not be null" }
-    val pkg = qn.substringBeforeLast('.', missingDelimiterValue = "")
-    val simple = requireNotNull(simpleName) { "LsiClass.simpleName must not be null" }
-    val names = namesTransformer(simple)
-    require(names.isNotEmpty()) { "namesTransformer must return at least one name" }
-    return ClassName(pkg, names.first(), *names.drop(1).toTypedArray())
+  val qn = requireNotNull(qualifiedName) { "LsiClass.qualifiedName must not be null" }
+  val pkg = qn.substringBeforeLast('.', missingDelimiterValue = "")
+  val simple = requireNotNull(simpleName) { "LsiClass.simpleName must not be null" }
+  val names = namesTransformer(simple)
+  require(names.isNotEmpty()) { "namesTransformer must return at least one name" }
+  return ClassName(pkg, names.first(), *names.drop(1).toTypedArray())
 }
