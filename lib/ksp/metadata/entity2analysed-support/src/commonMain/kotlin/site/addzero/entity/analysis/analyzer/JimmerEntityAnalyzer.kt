@@ -46,7 +46,6 @@ object JimmerEntityAnalyzer {
   private fun extractEntityDescription(entity: KSClassDeclaration): String {
     entity.annotations.forEach { annotation ->
       val annotationName = annotation.shortName.asString()
-
       // 支持的描述注解类型（使用简单名称）
       when (annotationName) {
         "Schema" -> {

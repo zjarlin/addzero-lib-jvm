@@ -198,7 +198,7 @@ object WindsurfBatchRegistration {
    *
    * @param storageDir 账号存储根目录
    */
-  fun printSuccessSummary(storageDir: Path) {
+  fun printSuccessSummary(storageDir: Path=WindsurfAccountStorage.DEFAULT_DIR,) {
     val successDir = storageDir.resolve("success")
     if (!Files.exists(successDir)) {
       println("[Summary] success directory not found: $successDir")

@@ -24,6 +24,25 @@ class WindsurfRegisterAutomationTest {
   )
 
   /**
+   * 批量注册测试（串行）
+   *
+   * 只需指定数量，全自动完成：创建邮箱 → 注册 → 绑卡
+   * 改 count 即可控制注册数量，改 concurrency 即可并发
+   * Chrome 会自动启动，无需手动执行任何命令。
+   */
+  @Test
+  fun `should batch register accounts`() {
+    val result = WindsurfBatchRegistration.run(
+      count = 30,          // 注册数量
+      concurrency = 1,    // 串行模式（邮箱 API 有 rate-limit，并发收益不大）
+//      bindCard = true,
+    )
+
+    assertTrue(result.success > 0, "at least one account should succeed")
+    println("[Test] batch result: ${result.success}/${result.total} success, ${result.failed} failed")
+  }
+
+  /**
    * 全自动注册测试：
    * 1. mail.tm 创建临时邮箱
    * 2. 浏览器自动填写注册表单（三步）
@@ -113,25 +132,6 @@ class WindsurfRegisterAutomationTest {
   }
 
   /**
-   * 批量注册测试（串行）
-   *
-   * 只需指定数量，全自动完成：创建邮箱 → 注册 → 绑卡
-   * 改 count 即可控制注册数量，改 concurrency 即可并发
-   * Chrome 会自动启动，无需手动执行任何命令。
-   */
-  @Test
-  fun `should batch register accounts`() {
-    val result = WindsurfBatchRegistration.run(
-      count = 30,          // 注册数量
-      concurrency = 1,    // 串行模式（邮箱 API 有 rate-limit，并发收益不大）
-//      bindCard = true,
-    )
-
-    assertTrue(result.success > 0, "at least one account should succeed")
-    println("[Test] batch result: ${result.success}/${result.total} success, ${result.failed} failed")
-  }
-
-  /**
    * 测试 printSuccessSummary 汇总输出功能
    *
    * 验证：
@@ -141,37 +141,8 @@ class WindsurfRegisterAutomationTest {
    */
   @Test
   fun `should print success summary correctly`() {
-    val tempDir = kotlin.io.path.createTempDirectory("windsurf-test-")
-    val successDir = tempDir.resolve("success").also { java.nio.file.Files.createDirectories(it) }
+    WindsurfBatchRegistration.printSuccessSummary(WindsurfAccountStorage.DEFAULT_DIR,)
 
-    // 创建测试账号数据
-    val account1 = WindsurfAccount(
-      windsurfEmail = "test1@example.com",
-      windsurfPassword = "Pass123!",
-      mailPassword = "mailpass1",
-      status = WindsurfAccountStatus.REGISTERED,
-      registeredAt = "2024-01-01T00:00:00Z"
-    )
-    val account2 = WindsurfAccount(
-      windsurfEmail = "test2@example.com",
-      windsurfPassword = "Pass456!",
-      mailPassword = "mailpass2",
-      status = WindsurfAccountStatus.REGISTERED,
-      registeredAt = "2024-01-02T00:00:00Z"
-    )
-
-    // 保存到 success 目录
-    WindsurfAccountStorage.save(account1, tempDir)
-    WindsurfAccountStorage.save(account2, tempDir)
-
-    // 执行汇总输出
-    println("[Test] Testing printSuccessSummary:")
-    WindsurfBatchRegistration.printSuccessSummary(tempDir)
-
-    // 清理
-    tempDir.toFile().deleteRecursively()
-
-    assertTrue(true, "printSuccessSummary executed without error")
   }
 
   /**
