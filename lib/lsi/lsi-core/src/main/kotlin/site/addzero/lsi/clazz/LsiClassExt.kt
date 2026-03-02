@@ -137,6 +137,24 @@ fun LsiClass.hasAnnotation(vararg annotationNames: String): Boolean {
     }
   }
 }
+/**
+ * 检查类是否具有指定的注解(短名称)
+ * @param annotationSimpleNames 注解短名数组
+ * @return 如果类具有其中任何一个注解，则返回true，否则返回false
+ */
+fun LsiClass.hasAnnotationSimple(vararg annotationSimpleNames: String): Boolean {
+  return annotationSimpleNames.any { annotationName ->
+    annotations.any { annotation ->
+      annotation.simpleName == annotationName
+    }
+  }
+}
+
+fun LsiClass.hasProperty(simpleName: String): Boolean {
+  return this.fields.any { prop ->
+    prop.name == simpleName
+  }
+}
 
 val LsiClass.hasNoArgConstructor: Boolean
   get() = methods.any { method ->

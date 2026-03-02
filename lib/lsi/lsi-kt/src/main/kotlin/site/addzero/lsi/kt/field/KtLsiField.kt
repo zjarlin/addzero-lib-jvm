@@ -38,8 +38,10 @@ class KtLsiField(private val ktProperty: KtProperty) : LsiField {
 
     override val isConstant: Boolean
         get() = ktProperty.hasModifier(KtTokens.CONST_KEYWORD)
+  override val isEnum: Boolean
+    get() = TODO("Not yet implemented")
 
-    override val isVar: Boolean
+  override val isVar: Boolean
         get() = ktProperty.isVar
 
     override val isLateInit: Boolean

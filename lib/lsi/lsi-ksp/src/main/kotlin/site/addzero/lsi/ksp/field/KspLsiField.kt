@@ -23,6 +23,7 @@ class KspLsiField(
         ksPropertyDeclaration.simpleName.asString()
     }
 
+
     override val type: LsiType? by lazy {
         KspLsiType(resolver, ksPropertyDeclaration.type.resolve())
     }
@@ -50,8 +51,10 @@ class KspLsiField(
     override val isConstant: Boolean by lazy {
         ksPropertyDeclaration.modifiers.contains(Modifier.CONST)
     }
+  override val isEnum: Boolean
+    get() = ksPropertyDeclaration.isEnum()
 
-    override val isVar: Boolean by lazy {
+  override val isVar: Boolean by lazy {
         ksPropertyDeclaration.isMutable
     }
 
@@ -138,4 +141,3 @@ class KspLsiField(
     }
 }
 
-fun KSPropertyDeclaration.toLsiField(resolver: Resolver): LsiField = KspLsiField(resolver, this)
