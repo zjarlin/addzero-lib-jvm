@@ -41,6 +41,38 @@ private fun KSType.buildFunctionTypeString(): String {
     append(returnType)
   }
 }
+/**
+ * 检查类型是否为集合类型
+ */
+fun KSType.isCollection(): Boolean {
+  val name = declaration.qualifiedName?.asString() ?: return false
+  return name.startsWith("kotlin.collections.") &&
+    (name.contains("List") || name.contains("Set") || name.contains("Map"))
+}
+
+/**
+ * 检查类型是否为字符串类型
+ */
+fun KSType.isString(): Boolean {
+  val name = declaration.qualifiedName?.asString() ?: return false
+  return name == "kotlin.String"
+}
+
+
+/**
+ * 检查类型是否为基本类型（Int, Long, Boolean等）
+ */
+fun KSType.isPrimitive(): Boolean {
+  val name = declaration.qualifiedName?.asString() ?: return false
+  return name == "kotlin.Int" ||
+    name == "kotlin.Long" ||
+    name == "kotlin.Double" ||
+    name == "kotlin.Float" ||
+    name == "kotlin.Boolean" ||
+    name == "kotlin.Char" ||
+    name == "kotlin.Byte" ||
+    name == "kotlin.Short"
+}
 
 /**
  * 获取完整的类型字符串表达，包括泛型、注解、函数类型等
@@ -127,6 +159,24 @@ fun KSType.getCompleteTypeString(): String {
       }
     }
   }
+}
+
+/**
+ * 获取类型的完整字符串表示，包括泛型参数
+ */
+fun KSType.getFullTypeName(): String {
+  val baseType = declaration.qualifiedName?.asString() ?: "Any"
+  val nullableSuffix = if (isMarkedNullable) "?" else ""
+
+  // 如果没有泛型参数，直接返回基本类型
+  if (arguments.isEmpty()) {
+    return "$baseType$nullableSuffix"
+  }
+  // 处理泛型参数
+  val genericArgs = arguments.joinToString(", ") { arg ->
+    arg.type?.resolve()?.getFullTypeName() ?: "Any"
+  }
+  return "$baseType<$genericArgs>$nullableSuffix"
 }
 
 /**

@@ -1,5 +1,6 @@
 package site.addzero.lsi.ksp.method
 
+import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import site.addzero.lsi.ksp.type.getCompleteTypeString
@@ -105,6 +106,8 @@ fun KSValueParameter.getCompleteTypeString(): String {
 fun KSFunctionDeclaration.getReturnType(): KSType {
   return returnType?.resolve() ?: throw IllegalStateException("Function must have a return type")
 }
+
+
 
 /**
  * 获取函数的所有参数

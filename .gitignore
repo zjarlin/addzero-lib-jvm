@@ -51,3 +51,4 @@ captures
 /.skills
 /.factory
 *.zip
+/.brew-cache/
