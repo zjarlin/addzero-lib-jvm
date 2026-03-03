@@ -6,15 +6,17 @@ import site.addzero.lsi.anno.LsiAnnotation
 import site.addzero.lsi.clazz.LsiClass
 import site.addzero.lsi.field.LsiField
 import site.addzero.lsi.ksp.anno.KspLsiAnnotation
-import site.addzero.lsi.ksp.clazz.KspLsiClass
-import site.addzero.lsi.ksp.field.KspLsiField
+import site.addzero.lsi.ksp.clazz.toLsiClass
+import site.addzero.lsi.ksp.field.toLsiField
 import site.addzero.lsi.ksp.method.KspLsiMethod
 import site.addzero.lsi.ksp.type.KspLsiType
 import site.addzero.lsi.method.LsiMethod
 import site.addzero.lsi.type.LsiType
 
-
-
+fun Resolver.getClass(qualifiedName: String): KSClassDeclaration? {
+  val declaration = getClassDeclarationByName(getKSNameFromString(qualifiedName)) ?: return null
+  return declaration
+}
 
 /**
  * 将KSFunctionDeclaration转换为LsiMethod

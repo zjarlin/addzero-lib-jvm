@@ -1,5 +1,6 @@
 package site.addzero.lsi.ksp.clazz
 
+import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
 import site.addzero.lsi.assist.TypeChecker.toSimpleName
@@ -50,4 +51,32 @@ fun KSClassDeclaration.getAnnotationByName(qualifiedName: String): KSAnnotation?
     it.annotationType.resolve().declaration.qualifiedName?.asString() == qualifiedName ||
       it.shortName.asString() == qualifiedName.toSimpleName()
   }
+}
+
+/**
+ * 获取类的包名
+ */
+fun KSClassDeclaration.getPackageName(): String {
+  return packageName.asString()
+}
+
+/**
+ * 获取类的主构造函数
+ */
+fun KSClassDeclaration.getPrimaryConstructor(): KSFunctionDeclaration? {
+  return primaryConstructor
+}
+
+/**
+ * 获取类的所有构造函数
+ */
+fun KSClassDeclaration.getAllConstructors(): Sequence<KSFunctionDeclaration> {
+  return getDeclaredFunctions().filter { it.functionKind == FunctionKind.MEMBER && it.simpleName.asString() == "<init>" }
+}
+
+/**
+ * 获取类的所有泛型参数
+ */
+fun KSClassDeclaration.getAllTypeParameters(): List<KSTypeParameter> {
+  return typeParameters.toList()
 }

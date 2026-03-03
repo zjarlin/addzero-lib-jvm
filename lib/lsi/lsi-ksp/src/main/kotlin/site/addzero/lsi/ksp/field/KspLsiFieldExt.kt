@@ -2,6 +2,8 @@ package site.addzero.lsi.ksp.field
 
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.validate
+import site.addzero.lsi.assist.TypeChecker.toSimpleName
 import site.addzero.lsi.field.LsiField
 import site.addzero.lsi.ksp.clazz.isEnum
 import site.addzero.lsi.ksp.type.getFullQualifiedTypeString
@@ -48,6 +50,33 @@ fun KSPropertyDeclaration.isT(): Boolean {
 fun KSPropertyDeclaration.isEnum(): Boolean {
   return this.type.resolve().declaration.let { decl ->
     (decl as? KSClassDeclaration)?.isEnum() ?: false
+  }
+}
+
+/**
+ * 获取属性的所有注解
+ */
+fun KSPropertyDeclaration.getAllAnnotations(): Sequence<KSAnnotation> {
+  return annotations.filter { it.annotationType.resolve().declaration.validate() }
+}
+
+/**
+ * 获取属性的特定注解
+ */
+fun KSPropertyDeclaration.getAnnotationByName(qualifiedName: String): KSAnnotation? {
+  return annotations.find {
+    it.annotationType.resolve().declaration.qualifiedName?.asString() == qualifiedName ||
+      it.shortName.asString() == qualifiedName.toSimpleName()
+  }
+}
+
+/**
+ * 检查属性是否有指定的注解
+ */
+fun KSPropertyDeclaration.hasAnnotation(qualifiedName: String): Boolean {
+  return annotations.any {
+    it.annotationType.resolve().declaration.qualifiedName?.asString() == qualifiedName ||
+      it.shortName.asString() == qualifiedName.toSimpleName()
   }
 }
 

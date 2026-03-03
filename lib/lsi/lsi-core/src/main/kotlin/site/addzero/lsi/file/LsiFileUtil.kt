@@ -18,6 +18,8 @@ import site.addzero.lsi.clazz.LsiClass
 val LsiFile.nameWithoutExtension: String
     get() = name.substringBeforeLast('.')
 
+
+
 /**
  * 获取文件扩展名
  *

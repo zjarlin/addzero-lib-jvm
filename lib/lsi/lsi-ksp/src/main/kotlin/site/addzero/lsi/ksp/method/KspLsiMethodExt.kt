@@ -100,6 +100,29 @@ fun KSValueParameter.getCompleteTypeString(): String {
 }
 
 /**
+ * 获取函数的返回类型
+ */
+fun KSFunctionDeclaration.getReturnType(): KSType {
+  return returnType?.resolve() ?: throw IllegalStateException("Function must have a return type")
+}
+
+/**
+ * 获取函数的所有参数
+ */
+fun KSFunctionDeclaration.getAllParameters(): List<KSValueParameter> {
+  return parameters.toList()
+}
+/**
+ * 获取函数的特定注解
+ */
+fun KSFunctionDeclaration.getAnnotationByName(annotationName: String): KSAnnotation? {
+  return annotations.find {
+    it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
+      it.shortName.asString() == annotationName.substringAfterLast('.')
+  }
+}
+
+/**
  * 获取函数的所有注解
  */
 fun KSFunctionDeclaration.getAnnotations(): Sequence<KSAnnotation> {

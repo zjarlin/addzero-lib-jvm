@@ -15,11 +15,6 @@ object KspCache {
   private val functionCache = mutableMapOf<String, KSFunctionDeclaration>()
   private val propertyCache = mutableMapOf<String, KSPropertyDeclaration>()
 
-  fun getClass(resolver: Resolver, qualifiedName: String): KSClassDeclaration? {
-    return classCache.getOrPut(qualifiedName) {
-      resolver.getClassDeclarationByName(resolver.getKSNameFromString(qualifiedName)) ?: return null
-    }
-  }
 
   fun getFunction(declaration: KSClassDeclaration, name: String): KSFunctionDeclaration? {
     val key = "${declaration.qualifiedName?.asString()}.${name}"
@@ -30,119 +25,7 @@ object KspCache {
 
 }
 
-/**
- * 获取函数的特定注解
- */
-fun KSFunctionDeclaration.getAnnotationByName(annotationName: String): KSAnnotation? {
-  return annotations.find {
-    it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
-      it.shortName.asString() == annotationName.substringAfterLast('.')
-  }
-}
 
-/**
- * 获取属性的所有注解
- */
-fun KSPropertyDeclaration.getAllAnnotations(): Sequence<KSAnnotation> {
-  return annotations.filter { it.annotationType.resolve().declaration.validate() }
-}
-
-/**
- * 检查属性是否有指定的注解
- */
-fun KSPropertyDeclaration.hasAnnotation(annotationName: String): Boolean {
-  return annotations.any {
-    it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
-      it.shortName.asString() == annotationName.substringAfterLast('.')
-  }
-}
-
-/**
- * 获取属性的特定注解
- */
-fun KSPropertyDeclaration.getAnnotationByName(annotationName: String): KSAnnotation? {
-  return annotations.find {
-    it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName ||
-      it.shortName.asString() == annotationName.substringAfterLast('.')
-  }
-}
-
-/**
- * 获取文件中的所有类声明
- */
-fun KSFile.getAllClassDeclarations(): Sequence<KSClassDeclaration> {
-  return declarations.filterIsInstance<KSClassDeclaration>()
-}
-
-/**
- * 获取文件中的所有顶级函数声明
- */
-fun KSFile.getAllFunctionDeclarations(): Sequence<KSFunctionDeclaration> {
-  return declarations.filterIsInstance<KSFunctionDeclaration>()
-}
-
-/**
- * 获取文件中的所有顶级属性声明
- */
-fun KSFile.getAllPropertyDeclarations(): Sequence<KSPropertyDeclaration> {
-  return declarations.filterIsInstance<KSPropertyDeclaration>()
-}
-
-/**
- * 获取类的完整限定名
- */
-fun KSClassDeclaration.getQualifiedName(): String {
-  return qualifiedName?.asString() ?: throw IllegalStateException("Class must have a qualified name")
-}
-
-/**
- * 获取类的简单名称
- */
-fun KSClassDeclaration.getSimpleName(): String {
-  return simpleName.asString()
-}
-
-/**
- * 获取类的包名
- */
-fun KSClassDeclaration.getPackageName(): String {
-  return packageName.asString()
-}
-
-/**
- * 获取类的主构造函数
- */
-fun KSClassDeclaration.getPrimaryConstructor(): KSFunctionDeclaration? {
-  return primaryConstructor
-}
-
-/**
- * 获取类的所有构造函数
- */
-fun KSClassDeclaration.getAllConstructors(): Sequence<KSFunctionDeclaration> {
-  return getDeclaredFunctions().filter { it.functionKind == FunctionKind.MEMBER && it.simpleName.asString() == "<init>" }
-}
-
-/**
- * 获取类的所有泛型参数
- */
-fun KSClassDeclaration.getAllTypeParameters(): List<KSTypeParameter> {
-  return typeParameters.toList()
-}
-
-/**
- * 获取函数的返回类型
- */
-fun KSFunctionDeclaration.getReturnType(): KSType {
-  return returnType?.resolve() ?: throw IllegalStateException("Function must have a return type")
-}
-
-/**
- * 获取函数的所有参数
- */
-fun KSFunctionDeclaration.getAllParameters(): List<KSValueParameter> {
-  return parameters.toList()
-}
 
 /**
  * 获取属性的类型
