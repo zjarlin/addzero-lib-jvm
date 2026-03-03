@@ -372,6 +372,7 @@ io-insert-koin-koin-core = { group = "io.insert-koin", name = "koin-core", versi
 io-insert-koin-koin-ksp-compiler = { group = "io.insert-koin", name = "koin-ksp-compiler", version.ref = "io-insert-koin-koin-ksp-compiler" }
 io-insert-koin-koin-ktor = { group = "io.insert-koin", name = "koin-ktor", version.ref = "koin" }
 io-insert-koin-koin-logger-slf4j = { group = "io.insert-koin", name = "koin-logger-slf4j", version.ref = "koin" }
+io-insert-koin-koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
 #----------------------------- io.kotest ------------------------------
 io-kotest-kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
 io-kotest-kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotest" }
@@ -595,6 +596,7 @@ com-google-code-gson-gson = { group = "com.google.code.gson", name = "gson", ver
 com-google-inject-guice = { group = "com.google.inject", name = "guice", version.ref = "com-google-inject-guice" }
 com-google-auto-service = { group = "com.google.auto.service", name = "auto-service", version.ref = "com-google-auto-service" }
 com-google-auto-service-annotations = { group = "com.google.auto.service", name = "auto-service-annotations", version.ref = "com-google-auto-service-annotations" }
+dev-zacsweers-autoservice-auto-service-ksp = { group = "dev.zacsweers.autoservice", name = "auto-service-ksp", version = "+" }
 com-h2database-h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
 com-hierynomus-sshj = { group = "com.hierynomus", name = "sshj", version.ref = "com-hierynomus-sshj" }
 com-hivemq-hivemq-mqtt-client = { group = "com.hivemq", name = "hivemq-mqtt-client", version.ref = "com-hivemq-hivemq-mqtt-client" }
