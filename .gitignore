@@ -53,3 +53,4 @@ captures
 *.zip
 /.brew-cache/
 /.cloudfile
+/.cloud-file-hosting/

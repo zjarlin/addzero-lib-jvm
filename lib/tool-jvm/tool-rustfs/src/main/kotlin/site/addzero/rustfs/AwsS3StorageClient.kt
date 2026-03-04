@@ -1,7 +1,7 @@
 package site.addzero.rustfs.impl
 
-import site.addzero.common.result.SimpleResult
-import site.addzero.common.result.Result
+import site.addzero.rustfs.api.SimpleResult
+import site.addzero.rustfs.api.Result
 import site.addzero.rustfs.api.S3ClientConfig
 import site.addzero.rustfs.api.S3StorageClient
 import site.addzero.rustfs.api.S3StorageClientFactory
