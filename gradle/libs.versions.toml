@@ -15,8 +15,11 @@ agp = "9.0.0"
 akka-stream-netty-all-2-13-version = "0.1.18"
 # 本项目安卓应用版本定义
 android-biz-version = "1.0"
+android-app-versionCode = "1"
+android-app-versionName = "1.0"
+ktor-server-app-version = "1.0.0"
 android-compileSdk = "36"
-android-namespace = "site.addzero.ui.kmp"
+android-namespagace = "site.addzero.ui.kmp"
 android-minSdk = "24"
 android-targetSdk = "36"
 androidx-activity-activity-compose = "1.11.0"
@@ -289,6 +292,27 @@ io-github-kyant0-shapes = "1.2.0"
 method-semanticizer-api-version = "2026.02.15"
 site-addzero-gradle-plugin-processor-buddy-version = "+"
 com-fasterxml-jackson-module-jackson-module-kotlin = "2.21.1"
+
+#===========================================
+# Build Logic 内部使用的版本定义
+#===========================================
+
+# JDK 版本定义
+jdk8 = "8"
+jdk11 = "11"
+jdk17 = "17"
+
+# IntelliJ 平台配置
+intellij-idea-version = "2025.2.3"
+intellij-since-build = "252"
+intellij-until-build = "262.*"
+intellij-jvm-target = "17"
+
+# Ktorfit 编译器插件版本
+ktorfit-compiler-plugin-version = "2.3.3"
+
+# Compose Desktop 包版本
+desktop-package-version = "1.0.0"
 [libraries]
 # Room XProcessing (跨平台注解处理抽象)
 androidx-room-compiler-processing = { group = "androidx.room", name = "room-compiler-processing", version.ref = "room-compiler-processing" }
@@ -659,6 +683,9 @@ org-jetbrains-kotlin-multiplatform-org-jetbrains-kotlin-multiplatform-gradle-plu
 org-jetbrains-kotlin-plugin-compose-org-jetbrains-kotlin-plugin-compose-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.compose", name = "org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
 org-jetbrains-kotlin-plugin-serialization-org-jetbrains-kotlin-plugin-serialization-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.serialization", name = "org.jetbrains.kotlin.plugin.serialization.gradle.plugin", version.ref = "org-jetbrains-kotlin-plugin-serialization-org-jetbrains-kotlin-plugin-serialization-gradle-plugin" }
 org-jetbrains-kotlin-plugin-spring-org-jetbrains-kotlin-plugin-spring-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.spring", name = "org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
+# Build Logic 内部使用的依赖
+org-jetbrains-kotlin-kotlin-test-junit5 = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit5", version.ref = "kotlin" }
+org-junit-platform-junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version = "1.10.0" }
 # DUPLICATE: kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "org-jetbrains-kotlinx-kotlinx-serialization-core" }
 org-jsoup-jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "org-jsoup-jsoup" }
 org-mockito-kotlin-mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "org-mockito-kotlin-mockito-kotlin" }
