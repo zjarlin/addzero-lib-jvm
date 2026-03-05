@@ -1,8 +1,30 @@
 plugins {
-  id("site.addzero.buildlogic.jvm.kotlin-convention") 
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 
 dependencies {
   implementation(libs.com.squareup.okhttp3.okhttp)
   implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
+
+
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+  implementation("org.unbescape:unbescape:1.1.6.RELEASE")
+
+  // Ktor Client
+  implementation("io.ktor:ktor-client-core:2.3.7")
+  implementation("io.ktor:ktor-client-cio:2.3.7")
+  implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+  implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+  implementation("io.ktor:ktor-client-logging:2.3.7")
+
+  // Ktorfit (Retrofit风格的Ktor接口定义)
+//  implementation("de.jensklingenberg.ktorfit:ktorfit-lib:1.11.0")
+
+  // OkHttp (备用)
+//  implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+  // Crypto
+//  implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+
 }

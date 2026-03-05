@@ -19,16 +19,16 @@ kotlin {
     commonMain.dependencies {
       // KSP 依赖
       implementation(libs.com.google.devtools.ksp.symbol.processing.api)
-
-      // 基础工具
-//            implementation(libs.site.addzero.addzero.ksp.support)
-
-      // 实体分析支持
-      implementation(libs.site.addzero.entity2analysed.support)
-
+      // LSI (KSP -> LSI bridge)
+      implementation(project(":lib:lsi:lsi-ksp"))
     }
 
     jvmMain.dependencies {
+
+      implementation(project(":lib:lsi:lsi-ksp"))
+
+      implementation(project(":lib:lsi:lsi-jimmer"))
+
       // JVM 特定依赖
     }
   }

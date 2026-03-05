@@ -54,3 +54,4 @@ captures
 /.brew-cache/
 /.cloudfile
 /.cloud-file-hosting/
+/.gradle-user-home/

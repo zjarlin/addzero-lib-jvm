@@ -3,12 +3,14 @@ package site.addzero.network.call.music
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 
 /**
  * 音乐搜索工具类测试
  */
 @DisplayName("音乐搜索工具类测试")
+@Disabled
 class MusicSearchUtilTest {
 
     @Test

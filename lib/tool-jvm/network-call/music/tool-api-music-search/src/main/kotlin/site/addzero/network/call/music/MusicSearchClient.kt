@@ -52,7 +52,7 @@ object MusicSearchUtil {
 
       val result = JSON.parseObject(responseBody, MusicSearchResponse::class.java)
       if (result.code != 200) {
-        throw RuntimeException("API 错误: ${result.code}")
+        throw RuntimeException("API 错误: ${result.code}${result.msg}")
       }
 
       return result.result

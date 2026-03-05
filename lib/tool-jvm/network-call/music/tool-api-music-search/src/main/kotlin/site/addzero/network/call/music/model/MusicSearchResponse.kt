@@ -7,6 +7,7 @@ import com.alibaba.fastjson2.annotation.JSONField
  */
 data class MusicSearchResponse(
     val code: Int,
+    val msg: String,
     val result: SearchResult?
 )
 
