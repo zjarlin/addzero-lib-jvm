@@ -1,6 +1,7 @@
 package site.addzero.gradle.plugin
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import site.addzero.gradle.PublishConventionExtension
 import site.addzero.util.createExtension
 import java.time.LocalDate
@@ -98,6 +99,8 @@ fun Project.hasProjectDependencies(): Boolean =
     }
 
 private val directProjectDepsCache = mutableMapOf<String, Set<Project>>()
+private val recursiveProjectDepsCache = mutableMapOf<String, Lazy<Set<Project>>>()
+private val publishTaskPathsCache = mutableMapOf<String, Lazy<List<String>>>()
 
 /**
  * 通过文本扫描 build.gradle.kts 提取 project(":...") 依赖路径，
@@ -127,45 +130,65 @@ fun Project.directProjectDependencies(): Set<Project> =
     }
 
 fun Project.recursiveProjectDependencies(): Set<Project> {
-    val visited = linkedSetOf<Project>()
-    val queue = ArrayDeque<Project>()
-    directProjectDependencies().forEach(queue::addLast)
+    return recursiveProjectDepsCache
+        .getOrPut(path) {
+            lazy(LazyThreadSafetyMode.NONE) {
+                val visited = linkedSetOf<Project>()
+                val queue = ArrayDeque<Project>()
+                directProjectDependencies().forEach(queue::addLast)
 
-    while (queue.isNotEmpty()) {
-        val current = queue.removeFirst()
-        if (!visited.add(current)) continue
-        if (!current.hasProjectDependencies()) continue
-        current.directProjectDependencies()
-            .filterNot { it == this || visited.contains(it) }
-            .forEach(queue::addLast)
-    }
-    return visited
+                while (queue.isNotEmpty()) {
+                    val current = queue.removeFirst()
+                    if (!visited.add(current)) continue
+                    if (!current.hasProjectDependencies()) continue
+                    current.directProjectDependencies()
+                        .filterNot { it == this || visited.contains(it) }
+                        .forEach(queue::addLast)
+                }
+                visited
+            }
+        }
+        .value
 }
 
 fun Project.publishTaskPathsForProjectDependencies(): List<String> {
-    if (!hasProjectDependencies()) return emptyList()
-    return recursiveProjectDependencies()
-        .mapNotNull { dep -> dep.tasks.findByName("publishToMavenCentral")?.path }
-        .distinct()
+    return publishTaskPathsCache
+        .getOrPut(path) {
+            lazy(LazyThreadSafetyMode.NONE) {
+                if (!hasProjectDependencies()) {
+                    emptyList()
+                } else {
+                    recursiveProjectDependencies()
+                        .mapNotNull { dep -> dep.tasks.findByName("publishToMavenCentral")?.path }
+                        .distinct()
+                }
+            }
+        }
+        .value
 }
 
-fun Project.configureAggregatePublishTasksByParentDir(enabled: Boolean) {
+fun Project.configureAggregatePublishTasksByParentDir(enabledProvider: Provider<Boolean>) {
     if (this != rootProject) return
-    if (!enabled) {
-        logger.debug("[publish-buddy] aggregate publish tasks disabled (enableAggregatePublishTasksByParentDir=false)")
-        return
-    }
 
     gradle.projectsEvaluated {
-        val grouped = subprojects
-            .groupBy { subProject -> subProject.path.substringBeforeLast(":", "") }
-            .filterKeys { parentPath -> parentPath.isNotBlank() }
-            .mapValues { (_, children) ->
-                children
-                    .mapNotNull { child -> child.tasks.findByName("publishToMavenCentral")?.path }
-                    .distinct()
-            }
-            .filterValues { publishPaths -> publishPaths.isNotEmpty() }
+        if (!enabledProvider.getOrElse(false)) {
+            logger.debug("[publish-buddy] aggregate publish tasks disabled (enableAggregatePublishTasksByParentDir=false)")
+            return@projectsEvaluated
+        }
+
+        val grouped by lazy(LazyThreadSafetyMode.NONE) {
+            subprojects
+                .asSequence()
+                .filter { it.path.startsWith(":lib") }
+                .mapNotNull { child ->
+                    val publishTaskPath = child.tasks.findByName("publishToMavenCentral")?.path ?: return@mapNotNull null
+                    val parentPath = child.path.substringBeforeLast(":", "").takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                    parentPath to publishTaskPath
+                }
+                .groupBy({ (parentPath, _) -> parentPath }, { (_, publishTaskPath) -> publishTaskPath })
+                .mapValues { (_, publishTaskPaths) -> publishTaskPaths.distinct() }
+                .filterValues { publishTaskPaths -> publishTaskPaths.isNotEmpty() }
+        }
 
         val shortNameCounts = grouped.keys
             .map { parentPath -> parentPath.substringAfterLast(":") }
@@ -174,11 +197,20 @@ fun Project.configureAggregatePublishTasksByParentDir(enabled: Boolean) {
 
         grouped.forEach { (parentPath, publishTaskPaths) ->
             val canonicalTaskName = "publish${parentPath.toPascalFromPath()}ToMavenCentral"
-            val canonicalTask = tasks.findByName(canonicalTaskName)
-                ?: tasks.register(canonicalTaskName).get()
-            canonicalTask.group = "publishing"
-            canonicalTask.description = "Publish all modules directly under $parentPath"
-            canonicalTask.dependsOn(publishTaskPaths)
+            val existingCanonicalTask = tasks.findByName(canonicalTaskName)
+            if (existingCanonicalTask == null) {
+                tasks.register(canonicalTaskName) {
+                    group = "publishing"
+                    description = "Publish all modules directly under $parentPath"
+                    dependsOn(publishTaskPaths)
+                }
+            } else {
+                tasks.named(canonicalTaskName) {
+                    group = "publishing"
+                    description = "Publish all modules directly under $parentPath"
+                    dependsOn(publishTaskPaths)
+                }
+            }
 
             val shortSegment = parentPath.substringAfterLast(":")
             val canCreateShortAlias = shortSegment.isNotBlank() && shortNameCounts[shortSegment] == 1
@@ -188,7 +220,7 @@ fun Project.configureAggregatePublishTasksByParentDir(enabled: Boolean) {
                     tasks.register(aliasTaskName) {
                         group = "publishing"
                         description = "Alias of $canonicalTaskName"
-                        dependsOn(canonicalTask)
+                        dependsOn(canonicalTaskName)
                     }
                 }
             }
@@ -209,9 +241,11 @@ runCatching {
     }
 }
 
-project.configureAggregatePublishTasksByParentDir(
-    enabled = publishExtension.enableAggregatePublishTasksByParentDir.getOrElse(false),
-)
+if (project == rootProject) {
+    project.configureAggregatePublishTasksByParentDir(
+        enabledProvider = publishExtension.enableAggregatePublishTasksByParentDir,
+    )
+}
 
 // 延迟配置 mavenPublishing，确保用户配置已生效
 afterEvaluate {
@@ -270,4 +304,3 @@ subprojects {
     if (path == ":lib:apt-dict-processor") return@subprojects
     apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
 }
-

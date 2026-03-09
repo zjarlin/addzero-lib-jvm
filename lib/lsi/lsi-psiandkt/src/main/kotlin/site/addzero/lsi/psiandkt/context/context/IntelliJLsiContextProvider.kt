@@ -1,7 +1,7 @@
 package site.addzero.lsi.psiandkt.context.context
 
 import com.intellij.openapi.project.Project
-import site.addzero.lsi.context.LsiContext
+import site.addzero.lsi.context.PsiAndKtLsiContext
 import site.addzero.lsi.intellij.project.toVirtualFile
 import site.addzero.lsi.psiandkt.virtualfile.toLsiClass
 
@@ -22,9 +22,9 @@ object IntelliJLsiContextProvider {
      * 注意：此方法使用基础的toLsiClass()，具体实现需要在应用模块中
      * 通过依赖lsi-psi和lsi-kt模块来提供完整实现
      */
-    fun getLsiContext(project: Project): LsiContext {
+    fun getLsiContext(project: Project): PsiAndKtLsiContext {
         val virtualFile = project.toVirtualFile()
-            ?: return LsiContext.EMPTY
+            ?: return PsiAndKtLsiContext.EMPTY
 
         // 使用基础的toLsiClass方法 - 具体实现由应用模块提供
         val primaryClass = try {
@@ -35,7 +35,7 @@ object IntelliJLsiContextProvider {
         }
 
         // 为了保持轻量，暂时不实现 LsiFile和allClasses
-        return LsiContext(
+        return PsiAndKtLsiContext(
             currentClass = primaryClass,
             currentFile = null,
             filePath = virtualFile.path,
@@ -54,6 +54,6 @@ object IntelliJLsiContextProvider {
  * ```
  */
 @Suppress("unused")
-fun Project.lsiContext(): LsiContext {
+fun Project.lsiContext(): PsiAndKtLsiContext {
     return IntelliJLsiContextProvider.getLsiContext(this)
 }

@@ -4,12 +4,10 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.site.addzero.addzero.ksp.support)
+            implementation(libs.site.addzero.ksp.support)
+            implementation(libs.androidx.room.compiler.processing)
             implementation(libs.site.addzero.entity2form.core)
-
-            // 实体分析支持
-            implementation(libs.site.addzero.addzero.entity2analysed.support)
-
+            implementation(project(":lib:ksp:metadata:jimmer-entity-spi"))
         }
     }
 }

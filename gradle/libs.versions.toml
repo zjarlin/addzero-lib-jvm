@@ -213,7 +213,7 @@ site-addzero-gradle-plugin-java-convention-site-addzero-gradle-plugin-java-conve
 site-addzero-gradle-plugin-publish-buddy-version = "2026.03.02"
 site-addzero-gradle-script-core = "2025.11.29"
 site-addzero-gradle-tool = "2025.10.19"
-site-addzero-gradle-tool-config-java = "0.0.674"
+site-addzero-gradle-tool-config-java = "2026.01.29"
 site-addzero-huawei-java-sdk = "0.0.672"
 site-addzero-ioc-core = "2025.12.23"
 site-addzero-ioc-processor-v2025 = "2025.12.28"
@@ -533,7 +533,7 @@ site-addzero-gen-reified-processor = { group = "site.addzero", name = "gen-reifi
 site-addzero-gradle-script-core = { group = "site.addzero", name = "gradle-script-core", version.ref = "site-addzero-gradle-script-core" }
 #addzero-gradle-tool = { group = "site.addzero", name = "gradle-tool", version.ref = "addzeroLTSVersion" }
 site-addzero-gradle-tool = { group = "site.addzero", name = "gradle-tool", version.ref = "site-addzero-gradle-tool" }
-site-addzero-gradle-tool-config-java = { group = "site.addzero", name = "gradle-tool-config-java", version.ref = "site-addzero-gradle-tool-config-java" }
+site-addzero-gradle-tool-config-java = { group = "site.addzero", name = "tool-gradle-config-java", version.ref = "site-addzero-gradle-tool-config-java" }
 site-addzero-huawei-java-sdk = { group = "site.addzero", name = "huawei-java-sdk", version.ref = "site-addzero-huawei-java-sdk" }
 site-addzero-ioc-core = { group = "site.addzero", name = "ioc-core", version.ref = "ioc-core" }
 site-addzero-ioc-processor = { group = "site.addzero", name = "ioc-processor", version.ref = "ioc-processor-version" }

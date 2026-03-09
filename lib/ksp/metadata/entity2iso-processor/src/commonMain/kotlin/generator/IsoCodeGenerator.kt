@@ -1,32 +1,27 @@
 package generator
 
-import com.google.devtools.ksp.processing.KSPLogger
-import site.addzero.lsi.clazz.LsiClass
-import site.addzero.lsi.field.LsiField
-import site.addzero.lsi.jimmer.isJimmerEntity
-import site.addzero.lsi.type.LsiType
+import androidx.room.compiler.processing.XMethodElement
+import androidx.room.compiler.processing.XNullability
+import androidx.room.compiler.processing.XType
+import androidx.room.compiler.processing.XTypeElement
+import androidx.room.compiler.processing.isArray
+import androidx.room.compiler.processing.isEnum
 
 /**
- * 同构体代码生成器
- * 负责将 LSI 实体结构转换为同构体 Kotlin 代码
+ * 同构体代码生成器（XProcessing 版本）
  */
-class IsoCodeGenerator() {
+object IsoCodeGenerator {
+    private const val JIMMER_ENTITY_ANNOTATION = "org.babyfish.jimmer.sql.Entity"
 
-    /**
-     * 生成同构体代码
-     */
-    fun generateIsoCode(entity: LsiClass, packageName: String): String {
-        val propertyModels = entity.fields.mapNotNull { field ->
-            val name = field.name ?: return@mapNotNull null
-            val type = field.type
-            val typeResult = type?.let { buildIsoType(it, packageName) } ?: IsoTypeResult("Any")
-            val defaultValueResult = defaultValueFor(field, typeResult)
-
+    fun generateIsoCode(entity: XTypeElement, packageName: String): String {
+        val propertyModels = collectEntityProperties(entity).map { property ->
+            val typeResult = buildIsoType(property.type, packageName)
+            val defaultValueResult = defaultValueFor(property, typeResult)
             val contextualAnnotation = if (typeResult.contextual) "@Contextual " else ""
-            val nullableSuffix = if (field.isNullable) "?" else ""
+            val nullableSuffix = if (property.nullable) "?" else ""
 
             PropertyModel(
-                code = "    ${contextualAnnotation}val $name: ${typeResult.rendered}$nullableSuffix = ${defaultValueResult.code}",
+                code = "    ${contextualAnnotation}val ${property.name}: ${typeResult.rendered}$nullableSuffix = ${defaultValueResult.code}",
                 imports = typeResult.imports + defaultValueResult.imports,
                 needsExperimentalTimeOptIn = defaultValueResult.needsExperimentalTimeOptIn
             )
@@ -49,15 +44,18 @@ class IsoCodeGenerator() {
             |
             |${optimizedImports.takeIf { it.isNotBlank() } ?: ""}
             |
-            |data class ${entity.simpleName}Iso(
+            |data class ${entity.name}Iso(
             |$props
             |)
         """.trimMargin().trim()
     }
 
-    /**
-     * 生成属性代码
-     */
+    private data class EntityProperty(
+        val name: String,
+        val type: XType,
+        val nullable: Boolean
+    )
+
     private data class PropertyModel(
         val code: String,
         val imports: Set<String>,
@@ -88,32 +86,83 @@ class IsoCodeGenerator() {
         val needsExperimentalTimeOptIn: Boolean = false
     )
 
-    private fun buildIsoType(type: LsiType, currentPackageName: String): IsoTypeResult {
-        if (type.isArray) {
+    private fun collectEntityProperties(entity: XTypeElement): List<EntityProperty> {
+        val byName = linkedMapOf<String, EntityProperty>()
+
+        entity.getAllMethods()
+            .asSequence()
+            .filter { it.isKotlinPropertyGetter() }
+            .filter { !it.isStatic() }
+            .filter { it.parameters.isEmpty() }
+            .forEach { method ->
+                val propertyName = method.propertyName ?: normalizeMethodPropertyName(method)
+                if (propertyName.isBlank()) {
+                    return@forEach
+                }
+                byName[propertyName] = EntityProperty(
+                    name = propertyName,
+                    type = method.returnType,
+                    nullable = method.returnType.nullability == XNullability.NULLABLE
+                )
+            }
+
+        if (byName.isNotEmpty()) {
+            return byName.values.toList()
+        }
+
+        entity.getAllFieldsIncludingPrivateSupers()
+            .asSequence()
+            .filter { !it.isStatic() }
+            .forEach { field ->
+                byName[field.name] = EntityProperty(
+                    name = field.name,
+                    type = field.type,
+                    nullable = field.type.nullability == XNullability.NULLABLE
+                )
+            }
+
+        return byName.values.toList()
+    }
+
+    private fun normalizeMethodPropertyName(method: XMethodElement): String {
+        val methodName = method.name
+        if (methodName.startsWith("get") && methodName.length > 3) {
+            return methodName.substring(3).replaceFirstChar { it.lowercase() }
+        }
+        if (methodName.startsWith("is") && methodName.length > 2) {
+            return methodName.substring(2).replaceFirstChar { it.lowercase() }
+        }
+        return methodName
+    }
+
+    private fun buildIsoType(type: XType, currentPackageName: String): IsoTypeResult {
+        val typeElement = type.typeElement
+        val qualifiedName = typeElement?.qualifiedName
+        val simpleName = qualifiedName?.substringAfterLast('.') ?: parseSimpleTypeName(type.asTypeName().toString())
+
+        if (type.isArray()) {
             return buildIsoArrayType(type, currentPackageName)
         }
 
-        if (type.isCollectionType) {
-            val rawName = type.simpleName ?: type.presentableText ?: type.qualifiedName ?: "List"
-            val renderedArgs = type.typeParameters.map { buildIsoType(it, currentPackageName) }
+        if (isCollectionType(qualifiedName, simpleName)) {
+            val renderedArgs = type.typeArguments.map { buildIsoType(it, currentPackageName) }
             val rendered = if (renderedArgs.isNotEmpty()) {
-                "$rawName<${renderedArgs.joinToString(", ") { it.rendered }}>"
+                "$simpleName<${renderedArgs.joinToString(", ") { it.rendered }}>"
             } else {
-                rawName
+                simpleName
             }
             val imports = renderedArgs.flatMap { it.imports }.toSet()
             return IsoTypeResult(rendered = rendered, imports = imports, kind = IsoTypeKind.COLLECTION)
         }
 
-        val qualifiedName = type.qualifiedName ?: type.lsiClass?.qualifiedName
-        val simpleName = type.simpleName ?: qualifiedName?.substringAfterLast('.') ?: "Any"
-
         mapToKotlinPrimitive(simpleName)?.let { primitive ->
             return IsoTypeResult(rendered = primitive, kind = IsoTypeKind.BASIC)
         }
-        if (simpleName == "String" || qualifiedName == "kotlin.String" || qualifiedName == "java.lang.String") {
+
+        if (qualifiedName == "kotlin.String" || qualifiedName == "java.lang.String" || simpleName == "String") {
             return IsoTypeResult(rendered = "String", kind = IsoTypeKind.BASIC)
         }
+
         if (qualifiedName == "java.math.BigDecimal" || simpleName == "BigDecimal") {
             return IsoTypeResult(
                 rendered = "BigDecimal",
@@ -127,7 +176,8 @@ class IsoCodeGenerator() {
             val contextual = mapped in setOf("LocalDateTime", "LocalDate", "Instant")
             return IsoTypeResult(
                 rendered = mapped,
-                imports = setOf("import kotlinx.datetime.$mapped") + if (contextual) setOf("import kotlinx.serialization.Contextual") else emptySet(),
+                imports = setOf("import kotlinx.datetime.$mapped") +
+                    if (contextual) setOf("import kotlinx.serialization.Contextual") else emptySet(),
                 kind = IsoTypeKind.DATE_TIME,
                 contextual = contextual,
                 rawQualifiedName = qualifiedName
@@ -138,8 +188,7 @@ class IsoCodeGenerator() {
             return IsoTypeResult(rendered = "Long", kind = IsoTypeKind.BASIC, rawQualifiedName = qualifiedName)
         }
 
-        val isEnum = type.lsiClass?.isEnum == true
-        if (isEnum) {
+        if (typeElement?.isEnum() == true) {
             val imports = qualifiedName
                 ?.takeIf { shouldImport(it, currentPackageName) }
                 ?.let { setOf("import $it") }
@@ -147,7 +196,7 @@ class IsoCodeGenerator() {
             return IsoTypeResult(rendered = simpleName, imports = imports, kind = IsoTypeKind.ENUM, rawQualifiedName = qualifiedName)
         }
 
-        if (type.lsiClass?.isJimmerEntity ?: false) {
+        if (isJimmerEntity(typeElement)) {
             return IsoTypeResult(rendered = "${simpleName}Iso", kind = IsoTypeKind.ENTITY_ISO, rawQualifiedName = qualifiedName)
         }
 
@@ -155,26 +204,25 @@ class IsoCodeGenerator() {
             ?.takeIf { shouldImport(it, currentPackageName) }
             ?.let { setOf("import $it") }
             .orEmpty()
-
         return IsoTypeResult(rendered = simpleName, imports = imports, kind = IsoTypeKind.OTHER, rawQualifiedName = qualifiedName)
     }
 
-    private fun buildIsoArrayType(type: LsiType, currentPackageName: String): IsoTypeResult {
-        val qualifiedName = type.qualifiedName ?: type.lsiClass?.qualifiedName
-        val simpleName = type.simpleName ?: qualifiedName?.substringAfterLast('.') ?: "Array"
+    private fun buildIsoArrayType(type: XType, currentPackageName: String): IsoTypeResult {
+        val qualifiedName = type.typeElement?.qualifiedName
+        val simpleName = qualifiedName?.substringAfterLast('.') ?: parseSimpleTypeName(type.asTypeName().toString())
 
         if (simpleName != "Array" && (qualifiedName?.startsWith("kotlin.") == true)) {
             return IsoTypeResult(rendered = simpleName, kind = IsoTypeKind.ARRAY, rawQualifiedName = qualifiedName)
         }
 
-        val arg = type.componentType?.let { buildIsoType(it, currentPackageName) }
+        val arg = type.typeArguments.firstOrNull()?.let { buildIsoType(it, currentPackageName) }
         val rendered = if (arg != null) "Array<${arg.rendered}>" else "Array<Any>"
         val imports = arg?.imports.orEmpty()
         return IsoTypeResult(rendered = rendered, imports = imports, kind = IsoTypeKind.ARRAY, rawQualifiedName = qualifiedName)
     }
 
-    private fun defaultValueFor(field: LsiField, type: IsoTypeResult): DefaultValueResult {
-        if (field.isNullable) return DefaultValueResult("null")
+    private fun defaultValueFor(property: EntityProperty, type: IsoTypeResult): DefaultValueResult {
+        if (property.nullable) return DefaultValueResult("null")
 
         return when (type.kind) {
             IsoTypeKind.BASIC -> when (type.rendered) {
@@ -206,16 +254,14 @@ class IsoCodeGenerator() {
             IsoTypeKind.ARRAY -> DefaultValueResult(
                 code = when {
                     type.rendered.startsWith("Array<") -> "emptyArray()"
-                    type.rendered.endsWith("Array") -> "${type.rendered.replace("<", "").replace(">", "").replace(",", "")}Of()"
+                    type.rendered.endsWith("Array") -> "${type.rendered}Of()"
                     else -> "emptyArray()"
                 }
             )
 
             IsoTypeKind.DATE_TIME -> {
-                val imports = mutableSetOf<String>()
+                val imports = mutableSetOf("import kotlin.time.Clock")
                 val needsExperimentalTime = true
-                imports.add("import kotlin.time.Clock")
-
                 val code = when (type.rendered) {
                     "LocalDateTime" -> {
                         imports.add("import kotlinx.datetime.TimeZone")
@@ -238,7 +284,6 @@ class IsoCodeGenerator() {
                     "Instant" -> "Clock.System.now()"
                     else -> "TODO()"
                 }
-
                 DefaultValueResult(code = code, imports = imports, needsExperimentalTimeOptIn = needsExperimentalTime)
             }
 
@@ -263,59 +308,57 @@ class IsoCodeGenerator() {
     }
 
     private fun mapToKotlinxDateTime(qualifiedName: String?, simpleName: String): String? {
-        return when {
-            qualifiedName == null -> null
-
-            qualifiedName.startsWith("java.time.") || qualifiedName.startsWith("kotlinx.datetime.") -> when (simpleName) {
-                "LocalDateTime", "LocalDate", "LocalTime", "Instant" -> simpleName
-                "ZonedDateTime", "OffsetDateTime" -> "LocalDateTime"
-                else -> null
-            }
-
-            qualifiedName == "java.sql.Date" -> "LocalDate"
-            qualifiedName == "java.sql.Time" -> "LocalTime"
-            qualifiedName == "java.sql.Timestamp" -> "LocalDateTime"
+        val normalized = qualifiedName ?: simpleName
+        return when (normalized) {
+            "java.time.LocalDate" -> "LocalDate"
+            "java.time.LocalDateTime" -> "LocalDateTime"
+            "java.time.LocalTime" -> "LocalTime"
+            "java.time.Instant" -> "Instant"
+            "kotlinx.datetime.LocalDate" -> "LocalDate"
+            "kotlinx.datetime.LocalDateTime" -> "LocalDateTime"
+            "kotlinx.datetime.LocalTime" -> "LocalTime"
+            "kotlinx.datetime.Instant" -> "Instant"
             else -> null
         }
     }
 
-    private fun isJimmerEntityType(type: LsiType, qualifiedName: String?): Boolean {
-
-        val lsiClass = type.lsiClass
-        val hasEntityAnno = lsiClass?.annotations?.any {
-            it.qualifiedName == "org.babyfish.jimmer.sql.Entity" || it.simpleName == "Entity"
-        } == true
-        if (hasEntityAnno) return true
-
-        val qName = qualifiedName ?: return false
-        return looksLikeJimmerEntityByPackage(qName)
-    }
-
-    private fun looksLikeJimmerEntityByPackage(qualifiedType: String): Boolean {
-        return qualifiedType.contains(".entity.") ||
-                qualifiedType.contains(".modules.") ||
-                qualifiedType.startsWith("site.addzero.web.modules.")
-    }
-
-    private fun shouldImport(qualifiedType: String, currentPackageName: String): Boolean {
-        if (qualifiedType.startsWith("$currentPackageName.")) return false
-        if (isKotlinBuiltinType(qualifiedType)) return false
-        if (looksLikeJimmerEntityByPackage(qualifiedType)) return false
-        return true
-    }
-
-    private fun isKotlinBuiltinType(typeName: String): Boolean {
-        if (!typeName.contains('.')) {
-            return typeName in setOf(
-                "String", "Int", "Long", "Boolean", "Double", "Float", "Short", "Byte", "Char", "Any",
-                "List", "Set", "Map", "MutableList", "MutableSet", "MutableMap"
-            )
+    private fun isCollectionType(qualifiedName: String?, simpleName: String): Boolean {
+        if (qualifiedName == null) {
+            return simpleName in setOf("List", "MutableList", "Set", "MutableSet", "Collection", "Map", "MutableMap")
         }
-        return typeName.startsWith("kotlin.") ||
-                typeName.startsWith("kotlin.collections.") ||
-                typeName.startsWith("kotlin.ranges.") ||
-                typeName.startsWith("kotlin.sequences.") ||
-                typeName.startsWith("kotlin.io.") ||
-                typeName.startsWith("java.lang.")
+        return qualifiedName in setOf(
+            "kotlin.collections.List",
+            "kotlin.collections.MutableList",
+            "kotlin.collections.Set",
+            "kotlin.collections.MutableSet",
+            "kotlin.collections.Collection",
+            "kotlin.collections.Map",
+            "kotlin.collections.MutableMap",
+            "java.util.List",
+            "java.util.Set",
+            "java.util.Collection",
+            "java.util.Map"
+        )
+    }
+
+    private fun isJimmerEntity(typeElement: XTypeElement?): Boolean {
+        return typeElement?.getAllAnnotations()?.any { it.qualifiedName == JIMMER_ENTITY_ANNOTATION } == true
+    }
+
+    private fun parseSimpleTypeName(typeName: String): String {
+        return typeName
+            .substringBefore('<')
+            .substringAfterLast('.')
+            .removeSuffix("?")
+            .trim()
+            .ifBlank { "Any" }
+    }
+
+    private fun shouldImport(qualifiedName: String, currentPackageName: String): Boolean {
+        val packageName = qualifiedName.substringBeforeLast('.', missingDelimiterValue = "")
+        if (packageName.isBlank()) return false
+        return packageName != currentPackageName &&
+            !qualifiedName.startsWith("kotlin.") &&
+            !qualifiedName.startsWith("java.lang.")
     }
 }
