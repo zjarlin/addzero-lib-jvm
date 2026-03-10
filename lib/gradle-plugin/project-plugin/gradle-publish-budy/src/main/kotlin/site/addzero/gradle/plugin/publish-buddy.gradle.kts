@@ -300,7 +300,5 @@ afterEvaluate {
 
 subprojects {
     if (!path.startsWith(":lib")) return@subprojects
-    // 排除不需要签名的项目
-    if (path == ":lib:apt-dict-processor") return@subprojects
     apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
 }

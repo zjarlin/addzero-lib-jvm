@@ -409,6 +409,7 @@ io-ktor-ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", v
 io-ktor-ktor-client-js = { group = "io.ktor", name = "ktor-client-js", version.ref = "ktor" }
 io-ktor-ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 io-ktor-ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+io-ktor-ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
 io-ktor-ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 io-ktor-ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 io-ktor-ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
@@ -419,6 +420,7 @@ io-ktor-ktor-server-routing-openapi = { group = "io.ktor", name = "ktor-server-r
 io-ktor-ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
 io-ktor-ktor-server-swagger = { group = "io.ktor", name = "ktor-server-swagger", version.ref = "ktor" }
 io-ktor-ktor-server-test-host-jvm = { group = "io.ktor", name = "ktor-server-test-host-jvm", version.ref = "ktor" }
+io-ktor-ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
 #--------------------- org.apache.httpcomponents ----------------------
 org-apache-httpcomponents-httpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "org-apache-httpcomponents-httpclient" }
 org-apache-httpcomponents-httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "org-apache-httpcomponents-httpcore" }
