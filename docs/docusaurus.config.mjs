@@ -39,6 +39,22 @@ const config = {
       },
     ],
   ],
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        language: ['en', 'zh'],
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: false,
+        docsDir: 'content',
+        docsRouteBasePath: '/',
+        explicitSearchResultPath: true,
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
   themeConfig: {
     colorMode: {
       respectPrefersColorScheme: true,
@@ -51,6 +67,10 @@ const config = {
           sidebarId: 'docsSidebar',
           label: '文档',
           position: 'left',
+        },
+        {
+          type: 'search',
+          position: 'right',
         },
         {
           href: 'https://github.com/zjarlin/addzero-lib-jvm',
