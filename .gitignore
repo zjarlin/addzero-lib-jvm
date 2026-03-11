@@ -1,7 +1,6 @@
 *.iml
-.kotlin
-**/.gradle
-!*/.gradle
+.kotlin/
+.gradle/
 .autoddl
 settings.gradle.kts
 

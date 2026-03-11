@@ -51,12 +51,14 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         pluginContext: IrPluginContext,
     ) {
         val converters = collectConverters(moduleFragment)
+        println("[TransformOverload] Collected ${converters.size} converters: ${converters.map { it.callableIdText }}")
         if (converters.isEmpty()) {
             return
         }
         val helperSymbols = LiftHelperSymbols(pluginContext)
         moduleFragment.files.forEach { file ->
             processTopLevelFunctions(file, pluginContext, converters, helperSymbols)
+            processTopLevelClasses(file, pluginContext, converters, helperSymbols)
             processNestedClasses(file, pluginContext, converters, helperSymbols)
         }
     }
@@ -69,6 +71,45 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
     ) {
         val functions = file.declarations.filterIsInstance<IrSimpleFunction>()
         processFunctionContainer(functions, pluginContext, converters, helperSymbols)
+    }
+
+    private fun processTopLevelClasses(
+        file: IrFile,
+        pluginContext: IrPluginContext,
+        converters: List<IrConverterSpec>,
+        helperSymbols: LiftHelperSymbols,
+    ) {
+        val classes = file.declarations.filterIsInstance<IrClass>()
+        println("[TransformOverload] Found ${classes.size} top-level classes/interfaces")
+        classes.forEach { classDecl ->
+            val kind = classDecl.kind
+            println("[TransformOverload] Processing $kind: ${classDecl.name}")
+            val functions = classDecl.declarations.filterIsInstance<IrSimpleFunction>()
+            println("[TransformOverload] Found ${functions.size} functions in ${classDecl.name}")
+            if (classDecl.name.asString() == "UserRepository") {
+                functions.forEach { func ->
+                    val params = func.valueParameters.joinToString { "${it.name}: ${it.type}" }
+                    val paramTypes = func.valueParameters.map { param ->
+                        when (val type = param.type) {
+                            is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
+                                when (val classifier = type.classifier) {
+                                    is org.jetbrains.kotlin.ir.symbols.IrClassSymbol -> classifier.owner.fqNameWhenAvailable?.asString() ?: classifier.owner.name.asString()
+                                    else -> type.toString()
+                                }
+                            }
+                            else -> type.toString()
+                        }
+                    }
+                    println("[TransformOverload]   UserRepository.${func.name}($paramTypes)")
+                }
+            }
+            processFunctionContainer(
+                functions,
+                pluginContext,
+                converters,
+                helperSymbols,
+            )
+        }
     }
 
     private fun processNestedClasses(
@@ -100,16 +141,130 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         converters: List<IrConverterSpec>,
         helperSymbols: LiftHelperSymbols,
     ) {
-        val originals = functions.filter { function ->
-            !isGeneratedByThisPlugin(function) && isSupportedOriginalFunction(function)
+        // 分离原始函数和候选函数
+        val originals = mutableListOf<IrSimpleFunction>()
+        val candidates = mutableListOf<IrSimpleFunction>()
+
+        for (function in functions) {
+            when {
+                // 跳过带有 @OverloadTransform 注解的函数（它们是转换器）
+                function.hasAnnotation(TransformOverloadPluginKeys.overloadTransformAnnotation) -> continue
+                // 检测是否是生成的函数（通过 origin 或参数类型）
+                isGeneratedByThisPlugin(function) || hasStubBody(function) -> candidates.add(function)
+                // 其他支持的函数作为原始函数
+                isSupportedOriginalFunction(function) -> originals.add(function)
+            }
         }
-        val generatedFunctions = functions.filter(::isGeneratedByThisPlugin)
-        if (generatedFunctions.isEmpty()) {
+
+        // Kotlin 2.3.20-RC: FIR 生成的占位符可能在 IR 阶段被修改
+        // 额外检测：参数类型为 Input 或 Draft 的函数也可能是生成的重载
+        for (func in functions) {
+            if (func in candidates || func in originals) continue
+            val hasInputOrDraftParam = func.valueParameters.any { param ->
+                val type = param.type
+                val typeName = when (type) {
+                    is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
+                        when (val classifier = type.classifier) {
+                            is org.jetbrains.kotlin.ir.symbols.IrClassSymbol ->
+                                classifier.owner.fqNameWhenAvailable?.asString() ?: ""
+                            else -> ""
+                        }
+                    }
+                    else -> ""
+                }
+                typeName.contains("Input") || typeName.contains("Draft")
+            }
+            if (hasInputOrDraftParam) {
+                println("[TransformOverload] Adding ${func.name} to candidates (param type has Input/Draft)")
+                candidates.add(func)
+            }
+        }
+
+        println("[TransformOverload] candidates: ${candidates.map { it.name }}")
+        println("[TransformOverload] originals: ${originals.map { it.name }}")
+
+        // 处理所有可能的重载候选（包括 candidates 和某些 originals）
+        // 如果 original 函数的参数类型可以与另一个 original 函数匹配，则它可能是生成的重载
+        val allCandidates = mutableListOf<IrSimpleFunction>()
+        allCandidates.addAll(candidates)
+
+        // 也尝试处理那些参数类型为 Input/Draft 的 original 函数
+        for (orig in originals) {
+            if (orig in allCandidates) continue
+            // 检查参数类型是否包含 Input 或 Draft
+            val hasInputOrDraftParam = orig.valueParameters.any { param ->
+                val type = param.type
+                val classifierName = when (type) {
+                    is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
+                        val classifier = type.classifier
+                        when (classifier) {
+                            is org.jetbrains.kotlin.ir.symbols.IrClassSymbol -> classifier.owner.fqNameWhenAvailable?.asString() ?: ""
+                            is org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol -> classifier.owner.name.asString()
+                            else -> classifier.toString()
+                        }
+                    }
+                    else -> type.toString()
+                }
+                classifierName.contains("Input") || classifierName.contains("Draft")
+            }
+            if (hasInputOrDraftParam) {
+                println("[TransformOverload] Adding ${orig.name} to candidates (has Input/Draft param)")
+                allCandidates.add(orig)
+            }
+        }
+
+        // 添加其他可能有生成重载的函数（因为 Kotlin 2.3.20-RC 可能丢失 origin 信息）
+        // 检查所有函数的参数类型，如果包含 Input 或 Draft，则可能是生成的重载
+        val additionalCandidates = functions.filter { func ->
+            val isNotAlreadyProcessed = func !in allCandidates
+            if (!isNotAlreadyProcessed) return@filter false
+            val hasInputOrDraft = func.valueParameters.any { param ->
+                val type = param.type
+                // 获取类型的分类器名称
+                val classifierName = when (type) {
+                    is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
+                        val classifier = type.classifier
+                        when (classifier) {
+                            is org.jetbrains.kotlin.ir.symbols.IrClassSymbol -> {
+                                val fqName = classifier.owner.fqNameWhenAvailable?.asString() ?: classifier.owner.name.asString()
+                                println("[TransformOverload] Checking ${func.name}: param ${param.name} has class: $fqName")
+                                fqName
+                            }
+                            is org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol -> classifier.owner.name.asString()
+                            else -> classifier.toString()
+                        }
+                    }
+                    else -> type.toString()
+                }
+                val contains = classifierName.contains("Input") || classifierName.contains("Draft")
+                contains
+            }
+            hasInputOrDraft
+        }
+        println("[TransformOverload] additionalCandidates names: ${additionalCandidates.map { "${it.name}(${it.valueParameters.map { p -> p.type.toString() }})" }}")
+        allCandidates.addAll(additionalCandidates)
+        println("[TransformOverload] allCandidates after adding additional: ${allCandidates.map { it.name }}")
+
+        if (allCandidates.isEmpty()) {
             return
         }
-        generatedFunctions.forEach { generated ->
-            val match = resolveMatch(generated, originals, converters) ?: return@forEach
-            generated.body = createDelegatingBody(pluginContext, generated, match, helperSymbols)
+
+        // 尝试对每个候选函数进行匹配和转换
+        for (candidate in allCandidates) {
+            val match = resolveMatch(candidate, originals, converters)
+            if (match != null) {
+                println("[TransformOverload] Resolved match for ${candidate.name}: -> ${match.original.name}")
+                try {
+                    val newBody = createDelegatingBody(pluginContext, candidate, match, helperSymbols)
+                    candidate.body = newBody
+                    println("[TransformOverload] Successfully replaced body for ${candidate.name}")
+                } catch (e: Exception) {
+                    println("[TransformOverload] Failed to replace body for ${candidate.name}: ${e.message}")
+                    e.printStackTrace()
+                }
+            } else {
+                println("[TransformOverload] No match for ${candidate.name}")
+            }
         }
     }
 
@@ -213,7 +368,9 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
     ): IrOverloadMatch? {
         val originalName = original.name.asString()
         val generatedName = generated.name.asString()
+        println("[TransformOverload] resolveAgainstOriginal: generated=$generatedName, original=$originalName")
         if (generatedName != originalName && !generatedName.startsWith("${originalName}Via")) {
+            println("[TransformOverload]   -> name mismatch")
             return null
         }
         if (original.valueParameters.size != generated.valueParameters.size) {
@@ -632,8 +789,55 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
 
     private fun isGeneratedByThisPlugin(function: IrSimpleFunction): Boolean {
         val origin = function.origin
-        return origin is IrDeclarationOrigin.GeneratedByPlugin &&
+        val isGenerated = origin is IrDeclarationOrigin.GeneratedByPlugin &&
             origin.pluginKey == TransformOverloadGeneratedDeclarationKey
+        if (isGenerated) {
+            println("[TransformOverload] Detected by origin: ${function.name}")
+            return true
+        }
+        // 备用检测1：检查方法名是否以 "Via" 开头（重命名生成的函数）
+        val name = function.name.asString()
+        if (name.contains("Via")) {
+            println("[TransformOverload] Detected by name (Via): ${function.name}")
+            return true
+        }
+        // 备用检测2：检查方法体是否为插件生成的占位符
+        val body = function.body
+        if (body != null) {
+            println("[TransformOverload] Checking body for: ${function.name}, body type: ${body::class.simpleName}")
+        }
+        val hasStub = hasStubBody(function)
+        if (hasStub) {
+            println("[TransformOverload] Detected by stub body: ${function.name}")
+        }
+        return hasStub
+    }
+
+    private fun hasStubBody(function: IrSimpleFunction): Boolean {
+        val body = function.body as? org.jetbrains.kotlin.ir.expressions.IrBlockBody ?: return false
+        // 检查方法体是否是单个 throw 表达式
+        // 生成的占位符方法体是：throw Throwable("Transform overload stub body should be lowered in IR")
+        val statements = body.statements
+        println("[TransformOverload] ${function.name}: statements count = ${statements.size}")
+        if (statements.size < 1) return false
+        for ((index, stmt) in statements.withIndex()) {
+            println("[TransformOverload] ${function.name}: statement[$index] type = ${stmt::class.simpleName}")
+        }
+        if (statements.size != 1) return false
+        val throwExpr = statements[0] as? org.jetbrains.kotlin.ir.expressions.IrThrow
+        if (throwExpr == null) {
+            println("[TransformOverload] ${function.name}: not a throw expression")
+            return false
+        }
+        val constructorCall = throwExpr.value as? org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+        if (constructorCall == null) {
+            println("[TransformOverload] ${function.name}: throw value is not constructor call")
+            return false
+        }
+        val parent = constructorCall.symbol.owner.parent
+        val className = (parent as? IrClass)?.fqNameWhenAvailable?.asString()
+        println("[TransformOverload] ${function.name}: constructor parent = $className")
+        return className == "java.lang.Throwable" || className == "kotlin.Throwable"
     }
 
     private fun IrDeclaration.hasAnnotation(annotationFqName: FqName): Boolean {
