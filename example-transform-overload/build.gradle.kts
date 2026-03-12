@@ -1,4 +1,5 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.api.tasks.JavaExec
 
 plugins {
   id("site.addzero.buildlogic.jvm.kotlin-convention")
@@ -28,7 +29,7 @@ tasks.test {
   )
 }
 
-tasks.withType<JavaExec>().configureEach {
+tasks.named<JavaExec>("run") {
   javaLauncher.set(
     javaToolchains.launcherFor {
       languageVersion.set(JavaLanguageVersion.of(17))
@@ -37,5 +38,5 @@ tasks.withType<JavaExec>().configureEach {
 }
 
 application {
-  mainClass.set("site.addzero.example.GeneratedMethodsDemoKt")
+  mainClass.set("site.addzero.example.MainKt")
 }

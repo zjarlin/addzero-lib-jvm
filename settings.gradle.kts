@@ -18,7 +18,7 @@ plugins {
 }
 includeBuild("build-logic")
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-12T16:12:50.603298
+// Generated at: 2026-03-12T16:14:02.375370
 // Loaded: 4, Excluded: 0, Total: 4
 include(":example-transform-overload")
 include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
