@@ -1,0 +1,2 @@
+site.addzero.network.call.payment.alipay.AlipayPaymentProvider
+site.addzero.network.call.payment.wechat.WechatPaymentProvider

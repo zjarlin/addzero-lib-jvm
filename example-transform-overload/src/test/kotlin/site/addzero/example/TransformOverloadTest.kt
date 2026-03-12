@@ -1,6 +1,7 @@
 package site.addzero.example
 
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 /**
  * 测试类 - 验证插件生成的重载方法
@@ -27,10 +28,14 @@ class TransformOverloadTest {
             override fun findById(id: Long): User? = null
         }
 
-      userRepo.save(User(1L, "Test", "test@test.com"))
-        // 编译后，以下调用应该可以正常工作：
-//         val userInput= StringInput(User(1L, "Test", "test@test.com"))
-//         userRepo.save(userInput)  // 自动转换
+        val expected = User(1L, "Test", "test@test.com")
+        assertEquals(expected, userRepo.save(expected))
+
+        val userInput: Input<User> = object : Input<User> {
+            override fun toEntity(): User = expected
+        }
+
+        assertEquals(expected, userRepo.save(userInput))
     }
 
     @Test
@@ -41,6 +46,6 @@ class TransformOverloadTest {
 
         // 测试转换函数
         val user = userInput.toEntityInput()
-        println("Converted: $user")
+        assertEquals(User(1L, "Test", "test@test.com"), user)
     }
 }

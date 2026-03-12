@@ -1,63 +1,41 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 plugins {
-    kotlin("jvm")
-    application
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
+  application
+  id("site.addzero.kcp.transform-overload")
 }
 
 group = "site.addzero.example"
 version = "1.0-SNAPSHOT"
 
-kotlin {
-    jvmToolchain(17)
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 repositories {
-    mavenCentral()
+  mavenLocal()
+  mavenCentral()
+  google()
 }
 
 dependencies {
-    implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
-    testImplementation(kotlin("test"))
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    dependsOn(":lib:kcp:transform-overload:kcp-transform-overload-plugin:jar")
-
-    val pluginProject = project(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
-    val pluginVersion = pluginProject.version
-    val pluginJar = pluginProject.layout.buildDirectory.file("libs/kcp-transform-overload-plugin-${pluginVersion}.jar")
-
-    doFirst {
-        val jarFile = pluginJar.get().asFile
-        if (!jarFile.exists()) {
-            throw GradleException("Plugin jar not found: ${jarFile.absolutePath}")
-        }
-    }
-
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            provider {
-                val jarFile = pluginJar.get().asFile
-                listOf("-Xplugin=${jarFile.absolutePath}")
-            }
-        )
-    }
+  testImplementation(kotlin("test"))
 }
 
 tasks.test {
-    useJUnitPlatform()
+  useJUnitPlatform()
+  javaLauncher.set(
+    javaToolchains.launcherFor {
+      languageVersion.set(JavaLanguageVersion.of(17))
+    },
+  )
+}
+
+tasks.withType<JavaExec>().configureEach {
+  javaLauncher.set(
+    javaToolchains.launcherFor {
+      languageVersion.set(JavaLanguageVersion.of(17))
+    },
+  )
 }
 
 application {
-    mainClass.set("site.addzero.example.GeneratedMethodsDemoKt")
+  mainClass.set("site.addzero.example.GeneratedMethodsDemoKt")
 }

@@ -4,7 +4,11 @@
 
 ## 项目说明
 
-此示例项目已作为子模块包含在主项目中，可以直接使用项目内部的插件和依赖，无需额外发布到 Maven 本地仓库。
+此示例项目现在按“本地 Maven 已发布 Gradle 插件”的方式配置：
+
+- `settings.gradle.kts` 里的 `pluginManagement` 会先查 `mavenLocal()`
+- 通过 `id("site.addzero.kcp.transform-overload")` 应用插件
+- 注解依赖由 Gradle 子插件自动补入，无需再手写 `annotations` 依赖
 
 ## 项目结构
 
@@ -81,7 +85,8 @@ interface UserRepository {
 
 ## 注意事项
 
-1. 转换函数必须是扩展函数或 TransformProvider 中的方法
-2. 接口/类级别标记会为所有方法生成重载
-3. 函数级别标记只针对单个方法
-4. 生成的重载方法名会根据转换函数名进行命名（如 `ViaToEntityInput`）
+1. `pluginManagement` 必须写在 `settings.gradle.kts`，不能写在 `build.gradle.kts`
+2. 转换函数必须是扩展函数或 `TransformProvider` 中的方法
+3. 接口/类级别标记会为所有方法生成重载
+4. 函数级别标记只针对单个方法
+5. 生成的重载方法名会根据转换函数名进行命名，例如 `ViaToEntityInput`

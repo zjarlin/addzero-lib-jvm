@@ -56,21 +56,31 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             return
         }
         val helperSymbols = LiftHelperSymbols(pluginContext)
+        processTopLevelPackages(moduleFragment, pluginContext, converters, helperSymbols)
         moduleFragment.files.forEach { file ->
-            processTopLevelFunctions(file, pluginContext, converters, helperSymbols)
             processTopLevelClasses(file, pluginContext, converters, helperSymbols)
             processNestedClasses(file, pluginContext, converters, helperSymbols)
         }
     }
 
-    private fun processTopLevelFunctions(
-        file: IrFile,
+    private fun processTopLevelPackages(
+        moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
         converters: List<IrConverterSpec>,
         helperSymbols: LiftHelperSymbols,
     ) {
-        val functions = file.declarations.filterIsInstance<IrSimpleFunction>()
-        processFunctionContainer(functions, pluginContext, converters, helperSymbols)
+        moduleFragment.files
+            .groupBy { file -> file.packageFqName }
+            .values
+            .map { files ->
+                files.flatMap { file ->
+                    file.declarations.filterIsInstance<IrSimpleFunction>()
+                }
+            }
+            .filter { functions -> functions.isNotEmpty() }
+            .forEach { functions ->
+                processFunctionContainer(functions, pluginContext, converters, helperSymbols)
+            }
     }
 
     private fun processTopLevelClasses(
@@ -358,7 +368,18 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         val matches = originals.mapNotNull { original ->
             resolveAgainstOriginal(generated, original, converters)
         }
-        return matches.singleOrNull()
+        if (matches.isEmpty()) {
+            return null
+        }
+
+        // FIR keeps the first same-signature candidate as the same-name overload and renames
+        // later colliding candidates. IR needs to mirror that selection when multiple
+        // converters can produce the same generated parameter types.
+        return if (matches.any { match -> generated.name == match.original.name }) {
+            matches.first()
+        } else {
+            matches.singleOrNull()
+        }
     }
 
     private fun resolveAgainstOriginal(
@@ -431,7 +452,18 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             }
         }
         walk(0, mutableListOf())
-        return resolved.singleOrNull()
+        if (resolved.isEmpty()) {
+            return null
+        }
+
+        // For same-name overloads, multiple converters may still match the generated
+        // parameter types. FIR chooses the first candidate and renames the later ones,
+        // so IR must do the same to avoid leaving the stub body behind.
+        return if (generated.name == original.name) {
+            resolved.first()
+        } else {
+            resolved.singleOrNull()
+        }
     }
 
     private fun resolveParameterTransform(

@@ -186,6 +186,74 @@ class TransformOverloadCompilerIntegrationTest {
         )
     }
 
+    @Test
+    fun lowers_same_name_overload_when_multiple_converters_share_source_type() {
+        val result = compile(
+            mapOf(
+                "org/babyfish/jimmer/Stubs.kt" to jimmerStubsSource(),
+                "org/babyfish/jimmer/spring/repo/RuntimeTargets.kt" to """
+                    package org.babyfish.jimmer.spring.repo
+
+                    import org.babyfish.jimmer.Input
+                    import site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads
+                    import site.addzero.kcp.transformoverload.annotations.OverloadTransform
+                    import site.addzero.kcp.transformoverload.annotations.TransformProvider
+
+                    @OverloadTransform
+                    fun <E : Any> Input<E>.toEntityInput(): E = toEntity()
+
+                    object ExtraConverters : TransformProvider {
+                        @OverloadTransform
+                        fun <E : Any> Input<E>.toEntityViaProvider(): E = toEntity()
+                    }
+
+                    @GenerateTransformOverloads
+                    interface RuntimeRepository {
+                        fun save(entity: String): String
+                        fun findById(id: Long): String
+                    }
+
+                    @GenerateTransformOverloads
+                    fun topSave(entity: String): String = "top:${'$'}entity"
+
+                    class RuntimeRepositoryImpl : RuntimeRepository {
+                        override fun save(entity: String): String = "saved:${'$'}entity"
+
+                        override fun findById(id: Long): String = "id:${'$'}id"
+                    }
+
+                    class StringInput(private val value: String) : Input<String> {
+                        override fun toEntity(): String = value
+                    }
+
+                    class LongInput(private val value: Long) : Input<Long> {
+                        override fun toEntity(): Long = value
+                    }
+
+                    fun invokeSameNameSave(): String =
+                        RuntimeRepositoryImpl().save(StringInput("alpha"))
+
+                    fun invokeRenamedSave(): String =
+                        RuntimeRepositoryImpl().saveViaToEntityInput(StringInput("beta"))
+
+                    fun invokeSameNameFindById(): String =
+                        RuntimeRepositoryImpl().findById(LongInput(7))
+
+                    fun invokeTopLevel(): String =
+                        topSaveViaToEntityInput(StringInput("gamma"))
+                """.trimIndent(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val runtimeKt = result.loadClass("org.babyfish.jimmer.spring.repo.RuntimeTargetsKt")
+        assertEquals("saved:alpha", runtimeKt.getMethod("invokeSameNameSave").invoke(null))
+        assertEquals("saved:beta", runtimeKt.getMethod("invokeRenamedSave").invoke(null))
+        assertEquals("id:7", runtimeKt.getMethod("invokeSameNameFindById").invoke(null))
+        assertEquals("top:gamma", runtimeKt.getMethod("invokeTopLevel").invoke(null))
+    }
+
     private fun compile(sources: Map<String, String>): CompilationResult {
         val workingDir = Files.createTempDirectory("transform-overload-it")
         val sourceDir = workingDir.resolve("src").createDirectories()

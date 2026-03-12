@@ -2,7 +2,6 @@
 .kotlin/
 .gradle/
 .autoddl
-settings.gradle.kts
 
 .ai
 **/build/

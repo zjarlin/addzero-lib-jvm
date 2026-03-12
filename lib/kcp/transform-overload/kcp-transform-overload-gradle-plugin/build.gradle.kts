@@ -1,4 +1,5 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import java.util.Properties
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
@@ -22,13 +23,32 @@ gradlePlugin {
 }
 
 tasks.processResources {
-    filesMatching("site/addzero/kcp/transformoverload/gradle-plugin.properties") {
-        expand(
-            "groupId" to project.group.toString(),
-            "version" to project.version.toString(),
-        )
+    dependsOn("generateTransformOverloadPluginCoordinates")
+    from(generatedCoordinatesDir)
+}
+
+val generatedCoordinatesDir = layout.buildDirectory.dir("generated/transformOverload/resources")
+
+val generateTransformOverloadPluginCoordinates = tasks.register("generateTransformOverloadPluginCoordinates") {
+    val outputFile = generatedCoordinatesDir.map { dir ->
+        dir.file("site/addzero/kcp/transformoverload/gradle-plugin.properties")
+    }
+    inputs.property("groupId", providers.provider { project.group.toString() })
+    inputs.property("version", providers.provider { project.version.toString() })
+    outputs.file(outputFile)
+    doLast {
+        val file = outputFile.get().asFile
+        file.parentFile.mkdirs()
+        val properties = Properties().apply {
+            setProperty("groupId", project.group.toString())
+            setProperty("version", project.version.toString())
+        }
+        file.writer().use { writer ->
+            properties.store(writer, null)
+        }
     }
 }
+
 
 val repoRootDir = project.projectDir
     .toPath()
