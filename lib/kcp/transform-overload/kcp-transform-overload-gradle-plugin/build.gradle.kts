@@ -1,10 +1,12 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import java.util.Properties
+import org.gradle.api.tasks.WriteProperties
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
     `java-gradle-plugin`
 }
+
+group = "site.addzero"
 
 dependencies {
     implementation(gradleApi())
@@ -28,25 +30,21 @@ tasks.processResources {
 }
 
 val generatedCoordinatesDir = layout.buildDirectory.dir("generated/transformOverload/resources")
+val groupId = project.group.toString()
+val pluginVersion = project.version.toString()
 
-val generateTransformOverloadPluginCoordinates = tasks.register("generateTransformOverloadPluginCoordinates") {
-    val outputFile = generatedCoordinatesDir.map { dir ->
-        dir.file("site/addzero/kcp/transformoverload/gradle-plugin.properties")
-    }
-    inputs.property("groupId", providers.provider { project.group.toString() })
-    inputs.property("version", providers.provider { project.version.toString() })
-    outputs.file(outputFile)
-    doLast {
-        val file = outputFile.get().asFile
-        file.parentFile.mkdirs()
-        val properties = Properties().apply {
-            setProperty("groupId", project.group.toString())
-            setProperty("version", project.version.toString())
+val generateTransformOverloadPluginCoordinates = tasks.register<WriteProperties>(
+    "generateTransformOverloadPluginCoordinates",
+) {
+    destinationFile = generatedCoordinatesDir
+        .map { dir ->
+            dir.file("site/addzero/kcp/transformoverload/gradle-plugin.properties")
         }
-        file.writer().use { writer ->
-            properties.store(writer, null)
-        }
-    }
+        .get()
+        .asFile
+    encoding = "UTF-8"
+    property("groupId", groupId)
+    property("version", pluginVersion)
 }
 
 
@@ -68,8 +66,8 @@ tasks.test {
         },
     )
     systemProperty("transformOverload.repoRoot", repoRootDir.absolutePath)
-    systemProperty("transformOverload.pluginGroup", project.group.toString())
-    systemProperty("transformOverload.pluginVersion", project.version.toString())
+    systemProperty("transformOverload.pluginGroup", groupId)
+    systemProperty("transformOverload.pluginVersion", pluginVersion)
     systemProperty("transformOverload.compilerPluginBuildDir", compilerPluginBuildDir.get().asFile.absolutePath)
     systemProperty("transformOverload.annotationsBuildDir", annotationsBuildDir.get().asFile.absolutePath)
     systemProperty("transformOverload.gradlePluginClasspath", sourceSets.main.get().runtimeClasspath.asPath)

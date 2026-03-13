@@ -6,7 +6,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 
@@ -15,20 +14,12 @@ class MultireceiverProjectActivity : ProjectActivity {
     private val logger = Logger.getInstance(MultireceiverProjectActivity::class.java)
 
     override suspend fun execute(project: Project) {
-        enableCommunityCompilerPlugins()
+        logger.warn(
+            "Multireceiver IDEA bundled compiler-plugin support is temporarily disabled on K2 " +
+                "because it is incompatible with the current Kotlin IDE classloader boundary.",
+        )
         logDetectedPluginClasspaths(project)
         restartAnalysis(project)
-    }
-
-    private fun enableCommunityCompilerPlugins() {
-        val application = ApplicationManager.getApplication()
-        val registryValue = Registry.get("kotlin.k2.only.bundled.compiler.plugins.enabled")
-        if (!registryValue.asBoolean()) {
-            logger.info("Kotlin K2 community compiler plugins are already enabled")
-            return
-        }
-        registryValue.setValue(false, application)
-        logger.info("Enabled Kotlin K2 community compiler plugins for multireceiver IDE support")
     }
 
     private fun logDetectedPluginClasspaths(project: Project) {

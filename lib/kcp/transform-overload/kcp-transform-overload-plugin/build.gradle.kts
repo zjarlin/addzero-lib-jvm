@@ -4,6 +4,8 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
 
+group = "site.addzero"
+
 dependencies {
     implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
     compileOnly(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)

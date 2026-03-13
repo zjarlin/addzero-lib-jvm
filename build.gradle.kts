@@ -13,8 +13,13 @@ plugins {
 //afterEvaluate {
 subprojects {
     val now = LocalDateTime.now()
-//    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.ddHHmm"))
-    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+    val versionStr = providers.gradleProperty("version")
+        .orNull
+        ?: now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd.HHmm"))
+    val groupId = providers.gradleProperty("group")
+        .orNull
+        ?: rootProject.group.toString()
+    group = groupId
     version = versionStr
 //    version = "2026.02.02"
     println("项目版本为$versionStr")
