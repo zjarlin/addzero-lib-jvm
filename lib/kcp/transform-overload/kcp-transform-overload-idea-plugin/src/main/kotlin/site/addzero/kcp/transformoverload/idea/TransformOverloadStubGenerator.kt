@@ -676,6 +676,10 @@ internal class TransformOverloadStubGenerator(
                 }
                 IdeGeneratedFile(
                     relativePath = relativePath,
+                    packageName = packageName,
+                    topLevelCallableNames = packageCandidates
+                        .mapTo(linkedSetOf()) { candidate -> candidate.generatedName },
+                    topLevelClassifierNames = emptySet(),
                     content = buildString {
                         appendLine("@file:Suppress(\"unused\")")
                         if (packageName.isNotBlank()) {

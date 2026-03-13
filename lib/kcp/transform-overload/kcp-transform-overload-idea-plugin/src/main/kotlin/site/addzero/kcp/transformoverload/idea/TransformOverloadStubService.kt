@@ -30,6 +30,9 @@ class TransformOverloadStubService(
     @Volatile
     private var sourceRoot: VirtualFile? = null
 
+    @Volatile
+    private var generatedFiles: List<IdeGeneratedFile> = emptyList()
+
     init {
         val connection = project.messageBus.connect(project)
         connection.subscribe(
@@ -47,6 +50,8 @@ class TransformOverloadStubService(
     fun getSourceRoots(): Collection<VirtualFile> = listOfNotNull(sourceRoot)
 
     fun getRootsToWatch(): Collection<VirtualFile> = listOfNotNull(sourceRoot)
+
+    internal fun getGeneratedFiles(): List<IdeGeneratedFile> = generatedFiles
 
     fun scheduleRefresh() {
         if (project.isDisposed) {
@@ -103,6 +108,7 @@ class TransformOverloadStubService(
             syncOutputRoot(outputRoot, generatedFiles)
             val refreshedRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(outputRoot)
             sourceRoot = refreshedRoot?.takeIf { generatedFiles.isNotEmpty() }
+            this.generatedFiles = generatedFiles
             logger.info(
                 "Transform overload IDEA stubs refreshed: ${generatedFiles.size} file(s) in $outputRoot",
             )

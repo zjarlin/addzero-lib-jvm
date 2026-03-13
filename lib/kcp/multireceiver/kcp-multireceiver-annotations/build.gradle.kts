@@ -1,6 +1,8 @@
 plugins {
-    id("site.addzero.gradle.plugin.kmp-test-convention")
+    id("site.addzero.buildlogic.kmp.kmp-convention")
 }
+
+group = "site.addzero"
 
 kotlin {
     jvm()

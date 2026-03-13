@@ -1,1 +1,1 @@
-site.addzero.kcp.plugin.AddGenerateExtensionPlugin
+site.addzero.kcp.multireceiver.plugin.MultireceiverCompilerPluginRegistrar

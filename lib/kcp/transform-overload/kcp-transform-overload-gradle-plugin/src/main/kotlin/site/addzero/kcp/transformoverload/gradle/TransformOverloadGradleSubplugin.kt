@@ -1,6 +1,7 @@
 package site.addzero.kcp.transformoverload.gradle
 
 import org.gradle.api.Project
+import org.gradle.api.logging.Logging
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -10,12 +11,24 @@ import java.util.Properties
 
 class TransformOverloadGradleSubplugin : KotlinCompilerPluginSupportPlugin {
 
+    private val logger = Logging.getLogger(TransformOverloadGradleSubplugin::class.java)
+
     override fun apply(target: Project) {
         addAnnotationsDependency(target)
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
-        return kotlinCompilation.target.platformType == KotlinPlatformType.jvm
+        if (kotlinCompilation.target.platformType != KotlinPlatformType.jvm) {
+            return false
+        }
+        val project = kotlinCompilation.target.project
+        if (shouldDisableCompilerPluginForIdeSync(project)) {
+            logger.info(
+                "Disabling transform-overload compiler plugin for IDE sync/import in project ${project.path}",
+            )
+            return false
+        }
+        return true
     }
 
     override fun applyToCompilation(
@@ -86,5 +99,33 @@ class TransformOverloadGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         private const val ANNOTATIONS_MARKER = "site.addzero.kcp.transform-overload.annotations-added"
         private const val PROPERTIES_RESOURCE =
             "site/addzero/kcp/transformoverload/gradle-plugin.properties"
+    }
+}
+
+internal fun shouldDisableCompilerPluginForIdeSync(project: Project): Boolean {
+    return shouldDisableCompilerPluginForIdeSync(
+        systemProperties = mapOf(
+            "idea.active" to System.getProperty("idea.active"),
+            "idea.sync.active" to System.getProperty("idea.sync.active"),
+            "android.injected.invoked.from.ide" to System.getProperty("android.injected.invoked.from.ide"),
+        ),
+        taskNames = project.gradle.startParameter.taskNames,
+    )
+}
+
+internal fun shouldDisableCompilerPluginForIdeSync(
+    systemProperties: Map<String, String?>,
+    taskNames: Iterable<String>,
+): Boolean {
+    val isIdeaActive = systemProperties["idea.active"].equals("true", ignoreCase = true)
+    val isIdeaSyncActive = systemProperties["idea.sync.active"].equals("true", ignoreCase = true)
+    val isInvokedFromIde = systemProperties["android.injected.invoked.from.ide"].equals("true", ignoreCase = true)
+    if (isIdeaActive || isIdeaSyncActive || isInvokedFromIde) {
+        return true
+    }
+    return taskNames.any { taskName ->
+        taskName == "ideaSyncTask" ||
+            taskName == "prepareKotlinIdeaImport" ||
+            taskName.endsWith("SyncTask")
     }
 }

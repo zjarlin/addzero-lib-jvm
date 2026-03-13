@@ -6,7 +6,8 @@ pluginManagement {
     google()
   }
   plugins {
-    id("site.addzero.kcp.transform-overload") version "2026.03.12"
+    id("site.addzero.kcp.multireceiver") version "2026.03.13"
+    id("site.addzero.kcp.transform-overload") version "2026.03.13"
   }
 }
 
@@ -18,9 +19,14 @@ plugins {
 }
 includeBuild("build-logic")
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-13T08:03:03.946685
-// Loaded: 5, Excluded: 0, Total: 5
+// Generated at: 2026-03-13T14:41:19.201959
+// Loaded: 10, Excluded: 0, Total: 10
+include(":example-multireceiver")
 include(":example-transform-overload")
+include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
+include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-idea-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-idea-plugin")
@@ -30,6 +36,10 @@ include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-idea-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
+include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-idea-plugin")
 include(":lib:tool-kmp:tool-coll")
 include(":lib:ksp:metadata:spring2ktor-server-core")
 include(":lib:ksp:metadata:spring2ktor-server-processor")

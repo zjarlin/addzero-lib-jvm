@@ -9,7 +9,7 @@ pluginManagement {
     google()
   }
   plugins {
-    id("site.addzero.kcp.transform-overload") version "2026.03.12"
+    id("site.addzero.kcp.transform-overload") version "2026.03.13"
   }
 }
 

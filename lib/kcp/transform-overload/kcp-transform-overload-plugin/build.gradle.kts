@@ -6,7 +6,8 @@ plugins {
 
 dependencies {
     implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
-    implementation(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
+    compileOnly(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
+    testImplementation(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
     testImplementation(libs.org.junit.jupiter.junit.jupiter)
 }
 

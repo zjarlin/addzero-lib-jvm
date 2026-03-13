@@ -125,6 +125,9 @@ internal data class IdeOverloadCandidate(
 
 internal data class IdeGeneratedFile(
     val relativePath: String,
+    val packageName: String,
+    val topLevelCallableNames: Set<String>,
+    val topLevelClassifierNames: Set<String>,
     val content: String,
 )
 

@@ -1,6 +1,8 @@
 package site.addzero.kcp.transformoverload.idea
 
 internal object TransformOverloadIdeaConstants {
+    const val ideaPluginId = "site.addzero.kcp-transform-overload-idea-plugin"
+
     const val generateTransformOverloadsAnnotation =
         "site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads"
     const val overloadTransformAnnotation =

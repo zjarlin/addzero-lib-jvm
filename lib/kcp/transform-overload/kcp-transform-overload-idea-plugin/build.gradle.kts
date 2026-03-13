@@ -4,4 +4,9 @@ plugins {
 
 dependencies {
     implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
+    testImplementation(libs.junit.junit)
+}
+
+tasks.test {
+    useJUnit()
 }

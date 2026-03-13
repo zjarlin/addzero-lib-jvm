@@ -13,6 +13,8 @@ data class R(val value: Int)
 data class S(val value: String)
 data class G(val value: Int)
 
+假设存在以下变换
+
 @OverloadTransform
 fun S.toT(): T = T(value)
 
