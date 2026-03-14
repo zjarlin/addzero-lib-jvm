@@ -2,6 +2,18 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+buildscript {
+    configurations.classpath {
+        // IntelliJ Marketplace publishing loads plugin uploader classes from the root buildscript
+        // classloader, so we pin OkHttp/Okio here to avoid old 3.x transitive jars leaking in.
+        resolutionStrategy.force(
+            "com.squareup.okhttp3:okhttp:4.12.0",
+            "com.squareup.okio:okio:3.6.0",
+            "com.squareup.okio:okio-jvm:3.6.0",
+        )
+    }
+}
+
 plugins {
 //    id("site.addzero.gradle.plugin.version-buddy") version "2025.11.32"
 //    alias(libs.plugins.addzeroVersionBuddy)
