@@ -1,5 +1,6 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.api.tasks.JavaExec
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
   id("site.addzero.buildlogic.jvm.kotlin-convention")
@@ -18,6 +19,13 @@ repositories {
 
 dependencies {
   testImplementation(kotlin("test"))
+}
+
+tasks.withType<KotlinCompilationTask<*>>().configureEach {
+  // This example consumes fixed-version artifacts from mavenLocal while we iteratively
+  // republish the plugin during development, so reusing stale compile outputs is misleading.
+  outputs.upToDateWhen { false }
+  outputs.cacheIf { false }
 }
 
 tasks.test {

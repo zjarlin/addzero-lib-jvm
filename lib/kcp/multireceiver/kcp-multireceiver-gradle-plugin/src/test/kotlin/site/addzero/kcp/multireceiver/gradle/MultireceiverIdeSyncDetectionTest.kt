@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test
 class MultireceiverIdeSyncDetectionTest {
 
     @Test
-    fun disables_compiler_plugin_in_idea_process() {
-        assertTrue(
+    fun keeps_compiler_plugin_enabled_for_idea_launched_builds() {
+        assertFalse(
             shouldDisableCompilerPluginForIde(
                 systemProperties = mapOf("idea.active" to "true"),
                 taskNames = listOf("compileKotlin"),
             ),
         )
-        assertTrue(
+        assertFalse(
             shouldDisableCompilerPluginForIde(
                 systemProperties = mapOf("android.injected.invoked.from.ide" to "true"),
                 taskNames = listOf("compileKotlin"),
@@ -23,8 +23,8 @@ class MultireceiverIdeSyncDetectionTest {
     }
 
     @Test
-    fun disables_compiler_plugin_for_sync_signals() {
-        assertTrue(
+    fun ignores_idea_sync_property_without_sync_tasks() {
+        assertFalse(
             shouldDisableCompilerPluginForIde(
                 systemProperties = mapOf("idea.sync.active" to "true"),
                 taskNames = emptyList(),

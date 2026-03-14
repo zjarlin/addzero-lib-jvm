@@ -19,7 +19,7 @@ plugins {
 }
 includeBuild("build-logic")
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-13T14:41:19.201959
+// Generated at: 2026-03-14T11:10:04.243426
 // Loaded: 10, Excluded: 0, Total: 10
 include(":example-multireceiver")
 include(":example-transform-overload")
@@ -27,9 +27,9 @@ include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
 include(":lib:kcp:multireceiver:kcp-multireceiver-idea-plugin")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
+include(":lib:kcp:transform-overload:kcp-transform-overload")
 include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
-include(":lib:kcp:transform-overload:kcp-transform-overload-idea-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
 // <<< Gradle Module Sleep: End Of Block <<<
 include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")

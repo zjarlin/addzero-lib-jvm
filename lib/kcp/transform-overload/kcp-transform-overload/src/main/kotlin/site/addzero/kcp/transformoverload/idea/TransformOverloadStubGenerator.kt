@@ -3,6 +3,7 @@ package site.addzero.kcp.transformoverload.idea
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -73,8 +74,20 @@ internal class TransformOverloadStubGenerator(
             GlobalSearchScope.projectScope(project),
         ).asSequence()
             .filter { virtualFile -> fileIndex.isInSourceContent(virtualFile) }
+            .filter(::mayContainTransformOverloadMarkers)
             .mapNotNull { virtualFile -> PsiManager.getInstance(project).findFile(virtualFile) as? KtFile }
             .toList()
+    }
+
+    private fun mayContainTransformOverloadMarkers(virtualFile: VirtualFile): Boolean {
+        val text = try {
+            String(virtualFile.contentsToByteArray(false))
+        } catch (_: Exception) {
+            return true
+        }
+        return text.contains("GenerateTransformOverloads") ||
+            text.contains("OverloadTransform") ||
+            text.contains("TransformProvider")
     }
 
     private fun KaSession.collectFromFile(

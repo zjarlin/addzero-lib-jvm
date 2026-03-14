@@ -104,25 +104,15 @@ class TransformOverloadGradleSubplugin : KotlinCompilerPluginSupportPlugin {
 
 internal fun shouldDisableCompilerPluginForIdeSync(project: Project): Boolean {
     return shouldDisableCompilerPluginForIdeSync(
-        systemProperties = mapOf(
-            "idea.active" to System.getProperty("idea.active"),
-            "idea.sync.active" to System.getProperty("idea.sync.active"),
-            "android.injected.invoked.from.ide" to System.getProperty("android.injected.invoked.from.ide"),
-        ),
+        systemProperties = emptyMap(),
         taskNames = project.gradle.startParameter.taskNames,
     )
 }
 
 internal fun shouldDisableCompilerPluginForIdeSync(
-    systemProperties: Map<String, String?>,
+    @Suppress("UNUSED_PARAMETER") systemProperties: Map<String, String?>,
     taskNames: Iterable<String>,
 ): Boolean {
-    val isIdeaActive = systemProperties["idea.active"].equals("true", ignoreCase = true)
-    val isIdeaSyncActive = systemProperties["idea.sync.active"].equals("true", ignoreCase = true)
-    val isInvokedFromIde = systemProperties["android.injected.invoked.from.ide"].equals("true", ignoreCase = true)
-    if (isIdeaActive || isIdeaSyncActive || isInvokedFromIde) {
-        return true
-    }
     return taskNames.any { taskName ->
         taskName == "ideaSyncTask" ||
             taskName == "prepareKotlinIdeaImport" ||

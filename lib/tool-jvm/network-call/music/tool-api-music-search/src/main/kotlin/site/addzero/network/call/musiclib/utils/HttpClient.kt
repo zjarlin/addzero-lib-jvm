@@ -17,11 +17,15 @@ import kotlin.random.Random
 object HttpClientManager {
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
-            json(Json {
+            val jsonConfig = Json {
                 ignoreUnknownKeys = true
                 isLenient = true
                 coerceInputValues = true
-            })
+            }
+            json(jsonConfig)
+            json(jsonConfig, contentType = ContentType.Text.Plain)
+            json(jsonConfig, contentType = ContentType.Text.Html)
+            json(jsonConfig, contentType = ContentType.parse("application/x-javascript"))
         }
 
         install(Logging) {

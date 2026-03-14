@@ -8,5 +8,5 @@ dependencies {
 }
 
 tasks.test {
-    useJUnit()
+  useJUnit()
 }

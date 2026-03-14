@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test
 class TransformOverloadIdeSyncDetectionTest {
 
     @Test
-    fun disables_compiler_plugin_when_idea_sync_property_is_true() {
-        assertTrue(
+    fun ignores_idea_sync_property_without_sync_tasks() {
+        assertFalse(
             shouldDisableCompilerPluginForIdeSync(
                 systemProperties = mapOf("idea.sync.active" to "true"),
                 taskNames = emptyList(),
@@ -17,14 +17,14 @@ class TransformOverloadIdeSyncDetectionTest {
     }
 
     @Test
-    fun disables_compiler_plugin_when_running_under_idea() {
-        assertTrue(
+    fun keeps_compiler_plugin_enabled_for_idea_launched_builds() {
+        assertFalse(
             shouldDisableCompilerPluginForIdeSync(
                 systemProperties = mapOf("idea.active" to "true"),
                 taskNames = listOf("compileKotlin"),
             ),
         )
-        assertTrue(
+        assertFalse(
             shouldDisableCompilerPluginForIdeSync(
                 systemProperties = mapOf("android.injected.invoked.from.ide" to "true"),
                 taskNames = listOf("compileKotlin"),

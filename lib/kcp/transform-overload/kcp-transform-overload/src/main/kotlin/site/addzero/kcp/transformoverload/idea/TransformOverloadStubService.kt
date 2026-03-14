@@ -1,6 +1,5 @@
 package site.addzero.kcp.transformoverload.idea
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
@@ -12,11 +11,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.pathString
 
 @Service(Service.Level.PROJECT)
@@ -32,6 +31,9 @@ class TransformOverloadStubService(
 
     @Volatile
     private var generatedFiles: List<IdeGeneratedFile> = emptyList()
+
+    private val refreshInProgress = AtomicBoolean(false)
+    private val refreshRequestedWhileRunning = AtomicBoolean(false)
 
     init {
         val connection = project.messageBus.connect(project)
@@ -67,6 +69,10 @@ class TransformOverloadStubService(
                     scheduleRefresh()
                     return@addRequest
                 }
+                if (!refreshInProgress.compareAndSet(false, true)) {
+                    refreshRequestedWhileRunning.set(true)
+                    return@addRequest
+                }
                 refreshNow()
             },
             400,
@@ -93,32 +99,38 @@ class TransformOverloadStubService(
     }
 
     private fun refreshNow() {
-        val generatedFiles = ApplicationManager.getApplication().runReadAction<List<IdeGeneratedFile>> {
-            if (project.isDisposed) {
-                emptyList()
-            } else {
-                TransformOverloadStubGenerator(project).generate()
+        try {
+            val generatedFiles = ApplicationManager.getApplication().runReadAction<List<IdeGeneratedFile>> {
+                if (project.isDisposed) {
+                    emptyList()
+                } else {
+                    TransformOverloadStubGenerator(project).generate()
+                }
+            }
+
+            val outputRoot = resolveOutputRoot()
+            val oldRoots = getSourceRoots().toList()
+
+            try {
+                syncOutputRoot(outputRoot, generatedFiles)
+                val refreshedRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(outputRoot)
+                sourceRoot = refreshedRoot?.takeIf { generatedFiles.isNotEmpty() }
+                this.generatedFiles = generatedFiles
+                logger.info(
+                    "Transform overload IDEA stubs refreshed: ${generatedFiles.size} file(s) in $outputRoot",
+                )
+            } catch (ex: Exception) {
+                logger.warn("Failed to refresh transform-overload IDE stubs", ex)
+                return
+            }
+
+            notifyRootsChanged(oldRoots)
+        } finally {
+            refreshInProgress.set(false)
+            if (refreshRequestedWhileRunning.compareAndSet(true, false)) {
+                scheduleRefresh()
             }
         }
-
-        val outputRoot = resolveOutputRoot()
-        val oldRoots = getSourceRoots().toList()
-
-        try {
-            syncOutputRoot(outputRoot, generatedFiles)
-            val refreshedRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(outputRoot)
-            sourceRoot = refreshedRoot?.takeIf { generatedFiles.isNotEmpty() }
-            this.generatedFiles = generatedFiles
-            logger.info(
-                "Transform overload IDEA stubs refreshed: ${generatedFiles.size} file(s) in $outputRoot",
-            )
-        } catch (ex: Exception) {
-            logger.warn("Failed to refresh transform-overload IDE stubs", ex)
-            return
-        }
-
-        notifyRootsChanged(oldRoots)
-        restartAnalysis()
     }
 
     private fun resolveOutputRoot(): Path {
@@ -151,7 +163,10 @@ class TransformOverloadStubService(
 
         expectedPaths.forEach { (path, file) ->
             Files.createDirectories(path.parent)
-            path.toFile().writeText(file.content)
+            val existingContent = if (Files.exists(path)) path.toFile().readText() else null
+            if (existingContent != file.content) {
+                path.toFile().writeText(file.content)
+            }
         }
     }
 
@@ -163,15 +178,5 @@ class TransformOverloadStubService(
             Paths.get(basePath, TransformOverloadIdeaConstants.stubRootRelativePath).pathString
         } ?: return true
         return !event.path.startsWith(outputRoot)
-    }
-
-    private fun restartAnalysis() {
-        ApplicationManager.getApplication().invokeLater {
-            if (project.isDisposed) {
-                return@invokeLater
-            }
-            PsiManager.getInstance(project).dropPsiCaches()
-            DaemonCodeAnalyzer.getInstance(project).restart()
-        }
     }
 }
