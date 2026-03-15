@@ -1,6 +1,6 @@
 # Spring2Ktor Server Processor
 
-用 Spring 原生 Web 注解写接口，在编译期生成 Ktor Server 路由与 Koin 装配代码。
+用 Spring 原生 Web 注解写接口，在编译期生成干净的 Ktor Server 路由注册代码。
 
 它不是 Spring Boot，也不会启动 Spring 容器；它只是读取 Spring 注解，然后生成 Ktor 代码。
 
@@ -21,8 +21,8 @@ plugins {
 }
 
 dependencies {
-    implementation("site.addzero:spring2ktor-server-core:2026.03.10")
-    ksp("site.addzero:spring2ktor-server-processor:2026.03.10")
+    implementation("site.addzero:spring2ktor-server-core:2026.03.13")
+    ksp("site.addzero:spring2ktor-server-processor:2026.03.13")
 
     compileOnly("org.springframework:spring-web:5.3.21")
 }
@@ -30,22 +30,6 @@ dependencies {
 
 这里的 `compileOnly("org.springframework:spring-web:5.3.21")` 是给业务源码里的 Spring 注解和 `MultipartFile` 过编译用的。
 业务模块本身不需要启动 Spring Boot；当前版本的 `spring2ktor-server-core` 仍会为 `MultipartFile` 兼容携带 `spring-web` 运行时依赖。
-
-如果你还要用这些注解或类型：
-
-- `@RestController`
-- `@Service`
-- `@Component`
-- `@Configuration`
-- `@Bean`
-
-再额外加上：
-
-```kotlin
-dependencies {
-    compileOnly("org.springframework:spring-context:5.3.21")
-}
-```
 
 如果你的接口返回 JSON，通常还会需要：
 
@@ -97,43 +81,89 @@ suspend fun echo(@RequestBody body: EchoRequest): EchoResponse {
 说明：
 
 - 顶层函数可以直接写
+- 顶层函数如果有公共前缀，可以在文件顶部写 `@file:RequestMapping("/base")`
 - 不强制所有方法都写 `suspend`
 - 未标注参数默认按 `@RequestParam` 处理，所以例子里的 `name` 等价于 `@RequestParam("name")`
+- 成功时直接 `return`
+- 失败时直接 `throw`
+- 返回 `null` 会写成 `204 No Content`
+- 返回 `Unit` 且你没有手动写响应时，会写成 `200 OK`
+
+文件级前缀示例：
+
+```kotlin
+@file:RequestMapping("/api/demo")
+
+package demo.routes
+
+import org.springframework.web.bind.annotation.GetMapping
+import site.addzero.springktor.runtime.RequestMapping
+
+@GetMapping("/health")
+fun readHealth(): String {
+    return "ok"
+}
+```
 
 ## 在 Ktor 中启用
 
-生成代码后，在你的 `Application.module` 里调用：
+生成代码后，在你的 `Application.module` 里手动注册：
 
 ```kotlin
 package demo
 
-import demo.generated.springktor.generatedSpringApplication
+import demo.generated.springktor.registerGeneratedSpringRoutes
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.routing.routing
 
 fun Application.module() {
     install(ContentNegotiation) {
         json()
     }
 
-    generatedSpringApplication()
+    routing {
+        registerGeneratedSpringRoutes()
+    }
 }
 ```
 
-`generatedSpringApplication()` 会做两件事：
+如果你用了 `@RestController`，控制器实例需要你自己交给 Koin 或其他 DI 容器管理。
+以 Koin 为例：
 
-- 确保 Koin 可用并加载生成的模块
-- 注册所有生成的 Ktor 路由
+```kotlin
+dependencies {
+    implementation("io.insert-koin:koin-ktor:<your-version>")
+}
+
+fun Application.module() {
+    install(ContentNegotiation) {
+        json()
+    }
+    install(org.koin.ktor.plugin.Koin) {
+        modules(
+            org.koin.dsl.module {
+                single { GreetingService() }
+                single { UserController(get()) }
+            }
+        )
+    }
+    routing {
+        registerGeneratedSpringRoutes()
+    }
+}
+```
+
+`spring2ktor-server` 不再生成 `Application.generatedSpringApplication()` 或 `generatedSpringKoinModule`；
+应用装配和依赖注入完全由业务自己控制。
 
 ## 生成出来的 API
 
-处理器会生成这些入口：
+处理器只会生成这个总入口：
 
-- `fun Application.generatedSpringApplication()`
 - `fun Route.registerGeneratedSpringRoutes()`
-- `val generatedSpringKoinModule: Module`
 
 还会按源文件 / Controller 生成更细粒度的注册函数，例如：
 
@@ -184,10 +214,7 @@ HTTP 路由：
 类式兼容：
 
 - `@RestController`
-- `@Component`
-- `@Service`
-- `@Configuration`
-- `@Bean`
+- 类级别 `@RequestMapping`
 
 ## 参数规则
 
@@ -252,13 +279,11 @@ suspend fun sseMessages(call: ApplicationCall) {
 ```kotlin
 package demo
 
-import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@Service
 class GreetingService {
     fun greet(id: Int): String = "hello-$id"
 }
@@ -275,10 +300,10 @@ class UserController(
 }
 ```
 
-这类写法需要：
+这类写法至少需要：
 
 - `compileOnly("org.springframework:spring-web:5.3.21")`
-- `compileOnly("org.springframework:spring-context:5.3.21")`
+- 你自己的 DI 注册，例如 Koin `single { GreetingService() }` 和 `single { UserController(get()) }`
 
 ## 目前不做的东西
 

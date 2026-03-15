@@ -23,12 +23,6 @@ enum class ParameterBindingKind {
     MULTIPART_FILE_LIST,
 }
 
-enum class BeanClassKind {
-    COMPONENT,
-    CONFIGURATION,
-    CONTROLLER,
-}
-
 data class ParameterMeta(
     val index: Int,
     val sourceName: String,
@@ -47,11 +41,7 @@ data class TopLevelRouteMeta(
     val httpMethod: SpringHttpMethod,
     val path: String,
     val parameters: List<ParameterMeta>,
-    val returnsUnit: Boolean,
     val returnTypeName: String?,
-    val nullableReturn: Boolean,
-    val isSuspend: Boolean,
-    val sourceFilePath: String,
 )
 
 data class ControllerRouteMeta(
@@ -62,34 +52,10 @@ data class ControllerRouteMeta(
     val httpMethod: SpringHttpMethod,
     val path: String,
     val parameters: List<ParameterMeta>,
-    val returnsUnit: Boolean,
     val returnTypeName: String?,
-    val nullableReturn: Boolean,
-    val isSuspend: Boolean,
-    val sourceFilePath: String,
-)
-
-data class BeanClassMeta(
-    val kind: BeanClassKind,
-    val qualifiedName: String,
-    val simpleName: String,
-    val packageName: String,
-    val objectDeclaration: Boolean,
-    val dependencyCount: Int,
-    val sourceFilePath: String,
-)
-
-data class BeanFactoryMeta(
-    val configurationQualifiedName: String,
-    val configurationSimpleName: String,
-    val methodName: String,
-    val dependencyCount: Int,
-    val sourceFilePath: String,
 )
 
 data class SpringKtorModel(
     val topLevelRoutes: Set<TopLevelRouteMeta>,
     val controllerRoutes: Set<ControllerRouteMeta>,
-    val beanClasses: Set<BeanClassMeta>,
-    val beanFactories: Set<BeanFactoryMeta>,
 )

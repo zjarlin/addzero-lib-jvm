@@ -1,5 +1,23 @@
 # LSI 核心接口与实现模块映射
 
+LSI 这一组主要放语言结构抽象层，以及不同解析方式下的实现适配。
+
+## 目录导航
+
+- `lsi-core`：核心抽象接口
+- `lsi-apt`：APT 适配
+- [`lsi-ksp`](./lsi-ksp/)：KSP 适配
+- `lsi-kt` / `lsi-k2`：Kotlin 语义方向适配
+- `lsi-psi` / `lsi-psiandkt`：PSI 相关适配
+- `lsi-reflection`：运行时反射适配
+- `lsi-intellij`：IntelliJ 平台相关适配
+- `lsi-jimmer`：Jimmer 相关适配
+
+## 怎么看这份 README
+
+- 如果你只是想快速判断有没有现成实现，上面的目录导航就够用
+- 如果你要继续做二次开发，下面这份映射表就是核心资料
+
 ## lsi-core 核心接口与各模块实现类映射表
 
 ### 1. 核心接口定义 (lsi-core)

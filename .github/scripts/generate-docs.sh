@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SITE_DIR="$REPO_DIR/docs"
 CONTENT_DIR="$SITE_DIR/content"
+RULES_FILE="$SITE_DIR/readme-collection.rules"
 
 escape_yaml() {
   printf "%s" "$1" | sed "s/'/''/g"
@@ -28,6 +29,59 @@ strip_first_h1() {
   ' "$1"
 }
 
+should_collect_readme() {
+  local rel_path="$1"
+
+  python3 - "$RULES_FILE" "$rel_path" <<'PY'
+import fnmatch
+import sys
+from pathlib import Path
+
+rules_file = Path(sys.argv[1])
+target_path = sys.argv[2]
+included = True
+
+if rules_file.is_file():
+    for raw_line in rules_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        include = line.startswith("!")
+        pattern = line[1:] if include else line
+        if fnmatch.fnmatch(target_path, pattern):
+            included = include
+
+sys.stdout.write("1" if included else "0")
+PY
+}
+
+append_dependency_snippet() {
+  local module_dir="$1"
+  local module_name="$2"
+
+  if [ ! -f "$REPO_DIR/$module_dir/build.gradle.kts" ]; then
+    return
+  fi
+
+  echo ""
+  echo "## Maven / Gradle"
+  echo ""
+  echo "已发布至 Maven Central。"
+  echo ""
+  echo '```kotlin'
+  echo "implementation(\"site.addzero:$module_name:最新版本\")"
+  echo '```'
+  echo ""
+  echo '```xml'
+  echo "<dependency>"
+  echo "    <groupId>site.addzero</groupId>"
+  echo "    <artifactId>$module_name</artifactId>"
+  echo "    <version>最新版本</version>"
+  echo "</dependency>"
+  echo '```'
+}
+
 rm -rf "$CONTENT_DIR"
 mkdir -p "$CONTENT_DIR"
 
@@ -37,56 +91,52 @@ trap 'rm -f "$intro_links_file"' EXIT
 
 cd "$REPO_DIR"
 
-find . -name "README.md" -type f \
-  ! -path "./README.md" \
-  ! -path "./docs/*" \
-  ! -path "*/.git/*" \
-  ! -path "*/node_modules/*" \
-  ! -path "*/build/*" \
-  ! -path "*/target/*" \
-  | sort \
-  | while read -r readme; do
-    rel_path="${readme#./}"
-    module_dir=$(dirname "$rel_path")
-    module_name=$(basename "$module_dir")
-    title=$(head -n 5 "$readme" | grep -m1 '^#' | sed 's/^#*[[:space:]]*//' || true)
+included_count=0
+skipped_count=0
 
-    if [ -z "$title" ]; then
-      title="$module_name"
-    fi
+while read -r readme; do
+  rel_path="${readme#./}"
 
-    target="$CONTENT_DIR/$module_dir/index.md"
-    mkdir -p "$(dirname "$target")"
+  if [ "$(should_collect_readme "$rel_path")" != "1" ]; then
+    skipped_count=$((skipped_count + 1))
+    continue
+  fi
 
-    {
-      echo "---"
-      echo "title: '$(escape_yaml "$title")'"
-      echo "description: '$(escape_yaml "自动收集自 $rel_path")'"
-      echo "---"
-      echo ""
-      echo "> 自动收集自 \`$rel_path\`。"
-      echo ""
-      strip_first_h1 "$readme"
-      echo ""
-      echo "## Maven / Gradle"
-      echo ""
-      echo "已发布至 Maven Central。"
-      echo ""
-      echo '```kotlin'
-      echo "implementation(\"site.addzero:$module_name:最新版本\")"
-      echo '```'
-      echo ""
-      echo '```xml'
-      echo "<dependency>"
-      echo "    <groupId>site.addzero</groupId>"
-      echo "    <artifactId>$module_name</artifactId>"
-      echo "    <version>最新版本</version>"
-      echo "</dependency>"
-      echo '```'
-    } > "$target"
+  module_dir=$(dirname "$rel_path")
+  module_name=$(basename "$module_dir")
+  title=$(head -n 5 "$readme" | grep -m1 '^#' | sed 's/^#*[[:space:]]*//' || true)
 
-    echo "- [$title](/$module_dir/)" >> "$intro_links_file"
-  done
+  if [ -z "$title" ]; then
+    title="$module_name"
+  fi
+
+  target="$CONTENT_DIR/$module_dir/index.md"
+  mkdir -p "$(dirname "$target")"
+
+  {
+    echo "---"
+    echo "title: '$(escape_yaml "$title")'"
+    echo "description: '$(escape_yaml "自动收集自 $rel_path")'"
+    echo "---"
+    echo ""
+    echo "> 自动收集自 \`$rel_path\`。"
+    echo ""
+    strip_first_h1 "$readme"
+    append_dependency_snippet "$module_dir" "$module_name"
+  } > "$target"
+
+  echo "- [$title](/$module_dir/)" >> "$intro_links_file"
+  included_count=$((included_count + 1))
+done < <(
+  find . -name "README.md" -type f \
+    ! -path "./README.md" \
+    ! -path "./docs/*" \
+    ! -path "*/.git/*" \
+    ! -path "*/node_modules/*" \
+    ! -path "*/build/*" \
+    ! -path "*/target/*" \
+    | sort
+)
 
 {
   echo "---"
@@ -101,6 +151,7 @@ find . -name "README.md" -type f \
   echo "## 说明"
   echo ""
   echo "- 自动收集仓库内各模块的 \`README.md\`。"
+  echo "- 可通过 \`docs/readme-collection.rules\` 排除或放行 README。"
   echo "- 自动补充 Maven / Gradle 依赖片段。"
   echo "- 通过 GitHub Pages 自动部署。"
   echo ""
@@ -114,4 +165,4 @@ find . -name "README.md" -type f \
 } > "$CONTENT_DIR/index.md"
 
 doc_count="$(find "$CONTENT_DIR" -name "*.md" | wc -l | tr -d ' ')"
-echo "文档生成完成！共生成 $doc_count 个 Docusaurus 文档。"
+echo "文档生成完成！共生成 $doc_count 个 Docusaurus 文档，收录 $included_count 个 README，排除 $skipped_count 个 README。"

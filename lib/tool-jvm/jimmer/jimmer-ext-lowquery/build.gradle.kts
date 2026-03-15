@@ -5,6 +5,6 @@ plugins {
 dependencies {
     implementation(libs.org.babyfish.jimmer.jimmer.sql.kotlin)
     implementation(libs.cn.hutool.hutool.all)
-    api(libs.site.addzero.addzero.jimmer.model.lowquery)
+    api(libs.site.addzero.jimmer.model.lowquery.v2025)
 
 }

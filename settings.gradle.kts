@@ -21,19 +21,23 @@ includeBuild("build-logic")
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-15T11:07:43.514768
-// Loaded: 11, Excluded: 0, Total: 11
+// Generated at: 2026-03-15T16:23:59.133422
+// Loaded: 15, Excluded: 0, Total: 15
 include(":example:example-multireceiver")
 include(":example:example-transform-overload")
 include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
 include(":lib:kcp:multireceiver:kcp-multireceiver-idea-plugin")
 include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
-include(":lib:ksp:metadata:multireceiver-processor")
 include(":lib:kcp:transform-overload:kcp-transform-overload")
 include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
+include(":lib:ksp:metadata:multireceiver-processor")
+include(":lib:ksp:metadata:spring2ktor-server-core")
+include(":lib:ksp:metadata:spring2ktor-server-processor")
+include(":lib:ksp:metadata:spring2ktor-server-smoke")
+include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:metadata:spring2ktor-server-core")

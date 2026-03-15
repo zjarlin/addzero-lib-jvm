@@ -15,6 +15,8 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.ktor.server.websocket.WebSockets
@@ -24,19 +26,25 @@ import io.ktor.websocket.send
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import sample.generated.springktor.generatedSpringApplication
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
+import sample.generated.springktor.registerGeneratedSpringRoutes
 
 class GeneratedSpringApplicationTest {
     @Test
     fun topLevelAndControllerRoutesWork() = testApplication {
         application {
+            installSmokeDependencies()
             this@application.install(ContentNegotiation) {
                 json()
             }
-            generatedSpringApplication()
+            routing {
+                registerGeneratedSpringRoutes()
+            }
         }
 
-        val topResponse = client.get("/top/42?name=alice") {
+        val topResponse = client.get("/spring/top/42?name=alice") {
             header("X-Trace", "trace-1")
         }
         assertEquals("42:alice:trace-1:GET", topResponse.bodyAsText())
@@ -48,19 +56,22 @@ class GeneratedSpringApplicationTest {
     @Test
     fun requestBodyAndMultipartBindingsWork() = testApplication {
         application {
+            installSmokeDependencies()
             this@application.install(ContentNegotiation) {
                 json()
             }
-            generatedSpringApplication()
+            routing {
+                registerGeneratedSpringRoutes()
+            }
         }
 
-        val echoResponse = client.post("/echo") {
+        val echoResponse = client.post("/spring/echo") {
             contentType(ContentType.Application.Json)
             setBody("""{"name":"neo"}""")
         }
         assertEquals("""{"message":"echo:neo"}""", echoResponse.bodyAsText())
 
-        val uploadResponse = client.post("/upload") {
+        val uploadResponse = client.post("/spring/upload") {
             setBody(
                 MultiPartFormDataContent(
                     formData {
@@ -75,7 +86,7 @@ class GeneratedSpringApplicationTest {
         }
         assertEquals("note.txt:3:memo", uploadResponse.bodyAsText())
 
-        val uploadsResponse = client.post("/uploads") {
+        val uploadsResponse = client.post("/spring/uploads") {
             setBody(
                 MultiPartFormDataContent(
                     formData {
@@ -91,7 +102,7 @@ class GeneratedSpringApplicationTest {
         }
         assertEquals("a.txt:3|b.txt:5", uploadsResponse.bodyAsText())
 
-        val uploadNativeResponse = client.post("/upload-native") {
+        val uploadNativeResponse = client.post("/spring/upload-native") {
             setBody(
                 MultiPartFormDataContent(
                     formData {
@@ -107,19 +118,33 @@ class GeneratedSpringApplicationTest {
     }
 
     @Test
-    fun springRouteResultSupportsCustomStatusAndNoContent() = testApplication {
+    fun directReturnAndGlobalExceptionHandlingWork() = testApplication {
         application {
+            installSmokeDependencies()
             this@application.install(ContentNegotiation) {
                 json()
             }
-            generatedSpringApplication()
+            this@application.install(StatusPages) {
+                exception<NoSuchElementException> { call, _ ->
+                    call.respond(
+                        status = HttpStatusCode.NotFound,
+                        message = StatusPayload(
+                            code = 404,
+                            message = "missing",
+                        )
+                    )
+                }
+            }
+            routing {
+                registerGeneratedSpringRoutes()
+            }
         }
 
-        val notFoundResponse = client.get("/status/not-found")
+        val notFoundResponse = client.get("/spring/status/not-found")
         assertEquals(HttpStatusCode.NotFound, notFoundResponse.status)
         assertEquals("""{"code":404,"message":"missing"}""", notFoundResponse.bodyAsText())
 
-        val noContentResponse = client.get("/status/no-content")
+        val noContentResponse = client.get("/spring/status/no-content")
         assertEquals(HttpStatusCode.NoContent, noContentResponse.status)
         assertEquals("", noContentResponse.bodyAsText())
     }
@@ -127,21 +152,22 @@ class GeneratedSpringApplicationTest {
     @Test
     fun fileDownloadSseAndManualWebSocketWork() = testApplication {
         application {
+            installSmokeDependencies()
             this@application.install(ContentNegotiation) {
                 json()
             }
             this@application.install(WebSockets)
-            generatedSpringApplication()
             routing {
+                registerGeneratedSpringRoutes()
                 registerSmokeNativeKtorRoutes()
             }
         }
 
-        val downloadResponse = client.get("/download/report")
+        val downloadResponse = client.get("/spring/download/report")
         assertEquals("download:report", downloadResponse.bodyAsText())
         assertEquals("""attachment; filename="report.txt"""", downloadResponse.headers[HttpHeaders.ContentDisposition])
 
-        val sseResponse = client.get("/sse/messages")
+        val sseResponse = client.get("/spring/sse/messages")
         assertTrue((sseResponse.contentType()?.toString() ?: "").startsWith(ContentType.Text.EventStream.toString()))
         assertEquals("event:message\ndata:hello\n\ndata:world\n\n", sseResponse.bodyAsText())
 
@@ -152,6 +178,19 @@ class GeneratedSpringApplicationTest {
             send(Frame.Text("neo"))
             val firstFrame = incoming.receive() as Frame.Text
             assertEquals("echo:neo", firstFrame.readText())
+        }
+    }
+
+    private fun installSmokeDependencies() {
+        stopKoin()
+        startKoin {
+            modules(
+                module {
+                    single { GreetingService() }
+                    single { MagicNumber(7) }
+                    single { SmokeController(get(), get()) }
+                }
+            )
         }
     }
 }

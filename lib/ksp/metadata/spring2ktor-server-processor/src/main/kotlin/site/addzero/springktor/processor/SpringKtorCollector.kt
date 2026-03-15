@@ -7,6 +7,7 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
@@ -17,6 +18,7 @@ import com.google.devtools.ksp.validate
 
 private const val REST_CONTROLLER = "org.springframework.web.bind.annotation.RestController"
 private const val REQUEST_MAPPING = "org.springframework.web.bind.annotation.RequestMapping"
+private const val FILE_REQUEST_MAPPING = "site.addzero.springktor.runtime.RequestMapping"
 private const val GET_MAPPING = "org.springframework.web.bind.annotation.GetMapping"
 private const val POST_MAPPING = "org.springframework.web.bind.annotation.PostMapping"
 private const val PUT_MAPPING = "org.springframework.web.bind.annotation.PutMapping"
@@ -27,10 +29,6 @@ private const val REQUEST_PARAM = "org.springframework.web.bind.annotation.Reque
 private const val REQUEST_BODY = "org.springframework.web.bind.annotation.RequestBody"
 private const val REQUEST_HEADER = "org.springframework.web.bind.annotation.RequestHeader"
 private const val REQUEST_PART = "org.springframework.web.bind.annotation.RequestPart"
-private const val COMPONENT = "org.springframework.stereotype.Component"
-private const val SERVICE = "org.springframework.stereotype.Service"
-private const val CONFIGURATION = "org.springframework.context.annotation.Configuration"
-private const val BEAN = "org.springframework.context.annotation.Bean"
 
 private const val APPLICATION_CALL = "io.ktor.server.application.ApplicationCall"
 private const val APPLICATION = "io.ktor.server.application.Application"
@@ -76,23 +74,17 @@ class SpringKtorCollector(
 ) {
     private val topLevelRoutes = linkedMapOf<String, TopLevelRouteMeta>()
     private val controllerRoutes = linkedMapOf<String, ControllerRouteMeta>()
-    private val beanClasses = linkedMapOf<String, BeanClassMeta>()
-    private val beanFactories = linkedMapOf<String, BeanFactoryMeta>()
     private val deferredSymbols = linkedSetOf<KSAnnotated>()
     private var hasErrors = false
 
     fun collect(): SpringKtorCollectResult {
         collectMappedFunctions()
-        collectBeanClasses()
-        collectBeanFactories()
         validateCollisions()
 
         return SpringKtorCollectResult(
             model = SpringKtorModel(
                 topLevelRoutes = topLevelRoutes.values.toSet(),
                 controllerRoutes = controllerRoutes.values.toSet(),
-                beanClasses = beanClasses.values.toSet(),
-                beanFactories = beanFactories.values.toSet(),
             ),
             deferred = deferredSymbols.toList(),
             hasErrors = hasErrors,
@@ -131,84 +123,6 @@ class SpringKtorCollector(
         }
     }
 
-    private fun collectBeanClasses() {
-        val visitedClasses = linkedSetOf<String>()
-        val beanAnnotations = listOf(COMPONENT, SERVICE, CONFIGURATION, REST_CONTROLLER)
-
-        for (annotationName in beanAnnotations) {
-            val symbols = resolver.getSymbolsWithAnnotation(annotationName)
-                .filterIsInstance<KSClassDeclaration>()
-
-            for (clazz in symbols) {
-                if (!clazz.validate()) {
-                    deferredSymbols += clazz
-                    continue
-                }
-
-                val qualifiedName = clazz.qualifiedName?.asString() ?: continue
-                if (!visitedClasses.add(qualifiedName)) {
-                    continue
-                }
-
-                val beanMeta = extractBeanClassMeta(clazz) ?: continue
-                beanClasses[qualifiedName] = beanMeta
-            }
-        }
-    }
-
-    private fun collectBeanFactories() {
-        val visitedFactories = linkedSetOf<String>()
-        val symbols = resolver.getSymbolsWithAnnotation(BEAN)
-            .filterIsInstance<KSFunctionDeclaration>()
-
-        for (function in symbols) {
-            if (!function.validate()) {
-                deferredSymbols += function
-                continue
-            }
-
-            val parent = function.parentDeclaration as? KSClassDeclaration
-            if (parent == null) {
-                error("`@Bean` only supports instance methods inside `@Configuration` classes.", function)
-                continue
-            }
-            if (!parent.hasAnnotation(CONFIGURATION)) {
-                error("`@Bean` method `${function.simpleName.asString()}` must live inside a `@Configuration` class.", function)
-                continue
-            }
-            if (!function.isAccessible()) {
-                error("`@Bean` method `${function.simpleName.asString()}` must not be private or protected.", function)
-                continue
-            }
-            if (function.typeParameters.isNotEmpty()) {
-                error("Generic `@Bean` method `${function.simpleName.asString()}` is not supported.", function)
-                continue
-            }
-            if (function.extensionReceiver != null) {
-                error("Extension `@Bean` method `${function.simpleName.asString()}` is not supported.", function)
-                continue
-            }
-            if (function.returnType == null || function.returnType!!.resolve().isUnitType()) {
-                error("`@Bean` method `${function.simpleName.asString()}` must return a bean type.", function)
-                continue
-            }
-
-            val configurationQualifiedName = parent.qualifiedName?.asString() ?: continue
-            val factoryKey = "$configurationQualifiedName#${function.signatureKey()}"
-            if (!visitedFactories.add(factoryKey)) {
-                continue
-            }
-
-            beanFactories[factoryKey] = BeanFactoryMeta(
-                configurationQualifiedName = configurationQualifiedName,
-                configurationSimpleName = parent.simpleName.asString(),
-                methodName = function.simpleName.asString(),
-                dependencyCount = function.parameters.size,
-                sourceFilePath = function.sourceFilePath(),
-            )
-        }
-    }
-
     private fun extractRouteMeta(function: KSFunctionDeclaration): Any? {
         if (function.extensionReceiver != null) {
             error("Spring Ktor does not support extension route functions: `${function.simpleName.asString()}`.", function)
@@ -238,11 +152,9 @@ class SpringKtorCollector(
         }
 
         val returnType = function.returnType?.resolve()
-        val returnsUnit = returnType == null || returnType.isUnitType()
         val returnTypeName = returnType
             ?.takeUnless { it.isUnitType() }
             ?.renderType()
-        val nullableReturn = returnType?.nullability == Nullability.NULLABLE
         val parent = function.parentDeclaration
 
         if (parent == null) {
@@ -256,6 +168,7 @@ class SpringKtorCollector(
                 error("Unable to resolve source file for `${function.simpleName.asString()}`.", function)
                 return null
             }
+            val fileBasePath = extractFileBasePath(function.containingFile) ?: return null
 
             return TopLevelRouteMeta(
                 packageName = function.packageName.asString(),
@@ -263,13 +176,9 @@ class SpringKtorCollector(
                 functionName = function.simpleName.asString(),
                 functionQualifiedName = qualifiedName,
                 httpMethod = mapping.first,
-                path = mapping.second,
+                path = combinePaths(fileBasePath, mapping.second),
                 parameters = parameters,
-                returnsUnit = returnsUnit,
                 returnTypeName = returnTypeName,
-                nullableReturn = nullableReturn,
-                isSuspend = function.modifiers.contains(Modifier.SUSPEND),
-                sourceFilePath = function.sourceFilePath(),
             )
         }
 
@@ -302,44 +211,7 @@ class SpringKtorCollector(
             httpMethod = mapping.first,
             path = fullPath,
             parameters = parameters,
-            returnsUnit = returnsUnit,
             returnTypeName = returnTypeName,
-            nullableReturn = nullableReturn,
-            isSuspend = function.modifiers.contains(Modifier.SUSPEND),
-            sourceFilePath = function.sourceFilePath(),
-        )
-    }
-
-    private fun extractBeanClassMeta(clazz: KSClassDeclaration): BeanClassMeta? {
-        if (!clazz.isAccessible()) {
-            error("Bean class `${clazz.simpleName.asString()}` must not be private or protected.", clazz)
-            return null
-        }
-        if (clazz.typeParameters.isNotEmpty()) {
-            error("Generic bean class `${clazz.simpleName.asString()}` is not supported.", clazz)
-            return null
-        }
-        if (clazz.classKind !in setOf(ClassKind.CLASS, ClassKind.OBJECT)) {
-            error("Bean declaration `${clazz.simpleName.asString()}` must be a class or object.", clazz)
-            return null
-        }
-
-        val kind = when {
-            clazz.hasAnnotation(CONFIGURATION) -> BeanClassKind.CONFIGURATION
-            clazz.hasAnnotation(REST_CONTROLLER) -> BeanClassKind.CONTROLLER
-            else -> BeanClassKind.COMPONENT
-        }
-        val constructorParamCount = clazz.injectionConstructorParameterCount() ?: return null
-        val qualifiedName = clazz.qualifiedName?.asString() ?: return null
-
-        return BeanClassMeta(
-            kind = kind,
-            qualifiedName = qualifiedName,
-            simpleName = clazz.simpleName.asString(),
-            packageName = clazz.packageName.asString(),
-            objectDeclaration = clazz.classKind == ClassKind.OBJECT,
-            dependencyCount = constructorParamCount,
-            sourceFilePath = clazz.sourceFilePath(),
         )
     }
 
@@ -366,6 +238,15 @@ class SpringKtorCollector(
                 )
             }
         }
+    }
+
+    private fun extractFileBasePath(file: KSFile?): String? {
+        if (file == null) {
+            return ""
+        }
+
+        val annotation = file.findFileAnnotation(FILE_REQUEST_MAPPING) ?: return ""
+        return extractMappingPath(annotation)
     }
 
     private fun determineBinding(parameter: KSValueParameter, resolvedType: com.google.devtools.ksp.symbol.KSType): BindingExtraction? {
@@ -601,37 +482,6 @@ class SpringKtorCollector(
         }
     }
 
-    private fun KSClassDeclaration.injectionConstructorParameterCount(): Int? {
-        if (classKind == ClassKind.OBJECT) {
-            return 0
-        }
-
-        val primaryConstructor = primaryConstructor
-        if (primaryConstructor != null) {
-            if (!primaryConstructor.isAccessible()) {
-                error("Primary constructor for `${simpleName.asString()}` must not be private or protected.", this)
-                return null
-            }
-            return primaryConstructor.parameters.size
-        }
-
-        val visibleConstructors = declarations
-            .filterIsInstance<KSFunctionDeclaration>()
-            .filter { it.simpleName.asString() == "<init>" }
-            .filter { it.isAccessible() }
-            .toList()
-
-        if (visibleConstructors.size > 1) {
-            error("Bean class `${simpleName.asString()}` has multiple visible constructors; MVP requires a single constructor.", this)
-            return null
-        }
-        if (visibleConstructors.size == 1) {
-            return visibleConstructors.single().parameters.size
-        }
-
-        return 0
-    }
-
     private fun extractNamedValue(annotation: KSAnnotation, fallbackName: String): String {
         val value = extractStringValues(annotation.argument("name"))
             .filter { it.isNotBlank() }
@@ -706,6 +556,12 @@ class SpringKtorCollector(
         }
     }
 
+    private fun KSFile.findFileAnnotation(annotationName: String): KSAnnotation? {
+        return annotations.firstOrNull {
+            it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationName
+        }
+    }
+
     private fun KSAnnotated.hasAnnotation(annotationName: String): Boolean {
         return findAnnotation(annotationName) != null
     }
@@ -769,10 +625,6 @@ class SpringKtorCollector(
             parameter.type.resolve().renderType()
         }
         return "$ownerName($parameterTypes)"
-    }
-
-    private fun KSDeclaration.sourceFilePath(): String {
-        return containingFile?.filePath ?: qualifiedName?.asString().orEmpty()
     }
 
     private fun error(message: String, symbol: KSAnnotated? = null) {

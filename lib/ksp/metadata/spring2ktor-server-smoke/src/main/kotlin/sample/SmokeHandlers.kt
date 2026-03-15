@@ -1,3 +1,5 @@
+@file:site.addzero.springktor.runtime.RequestMapping("/spring")
+
 package sample
 
 import io.ktor.http.ContentType
@@ -11,9 +13,6 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondTextWriter
 import io.ktor.utils.io.toByteArray
 import kotlinx.serialization.Serializable
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,9 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import site.addzero.springktor.runtime.SpringRouteResult
-import site.addzero.springktor.runtime.springNoContent
-import site.addzero.springktor.runtime.springNotFound
 
 @Serializable
 data class EchoRequest(
@@ -47,18 +43,9 @@ data class MagicNumber(
     val value: Int,
 )
 
-@Service
 class GreetingService {
     fun prefix(): String {
         return "hello"
-    }
-}
-
-@Configuration
-open class SmokeConfig {
-    @Bean
-    open fun magicNumber(): MagicNumber {
-        return MagicNumber(7)
     }
 }
 
@@ -90,18 +77,13 @@ suspend fun echo(@RequestBody body: EchoRequest): EchoResponse {
 }
 
 @GetMapping("/status/not-found")
-fun notFound(): SpringRouteResult<StatusPayload> {
-    return springNotFound(
-        StatusPayload(
-            code = 404,
-            message = "missing",
-        )
-    )
+fun notFound(): StatusPayload {
+    throw NoSuchElementException("missing")
 }
 
 @GetMapping("/status/no-content")
-fun noContent(): SpringRouteResult<Nothing> {
-    return springNoContent()
+fun noContent(): String? {
+    return null
 }
 
 @PostMapping("/upload")

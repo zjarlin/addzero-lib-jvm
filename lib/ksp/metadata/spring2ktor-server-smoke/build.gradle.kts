@@ -21,9 +21,9 @@ dependencies {
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation("io.ktor:ktor-server-websockets:$ktorVersion")
 
-    compileOnly(libs.org.springframework.spring.context)
     compileOnly(libs.org.springframework.spring.web)
 
     testImplementation("io.ktor:ktor-client-websockets:$ktorVersion")
+    testImplementation(libs.io.ktor.ktor.server.status.pages)
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
 }

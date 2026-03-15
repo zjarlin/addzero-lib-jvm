@@ -2,12 +2,10 @@ package site.addzero.springktor.processor
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
-import com.google.devtools.ksp.processing.KSPLogger
 import java.io.OutputStream
 
 class SpringKtorGenerator(
     private val codeGenerator: CodeGenerator,
-    private val logger: KSPLogger,
 ) {
     fun generate(model: SpringKtorModel, generatedPackage: String) {
         generateTopLevelRoutes(model.topLevelRoutes, generatedPackage)
@@ -19,12 +17,10 @@ class SpringKtorGenerator(
         routes.groupBy { it.fileName }.values.forEach { fileRoutes ->
             val meta = fileRoutes.first()
             val functionName = "register${meta.fileName.toGeneratedTypeName()}SpringRoutes"
-            val sourceFile = meta.sourceFilePath
 
             createFile(
                 packageName = generatedPackage,
                 fileName = functionName,
-                sourceFilePaths = setOf(sourceFile),
             ).use { stream ->
                 stream.write(
                     buildTopLevelRoutesFile(
@@ -41,12 +37,10 @@ class SpringKtorGenerator(
         routes.groupBy { it.controllerQualifiedName }.values.forEach { controllerRoutes ->
             val meta = controllerRoutes.first()
             val functionName = "register${meta.controllerSimpleName.toGeneratedTypeName()}SpringRoutes"
-            val sourceFile = meta.sourceFilePath
 
             createFile(
                 packageName = generatedPackage,
                 fileName = functionName,
-                sourceFilePaths = setOf(sourceFile),
             ).use { stream ->
                 stream.write(
                     buildControllerRoutesFile(
@@ -60,17 +54,9 @@ class SpringKtorGenerator(
     }
 
     private fun generateAggregateFile(model: SpringKtorModel, generatedPackage: String) {
-        val sourcePaths = buildSet {
-            addAll(model.topLevelRoutes.map { it.sourceFilePath })
-            addAll(model.controllerRoutes.map { it.sourceFilePath })
-            addAll(model.beanClasses.map { it.sourceFilePath })
-            addAll(model.beanFactories.map { it.sourceFilePath })
-        }
-
         createFile(
             packageName = generatedPackage,
-            fileName = "GeneratedSpringApplication",
-            sourceFilePaths = sourcePaths,
+            fileName = "GeneratedSpringRoutes",
         ).use { stream ->
             stream.write(buildAggregateFile(model, generatedPackage).toByteArray())
         }
@@ -81,29 +67,33 @@ class SpringKtorGenerator(
         functionName: String,
         routes: List<TopLevelRouteMeta>,
     ): String {
+        val needsTypeInfo = routes.any { it.returnTypeName != null }
         val routeBlocks = routes.joinToString("\n\n") { route ->
             buildRouteBlock(
                 httpMethod = route.httpMethod,
                 path = route.path,
                 parameters = route.parameters,
                 invocation = "${route.functionQualifiedName}(${route.parameters.joinToString(", ") { it.localName() }})",
-                returnsUnit = route.returnsUnit,
                 returnTypeName = route.returnTypeName,
             )
         }
 
-        return """
-            package $generatedPackage
-
-            import io.ktor.server.routing.Route
-            import io.ktor.server.routing.*
-            import io.ktor.util.reflect.typeInfo
-            import site.addzero.springktor.runtime.*
-
-            fun Route.$functionName() {
-            ${routeBlocks.prependIndent("    ")}
+        return buildString {
+            appendLine("package $generatedPackage")
+            appendLine()
+            appendLine("import io.ktor.server.routing.Route")
+            appendLine("import io.ktor.server.routing.*")
+            if (needsTypeInfo) {
+                appendLine("import io.ktor.util.reflect.typeInfo")
             }
-        """.trimIndent()
+            appendLine("import site.addzero.springktor.runtime.*")
+            appendLine()
+            appendLine("fun Route.$functionName() {")
+            if (routeBlocks.isNotBlank()) {
+                appendLine(routeBlocks.prependIndent("    "))
+            }
+            append("}")
+        }
     }
 
     private fun buildControllerRoutesFile(
@@ -112,13 +102,13 @@ class SpringKtorGenerator(
         routes: List<ControllerRouteMeta>,
     ): String {
         val controllerType = routes.first().controllerQualifiedName
+        val needsTypeInfo = routes.any { it.returnTypeName != null }
         val eagerRouteBlocks = routes.joinToString("\n\n") { route ->
             buildRouteBlock(
                 httpMethod = route.httpMethod,
                 path = route.path,
                 parameters = route.parameters,
                 invocation = "controller.${route.functionName}(${route.parameters.joinToString(", ") { it.localName() }})",
-                returnsUnit = route.returnsUnit,
                 returnTypeName = route.returnTypeName,
             )
         }
@@ -127,28 +117,33 @@ class SpringKtorGenerator(
                 httpMethod = route.httpMethod,
                 path = route.path,
                 parameters = route.parameters,
-                invocation = "call.resolveGeneratedSpringBean<$controllerType>().${route.functionName}(${route.parameters.joinToString(", ") { it.localName() }})",
-                returnsUnit = route.returnsUnit,
+                invocation = "org.koin.mp.KoinPlatform.getKoin().get<$controllerType>().${route.functionName}(${route.parameters.joinToString(", ") { it.localName() }})",
                 returnTypeName = route.returnTypeName,
             )
         }
 
-        return """
-            package $generatedPackage
-
-            import io.ktor.server.routing.Route
-            import io.ktor.server.routing.*
-            import io.ktor.util.reflect.typeInfo
-            import site.addzero.springktor.runtime.*
-
-            fun Route.$functionName(controller: $controllerType) {
-            ${eagerRouteBlocks.prependIndent("    ")}
+        return buildString {
+            appendLine("package $generatedPackage")
+            appendLine()
+            appendLine("import io.ktor.server.routing.Route")
+            appendLine("import io.ktor.server.routing.*")
+            if (needsTypeInfo) {
+                appendLine("import io.ktor.util.reflect.typeInfo")
             }
-
-            fun Route.$functionName() {
-            ${lazyRouteBlocks.prependIndent("    ")}
+            appendLine("import site.addzero.springktor.runtime.*")
+            appendLine()
+            appendLine("fun Route.$functionName(controller: $controllerType) {")
+            if (eagerRouteBlocks.isNotBlank()) {
+                appendLine(eagerRouteBlocks.prependIndent("    "))
             }
-        """.trimIndent()
+            appendLine("}")
+            appendLine()
+            appendLine("fun Route.$functionName() {")
+            if (lazyRouteBlocks.isNotBlank()) {
+                appendLine(lazyRouteBlocks.prependIndent("    "))
+            }
+            append("}")
+        }
     }
 
     private fun buildRouteBlock(
@@ -156,7 +151,6 @@ class SpringKtorGenerator(
         path: String,
         parameters: List<ParameterMeta>,
         invocation: String,
-        returnsUnit: Boolean,
         returnTypeName: String?,
     ): String {
         val multipartNeeded = parameters.any {
@@ -165,37 +159,38 @@ class SpringKtorGenerator(
                 it.bindingKind == ParameterBindingKind.MULTIPART_FILE_LIST
         }
         val multipartLine = if (multipartNeeded) {
-            "val _springMultipart = call.receiveSpringMultipartParts()"
+            "val _multipart = call.receiveMultipartParts()"
         } else {
             null
         }
         val bindingLines = parameters.joinToString("\n") { parameter ->
             "val ${parameter.localName()} = ${parameter.bindingExpression()}"
         }
-        val invocationLines = if (returnsUnit) {
-            """
-                $invocation
-                call.completeSpringRoute(returnsUnit = true)
-            """.trimIndent()
+        val responseLine = if (returnTypeName == null) {
+            "call.respondGeneratedRouteResult(result = _routeResult)"
         } else {
             """
-                val _springResult = $invocation
-                call.completeSpringRoute(
-                    result = _springResult,
+                call.respondGeneratedRouteResult(
+                    result = _routeResult,
                     resultType = typeInfo<$returnTypeName>(),
                 )
             """.trimIndent()
         }
+        val invocationLines = """
+            val _routeResult = $invocation
+            $responseLine
+        """.trimIndent()
 
         val routeFunction = httpMethod.toRouteFunctionName()
         val bodyLines = listOfNotNull(multipartLine, bindingLines.takeIf { it.isNotBlank() }, invocationLines)
             .joinToString("\n")
+            .prependIndent("    ")
 
-        return """
-            $routeFunction("${path.escapeKotlinString()}") {
-                $bodyLines
-            }
-        """.trimIndent()
+        return buildString {
+            appendLine("""$routeFunction("${path.escapeKotlinString()}") {""")
+            appendLine(bodyLines)
+            append("}")
+        }
     }
 
     private fun buildAggregateFile(model: SpringKtorModel, generatedPackage: String): String {
@@ -210,52 +205,19 @@ class SpringKtorGenerator(
             .distinct()
             .sorted()
 
-        val beanLines = buildList {
-            model.beanClasses.sortedBy { it.qualifiedName }.forEach { beanClass ->
-                val line = when {
-                    beanClass.objectDeclaration -> "single { ${beanClass.qualifiedName} }"
-                    beanClass.dependencyCount == 0 -> "single { ${beanClass.qualifiedName}() }"
-                    else -> "single { ${beanClass.qualifiedName}(${beanClass.dependencyInvocation()}) }"
-                }
-                add(line)
+        val routeRegistrationLines = (topLevelCalls + controllerCalls).joinToString("\n")
+
+        return buildString {
+            appendLine("package $generatedPackage")
+            appendLine()
+            appendLine("import io.ktor.server.routing.Route")
+            appendLine()
+            appendLine("fun Route.registerGeneratedSpringRoutes() {")
+            if (routeRegistrationLines.isNotBlank()) {
+                appendLine(routeRegistrationLines.prependIndent("    "))
             }
-            model.beanFactories.sortedBy { "${it.configurationQualifiedName}.${it.methodName}" }.forEach { factory ->
-                val invocation = if (factory.dependencyCount == 0) {
-                    "get<${factory.configurationQualifiedName}>().${factory.methodName}()"
-                } else {
-                    "get<${factory.configurationQualifiedName}>().${factory.methodName}(${factory.dependencyInvocation()})"
-                }
-                add("single { $invocation }")
-            }
+            append("}")
         }
-
-        val routeRegistrationLines = (topLevelCalls + controllerCalls).joinToString("\n") { it }
-
-        return """
-            package $generatedPackage
-
-            import io.ktor.server.application.Application
-            import io.ktor.server.routing.Route
-            import io.ktor.server.routing.routing
-            import org.koin.core.module.Module
-            import org.koin.dsl.module
-            import site.addzero.springktor.runtime.installOrLoadGeneratedSpringModule
-
-            val generatedSpringKoinModule: Module = module {
-            ${beanLines.joinToString("\n").prependIndent("    ")}
-            }
-
-            fun Route.registerGeneratedSpringRoutes() {
-            ${routeRegistrationLines.prependIndent("    ")}
-            }
-
-            fun Application.generatedSpringApplication() {
-                installOrLoadGeneratedSpringModule(generatedSpringKoinModule)
-                routing {
-                    registerGeneratedSpringRoutes()
-                }
-            }
-        """.trimIndent()
     }
 
     private fun ParameterMeta.bindingExpression(): String {
@@ -269,17 +231,17 @@ class SpringKtorGenerator(
             ParameterBindingKind.REQUEST_PARAM -> nullableCall("call.optionalRequestParam", "call.requireRequestParam")
             ParameterBindingKind.REQUEST_BODY -> nullableCall("call.optionalRequestBody", "call.requireRequestBody", bodyBinding = true)
             ParameterBindingKind.REQUEST_HEADER -> nullableCall("call.optionalRequestHeader", "call.requireRequestHeader")
-            ParameterBindingKind.REQUEST_PART_VALUE -> nullableCall("_springMultipart.optionalValue", "_springMultipart.requireValue")
+            ParameterBindingKind.REQUEST_PART_VALUE -> nullableCall("_multipart.optionalValue", "_multipart.requireValue")
             ParameterBindingKind.MULTIPART_FILE -> if (nullable) {
-                "_springMultipart.optionalFile(\"${externalName.escapeKotlinString()}\")"
+                "_multipart.optionalFile(\"${externalName.escapeKotlinString()}\")"
             } else {
-                "_springMultipart.requireFile(\"${externalName.escapeKotlinString()}\")"
+                "_multipart.requireFile(\"${externalName.escapeKotlinString()}\")"
             }
 
             ParameterBindingKind.MULTIPART_FILE_LIST -> if (nullable) {
-                "_springMultipart.optionalFiles(\"${externalName.escapeKotlinString()}\")"
+                "_multipart.optionalFiles(\"${externalName.escapeKotlinString()}\")"
             } else {
-                "_springMultipart.requireFiles(\"${externalName.escapeKotlinString()}\")"
+                "_multipart.requireFiles(\"${externalName.escapeKotlinString()}\")"
             }
         }
     }
@@ -299,15 +261,7 @@ class SpringKtorGenerator(
     }
 
     private fun ParameterMeta.localName(): String {
-        return "_springArg$index"
-    }
-
-    private fun BeanClassMeta.dependencyInvocation(): String {
-        return List(dependencyCount) { "get()" }.joinToString(", ")
-    }
-
-    private fun BeanFactoryMeta.dependencyInvocation(): String {
-        return List(dependencyCount) { "get()" }.joinToString(", ")
+        return "_arg$index"
     }
 
     private fun SpringHttpMethod.toRouteFunctionName(): String {
@@ -336,8 +290,7 @@ class SpringKtorGenerator(
         return replace("\\", "\\\\").replace("\"", "\\\"")
     }
 
-    private fun createFile(packageName: String, fileName: String, sourceFilePaths: Set<String>): OutputStream {
-        logger.info("[SpringKtor] Generating $packageName.$fileName from ${sourceFilePaths.joinToString()}")
+    private fun createFile(packageName: String, fileName: String): OutputStream {
         return codeGenerator.createNewFile(
             dependencies = Dependencies(aggregating = true),
             packageName = packageName,

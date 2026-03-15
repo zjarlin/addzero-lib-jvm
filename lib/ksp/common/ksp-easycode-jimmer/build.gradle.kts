@@ -10,9 +10,9 @@ plugins {
 }
 kotlin {
     dependencies {
-        implementation(libs.site.addzero.addzero.ksp.support)
-        implementation(libs.site.addzero.addzero.ksp.easycode)
-        implementation(libs.site.addzero.addzero.entity2analysed.support)
+        implementation(libs.site.addzero.ksp.support)
+        implementation(libs.site.addzero.ksp.easycode)
+        implementation(libs.site.addzero.entity2analysed.support)
 
         implementation(libs.site.addzero.tool.koin)
 

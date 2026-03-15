@@ -11,8 +11,6 @@ class SpringKtorProcessorProvider : SymbolProcessorProvider {
         return object : SymbolProcessor {
             private val topLevelRoutes = linkedSetOf<TopLevelRouteMeta>()
             private val controllerRoutes = linkedSetOf<ControllerRouteMeta>()
-            private val beanClasses = linkedSetOf<BeanClassMeta>()
-            private val beanFactories = linkedSetOf<BeanFactoryMeta>()
             private var hasErrors = false
 
             override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -21,8 +19,6 @@ class SpringKtorProcessorProvider : SymbolProcessorProvider {
 
                 topLevelRoutes += result.model.topLevelRoutes
                 controllerRoutes += result.model.controllerRoutes
-                beanClasses += result.model.beanClasses
-                beanFactories += result.model.beanFactories
                 hasErrors = hasErrors || result.hasErrors
 
                 return result.deferred
@@ -36,15 +32,8 @@ class SpringKtorProcessorProvider : SymbolProcessorProvider {
                 val model = SpringKtorModel(
                     topLevelRoutes = topLevelRoutes,
                     controllerRoutes = controllerRoutes,
-                    beanClasses = beanClasses,
-                    beanFactories = beanFactories,
                 )
-                if (
-                    model.topLevelRoutes.isEmpty() &&
-                    model.controllerRoutes.isEmpty() &&
-                    model.beanClasses.isEmpty() &&
-                    model.beanFactories.isEmpty()
-                ) {
+                if (model.topLevelRoutes.isEmpty() && model.controllerRoutes.isEmpty()) {
                     return
                 }
 
@@ -54,7 +43,6 @@ class SpringKtorProcessorProvider : SymbolProcessorProvider {
 
                 SpringKtorGenerator(
                     codeGenerator = environment.codeGenerator,
-                    logger = environment.logger,
                 ).generate(model, generatedPackage)
             }
 
@@ -62,7 +50,6 @@ class SpringKtorProcessorProvider : SymbolProcessorProvider {
                 val basePackage = sequenceOf(
                     model.topLevelRoutes.map { it.packageName },
                     model.controllerRoutes.map { it.controllerPackageName },
-                    model.beanClasses.map { it.packageName },
                 )
                     .flatten()
                     .filter { it.isNotBlank() }

@@ -1,0 +1,18 @@
+# 小鳄鱼 README 收录规则
+#
+# 语义：
+# - 空行和 # 注释会被忽略
+# - 普通行表示排除
+# - ! 开头表示重新放行
+# - 规则按顺序匹配，后面的规则可以覆盖前面的规则
+
+# 默认不收录 network-call 根索引和子模块 README
+lib/tool-jvm/network-call/README.md
+lib/tool-jvm/network-call/**/README.md
+
+# 已确认可公开的样例模块
+!lib/tool-jvm/network-call/tool-api-maven/README.md
+!lib/tool-jvm/network-call/tool-api-temp-mail/README.md
+
+# 如后续某个模块确认可以公开，再按需继续放行
+# !lib/tool-jvm/network-call/tool-api-weather/README.md
