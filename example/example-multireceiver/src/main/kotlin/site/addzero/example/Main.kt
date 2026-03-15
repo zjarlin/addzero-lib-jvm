@@ -2,22 +2,16 @@ package site.addzero.example
 
 fun main() {
   println("wrap => ${"ok".wrap()}")
+  println("unwrap => ${Box("value").unwrap()}")
   println("render => ${context(Service("svc")) { render(3) }}")
+  println("renderWrapped => ${context(Service("svc"), Envelope("[", "]")) { renderWrapped(5) }}")
   println("decorate => ${with(Engine("eng")) { "ok".decorate() }}")
 
-  val generatedTopLevelMethods = Class
-    .forName("site.addzero.example.__GENERATED__CALLABLES__Kt")
+  val generatedMethods = Class
+    .forName("site.addzero.example.ExampleTargetsMultireceiverKt")
     .declaredMethods
     .map { method -> method.name }
-    .filter { methodName -> "ByAddzero" in methodName }
     .sorted()
 
-  println("generated top-level methods => ${generatedTopLevelMethods.joinToString()}")
-
-  val engineMethods = Engine::class.java.declaredMethods
-    .map { method -> method.name }
-    .filter { methodName -> "ByAddzero" in methodName }
-    .sorted()
-
-  println("generated member methods => ${engineMethods.joinToString()}")
+  println("generated KSP wrappers => ${generatedMethods.joinToString()}")
 }

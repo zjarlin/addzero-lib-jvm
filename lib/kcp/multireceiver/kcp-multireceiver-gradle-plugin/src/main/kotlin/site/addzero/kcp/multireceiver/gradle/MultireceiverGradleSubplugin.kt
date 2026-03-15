@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Properties
 
 class MultireceiverGradleSubplugin : KotlinCompilerPluginSupportPlugin {
@@ -88,6 +89,13 @@ class MultireceiverGradleSubplugin : KotlinCompilerPluginSupportPlugin {
                 ?.compilerOptions
                 ?.freeCompilerArgs
                 ?.add(CONTEXT_PARAMETERS_FLAG)
+        }
+        project.afterEvaluate {
+            project.tasks.withType(KotlinCompile::class.java).configureEach { task ->
+                if (CONTEXT_PARAMETERS_FLAG !in task.compilerOptions.freeCompilerArgs.get()) {
+                    task.compilerOptions.freeCompilerArgs.add(CONTEXT_PARAMETERS_FLAG)
+                }
+            }
         }
     }
 

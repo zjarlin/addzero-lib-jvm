@@ -6,11 +6,11 @@ A Kotlin compiler plugin that transforms function parameters into receivers or c
 
 ### Single Parameter → Extension Receiver
 
-When a function annotated with `@AddGenerateExtension` has exactly one source-level value parameter, the plugin generates an extension wrapper with that parameter as the receiver.
+When a function annotated with `@GenerateExtension` has exactly one source-level value parameter, the plugin generates an extension wrapper with that parameter as the receiver.
 
 **Before:**
 ```kotlin
-@AddGenerateExtension
+@GenerateExtension
 fun process(data: String): Result {
     // ...
 }
@@ -29,7 +29,7 @@ When a function has one or more parameters annotated with `@Receiver`, those par
 
 **Before:**
 ```kotlin
-@AddGenerateExtension
+@GenerateExtension
 fun combine(@Receiver foo: Foo, @Receiver bar: Bar, value: Int): Result {
     // ...
 }
@@ -63,13 +63,13 @@ plugins {
 
 3. Annotate your functions:
 ```kotlin
-import site.addzero.kcp.annotations.AddGenerateExtension
+import site.addzero.kcp.annotations.GenerateExtension
 import site.addzero.kcp.annotations.Receiver
 
-@AddGenerateExtension
+@GenerateExtension
 fun wrap(value: MyType) { }
 
-@AddGenerateExtension
+@GenerateExtension
 fun render(@Receiver scope: Scope, value: Int) { }
 ```
 

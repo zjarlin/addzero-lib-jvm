@@ -88,6 +88,7 @@ class SpringKtorGenerator(
                 parameters = route.parameters,
                 invocation = "${route.functionQualifiedName}(${route.parameters.joinToString(", ") { it.localName() }})",
                 returnsUnit = route.returnsUnit,
+                returnTypeName = route.returnTypeName,
             )
         }
 
@@ -96,6 +97,7 @@ class SpringKtorGenerator(
 
             import io.ktor.server.routing.Route
             import io.ktor.server.routing.*
+            import io.ktor.util.reflect.typeInfo
             import site.addzero.springktor.runtime.*
 
             fun Route.$functionName() {
@@ -117,6 +119,7 @@ class SpringKtorGenerator(
                 parameters = route.parameters,
                 invocation = "controller.${route.functionName}(${route.parameters.joinToString(", ") { it.localName() }})",
                 returnsUnit = route.returnsUnit,
+                returnTypeName = route.returnTypeName,
             )
         }
         val lazyRouteBlocks = routes.joinToString("\n\n") { route ->
@@ -126,6 +129,7 @@ class SpringKtorGenerator(
                 parameters = route.parameters,
                 invocation = "call.resolveGeneratedSpringBean<$controllerType>().${route.functionName}(${route.parameters.joinToString(", ") { it.localName() }})",
                 returnsUnit = route.returnsUnit,
+                returnTypeName = route.returnTypeName,
             )
         }
 
@@ -134,6 +138,7 @@ class SpringKtorGenerator(
 
             import io.ktor.server.routing.Route
             import io.ktor.server.routing.*
+            import io.ktor.util.reflect.typeInfo
             import site.addzero.springktor.runtime.*
 
             fun Route.$functionName(controller: $controllerType) {
@@ -152,6 +157,7 @@ class SpringKtorGenerator(
         parameters: List<ParameterMeta>,
         invocation: String,
         returnsUnit: Boolean,
+        returnTypeName: String?,
     ): String {
         val multipartNeeded = parameters.any {
             it.bindingKind == ParameterBindingKind.REQUEST_PART_VALUE ||
@@ -169,12 +175,15 @@ class SpringKtorGenerator(
         val invocationLines = if (returnsUnit) {
             """
                 $invocation
-                call.respondSpringUnitIfNeeded()
+                call.completeSpringRoute(returnsUnit = true)
             """.trimIndent()
         } else {
             """
                 val _springResult = $invocation
-                call.respondSpringResult(_springResult)
+                call.completeSpringRoute(
+                    result = _springResult,
+                    resultType = typeInfo<$returnTypeName>(),
+                )
             """.trimIndent()
         }
 

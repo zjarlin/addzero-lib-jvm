@@ -1,0 +1,43 @@
+[versions]
+guice = "4.2.3"
+dokka = "2.0.0"
+spotless = "8.0.0"
+graalvm = "0.11.0"
+spring-dependency-management = "1.1.7"
+spring-boot = "2.7.18"
+intellij-platform = "2.10.3"
+compose = "1.8.2"
+ktor = "3.4.0"
+ktorfit = "2.7.2"
+buildkonfig = "0.17.1"
+kotlin = "2.3.20-RC"
+ksp = "2.3.5"
+agp = "8.11.1"
+
+[libraries]
+com-google-inject-guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
+site-addzero-tool-yml = { group = "site.addzero", name = "tool-yml", version = "2025.12.26" }
+site-addzero-tool-gradle-projectdir = { group = "site.addzero", name = "tool-gradle-projectdir", version = "2026.01.27" }
+io-insert-koin-koin-compiler-gradle-plugin = { group = "io.insert-koin", name = "koin-compiler-gradle-plugin", version = "0.3.0" }
+io-ktor-plugin-plugin = { group = "io.ktor.plugin", name = "io.ktor.plugin.gradle.plugin", version.ref = "ktor" }
+com-diffplug-spotless-com-diffplug-spotless-gradle-plugin = { group = "com.diffplug.spotless", name = "com.diffplug.spotless.gradle.plugin", version.ref = "spotless" }
+org-jetbrains-dokka-dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
+org-jetbrains-kotlin-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+org-graalvm-buildtools-native-org-graalvm-buildtools-native-gradle-plugin = { group = "org.graalvm.buildtools.native", name = "org.graalvm.buildtools.native.gradle.plugin", version.ref = "graalvm" }
+io-spring-gradle-dependency-management-plugin = { group = "io.spring.dependency-management", name = "io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management" }
+org-springframework-boot-org-springframework-boot-gradle-plugin-v2 = { group = "org.springframework.boot", name = "org.springframework.boot.gradle.plugin", version.ref = "spring-boot" }
+org-jetbrains-kotlin-plugin-spring-org-jetbrains-kotlin-plugin-spring-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.spring", name = "org.jetbrains.kotlin.plugin.spring.gradle.plugin", version.ref = "kotlin" }
+org-jetbrains-intellij-platform-org-jetbrains-intellij-platform-gradle-plugin = { group = "org.jetbrains.intellij.platform", name = "org.jetbrains.intellij.platform.gradle.plugin", version.ref = "intellij-platform" }
+org-jetbrains-changelog-org-jetbrains-changelog-gradle-plugin = { group = "org.jetbrains.changelog", name = "org.jetbrains.changelog.gradle.plugin", version = "2.4.0" }
+org-jetbrains-intellij-platform-migration-org-jetbrains-intellij-platform-migration-gradle-plugin = { group = "org.jetbrains.intellij.platform.migration", name = "org.jetbrains.intellij.platform.migration.gradle.plugin", version.ref = "intellij-platform" }
+org-jetbrains-intellij-platform-settings-org-jetbrains-intellij-platform-settings-gradle-plugin = { group = "org.jetbrains.intellij.platform.settings", name = "org.jetbrains.intellij.platform.settings.gradle.plugin", version.ref = "intellij-platform" }
+org-jetbrains-intellij-platform-base-org-jetbrains-intellij-platform-base-gradle-plugin = { group = "org.jetbrains.intellij.platform.base", name = "org.jetbrains.intellij.platform.base.gradle.plugin", version.ref = "intellij-platform" }
+org-jetbrains-intellij-platform-module-org-jetbrains-intellij-platform-module-gradle-plugin = { group = "org.jetbrains.intellij.platform.module", name = "org.jetbrains.intellij.platform.module.gradle.plugin", version.ref = "intellij-platform" }
+org-jetbrains-compose-compose-gradle-plugin = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "compose" }
+org-jetbrains-kotlin-plugin-compose-org-jetbrains-kotlin-plugin-compose-gradle-plugin = { group = "org.jetbrains.kotlin.plugin.compose", name = "org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
+org-jetbrains-kotlin-kotlin-serialization = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
+com-codingfeline-buildkonfig-buildkonfig-gradle-plugin = { group = "com.codingfeline.buildkonfig", name = "buildkonfig-gradle-plugin", version.ref = "buildkonfig" }
+com-codingfeline-buildkonfig-buildkonfig-compiler = { group = "com.codingfeline.buildkonfig", name = "buildkonfig-compiler", version.ref = "buildkonfig" }
+de-jensklingenberg-ktorfit-de-jensklingenberg-ktorfit-gradle-plugin = { group = "de.jensklingenberg.ktorfit", name = "de.jensklingenberg.ktorfit.gradle.plugin", version.ref = "ktorfit" }
+com-android-tools-build-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+com-google-devtools-ksp-com-google-devtools-ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }

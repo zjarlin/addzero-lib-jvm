@@ -62,10 +62,10 @@ class MultireceiverCompilerIntegrationTest {
                 "site/addzero/example/BrokenTargets.kt" to """
                     package site.addzero.example
 
-                    import site.addzero.kcp.annotations.AddGenerateExtension
+                    import site.addzero.kcp.annotations.GenerateExtension
                     import site.addzero.kcp.annotations.Receiver
 
-                    @AddGenerateExtension
+                    @GenerateExtension
                     fun broken(@Receiver value: String = "oops", other: Int): String = "${'$'}value:${'$'}other"
                 """.trimIndent(),
             ),
@@ -134,24 +134,24 @@ class MultireceiverCompilerIntegrationTest {
         return """
             package site.addzero.example
 
-            import site.addzero.kcp.annotations.AddGenerateExtension
+            import site.addzero.kcp.annotations.GenerateExtension
             import site.addzero.kcp.annotations.Receiver
 
             data class Service(val prefix: String)
             data class Scope(val label: String)
 
-            @AddGenerateExtension
+            @GenerateExtension
             fun wrap(value: String): String = "<${'$'}value>"
 
-            @AddGenerateExtension
+            @GenerateExtension
             fun render(@Receiver service: Service, @Receiver scope: Scope, value: Int): String =
                 "${'$'}{service.prefix}:${'$'}{scope.label}:${'$'}value"
 
             class Engine(private val prefix: String) {
-                @AddGenerateExtension
+                @GenerateExtension
                 fun decorate(value: String): String = "${'$'}prefix[${'$'}value]"
 
-                @AddGenerateExtension
+                @GenerateExtension
                 fun compute(@Receiver service: Service, value: Int): String =
                     "${'$'}prefix:${'$'}{service.prefix}:${'$'}value"
             }

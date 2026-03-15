@@ -7,8 +7,8 @@ import org.jetbrains.kotlin.name.FqName
 internal object MultireceiverPluginKeys {
     const val compilerPluginId: String = "site.addzero.kcp.multireceiver"
 
-    val addGenerateExtensionAnnotation = FqName(
-        "site.addzero.kcp.annotations.AddGenerateExtension",
+    val generateExtensionAnnotation = FqName(
+        "site.addzero.kcp.annotations.GenerateExtension",
     )
     val receiverAnnotation = FqName(
         "site.addzero.kcp.annotations.Receiver",

@@ -9,6 +9,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.request.receiveNullable
 import io.ktor.server.response.respond
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.toByteArray
 import org.springframework.web.multipart.MultipartFile
 import java.math.BigDecimal
@@ -84,24 +86,162 @@ suspend fun MultiPartData.toSpringMultipartParts(): SpringMultipartParts {
     return SpringMultipartParts(files, values)
 }
 
-suspend fun ApplicationCall.respondSpringResult(result: Any?) {
+data class SpringRouteResult<out T>(
+    val status: HttpStatusCode = HttpStatusCode.OK,
+    val body: T? = null,
+    val headers: Map<String, String> = emptyMap(),
+    val bodyType: TypeInfo? = null,
+)
+
+inline fun <reified T> springRouteResult(
+    status: HttpStatusCode,
+    body: T? = null,
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<T> {
+    return SpringRouteResult(
+        status = status,
+        body = body,
+        headers = headers,
+        bodyType = typeInfo<T>(),
+    )
+}
+
+inline fun <reified T> springOk(
+    body: T,
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<T> {
+    return springRouteResult(
+        status = HttpStatusCode.OK,
+        body = body,
+        headers = headers,
+    )
+}
+
+fun springOk(
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<Nothing> {
+    return SpringRouteResult(
+        status = HttpStatusCode.OK,
+        headers = headers,
+    )
+}
+
+fun springNoContent(
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<Nothing> {
+    return SpringRouteResult(
+        status = HttpStatusCode.NoContent,
+        headers = headers,
+    )
+}
+
+inline fun <reified T> springBadRequest(
+    body: T,
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<T> {
+    return springRouteResult(
+        status = HttpStatusCode.BadRequest,
+        body = body,
+        headers = headers,
+    )
+}
+
+inline fun <reified T> springNotFound(
+    body: T,
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<T> {
+    return springRouteResult(
+        status = HttpStatusCode.NotFound,
+        body = body,
+        headers = headers,
+    )
+}
+
+inline fun <reified T> springBadGateway(
+    body: T,
+    headers: Map<String, String> = emptyMap(),
+): SpringRouteResult<T> {
+    return springRouteResult(
+        status = HttpStatusCode.BadGateway,
+        body = body,
+        headers = headers,
+    )
+}
+
+suspend fun ApplicationCall.completeSpringRoute(
+    result: Any? = null,
+    returnsUnit: Boolean = false,
+    resultType: TypeInfo? = null,
+) {
     if (response.isCommitted) {
         return
     }
-    if (result == null) {
-        respond(HttpStatusCode.NoContent)
+
+    if (returnsUnit) {
+        respond(HttpStatusCode.OK)
         return
     }
 
-    respond(result)
+    when (result) {
+        null -> {
+            respond(HttpStatusCode.NoContent)
+        }
+
+        is SpringRouteResult<*> -> {
+            result.headers.forEach { (key, value) ->
+                response.headers.append(key, value)
+            }
+
+            if (result.body == null) {
+                respond(result.status)
+                return
+            }
+
+            respond(result.status, result.body, result.bodyType ?: result.body.dynamicTypeInfo())
+        }
+
+        else -> {
+            respond(HttpStatusCode.OK, result, resultType ?: result.dynamicTypeInfo())
+        }
+    }
+}
+
+suspend fun ApplicationCall.respondSpringResult(result: Any?) {
+    completeSpringRoute(
+        result = result,
+        resultType = result?.dynamicTypeInfo(),
+    )
 }
 
 suspend fun ApplicationCall.respondSpringUnitIfNeeded() {
-    if (response.isCommitted) {
-        return
-    }
+    completeSpringRoute(returnsUnit = true)
+}
 
-    respond(HttpStatusCode.OK)
+@Deprecated(
+    message = "Use completeSpringRoute or direct return-based handlers instead.",
+    replaceWith = ReplaceWith("completeSpringRoute(result = result)")
+)
+suspend fun ApplicationCall.respondGeneratedSpringResult(result: Any?) {
+    completeSpringRoute(result = result)
+}
+
+@Deprecated(
+    message = "Use completeSpringRoute or direct return-based handlers instead.",
+    replaceWith = ReplaceWith("completeSpringRoute(returnsUnit = true)")
+)
+suspend fun ApplicationCall.respondGeneratedSpringUnitIfNeeded() {
+    completeSpringRoute(returnsUnit = true)
+}
+
+@Deprecated(
+    message = "Use springRouteResult/springOk/springBadRequest helpers in route handlers."
+)
+typealias GeneratedSpringRouteResult<T> = SpringRouteResult<T>
+
+private fun Any.dynamicTypeInfo(): TypeInfo {
+    return TypeInfo(
+        type = this::class,
+    )
 }
 
 data class SpringMultipartParts(

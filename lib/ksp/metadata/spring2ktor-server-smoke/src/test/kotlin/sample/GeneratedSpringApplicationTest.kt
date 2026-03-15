@@ -8,6 +8,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -103,6 +104,24 @@ class GeneratedSpringApplicationTest {
             )
         }
         assertEquals("native.txt:3:plain-ktor", uploadNativeResponse.bodyAsText())
+    }
+
+    @Test
+    fun springRouteResultSupportsCustomStatusAndNoContent() = testApplication {
+        application {
+            this@application.install(ContentNegotiation) {
+                json()
+            }
+            generatedSpringApplication()
+        }
+
+        val notFoundResponse = client.get("/status/not-found")
+        assertEquals(HttpStatusCode.NotFound, notFoundResponse.status)
+        assertEquals("""{"code":404,"message":"missing"}""", notFoundResponse.bodyAsText())
+
+        val noContentResponse = client.get("/status/no-content")
+        assertEquals(HttpStatusCode.NoContent, noContentResponse.status)
+        assertEquals("", noContentResponse.bodyAsText())
     }
 
     @Test

@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import site.addzero.springktor.runtime.SpringRouteResult
+import site.addzero.springktor.runtime.springNoContent
+import site.addzero.springktor.runtime.springNotFound
 
 @Serializable
 data class EchoRequest(
@@ -31,6 +34,12 @@ data class EchoRequest(
 
 @Serializable
 data class EchoResponse(
+    val message: String,
+)
+
+@Serializable
+data class StatusPayload(
+    val code: Int,
     val message: String,
 )
 
@@ -78,6 +87,21 @@ suspend fun topHello(
 @PostMapping("/echo")
 suspend fun echo(@RequestBody body: EchoRequest): EchoResponse {
     return EchoResponse(message = "echo:${body.name}")
+}
+
+@GetMapping("/status/not-found")
+fun notFound(): SpringRouteResult<StatusPayload> {
+    return springNotFound(
+        StatusPayload(
+            code = 404,
+            message = "missing",
+        )
+    )
+}
+
+@GetMapping("/status/no-content")
+fun noContent(): SpringRouteResult<Nothing> {
+    return springNoContent()
 }
 
 @PostMapping("/upload")

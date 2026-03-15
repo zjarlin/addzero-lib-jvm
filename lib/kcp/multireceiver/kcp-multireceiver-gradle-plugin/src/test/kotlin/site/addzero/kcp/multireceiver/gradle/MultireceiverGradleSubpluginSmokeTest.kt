@@ -31,15 +31,15 @@ class MultireceiverGradleSubpluginSmokeTest {
             """
                 package site.addzero.example
 
-                import site.addzero.kcp.annotations.AddGenerateExtension
+                import site.addzero.kcp.annotations.GenerateExtension
                 import site.addzero.kcp.annotations.Receiver
 
                 data class Service(val prefix: String)
 
-                @AddGenerateExtension
+                @GenerateExtension
                 fun wrap(value: String): String = "<${'$'}value>"
 
-                @AddGenerateExtension
+                @GenerateExtension
                 fun render(@Receiver service: Service, value: Int): String =
                     "${'$'}{service.prefix}:${'$'}value"
 
@@ -200,6 +200,10 @@ class MultireceiverGradleSubpluginSmokeTest {
 
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper>()
             apply<site.addzero.kcp.multireceiver.gradle.MultireceiverGradleSubplugin>()
+
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                compilerOptions.freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+            }
         """.trimIndent()
     }
 

@@ -218,7 +218,7 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
         if (!function.isSourceFunction()) {
             return false
         }
-        if (!function.hasAnnotation(MultireceiverPluginKeys.addGenerateExtensionAnnotation)) {
+        if (!function.hasAnnotation(MultireceiverPluginKeys.generateExtensionAnnotation)) {
             return false
         }
         if (function.extensionReceiverParameter != null) {

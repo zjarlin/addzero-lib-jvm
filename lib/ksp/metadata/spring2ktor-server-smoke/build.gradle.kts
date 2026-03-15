@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
+val ktorVersion = "3.4.0"
+
 kotlin {
     sourceSets.main {
         kotlin.srcDir("build/generated/ksp/main/kotlin")
@@ -15,13 +17,13 @@ dependencies {
     ksp(project(":lib:ksp:metadata:spring2ktor-server-processor"))
 
     implementation(libs.io.ktor.ktor.server.content.negotiation)
-    implementation(libs.io.ktor.ktor.server.websockets)
     implementation(libs.io.ktor.ktor.serialization.kotlinx.json)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
+    implementation("io.ktor:ktor-server-websockets:$ktorVersion")
 
     compileOnly(libs.org.springframework.spring.context)
     compileOnly(libs.org.springframework.spring.web)
 
-    testImplementation(libs.io.ktor.ktor.client.websockets)
-    testImplementation(libs.io.ktor.ktor.server.test.host.jvm)
+    testImplementation("io.ktor:ktor-client-websockets:$ktorVersion")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
 }

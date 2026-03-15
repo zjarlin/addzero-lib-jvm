@@ -239,6 +239,9 @@ class SpringKtorCollector(
 
         val returnType = function.returnType?.resolve()
         val returnsUnit = returnType == null || returnType.isUnitType()
+        val returnTypeName = returnType
+            ?.takeUnless { it.isUnitType() }
+            ?.renderType()
         val nullableReturn = returnType?.nullability == Nullability.NULLABLE
         val parent = function.parentDeclaration
 
@@ -263,6 +266,7 @@ class SpringKtorCollector(
                 path = mapping.second,
                 parameters = parameters,
                 returnsUnit = returnsUnit,
+                returnTypeName = returnTypeName,
                 nullableReturn = nullableReturn,
                 isSuspend = function.modifiers.contains(Modifier.SUSPEND),
                 sourceFilePath = function.sourceFilePath(),
@@ -299,6 +303,7 @@ class SpringKtorCollector(
             path = fullPath,
             parameters = parameters,
             returnsUnit = returnsUnit,
+            returnTypeName = returnTypeName,
             nullableReturn = nullableReturn,
             isSuspend = function.modifiers.contains(Modifier.SUSPEND),
             sourceFilePath = function.sourceFilePath(),

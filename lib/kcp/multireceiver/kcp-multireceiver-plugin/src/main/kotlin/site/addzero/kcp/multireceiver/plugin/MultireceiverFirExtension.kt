@@ -58,7 +58,7 @@ class MultireceiverFirExtension(
 ) : FirDeclarationGenerationExtension(session) {
 
     private val targetFunctionPredicate = LookupPredicate.create {
-        lookupAnnotated(MultireceiverPluginKeys.addGenerateExtensionAnnotation)
+        lookupAnnotated(MultireceiverPluginKeys.generateExtensionAnnotation)
     }
 
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
@@ -112,7 +112,7 @@ class MultireceiverFirExtension(
                 if (!isSupportedOriginalFunction(function)) {
                     return@processFunctionsByName
                 }
-                if (!hasAnnotation(function.fir, MultireceiverPluginKeys.addGenerateExtensionAnnotation)) {
+                if (!hasAnnotation(function.fir, MultireceiverPluginKeys.generateExtensionAnnotation)) {
                     return@processFunctionsByName
                 }
                 createCandidate(function)?.let { candidate ->
@@ -326,7 +326,7 @@ class MultireceiverFirExtension(
         annotation: FirAnnotation,
     ): Boolean {
         val fqName = annotation.annotationFqName() ?: return true
-        return fqName != MultireceiverPluginKeys.addGenerateExtensionAnnotation &&
+        return fqName != MultireceiverPluginKeys.generateExtensionAnnotation &&
             fqName != MultireceiverPluginKeys.jvmNameAnnotation
     }
 
@@ -408,7 +408,7 @@ class MultireceiverFirExtension(
         reason: String,
     ): Nothing {
         throw IllegalStateException(
-            "Invalid @AddGenerateExtension target ${symbol.callableId.asFqNameForDebugInfo()}: $reason",
+            "Invalid @GenerateExtension target ${symbol.callableId.asFqNameForDebugInfo()}: $reason",
         )
     }
 
