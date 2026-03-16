@@ -21,8 +21,8 @@ includeBuild("build-logic")
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-15T16:23:59.133422
-// Loaded: 15, Excluded: 0, Total: 15
+// Generated at: 2026-03-16T17:24:36.681731
+// Loaded: 13, Excluded: 0, Total: 13
 include(":example:example-multireceiver")
 include(":example:example-transform-overload")
 include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
@@ -34,12 +34,27 @@ include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
 include(":lib:ksp:metadata:multireceiver-processor")
-include(":lib:ksp:metadata:spring2ktor-server-core")
-include(":lib:ksp:metadata:spring2ktor-server-processor")
-include(":lib:ksp:metadata:spring2ktor-server-smoke")
-include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
+include(":lib:tool-kmp:jdbc:tool-jdbc")
+include(":lib:tool-kmp:jdbc:tool-jdbc-model")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:metadata:spring2ktor-server-core")
 include(":lib:ksp:metadata:spring2ktor-server-processor")
 include(":lib:ksp:metadata:spring2ktor-server-smoke")
+include(":lib:tool-kmp:jdbc:tool-jdbc-model")
+include(":lib:tool-kmp:jdbc:tool-jdbc")
+include(":lib:tool-jvm:database:tool-database-model")
+include(":lib:tool-jvm:database:ddlgenerator-core")
+include(":lib:tool-jvm:database:ddlgenerator-lsi-adaptor")
+include(":lib:tool-jvm:database:ddlgenerator-jdbc-adaptor")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-mysql")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-postgresql")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-h2")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlite")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlserver")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-oracle")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-dm")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-kingbase")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-taos")
+include(":lib:tool-jvm:database:ddlgenerator")
+include(":lib:biz:spec-iot")

@@ -26,3 +26,10 @@ data class JdbcTableMetadata(
     val remarks: String,
     val columns: List<JdbcColumnMetadata>
 )
+
+data class JdbcIndexMetadata(
+    val tableName: String,
+    val name: String,
+    val columnNames: List<String>,
+    val unique: Boolean
+)

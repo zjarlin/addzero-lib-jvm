@@ -12,6 +12,7 @@ enum class DatabaseType(
     SQLSERVER("SQL Server数据库"),
     H2("H2数据库"),
     SQLITE("SQLite数据库"),
+    TAOS("TDengine / TAOS数据库"),
     @Deprecated("已弃用，请使用DAMENG", replaceWith = ReplaceWith("site.addzero.util" +
             ".db.DatabaseType.DM"))
     DAMENG("达梦数据库"),
@@ -66,6 +67,7 @@ enum class DatabaseType(
                 url.startsWith("jdbc:db2:") -> DB2
                 url.startsWith("jdbc:h2:") -> H2
                 url.startsWith("jdbc:sqlite:") -> SQLITE
+                url.startsWith("jdbc:taos:") || url.startsWith("jdbc:TAOS:") || url.startsWith("jdbc:taos-rs:") || url.startsWith("jdbc:TAOS-RS:") -> TAOS
                 url.startsWith("jdbc:dm:") -> DM
                 url.startsWith("jdbc:kingbase8:") || url.startsWith("jdbc:kingbase:") -> KINGBASE
                 url.startsWith("jdbc:gaussdb:") -> GAUSSDB
@@ -90,6 +92,7 @@ enum class DatabaseType(
                 url.startsWith("jdbc:db2:") -> "com.ibm.db2.jcc.DB2Driver"
                 url.startsWith("jdbc:h2:") -> "org.h2.Driver"
                 url.startsWith("jdbc:sqlite:") -> "org.sqlite.JDBC"
+                url.startsWith("jdbc:taos:") || url.startsWith("jdbc:TAOS:") || url.startsWith("jdbc:taos-rs:") || url.startsWith("jdbc:TAOS-RS:") -> "com.taosdata.jdbc.TSDBDriver"
                 url.startsWith("jdbc:dm:") -> "dm.jdbc.driver.DmDriver"
                 url.startsWith("jdbc:kingbase8:") || url.startsWith("jdbc:kingbase:") -> "com.kingbase8.Driver"
                 url.startsWith("jdbc:gaussdb:") -> "org.opengauss.Driver"

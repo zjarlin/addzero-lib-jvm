@@ -3,8 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.site.addzero.addzero.kcp.annotations)
+    implementation(libs.site.addzero.kcp.annotations)
     implementation(libs.org.jetbrains.kotlin.kotlin.compiler.embeddable)
 }
-
 

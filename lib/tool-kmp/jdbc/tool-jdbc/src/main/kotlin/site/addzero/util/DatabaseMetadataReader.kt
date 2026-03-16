@@ -3,6 +3,7 @@ package site.addzero.util
 import site.addzero.assist.extractSchemaFromUrl
 import site.addzero.entity.ForeignKeyMetadata
 import site.addzero.entity.JdbcColumnMetadata
+import site.addzero.entity.JdbcIndexMetadata
 import site.addzero.entity.JdbcTableMetadata
 import site.addzero.entity.PrimaryKeyMetadata
 import site.addzero.util.db.SqlExecutor
@@ -110,7 +111,7 @@ class DatabaseMetadataReader(
                     val columns = getColumnsMetadata(schema, tableName)
 
                     // 获取表的主键信息
-                    val primaryKeys = getPrimaryKeysForTable(tableName, defaultSchema )
+                    val primaryKeys = getPrimaryKeysForTable(tableName, actualSchema)
 
                     // 标记主键列
                     val columnsWithPk = columns.map { column ->
@@ -232,8 +233,8 @@ class DatabaseMetadataReader(
             val normalizedType = normalizeDataType(dataType)
 
             // 转换可空标志
-            val nullableBool = nullable != DatabaseMetaData.columnNullable
-            val nullableFlag = if (nullableBool) "NO" else "YES"
+            val nullableBool = nullable == DatabaseMetaData.columnNullable
+            val nullableFlag = if (nullableBool) "YES" else "NO"
 
             val element = JdbcColumnMetadata(
                 tableName = currentTableName,
@@ -254,6 +255,47 @@ class DatabaseMetadataReader(
         return result.sortedWith(
             compareBy({ it.tableName }, { getColumnPosition(connection, schema, it.tableName, it.columnName) })
         )
+    }
+
+    fun getIndexMetadata(
+        schema: String? = null,
+        tableName: String? = null
+    ): List<JdbcIndexMetadata> {
+        val actualSchema = schema ?: defaultSchema
+        return withConnection { connection ->
+            val metadata = connection.metaData
+            val result = linkedMapOf<Pair<String, String>, MutableList<String>>()
+            val uniqueFlags = mutableMapOf<Pair<String, String>, Boolean>()
+
+            metadata.getIndexInfo(connection.catalog, actualSchema, tableName, false, false).use { rs ->
+                while (rs.next()) {
+                    val indexName = rs.getString("INDEX_NAME") ?: continue
+                    val currentTableName = rs.getString("TABLE_NAME") ?: continue
+                    val columnName = rs.getString("COLUMN_NAME") ?: continue
+                    val type = rs.getShort("TYPE")
+
+                    if (type.toInt() == DatabaseMetaData.tableIndexStatistic) {
+                        continue
+                    }
+                    if (indexName.equals("PRIMARY", ignoreCase = true) || indexName.startsWith("PK_", ignoreCase = true)) {
+                        continue
+                    }
+
+                    val key = currentTableName to indexName
+                    result.getOrPut(key) { mutableListOf() }.add(columnName)
+                    uniqueFlags[key] = !rs.getBoolean("NON_UNIQUE")
+                }
+            }
+
+            result.map { (key, columns) ->
+                JdbcIndexMetadata(
+                    tableName = key.first,
+                    name = key.second,
+                    columnNames = columns.toList(),
+                    unique = uniqueFlags[key] == true
+                )
+            }
+        }
     }
 
     /**
