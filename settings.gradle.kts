@@ -21,10 +21,8 @@ includeBuild("build-logic")
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-16T17:29:50.190522
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:biz:spec-iot")
-include(":lib:gradle-plugin:conventions:jvm-conventions:koin-convention")
+// Generated at: 2026-03-16T17:35:56.627847
+// Loaded: 3, Excluded: 0, Total: 3
 include(":lib:ksp:metadata:spring2ktor-server-core")
 include(":lib:ksp:metadata:spring2ktor-server-processor")
 include(":lib:ksp:metadata:spring2ktor-server-smoke")

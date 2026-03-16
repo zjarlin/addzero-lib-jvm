@@ -1,6 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.jvm.kotlin-convention") 
-  id("site.addzero.gradle.plugin.koin-convention") version "+"
+  id("site.addzero.buildlogic.jvm.jvm-koin")
   id("site.addzero.gradle.plugin.processor-buddy") version "2026.01.11"
 }
 

@@ -1,9 +1,8 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    id("site.addzero.buildlogic.jvm.jvm-ksp")
 }
 
 dependencies {
-    implementation(libs.com.google.devtools.ksp.symbol.processing.api)
     testImplementation(libs.org.springframework.spring.context)
     testImplementation(libs.org.springframework.spring.web)
 }
