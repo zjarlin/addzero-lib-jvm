@@ -21,21 +21,13 @@ includeBuild("build-logic")
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-16T17:24:36.681731
-// Loaded: 13, Excluded: 0, Total: 13
-include(":example:example-multireceiver")
-include(":example:example-transform-overload")
-include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
-include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
-include(":lib:kcp:multireceiver:kcp-multireceiver-idea-plugin")
-include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
-include(":lib:kcp:transform-overload:kcp-transform-overload")
-include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
-include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
-include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
-include(":lib:ksp:metadata:multireceiver-processor")
-include(":lib:tool-kmp:jdbc:tool-jdbc")
-include(":lib:tool-kmp:jdbc:tool-jdbc-model")
+// Generated at: 2026-03-16T17:29:50.190522
+// Loaded: 5, Excluded: 0, Total: 5
+include(":lib:biz:spec-iot")
+include(":lib:gradle-plugin:conventions:jvm-conventions:koin-convention")
+include(":lib:ksp:metadata:spring2ktor-server-core")
+include(":lib:ksp:metadata:spring2ktor-server-processor")
+include(":lib:ksp:metadata:spring2ktor-server-smoke")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:metadata:spring2ktor-server-core")
