@@ -112,12 +112,12 @@ abstract class AbstractSqlDialect(
             if (table.primaryKeyColumnNames.size > 1) {
                 add("PRIMARY KEY (${table.primaryKeyColumnNames.joinToString(", ") { quoteIdentifier(it) }})")
             }
-        }.joinToString(",\n  ")
-        return """
-            CREATE TABLE ${quoteIdentifier(table.name)} (
-              $body
-            )
-        """.trimIndent()
+        }.joinToString(",\n")
+        return buildString {
+            append("CREATE TABLE ${quoteIdentifier(table.name)} (\n")
+            append(body.prependIndent("  "))
+            append("\n)")
+        }
     }
 
     protected open fun renderDropTable(tableName: String): String {

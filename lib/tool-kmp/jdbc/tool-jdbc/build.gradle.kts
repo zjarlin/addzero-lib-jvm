@@ -3,5 +3,5 @@ plugins {
 }
 dependencies {
     api(project(":lib:tool-kmp:jdbc:tool-jdbc-model"))
-    implementation(libs.site.addzero.tool.sql.executor)
+    implementation(project(":lib:tool-jvm:database:tool-sql-executor"))
 }

@@ -8,7 +8,6 @@ import site.addzero.ddlgenerator.core.diff.AddColumn
 import site.addzero.ddlgenerator.core.diff.AddComment
 import site.addzero.ddlgenerator.core.diff.AddForeignKey
 import site.addzero.ddlgenerator.core.diff.AlterColumn
-import site.addzero.ddlgenerator.core.diff.AutoDdlOperation
 import site.addzero.ddlgenerator.core.diff.CreateIndex
 import site.addzero.ddlgenerator.core.diff.CreateSequence
 import site.addzero.ddlgenerator.core.diff.CreateTable
@@ -64,9 +63,9 @@ class SchemaDiffPlannerTest {
         val operations = SchemaDiffPlanner.plan(desired, actual, AutoDdlDiffOptions())
 
         assertEquals(3, operations.size)
-        assertIs<AlterColumn>(operations[0])
+        assertIs<CreateTable>(operations[0])
         assertIs<AddColumn>(operations[1])
-        assertIs<CreateTable>(operations[2])
+        assertIs<AlterColumn>(operations[2])
     }
 
     @Test
@@ -153,12 +152,13 @@ class SchemaDiffPlannerTest {
         assertEquals(
             listOf(
                 CreateSequence::class,
+                AlterColumn::class,
                 CreateIndex::class,
                 AddForeignKey::class,
                 AddComment::class,
                 AddComment::class,
             ),
-            operations.map(AutoDdlOperation::class)
+            operations.map { it::class }
         )
     }
 }

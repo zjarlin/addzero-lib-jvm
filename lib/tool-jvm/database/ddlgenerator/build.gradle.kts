@@ -1,5 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.jvm.jvm-koin")
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
   id("site.addzero.gradle.plugin.processor-buddy") version "2026.01.11"
 }
 
@@ -18,26 +18,33 @@ val autoddlSwitch = mapOf(
     "autoddlAllowDeleteColumn" to "false"
 )
 val autoddlConfigMap = jdbcConfigMap + autoddlSwitch + mapOf(
-    //spring资源目录,用于猜测配置
     "springResourcePath" to "",
-    //删除表的时候排除哪些表
     "autoddlExcludeTables" to "flyway_schema_history,vector_store,*_mapping",
-    //删除列的时候排除哪些列
-//    "autoddlExcludeColumns" to "",
+    "autoddlExcludeColumns" to "",
 )
 
 processorBuddy {
   mustMap.set(autoddlConfigMap)
-//  packageName.set("org.babyfish.jimmer.config.autoddl")
-//  readmeEnabled.set(true)
+  packageName.set("site.addzero.ddlgenerator.runtime.config")
+  readmeEnabled.set(false)
 }
 dependencies {
-  implementation(libs.org.babyfish.jimmer.jimmer.core)
-  implementation(libs.site.addzero.tool.coll)
-  implementation(libs.site.addzero.tool.database.model)
-  implementation(libs.site.addzero.tool.jdbc)
+  api(project(":lib:tool-jvm:database:ddlgenerator-core"))
+  api(project(":lib:tool-jvm:database:ddlgenerator-lsi-adaptor"))
+  api(project(":lib:tool-jvm:database:ddlgenerator-jdbc-adaptor"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-mysql"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-postgresql"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-h2"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-sqlite"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-sqlserver"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-oracle"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-dm"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-kingbase"))
+  implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-taos"))
+  implementation(project(":lib:tool-kmp:jdbc:tool-jdbc"))
+  implementation(project(":lib:tool-kmp:jdbc:tool-jdbc-model"))
+  implementation(project(":lib:tool-jvm:database:tool-database-model"))
   implementation(libs.site.addzero.tool.yml)
-  implementation(libs.site.addzero.tool.str)
-  implementation(libs.site.addzero.tool.sql.executor)
+  testImplementation(libs.com.h2database.h2)
 }
-description = "ddl生成工具类"
+description = "AutoDDL 运行时集成层"

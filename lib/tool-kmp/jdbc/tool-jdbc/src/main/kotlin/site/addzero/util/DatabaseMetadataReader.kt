@@ -173,24 +173,31 @@ class DatabaseMetadataReader(
         val actualSchema = schema ?: defaultSchema
         return withConnection { connection ->
             val metadata = connection.metaData
-            val foreignKeys = metadata.getExportedKeys(null, actualSchema, null)
             val result = mutableListOf<ForeignKeyMetadata>()
-
-            while (foreignKeys.next()) {
-                result.add(
-                    ForeignKeyMetadata(
-                        pkTableName = foreignKeys.getString("PKTABLE_NAME"),
-                        pkColumnName = foreignKeys.getString("PKCOLUMN_NAME"),
-                        fkTableName = foreignKeys.getString("FKTABLE_NAME"),
-                        fkColumnName = foreignKeys.getString("FKCOLUMN_NAME"),
-                        keySeq = foreignKeys.getShort("KEY_SEQ"),
-                        fkName = foreignKeys.getString("FK_NAME"),
-                        pkName = foreignKeys.getString("PK_NAME")
-                    )
-                )
+            metadata.getTables(connection.catalog, actualSchema, "%", arrayOf("TABLE")).use { tables ->
+                while (tables.next()) {
+                    val tableName = tables.getString("TABLE_NAME") ?: continue
+                    metadata.getImportedKeys(connection.catalog, actualSchema, tableName).use { foreignKeys ->
+                        while (foreignKeys.next()) {
+                            result.add(
+                                ForeignKeyMetadata(
+                                    pkTableName = foreignKeys.getString("PKTABLE_NAME"),
+                                    pkColumnName = foreignKeys.getString("PKCOLUMN_NAME"),
+                                    fkTableName = foreignKeys.getString("FKTABLE_NAME"),
+                                    fkColumnName = foreignKeys.getString("FKCOLUMN_NAME"),
+                                    keySeq = foreignKeys.getShort("KEY_SEQ"),
+                                    fkName = foreignKeys.getString("FK_NAME"),
+                                    pkName = foreignKeys.getString("PK_NAME")
+                                )
+                            )
+                        }
+                    }
+                }
             }
 
-            result.sortedWith(compareBy({ it.pkTableName }, { it.fkTableName }, { it.keySeq }))
+            result
+                .distinctBy { listOf(it.pkTableName, it.pkColumnName, it.fkTableName, it.fkColumnName, it.fkName, it.keySeq) }
+                .sortedWith(compareBy({ it.pkTableName }, { it.fkTableName }, { it.keySeq }))
         }
     }
 
@@ -266,24 +273,37 @@ class DatabaseMetadataReader(
             val metadata = connection.metaData
             val result = linkedMapOf<Pair<String, String>, MutableList<String>>()
             val uniqueFlags = mutableMapOf<Pair<String, String>, Boolean>()
-
-            metadata.getIndexInfo(connection.catalog, actualSchema, tableName, false, false).use { rs ->
-                while (rs.next()) {
-                    val indexName = rs.getString("INDEX_NAME") ?: continue
-                    val currentTableName = rs.getString("TABLE_NAME") ?: continue
-                    val columnName = rs.getString("COLUMN_NAME") ?: continue
-                    val type = rs.getShort("TYPE")
-
-                    if (type.toInt() == DatabaseMetaData.tableIndexStatistic) {
-                        continue
+            val tableNames = if (tableName != null) {
+                listOf(tableName)
+            } else {
+                buildList {
+                    metadata.getTables(connection.catalog, actualSchema, "%", arrayOf("TABLE")).use { tables ->
+                        while (tables.next()) {
+                            add(tables.getString("TABLE_NAME"))
+                        }
                     }
-                    if (indexName.equals("PRIMARY", ignoreCase = true) || indexName.startsWith("PK_", ignoreCase = true)) {
-                        continue
-                    }
+                }
+            }
 
-                    val key = currentTableName to indexName
-                    result.getOrPut(key) { mutableListOf() }.add(columnName)
-                    uniqueFlags[key] = !rs.getBoolean("NON_UNIQUE")
+            tableNames.forEach { currentTableName ->
+                metadata.getIndexInfo(connection.catalog, actualSchema, currentTableName, false, false).use { rs ->
+                    while (rs.next()) {
+                        val indexName = rs.getString("INDEX_NAME") ?: continue
+                        val resolvedTableName = rs.getString("TABLE_NAME") ?: continue
+                        val columnName = rs.getString("COLUMN_NAME") ?: continue
+                        val type = rs.getShort("TYPE")
+
+                        if (type == DatabaseMetaData.tableIndexStatistic.toShort()) {
+                            continue
+                        }
+                        if (indexName.equals("PRIMARY", ignoreCase = true) || indexName.startsWith("PK_", ignoreCase = true)) {
+                            continue
+                        }
+
+                        val key = resolvedTableName to indexName
+                        result.getOrPut(key) { mutableListOf() }.add(columnName)
+                        uniqueFlags[key] = !rs.getBoolean("NON_UNIQUE")
+                    }
                 }
             }
 

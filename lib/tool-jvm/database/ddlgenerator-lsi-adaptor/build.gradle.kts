@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     api(project(":lib:tool-jvm:database:ddlgenerator-core"))
-    api(libs.site.addzero.lsi.core)
+    api(project(":lib:lsi:lsi-core"))
     implementation(libs.org.babyfish.jimmer.jimmer.core)
 }
 

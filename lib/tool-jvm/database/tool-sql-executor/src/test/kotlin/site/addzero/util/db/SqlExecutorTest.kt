@@ -1,5 +1,6 @@
 package site.addzero.util.db
 
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -8,58 +9,28 @@ import kotlin.test.assertTrue
 class SqlExecutorTest {
     @Test
     fun `taosdata`() {
-                val url = "jdbc:TAOS-RS://1.194.161.16:6041/iot_data?useSSL=false"
-        val username = "root"
-        val password = "Zljkj@20251120"
-        val trimIndent = """
-           select * from acquisition WHERE (((energy_type_id IN (1,2,3,4,5,6,7,8))) AND ((product_id IN ('PROD001','PROD002','PROD003','PROD016'))) AND ((device_id IN ('DEV013','DEV002','DEV012','DEV001','DEV015','DEV003','DEV011','DEV016'))) AND ((ts >= '2024-12-11 13:44:20')) AND ((ts <= '2026-12-11 13:44:20'))) ORDER BY ts DESC
- 
-        """.trimIndent()
+        val url = System.getenv("ADDZERO_TEST_TAOS_URL").orEmpty()
+        val username = System.getenv("ADDZERO_TEST_TAOS_USERNAME").orEmpty()
+        val password = System.getenv("ADDZERO_TEST_TAOS_PASSWORD").orEmpty()
+        assumeTrue(url.isNotBlank() && username.isNotBlank(), "Skipping TAOS integration test")
 
-
-        val trimIndent1 = """
-           select * from acquisition WHERE (((energy_type_id IN (1,2,3,4,5,6,7,8))) AND ((product_id IN ('PROD001','PROD002','PROD003','PROD016'))) AND ((device_id IN ('DEV013','DEV002','DEV012','DEV001','DEV015','DEV003','DEV011','DEV016'))) AND ((ts >= '2024-12-11 13:44:20')) AND ((ts <= '2026-12-11 13:44:20'))) ORDER BY ts DESC
- 
-        """.trimIndent()
-        val trimIndent2 = """ select * from acquisition 
-           WHERE 
-           ((product_id IN ('PROD017','PROD018','PROD019')))
-           AND 
-          
-          AND ((ts >= '2024-12-11 13:44:20')) AND ((ts <= '2026-12-11 13:44:20'))) ORDER BY ts DESC
- 
-        """.trimIndent()
-        val sqlExecutor = SqlExecutor(url, username, password)
-                   val result = sqlExecutor.queryForList(trimIndent2)
-
-
-        println()
-
-
-
+        SqlExecutor(url, username, password).use { sqlExecutor ->
+            val result = sqlExecutor.queryForList("SHOW DATABASES")
+            assertTrue(result.isNotEmpty())
+        }
     }
 
     @Test
     fun testSqlExecutor() {
-        val url = "jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8"
-        val username = "root"
-        val password = "zljkj~123"
+        val url = System.getenv("ADDZERO_TEST_MYSQL_URL").orEmpty()
+        val username = System.getenv("ADDZERO_TEST_MYSQL_USERNAME").orEmpty()
+        val password = System.getenv("ADDZERO_TEST_MYSQL_PASSWORD").orEmpty()
+        assumeTrue(url.isNotBlank() && username.isNotBlank(), "Skipping MySQL integration test")
 
-        val sqlExecutor = SqlExecutor(url, username, password)
-
-        try {
+        SqlExecutor(url, username, password).use { sqlExecutor ->
             val result = sqlExecutor.queryForList("SELECT 1 as test")
-            println("查询结果: $result")
-
-            assert(result.isNotEmpty())
-            assert(result[0]["test"] == 1)
-
-            println("SQL执行器测试通过!")
-        } catch (e: Exception) {
-            println("测试执行过程中出现异常: ${e.message}")
-            e.printStackTrace()
-        } finally {
-            sqlExecutor.close()
+            assertTrue(result.isNotEmpty())
+            assertEquals(1, (result.first()["test"] as Number).toInt())
         }
     }
 

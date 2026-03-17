@@ -9,7 +9,7 @@ dependencies {
     compileOnly(libs.com.oracle.database.jdbc.ojdbc8)
     compileOnly(libs.com.microsoft.sqlserver.mssql.jdbc)
     compileOnly(libs.com.h2database.h2)
-    compileOnly(libs.org.xerial.sqlite.jdbc)
+    compileOnly(libs.org.xerial.sqlite.jdbc.v3)
     compileOnly(libs.com.dameng.dm.jdbc.driver18)
     compileOnly(libs.cn.com.kingbase.kingbase8)
     compileOnly(libs.com.oceanbase.oceanbase.client)
@@ -23,5 +23,5 @@ dependencies {
 //    compileOnly(libs.com.sybase.jconn4)
 
     testImplementation(libs.com.h2database.h2)
-    testImplementation(libs.org.xerial.sqlite.jdbc)
+    testImplementation(libs.org.xerial.sqlite.jdbc.v3)
 }

@@ -655,7 +655,7 @@ com-github-ben-manes-caffeine-caffeine = { group = "com.github.ben-manes.caffein
 com-github-victools-jsonschema-generator = { group = "com.github.victools", name = "jsonschema-generator", version.ref = "com-github-victools-jsonschema-generator" }
 com-github-xingshuangs-iot-communication = { group = "com.github.xingshuangs", name = "iot-communication", version.ref = "com-github-xingshuangs-iot-communication" }
 com-google-code-gson-gson = { group = "com.google.code.gson", name = "gson", version.ref = "com-google-code-gson-gson" }
-com-h2database-h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
+com-h2database-h2 = { group = "com.h2database", name = "h2", version.ref = "com-h2database-h2" }
 com-hierynomus-sshj = { group = "com.hierynomus", name = "sshj", version.ref = "com-hierynomus-sshj" }
 com-hivemq-hivemq-mqtt-client = { group = "com.hivemq", name = "hivemq-mqtt-client", version.ref = "com-hivemq-hivemq-mqtt-client" }
 com-huawei-gauss-gaussdb-jdbc = { group = "com.huawei.gauss", name = "gaussdb-jdbc", version.ref = "com-huawei-gauss-gaussdb-jdbc" }

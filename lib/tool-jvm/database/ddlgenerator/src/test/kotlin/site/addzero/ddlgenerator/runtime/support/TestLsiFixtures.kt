@@ -1,4 +1,4 @@
-package site.addzero.ddlgenerator.lsi.support
+package site.addzero.ddlgenerator.runtime.support
 
 import site.addzero.lsi.anno.LsiAnnotation
 import site.addzero.lsi.clazz.LsiClass
@@ -63,9 +63,9 @@ data class TestMethod(
     override val returnTypeName: String? = returnType?.simpleName,
     override val comment: String? = null,
     override val annotations: List<LsiAnnotation> = emptyList(),
-    override val parameters: List<LsiParameter> = emptyList(),
-    override val isAbstract: Boolean = false,
     override val isStatic: Boolean = false,
+    override val isAbstract: Boolean = false,
+    override val parameters: List<LsiParameter> = emptyList(),
     override val declaringClass: LsiClass? = null,
 ) : LsiMethod
 

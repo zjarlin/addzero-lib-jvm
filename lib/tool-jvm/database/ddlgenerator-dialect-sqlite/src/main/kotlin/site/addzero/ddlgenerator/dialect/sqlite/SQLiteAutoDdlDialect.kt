@@ -16,12 +16,12 @@ class SQLiteAutoDdlDialect : AbstractSqlDialect(DatabaseType.SQLITE) {
                 val referencedColumns = foreignKey.referencedColumnNames.joinToString(", ") { quoteIdentifier(it) }
                 add("FOREIGN KEY ($columns) REFERENCES ${quoteIdentifier(foreignKey.referencedTableName)} ($referencedColumns)")
             }
-        }.joinToString(",\n  ")
-        return """
-            CREATE TABLE ${quoteIdentifier(table.name)} (
-              $body
-            )
-        """.trimIndent()
+        }.joinToString(",\n")
+        return buildString {
+            append("CREATE TABLE ${quoteIdentifier(table.name)} (\n")
+            append(body.prependIndent("  "))
+            append("\n)")
+        }
     }
 
     override fun supportsInlinePrimaryKey(column: AutoDdlColumn): Boolean {
