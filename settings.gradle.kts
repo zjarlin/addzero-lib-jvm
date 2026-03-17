@@ -19,32 +19,20 @@ plugins {
 }
 includeBuild("build-logic")
 
+dependencyResolutionManagement {
+  versionCatalogs {
+    create("libs") {
+      from(files("./build-logic/gradle/libs.versions.toml"))
+    }
+  }
+}
+
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-16T17:35:56.627847
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2026-03-17T09:59:50.649192
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:biz:spec-iot")
 include(":lib:ksp:metadata:spring2ktor-server-core")
 include(":lib:ksp:metadata:spring2ktor-server-processor")
 include(":lib:ksp:metadata:spring2ktor-server-smoke")
 // <<< Gradle Module Sleep: End Of Block <<<
-
-include(":lib:ksp:metadata:spring2ktor-server-core")
-include(":lib:ksp:metadata:spring2ktor-server-processor")
-include(":lib:ksp:metadata:spring2ktor-server-smoke")
-include(":lib:tool-kmp:jdbc:tool-jdbc-model")
-include(":lib:tool-kmp:jdbc:tool-jdbc")
-include(":lib:tool-jvm:database:tool-database-model")
-include(":lib:tool-jvm:database:ddlgenerator-core")
-include(":lib:tool-jvm:database:ddlgenerator-lsi-adaptor")
-include(":lib:tool-jvm:database:ddlgenerator-jdbc-adaptor")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-mysql")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-postgresql")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-h2")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlite")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlserver")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-oracle")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-dm")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-kingbase")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-taos")
-include(":lib:tool-jvm:database:ddlgenerator")
-include(":lib:biz:spec-iot")

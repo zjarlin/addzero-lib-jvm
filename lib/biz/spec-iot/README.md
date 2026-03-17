@@ -36,33 +36,28 @@
 
 消费方需要自己提供物模型定义。示例：
 
-```java
-public final class DemoPropertySpecProvider implements IotPropertySpecProvider {
+```kotlin
+class DemoPropertySpecProvider : IotPropertySpecProvider {
 
-    @Override
-    public String getName() {
-        return "demo";
+    override val name: String = "demo"
+
+    override fun supports(thingRef: IotThingRef): Boolean {
+        return thingRef.kind == "product" && thingRef.id == "demo-product"
     }
 
-    @Override
-    public boolean supports(IotThingRef thingRef) {
-        return "product".equals(thingRef.getKind()) && "demo-product".equals(thingRef.getId());
-    }
-
-    @Override
-    public List<IotPropertySpec> getPropertySpecs(IotThingRef thingRef) {
-        return Arrays.asList(
-                IotPropertySpec.builder()
-                        .identifier("temperature")
-                        .name("Temperature")
-                        .valueType(IotValueType.FLOAT32)
-                        .build(),
-                IotPropertySpec.builder()
-                        .identifier("running")
-                        .name("Running")
-                        .valueType(IotValueType.BOOLEAN)
-                        .build()
-        );
+    override fun getPropertySpecs(thingRef: IotThingRef): List<IotPropertySpec> {
+        return listOf(
+            IotPropertySpec.builder()
+                .identifier("temperature")
+                .name("Temperature")
+                .valueType(IotValueType.FLOAT32)
+                .build(),
+            IotPropertySpec.builder()
+                .identifier("running")
+                .name("Running")
+                .valueType(IotValueType.BOOLEAN)
+                .build(),
+        )
     }
 }
 ```
@@ -71,37 +66,40 @@ public final class DemoPropertySpecProvider implements IotPropertySpecProvider {
 
 ## TDengine SQL Builder
 
-```java
-IotThingRef product = IotThingRef.of("product", "demo-product");
-TdengineTelemetrySqlBuilder builder = new TdengineTelemetrySqlBuilder();
+```kotlin
+val product = IotThingRef.of("product", "demo-product")
+val builder = TdengineTelemetrySqlBuilder()
 
-SqlStatement createStable = builder.buildCreateStable(product);
-List<SqlStatement> migration = builder.buildSchemaMigration(product, Collections.emptyList());
-SqlStatement latestQuery = builder.buildLatestQuery(product, "temperature");
+val createStable = builder.buildCreateStable(product)
+val migration = builder.buildSchemaMigration(product, emptyList())
+val latestQuery = builder.buildLatestQuery(product, "temperature")
 ```
 
 ## S7 / Modbus 示例
 
-```java
-TelemetryReport s7Report = new S7TelemetryDecoder().decodeReport(
-        IotThingRef.of("product", "demo-product"),
-        IotThingRef.of("device", "device-1"),
-        LocalDateTime.now(),
-        payload,
-        bindings
-);
+```kotlin
+val s7Report = S7TelemetryDecoder().decodeReport(
+    IotThingRef.of("product", "demo-product"),
+    IotThingRef.of("device", "device-1"),
+    LocalDateTime.now(),
+    payload,
+    bindings,
+)
 
-TelemetryReport modbusReport = new ModbusTelemetryDecoder().decodeReport(
-        IotThingRef.of("product", "demo-product"),
-        IotThingRef.of("device", "device-1"),
-        LocalDateTime.now(),
-        rawValues,
-        points
-);
+val modbusReport = ModbusTelemetryDecoder().decodeReport(
+    IotThingRef.of("product", "demo-product"),
+    IotThingRef.of("device", "device-1"),
+    LocalDateTime.now(),
+    rawValues,
+    points,
+)
 ```
 
 ## 约束
 
 - 第一版只生成 SQL 与参数模型，不内置 JDBC / MyBatis 执行器。
+- 模块源码与测试采用 Kotlin-only，不包含 Java 源文件。
 - 默认 TDengine 命名策略会把 `thing kind/id` 规范化后生成表名。
 - 物模型、命名与类型映射全部允许消费方通过 `ServiceLoader` 覆盖。
+- `S7Client` / `ModbusClient` 采用反射式可选适配：
+  如果消费方要启用协议通信，需要自行把 `com.github.xingshuangs:iot-communication`、`com.infiniteautomation:modbus4j` 放进运行时 classpath。
