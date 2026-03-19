@@ -2,7 +2,7 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.`java-gradle-plugin`
 import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.`kotlin-dsl`
-import site.addzero.gradle.tool.configureJ8
+import site.addzero.gradle.tool.configureJdk
 
 buildscript {
   repositories {
@@ -13,7 +13,7 @@ buildscript {
     classpath(libs.site.addzero.gradle.tool.config.java)
   }
 }
-configureJ8("8")
+configureJdk("8")
 
 plugins {
   `kotlin-dsl`

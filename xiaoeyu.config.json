@@ -1,0 +1,68 @@
+{
+  "source": {
+    "type": "local",
+    "path": "."
+  },
+  "site": {
+    "title": "小鳄鱼",
+    "tagline": "addzero-lib-jvm 自动化文档站点",
+    "url": "https://zjarlin.github.io",
+    "baseUrl": "/addzero-lib-jvm/",
+    "organizationName": "zjarlin",
+    "projectName": "addzero-lib-jvm",
+    "repositoryUrl": "https://github.com/zjarlin/addzero-lib-jvm",
+    "editUrl": "https://github.com/zjarlin/addzero-lib-jvm/tree/main",
+    "defaultLocale": "zh-Hans",
+    "locales": ["zh-Hans"],
+    "navbar": {
+      "docsLabel": "文档",
+      "repositoryLabel": "GitHub"
+    }
+  },
+  "collect": {
+    "include": ["**/README.md"],
+    "exclude": [
+      "README.md",
+      "docs/**",
+      "**/.git/**",
+      "**/node_modules/**",
+      "**/build/**",
+      "**/target/**"
+    ],
+    "rulesFile": "docs/readme-collection.rules"
+  },
+  "render": {
+    "contentDir": "docs/content",
+    "generatedMetaFile": "docs/.xiaoeyu/site-metadata.json",
+    "stripFirstH1": true,
+    "generateIndex": true,
+    "indexSlug": "/",
+    "sourceNotice": "自动收集自 `{path}`。",
+    "index": {
+      "title": "小鳄鱼",
+      "heading": "小鳄鱼",
+      "description": "addzero-lib-jvm 的自动化文档站点，使用 Docusaurus 构建。",
+      "featuresTitle": "说明",
+      "features": [
+        "自动收集仓库内各模块的 README.md。",
+        "支持通过 docs/readme-collection.rules 精细控制收录范围。",
+        "可与 GitHub Pages 等静态托管方式配合发布。"
+      ],
+      "emptyMessage": "暂未发现可收集的 README 文档。",
+      "sectionTitle": "模块导航"
+    }
+  },
+  "enrichers": [
+    {
+      "type": "gradleDependencySnippet",
+      "enabled": true,
+      "title": "Maven / Gradle",
+      "intro": "已发布至 Maven Central。",
+      "groupId": "site.addzero",
+      "versionPlaceholder": "latest version",
+      "matchBuildFiles": ["build.gradle.kts", "build.gradle"],
+      "gradleTemplate": "implementation(\"{groupId}:{artifactId}:{version}\")",
+      "mavenTemplate": "<dependency>\n  <groupId>{groupId}</groupId>\n  <artifactId>{artifactId}</artifactId>\n  <version>{version}</version>\n</dependency>"
+    }
+  ]
+}

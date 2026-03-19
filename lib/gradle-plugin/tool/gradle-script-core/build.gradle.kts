@@ -1,4 +1,4 @@
-import site.addzero.gradle.tool.configureJ8
+import site.addzero.gradle.tool.configureJdk
 buildscript {
     repositories {
         mavenLocal()
@@ -10,7 +10,7 @@ buildscript {
 }
 
 
-configureJ8("8")
+configureJdk("8")
 
 plugins {
     `kotlin-dsl`

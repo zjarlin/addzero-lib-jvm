@@ -29,7 +29,7 @@ dependencyResolutionManagement {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-19T10:42:09.556718
+// Generated at: 2026-03-19T22:16:03.945558
 // Loaded: 1, Excluded: 0, Total: 1
-include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
+include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 // <<< Gradle Module Sleep: End Of Block <<<

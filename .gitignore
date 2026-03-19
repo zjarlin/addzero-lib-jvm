@@ -36,11 +36,10 @@ captures
 /.xcodemap
 
 # Documentation generated files
-/docs/src/
-/docs/book/
 /docs/content/
 /docs/build/
 /docs/.docusaurus/
+/docs/.xiaoeyu/
 /docs/node_modules/
 /.cursorignore
 /.editorconfig

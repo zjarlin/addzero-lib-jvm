@@ -1,0 +1,22 @@
+{
+  "name": "@addzero/xiaoeyu",
+  "version": "0.1.0",
+  "description": "Generate repository documentation sites from README files.",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "template",
+    "action.yml",
+    "README.md"
+  ],
+  "bin": {
+    "xiaoeyu": "./src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=20.0"
+  }
+}

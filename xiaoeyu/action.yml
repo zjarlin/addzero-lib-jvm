@@ -1,0 +1,21 @@
+name: Xiaoeyu Generate
+description: Generate Docusaurus content from README files using a Xiaoeyu config file.
+inputs:
+  config:
+    description: Path to the Xiaoeyu config file.
+    required: false
+    default: xiaoeyu.config.json
+  node-version:
+    description: Node.js version used to run Xiaoeyu.
+    required: false
+    default: "20"
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+    - name: Generate docs content
+      shell: bash
+      run: node "${{ github.action_path }}/src/cli.mjs" generate --config "${{ inputs.config }}"

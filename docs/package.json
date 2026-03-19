@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "prepare:content": "bash ../.github/scripts/generate-docs.sh",
+    "prepare:content": "xiaoeyu generate --config ../xiaoeyu.config.json",
     "start": "npm run prepare:content && docusaurus start",
     "build": "npm run prepare:content && docusaurus build",
     "clear": "docusaurus clear",
@@ -13,6 +13,7 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
+    "@addzero/xiaoeyu": "file:../xiaoeyu",
     "@easyops-cn/docusaurus-search-local": "0.55.1",
     "@docusaurus/core": "3.9.2",
     "@docusaurus/preset-classic": "3.9.2",
