@@ -126,6 +126,7 @@ jakarta-servlet-jakarta-servlet-api = "6.0.0"
 javax-annotation-javax-annotation-api = "1.3.2"
 javax-servlet-javax-servlet-api = "4.0.1"
 javax-validation-validation-api = "2.0.1.Final"
+javazoom-jlayer = "1.0.1"
 jdk = "8"
 jdk11 = "11"
 jdk17 = "17"
@@ -687,6 +688,7 @@ io-swagger-parser-v3-swagger-parser = { group = "io.swagger.parser.v3", name = "
 io-swagger-swagger-annotations = { group = "io.swagger", name = "swagger-annotations", version.ref = "io-swagger-swagger-annotations" }
 io-tidb-tidb-jdbc = { group = "io.tidb", name = "tidb-jdbc", version.ref = "io-tidb-tidb-jdbc" }
 jakarta-servlet-jakarta-servlet-api = { group = "jakarta.servlet", name = "jakarta.servlet-api", version.ref = "jakarta-servlet-jakarta-servlet-api" }
+javazoom-jlayer = { group = "javazoom", name = "jlayer", version.ref = "javazoom-jlayer" }
 javax-annotation-javax-annotation-api = { group = "javax.annotation", name = "javax.annotation-api", version.ref = "javax-annotation-javax-annotation-api" }
 javax-servlet-javax-servlet-api = { group = "javax.servlet", name = "javax.servlet-api", version.ref = "javax-servlet-javax-servlet-api" }
 javax-validation-validation-api = { group = "javax.validation", name = "validation-api", version.ref = "javax-validation-validation-api" }

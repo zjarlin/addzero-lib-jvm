@@ -1,28 +1,38 @@
 package site.addzero.vibepocket.api.music
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
+import javazoom.jl.decoder.Bitstream
+import javazoom.jl.decoder.Decoder
+import javazoom.jl.decoder.SampleBuffer
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
 /**
  * 不依赖 ffmpeg 的简单倍速处理工具。
  *
- * 当前实现只支持：
+ * 当前实现支持输入：
+ * - WAV
+ * - MP3
+ *
+ * 当前统一输出：
  * - WAV
  * - PCM
  * - 16-bit little-endian
  *
- * 如果输入是 mp3 / flac / m4a 这类压缩格式，
- * 不借助额外解码器就不能直接处理。
+ * 这里的倍速是最小可用实现。
+ * 它通过重采样改变播放速度，输出会更短或更长；
+ * 不做高阶的“变速不变调”时间伸缩处理。
  */
 object MusicPlaybackRateUtil {
 
     fun changePlaybackRate(input: ByteArray, playbackRate: Double): ByteArray {
         requirePlaybackRate(playbackRate)
 
-        val wav = parseWav(input)
+        val wav = decodeToPcm16Wave(input)
         val outputData = resamplePcm16(
             pcmData = wav.data,
             channels = wav.channels,
@@ -100,9 +110,8 @@ object MusicPlaybackRateUtil {
         val fileName = path.fileName.toString()
         val dotIndex = fileName.lastIndexOf('.')
         val baseName = if (dotIndex >= 0) fileName.substring(0, dotIndex) else fileName
-        val extension = if (dotIndex >= 0) fileName.substring(dotIndex) else ".wav"
         val rateSuffix = playbackRate.toString().replace('.', '_')
-        val outputFileName = "${baseName}_${rateSuffix}x$extension"
+        val outputFileName = "${baseName}_${rateSuffix}x.wav"
         val parent = path.parent ?: Paths.get(".")
         return parent.resolve(outputFileName).toString()
     }
@@ -111,7 +120,47 @@ object MusicPlaybackRateUtil {
         return value.startsWith("http://") || value.startsWith("https://")
     }
 
-    private fun parseWav(bytes: ByteArray): ParsedWav {
+    private fun decodeToPcm16Wave(bytes: ByteArray): ParsedAudio {
+        return when (detectInputFormat(bytes)) {
+            InputAudioFormat.WAV -> parseWav(bytes)
+            InputAudioFormat.MP3 -> decodeMp3(bytes)
+        }
+    }
+
+    private fun detectInputFormat(bytes: ByteArray): InputAudioFormat {
+        require(bytes.isNotEmpty()) {
+            "Input audio is empty."
+        }
+        if (looksLikeWav(bytes)) {
+            return InputAudioFormat.WAV
+        }
+        if (looksLikeMp3(bytes)) {
+            return InputAudioFormat.MP3
+        }
+        error("Unsupported audio format. Only WAV and MP3 are supported.")
+    }
+
+    private fun looksLikeWav(bytes: ByteArray): Boolean {
+        return bytes.size >= 12 &&
+            readAscii(bytes, 0, 4) == "RIFF" &&
+            readAscii(bytes, 8, 4) == "WAVE"
+    }
+
+    private fun looksLikeMp3(bytes: ByteArray): Boolean {
+        if (bytes.size < 3) {
+            return false
+        }
+
+        if (readAscii(bytes, 0, 3) == "ID3") {
+            return true
+        }
+
+        val first = bytes[0].toInt() and 0xFF
+        val second = bytes[1].toInt() and 0xFF
+        return first == 0xFF && (second and 0xE0) == 0xE0
+    }
+
+    private fun parseWav(bytes: ByteArray): ParsedAudio {
         require(bytes.size >= 44) {
             "Input is too small to be a valid WAV file."
         }
@@ -184,12 +233,73 @@ object MusicPlaybackRateUtil {
             "WAV data size is not aligned to frame size."
         }
 
-        return ParsedWav(
+        return ParsedAudio(
             channels = channels,
             sampleRate = sampleRate,
             bitsPerSample = bitsPerSample,
             blockAlign = blockAlign,
             data = bytes.copyOfRange(dataOffset, dataOffset + dataSize),
+        )
+    }
+
+    private fun decodeMp3(bytes: ByteArray): ParsedAudio {
+        val output = ByteArrayOutputStream()
+        var sampleRate = -1
+        var channels = -1
+
+        ByteArrayInputStream(bytes).use { input ->
+            val bitstream = Bitstream(input)
+            val decoder = Decoder()
+
+            try {
+                while (true) {
+                    val header = bitstream.readFrame() ?: break
+
+                    try {
+                        val sampleBuffer = decoder.decodeFrame(header, bitstream) as SampleBuffer
+                        if (sampleRate < 0) {
+                            sampleRate = sampleBuffer.sampleFrequency
+                        }
+                        if (channels < 0) {
+                            channels = sampleBuffer.channelCount
+                        }
+
+                        val samples = sampleBuffer.buffer
+                        val sampleCount = sampleBuffer.bufferLength
+                        for (index in 0 until sampleCount) {
+                            writeShortLE(output, samples[index].toInt())
+                        }
+                    } finally {
+                        bitstream.closeFrame()
+                    }
+                }
+            } finally {
+                bitstream.close()
+            }
+        }
+
+        require(sampleRate > 0) {
+            "Unable to decode MP3 sample rate."
+        }
+        require(channels > 0) {
+            "Unable to decode MP3 channels."
+        }
+
+        val pcmData = output.toByteArray()
+        val blockAlign = channels * 2
+        require(pcmData.isNotEmpty()) {
+            "Decoded MP3 PCM data is empty."
+        }
+        require(pcmData.size % blockAlign == 0) {
+            "Decoded MP3 PCM data is not aligned to frame size."
+        }
+
+        return ParsedAudio(
+            channels = channels,
+            sampleRate = sampleRate,
+            bitsPerSample = 16,
+            blockAlign = blockAlign,
+            data = pcmData,
         )
     }
 
@@ -299,6 +409,11 @@ object MusicPlaybackRateUtil {
         bytes[offset + 1] = ((value ushr 8) and 0xFF).toByte()
     }
 
+    private fun writeShortLE(output: ByteArrayOutputStream, value: Int) {
+        output.write(value and 0xFF)
+        output.write((value ushr 8) and 0xFF)
+    }
+
     private fun writeIntLE(bytes: ByteArray, offset: Int, value: Int) {
         bytes[offset] = (value and 0xFF).toByte()
         bytes[offset + 1] = ((value ushr 8) and 0xFF).toByte()
@@ -306,7 +421,12 @@ object MusicPlaybackRateUtil {
         bytes[offset + 3] = ((value ushr 24) and 0xFF).toByte()
     }
 
-    private data class ParsedWav(
+    private enum class InputAudioFormat {
+        WAV,
+        MP3,
+    }
+
+    private data class ParsedAudio(
         val channels: Int,
         val sampleRate: Int,
         val bitsPerSample: Int,
