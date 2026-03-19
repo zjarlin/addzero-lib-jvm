@@ -40,6 +40,11 @@ fun getProjectContext(
   return projectContext
 }
 
+private fun String.toGradleProjectPath(): String =
+  split(File.separatorChar, '/', '\\')
+    .filter { it.isNotBlank() }
+    .joinToString(separator = ":", prefix = ":")
+
 fun File.isInBlackList(rootDir: File, vararg blackModuleName: String): Boolean {
   // Skip any hidden directories (segments that start with ".")
   if (this.name.startsWith(".")) return true
@@ -51,7 +56,7 @@ fun File.isInBlackList(rootDir: File, vararg blackModuleName: String): Boolean {
 
   if (blackModuleName.isEmpty()) return false
 
-  val moduleName = ":${relativePath.replace(File.separator, ":")}"
+  val moduleName = relativePath.toGradleProjectPath()
   val leafModuleName = this.name
 
   return blackModuleName.any { black ->
@@ -86,7 +91,7 @@ fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
     .filterNot { it.name == "buildSrc" }
     .forEach {
       val relativePath = getRelativePath(rootDir, it)
-      val moduleName = ":${relativePath.replace(File.separator, ":")}"
+      val moduleName = relativePath.toGradleProjectPath()
       settings.include(moduleName)
       println("📦find module: $moduleName")
       includedModules += moduleName
@@ -95,7 +100,7 @@ fun Settings.autoIncludeModules(predicate: (File) -> Boolean = { true }) {
   val skippedModules = mutableListOf<String>()
   projectContext.blackModules.forEach {
     val relativePath = getRelativePath(rootDir, it)
-    val moduleName = ":${relativePath.replace(File.separator, ":")}"
+    val moduleName = relativePath.toGradleProjectPath()
     println("⏭️  Skipped module: $moduleName")
     skippedModules += moduleName
   }
