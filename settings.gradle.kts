@@ -29,10 +29,7 @@ dependencyResolutionManagement {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-17T09:59:50.649192
-// Loaded: 4, Excluded: 0, Total: 4
-include(":lib:biz:spec-iot")
-include(":lib:ksp:metadata:spring2ktor-server-core")
-include(":lib:ksp:metadata:spring2ktor-server-processor")
-include(":lib:ksp:metadata:spring2ktor-server-smoke")
+// Generated at: 2026-03-19T10:42:09.556718
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-jvm:jimmer:jimmer-ext-lowquery")
 // <<< Gradle Module Sleep: End Of Block <<<
