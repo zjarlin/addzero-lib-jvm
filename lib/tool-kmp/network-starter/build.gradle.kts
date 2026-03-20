@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.buildlogic.kmp.kmp-ktor")
+    id("site.addzero.buildlogic.kmp.kmp-ktor-client")
 }
 kotlin {
     sourceSets {

@@ -22,9 +22,17 @@ import site.addzero.util.lsi_impl.impl.ksp.toLsiClass
 import site.addzero.util.lsi_impl.impl.ksp.toLsiMethod
 
 class IocProcessorProvider : SymbolProcessorProvider {
+    private data class BeanAnnotationData(
+        val name: String = "",
+        val enabled: Boolean = true,
+        val order: Int = Int.MAX_VALUE,
+        val tags: List<String> = emptyList(),
+        val dependsOn: List<String> = emptyList()
+    )
+
     override fun create(environment: SymbolProcessorEnvironment) = object : SymbolProcessor {
-        private val beans = mutableListOf<BeanInfo>()
-        private val classComponents = mutableListOf<LsiClass>()
+        private val beans = linkedSetOf<BeanInfo>()
+        private val classComponents = linkedMapOf<String, LsiClass>()
 
         /**
          * KSP options:
@@ -34,46 +42,71 @@ class IocProcessorProvider : SymbolProcessorProvider {
         private val modulePackage: String? = environment.options["ioc.module"]
         private val isApp: Boolean = environment.options["ioc.role"] == "app"
 
-        private fun extractBeanAnnotation(annotated: KSAnnotated): Triple<String, Int, List<String>> {
+        private fun extractBeanAnnotation(annotated: KSAnnotated): BeanAnnotationData {
             val beanAnnotation = annotated.annotations.firstOrNull {
                 it.shortName.asString() == "Bean"
             }
             val name = beanAnnotation?.arguments?.firstOrNull {
                 it.name?.asString() == "name"
             }?.value as? String ?: ""
+            val enabled = beanAnnotation?.arguments?.firstOrNull {
+                it.name?.asString() == "enable"
+            }?.value as? Boolean ?: true
             val order = beanAnnotation?.arguments?.firstOrNull {
                 it.name?.asString() == "order"
-            }?.value as? Int ?: 0
+            }?.value as? Int ?: Int.MAX_VALUE
             @Suppress("UNCHECKED_CAST")
             val tags = (beanAnnotation?.arguments?.firstOrNull {
                 it.name?.asString() == "tags"
             }?.value as? List<String>) ?: emptyList()
-            return Triple(name, order, tags)
+            @Suppress("UNCHECKED_CAST")
+            val dependsOn = (beanAnnotation?.arguments?.firstOrNull {
+                it.name?.asString() == "dependsOn"
+            }?.value as? List<String>) ?: emptyList()
+            return BeanAnnotationData(name, enabled, order, tags, dependsOn)
         }
 
-        private fun extractClassInfo(clazz: KSClassDeclaration, resolver: Resolver, beanName: String, order: Int, tags: List<String>) {
+        private fun extractClassInfo(clazz: KSClassDeclaration, resolver: Resolver, annotation: BeanAnnotationData) {
             val lsiClass = clazz.toLsiClass(resolver)
-            if (!lsiClass.hasNoArgConstructor) return
             val qualifiedName = lsiClass.qualifiedName ?: return
-            val name = beanName.ifEmpty { lsiClass.name?.replaceFirstChar { it.lowercase() } ?: "" }
-            beans.add(BeanInfo(qualifiedName, InitType.CLASS_INSTANCE, order, name, tags))
-            classComponents.add(lsiClass)
+            if (annotation.enabled && !lsiClass.hasNoArgConstructor) return
+            val name = annotation.name.ifEmpty { lsiClass.name?.replaceFirstChar { it.lowercase() } ?: "" }
+            beans += BeanInfo(
+                name = qualifiedName,
+                initType = InitType.CLASS_INSTANCE,
+                order = annotation.order,
+                beanName = name,
+                tags = annotation.tags,
+                enabled = annotation.enabled,
+                dependsOn = annotation.dependsOn
+            )
+            if (annotation.enabled) {
+                classComponents[qualifiedName] = lsiClass
+            }
         }
 
-        private fun extractObjectInfo(obj: KSClassDeclaration, resolver: Resolver, beanName: String, order: Int, tags: List<String>) {
+        private fun extractObjectInfo(obj: KSClassDeclaration, resolver: Resolver, annotation: BeanAnnotationData) {
             val lsiClass = obj.toLsiClass(resolver)
             val qualifiedName = lsiClass.qualifiedName ?: return
-            val name = beanName.ifEmpty { lsiClass.name?.replaceFirstChar { it.lowercase() } ?: "" }
-            beans.add(BeanInfo(qualifiedName, InitType.OBJECT_INSTANCE, order, name, tags))
+            val name = annotation.name.ifEmpty { lsiClass.name?.replaceFirstChar { it.lowercase() } ?: "" }
+            beans += BeanInfo(
+                name = qualifiedName,
+                initType = InitType.OBJECT_INSTANCE,
+                order = annotation.order,
+                beanName = name,
+                tags = annotation.tags,
+                enabled = annotation.enabled,
+                dependsOn = annotation.dependsOn
+            )
         }
 
         private fun extractFunctionInfo(function: KSFunctionDeclaration, resolver: Resolver) {
             val lsiMethod = function.toLsiMethod(resolver)
-            if (!lsiMethod.hasNoRequiredParameters) return
 
             val parentClass = lsiMethod.parentClass
             val packageName = function.packageName.asString().takeIf { it.isNotEmpty() }
-            val (beanName, order, tags) = extractBeanAnnotation(function)
+            val annotation = extractBeanAnnotation(function)
+            if (annotation.enabled && !lsiMethod.hasNoRequiredParameters) return
             val isComposable = lsiMethod.isComposable
             val isSuspend = lsiMethod.isSuspend
 
@@ -113,7 +146,15 @@ class IocProcessorProvider : SymbolProcessorProvider {
                 }
             }
 
-            beans.add(BeanInfo(fullName, initType, order, beanName, tags))
+            beans += BeanInfo(
+                name = fullName,
+                initType = initType,
+                order = annotation.order,
+                beanName = annotation.name,
+                tags = annotation.tags,
+                enabled = annotation.enabled,
+                dependsOn = annotation.dependsOn
+            )
         }
 
         override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -127,8 +168,7 @@ class IocProcessorProvider : SymbolProcessorProvider {
                 .filterIsInstance<KSClassDeclaration>()
                 .filter { it.classKind == ClassKind.CLASS }
                 .forEach {
-                    val (name, order, tags) = extractBeanAnnotation(it)
-                    extractClassInfo(it, resolver, name, order, tags)
+                    extractClassInfo(it, resolver, extractBeanAnnotation(it))
                 }
 
             // @Bean on objects
@@ -136,8 +176,7 @@ class IocProcessorProvider : SymbolProcessorProvider {
                 .filterIsInstance<KSClassDeclaration>()
                 .filter { it.classKind == ClassKind.OBJECT }
                 .forEach {
-                    val (name, order, tags) = extractBeanAnnotation(it)
-                    extractObjectInfo(it, resolver, name, order, tags)
+                    extractObjectInfo(it, resolver, extractBeanAnnotation(it))
                 }
 
             return emptyList()
@@ -159,7 +198,7 @@ class IocProcessorProvider : SymbolProcessorProvider {
                     .let { "$it.ioc.generated" }
 
             ContainerGenerator(codeGenerator, generatedPackage, isApp)
-                .generate(sortedBeans, classComponents)
+                .generate(sortedBeans, classComponents.values.toList())
         }
     }
 }

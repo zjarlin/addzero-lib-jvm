@@ -29,10 +29,13 @@ dependencyResolutionManagement {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-20T09:16:20.913039
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-03-20T10:04:30.804558
+// Loaded: 2, Excluded: 0, Total: 2
 include(":lib:ksp:metadata:ioc:ioc-core")
+include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:kcp-i18n")
 include(":example:example-kcp-i18n")
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")

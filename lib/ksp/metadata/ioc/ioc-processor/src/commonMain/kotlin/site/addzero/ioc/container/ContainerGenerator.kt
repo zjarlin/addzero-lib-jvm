@@ -27,18 +27,28 @@ class ContainerGenerator(
         val extensionFunctions = beans.filter { it.initType == InitType.EXTENSION_FUNCTION }
         val composableFunctions = beans.filter { it.initType == InitType.COMPOSABLE_FUNCTION }
         val suspendFunctions = beans.filter { it.initType == InitType.SUSPEND_FUNCTION }
+        val startableRegularFunctions = regularFunctions.filter { it.enabled }
+        val startableClassInstances = classInstances.filter { it.enabled }
+        val startableObjectInstances = objectInstances.filter { it.enabled }
+        val startableExtensionFunctions = extensionFunctions.filter { it.enabled }
+        val startableComposableFunctions = composableFunctions.filter { it.enabled }
+        val startableSuspendFunctions = suspendFunctions.filter { it.enabled }
 
-        // always generate SPI module
-        generateSpiModule(classInstances, objectInstances, classComponents)
+        generateSpiModule(beans, startableClassInstances, startableObjectInstances, classComponents)
 
-        // only app module generates the Ioc entry point
         if (isApp) {
-            generateIoc(regularFunctions, classInstances, objectInstances, classComponents)
+            generateIoc(
+                allBeans = beans,
+                regularFunctions = startableRegularFunctions,
+                classInstances = startableClassInstances,
+                objectInstances = startableObjectInstances,
+                classComponents = classComponents
+            )
         }
 
-        if (extensionFunctions.isNotEmpty()) generateExtensionModules(extensionFunctions)
-        if (composableFunctions.isNotEmpty()) generateComposableModule(composableFunctions)
-        if (suspendFunctions.isNotEmpty()) generateSuspendModule(suspendFunctions)
+        if (startableExtensionFunctions.isNotEmpty()) generateExtensionModules(startableExtensionFunctions)
+        if (startableComposableFunctions.isNotEmpty()) generateComposableModule(startableComposableFunctions)
+        if (startableSuspendFunctions.isNotEmpty()) generateSuspendModule(startableSuspendFunctions)
     }
 
     // ============================================================
@@ -46,23 +56,26 @@ class ContainerGenerator(
     // ============================================================
 
     private fun generateIoc(
+        allBeans: List<BeanInfo>,
         regularFunctions: List<BeanInfo>,
         classInstances: List<BeanInfo>,
         objectInstances: List<BeanInfo>,
-        classComponents: List<LsiClass>,
-        allBeans: List<BeanInfo> = classInstances + objectInstances
+        classComponents: List<LsiClass>
     ) {
-        val beanImports = (classInstances + objectInstances).map { it.name }.toSet()
+        val beanImports = (classInstances + objectInstances)
+            .filter { it.enabled }
+            .map { it.name }
+            .toSet()
         val interfaceMap = buildInterfaceMap(classComponents)
         val interfaceImports = interfaceMap.keys + interfaceMap.values.flatten()
-
         val code = buildString {
             appendLine("package $generatedPackage")
             appendLine()
             (beanImports + interfaceImports).toSet().forEach { appendLine("import $it") }
-            appendLine("import site.addzero.ioc.registry.KmpBeanRegistry")
+            appendLine("import site.addzero.ioc.registry.BeanDefinition")
+            appendLine("import site.addzero.ioc.registry.BeanDefinitions")
             appendLine("import site.addzero.ioc.registry.BeanRegistry")
-            appendLine("import site.addzero.ioc.registry.MutableBeanRegistry")
+            appendLine("import site.addzero.ioc.registry.KmpBeanRegistry")
             appendLine("import site.addzero.ioc.spi.IocModuleRegistry")
             appendLine()
             appendLine("/**")
@@ -75,16 +88,36 @@ class ContainerGenerator(
             appendLine(" */")
             appendLine("object Ioc {")
             appendLine("    private val _registry = KmpBeanRegistry()")
+            appendLine("    private var _moduleBeanDefinitions: List<BeanDefinition> = emptyList()")
             appendLine("    val registry: BeanRegistry get() = _registry")
             appendLine("    private var _initialized = false")
             appendLine()
+            appendLine("    private val localBeanDefinitions = listOf(")
+            appendBeanDefinitions(allBeans, "        ")
+            appendLine("    )")
+            appendLine()
+            appendLine("    val beanDefinitions: List<BeanDefinition>")
+            appendLine("        get() = BeanDefinitions.unique(localBeanDefinitions + _moduleBeanDefinitions)")
+            appendLine()
+            appendLine("    val activeBeanDefinitions: List<BeanDefinition>")
+            appendLine("        get() = BeanDefinitions.enabled(beanDefinitions)")
+            appendLine()
+            appendLine("    val beanDefinitionsByTag: Map<String, List<BeanDefinition>>")
+            appendLine("        get() = BeanDefinitions.groupByTag(activeBeanDefinitions)")
+            appendLine()
+            appendLine("    fun findBeanDefinition(name: String): BeanDefinition? = BeanDefinitions.find(beanDefinitions, name)")
+            appendLine()
+            appendLine("    fun findBeanDefinitions(tag: String, includeDependsOn: Boolean = true): List<BeanDefinition> =")
+            appendLine("        if (includeDependsOn) BeanDefinitions.resolve(beanDefinitions, tag) else beanDefinitionsByTag[tag] ?: emptyList()")
+            appendLine()
             appendLine("    init {")
 
-            // register this module's own beans
             classInstances.forEach { bean ->
+                appendLine("        _registry.registerDefinition(${bean.name}::class, ${beanDefinitionLiteral(bean)})")
                 appendLine("        _registry.registerProvider(\"${deriveName(bean)}\", ${bean.name}::class) { ${bean.name}() }")
             }
             objectInstances.forEach { bean ->
+                appendLine("        _registry.registerDefinition(${bean.name}::class, ${beanDefinitionLiteral(bean)})")
                 appendLine("        _registry.register(${bean.name}::class, ${bean.name})")
                 appendLine("        _registry.registerProvider(\"${deriveName(bean)}\", ${bean.name}::class) { ${bean.name} }")
             }
@@ -98,22 +131,8 @@ class ContainerGenerator(
                 }
             }
 
-            // tags
-            val taggedBeans = allBeans.filter { it.tags.isNotEmpty() }
-            if (taggedBeans.isNotEmpty()) {
-                appendLine()
-                appendLine("        // tags")
-                taggedBeans.forEach { bean ->
-                    val simpleName = bean.name.substringAfterLast(".")
-                    val tagsLiteral = bean.tags.joinToString(", ") { "\"$it\"" }
-                    appendLine("        _registry.tagBean(${simpleName}::class, listOf($tagsLiteral))")
-                }
-            }
-
             appendLine("    }")
             appendLine()
-
-            // initialize() — call after all library modules have registered
             appendLine("    /**")
             appendLine("     * Call after all library modules have called registerThisModule().")
             appendLine("     * Applies cross-module SPI providers to the registry.")
@@ -121,11 +140,11 @@ class ContainerGenerator(
             appendLine("    fun initialize() {")
             appendLine("        if (_initialized) return")
             appendLine("        _initialized = true")
-            appendLine("        IocModuleRegistry.getProviders().forEach { it.register(_registry) }")
+            appendLine("        val providers = IocModuleRegistry.getProviders()")
+            appendLine("        providers.forEach { it.register(_registry) }")
+            appendLine("        _moduleBeanDefinitions = providers.flatMap { it.definitions() }")
             appendLine("    }")
             appendLine()
-
-            // convenience methods
             appendLine("    inline fun <reified T : Any> get(): T? { initialize(); return registry.get(T::class) }")
             appendLine("    inline fun <reified T : Any> get(vararg generics: kotlin.reflect.KClass<*>): T? { initialize(); return registry.get(site.addzero.ioc.registry.TypeKey.of(T::class, *generics)) }")
             appendLine("    inline fun <reified T : Any> require(): T = get<T>() ?: throw IllegalArgumentException(\"No bean: \${T::class.simpleName}\")")
@@ -133,8 +152,22 @@ class ContainerGenerator(
             appendLine("    inline fun <reified T : Any> getAll(): List<T> { initialize(); return registry.getAll(T::class) }")
             appendLine("    inline fun <reified T : Any> getAll(tag: String): List<T> { initialize(); return registry.getAll(T::class, tag) }")
             appendLine("    fun get(name: String): Any? { initialize(); return registry.get(name) }")
+            appendLine()
+            appendLine("    private val startableBeanDefinitions = listOf(")
+            appendBeanDefinitions(regularFunctions + classInstances + objectInstances, "        ")
+            appendLine("    )")
+            appendLine("    private val startableActions: Map<String, () -> Unit> = linkedMapOf(")
+            regularFunctions.forEach { bean ->
+                appendLine("        \"${identityOf(bean)}\" to { ${bean.name}() },")
+            }
+            classInstances.forEach { bean ->
+                appendLine("        \"${identityOf(bean)}\" to { ${bean.name}() },")
+            }
+            objectInstances.forEach { bean ->
+                appendLine("        \"${identityOf(bean)}\" to { ${bean.name} },")
+            }
+            appendLine("    )")
 
-            // batch execution
             if (regularFunctions.isNotEmpty()) {
                 appendLine()
                 appendLine(generateBatchCode("Regular", regularFunctions) { "{ ${it.name}() }" })
@@ -148,23 +181,20 @@ class ContainerGenerator(
                 appendLine(generateBatchCode("ObjectInstance", objectInstances) { "{ ${it.name} }" })
             }
 
-            val startMethods = mutableListOf<String>()
-            if (regularFunctions.isNotEmpty()) startMethods.add("startRegular()")
-            if (classInstances.isNotEmpty()) startMethods.add("startClassInstance()")
-            if (objectInstances.isNotEmpty()) startMethods.add("startObjectInstance()")
-
             appendLine()
             appendLine("    fun startAll() {")
             appendLine("        initialize()")
-            startMethods.forEach { appendLine("        $it") }
+            appendLine("        BeanDefinitions.resolve(startableBeanDefinitions).forEach { definition ->")
+            appendLine("            startableActions[definition.identity]?.invoke()")
+            appendLine("        }")
             appendLine("    }")
             appendLine()
             appendLine("    /** Start only beans matching the given tag */")
             appendLine("    fun startAll(tag: String) {")
             appendLine("        initialize()")
-            if (regularFunctions.any { it.tags.isNotEmpty() }) appendLine("        startRegular(tag)")
-            if (classInstances.any { it.tags.isNotEmpty() }) appendLine("        startClassInstance(tag)")
-            if (objectInstances.any { it.tags.isNotEmpty() }) appendLine("        startObjectInstance(tag)")
+            appendLine("        BeanDefinitions.resolve(startableBeanDefinitions, tags = setOf(tag)).forEach { definition ->")
+            appendLine("            startableActions[definition.identity]?.invoke()")
+            appendLine("        }")
             appendLine("    }")
             appendLine("}")
         }
@@ -179,51 +209,53 @@ class ContainerGenerator(
     // ============================================================
 
     private fun generateSpiModule(
+        allBeans: List<BeanInfo>,
         classInstances: List<BeanInfo>,
         objectInstances: List<BeanInfo>,
-        classComponents: List<LsiClass>,
-        allBeans: List<BeanInfo> = classInstances + objectInstances
+        classComponents: List<LsiClass>
     ) {
-        if (classInstances.isEmpty() && objectInstances.isEmpty()) return
+        if (allBeans.isEmpty()) return
 
-        val imports = (classInstances + objectInstances).map { it.name }.toSet()
+        val imports = (classInstances + objectInstances)
+            .filter { it.enabled }
+            .map { it.name }
+            .toSet()
         val interfaceMap = buildInterfaceMap(classComponents)
         val interfaceImports = interfaceMap.keys + interfaceMap.values.flatten()
-
         val code = buildString {
             appendLine("package $generatedPackage")
             appendLine()
             (imports + interfaceImports).toSet().forEach { appendLine("import $it") }
+            appendLine("import site.addzero.ioc.registry.BeanDefinition")
             appendLine("import site.addzero.ioc.registry.MutableBeanRegistry")
             appendLine("import site.addzero.ioc.spi.IocModuleProvider")
             appendLine("import site.addzero.ioc.spi.IocModuleRegistry")
             appendLine()
+            appendLine("private val thisModuleBeanDefinitions = listOf(")
+            appendBeanDefinitions(allBeans, "    ")
+            appendLine(")")
+            appendLine()
             appendLine("object ThisModuleProvider : IocModuleProvider {")
             appendLine("    override val moduleName: String = \"$generatedPackage\"")
+            appendLine()
+            appendLine("    override fun definitions(): List<BeanDefinition> = thisModuleBeanDefinitions")
             appendLine()
             appendLine("    override fun register(registry: MutableBeanRegistry) {")
 
             classInstances.forEach { bean ->
+                appendLine("        registry.registerDefinition(${bean.name}::class, ${beanDefinitionLiteral(bean)})")
                 appendLine("        registry.registerProvider(\"${deriveName(bean)}\", ${bean.name}::class) { ${bean.name}() }")
             }
             objectInstances.forEach { bean ->
+                appendLine("        registry.registerDefinition(${bean.name}::class, ${beanDefinitionLiteral(bean)})")
                 appendLine("        registry.register(${bean.name}::class, ${bean.name})")
+                appendLine("        registry.registerProvider(\"${deriveName(bean)}\", ${bean.name}::class) { ${bean.name} }")
             }
             if (interfaceMap.isNotEmpty()) {
                 interfaceMap.forEach { (ifaceFqn, impls) ->
                     impls.forEach { implFqn ->
                         appendLine("        registry.registerImplementation(${ifaceFqn}::class, ${implFqn}::class)")
                     }
-                }
-            }
-
-            // tags
-            val taggedBeans = allBeans.filter { it.tags.isNotEmpty() }
-            if (taggedBeans.isNotEmpty()) {
-                taggedBeans.forEach { bean ->
-                    val simpleName = bean.name.substringAfterLast(".")
-                    val tagsLiteral = bean.tags.joinToString(", ") { "\"$it\"" }
-                    appendLine("        registry.tagBean(${simpleName}::class, listOf($tagsLiteral))")
                 }
             }
 
@@ -247,81 +279,75 @@ class ContainerGenerator(
 
     private fun generateExtensionModules(extensionFunctions: List<BeanInfo>) {
         data class ExtFuncInfo(
-            val receiverFqn: String, val funcFqn: String,
-            val funcSimpleName: String, val tags: List<String>
+            val receiverFqn: String,
+            val funcFqn: String,
+            val funcSimpleName: String,
+            val beanInfo: BeanInfo
         )
 
         val parsed = extensionFunctions.map { bean ->
             val receiverFqn = bean.name.substringBefore("::")
             val funcFqn = bean.name.substringAfter("::")
             val funcSimpleName = funcFqn.substringAfterLast(".")
-            ExtFuncInfo(receiverFqn, funcFqn, funcSimpleName, bean.tags)
+            ExtFuncInfo(receiverFqn, funcFqn, funcSimpleName, bean)
         }
 
         parsed.groupBy { it.receiverFqn }.forEach { (receiverFqn, funcs) ->
             val receiverSimpleName = receiverFqn.substringAfterLast(".")
             val fileName = "Ioc${receiverSimpleName}Module"
 
-            // tag groups for this receiver
-            val tagGroups = mutableMapOf<String, MutableList<ExtFuncInfo>>()
-            funcs.forEach { f -> f.tags.forEach { tag -> tagGroups.getOrPut(tag) { mutableListOf() }.add(f) } }
-
             val code = buildString {
                 appendLine("package $generatedPackage")
                 appendLine()
                 appendLine("import $receiverFqn")
+                appendLine("import site.addzero.ioc.registry.BeanDefinition")
+                appendLine("import site.addzero.ioc.registry.BeanDefinitions")
                 funcs.forEach { appendLine("import ${it.funcFqn}") }
                 appendLine()
-
-                // flat map: all extensions keyed by simple name
-                appendLine("/**")
-                appendLine(" * All @Bean extension functions for $receiverSimpleName, keyed by function name.")
-                appendLine(" */")
-                appendLine("val ioc${receiverSimpleName}Extensions: Map<String, $receiverSimpleName.() -> Unit> = mapOf(")
-                funcs.forEach { appendLine("    \"${it.funcSimpleName}\" to { ${it.funcSimpleName}() },") }
+                appendLine("private val ioc${receiverSimpleName}ExtensionDefinitions = listOf(")
+                appendBeanDefinitions(funcs.map { it.beanInfo }, "    ")
                 appendLine(")")
                 appendLine()
-
-                // tag-grouped map
-                if (tagGroups.isNotEmpty()) {
-                    appendLine("/**")
-                    appendLine(" * @Bean extension functions for $receiverSimpleName grouped by tag.")
-                    appendLine(" */")
-                    appendLine("val ioc${receiverSimpleName}ExtensionsByTag: Map<String, Map<String, $receiverSimpleName.() -> Unit>> = mapOf(")
-                    tagGroups.forEach { (tag, tagFuncs) ->
-                        appendLine("    \"$tag\" to mapOf(")
-                        tagFuncs.forEach { appendLine("        \"${it.funcSimpleName}\" to { ${it.funcSimpleName}() },") }
-                        appendLine("    ),")
-                    }
-                    appendLine(")")
-                    appendLine()
-
-                    appendLine("/** Get $receiverSimpleName extensions by tag */")
-                    appendLine("fun ioc${receiverSimpleName}ExtensionsByTag(tag: String): Map<String, $receiverSimpleName.() -> Unit> =")
-                    appendLine("    ioc${receiverSimpleName}ExtensionsByTag[tag] ?: emptyMap()")
-                    appendLine()
+                appendLine("private val ioc${receiverSimpleName}ExtensionActions: Map<String, $receiverSimpleName.() -> Unit> = linkedMapOf(")
+                funcs.forEach { func ->
+                    appendLine("    \"${identityOf(func.beanInfo)}\" to { ${func.funcSimpleName}() },")
                 }
-
-                // convenience: apply all
+                appendLine(")")
+                appendLine()
+                appendLine("/**")
+                appendLine(" * All @Bean extension functions for $receiverSimpleName, keyed by bean identity.")
+                appendLine(" */")
+                appendLine("val ioc${receiverSimpleName}Extensions: Map<String, $receiverSimpleName.() -> Unit>")
+                appendLine("    get() = ioc${receiverSimpleName}ExtensionDefinitions")
+                appendLine("        .associate { it.identity to ioc${receiverSimpleName}ExtensionActions.getValue(it.identity) }")
+                appendLine()
+                appendLine("/**")
+                appendLine(" * @Bean extension functions for $receiverSimpleName grouped by tag.")
+                appendLine(" */")
+                appendLine("val ioc${receiverSimpleName}ExtensionsByTag: Map<String, Map<String, $receiverSimpleName.() -> Unit>>")
+                appendLine("    get() = BeanDefinitions.groupByTag(BeanDefinitions.enabled(ioc${receiverSimpleName}ExtensionDefinitions))")
+                appendLine("        .mapValues { (_, beans) -> beans.associate { it.identity to ioc${receiverSimpleName}ExtensionActions.getValue(it.identity) } }")
+                appendLine()
+                appendLine("fun ioc${receiverSimpleName}ExtensionsByTag(tag: String): Map<String, $receiverSimpleName.() -> Unit> =")
+                appendLine("    ioc${receiverSimpleName}ExtensionsByTag[tag] ?: emptyMap()")
+                appendLine()
                 appendLine("/** Apply all @Bean extensions to this $receiverSimpleName */")
                 appendLine("fun $receiverSimpleName.iocModule() {")
-                funcs.forEach { appendLine("    ${it.funcSimpleName}()") }
+                appendLine("    BeanDefinitions.resolve(ioc${receiverSimpleName}ExtensionDefinitions).forEach { definition ->")
+                appendLine("        ioc${receiverSimpleName}ExtensionActions[definition.identity]?.invoke(this)")
+                appendLine("    }")
                 appendLine("}")
                 appendLine()
-
-                // convenience: apply by tag
-                if (tagGroups.isNotEmpty()) {
-                    appendLine("/** Apply @Bean extensions matching the given tag */")
-                    appendLine("fun $receiverSimpleName.iocModule(tag: String) {")
-                    appendLine("    ioc${receiverSimpleName}ExtensionsByTag(tag).values.forEach { it() }")
-                    appendLine("}")
-                    appendLine()
-                }
-
-                // registry registration
+                appendLine("/** Apply @Bean extensions matching the given tag */")
+                appendLine("fun $receiverSimpleName.iocModule(tag: String) {")
+                appendLine("    BeanDefinitions.resolve(ioc${receiverSimpleName}ExtensionDefinitions, tags = setOf(tag)).forEach { definition ->")
+                appendLine("        ioc${receiverSimpleName}ExtensionActions[definition.identity]?.invoke(this)")
+                appendLine("    }")
+                appendLine("}")
+                appendLine()
                 appendLine("fun register${receiverSimpleName}Extensions(registry: site.addzero.ioc.registry.MutableBeanRegistry) {")
                 funcs.forEach { func ->
-                    appendLine("    registry.registerExtension($receiverSimpleName::class, \"${func.funcSimpleName}\") { ${func.funcSimpleName}() }")
+                    appendLine("    registry.registerExtension($receiverSimpleName::class, \"${func.beanInfo.resolvedBeanName}\") { ${func.funcSimpleName}() }")
                 }
                 appendLine("}")
             }
@@ -333,57 +359,52 @@ class ContainerGenerator(
     }
 
     private fun generateComposableModule(composables: List<BeanInfo>) {
-        val tagGroups = buildTagGroups(composables)
-
         val code = buildString {
             appendLine("package $generatedPackage")
             appendLine()
             appendLine("import androidx.compose.runtime.Composable")
+            appendLine("import site.addzero.ioc.registry.BeanDefinition")
+            appendLine("import site.addzero.ioc.registry.BeanDefinitions")
             composables.forEach { appendLine("import ${it.name}") }
             appendLine()
-
-            // flat map: all composables keyed by qualified name
-            appendLine("/**")
-            appendLine(" * All @Bean @Composable functions, keyed by qualified name.")
-            appendLine(" * Use for nav3 route keys: `iocComposables.forEach { (key, content) -> ... }`")
-            appendLine(" */")
-            appendLine("val iocComposables: Map<String, @Composable () -> Unit> = mapOf(")
+            appendLine("private val iocComposableDefinitions = listOf(")
+            appendBeanDefinitions(composables, "    ")
+            appendLine(")")
+            appendLine()
+            appendLine("private val iocComposableActions: Map<String, @Composable () -> Unit> = linkedMapOf(")
             composables.forEach { bean ->
-                val simpleName = bean.name.substringAfterLast(".")
-                appendLine("    \"${bean.name}\" to { $simpleName() },")
+                appendLine("    \"${identityOf(bean)}\" to { ${bean.simpleName}() },")
             }
             appendLine(")")
             appendLine()
-
-            // tag-grouped map
-            if (tagGroups.isNotEmpty()) {
-                appendLine("/**")
-                appendLine(" * @Bean @Composable functions grouped by tag.")
-                appendLine(" * e.g. `iocComposablesByTag[\"screen\"]` returns all screen-tagged composables.")
-                appendLine(" */")
-                appendLine("val iocComposablesByTag: Map<String, Map<String, @Composable () -> Unit>> = mapOf(")
-                tagGroups.forEach { (tag, beans) ->
-                    appendLine("    \"$tag\" to mapOf(")
-                    beans.forEach { bean ->
-                        val simpleName = bean.name.substringAfterLast(".")
-                        appendLine("        \"${bean.name}\" to { $simpleName() },")
-                    }
-                    appendLine("    ),")
-                }
-                appendLine(")")
-                appendLine()
-
-                appendLine("/**")
-                appendLine(" * Get composables by tag. Returns empty map if tag not found.")
-                appendLine(" */")
-                appendLine("fun iocComposablesByTag(tag: String): Map<String, @Composable () -> Unit> =")
-                appendLine("    iocComposablesByTag[tag] ?: emptyMap()")
-                appendLine()
-            }
-
+            appendLine("/**")
+            appendLine(" * All @Bean @Composable functions, keyed by bean identity.")
+            appendLine(" */")
+            appendLine("val iocComposables: Map<String, @Composable () -> Unit>")
+            appendLine("    get() = iocComposableDefinitions.associate { it.identity to iocComposableActions.getValue(it.identity) }")
+            appendLine()
+            appendLine("/**")
+            appendLine(" * @Bean @Composable functions grouped by tag.")
+            appendLine(" */")
+            appendLine("val iocComposablesByTag: Map<String, Map<String, @Composable () -> Unit>>")
+            appendLine("    get() = BeanDefinitions.groupByTag(BeanDefinitions.enabled(iocComposableDefinitions))")
+            appendLine("        .mapValues { (_, beans) -> beans.associate { it.identity to iocComposableActions.getValue(it.identity) } }")
+            appendLine()
+            appendLine("fun iocComposablesByTag(tag: String): Map<String, @Composable () -> Unit> =")
+            appendLine("    iocComposablesByTag[tag] ?: emptyMap()")
+            appendLine()
             appendLine("@Composable")
             appendLine("fun IocComposableModule() {")
-            appendLine("    iocComposables.values.forEach { it() }")
+            appendLine("    BeanDefinitions.resolve(iocComposableDefinitions).forEach { definition ->")
+            appendLine("        iocComposableActions[definition.identity]?.invoke()")
+            appendLine("    }")
+            appendLine("}")
+            appendLine()
+            appendLine("@Composable")
+            appendLine("fun IocComposableModule(tag: String) {")
+            appendLine("    BeanDefinitions.resolve(iocComposableDefinitions, tags = setOf(tag)).forEach { definition ->")
+            appendLine("        iocComposableActions[definition.identity]?.invoke()")
+            appendLine("    }")
             appendLine("}")
         }
 
@@ -393,63 +414,52 @@ class ContainerGenerator(
     }
 
     private fun generateSuspendModule(suspends: List<BeanInfo>) {
-        val tagGroups = buildTagGroups(suspends)
-
         val code = buildString {
             appendLine("package $generatedPackage")
             appendLine()
+            appendLine("import site.addzero.ioc.registry.BeanDefinition")
+            appendLine("import site.addzero.ioc.registry.BeanDefinitions")
             suspends.forEach { appendLine("import ${it.name}") }
             appendLine()
-
-            // flat map: all suspend functions keyed by qualified name
-            appendLine("/**")
-            appendLine(" * All @Bean suspend functions, keyed by qualified name.")
-            appendLine(" */")
-            appendLine("val iocSuspends: Map<String, suspend () -> Unit> = mapOf(")
+            appendLine("private val iocSuspendDefinitions = listOf(")
+            appendBeanDefinitions(suspends, "    ")
+            appendLine(")")
+            appendLine()
+            appendLine("private val iocSuspendActions: Map<String, suspend () -> Unit> = linkedMapOf(")
             suspends.forEach { bean ->
-                val simpleName = bean.name.substringAfterLast(".")
-                appendLine("    \"${bean.name}\" to { $simpleName() },")
+                appendLine("    \"${identityOf(bean)}\" to { ${bean.simpleName}() },")
             }
             appendLine(")")
             appendLine()
-
-            // tag-grouped map
-            if (tagGroups.isNotEmpty()) {
-                appendLine("/**")
-                appendLine(" * @Bean suspend functions grouped by tag.")
-                appendLine(" */")
-                appendLine("val iocSuspendsByTag: Map<String, Map<String, suspend () -> Unit>> = mapOf(")
-                tagGroups.forEach { (tag, beans) ->
-                    appendLine("    \"$tag\" to mapOf(")
-                    beans.forEach { bean ->
-                        val simpleName = bean.name.substringAfterLast(".")
-                        appendLine("        \"${bean.name}\" to { $simpleName() },")
-                    }
-                    appendLine("    ),")
-                }
-                appendLine(")")
-                appendLine()
-
-                appendLine("/**")
-                appendLine(" * Get suspend functions by tag. Returns empty map if tag not found.")
-                appendLine(" */")
-                appendLine("fun iocSuspendsByTag(tag: String): Map<String, suspend () -> Unit> =")
-                appendLine("    iocSuspendsByTag[tag] ?: emptyMap()")
-                appendLine()
-            }
-
+            appendLine("/**")
+            appendLine(" * All @Bean suspend functions, keyed by bean identity.")
+            appendLine(" */")
+            appendLine("val iocSuspends: Map<String, suspend () -> Unit>")
+            appendLine("    get() = iocSuspendDefinitions.associate { it.identity to iocSuspendActions.getValue(it.identity) }")
+            appendLine()
+            appendLine("/**")
+            appendLine(" * @Bean suspend functions grouped by tag.")
+            appendLine(" */")
+            appendLine("val iocSuspendsByTag: Map<String, Map<String, suspend () -> Unit>>")
+            appendLine("    get() = BeanDefinitions.groupByTag(BeanDefinitions.enabled(iocSuspendDefinitions))")
+            appendLine("        .mapValues { (_, beans) -> beans.associate { it.identity to iocSuspendActions.getValue(it.identity) } }")
+            appendLine()
+            appendLine("fun iocSuspendsByTag(tag: String): Map<String, suspend () -> Unit> =")
+            appendLine("    iocSuspendsByTag[tag] ?: emptyMap()")
+            appendLine()
             appendLine("/** Execute all @Bean suspend functions */")
             appendLine("suspend fun iocSuspendModule() {")
-            appendLine("    iocSuspends.values.forEach { it() }")
+            appendLine("    BeanDefinitions.resolve(iocSuspendDefinitions).forEach { definition ->")
+            appendLine("        iocSuspendActions[definition.identity]?.invoke()")
+            appendLine("    }")
             appendLine("}")
-
-            if (tagGroups.isNotEmpty()) {
-                appendLine()
-                appendLine("/** Execute @Bean suspend functions matching the given tag */")
-                appendLine("suspend fun iocSuspendModule(tag: String) {")
-                appendLine("    iocSuspendsByTag(tag).values.forEach { it() }")
-                appendLine("}")
-            }
+            appendLine()
+            appendLine("/** Execute @Bean suspend functions matching the given tag */")
+            appendLine("suspend fun iocSuspendModule(tag: String) {")
+            appendLine("    BeanDefinitions.resolve(iocSuspendDefinitions, tags = setOf(tag)).forEach { definition ->")
+            appendLine("        iocSuspendActions[definition.identity]?.invoke()")
+            appendLine("    }")
+            appendLine("}")
         }
 
         codeGenerator.createNewFile(
@@ -461,32 +471,31 @@ class ContainerGenerator(
     // Helpers
     // ============================================================
 
-    private fun generateBatchCode(label: String, beans: List<BeanInfo>, lambdaExpr: (BeanInfo) -> String): String {
-        val tagGroups = buildTagGroups(beans)
+    private fun generateBatchCode(
+        label: String,
+        beans: List<BeanInfo>,
+        lambdaExpr: (BeanInfo) -> String
+    ): String {
         return buildString {
-            // flat list
-            appendLine("    private val collect$label = listOf(")
-            appendLine("        ${beans.joinToString(",\n        ") { lambdaExpr(it) }}")
+            appendLine("    private val ${label.replaceFirstChar { it.lowercase() }}BeanDefinitions = listOf(")
+            appendBeanDefinitions(beans, "        ")
             appendLine("    )")
-            appendLine("    fun start$label() { collect$label.forEach { it() } }")
-
-            // tag-grouped map
-            if (tagGroups.isNotEmpty()) {
-                appendLine()
-                appendLine("    private val collect${label}ByTag: Map<String, List<() -> Unit>> = mapOf(")
-                tagGroups.forEach { (tag, tagBeans) ->
-                    appendLine("        \"$tag\" to listOf(${tagBeans.joinToString(", ") { lambdaExpr(it) }}),")
-                }
-                appendLine("    )")
-                appendLine("    fun start$label(tag: String) { collect${label}ByTag[tag]?.forEach { it() } }")
+            appendLine("    private val ${label.replaceFirstChar { it.lowercase() }}Actions: Map<String, () -> Unit> = linkedMapOf(")
+            beans.forEach { bean ->
+                appendLine("        \"${identityOf(bean)}\" to ${lambdaExpr(bean)},")
             }
+            appendLine("    )")
+            appendLine("    fun start$label() {")
+            appendLine("        BeanDefinitions.resolve(${label.replaceFirstChar { it.lowercase() }}BeanDefinitions).forEach { definition ->")
+            appendLine("            ${label.replaceFirstChar { it.lowercase() }}Actions[definition.identity]?.invoke()")
+            appendLine("        }")
+            appendLine("    }")
+            appendLine("    fun start$label(tag: String) {")
+            appendLine("        BeanDefinitions.resolve(${label.replaceFirstChar { it.lowercase() }}BeanDefinitions, tags = setOf(tag)).forEach { definition ->")
+            appendLine("            ${label.replaceFirstChar { it.lowercase() }}Actions[definition.identity]?.invoke()")
+            appendLine("        }")
+            appendLine("    }")
         }.trimEnd()
-    }
-
-    private fun deriveName(bean: BeanInfo): String {
-        return bean.beanName.ifEmpty {
-            bean.name.substringAfterLast(".").replaceFirstChar { it.lowercase() }
-        }
     }
 
     private fun buildInterfaceMap(classComponents: List<LsiClass>): Map<String, List<String>> {
@@ -501,11 +510,57 @@ class ContainerGenerator(
         return map
     }
 
-    private fun buildTagGroups(beans: List<BeanInfo>): Map<String, List<BeanInfo>> {
-        val groups = mutableMapOf<String, MutableList<BeanInfo>>()
-        beans.forEach { bean ->
-            bean.tags.forEach { tag -> groups.getOrPut(tag) { mutableListOf() }.add(bean) }
+    private fun deriveName(bean: BeanInfo): String = bean.resolvedBeanName
+
+    private fun identityOf(bean: BeanInfo): String = bean.qualifiedName.ifBlank { deriveName(bean) }
+
+    private fun beanDefinitionLiteral(bean: BeanInfo): String {
+        return buildString {
+            append("BeanDefinition(")
+            append("simpleName = ${stringLiteral(bean.simpleName)}, ")
+            append("qualifiedName = ${stringLiteral(bean.qualifiedName)}, ")
+            append("beanName = ${stringLiteral(deriveName(bean))}, ")
+            append("enabled = ${bean.enabled}, ")
+            append("tags = ${stringListLiteral(bean.tags)}, ")
+            append("order = ${bean.order}, ")
+            append("dependsOn = ${stringListLiteral(bean.dependsOn)}")
+            append(")")
         }
-        return groups
+    }
+
+    private fun StringBuilder.appendBeanDefinitions(beans: List<BeanInfo>, indent: String) {
+        if (beans.isEmpty()) {
+            appendLine("${indent}// no bean definitions")
+            return
+        }
+        beans.forEachIndexed { index, bean ->
+            val suffix = if (index == beans.lastIndex) "" else ","
+            appendLine("$indent${beanDefinitionLiteral(bean)}$suffix")
+        }
+    }
+
+    private fun stringListLiteral(values: List<String>): String {
+        return if (values.isEmpty()) {
+            "emptyList()"
+        } else {
+            values.distinct().joinToString(prefix = "listOf(", postfix = ")") { stringLiteral(it) }
+        }
+    }
+
+    private fun stringLiteral(value: String): String {
+        return buildString {
+            append('"')
+            value.forEach { char ->
+                when (char) {
+                    '\\' -> append("\\\\")
+                    '"' -> append("\\\"")
+                    '\n' -> append("\\n")
+                    '\r' -> append("\\r")
+                    '\t' -> append("\\t")
+                    else -> append(char)
+                }
+            }
+            append('"')
+        }
     }
 }

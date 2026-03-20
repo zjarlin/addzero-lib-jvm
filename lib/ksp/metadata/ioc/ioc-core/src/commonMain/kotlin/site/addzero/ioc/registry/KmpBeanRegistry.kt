@@ -16,6 +16,7 @@ class KmpBeanRegistry : MutableBeanRegistry {
     private val typedBeanMap = mutableMapOf<TypeKey, Any>()
     private val typedProviderMap = mutableMapOf<TypeKey, () -> Any>()
     private val tagMap = mutableMapOf<KClass<*>, MutableSet<String>>()
+    private val definitionMap = mutableMapOf<KClass<*>, BeanDefinition>()
 
     // circular dependency detection
     private val creating = mutableSetOf<Any>()
@@ -82,15 +83,48 @@ class KmpBeanRegistry : MutableBeanRegistry {
     override fun <T : Any> getAll(clazz: KClass<T>): List<T> {
         val implClasses = implementationMap[clazz] ?: emptySet()
         @Suppress("UNCHECKED_CAST")
-        return implClasses.mapNotNull { implClass -> get(implClass) as? T }
+        return implClasses
+            .sortedWith(compareBy<KClass<*>>(
+                { definitionMap[it]?.order ?: Int.MAX_VALUE },
+                { definitionMap[it]?.beanName ?: it.simpleName.orEmpty() },
+                { definitionMap[it]?.qualifiedName ?: it.qualifiedName.orEmpty() }
+            ))
+            .mapNotNull { implClass ->
+                val definition = definitionMap[implClass]
+                if (definition?.enabled == false) return@mapNotNull null
+                get(implClass) as? T
+            }
     }
 
     override fun <T : Any> getAll(clazz: KClass<T>, tag: String): List<T> {
         val implClasses = implementationMap[clazz] ?: emptySet()
         @Suppress("UNCHECKED_CAST")
         return implClasses
-            .filter { tagMap[it]?.contains(tag) == true }
-            .mapNotNull { implClass -> get(implClass) as? T }
+            .filter { implClass ->
+                definitionMap[implClass]?.hasTag(tag) ?: (tagMap[implClass]?.contains(tag) == true)
+            }
+            .sortedWith(compareBy<KClass<*>>(
+                { definitionMap[it]?.order ?: Int.MAX_VALUE },
+                { definitionMap[it]?.beanName ?: it.simpleName.orEmpty() },
+                { definitionMap[it]?.qualifiedName ?: it.qualifiedName.orEmpty() }
+            ))
+            .mapNotNull { implClass ->
+                val definition = definitionMap[implClass]
+                if (definition?.enabled == false) return@mapNotNull null
+                get(implClass) as? T
+            }
+    }
+
+    override fun beanDefinitions(): List<BeanDefinition> {
+        return BeanDefinitions.unique(definitionMap.values)
+    }
+
+    override fun beanDefinitions(tag: String): List<BeanDefinition> {
+        return BeanDefinitions.groupByTag(beanDefinitions())[tag] ?: emptyList()
+    }
+
+    override fun beanDefinition(name: String): BeanDefinition? {
+        return BeanDefinitions.find(beanDefinitions(), name)
     }
 
     // ============ register ============
@@ -130,6 +164,10 @@ class KmpBeanRegistry : MutableBeanRegistry {
         map[name] = extension as Any.() -> Any?
     }
 
+    override fun <T : Any> registerDefinition(clazz: KClass<T>, definition: BeanDefinition) {
+        definitionMap[clazz] = definition
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun <R : Any> getExtensions(receiverClass: KClass<R>): Map<String, R.() -> Any?> {
         return (extensionMap[receiverClass] ?: emptyMap()) as Map<String, R.() -> Any?>
@@ -145,6 +183,11 @@ class KmpBeanRegistry : MutableBeanRegistry {
     override fun <T : Any> tagBean(clazz: KClass<T>, tags: List<String>) {
         if (tags.isNotEmpty()) {
             tagMap.getOrPut(clazz) { mutableSetOf() }.addAll(tags)
+            definitionMap[clazz]?.let { definition ->
+                definitionMap[clazz] = definition.copy(
+                    tags = (definition.tags + tags).distinct()
+                )
+            }
         }
     }
 
@@ -168,6 +211,7 @@ class KmpBeanRegistry : MutableBeanRegistry {
         typedBeanMap.clear()
         typedProviderMap.clear()
         tagMap.clear()
+        definitionMap.clear()
         creating.clear()
     }
 }

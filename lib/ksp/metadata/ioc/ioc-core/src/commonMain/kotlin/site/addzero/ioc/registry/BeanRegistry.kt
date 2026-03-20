@@ -16,6 +16,12 @@ interface BeanRegistry {
 
     fun <T : Any> getAll(clazz: KClass<T>): List<T>
 
+    fun beanDefinitions(): List<BeanDefinition>
+
+    fun beanDefinitions(tag: String): List<BeanDefinition>
+
+    fun beanDefinition(name: String): BeanDefinition?
+
     fun <R : Any> getExtensions(receiverClass: KClass<R>): Map<String, R.() -> Any?>
 
     fun <R : Any> getExtension(receiverClass: KClass<R>, name: String): (R.() -> Any?)?
@@ -46,6 +52,8 @@ interface MutableBeanRegistry : BeanRegistry {
     fun <T : Any, R : T> registerImplementation(interfaceClass: KClass<T>, implClass: KClass<R>)
 
     fun <R : Any> registerExtension(receiverClass: KClass<R>, name: String, extension: R.() -> Any?)
+
+    fun <T : Any> registerDefinition(clazz: KClass<T>, definition: BeanDefinition)
 
     fun <T : Any> tagBean(clazz: KClass<T>, tags: List<String>)
 
@@ -82,6 +90,10 @@ inline fun <reified T : Any> BeanRegistry.getAll(): List<T> = getAll(T::class)
 
 inline fun <reified T : Any> BeanRegistry.getAll(tag: String): List<T> = getAll(T::class, tag)
 
+fun BeanRegistry.findBeanDefinitions(tag: String): List<BeanDefinition> = beanDefinitions(tag)
+
+fun BeanRegistry.findBeanDefinition(name: String): BeanDefinition? = beanDefinition(name)
+
 inline fun <reified T : Any> BeanRegistry.contains(): Boolean = contains(T::class)
 
 inline fun <reified R : Any> BeanRegistry.getExtensions(): Map<String, R.() -> Any?> = getExtensions(R::class)
@@ -99,6 +111,9 @@ inline fun <reified R : Any> BeanRegistry.applyExtensions(receiver: R) {
 inline fun <reified T : Any> MutableBeanRegistry.register(instance: T) = register(T::class, instance)
 
 inline fun <reified T : Any> MutableBeanRegistry.tagBean(tags: List<String>) = tagBean(T::class, tags)
+
+inline fun <reified T : Any> MutableBeanRegistry.registerDefinition(definition: BeanDefinition) =
+    registerDefinition(T::class, definition)
 
 inline fun <reified T : Any> MutableBeanRegistry.registerProvider(noinline provider: () -> T) =
     registerProvider(T::class, provider)
