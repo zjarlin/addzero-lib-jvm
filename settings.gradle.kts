@@ -6,6 +6,7 @@ pluginManagement {
     google()
   }
   plugins {
+    id("site.addzero.kcp.i18n") version "2026.03.13"
     id("site.addzero.kcp.multireceiver") version "2026.03.13"
     id("site.addzero.kcp.transform-overload") version "2026.03.13"
   }
@@ -29,13 +30,20 @@ dependencyResolutionManagement {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-20T10:04:30.804558
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2026-03-20T14:20:25.622043
+// Loaded: 6, Excluded: 0, Total: 6
+include(":example:example-kcp-i18n")
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
+include(":lib:kcp:kcp-i18n")
+include(":lib:kcp:kcp-i18n-runtime")
 include(":lib:ksp:metadata:ioc:ioc-core")
 include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:kcp-i18n")
+include(":lib:kcp:kcp-i18n-runtime")
+include(":lib:kcp:kcp-i18n-gradle-plugin")
+include(":lib:kcp:kcp-i18n-idea-plugin")
 include(":example:example-kcp-i18n")
 include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
 include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")

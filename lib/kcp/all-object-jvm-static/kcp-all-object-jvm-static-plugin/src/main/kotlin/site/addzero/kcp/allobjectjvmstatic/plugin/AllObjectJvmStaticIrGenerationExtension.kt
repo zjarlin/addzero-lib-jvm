@@ -1,32 +1,28 @@
 package site.addzero.kcp.allobjectjvmstatic.plugin
 
-import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isFakeOverride
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.ClassId
 
-@OptIn(DeprecatedForRemovalCompilerApi::class)
+@OptIn(UnsafeDuringIrConstructionAPI::class)
 class AllObjectJvmStaticIrGenerationExtension : IrGenerationExtension {
 
     override fun generate(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
     ) {
-        val jvmStaticAnnotationClass = pluginContext.referenceClass(AllObjectJvmStaticPluginKeys.jvmStaticAnnotation)
-            ?: return
-        val annotationConstructor = jvmStaticAnnotationClass.owner.declarations
-            .filterIsInstance<IrConstructor>()
+        val annotationConstructor = pluginContext.finderForBuiltins().findConstructors(
+            ClassId.topLevel(AllObjectJvmStaticPluginKeys.jvmStaticAnnotation),
+        )
             .singleOrNull()
             ?: return
 
@@ -36,8 +32,8 @@ class AllObjectJvmStaticIrGenerationExtension : IrGenerationExtension {
                 .forEach { declaration ->
                     annotateObjectFunctionsRecursively(
                         declaration = declaration,
-                        annotationType = jvmStaticAnnotationClass.defaultType,
-                        constructor = annotationConstructor.symbol,
+                        annotationType = annotationConstructor.owner.returnType,
+                        constructor = annotationConstructor,
                     )
                 }
         }
@@ -97,13 +93,12 @@ class AllObjectJvmStaticIrGenerationExtension : IrGenerationExtension {
         constructor: org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol,
     ): IrConstructorCall {
         return IrConstructorCallImpl(
-            startOffset = function.startOffset,
-            endOffset = function.endOffset,
-            type = annotationType,
-            origin = null,
-            symbol = constructor,
-            source = SourceElement.NO_SOURCE,
+            function.startOffset,
+            function.endOffset,
+            annotationType,
+            constructor,
             typeArgumentsCount = 0,
+            constructorTypeArgumentsCount = 0,
         )
     }
 }

@@ -33,12 +33,12 @@ class AllObjectJvmStaticGradleSubpluginSmokeTest {
                 package sample
 
                 object AutoWhereUtil {
-                    fun greet(name: String): String = "Hello, $name"
+                    fun greet(name: String): String = "Hello, ${'$'}name"
                 }
 
                 class CompanionHolder {
                     companion object {
-                        fun join(left: String, right: String): String = "$left-$right"
+                        fun join(left: String, right: String): String = "${'$'}left-${'$'}right"
                     }
                 }
             """.trimIndent(),

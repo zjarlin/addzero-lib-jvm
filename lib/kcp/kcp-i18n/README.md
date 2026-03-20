@@ -1,92 +1,122 @@
-# KCP 国际化插件 (I18N Plugin)
+# KCP I18N
 
-这个插件是一个Kotlin编译器插件，允许开发者使用自然母语编写Kotlin代码，插件在编译时扫描代码中的字符串字面量，并根据开发者提供的资源文件将其替换为目标语言的对应值。
+`kcp-i18n` 已经不是 PoC 写法了，现在有一条完整可落地的业务接入链路：
 
-## 功能特性
+- `kcp-i18n`
+  Kotlin 编译器插件，负责把源码里的字符串字面量改写成运行期翻译调用。
+- `kcp-i18n-runtime`
+  运行时翻译库，负责从 `resources` 里的 `.properties` 读取目标语言。
+- `kcp-i18n-gradle-plugin`
+  业务项目直接接的 Gradle 插件，负责透传编译器参数并自动补运行时依赖。
+- `kcp-i18n-idea-plugin`
+  IDEA companion plugin，用来在 IDE 启动后刷新分析并输出插件检测日志。
 
-- 使用 `@I18N` 注解标记需要国际化的函数和类
-- 使用 `@I18NProperty` 注解标记需要国际化的属性
-- 编译时自动将字符串字面量替换为目标语言的对应值
-- 支持自定义翻译键值
-- 支持通过编译器插件配置设置目标方言
+## Business Usage
 
-## 使用方法
-
-### 1. 添加依赖
-
-在你的 `build.gradle.kts` 文件中添加依赖：
+业务项目推荐直接接 `site.addzero.kcp.i18n`，不要再手写 `-Xplugin`。
 
 ```kotlin
-dependencies {
-    implementation("site.addzero.kcp:kcp-i18n:+")
+plugins {
+    kotlin("jvm") version "2.3.20-RC"
+    id("site.addzero.kcp.i18n") version "2026.03.13"
+}
+
+i18n {
+    targetLocale.set("en")
+    resourceBasePath.set("i18n")
 }
 ```
 
-### 2. 配置插件
+这个 Gradle 插件会自动做两件事：
 
-在 `build.gradle.kts` 中配置目标语言和资源路径：
+1. 把 `targetLocale` / `resourceBasePath` 传给编译器插件
+2. 自动给业务项目补上 `site.addzero:kcp-i18n-runtime`
 
-```kotlin
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-P")
-        freeCompilerArgs.add("plugin:site.addzero.kcp.i18n.plugin.I18NCompilerPlugin:targetLocale=en")
-        freeCompilerArgs.add("-P")
-        freeCompilerArgs.add("plugin:site.addzero.kcp.i18n.plugin.I18NCompilerPlugin:resourceBasePath=i18n")
-    }
-}
+## Resource Layout
+
+翻译资源默认放在：
+
+```text
+src/main/resources/i18n/en.properties
 ```
 
-### 3. 编写国际化代码
+示例：
 
-```kotlin
-// 例如，在Compose中使用
-Text("你好") // 编译时会替换为 Text("hello")
-
-// 或者在普通函数中使用
-fun showMessage() {
-    println("欢迎使用我们的系统!") // 编译时会替换为 println("Welcome to our system!")
-}
-```
-
-### 4. 配置资源文件
-
-开发者需要在自己的项目中提供资源文件，插件将从这些文件中查找翻译：
-
-在 `src/main/resources/i18n/` 目录下创建资源文件：
-
-**en.properties:**
 ```properties
-# 键命名规范: i18n_文件名_函数名_参数名_value
-i18n_Main_你好=hello
-i18n_Main_欢迎使用我们的系统!=Welcome to our system!
+Messages_helloMessage_text_你好=hello
+Messages_farewellMessage_text_再见=goodbye
 ```
 
-**zh.properties:**
-```properties
-# 键命名规范: i18n_文件名_函数名_参数名_value
-i18n_Main_你好=你好
-i18n_Main_欢迎使用我们的系统!=欢迎使用我们的系统!
-```
-
-## 编译时行为
-
-在编译时，插件会将代码中的字符串字面量替换为目标语言的对应值：
+源码：
 
 ```kotlin
-// 源代码
-Text("你好")
-println("欢迎使用我们的系统!")
-
-// 编译后的等效代码
-Text("hello")
-println("Welcome to our system!")
+fun helloMessage(): String = "你好"
+fun farewellMessage(): String = "再见"
 ```
 
-## 注意事项
+编译后会被改写成对 `site.addzero.util.i18nT(...)` 的调用，运行时再命中 `.properties`。
 
-1. 该插件目前是一个概念验证实现，实际的IR转换逻辑需要更复杂的实现
-2. 开发者需要在自己的项目中提供资源文件，插件不会内置任何翻译
-3. 插件仅在编译时生效，运行时仍然使用标准的英文标识符
-4. 键命名规范为 `i18n_文件名_函数名_参数名_value`，其中文件名、函数名和参数名是可选的
-5. 资源文件应放置在 `src/main/resources/i18n/` 目录下，文件名应为语言代码（如 `en.properties`, `zh.properties`）
+## Key Rule
+
+当前 key 规则是：
+
+```text
+文件名_函数名_调用组件名_text_原始字符串
+```
+
+例如：
+
+```text
+Messages_helloMessage_text_你好
+```
+
+## Verification
+
+仓库里现在有两条验证链路：
+
+1. 低层编译器验证
+
+```bash
+./gradlew :example:example-kcp-i18n:test
+./gradlew :example:example-kcp-i18n:run
+```
+
+2. 业务项目直连 Gradle 插件验证
+
+```bash
+./gradlew :lib:kcp:kcp-i18n-gradle-plugin:test \
+  --tests site.addzero.kcp.i18n.gradle.I18NGradleSubpluginSmokeTest
+```
+
+第二条烟测验证的是：
+
+- 业务工程通过插件 ID 接入
+- `i18n {}` DSL 生效
+- 编译器插件参数透传成功
+- runtime 自动注入成功
+- 运行期能读到 `resources/i18n/en.properties`
+
+## IDEA Plugin
+
+构建 IDEA companion plugin：
+
+```bash
+./gradlew :lib:kcp:kcp-i18n-idea-plugin:buildPlugin
+```
+
+产物位置：
+
+```text
+lib/kcp/kcp-i18n-idea-plugin/build/distributions/kcp-i18n-idea-plugin-2026.03.13.zip
+```
+
+安装后它会：
+
+- 检测 Kotlin facet 里是否带上了 `kcp-i18n` 编译器插件 classpath
+- 在项目启动后刷新 PSI / Daemon 分析
+
+## Notes
+
+- 当前会处理非空字符串字面量。
+- 当前不会改写 `site.addzero.util.I8nutil` 自己内部的字符串。
+- 如果业务项目直接接 `site.addzero.kcp.i18n`，就不要再重复手写 `-Xplugin`。

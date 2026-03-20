@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -19,7 +18,6 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import java.io.File
@@ -35,10 +33,8 @@ class I18NIrGenerationExtension(
 
     // 缓存t函数符号
     private var tFunctionSymbol: IrSimpleFunctionSymbol? = null
-    private var i8nutilObjectSymbol: IrClassSymbol? = null
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        resolveRuntimeSymbols(moduleFragment)
         moduleFragment.files.forEach { file ->
             // 处理文件中的字符串字面量
             processStringLiterals(file, pluginContext)
@@ -158,38 +154,26 @@ class I18NIrGenerationExtension(
      * 创建t函数调用
      */
     private fun createTFunctionCall(pluginContext: IrPluginContext, originalExpression: IrConst, resourceKey: String): IrExpression {
-        // 直接创建对 site.addzero.util.I8nutil.t(string) 的调用
-        val tFunctionSymbol = tFunctionSymbol ?: error("无法找到 site.addzero.util.I8nutil.t 函数")
-        val i8nutilObjectSymbol = i8nutilObjectSymbol ?: error("无法找到 site.addzero.util.I8nutil 对象")
+        val tFunctionSymbol = findRuntimeFunction(pluginContext)
         val builder = DeclarationIrBuilder(pluginContext, tFunctionSymbol)
         return builder.irCall(tFunctionSymbol).apply {
-            dispatchReceiver = builder.irGetObject(i8nutilObjectSymbol)
-            // 创建字符串参数
             putValueArgument(0, builder.irString(resourceKey))
+            putValueArgument(1, builder.irString(targetLocale))
+            putValueArgument(2, builder.irString(resourceBasePath))
         }
     }
 
-    private fun resolveRuntimeSymbols(moduleFragment: IrModuleFragment) {
-        if (tFunctionSymbol != null && i8nutilObjectSymbol != null) {
-            return
+    private fun findRuntimeFunction(pluginContext: IrPluginContext): IrSimpleFunctionSymbol {
+        if (tFunctionSymbol != null) {
+            return tFunctionSymbol!!
         }
-
-        val i8nutilClass = moduleFragment.files
-            .asSequence()
-            .flatMap { file -> file.declarations.asSequence() }
-            .filterIsInstance<IrClass>()
-            .firstOrNull { irClass ->
-                irClass.fqNameWhenAvailable?.asString() == "site.addzero.util.I8nutil"
-            }
-            ?: error("无法找到 site.addzero.util.I8nutil 类")
-
-        i8nutilObjectSymbol = i8nutilClass.symbol
-        val tFunction = i8nutilClass.declarations
-            .filterIsInstance<IrFunction>()
-            .firstOrNull { function ->
-                function.name.asString() == "t" && function.valueParameters.size == 1
-            }
-            ?: error("无法找到 site.addzero.util.I8nutil.t 函数")
-        tFunctionSymbol = tFunction.symbol as IrSimpleFunctionSymbol
+        val tFunction = pluginContext.referenceFunctions(I18NPluginKeys.runtimeFunctionCallableId)
+            .singleOrNull()
+            ?: error(
+                "无法找到 site.addzero.util.i18nT 函数，请确认业务项目已引入 kcp-i18n-runtime " +
+                    "或直接使用 site.addzero.kcp.i18n Gradle 插件",
+            )
+        tFunctionSymbol = tFunction
+        return tFunction
     }
 }
