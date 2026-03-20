@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 @OptIn(ExperimentalCompilerApi::class)
 class I18NCompilerPlugin : CompilerPluginRegistrar() {
     override val supportsK2: Boolean = true
+    override val pluginId: String = "site.addzero.kcp.i18n"
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val targetLocale = I18NPluginConfiguration.getTargetLocale(configuration)

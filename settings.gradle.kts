@@ -29,7 +29,10 @@ dependencyResolutionManagement {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-19T22:16:03.945558
+// Generated at: 2026-03-20T09:16:20.913039
 // Loaded: 1, Excluded: 0, Total: 1
-include(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
+include(":lib:ksp:metadata:ioc:ioc-core")
 // <<< Gradle Module Sleep: End Of Block <<<
+
+include(":lib:kcp:kcp-i18n")
+include(":example:example-kcp-i18n")

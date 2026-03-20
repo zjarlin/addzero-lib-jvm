@@ -2,37 +2,26 @@ package site.addzero.kcp.i18n.plugin
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irGetObject
+import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetObject
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.getPropertyGetter
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import java.io.File
 
 /**
@@ -44,12 +33,12 @@ class I18NIrGenerationExtension(
     private val resourceBasePath: String = "i18n"
 ) : IrGenerationExtension {
 
-    private val resourceManager = ResourceBundleManager()
-
     // 缓存t函数符号
     private var tFunctionSymbol: IrSimpleFunctionSymbol? = null
+    private var i8nutilObjectSymbol: IrClassSymbol? = null
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+        resolveRuntimeSymbols(moduleFragment)
         moduleFragment.files.forEach { file ->
             // 处理文件中的字符串字面量
             processStringLiterals(file, pluginContext)
@@ -66,15 +55,24 @@ class I18NIrGenerationExtension(
         file.transform(object : IrElementTransformerVoid() {
             private var currentFunction: IrFunction? = null
             private var currentCall: IrFunctionAccessExpression? = null
+            private var currentClass: IrClass? = null
 
-            override fun visitFunction(declaration: IrFunction): IrExpression {
+            override fun visitClass(declaration: IrClass): IrStatement {
+                currentClass = declaration
+                try {
+                    return super.visitClass(declaration)
+                } finally {
+                    currentClass = null
+                }
+            }
+
+            override fun visitFunction(declaration: IrFunction): IrStatement {
                 currentFunction = declaration
                 try {
-                    super.visitFunction(declaration)
+                    return super.visitFunction(declaration)
                 } finally {
                     currentFunction = null
                 }
-                return declaration as IrExpression
             }
 
             override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
@@ -92,7 +90,10 @@ class I18NIrGenerationExtension(
                     val stringValue = expression.value as String
 
                     // 如果字符串不是空的
-                    if (stringValue.isNotEmpty()) {
+                    if (
+                        stringValue.isNotEmpty() &&
+                        currentClass?.fqNameWhenAvailable?.asString() != "site.addzero.util.I8nutil"
+                    ) {
                         // 获取组件名（如果在函数调用中）
                         val componentName = try {
                             currentCall?.symbol?.owner?.name?.asString()
@@ -158,31 +159,37 @@ class I18NIrGenerationExtension(
      */
     private fun createTFunctionCall(pluginContext: IrPluginContext, originalExpression: IrConst, resourceKey: String): IrExpression {
         // 直接创建对 site.addzero.util.I8nutil.t(string) 的调用
-        val tFunctionSymbol = findTFunction(pluginContext)
+        val tFunctionSymbol = tFunctionSymbol ?: error("无法找到 site.addzero.util.I8nutil.t 函数")
+        val i8nutilObjectSymbol = i8nutilObjectSymbol ?: error("无法找到 site.addzero.util.I8nutil 对象")
         val builder = DeclarationIrBuilder(pluginContext, tFunctionSymbol)
         return builder.irCall(tFunctionSymbol).apply {
+            dispatchReceiver = builder.irGetObject(i8nutilObjectSymbol)
             // 创建字符串参数
             putValueArgument(0, builder.irString(resourceKey))
         }
     }
 
-    /**
-     * 查找t函数
-     */
-    @OptIn(FirIncompatiblePluginAPI::class)
-    @Suppress("DEPRECATION") // 目前在K2编译器中暂无替代方法
-    private fun findTFunction(pluginContext: IrPluginContext): IrSimpleFunctionSymbol {
-        // 查找 site.addzero.util.I8nutil 对象中的 t 函数
-        val i8nutilClass = pluginContext.referenceClass(FqName("site.addzero.util.I8nutil")) ?: error("无法找到 site.addzero.util.I8nutil 类")
-        // 查找该类中的 t 函数
-        val tFunction = i8nutilClass.owner.declarations
-            .filterIsInstance<IrFunction>()
-            .find { function -> function.name.asString() == "t" }
-        if (tFunction != null) {
-            return tFunction.symbol as IrSimpleFunctionSymbol
+    private fun resolveRuntimeSymbols(moduleFragment: IrModuleFragment) {
+        if (tFunctionSymbol != null && i8nutilObjectSymbol != null) {
+            return
         }
 
-        // 如果找不到，抛出异常
-        error("无法找到 site.addzero.util.I8nutil.t 函数")
+        val i8nutilClass = moduleFragment.files
+            .asSequence()
+            .flatMap { file -> file.declarations.asSequence() }
+            .filterIsInstance<IrClass>()
+            .firstOrNull { irClass ->
+                irClass.fqNameWhenAvailable?.asString() == "site.addzero.util.I8nutil"
+            }
+            ?: error("无法找到 site.addzero.util.I8nutil 类")
+
+        i8nutilObjectSymbol = i8nutilClass.symbol
+        val tFunction = i8nutilClass.declarations
+            .filterIsInstance<IrFunction>()
+            .firstOrNull { function ->
+                function.name.asString() == "t" && function.valueParameters.size == 1
+            }
+            ?: error("无法找到 site.addzero.util.I8nutil.t 函数")
+        tFunctionSymbol = tFunction.symbol as IrSimpleFunctionSymbol
     }
 }

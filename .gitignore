@@ -58,3 +58,5 @@ captures
 /.cloud-file-hosting/
 /.gradle-user-home/
 /.transform-overload/
+
+/docs
