@@ -4,6 +4,11 @@ plugins {
     id("site.addzero.kcp.i18n")
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
 i18n {
     targetLocale.set("en")
     resourceBasePath.set("i18n")

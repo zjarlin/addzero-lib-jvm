@@ -1,33 +1,12 @@
 # example-kcp-i18n
 
-这个 example 保留的是“仓库内自举”的低层验证方式，用来直接证明编译器插件本身已经能工作。
+这个 example 现在已经改成“业务项目直连 Gradle 插件”的写法，不再手写 `-Xplugin`。
 
-它验证的链路是：
-
-1. 编译期扫描 Kotlin 字符串字面量
-2. `CommandLineProcessor` 接收 `targetLocale` / `resourceBasePath`
-3. IR 把字面量改写为 `site.addzero.util.i18nT(key, locale, basePath)`
-4. `kcp-i18n-runtime` 在运行时读取 `src/main/resources/i18n/en.properties`
-
-运行命令：
-
-```bash
-./gradlew :example:example-kcp-i18n:test
-./gradlew :example:example-kcp-i18n:run
-```
-
-## Why It Still Uses `-Xplugin`
-
-这个 example 的目标是验证“编译器插件核心逻辑”，所以仍然显式传 `-Xplugin`，这样最容易定位 IR 改写问题。
-
-## Direct Business Usage
-
-业务项目不要照着这个 example 去手写 `-Xplugin`，应该直接接 Gradle 插件：
+当前 `build.gradle.kts` 只保留两块核心配置：
 
 ```kotlin
 plugins {
-    kotlin("jvm") version "2.3.20-RC"
-    id("site.addzero.kcp.i18n") version "2026.03.13"
+    id("site.addzero.kcp.i18n")
 }
 
 i18n {
@@ -36,16 +15,65 @@ i18n {
 }
 ```
 
-这条“业务项目直接用”的链路已经由下面这条烟测验证通过：
+## Why It Was Complex Before
+
+之前之所以写得很底层，不是因为 `kcp-i18n` 必须那样接，而是因为当时这个 example 还在做“仓库内自举验证”：
+
+- 直接拿编译器插件 jar
+- 手写 `-Xplugin`
+- 手写 `-P plugin:...`
+
+这种方式适合排查编译器插件本体，不适合业务项目。
+
+## Why It Still Needs `mavenLocal()`
+
+这里虽然已经是业务接法，但它仍然在同一个 monorepo 里。
+
+Gradle 的 `plugins { id("...") }` 在脚本解析阶段就要先把插件解析出来；这时候同仓库里的 sibling module
+`:lib:kcp:kcp-i18n-gradle-plugin` 还没有被当成“已发布插件”提供给 plugin resolution。
+
+所以仓库内 example 要模拟真实业务项目，仍然需要先把三件套发布到本机 `mavenLocal()`：
 
 ```bash
-./gradlew :lib:kcp:kcp-i18n-gradle-plugin:test \
-  --tests site.addzero.kcp.i18n.gradle.I18NGradleSubpluginSmokeTest
+./gradlew \
+  :lib:kcp:kcp-i18n:publishToMavenLocal \
+  :lib:kcp:kcp-i18n-runtime:publishToMavenLocal \
+  :lib:kcp:kcp-i18n-gradle-plugin:publishToMavenLocal
 ```
 
-它验证的是：
+然后再跑 example：
 
-- 插件 ID 接入成功
-- `i18n {}` DSL 生效
-- runtime 自动注入成功
-- 运行时翻译命中成功
+```bash
+./gradlew :example:example-kcp-i18n:test
+./gradlew :example:example-kcp-i18n:run
+```
+
+## Verification
+
+我已经按这条链路验证通过，运行输出：
+
+```text
+hello
+goodbye
+```
+
+## Resource Layout
+
+资源文件位置：
+
+```text
+src/main/resources/i18n/en.properties
+```
+
+当前示例内容：
+
+```properties
+Messages_helloMessage_text_你好=hello
+Messages_farewellMessage_text_再见=goodbye
+```
+
+## Summary
+
+- 业务项目外部接入：直接 `id("site.addzero.kcp.i18n")` 就对
+- 仓库内 example：也可以写成同样形式
+- 但因为它和插件源码在同一个仓库里，所以要先 `publishToMavenLocal` 一次，才能让 plugin id 被解析到
