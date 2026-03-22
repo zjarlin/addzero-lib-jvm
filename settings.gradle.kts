@@ -30,10 +30,9 @@ dependencyResolutionManagement {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-20T17:00:40.116750
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:ksp:metadata:ioc:ioc-core")
-include(":lib:ksp:metadata:ioc:ioc-processor")
+// Generated at: 2026-03-22T21:48:02.414977
+// Loaded: 1, Excluded: 0, Total: 1
+include(":lib:tool-jvm:network-call:music:api-music-spi")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:kcp-i18n")

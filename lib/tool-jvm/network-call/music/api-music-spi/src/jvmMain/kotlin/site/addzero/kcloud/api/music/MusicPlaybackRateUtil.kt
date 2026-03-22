@@ -1,4 +1,4 @@
-package site.addzero.vibepocket.api.music
+package site.addzero.kcloud.api.music
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
