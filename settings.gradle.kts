@@ -19,3 +19,14 @@ plugins {
   id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"
 //  id("site.addzero.gradle.plugin.modules-buddy") version "+"
 }
+
+
+// >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
+// Generated at: 2026-03-26T09:52:15.389097
+// Loaded: 5, Excluded: 0, Total: 5
+include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
+include(":lib:ksp:logger-api")
+include(":lib:ksp:logger-implementation")
+include(":lib:ksp:metadata:ioc:ioc-core")
+include(":lib:ksp:route:route-core")
+// <<< Gradle Module Sleep: End Of Block <<<
