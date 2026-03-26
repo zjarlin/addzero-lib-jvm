@@ -17,7 +17,7 @@ dependencies {
     implementation(libs.cn.hutool.hutool.http)
 
     // SQLite JDBC 驱动
-    implementation(libs.org.xerial.sqlite.jdbc)
+    implementation(libs.org.xerial.sqlite.jdbc.v3)
 
     // JUnit for testing
 //    testImplementation(libs.junit.junit.junit.jupiter)

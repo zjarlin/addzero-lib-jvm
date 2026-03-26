@@ -13,10 +13,10 @@ dependencies {
     compileOnly("com.squareup:kotlinpoet-ksp:2.2.0")
 
 //    // 测试依赖
-//    testImplementation(libs.junit.jupiter)
-//    testImplementation(libs.kotest.runner.junit5)
-//    testImplementation(libs.kotest.assertions.core)
-//    testImplementation(libs.kotest.property)
+//    testImplementation(libs.org.junit.jupiter.junit.jupiter)
+//    testImplementation(libs.io.kotest.kotest.runner.junit5)
+//    testImplementation(libs.io.kotest.kotest.assertions.core)
+//    testImplementation(libs.io.kotest.kotest.property)
 //    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

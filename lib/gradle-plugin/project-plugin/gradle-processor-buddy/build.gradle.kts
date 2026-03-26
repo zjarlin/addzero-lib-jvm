@@ -25,7 +25,6 @@ repositories {
   gradlePluginPortal()
 }
 
-version = "2026.03.02"
 dependencies {
   gradleApi()
   implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)

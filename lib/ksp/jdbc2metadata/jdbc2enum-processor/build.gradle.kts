@@ -3,7 +3,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    id("site.addzero.buildlogic.kmp.kmp-ksp")
+    id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
     alias(libs.plugins.addzeroKspBuddy)
 }
 

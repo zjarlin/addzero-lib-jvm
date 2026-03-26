@@ -3,7 +3,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    id("site.addzero.buildlogic.kmp.kmp-ksp")
+    id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
     id("site.addzero.buildlogic.jvm.jvm-json-withtool")
     id("site.addzero.buildlogic.kmp.kmp-koin-core")
 
@@ -14,7 +14,7 @@ kotlin {
         implementation(libs.site.addzero.ksp.easycode)
         implementation(libs.site.addzero.entity2analysed.support)
 
-        implementation(libs.site.addzero.tool.koin)
+        implementation(libs.site.addzero.tool.koin.v2025)
 
     }
     sourceSets {

@@ -1,5 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.kmp.kmp-ksp")
+  id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
   alias(libs.plugins.site.addzero.gradle.plugin.processor.buddy)
 }
 
