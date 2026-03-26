@@ -3,8 +3,6 @@ package site.addzero.component.tree_command
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.UnfoldLess
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.*
@@ -196,37 +194,6 @@ fun <T> AddTreeWithCommand(
 }
 
 /**
- * 搜索栏
- */
-@Composable
-private fun SearchBar(
-    searchQuery: String, onSearchQueryChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = searchQuery,
-        onValueChange = onSearchQueryChange,
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        placeholder = { Text("搜索节点...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "搜索") },
-        trailingIcon = {
-            if (searchQuery.isNotEmpty()) {
-                IconButton(onClick = { onSearchQueryChange("") }) {
-                    Icon(Icons.Default.Clear, contentDescription = "清除")
-                }
-            }
-        },
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-        ),
-        shape = MaterialTheme.shapes.small
-    )
-}
-
-
-/**
  * 底部选择工具栏
  */
 @Composable
@@ -253,47 +220,5 @@ private fun SelectedItemsBar(
         }
     }
 }
-
-/**
- * 递归过滤树节点
- */
-private fun <T> filterTreeItems(
-    items: List<T>, query: String, getLabel: (T) -> String, getChildren: (T) -> List<T>
-): List<T> {
-    val lowerQuery = query.trim().lowercase()
-    if (lowerQuery.isEmpty()) return items
-
-    return items.filter { item ->
-        // 节点标签匹配
-        val matches = getLabel(item).lowercase().contains(lowerQuery)
-
-        // 或者子节点中有匹配的
-        val childrenMatch = filterTreeItems(
-            getChildren(item), query, getLabel, getChildren
-        ).isNotEmpty()
-
-        matches || childrenMatch
-    }
-}
-
-/**
- * 获取树中所有节点的ID
- */
-private fun <T> getAllIds(
-    items: List<T>, getId: (T) -> Any, getChildren: (T) -> List<T>
-): Set<Any> {
-    val result = mutableSetOf<Any>()
-
-    fun collectIds(nodes: List<T>) {
-        nodes.forEach { node ->
-            result.add(getId(node))
-            collectIds(getChildren(node))
-        }
-    }
-
-    collectIds(items)
-    return result
-}
-
 
 

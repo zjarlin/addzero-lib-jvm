@@ -8,10 +8,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(projects.lib.compose.composeNativeComponentButton)
-//                implementation(projects.lib.toolKmp.tool)
                 implementation(projects.lib.compose.composeNativeComponentSearchbar)
-//                implementation(projects.lib.toolKmp.toolJson)
-
             }
         }
     }
