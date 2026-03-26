@@ -34,3 +34,7 @@ include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
 include(":lib:ksp:metadata:multireceiver-processor")
 include(":lib:tool-jvm:json2kotlin-dataclass")
 // <<< Gradle Module Sleep: End Of Block <<<
+
+include(":lib:ksp:metadata:openapi:openapi-core")
+include(":lib:ksp:metadata:openapi:openapi-spring-extractor")
+include(":lib:ksp:metadata:openapi:openapi-ktor-extractor")
