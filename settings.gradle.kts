@@ -22,8 +22,15 @@ plugins {
 includeBuild("checkouts/build-logic")
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-26T16:32:37.883192
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
-include(":lib:ksp:route:route-processor")
+// Generated at: 2026-03-26T19:28:33.453121800
+// Loaded: 9, Excluded: 0, Total: 9
+include(":example:example-all-object-jvm-static")
+include(":example:example-all-object-jvm-static:java-app")
+include(":example:example-all-object-jvm-static:kotlin-lib")
+include(":example:example-kcp-i18n")
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
+include(":lib:ksp:metadata:multireceiver-processor")
+include(":lib:tool-jvm:json2kotlin-dataclass")
 // <<< Gradle Module Sleep: End Of Block <<<
