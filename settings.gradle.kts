@@ -22,11 +22,8 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-26T09:52:15.389097
-// Loaded: 5, Excluded: 0, Total: 5
-include(":lib:gradle-plugin:settings-plugin:gradle-git-dependency")
-include(":lib:ksp:logger-api")
-include(":lib:ksp:logger-implementation")
-include(":lib:ksp:metadata:ioc:ioc-core")
-include(":lib:ksp:route:route-core")
+// Generated at: 2026-03-26T11:00:47.741199
+// Loaded: 2, Excluded: 0, Total: 2
+include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
+include(":lib:ksp:route:route-processor")
 // <<< Gradle Module Sleep: End Of Block <<<

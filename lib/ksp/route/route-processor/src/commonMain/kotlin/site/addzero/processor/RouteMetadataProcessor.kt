@@ -61,7 +61,6 @@ class RouteMetadataProcessor(
             generateRouteTable(ret)
         }
 
-
     }
 
     private fun processClass(declaration: KSClassDeclaration): Route? {
