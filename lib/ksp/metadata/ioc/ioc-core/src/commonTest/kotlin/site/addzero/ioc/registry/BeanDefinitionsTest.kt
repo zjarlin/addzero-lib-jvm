@@ -2,6 +2,7 @@ package site.addzero.ioc.registry
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 private interface OrderedPlugin
@@ -77,7 +78,7 @@ class BeanDefinitionsTest {
         registry.registerImplementation(OrderedPlugin::class, FirstPlugin::class)
         registry.registerImplementation(OrderedPlugin::class, SecondPlugin::class)
 
-        val plugins = registry.getAll(OrderedPlugin::class, "plugin")
+        val plugins = registry.injectList(OrderedPlugin::class, "plugin")
 
         assertEquals(
             listOf(SecondPlugin::class, FirstPlugin::class),
@@ -85,5 +86,31 @@ class BeanDefinitionsTest {
         )
         assertTrue(registry.beanDefinition("firstPlugin") != null)
         assertEquals(2, registry.beanDefinitions("plugin").size)
+    }
+
+    @Test
+    fun `registry exposes getBean and injectList aliases`() {
+        val registry = KmpBeanRegistry()
+
+        registry.registerProvider(FirstPlugin::class) { FirstPlugin() }
+        registry.registerDefinition(
+            FirstPlugin::class,
+            BeanDefinition(
+                simpleName = "FirstPlugin",
+                qualifiedName = "demo.FirstPlugin",
+                beanName = "firstPlugin",
+                tags = listOf("plugin"),
+                order = 1
+            )
+        )
+        registry.registerImplementation(OrderedPlugin::class, FirstPlugin::class)
+
+        val bean = registry.getBean<FirstPlugin>()
+        val beans = registry.injectList<OrderedPlugin>()
+        val taggedBeans = registry.injectList<OrderedPlugin>("plugin")
+
+        assertNotNull(bean)
+        assertEquals(listOf(FirstPlugin::class), beans.map { it::class })
+        assertEquals(listOf(FirstPlugin::class), taggedBeans.map { it::class })
     }
 }

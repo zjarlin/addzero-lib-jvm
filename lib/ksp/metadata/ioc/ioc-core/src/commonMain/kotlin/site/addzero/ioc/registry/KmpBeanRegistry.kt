@@ -35,7 +35,7 @@ class KmpBeanRegistry : MutableBeanRegistry {
 
     // ============ get by type ============
 
-    override fun <T : Any> get(clazz: KClass<T>): T? {
+    override fun <T : Any> getBean(clazz: KClass<T>): T? {
         @Suppress("UNCHECKED_CAST")
         val instance = beanMap[clazz] as? T
         if (instance != null) return instance
@@ -51,7 +51,7 @@ class KmpBeanRegistry : MutableBeanRegistry {
 
     // ============ get by name ============
 
-    override fun get(name: String): Any? {
+    override fun getBean(name: String): Any? {
         val instance = nameMap[name]
         if (instance != null) return instance
 
@@ -66,7 +66,7 @@ class KmpBeanRegistry : MutableBeanRegistry {
     // ============ get by TypeKey ============
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> get(typeKey: TypeKey): T? {
+    override fun <T : Any> getBean(typeKey: TypeKey): T? {
         val instance = typedBeanMap[typeKey] as? T
         if (instance != null) return instance
 
@@ -78,9 +78,9 @@ class KmpBeanRegistry : MutableBeanRegistry {
         }
     }
 
-    // ============ getAll ============
+    // ============ inject list ============
 
-    override fun <T : Any> getAll(clazz: KClass<T>): List<T> {
+    override fun <T : Any> injectList(clazz: KClass<T>): List<T> {
         val implClasses = implementationMap[clazz] ?: emptySet()
         @Suppress("UNCHECKED_CAST")
         return implClasses
@@ -92,11 +92,11 @@ class KmpBeanRegistry : MutableBeanRegistry {
             .mapNotNull { implClass ->
                 val definition = definitionMap[implClass]
                 if (definition?.enabled == false) return@mapNotNull null
-                get(implClass) as? T
+                getBean(implClass) as? T
             }
     }
 
-    override fun <T : Any> getAll(clazz: KClass<T>, tag: String): List<T> {
+    override fun <T : Any> injectList(clazz: KClass<T>, tag: String): List<T> {
         val implClasses = implementationMap[clazz] ?: emptySet()
         @Suppress("UNCHECKED_CAST")
         return implClasses
@@ -111,7 +111,7 @@ class KmpBeanRegistry : MutableBeanRegistry {
             .mapNotNull { implClass ->
                 val definition = definitionMap[implClass]
                 if (definition?.enabled == false) return@mapNotNull null
-                get(implClass) as? T
+                getBean(implClass) as? T
             }
     }
 

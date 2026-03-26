@@ -8,13 +8,13 @@ import kotlin.reflect.KClass
  */
 interface BeanRegistry {
 
-    fun <T : Any> get(clazz: KClass<T>): T?
+    fun <T : Any> getBean(clazz: KClass<T>): T?
 
-    fun get(name: String): Any?
+    fun getBean(name: String): Any?
 
-    fun <T : Any> get(typeKey: TypeKey): T?
+    fun <T : Any> getBean(typeKey: TypeKey): T?
 
-    fun <T : Any> getAll(clazz: KClass<T>): List<T>
+    fun <T : Any> injectList(clazz: KClass<T>): List<T>
 
     fun beanDefinitions(): List<BeanDefinition>
 
@@ -26,7 +26,7 @@ interface BeanRegistry {
 
     fun <R : Any> getExtension(receiverClass: KClass<R>, name: String): (R.() -> Any?)?
 
-    fun <T : Any> getAll(clazz: KClass<T>, tag: String): List<T>
+    fun <T : Any> injectList(clazz: KClass<T>, tag: String): List<T>
 
     fun contains(clazz: KClass<*>): Boolean
 
@@ -64,31 +64,31 @@ interface MutableBeanRegistry : BeanRegistry {
 // User-facing reified extensions (on BeanRegistry)
 // ============================================================
 
-inline fun <reified T : Any> BeanRegistry.get(): T? = get(T::class)
+inline fun <reified T : Any> BeanRegistry.getBean(): T? = getBean(T::class)
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified T : Any> BeanRegistry.get(name: String): T? = get(name) as? T
+inline fun <reified T : Any> BeanRegistry.getBean(name: String): T? = getBean(name) as? T
 
-/** Get generic bean: `get<IService<User>>(User::class)` */
-inline fun <reified T : Any> BeanRegistry.get(vararg generics: KClass<*>): T? =
-    get(TypeKey.of(T::class, *generics))
+/** Get generic bean: `getBean<IService<User>>(User::class)` */
+inline fun <reified T : Any> BeanRegistry.getBean(vararg generics: KClass<*>): T? =
+    getBean(TypeKey.of(T::class, *generics))
 
 inline fun <reified T : Any> BeanRegistry.require(): T =
-    get(T::class) ?: throw IllegalArgumentException("No bean found for type: ${T::class.simpleName}")
+    getBean(T::class) ?: throw IllegalArgumentException("No bean found for type: ${T::class.simpleName}")
 
 inline fun <reified T : Any> BeanRegistry.require(name: String): T =
-    get<T>(name) ?: throw IllegalArgumentException("No bean found for name: $name, type: ${T::class.simpleName}")
+    getBean<T>(name) ?: throw IllegalArgumentException("No bean found for name: $name, type: ${T::class.simpleName}")
 
 inline fun <reified T : Any> BeanRegistry.require(typeKey: TypeKey): T =
-    get<T>(typeKey) ?: throw IllegalArgumentException("No bean found for typeKey: $typeKey")
+    getBean<T>(typeKey) ?: throw IllegalArgumentException("No bean found for typeKey: $typeKey")
 
 /** Require generic bean: `require<IService<User>>(User::class)` */
 inline fun <reified T : Any> BeanRegistry.require(vararg generics: KClass<*>): T =
-    get<T>(*generics) ?: throw IllegalArgumentException("No bean: ${T::class.simpleName}<${generics.joinToString { it.simpleName ?: "?" }}>")
+    getBean<T>(*generics) ?: throw IllegalArgumentException("No bean: ${T::class.simpleName}<${generics.joinToString { it.simpleName ?: "?" }}>")
 
-inline fun <reified T : Any> BeanRegistry.getAll(): List<T> = getAll(T::class)
+inline fun <reified T : Any> BeanRegistry.injectList(): List<T> = injectList(T::class)
 
-inline fun <reified T : Any> BeanRegistry.getAll(tag: String): List<T> = getAll(T::class, tag)
+inline fun <reified T : Any> BeanRegistry.injectList(tag: String): List<T> = injectList(T::class, tag)
 
 fun BeanRegistry.findBeanDefinitions(tag: String): List<BeanDefinition> = beanDefinitions(tag)
 
