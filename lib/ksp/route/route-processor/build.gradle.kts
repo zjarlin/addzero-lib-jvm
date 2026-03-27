@@ -4,11 +4,21 @@ plugins {
 }
 val libs = versionCatalogs.named("libs")
 
+processorBuddy {
+  mustMap=mapOf(
+    "sharedSourceDir" to "",
+    "routeGenPkg" to "site.addzero.generated",
+    "routeOwnerModule" to project.path
+  )
+}
 kotlin {
   sourceSets {
     commonMain.dependencies {
       api(libs.findLibrary("site-addzero-route-core").get())
-//            implementation(libs.findLibrary("site-addzero-ksp-support").get())
+      implementation(libs.findLibrary("site-addzero-tool-str").get())
+    }
+    jvmMain.dependencies {
+      implementation(libs.findLibrary("site-addzero-tool-io-codegen").get())
     }
   }
 }
