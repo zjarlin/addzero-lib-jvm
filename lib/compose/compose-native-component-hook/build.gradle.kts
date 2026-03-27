@@ -1,13 +1,13 @@
 plugins {
-    id("site.addzero.buildlogic.kmp.composition.kmp-component")
-    id("site.addzero.buildlogic.kmp.composition.kmp-json-withtool")
+    id("site.addzero.buildlogic.kmp.cmp-lib")
+    id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 //    id("addzero-component")
 }
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.lib.compose.composeNativeComponent)
-           implementation (projects.lib.compose.composeNativeComponentSelect)
+            implementation(project(":lib:compose:compose-native-component"))
+           implementation (project(":lib:compose:compose-native-component-select"))
         }
     }
 }

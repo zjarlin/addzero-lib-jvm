@@ -9,5 +9,5 @@ val libs = versionCatalogs.named("libs")
 dependencies {
     implementation(libs.findLibrary("site-addzero-ioc-core").get())
     testImplementation(libs.findLibrary("site-addzero-ioc-core").get())
-    testAnnotationProcessor(projects.lib.apt.aptIocProcessor)
+    testAnnotationProcessor(project(":lib:apt:apt-ioc-processor"))
 }

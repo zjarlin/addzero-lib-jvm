@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
 plugins {
-    id("site.addzero.buildlogic.kmp.composition.kmp-component")
+    id("site.addzero.buildlogic.kmp.cmp-lib")
 }
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
 
-                implementation(projects.lib.compose.composeNativeComponentButton)
+                implementation(project(":lib:compose:compose-native-component-button"))
 
             }
         }

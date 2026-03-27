@@ -3,7 +3,7 @@ package site.addzero.component.flattree
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import site.addzero.util.data_structure.tree.List2TreeUtil
+import site.addzero.util.data_structure.tree.list2Tree
 
 /**
  * 转换后的树节点数据结构
@@ -60,7 +60,7 @@ fun <T> AddFlatTree(
         )
     }
     val treeData =     // 使用TreeUtil构建树结构
-        List2TreeUtil.list2Tree(
+        list2Tree(
             source = treeNodes,
             isRoot = {
                 isRoot(it.data)
@@ -100,4 +100,3 @@ fun <T> AddFlatTree(
         modifier = modifier
     )
 }
-
