@@ -9,6 +9,18 @@ import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import java.io.File
 
+private const val REST_CONTROLLER_ANNOTATION = "org.springframework.web.bind.annotation.RestController"
+private const val FILE_REQUEST_MAPPING_ANNOTATION = "site.addzero.springktor.runtime.RequestMapping"
+
+private val springMvcMappingAnnotations = listOf(
+    "org.springframework.web.bind.annotation.GetMapping",
+    "org.springframework.web.bind.annotation.PostMapping",
+    "org.springframework.web.bind.annotation.PutMapping",
+    "org.springframework.web.bind.annotation.DeleteMapping",
+    "org.springframework.web.bind.annotation.PatchMapping",
+    "org.springframework.web.bind.annotation.RequestMapping",
+)
+
 /**
  * KSP处理器：解析Controller符号生成Ktorfit接口
  *
@@ -24,45 +36,102 @@ class ControllerApiProcessor(
 
     // 存储收集到的控制器元数据
     private val collectedControllers = mutableListOf<ControllerMetadata>()
+    private val collectedSourceKeys = mutableSetOf<String>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         SettingContext.initialize(options)
         logger.warn("解析Controller符号生成Ktorfit接口初始化配置: ${settings}")
 
-        val controllerSymbols = resolver
-            .getSymbolsWithAnnotation("org.springframework.web.bind.annotation.RestController")
-            .filterIsInstance<KSClassDeclaration>()
-
-        if (!controllerSymbols.iterator().hasNext()) {
-            return emptyList()
-        }
-
-        // 第一阶段：收集元数据，使用 validate() 进行多轮处理
-        val invalidSymbols = mutableListOf<KSClassDeclaration>()
-
-        controllerSymbols.forEach { controller ->
-
-            if (controller.validate()) {
-                // 符号有效，尝试收集元数据
-                collectControllerMetadata(controller)
-            } else {
-                // 符号无效，推迟到下一轮处理
-                logger.info("控制器 ${controller.simpleName.asString()} 暂时无法解析，推迟到下一轮处理")
-                invalidSymbols.add(controller)
-            }
-        }
-
-        // 返回无效的符号，让 KSP 在下一轮重新处理
+        val invalidSymbols = mutableListOf<KSAnnotated>()
+        invalidSymbols += collectControllerSymbols(resolver)
+        invalidSymbols += collectTopLevelFileSymbols(resolver)
         return invalidSymbols
     }
 
     override fun finish() {
         // 第二阶段：生成代码
-        logger.info("开始生成代码，共收集到 ${collectedControllers.size} 个控制器")
+        logger.info("开始生成代码，共收集到 ${collectedControllers.size} 个来源")
         collectedControllers.forEach { metadata ->
             generateKtorfitInterfaceFromMetadata(metadata)
         }
         collectedControllers.clear()
+        collectedSourceKeys.clear()
+    }
+
+    /**
+     * 收集类控制器元数据
+     */
+    private fun collectControllerSymbols(resolver: Resolver): List<KSAnnotated> {
+        val controllerSymbols = resolver
+            .getSymbolsWithAnnotation(REST_CONTROLLER_ANNOTATION)
+            .filterIsInstance<KSClassDeclaration>()
+
+        val invalidSymbols = mutableListOf<KSAnnotated>()
+
+        controllerSymbols.forEach { controller ->
+            if (controller.validate()) {
+                collectControllerMetadata(controller)
+            } else {
+                logger.info("控制器 ${controller.simpleName.asString()} 暂时无法解析，推迟到下一轮处理")
+                invalidSymbols.add(controller)
+            }
+        }
+
+        return invalidSymbols
+    }
+
+    /**
+     * 收集顶层 Spring MVC 路由元数据
+     */
+    private fun collectTopLevelFileSymbols(resolver: Resolver): List<KSAnnotated> {
+        val groupedFiles = linkedMapOf<String, TopLevelFileRound>()
+        val invalidSymbols = mutableListOf<KSAnnotated>()
+        val visitedFunctions = mutableSetOf<String>()
+
+        springMvcMappingAnnotations.forEach { annotationName ->
+            resolver.getSymbolsWithAnnotation(annotationName)
+                .filterIsInstance<KSFunctionDeclaration>()
+                .forEach { function ->
+                    if (function.parentDeclaration != null) {
+                        return@forEach
+                    }
+
+                    val functionKey = function.signatureKey()
+                    if (!visitedFunctions.add(functionKey)) {
+                        return@forEach
+                    }
+
+                    val file = function.containingFile
+                    if (file == null) {
+                        logger.warn("跳过顶层函数 ${function.simpleName.asString()}，无法解析所属文件")
+                        return@forEach
+                    }
+
+                    val fileKey = "${function.packageName.asString()}:${file.fileName}"
+                    val fileRound = groupedFiles.getOrPut(fileKey) {
+                        TopLevelFileRound(file = file)
+                    }
+
+                    if (!function.validate()) {
+                        logger.info("顶层路由 ${function.simpleName.asString()} 暂时无法解析，推迟到下一轮处理")
+                        fileRound.hasInvalidSymbols = true
+                        invalidSymbols.add(function)
+                        return@forEach
+                    }
+
+                    fileRound.functions.add(function)
+                }
+        }
+
+        groupedFiles.values.forEach { fileRound ->
+            if (fileRound.hasInvalidSymbols) {
+                logger.info("顶层路由文件 ${fileRound.file.fileName} 含有未完成解析的方法，本轮跳过生成")
+                return@forEach
+            }
+            collectTopLevelFileMetadata(fileRound.file, fileRound.functions)
+        }
+
+        return invalidSymbols
     }
 
     /**
@@ -77,6 +146,8 @@ class ControllerApiProcessor(
                 originalClassName = metadata.originalClassName,
                 packageName = metadata.packageName,
                 basePath = metadata.basePath,
+                generatedApiClassName = metadata.generatedApiClassName,
+                sourceDescription = metadata.sourceDescription,
                 methods = metadata.methods.map { methodMetadata ->
                     MethodInfo(
                         name = methodMetadata.name,
@@ -114,11 +185,48 @@ class ControllerApiProcessor(
             logger.info("收集控制器元数据: ${controller.qualifiedName?.asString()}")
 
             val metadata = extractControllerMetadata(controller)
-            collectedControllers.add(metadata)
+            registerCollectedMetadata(
+                sourceKey = "controller:${controller.qualifiedName?.asString()}",
+                metadata = metadata
+            )
 
         } catch (e: Exception) {
             logger.error("收集控制器元数据时发生错误 ${controller.qualifiedName?.asString()}: ${e.message}")
         }
+    }
+
+    /**
+     * 收集顶层文件元数据
+     */
+    private fun collectTopLevelFileMetadata(file: KSFile, functions: List<KSFunctionDeclaration>) {
+        try {
+            logger.info("收集顶层路由元数据: ${file.packageName.asString()}.${file.fileName}")
+
+            val metadata = extractTopLevelFileMetadata(file, functions)
+            registerCollectedMetadata(
+                sourceKey = "file:${file.packageName.asString()}.${file.fileName}",
+                metadata = metadata
+            )
+        } catch (e: Exception) {
+            logger.error("收集顶层路由元数据时发生错误 ${file.packageName.asString()}.${file.fileName}: ${e.message}")
+        }
+    }
+
+    /**
+     * 注册收集结果，避免重复来源重复生成
+     */
+    private fun registerCollectedMetadata(sourceKey: String, metadata: ControllerMetadata) {
+        if (metadata.methods.isEmpty()) {
+            logger.info("来源 ${metadata.sourceDescription} 没有可生成的方法，跳过")
+            return
+        }
+
+        if (!collectedSourceKeys.add(sourceKey)) {
+            logger.info("来源 $sourceKey 已收集，跳过重复处理")
+            return
+        }
+
+        collectedControllers.add(metadata)
     }
 
     /**
@@ -159,7 +267,38 @@ class ControllerApiProcessor(
             originalClassName = className,
             packageName = packageName,
             basePath = basePath,
-            methods = methods
+            methods = methods,
+            sourceDescription = "原始Controller: $packageName.$className"
+        )
+    }
+
+    /**
+     * 提取顶层文件元数据
+     */
+    private fun extractTopLevelFileMetadata(file: KSFile, functions: List<KSFunctionDeclaration>): ControllerMetadata {
+        val fileName = file.fileName.removeSuffix(".kt")
+        val packageName = file.packageName.asString()
+        val basePath = extractFileBasePath(file)
+
+        val methods = functions
+            .filter { it.isPublic() && it.hasSpringMvcAnnotation() && it.validate() }
+            .mapNotNull { function ->
+                try {
+                    logger.info("处理顶层方法: ${function.simpleName.asString()}")
+                    extractMethodMetadata(function, basePath)
+                } catch (e: Exception) {
+                    logger.warn("跳过顶层方法 ${function.simpleName.asString()}: ${e.message}")
+                    null
+                }
+            }
+
+        return ControllerMetadata(
+            originalClassName = fileName,
+            packageName = packageName,
+            basePath = basePath,
+            methods = methods,
+            generatedApiClassName = fileName.toTopLevelApiClassName(),
+            sourceDescription = "原始文件: $packageName.${file.fileName}"
         )
     }
 
@@ -252,6 +391,21 @@ class ControllerApiProcessor(
 
     private fun hasAnnotation(param: KSValueParameter, annotationName: String): Boolean {
         return param.annotations.any { it.shortName.asString() == annotationName }
+    }
+
+    /**
+     * 提取文件级 RequestMapping 基础路径
+     */
+    private fun extractFileBasePath(file: KSFile?): String {
+        if (file == null) {
+            return ""
+        }
+
+        val annotation = file.annotations.firstOrNull { fileAnnotation ->
+            fileAnnotation.annotationType.resolve().declaration.qualifiedName?.asString() == FILE_REQUEST_MAPPING_ANNOTATION
+        } ?: return ""
+
+        return getPathFromAnnotation(annotation)
     }
 
     /**
@@ -407,7 +561,8 @@ class ControllerApiProcessor(
     }
 
     private fun generateKtorfitInterface(controllerInfo: ControllerInfo) {
-        val apiClassName = controllerInfo.originalClassName.replace("Controller", "Api")
+        val apiClassName = controllerInfo.generatedApiClassName
+            ?: controllerInfo.originalClassName.replace("Controller", "Api")
         val fileName = "${apiClassName}.kt"
 
         try {
@@ -556,7 +711,7 @@ package $packageName
 $importStatements
 
 /**
- * 原始Controller: ${controllerInfo.packageName}.${controllerInfo.originalClassName}
+ * ${controllerInfo.sourceDescription}
  * 基础路径: ${controllerInfo.basePath}
  */
 interface $apiClassName {
@@ -672,6 +827,8 @@ $httpAnnotation$methodSignature
         val originalClassName: String,
         val packageName: String,
         val basePath: String,
+        val generatedApiClassName: String?,
+        val sourceDescription: String,
         val methods: List<MethodInfo>
     )
 
@@ -755,5 +912,30 @@ data class ControllerMetadata(
     val originalClassName: String,
     val packageName: String,
     val basePath: String,
-    val methods: List<MethodMetadata>
+    val methods: List<MethodMetadata>,
+    val generatedApiClassName: String? = null,
+    val sourceDescription: String
 )
+
+private data class TopLevelFileRound(
+    val file: KSFile,
+    val functions: MutableList<KSFunctionDeclaration> = mutableListOf(),
+    var hasInvalidSymbols: Boolean = false
+)
+
+private fun KSFunctionDeclaration.signatureKey(): String {
+    val parentName = parentDeclaration?.qualifiedName?.asString()
+        ?: packageName.asString()
+    val parameterSignature = parameters.joinToString(",") { parameter ->
+        parameter.type.toString()
+    }
+    return "$parentName#${simpleName.asString()}($parameterSignature)"
+}
+
+private fun String.toTopLevelApiClassName(): String {
+    return when {
+        endsWith("Api") -> this
+        endsWith("Controller") -> removeSuffix("Controller") + "Api"
+        else -> "${this}Api"
+    }
+}

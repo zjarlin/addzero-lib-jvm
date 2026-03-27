@@ -1,5 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.kmp.compose.kmp-component")
-  id("site.addzero.buildlogic.jvm.jvm-json-withtool")
+  id("site.addzero.buildlogic.kmp.cmp-lib")
+  id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 }
 

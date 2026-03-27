@@ -4,14 +4,22 @@
 
 ## 组件索引与 Skill
 
-- 总索引：`lib/compose/skills/index.md`
-- 原生基础组件：`lib/compose/skills/native-basic.md`
-- 表单组件：`lib/compose/skills/form.md`
-- 表格组件：`lib/compose/skills/table.md`
-- 树与命令树组件：`lib/compose/skills/tree.md`
-- shadcn 风格组件：`lib/compose/skills/shadcn.md`
-- 玻璃态与上传组件：`lib/compose/skills/glass-upload.md`
-- 注解、Hook 与辅助状态：`lib/compose/skills/props-hook.md`
+- 统一入口已迁移到 `cmp-convention`：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-lib-compose.md`
+- 原生基础组件：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-native-basic.md`
+- 表单组件：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-form.md`
+- 表格组件：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-table.md`
+- 树与命令树组件：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-tree.md`
+- shadcn 风格组件：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-shadcn.md`
+- 玻璃态与上传组件：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-glass-upload.md`
+- 注解、Hook 与辅助状态：
+  `/Users/zjarlin/.agents/skills/cmp-convention/references/addzero-compose-props-hook.md`
 
 ## 当前内容
 
@@ -32,4 +40,4 @@
 ## 备注
 
 - 这一组当前更偏实验和积累，不是 `lib/` 下最稳定的入口
-- 如果是 AI 协作场景，优先先看 `lib/compose/skills/index.md`，再按场景进入对应索引
+- 如果是 AI 协作场景，优先先看 `cmp-convention` 里的 `addzero-lib-compose.md`，再按场景进入对应参考文档

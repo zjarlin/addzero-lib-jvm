@@ -1,5 +1,5 @@
 plugins {
-  id("site.addzero.buildlogic.jvm.jvm-json-withtool")
+  id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 }
 val libs = versionCatalogs.named("libs")
 

@@ -8,9 +8,9 @@ kotlin {
             implementation(project(":lib:compose:compose-model-component"))
 //            implementation("com.seanproctor:data-table-material3:0.11.4")
 //           implementation("io.github.aleksandar-stefanovic:composematerialdatatable:1.2.1")
-            implementation(libs.filekit.compose)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor3)
+            implementation(libs.io.github.vinceglb.filekit.compose)
+            implementation(libs.io.coil.kt.coil3.coil.compose)
+            implementation(libs.io.coil.kt.coil3.coil.network.ktor3)
         }
     }
 }
