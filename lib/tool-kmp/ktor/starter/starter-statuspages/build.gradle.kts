@@ -3,9 +3,10 @@ plugins {
     id("site.addzero.buildlogic.jvm.jvm-koin")
     id("site.addzero.buildlogic.jvm.jvm-json-withtool")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     implementation(projects.lib.starterSpi)
-    implementation(libs.io.ktor.ktor.server.core)
-    implementation(libs.io.ktor.ktor.server.status.pages)
+    implementation(libs.findLibrary("io-ktor-ktor-server-core").get())
+    implementation(libs.findLibrary("io-ktor-ktor-server-status-pages").get())
 }

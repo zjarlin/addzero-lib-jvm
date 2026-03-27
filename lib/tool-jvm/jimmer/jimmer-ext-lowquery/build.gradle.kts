@@ -1,10 +1,11 @@
 plugins {
   id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.org.babyfish.jimmer.jimmer.sql.kotlin)
-    implementation(libs.cn.hutool.hutool.all)
-    api(libs.site.addzero.jimmer.model.lowquery.v2025)
+    implementation(libs.findLibrary("org-babyfish-jimmer-jimmer-sql-kotlin").get())
+    implementation(libs.findLibrary("cn-hutool-hutool-all").get())
+    api(libs.findLibrary("site-addzero-jimmer-model-lowquery-v2025").get())
 
 }

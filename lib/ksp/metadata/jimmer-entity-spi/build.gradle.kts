@@ -1,9 +1,10 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    api(libs.com.google.devtools.ksp.symbol.processing.api)
-    api(libs.androidx.room.compiler.processing)
+    api(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
+    api(libs.findLibrary("androidx-room-compiler-processing").get())
     api(project(":lib:lsi:lsi-core"))
 }

@@ -5,14 +5,15 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
     `java-gradle-plugin`
 }
+val libs = versionCatalogs.named("libs")
 
 group = "site.addzero"
 
 dependencies {
     implementation(gradleApi())
-    implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)
+    implementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-gradle-plugin").get())
     testImplementation(gradleTestKit())
-    testImplementation(libs.org.junit.jupiter.junit.jupiter)
+    testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
 }
 
 gradlePlugin {

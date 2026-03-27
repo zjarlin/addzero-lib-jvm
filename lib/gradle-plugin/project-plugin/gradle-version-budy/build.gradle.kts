@@ -17,9 +17,11 @@ plugins {
 //    id("publish-convention")
 
 }
+val catalogLibs = versionCatalogs.named("libs")
+
 dependencies {
     implementation(gradleApi())
-    implementation(libs.site.addzero.gradle.script.core)
-    implementation(libs.site.addzero.tool.api.maven)
+    implementation(catalogLibs.findLibrary("site-addzero-gradle-script-core").get())
+    implementation(catalogLibs.findLibrary("site-addzero-tool-api-maven").get())
 
 }

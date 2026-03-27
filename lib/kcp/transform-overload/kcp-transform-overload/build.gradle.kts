@@ -3,10 +3,11 @@ import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 plugins {
     id("site.addzero.buildlogic.intellij.intellij-platform")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
-    testImplementation(libs.junit.junit)
+    testImplementation(libs.findLibrary("junit-junit").get())
 }
 
 tasks.test {

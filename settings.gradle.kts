@@ -22,8 +22,9 @@ plugins {
 includeBuild("checkouts/build-logic")
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-26T16:32:37.883192
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2026-03-27T09:30:22.325601
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:apt:dict-trans:apt-dict-trans-processor")
 include(":lib:gradle-plugin:project-plugin:gradle-processor-buddy")
 include(":lib:ksp:route:route-processor")
 // <<< Gradle Module Sleep: End Of Block <<<

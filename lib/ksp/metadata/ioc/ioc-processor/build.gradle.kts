@@ -1,14 +1,15 @@
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
 
     sourceSets {
         commonMain.dependencies {
-//            implementation(libs.site.addzero.ksp.support)
-            implementation(libs.site.addzero.ioc.core)
-            implementation(libs.site.addzero.lsi.ksp)
+//            implementation(libs.findLibrary("site-addzero-ksp-support").get())
+            implementation(libs.findLibrary("site-addzero-ioc-core").get())
+            implementation(libs.findLibrary("site-addzero-lsi-ksp").get())
         }
     }
 }

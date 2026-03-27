@@ -1,21 +1,23 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
+
 dependencies {
-    implementation(libs.cn.hutool.hutool.core)
-    implementation(libs.com.baomidou.mybatis.plus.core)
-//    implementation(libs.com.baomidou.mybatis.plus)
-//    implementation(libs.org.apache.commons.commons.lang3)
-//    api(libs.site.addzero.mybatis.auto.wrapper.core)
+    implementation(libs.findLibrary("cn-hutool-hutool-core").get())
+    implementation(libs.findLibrary("com-baomidou-mybatis-plus-core").get())
+//    implementation(libs.findLibrary("com-baomidou-mybatis-plus").get())
+//    implementation(libs.findLibrary("org-apache-commons-commons-lang3").get())
+//    api(libs.findLibrary("site-addzero-mybatis-auto-wrapper-core").get())
 
 
-    api(libs.site.addzero.mybatis.auto.wrapper.core)
-//    implementation(libs.org.springframework.spring.expression)
+    api(libs.findLibrary("site-addzero-mybatis-auto-wrapper-core").get())
+//    implementation(libs.findLibrary("org-springframework-spring-expression").get())
 
     // SpEL 表达式支持（保持兼容 JDK 8）
-    implementation(libs.org.springframework.spring.expression)
-    implementation(libs.site.addzero.tool.spel)
-//    implementation(libs.site.addzero.tool.spel)
-//    implementation(libs.org.springframework.spring.core)
+    implementation(libs.findLibrary("org-springframework-spring-expression").get())
+    implementation(libs.findLibrary("site-addzero-tool-spel").get())
+//    implementation(libs.findLibrary("site-addzero-tool-spel").get())
+//    implementation(libs.findLibrary("org-springframework-spring-core").get())
 }
-//implementation(libs.org.mybatis.spring.boot.mybatis.spring.boot.starter)
+//implementation(libs.findLibrary("org-mybatis-spring-boot-mybatis-spring-boot-starter").get())

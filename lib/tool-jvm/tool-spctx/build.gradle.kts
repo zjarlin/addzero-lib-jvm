@@ -6,18 +6,19 @@ plugins {
 
 //    id("site.addzero.buildlogic.auto-jvmname")
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 dependencies {
     // KSP reified 处理器
-    ksp(libs.site.addzero.gen.reified.processor)
-    implementation(libs.site.addzero.gen.reified.core)
+    ksp(catalogLibs.findLibrary("site-addzero-gen-reified-processor").get())
+    implementation(catalogLibs.findLibrary("site-addzero-gen-reified-core").get())
 
-//    compileOnly(libs.org.springframework.spring.jdbc)
-    compileOnly(libs.org.springframework.spring.context)
-//    compileOnly(libs.org.springframework.spring.web)
+//    compileOnly(catalogLibs.findLibrary("org-springframework-spring-jdbc").get())
+    compileOnly(catalogLibs.findLibrary("org-springframework-spring-context").get())
+//    compileOnly(catalogLibs.findLibrary("org-springframework-spring-web").get())
     compileOnly(libs.org.springframework.spring.webmvc)
 
-//    compileOnly(libs.cn.hutool.hutool.all)
-//    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
-//    compileOnly(libs.javax.servlet.javax.servlet.api)
+//    compileOnly(catalogLibs.findLibrary("cn-hutool-hutool-all").get())
+//    implementation(catalogLibs.findLibrary("com-fasterxml-jackson-module-jackson-module-kotlin").get())
+//    compileOnly(catalogLibs.findLibrary("javax-servlet-javax-servlet-api").get())
 }

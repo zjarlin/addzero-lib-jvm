@@ -1,12 +1,13 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.cn.hutool.hutool.all)
-//    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
-    compileOnly(libs.com.alibaba.fastjson2.fastjson2.kotlin)
-    implementation(libs.io.swagger.swagger.annotations)
+    implementation(libs.findLibrary("cn-hutool-hutool-all").get())
+//    implementation(libs.findLibrary("com-fasterxml-jackson-module-jackson-module-kotlin").get())
+    compileOnly(libs.findLibrary("com-alibaba-fastjson2-fastjson2-kotlin").get())
+    implementation(libs.findLibrary("io-swagger-swagger-annotations").get())
 
-    implementation(libs.site.addzero.tool.reflection)
+    implementation(libs.findLibrary("site-addzero-tool-reflection").get())
 }

@@ -1,6 +1,8 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
+
 dependencies {
-    implementation(libs.com.belerweb.pinyin4j)
+    implementation(libs.findLibrary("com-belerweb-pinyin4j").get())
 }

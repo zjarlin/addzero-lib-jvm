@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
      id("site.addzero.buildlogic.kmp.kmp-core")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin{
     jvmToolchain(8)
@@ -17,7 +18,7 @@ kotlin{
     }
     sourceSets {
         jvmMain . dependencies {
-            implementation(libs.site.addzero.tool.pinyin)
+            implementation(libs.findLibrary("site-addzero-tool-pinyin").get())
         }
     }
 }

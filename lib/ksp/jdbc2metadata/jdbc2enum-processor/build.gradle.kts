@@ -6,6 +6,7 @@ plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
     alias(libs.plugins.addzeroKspBuddy)
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 // 配置 KSP 参数
 
@@ -34,7 +35,7 @@ kotlin {
 }
 kotlin {
     dependencies {
-        implementation(libs.site.addzero.ksp.support.jdbc)
-        implementation(libs.site.addzero.ksp.support)
+        implementation(catalogLibs.findLibrary("site-addzero-ksp-support-jdbc").get())
+        implementation(catalogLibs.findLibrary("site-addzero-ksp-support").get())
     }
 }

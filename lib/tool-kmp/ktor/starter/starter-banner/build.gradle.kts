@@ -2,9 +2,10 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
     id("site.addzero.buildlogic.jvm.jvm-koin")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     implementation(projects.lib.starterSpi)
-    implementation(libs.io.ktor.ktor.server.core)
-    implementation(libs.site.addzero.ktor.banner)
+    implementation(libs.findLibrary("io-ktor-ktor-server-core").get())
+    implementation(libs.findLibrary("site-addzero-ktor-banner").get())
 }

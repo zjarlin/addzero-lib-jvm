@@ -1,16 +1,18 @@
 plugins {
   id("site.addzero.buildlogic.spring.spring-starter")
 }
-dependencies {
-//    implementation(libs.cn.hutool.hutool.all)
-  implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
-//    implementation(libs.site.addzero.tool.reflection)
-  implementation(libs.site.addzero.tool.reflection)
-  implementation(project(":lib:tool-jvm:tool-bean"))
-  implementation(libs.site.addzero.tool.bytebuddy)
-  implementation(libs.site.addzero.tool.str)
+val libs = versionCatalogs.named("libs")
 
-  api(libs.site.addzero.dict.trans.core)
+dependencies {
+//    implementation(libs.findLibrary("cn-hutool-hutool-all").get())
+  implementation(libs.findLibrary("com-alibaba-fastjson2-fastjson2-kotlin").get())
+//    implementation(libs.findLibrary("site-addzero-tool-reflection").get())
+  implementation(libs.findLibrary("site-addzero-tool-reflection").get())
+  implementation(project(":lib:tool-jvm:tool-bean"))
+  implementation(libs.findLibrary("site-addzero-tool-bytebuddy").get())
+  implementation(libs.findLibrary("site-addzero-tool-str").get())
+
+  api(libs.findLibrary("site-addzero-dict-trans-core").get())
 
   // 添加Spring Boot核心依赖
 //  implementation(libs.org.springframework.boot.spring.boot.autoconfigure)

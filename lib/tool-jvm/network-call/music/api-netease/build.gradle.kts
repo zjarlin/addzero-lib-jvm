@@ -4,6 +4,8 @@ plugins {
   id("site.addzero.buildlogic.kmp.kmp-json-withtool")
   id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
 }
+val catalogLibs = versionCatalogs.named("libs")
+
 dependencies {
 //    kspCommonMainMetadata("io.github.ltttttttttttt:LazyPeopleHttp:2.2.5")
 //    kspCommonMainMetadata("io.github.ltttttttttttt:LazyPeopleHttp:2.2.5")
@@ -13,8 +15,8 @@ dependencies {
 version = "2026.02.17"
 kotlin {
   dependencies {
-    implementation(libs.method.semanticizer.api)
-    implementation(libs.site.addzero.network.starter)
+    implementation(catalogLibs.findLibrary("method-semanticizer-api").get())
+    implementation(catalogLibs.findLibrary("site-addzero-network-starter").get())
 //    implementation(project(":lib:tool-jvm:network-call:music:api-music-spi"))
   }
 //    sourceSets {
@@ -22,7 +24,7 @@ kotlin {
 //            implementation("io.github.ltttttttttttt:LazyPeopleHttp-lib:+")
 //        }
 //        commonTest.dependencies {
-//            implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
+//            implementation(catalogLibs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-test").get())
 //        }
 //    }
 }

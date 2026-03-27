@@ -3,10 +3,11 @@ plugins {
     id("site.addzero.buildlogic.jvm.jvm-koin")
     id("site.addzero.buildlogic.jvm.jvm-json-withtool")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     implementation(projects.lib.starterSpi)
-    implementation(libs.io.ktor.ktor.server.core)
-    implementation(libs.io.ktor.ktor.server.content.negotiation)
-    implementation(libs.io.ktor.ktor.serialization.kotlinx.json)
+    implementation(libs.findLibrary("io-ktor-ktor-server-core").get())
+    implementation(libs.findLibrary("io-ktor-ktor-server-content-negotiation").get())
+    implementation(libs.findLibrary("io-ktor-ktor-serialization-kotlinx-json").get())
 }

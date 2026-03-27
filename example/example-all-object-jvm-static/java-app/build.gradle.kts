@@ -2,11 +2,12 @@ plugins {
     `java`
     application
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     implementation(project(":kotlin-lib"))
-    testImplementation(libs.org.junit.jupiter.junit.jupiter)
-    testRuntimeOnly(libs.org.junit.platform.junit.platform.launcher)
+    testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
+    testRuntimeOnly(libs.findLibrary("org-junit-platform-junit-platform-launcher").get())
 }
 
 java {

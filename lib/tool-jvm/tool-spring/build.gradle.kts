@@ -2,15 +2,16 @@ plugins {
 //    id("site.addzero.buildlogic.spring.spring-lib-convention")
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 dependencies {
 
-    compileOnly(libs.org.springframework.spring.jdbc)
-    compileOnly(libs.org.springframework.spring.context)
-    compileOnly(libs.org.springframework.spring.web)
+    compileOnly(catalogLibs.findLibrary("org-springframework-spring-jdbc").get())
+    compileOnly(catalogLibs.findLibrary("org-springframework-spring-context").get())
+    compileOnly(catalogLibs.findLibrary("org-springframework-spring-web").get())
     compileOnly(libs.org.springframework.spring.webmvc)
 
-    implementation(libs.cn.hutool.hutool.all)
-    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
-    compileOnly(libs.javax.servlet.javax.servlet.api)
+    implementation(catalogLibs.findLibrary("cn-hutool-hutool-all").get())
+    implementation(catalogLibs.findLibrary("com-fasterxml-jackson-module-jackson-module-kotlin").get())
+    compileOnly(catalogLibs.findLibrary("javax-servlet-javax-servlet-api").get())
 }

@@ -15,6 +15,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 repositories {
     mavenCentral()
@@ -22,5 +23,5 @@ repositories {
 }
 
 dependencies {
-     implementation(libs.me.champeau.includegit.me.champeau.includegit.gradle.plugin)
+     implementation(catalogLibs.findLibrary("me-champeau-includegit-me-champeau-includegit-gradle-plugin").get())
 }

@@ -1,32 +1,33 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
 
 
-//    implementation(libs.org.apache.httpcomponents.httpclient)
+//    implementation(libs.findLibrary("org-apache-httpcomponents-httpclient").get())
 
 
-//    implementation(libs.org.apache.commons.commons.lang3)
-//    implementation(libs.com.fasterxml.jackson.core.jackson.databind)
+//    implementation(libs.findLibrary("org-apache-commons-commons-lang3").get())
+//    implementation(libs.findLibrary("com-fasterxml-jackson-core-jackson-databind").get())
     // HTTP客户端
-//    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
-    implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
-    implementation(libs.com.squareup.okhttp3.okhttp)
+//    implementation(libs.findLibrary("com-fasterxml-jackson-module-jackson-module-kotlin").get())
+    implementation(libs.findLibrary("com-alibaba-fastjson2-fastjson2-kotlin").get())
+    implementation(libs.findLibrary("com-squareup-okhttp3-okhttp").get())
 
     // JSON处理
-//    implementation(libs.com.fasterxml.jackson.module.jackson.module.kotlin)
+//    implementation(libs.findLibrary("com-fasterxml-jackson-module-jackson-module-kotlin").get())
     // 日志
-//    implementation(libs.org.slf4j.slf4j.api)
-//    implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
+//    implementation(libs.findLibrary("org-slf4j-slf4j-api").get())
+//    implementation(libs.findLibrary("com-alibaba-fastjson2-fastjson2-kotlin").get())
 
-//    implementation(libs.org.jsoup.jsoup)
+//    implementation(libs.findLibrary("org-jsoup-jsoup").get())
     // 临时添加hutool-http用于测试
-//    implementation(libs.cn.hutool.hutool.http)
+//    implementation(libs.findLibrary("cn-hutool-hutool-http").get())
 
     // SQLite JDBC 驱动
-//    implementation(libs.org.xerial.sqlite.jdbc.v3)
+//    implementation(libs.findLibrary("org-xerial-sqlite-jdbc-v3").get())
 
 
 

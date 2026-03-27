@@ -1,7 +1,8 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.io.ktor.ktor.server.core)
+    implementation(libs.findLibrary("io-ktor-ktor-server-core").get())
 }

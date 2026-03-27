@@ -6,15 +6,16 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
      id("site.addzero.buildlogic.kmp.kmp-core")
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 kotlin {
     dependencies {
         implementation(project.dependencies.platform(libs.io.insert.koin.koin.bom))
-        implementation(libs.io.insert.koin.koin.annotations)
-        implementation(libs.io.insert.koin.koin.core)
+        implementation(catalogLibs.findLibrary("io-insert-koin-koin-annotations").get())
+        implementation(catalogLibs.findLibrary("io-insert-koin-koin-core").get())
     }
     sourceSets.jvmMain.dependencies {
 
-        implementation(libs.cn.hutool.hutool.core)
+        implementation(catalogLibs.findLibrary("cn-hutool-hutool-core").get())
     }
 }

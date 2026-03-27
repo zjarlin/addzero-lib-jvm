@@ -2,17 +2,18 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 //    id("site.addzero.gradle.plugin.dokka-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     // Netty 核心依赖
-    implementation(libs.io.netty.netty.all)
+    implementation(libs.findLibrary("io-netty-netty-all").get())
 
     // 日志依赖
-    implementation(libs.org.slf4j.slf4j.api)
+    implementation(libs.findLibrary("org-slf4j-slf4j-api").get())
 
     // JSON 处理
-    implementation(libs.com.alibaba.fastjson2.fastjson2.kotlin)
+    implementation(libs.findLibrary("com-alibaba-fastjson2-fastjson2-kotlin").get())
 
     // 工具类
-    implementation(libs.cn.hutool.hutool.all)
+    implementation(libs.findLibrary("cn-hutool-hutool-all").get())
 }

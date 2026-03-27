@@ -4,6 +4,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 buildscript {
     repositories {
@@ -21,7 +22,7 @@ configureJdk("17")
 
 dependencies {
     gradleApi()
-    implementation(libs.com.vanniktech.gradle.maven.publish.plugin)
-    implementation(libs.site.addzero.gradle.script.core)
+    implementation(catalogLibs.findLibrary("com-vanniktech-gradle-maven-publish-plugin").get())
+    implementation(catalogLibs.findLibrary("site-addzero-gradle-script-core").get())
 
 }

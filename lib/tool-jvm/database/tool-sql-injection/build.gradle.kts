@@ -1,8 +1,9 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.cn.hutool.hutool.system)
-    implementation(libs.site.addzero.tool.str)
+    implementation(libs.findLibrary("cn-hutool-hutool-system").get())
+    implementation(libs.findLibrary("site-addzero-tool-str").get())
 }

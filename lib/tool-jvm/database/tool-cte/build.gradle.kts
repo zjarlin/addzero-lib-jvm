@@ -1,15 +1,16 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") version "2026.02.02"
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    compileOnly(libs.org.springframework.spring.jdbc)
-    compileOnly(libs.org.springframework.spring.context)
-    api(libs.site.addzero.tool.database.model)
+    compileOnly(libs.findLibrary("org-springframework-spring-jdbc").get())
+    compileOnly(libs.findLibrary("org-springframework-spring-context").get())
+    api(libs.findLibrary("site-addzero-tool-database-model").get())
 
     // 添加测试依赖
-    testImplementation(libs.org.springframework.spring.jdbc)
-    testImplementation(libs.mysql.mysql.connector.java)
-    testImplementation(libs.org.junit.jupiter.junit.jupiter)
-    testImplementation(libs.site.addzero.tool.sql.executor)
+    testImplementation(libs.findLibrary("org-springframework-spring-jdbc").get())
+    testImplementation(libs.findLibrary("mysql-mysql-connector-java").get())
+    testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
+    testImplementation(libs.findLibrary("site-addzero-tool-sql-executor").get())
 }

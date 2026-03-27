@@ -1,6 +1,7 @@
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
 
@@ -8,8 +9,8 @@ kotlin {
         commonMain.dependencies {
         }
         jvmMain.dependencies {
-//            implementation(libs.com.squareup.kotlinpoet)
-            implementation(libs.com.squareup.kotlinpoet.ksp)
+//            implementation(libs.findLibrary("com-squareup-kotlinpoet").get())
+            implementation(libs.findLibrary("com-squareup-kotlinpoet-ksp").get())
         }
     }
 }

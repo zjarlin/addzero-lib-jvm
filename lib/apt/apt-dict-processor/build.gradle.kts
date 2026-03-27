@@ -8,12 +8,13 @@ plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
     id("site.addzero.gradle.plugin.apt-buddy") version "2025.12.04"
 }
+val libs = versionCatalogs.named("libs")
 
 
 dependencies {
-    implementation(libs.org.postgresql.postgresql)
-    implementation(libs.mysql.mysql.connector.java)
-    implementation(libs.site.addzero.tool.str)
+    implementation(libs.findLibrary("org-postgresql-postgresql").get())
+    implementation(libs.findLibrary("mysql-mysql-connector-java").get())
+    implementation(libs.findLibrary("site-addzero-tool-str").get())
 }
 
 

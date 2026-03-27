@@ -19,6 +19,7 @@ plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 repositories {
   mavenCentral()
@@ -27,8 +28,8 @@ repositories {
 
 dependencies {
   gradleApi()
-  implementation(libs.org.jetbrains.kotlin.kotlin.gradle.plugin)
-  implementation(libs.site.addzero.tool.str)
-  implementation(libs.cn.hutool.hutool.core)
+  implementation(catalogLibs.findLibrary("org-jetbrains-kotlin-kotlin-gradle-plugin").get())
+  implementation(catalogLibs.findLibrary("site-addzero-tool-str").get())
+  implementation(catalogLibs.findLibrary("cn-hutool-hutool-core").get())
   testImplementation(kotlin("test"))
 }

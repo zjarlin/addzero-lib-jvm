@@ -1,7 +1,8 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.site.addzero.tool.pinyin)
+    implementation(libs.findLibrary("site-addzero-tool-pinyin").get())
 }

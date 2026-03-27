@@ -1,13 +1,14 @@
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.site.addzero.ksp.support.jdbc)
-            implementation(libs.site.addzero.ksp.support)
-            implementation(libs.site.addzero.tool.jdbc.model)
+            implementation(libs.findLibrary("site-addzero-ksp-support-jdbc").get())
+            implementation(libs.findLibrary("site-addzero-ksp-support").get())
+            implementation(libs.findLibrary("site-addzero-tool-jdbc-model").get())
 
         }
 

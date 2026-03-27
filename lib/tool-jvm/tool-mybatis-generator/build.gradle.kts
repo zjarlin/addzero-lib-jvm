@@ -3,17 +3,18 @@ plugins {
     id("site.addzero.gradle.plugin.graalvm-convention")
     application
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.cn.hutool.hutool.all)
-    implementation(libs.com.baomidou.mybatis.plus.generator)
-    implementation(libs.com.baomidou.mybatis.plus.annotation)
+    implementation(libs.findLibrary("cn-hutool-hutool-all").get())
+    implementation(libs.findLibrary("com-baomidou-mybatis-plus-generator").get())
+    implementation(libs.findLibrary("com-baomidou-mybatis-plus-annotation").get())
     // 添加MyBatis Plus核心依赖，解决StringUtils类缺失问题
-    implementation(libs.com.baomidou.mybatis.plus.core)
-    implementation(libs.org.apache.velocity.velocity.engine.core)
-    implementation(libs.mysql.mysql.connector.java)
-    implementation(libs.site.addzero.tool.yml)
-    implementation(libs.site.addzero.tool.cli.repl)
+    implementation(libs.findLibrary("com-baomidou-mybatis-plus-core").get())
+    implementation(libs.findLibrary("org-apache-velocity-velocity-engine-core").get())
+    implementation(libs.findLibrary("mysql-mysql-connector-java").get())
+    implementation(libs.findLibrary("site-addzero-tool-yml").get())
+    implementation(libs.findLibrary("site-addzero-tool-cli-repl").get())
 }
 
 application {

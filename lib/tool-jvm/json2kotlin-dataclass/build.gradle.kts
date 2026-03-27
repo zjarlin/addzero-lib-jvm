@@ -1,13 +1,14 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.com.google.code.gson.gson)
-    implementation(libs.site.addzero.tool.jvmstr)
+    implementation(libs.findLibrary("com-google-code-gson-gson").get())
+    implementation(libs.findLibrary("site-addzero-tool-jvmstr").get())
     // JTE Template Engine
-//    implementation(libs.gg.jte.jte)
-//    implementation(libs.gg.jte.jte.kotlin)
+//    implementation(libs.findLibrary("gg-jte-jte").get())
+//    implementation(libs.findLibrary("gg-jte-jte-kotlin").get())
 }
 
 

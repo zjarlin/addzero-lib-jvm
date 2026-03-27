@@ -8,18 +8,20 @@ plugins {
     id("site.addzero.buildlogic.kmp.kmp-koin-core")
 
 }
+val libs = versionCatalogs.named("libs")
+
 kotlin {
     dependencies {
-        implementation(libs.site.addzero.ksp.support)
-        implementation(libs.site.addzero.ksp.easycode)
-        implementation(libs.site.addzero.entity2analysed.support)
+        implementation(libs.findLibrary("site-addzero-ksp-support").get())
+        implementation(libs.findLibrary("site-addzero-ksp-easycode").get())
+        implementation(libs.findLibrary("site-addzero-entity2analysed-support").get())
 
-        implementation(libs.site.addzero.tool.koin.v2025)
+        implementation(libs.findLibrary("site-addzero-tool-koin-v2025").get())
 
     }
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.org.apache.velocity.velocity.engine.core)
+            implementation(libs.findLibrary("org-apache-velocity-velocity-engine-core").get())
         }
     }
 

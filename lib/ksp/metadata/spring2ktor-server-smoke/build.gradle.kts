@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
     alias(libs.plugins.kotlinSerialization)
 }
+val catalogLibs = versionCatalogs.named("libs")
 
 val ktorVersion = "3.4.0"
 
@@ -16,14 +17,14 @@ dependencies {
     implementation(project(":lib:ksp:metadata:spring2ktor-server-core"))
     ksp(project(":lib:ksp:metadata:spring2ktor-server-processor"))
 
-    implementation(libs.io.ktor.ktor.server.content.negotiation)
-    implementation(libs.io.ktor.ktor.serialization.kotlinx.json)
-    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
+    implementation(catalogLibs.findLibrary("io-ktor-ktor-server-content-negotiation").get())
+    implementation(catalogLibs.findLibrary("io-ktor-ktor-serialization-kotlinx-json").get())
+    implementation(catalogLibs.findLibrary("org-jetbrains-kotlinx-kotlinx-serialization-json").get())
     implementation("io.ktor:ktor-server-websockets:$ktorVersion")
 
-    compileOnly(libs.org.springframework.spring.web)
+    compileOnly(catalogLibs.findLibrary("org-springframework-spring-web").get())
 
     testImplementation("io.ktor:ktor-client-websockets:$ktorVersion")
-    testImplementation(libs.io.ktor.ktor.server.status.pages)
+    testImplementation(catalogLibs.findLibrary("io-ktor-ktor-server-status-pages").get())
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
 }
