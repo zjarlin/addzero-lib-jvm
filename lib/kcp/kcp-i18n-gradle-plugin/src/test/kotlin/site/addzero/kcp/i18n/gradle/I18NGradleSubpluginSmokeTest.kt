@@ -62,7 +62,74 @@ class I18NGradleSubpluginSmokeTest {
             resourcesDir = testProjectDir.resolve("build/resources/main"),
             name = "site.addzero.example.I18NTargetsKt",
         )
-        assertEquals("hello", targetsKt.getMethod("invoke").invoke(null))
+        val runtimeUtil = targetsKt.classLoader.loadClass("site.addzero.util.I8nutil")
+        val runtimeUtilInstance = runtimeUtil.getField("INSTANCE").get(null)
+        runtimeUtil.getMethod("setLocale", String::class.java).invoke(runtimeUtilInstance, "en")
+        try {
+            assertEquals("hello", targetsKt.getMethod("invoke").invoke(null))
+        } finally {
+            runtimeUtil.getMethod("clearLocale").invoke(runtimeUtilInstance)
+        }
+    }
+
+    @Test
+    fun sync_and_check_tasks_keep_locale_key_sets_aligned() {
+        val javaHome = System.getProperty("java.home")
+        val gradlePluginClasspath = System.getProperty("i18n.gradlePluginClasspath")
+            ?: error("Missing i18n.gradlePluginClasspath system property")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("i18n-gradle-sync")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(testProjectDir, "build.gradle.kts", buildFile(gradlePluginClasspath, managedLocales = listOf("en", "ja")))
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/I18NTargets.kt",
+            """
+                package site.addzero.example
+
+                fun helloMessage(): String = "你好"
+
+                fun goodbyeMessage(): String = "再见"
+            """.trimIndent(),
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "syncI18nLocales")
+            .forwardOutput()
+            .build()
+
+        val enFile = testProjectDir.resolve("src/main/resources/i18n/en.properties")
+        val jaFile = testProjectDir.resolve("src/main/resources/i18n/ja.properties")
+        assertTrue(Files.isRegularFile(enFile))
+        assertTrue(Files.isRegularFile(jaFile))
+
+        val enText = enFile.toFile().readText()
+        val jaText = jaFile.toFile().readText()
+        assertTrue(enText.contains("I18NTargets_helloMessage_text_你好="), enText)
+        assertTrue(enText.contains("I18NTargets_goodbyeMessage_text_再见="), enText)
+        assertTrue(jaText.contains("I18NTargets_helloMessage_text_你好="), jaText)
+        assertTrue(jaText.contains("I18NTargets_goodbyeMessage_text_再见="), jaText)
+
+        writeFile(
+            testProjectDir,
+            "src/main/resources/i18n/ja.properties",
+            """
+                I18NTargets_helloMessage_text_你好=こんにちは
+            """.trimIndent(),
+        )
+
+        val failingResult = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "checkI18nLocales")
+            .forwardOutput()
+            .buildAndFail()
+
+        assertTrue(failingResult.output.contains("Missing keys:"), failingResult.output)
+        assertTrue(failingResult.output.contains("I18NTargets_goodbyeMessage_text_再见"), failingResult.output)
     }
 
     private fun settingsFile(localRepositoryDir: Path): String {
@@ -80,13 +147,23 @@ class I18NGradleSubpluginSmokeTest {
         """.trimIndent()
     }
 
-    private fun buildFile(gradlePluginClasspath: String): String {
+    private fun buildFile(
+        gradlePluginClasspath: String,
+        managedLocales: List<String> = emptyList(),
+    ): String {
         val classpathEntries = gradlePluginClasspath
             .split(File.pathSeparator)
             .filter(String::isNotBlank)
             .joinToString(separator = ",\n                        ") { path ->
                 path.quoteForKotlin()
             }
+        val managedLocalesDsl = if (managedLocales.isEmpty()) {
+            ""
+        } else {
+            """
+                managedLocales.addAll(${managedLocales.joinToString(", ") { locale -> locale.quoteForKotlin() }})
+            """.trimIndent()
+        }
         return """
             buildscript {
                 dependencies {
@@ -104,6 +181,7 @@ class I18NGradleSubpluginSmokeTest {
             configure<site.addzero.kcp.i18n.gradle.I18NGradleExtension> {
                 targetLocale.set("en")
                 resourceBasePath.set("i18n")
+                $managedLocalesDsl
             }
         """.trimIndent()
     }

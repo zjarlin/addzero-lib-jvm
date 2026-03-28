@@ -27,9 +27,8 @@ import java.io.File
  */
 @OptIn(DeprecatedForRemovalCompilerApi::class, UnsafeDuringIrConstructionAPI::class, ObsoleteDescriptorBasedAPI::class)
 class I18NIrGenerationExtension(
-    private val targetLocale: String = "en",
     private val resourceBasePath: String = "i18n",
-    private val generatedResourceFile: String? = null,
+    private val generatedCatalogFile: String? = null,
 ) : IrGenerationExtension {
 
     // 缓存t函数符号
@@ -41,7 +40,7 @@ class I18NIrGenerationExtension(
             // 处理文件中的字符串字面量
             processStringLiterals(file, pluginContext)
         }
-        writeGeneratedResources()
+        writeGeneratedCatalog()
     }
 
     /**
@@ -122,7 +121,7 @@ class I18NIrGenerationExtension(
                         println("[I18N] Generated resource key: '$resourceKey' for string: '$stringValue'")
 
                         // 创建t函数调用
-                        return createTFunctionCall(pluginContext, expression, resourceKey)
+                        return createTFunctionCall(pluginContext, resourceKey, stringValue)
                     }
                 }
 
@@ -160,12 +159,16 @@ class I18NIrGenerationExtension(
     /**
      * 创建t函数调用
      */
-    private fun createTFunctionCall(pluginContext: IrPluginContext, originalExpression: IrConst, resourceKey: String): IrExpression {
+    private fun createTFunctionCall(
+        pluginContext: IrPluginContext,
+        resourceKey: String,
+        fallbackText: String,
+    ): IrExpression {
         val tFunctionSymbol = findRuntimeFunction(pluginContext)
         val builder = DeclarationIrBuilder(pluginContext, tFunctionSymbol)
         return builder.irCall(tFunctionSymbol).apply {
             putValueArgument(0, builder.irString(resourceKey))
-            putValueArgument(1, builder.irString(targetLocale))
+            putValueArgument(1, builder.irString(fallbackText))
             putValueArgument(2, builder.irString(resourceBasePath))
         }
     }
@@ -184,20 +187,15 @@ class I18NIrGenerationExtension(
         return tFunction
     }
 
-    private fun writeGeneratedResources() {
-        val outputPath = generatedResourceFile?.takeIf(String::isNotBlank) ?: return
+    private fun writeGeneratedCatalog() {
+        val outputPath = generatedCatalogFile?.takeIf(String::isNotBlank) ?: return
         val outputFile = File(outputPath)
         outputFile.parentFile?.mkdirs()
-        val mergedEntries = linkedMapOf<String, String>()
-        if (outputFile.isFile) {
-            mergedEntries.putAll(readProperties(outputFile))
-        }
-        generatedEntries.forEach { (key, value) ->
-            mergedEntries.putIfAbsent(key, value)
-        }
         outputFile.writeText(
             buildString {
-                mergedEntries.forEach { (key, value) ->
+                generatedEntries
+                    .toSortedMap()
+                    .forEach { (key, value) ->
                     append(escapeKey(key))
                     append('=')
                     append(escapeValue(value))
@@ -205,84 +203,6 @@ class I18NIrGenerationExtension(
                 }
             },
         )
-    }
-
-    private fun readProperties(file: File): Map<String, String> {
-        val entries = linkedMapOf<String, String>()
-        file.readLines().forEach { rawLine ->
-            val trimmedStart = rawLine.trimStart()
-            if (trimmedStart.isBlank() || trimmedStart.startsWith("#") || trimmedStart.startsWith("!")) {
-                return@forEach
-            }
-            val separatorIndex = findSeparatorIndex(rawLine)
-            val rawKey = if (separatorIndex >= 0) {
-                rawLine.substring(0, separatorIndex)
-            } else {
-                rawLine
-            }
-            val rawValue = if (separatorIndex >= 0) {
-                rawLine.substring(separatorIndex + 1).trimStart()
-            } else {
-                ""
-            }
-            entries[decodeEscapes(rawKey)] = decodeEscapes(rawValue)
-        }
-        return entries
-    }
-
-    private fun findSeparatorIndex(line: String): Int {
-        for (index in line.indices) {
-            val current = line[index]
-            if ((current == '=' || current == ':') && !isEscaped(line, index)) {
-                return index
-            }
-        }
-        return -1
-    }
-
-    private fun isEscaped(text: String, index: Int): Boolean {
-        var backslashCount = 0
-        var cursor = index - 1
-        while (cursor >= 0 && text[cursor] == '\\') {
-            backslashCount += 1
-            cursor -= 1
-        }
-        return backslashCount % 2 == 1
-    }
-
-    private fun decodeEscapes(text: String): String {
-        if ('\\' !in text) {
-            return text
-        }
-        val decoded = StringBuilder(text.length)
-        var index = 0
-        while (index < text.length) {
-            val current = text[index]
-            if (current != '\\' || index == text.lastIndex) {
-                decoded.append(current)
-                index += 1
-                continue
-            }
-            val escaped = text[index + 1]
-            when (escaped) {
-                't' -> decoded.append('\t')
-                'r' -> decoded.append('\r')
-                'n' -> decoded.append('\n')
-                'f' -> decoded.append('\u000C')
-                'u' -> {
-                    val unicodeEnd = index + 6
-                    if (unicodeEnd <= text.length) {
-                        decoded.append(text.substring(index + 2, unicodeEnd).toInt(16).toChar())
-                        index += 6
-                        continue
-                    }
-                    decoded.append(escaped)
-                }
-                else -> decoded.append(escaped)
-            }
-            index += 2
-        }
-        return decoded.toString()
     }
 
     private fun escapeKey(text: String): String {

@@ -11,14 +11,12 @@ class I18NCompilerPlugin : CompilerPluginRegistrar() {
     override val pluginId: String = I18NPluginKeys.compilerPluginId
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
-        val targetLocale = I18NPluginConfiguration.getTargetLocale(configuration)
         val resourceBasePath = I18NPluginConfiguration.getResourceBasePath(configuration)
-        val generatedResourceFile = I18NPluginConfiguration.getGeneratedResourceFile(configuration)
+        val generatedCatalogFile = I18NPluginConfiguration.getGeneratedCatalogFile(configuration)
         IrGenerationExtension.registerExtension(
             I18NIrGenerationExtension(
-                targetLocale = targetLocale,
                 resourceBasePath = resourceBasePath,
-                generatedResourceFile = generatedResourceFile,
+                generatedCatalogFile = generatedCatalogFile,
             ),
         )
     }

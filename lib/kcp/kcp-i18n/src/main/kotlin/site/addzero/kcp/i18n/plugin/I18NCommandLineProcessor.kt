@@ -13,13 +13,6 @@ class I18NCommandLineProcessor : CommandLineProcessor {
 
     override val pluginOptions: Collection<CliOption> = listOf(
         CliOption(
-            optionName = I18NPluginKeys.targetLocaleOption,
-            valueDescription = "<locale>",
-            description = "Locale code used by generated i18n lookups.",
-            required = false,
-            allowMultipleOccurrences = false,
-        ),
-        CliOption(
             optionName = I18NPluginKeys.resourceBasePathOption,
             valueDescription = "<resource-base-path>",
             description = "Classpath-relative base path for i18n properties files.",
@@ -27,9 +20,9 @@ class I18NCommandLineProcessor : CommandLineProcessor {
             allowMultipleOccurrences = false,
         ),
         CliOption(
-            optionName = I18NPluginKeys.generatedResourceFileOption,
-            valueDescription = "<generated-resource-file>",
-            description = "Absolute path of the fallback generated i18n properties file.",
+            optionName = I18NPluginKeys.generatedCatalogFileOption,
+            valueDescription = "<generated-catalog-file>",
+            description = "Absolute path of the generated source-language catalog file.",
             required = false,
             allowMultipleOccurrences = false,
         ),
@@ -41,16 +34,12 @@ class I18NCommandLineProcessor : CommandLineProcessor {
         configuration: CompilerConfiguration,
     ) {
         when (option.optionName) {
-            I18NPluginKeys.targetLocaleOption -> {
-                configuration.put(I18NPluginKeys.targetLocaleKey, value)
-            }
-
             I18NPluginKeys.resourceBasePathOption -> {
                 configuration.put(I18NPluginKeys.resourceBasePathKey, value)
             }
 
-            I18NPluginKeys.generatedResourceFileOption -> {
-                configuration.put(I18NPluginKeys.generatedResourceFileKey, value)
+            I18NPluginKeys.generatedCatalogFileOption -> {
+                configuration.put(I18NPluginKeys.generatedCatalogFileKey, value)
             }
 
             else -> {

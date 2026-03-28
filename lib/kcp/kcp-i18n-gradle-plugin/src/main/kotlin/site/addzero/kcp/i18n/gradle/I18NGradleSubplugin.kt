@@ -1,5 +1,6 @@
 package site.addzero.kcp.i18n.gradle
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
@@ -7,6 +8,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import java.io.File
 import java.util.Properties
 
 class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
@@ -37,21 +39,21 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     ) = kotlinCompilation.target.project.provider<List<SubpluginOption>> {
         val project = kotlinCompilation.target.project
         val extension = project.extensions.getByType(I18NGradleExtension::class.java)
+        registerLocaleTasks(
+            project = project,
+            kotlinCompilation = kotlinCompilation,
+            extension = extension,
+        )
         buildList {
-            add(
-            SubpluginOption(TARGET_LOCALE_OPTION, extension.targetLocale.get()),
-            )
             add(
                 SubpluginOption(RESOURCE_BASE_PATH_OPTION, extension.resourceBasePath.get()),
             )
-            val generatedResourceFile = resolveGeneratedResourceFile(
+            val generatedCatalogFile = resolveGeneratedCatalogFile(
                 project = project,
                 kotlinCompilation = kotlinCompilation,
-                resourceBasePath = extension.resourceBasePath.get(),
-                targetLocale = extension.targetLocale.get(),
             )
-            if (generatedResourceFile != null) {
-                add(SubpluginOption(GENERATED_RESOURCE_FILE_OPTION, generatedResourceFile))
+            if (generatedCatalogFile != null) {
+                add(SubpluginOption(GENERATED_CATALOG_FILE_OPTION, generatedCatalogFile))
             }
         }
     }
@@ -108,29 +110,314 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         val version: String,
     )
 
-    private fun resolveGeneratedResourceFile(
+    private fun registerLocaleTasks(
         project: Project,
         kotlinCompilation: KotlinCompilation<*>,
-        resourceBasePath: String,
-        targetLocale: String,
+        extension: I18NGradleExtension,
+    ) {
+        if (kotlinCompilation.compilationName != "main") {
+            return
+        }
+        if (project.extensions.extraProperties.has(LOCALE_TASKS_MARKER)) {
+            return
+        }
+        project.extensions.extraProperties.set(LOCALE_TASKS_MARKER, true)
+
+        val compileTaskProvider = kotlinCompilation.compileTaskProvider
+
+        project.tasks.register("syncI18nLocales") { task ->
+            task.group = "i18n"
+            task.description = "Sync managed locale properties files with the generated i18n catalog."
+            task.dependsOn(compileTaskProvider)
+            task.doLast {
+                val managedLocales = resolveManagedLocales(extension)
+                if (managedLocales.isEmpty()) {
+                    logger.lifecycle("No managed locales configured for ${project.path}; skipping syncI18nLocales.")
+                    return@doLast
+                }
+                val resourceBasePath = extension.resourceBasePath.get()
+                val catalogFile = resolveGeneratedCatalogFile(project, kotlinCompilation)
+                    ?.let(::File)
+                    ?: throw GradleException("Missing generated i18n catalog location for ${project.path}")
+                val catalog = readProperties(catalogFile)
+                requireCatalog(catalogFile, catalog)
+                val resourcesDir = resolveSourceResourcesDir(project, kotlinCompilation, resourceBasePath)
+                managedLocales.forEach { locale ->
+                    val localeFile = File(resourcesDir, "$locale.properties")
+                    val existing = if (localeFile.isFile) readProperties(localeFile) else emptyMap()
+                    writeLocaleFile(localeFile, catalog, existing)
+                }
+            }
+        }
+
+        val checkTaskProvider = project.tasks.register("checkI18nLocales") { task ->
+            task.group = "verification"
+            task.description = "Verify that managed locale properties files match the generated i18n catalog."
+            task.dependsOn(compileTaskProvider)
+            task.doLast {
+                val managedLocales = resolveManagedLocales(extension)
+                if (managedLocales.isEmpty()) {
+                    return@doLast
+                }
+                val resourceBasePath = extension.resourceBasePath.get()
+                val catalogFile = resolveGeneratedCatalogFile(project, kotlinCompilation)
+                    ?.let(::File)
+                    ?: throw GradleException("Missing generated i18n catalog location for ${project.path}")
+                val catalog = readProperties(catalogFile)
+                requireCatalog(catalogFile, catalog)
+                val resourcesDir = resolveSourceResourcesDir(project, kotlinCompilation, resourceBasePath)
+                val failures = managedLocales.mapNotNull { locale ->
+                    val localeFile = File(resourcesDir, "$locale.properties")
+                    val translations = if (localeFile.isFile) readProperties(localeFile) else emptyMap()
+                    buildCheckFailure(
+                        locale = locale,
+                        catalogKeys = catalog.keys,
+                        translationKeys = translations.keys,
+                        file = localeFile,
+                    )
+                }
+                if (failures.isNotEmpty()) {
+                    throw GradleException(
+                        failures.joinToString(
+                            separator = "\n\n",
+                            prefix = "kcp-i18n locale verification failed.\n\n",
+                            postfix = "\n\nRun ./gradlew syncI18nLocales to repair key drift.",
+                        ),
+                    )
+                }
+            }
+        }
+
+        project.tasks.matching { task -> task.name == "check" }.configureEach { task ->
+            task.dependsOn(checkTaskProvider)
+        }
+    }
+
+    private fun resolveGeneratedCatalogFile(
+        project: Project,
+        kotlinCompilation: KotlinCompilation<*>,
     ): String? {
         if (kotlinCompilation.compilationName != "main") {
             return null
         }
-        val normalizedBasePath = resourceBasePath.trim().trim('/').ifBlank { "i18n" }
-        val relativePath = "$normalizedBasePath/$targetLocale.properties"
-        val outputFile = if (project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-            project.layout.buildDirectory
-                .file("processedResources/${kotlinCompilation.target.name}/${kotlinCompilation.compilationName}/$relativePath")
-                .get()
-                .asFile
-        } else {
-            project.layout.buildDirectory
-                .file("resources/${kotlinCompilation.compilationName}/$relativePath")
-                .get()
-                .asFile
-        }
+        val outputFile = project.layout.buildDirectory
+            .file("generated/kcp-i18n/catalog/${kotlinCompilation.target.name}/${kotlinCompilation.compilationName}/catalog.properties")
+            .get()
+            .asFile
         return outputFile.absolutePath
+    }
+
+    private fun resolveManagedLocales(extension: I18NGradleExtension): List<String> {
+        val configured = extension.managedLocales.orNull
+            .orEmpty()
+            .map(String::trim)
+            .filter(String::isNotBlank)
+            .distinct()
+        if (configured.isNotEmpty()) {
+            return configured
+        }
+        return extension.targetLocale.orNull
+            ?.trim()
+            ?.takeIf(String::isNotBlank)
+            ?.let(::listOf)
+            .orEmpty()
+    }
+
+    private fun resolveSourceResourcesDir(
+        project: Project,
+        kotlinCompilation: KotlinCompilation<*>,
+        resourceBasePath: String,
+    ): File {
+        val normalizedBasePath = resourceBasePath.trim().trim('/').ifBlank { "i18n" }
+        return project.layout.projectDirectory
+            .dir("src/${kotlinCompilation.defaultSourceSet.name}/resources/$normalizedBasePath")
+            .asFile
+    }
+
+    private fun requireCatalog(
+        catalogFile: File,
+        catalog: Map<String, String>,
+    ) {
+        if (!catalogFile.isFile || catalog.isEmpty()) {
+            throw GradleException(
+                "Missing generated i18n catalog at ${catalogFile.absolutePath}. " +
+                    "Compile the JVM main sources first and ensure they contain translatable strings.",
+            )
+        }
+    }
+
+    private fun buildCheckFailure(
+        locale: String,
+        catalogKeys: Set<String>,
+        translationKeys: Set<String>,
+        file: File,
+    ): String? {
+        val missing = catalogKeys.subtract(translationKeys)
+        val extra = translationKeys.subtract(catalogKeys)
+        if (missing.isEmpty() && extra.isEmpty()) {
+            return null
+        }
+        return buildString {
+            append("Locale `")
+            append(locale)
+            append("` is out of sync: ")
+            append(file.absolutePath)
+            append('\n')
+            if (missing.isNotEmpty()) {
+                append("Missing keys:\n")
+                missing.sorted().forEach { key ->
+                    append("  - ")
+                    append(key)
+                    append('\n')
+                }
+            }
+            if (extra.isNotEmpty()) {
+                append("Extra keys:\n")
+                extra.sorted().forEach { key ->
+                    append("  - ")
+                    append(key)
+                    append('\n')
+                }
+            }
+        }.trimEnd()
+    }
+
+    private fun writeLocaleFile(
+        localeFile: File,
+        catalog: Map<String, String>,
+        existingTranslations: Map<String, String>,
+    ) {
+        localeFile.parentFile?.mkdirs()
+        localeFile.writeText(
+            buildString {
+                append("# Generated by kcp-i18n syncI18nLocales. Edit only values after '='.\n")
+                catalog.toSortedMap().forEach { (key, sourceText) ->
+                    append("# ")
+                    append(sourceText.replace('\n', ' '))
+                    append('\n')
+                    append(escapeKey(key))
+                    append('=')
+                    append(escapeValue(existingTranslations[key].orEmpty()))
+                    append('\n')
+                    append('\n')
+                }
+            },
+            Charsets.UTF_8,
+        )
+    }
+
+    private fun readProperties(file: File): Map<String, String> {
+        val entries = linkedMapOf<String, String>()
+        if (!file.isFile) {
+            return entries
+        }
+        file.readLines(Charsets.UTF_8).forEach { rawLine ->
+            val trimmedStart = rawLine.trimStart()
+            if (trimmedStart.isBlank() || trimmedStart.startsWith("#") || trimmedStart.startsWith("!")) {
+                return@forEach
+            }
+            val separatorIndex = findSeparatorIndex(rawLine)
+            val rawKey = if (separatorIndex >= 0) {
+                rawLine.substring(0, separatorIndex)
+            } else {
+                rawLine
+            }
+            val rawValue = if (separatorIndex >= 0) {
+                rawLine.substring(separatorIndex + 1).trimStart()
+            } else {
+                ""
+            }
+            entries[decodeEscapes(rawKey)] = decodeEscapes(rawValue)
+        }
+        return entries
+    }
+
+    private fun findSeparatorIndex(line: String): Int {
+        for (index in line.indices) {
+            val current = line[index]
+            if ((current == '=' || current == ':') && !isEscaped(line, index)) {
+                return index
+            }
+        }
+        return -1
+    }
+
+    private fun isEscaped(text: String, index: Int): Boolean {
+        var backslashCount = 0
+        var cursor = index - 1
+        while (cursor >= 0 && text[cursor] == '\\') {
+            backslashCount += 1
+            cursor -= 1
+        }
+        return backslashCount % 2 == 1
+    }
+
+    private fun decodeEscapes(text: String): String {
+        if ('\\' !in text) {
+            return text
+        }
+        val decoded = StringBuilder(text.length)
+        var index = 0
+        while (index < text.length) {
+            val current = text[index]
+            if (current != '\\' || index == text.lastIndex) {
+                decoded.append(current)
+                index += 1
+                continue
+            }
+            val escaped = text[index + 1]
+            when (escaped) {
+                't' -> decoded.append('\t')
+                'r' -> decoded.append('\r')
+                'n' -> decoded.append('\n')
+                'f' -> decoded.append('\u000C')
+                'u' -> {
+                    val unicodeEnd = index + 6
+                    if (unicodeEnd <= text.length) {
+                        decoded.append(text.substring(index + 2, unicodeEnd).toInt(16).toChar())
+                        index += 6
+                        continue
+                    }
+                    decoded.append(escaped)
+                }
+                else -> decoded.append(escaped)
+            }
+            index += 2
+        }
+        return decoded.toString()
+    }
+
+    private fun escapeKey(text: String): String {
+        return buildString {
+            text.forEachIndexed { index, char ->
+                when {
+                    char == '\\' -> append("\\\\")
+                    char == '=' -> append("\\=")
+                    char == ':' -> append("\\:")
+                    char == '\n' -> append("\\n")
+                    char == '\r' -> append("\\r")
+                    char == '\t' -> append("\\t")
+                    char == '#' && index == 0 -> append("\\#")
+                    char == '!' && index == 0 -> append("\\!")
+                    else -> append(char)
+                }
+            }
+        }
+    }
+
+    private fun escapeValue(text: String): String {
+        return buildString {
+            text.forEachIndexed { index, char ->
+                when {
+                    char == '\\' -> append("\\\\")
+                    char == '\n' -> append("\\n")
+                    char == '\r' -> append("\\r")
+                    char == '\t' -> append("\\t")
+                    char == ' ' && index == 0 -> append("\\ ")
+                    else -> append(char)
+                }
+            }
+        }
     }
 
     companion object {
@@ -138,11 +425,11 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         const val COMPILER_PLUGIN_ID: String = "site.addzero.kcp.i18n"
         const val COMPILER_ARTIFACT_ID: String = "kcp-i18n"
         const val RUNTIME_ARTIFACT_ID: String = "kcp-i18n-runtime"
-        const val TARGET_LOCALE_OPTION: String = "targetLocale"
         const val RESOURCE_BASE_PATH_OPTION: String = "resourceBasePath"
-        const val GENERATED_RESOURCE_FILE_OPTION: String = "generatedResourceFile"
+        const val GENERATED_CATALOG_FILE_OPTION: String = "generatedCatalogFile"
 
         private const val RUNTIME_MARKER = "site.addzero.kcp.i18n.runtime-added"
+        private const val LOCALE_TASKS_MARKER = "site.addzero.kcp.i18n.locale-tasks-added"
         private const val PROPERTIES_RESOURCE = "site/addzero/kcp/i18n/gradle-plugin.properties"
     }
 }
