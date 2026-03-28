@@ -8,7 +8,7 @@ processorBuddy {
   mustMap=mapOf(
     "sharedSourceDir" to "",
     "routeGenPkg" to "site.addzero.generated",
-    "routeOwnerModule" to project.path
+    "routeOwnerModule" to ""
   )
 }
 kotlin {

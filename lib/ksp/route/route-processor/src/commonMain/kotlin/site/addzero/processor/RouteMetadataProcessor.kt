@@ -9,7 +9,6 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
-import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.validate
@@ -44,10 +43,11 @@ class RouteMetadataProcessor(
 ) : SymbolProcessor {
 
     private val collectedRoutes = linkedSetOf<RouteRecord>()
-    private val collectedSourceFiles = linkedSetOf<KSFile>()
+    private val moduleSourceRoots = linkedSetOf<String>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         Settings.fromOptions(options)
+        collectModuleSourceRoots(resolver)
 
         val symbols = resolver.getSymbolsWithAnnotation(Route::class.qualifiedName!!)
             .toList()
@@ -64,17 +64,14 @@ class RouteMetadataProcessor(
 
             when (symbol) {
                 is KSClassDeclaration -> {
-                    recordSourceFile(symbol)
                     processClass(symbol)?.let(collectedRoutes::add)
                 }
 
                 is KSFunctionDeclaration -> {
-                    recordSourceFile(symbol)
                     processFunction(symbol)?.let(collectedRoutes::add)
                 }
 
                 is KSPropertyDeclaration -> {
-                    recordSourceFile(symbol)
                     processProperty(symbol)?.let(collectedRoutes::add)
                 }
 
@@ -91,15 +88,20 @@ class RouteMetadataProcessor(
         aggregateAndGenerateRoutes(
             sharedSourceDir = Settings.sharedSourceDir,
             routeGenPkg = Settings.routeGenPkg,
-            ownerModuleHint = options["routeOwnerModule"].orEmpty(),
-            sourceFilePaths = collectedSourceFiles.map { it.filePath },
+            routeOwnerModuleDir = Settings.routeOwnerModule,
+            moduleSourceRoots = moduleSourceRoots.toList(),
             routeItems = sortRoutes(collectedRoutes),
             logger = logger,
         )
     }
 
-    private fun recordSourceFile(declaration: KSDeclaration) {
-        declaration.containingFile?.let(collectedSourceFiles::add)
+    private fun collectModuleSourceRoots(resolver: Resolver) {
+        if (moduleSourceRoots.isNotEmpty()) {
+            return
+        }
+        resolver.getAllFiles().forEach { file ->
+            sourcePathToModuleRoot(file.filePath)?.let(moduleSourceRoots::add)
+        }
     }
 
     private fun processClass(declaration: KSClassDeclaration): RouteRecord? {
@@ -259,11 +261,26 @@ private fun RouteRecord.fallbackRouteKeyName(): String {
         .ifBlank { baseRouteKeyName() }
 }
 
+internal fun sourcePathToModuleRoot(sourceFilePath: String): String? {
+    val normalizedPath = sourceFilePath.replace('\\', '/')
+    val srcMarkerIndex = normalizedPath.indexOf("/src/")
+    if (srcMarkerIndex >= 0) {
+        return normalizedPath.substring(0, srcMarkerIndex)
+    }
+
+    val lastSlashIndex = normalizedPath.lastIndexOf('/')
+    return if (lastSlashIndex > 0) {
+        normalizedPath.substring(0, lastSlashIndex)
+    } else {
+        null
+    }
+}
+
 internal expect fun aggregateAndGenerateRoutes(
     sharedSourceDir: String,
     routeGenPkg: String,
-    ownerModuleHint: String,
-    sourceFilePaths: List<String>,
+    routeOwnerModuleDir: String,
+    moduleSourceRoots: List<String>,
     routeItems: List<RouteRecord>,
     logger: KSPLogger,
 )
