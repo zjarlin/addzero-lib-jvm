@@ -1,9 +1,7 @@
 package site.addzero.processor
 
-import site.addzero.context.SettingContext
-import site.addzero.context.SettingContext.settings
+import site.addzero.context.Settings
 import site.addzero.processor.type.TypeMappingManager
-import site.addzero.util.isJimmerEntity
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -39,8 +37,8 @@ class ControllerApiProcessor(
     private val collectedSourceKeys = mutableSetOf<String>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        SettingContext.initialize(options)
-        logger.warn("解析Controller符号生成Ktorfit接口初始化配置: ${settings}")
+        Settings.fromOptions(options)
+        logger.warn("解析Controller符号生成Ktorfit接口初始化配置: ${Settings.toOptions()}")
 
         val invalidSymbols = mutableListOf<KSAnnotated>()
         invalidSymbols += collectControllerSymbols(resolver)
@@ -567,12 +565,12 @@ class ControllerApiProcessor(
 
         try {
             // 从SettingContext获取配置
-            val outputDir = settings.apiClientOutputDir
+            val outputDir = Settings.apiClientOutputDir
 
 
             logger.info("api客户端输出目录为: $outputDir")
 
-            val packageName = settings.apiClientPackageName
+            val packageName = Settings.apiClientPackageName
 
             // 创建输出目录
             val outputDirFile = File(outputDir)
@@ -604,7 +602,7 @@ class ControllerApiProcessor(
         try {
             val file = codeGenerator.createNewFile(
                 dependencies = Dependencies(false),
-                packageName = settings.apiClientPackageName,
+                packageName = Settings.apiClientPackageName,
                 fileName = apiClassName
             )
 
@@ -937,5 +935,16 @@ private fun String.toTopLevelApiClassName(): String {
         endsWith("Api") -> this
         endsWith("Controller") -> removeSuffix("Controller") + "Api"
         else -> "${this}Api"
+    }
+}
+
+private fun isJimmerEntity(declaration: KSDeclaration): Boolean {
+    return try {
+        declaration.annotations.any { annotation ->
+            annotation.shortName.asString() == "Entity" &&
+                annotation.annotationType.resolve().declaration.qualifiedName?.asString()?.contains("jimmer") == true
+        }
+    } catch (e: Exception) {
+        false
     }
 }

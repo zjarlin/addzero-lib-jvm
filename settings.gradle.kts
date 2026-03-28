@@ -31,10 +31,7 @@ val activeBuildLogicDir = when {
 includeBuild(activeBuildLogicDir)
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-27T17:14:26.525380
-// Loaded: 4, Excluded: 0, Total: 4
+// Generated at: 2026-03-28T09:27:49.309938
+// Loaded: 1, Excluded: 0, Total: 1
 include(":lib:ksp:metadata:controller2api-processor")
-include(":lib:ksp:route:route-core")
-include(":lib:ksp:route:route-processor")
-include(":lib:tool-jvm:tool-io-codegen")
 // <<< Gradle Module Sleep: End Of Block <<<
