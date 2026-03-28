@@ -47,7 +47,6 @@ class RouteMetadataProcessor(
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         Settings.fromOptions(options)
-        collectModuleSourceRoots(resolver)
 
         val symbols = resolver.getSymbolsWithAnnotation(Route::class.qualifiedName!!)
             .toList()
@@ -95,15 +94,6 @@ class RouteMetadataProcessor(
         )
     }
 
-    private fun collectModuleSourceRoots(resolver: Resolver) {
-        if (moduleSourceRoots.isNotEmpty()) {
-            return
-        }
-        resolver.getAllFiles().forEach { file ->
-            sourcePathToModuleRoot(file.filePath)?.let(moduleSourceRoots::add)
-        }
-    }
-
     private fun processClass(declaration: KSClassDeclaration): RouteRecord? {
         return processSymbol(declaration)
     }
@@ -118,6 +108,10 @@ class RouteMetadataProcessor(
 
     private fun processSymbol(declaration: KSDeclaration): RouteRecord? {
         return try {
+            declaration.containingFile
+                ?.filePath
+                ?.let(::sourcePathToModuleRoot)
+                ?.let(moduleSourceRoots::add)
             val qualifiedName = declaration.qualifiedName?.asString().orEmpty()
             val simpleName = declaration.simpleName.asString()
             val annotation = declaration.annotations.first {

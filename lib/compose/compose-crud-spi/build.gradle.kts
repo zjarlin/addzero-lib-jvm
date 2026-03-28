@@ -21,7 +21,7 @@ kotlin {
                 implementation(libs.findLibrary("site-addzero-compose-native-component-searchbar").get())
                 implementation(libs.findLibrary("site-addzero-compose-native-component-tree").get())
             
-    implementation(project(":apps:kcloud:compose-eventbus"))
+    implementation(project(":lib:compose:compose-eventbus"))
 }
     sourceSets {
     }

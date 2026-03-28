@@ -22,9 +22,9 @@ internal actual fun aggregateAndGenerateRoutes(
         return
     }
 
-    val aggregateRoot = File(
-        sharedSourceDir,
-        ".addzero/route-processor/${routeGenPkg.replace(".", "/")}"
+    val aggregateRoot = resolveAggregateRoot(
+        sharedSourceDir = sharedSourceDir,
+        routeGenPkg = routeGenPkg,
     )
     val snapshotDir = File(aggregateRoot, "snapshots")
     val lockFile = File(aggregateRoot, "route-aggregate.lock")
@@ -33,7 +33,10 @@ internal actual fun aggregateAndGenerateRoutes(
     RandomAccessFile(lockFile, "rw").use { lockHandle ->
         val fileLock = lockHandle.channel.lock()
         try {
-            val moduleKey = resolveModuleKey(moduleSourceRoots)
+            val moduleKey = resolveModuleKey(
+                moduleSourceRoots = moduleSourceRoots,
+                routeItems = routeItems,
+            )
             if (moduleKey == null) {
                 logger.warn("无法确定当前模块标识，跳过跨模块路由聚合")
                 return
@@ -92,7 +95,12 @@ internal actual fun aggregateAndGenerateRoutes(
     }
 }
 
-private fun resolveModuleKey(moduleSourceRoots: List<String>): String? {
+private fun resolveModuleKey(
+    moduleSourceRoots: List<String>,
+    routeItems: List<RouteRecord>,
+): String? {
+    resolveModuleKeyFromRouteItems(routeItems)?.let { return it }
+
     val moduleRoots = moduleSourceRoots
         .distinct()
         .sorted()
@@ -103,6 +111,55 @@ private fun resolveModuleKey(moduleSourceRoots: List<String>): String? {
     val rootIdentity = moduleRoots.joinToString("|")
     val rootName = File(moduleRoots.first()).name.ifBlank { "module" }
     return sanitizeModuleKey("$rootName-${rootIdentity.hashCode().toUInt().toString(16)}")
+}
+
+private fun resolveModuleKeyFromRouteItems(
+    routeItems: List<RouteRecord>,
+): String? {
+    val packageSegments = routeItems.mapNotNull { route ->
+        route.qualifiedName
+            .substringBeforeLast('.', missingDelimiterValue = "")
+            .takeIf { it.isNotBlank() }
+            ?.split('.')
+    }
+    if (packageSegments.isEmpty()) {
+        return null
+    }
+
+    val sharedPrefix = packageSegments.reduce { acc, segments ->
+        acc.zip(segments)
+            .takeWhile { (left, right) -> left == right }
+            .map { (value, _) -> value }
+    }
+    if (sharedPrefix.isEmpty()) {
+        return null
+    }
+
+    val packageName = sharedPrefix.joinToString(".")
+    val moduleName = sharedPrefix.lastOrNull { it != "screen" }
+        ?.ifBlank { "module" }
+        ?: sharedPrefix.last().ifBlank { "module" }
+    return sanitizeModuleKey("$moduleName-${packageName.hashCode().toUInt().toString(16)}")
+}
+
+private fun resolveAggregateRoot(
+    sharedSourceDir: String,
+    routeGenPkg: String,
+): File {
+    val sharedSourcePath = File(sharedSourceDir).absoluteFile
+        .invariantSeparatorsPath
+    val moduleRoot = sharedSourcePath.substringBefore("/src/")
+        .takeIf { it != sharedSourcePath && it.isNotBlank() }
+        ?: File(sharedSourceDir).absoluteFile
+            .parentFile
+            ?.parentFile
+            ?.parentFile
+            ?.absolutePath
+        ?: sharedSourceDir
+    return File(
+        moduleRoot,
+        "build/addzero/route-processor/${routeGenPkg.replace(".", "/")}"
+    )
 }
 
 private fun normalizeRouteOwnerModuleDir(
