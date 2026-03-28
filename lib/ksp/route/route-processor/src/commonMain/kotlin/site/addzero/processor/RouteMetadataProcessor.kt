@@ -170,7 +170,7 @@ internal fun renderRouteTableCode(routeItems: List<RouteRecord>): String {
         |    /**
         |     * 所有路由映射
         |     */
-        |    val allRoutes = mapOf(
+        |    val allRoutes: Map<String, @Composable () -> Unit> = mapOf(
         |        $routeMappings
         |    )
         |

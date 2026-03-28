@@ -81,7 +81,11 @@ class TransformOverloadStubService(
 
     private fun notifyRootsChanged(
         oldRoots: List<VirtualFile>,
+        newRoots: List<VirtualFile>,
     ) {
+        if (!hasRootSetChanged(oldRoots, newRoots)) {
+            return
+        }
         ApplicationManager.getApplication().invokeLater {
             if (project.isDisposed) {
                 return@invokeLater
@@ -91,7 +95,7 @@ class TransformOverloadStubService(
                     project,
                     javaClass.name,
                     oldRoots,
-                    getSourceRoots(),
+                    newRoots,
                     "transform overload IDE stubs refreshed",
                 )
             }
@@ -124,7 +128,8 @@ class TransformOverloadStubService(
                 return
             }
 
-            notifyRootsChanged(oldRoots)
+            val newRoots = getSourceRoots().toList()
+            notifyRootsChanged(oldRoots, newRoots)
         } finally {
             refreshInProgress.set(false)
             if (refreshRequestedWhileRunning.compareAndSet(true, false)) {
@@ -178,5 +183,13 @@ class TransformOverloadStubService(
             Paths.get(basePath, TransformOverloadIdeaConstants.stubRootRelativePath).pathString
         } ?: return true
         return !event.path.startsWith(outputRoot)
+    }
+
+    internal fun hasRootSetChanged(
+        oldRoots: Collection<VirtualFile>,
+        newRoots: Collection<VirtualFile>,
+    ): Boolean {
+        return oldRoots.mapTo(linkedSetOf(), VirtualFile::getPath) !=
+            newRoots.mapTo(linkedSetOf(), VirtualFile::getPath)
     }
 }
