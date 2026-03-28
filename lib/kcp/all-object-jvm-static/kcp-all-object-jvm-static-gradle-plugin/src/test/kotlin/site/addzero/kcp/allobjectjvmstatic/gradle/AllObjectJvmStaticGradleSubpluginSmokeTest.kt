@@ -214,11 +214,12 @@ class AllObjectJvmStaticGradleSubpluginSmokeTest {
     }
 
     private fun gradleProperties(javaHome: String): String {
+        val normalizedJavaHome = javaHome.replace("\\", "/")
         return """
             org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8
             org.gradle.parallel=false
             org.gradle.configuration-cache=false
-            org.gradle.java.home=$javaHome
+            org.gradle.java.home=$normalizedJavaHome
         """.trimIndent()
     }
 
