@@ -1,0 +1,150 @@
+name: Publish Maven Central
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lib/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "checkouts/build-logic/**"
+      - "scripts/ci/detect-publish-modules.sh"
+      - ".github/workflows/publish-maven-central.yml"
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: "Gradle project paths or module directories, separated by comma, space, or newline."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maven-central-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish selected modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BASE_SHA: ${{ github.event.before }}
+      HEAD_SHA: ${{ github.sha }}
+      MANUAL_MODULES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.modules || '' }}
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_SIGNING_KEY_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "8"
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Detect publishable modules
+        id: detect
+        shell: bash
+        run: ./scripts/ci/detect-publish-modules.sh
+
+      - name: Decide whether to publish
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          current_version="$(sed -n 's/^version=//p' gradle.properties | head -n 1)"
+          previous_version=""
+          version_changed=false
+          should_publish=false
+          reason=""
+          detected_modules='${{ steps.detect.outputs.modules }}'
+          modules_display="$detected_modules"
+
+          if [[ -z "$modules_display" ]]; then
+            modules_display="none"
+          fi
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]] && [[ -n "${BASE_SHA:-}" ]] && [[ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ]] && git cat-file -e "${BASE_SHA}:gradle.properties" 2>/dev/null; then
+            previous_version="$(git show "${BASE_SHA}:gradle.properties" | sed -n 's/^version=//p' | head -n 1)"
+            if [[ "$current_version" != "$previous_version" ]]; then
+              version_changed=true
+            fi
+          fi
+
+          if [[ -z "$detected_modules" ]]; then
+            reason="No included publishable module was detected from this change set."
+          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            should_publish=true
+            reason="Manual publish request."
+          elif [[ "$version_changed" == "true" ]]; then
+            should_publish=true
+            reason="Push changed publishable modules and also bumped gradle.properties version."
+          else
+            reason="Push changed publishable modules, but gradle.properties version did not change. Maven Central releases are immutable, so auto publish is skipped."
+          fi
+
+          {
+            printf 'should_publish=%s\n' "$should_publish"
+            printf 'version=%s\n' "$current_version"
+            printf 'version_changed=%s\n' "$version_changed"
+            printf 'reason<<__CODEX__\n%s\n__CODEX__\n' "$reason"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Maven Central Publish"
+            echo
+            echo "- Modules: \`$modules_display\`"
+            echo "- Version: \`$current_version\`"
+            echo "- Version changed in this push: \`$version_changed\`"
+            echo "- Decision: $reason"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate publishing secrets
+        if: steps.gate.outputs.should_publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          [[ -n "${ORG_GRADLE_PROJECT_mavenCentralUsername:-}" ]] || missing+=("MAVEN_CENTRAL_USERNAME")
+          [[ -n "${ORG_GRADLE_PROJECT_mavenCentralPassword:-}" ]] || missing+=("MAVEN_CENTRAL_PASSWORD")
+          [[ -n "${ORG_GRADLE_PROJECT_signingInMemoryKey:-}" ]] || missing+=("MAVEN_SIGNING_KEY")
+          [[ -n "${ORG_GRADLE_PROJECT_signingInMemoryKeyPassword:-}" ]] || missing+=("MAVEN_SIGNING_PASSWORD")
+
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing GitHub secrets: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Publish modules to Maven Central
+        if: steps.gate.outputs.should_publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          detected_tasks='${{ steps.detect.outputs.tasks }}'
+          read -r -a publish_tasks <<< "$detected_tasks"
+          if (( ${#publish_tasks[@]} == 0 )); then
+            echo "No publish tasks were detected."
+            exit 1
+          fi
+
+          ./gradlew --stacktrace --no-daemon --no-configuration-cache "${publish_tasks[@]}"

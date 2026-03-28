@@ -9,11 +9,14 @@ object I18NPluginKeys {
     const val compilerPluginId: String = "site.addzero.kcp.i18n"
     const val targetLocaleOption: String = "targetLocale"
     const val resourceBasePathOption: String = "resourceBasePath"
+    const val generatedResourceFileOption: String = "generatedResourceFile"
 
     val targetLocaleKey: CompilerConfigurationKey<String> =
         CompilerConfigurationKey.create(targetLocaleOption)
     val resourceBasePathKey: CompilerConfigurationKey<String> =
         CompilerConfigurationKey.create(resourceBasePathOption)
+    val generatedResourceFileKey: CompilerConfigurationKey<String> =
+        CompilerConfigurationKey.create(generatedResourceFileOption)
 
     val runtimeFunctionCallableId: CallableId = CallableId(
         FqName("site.addzero.util"),

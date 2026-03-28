@@ -40,6 +40,12 @@ i18n {
 src/main/resources/i18n/en.properties
 ```
 
+KMP Compose 模块通常对应：
+
+```text
+src/jvmMain/resources/i18n/en.properties
+```
+
 示例：
 
 ```properties
@@ -55,6 +61,13 @@ fun farewellMessage(): String = "再见"
 ```
 
 编译后会被改写成对 `site.addzero.util.i18nT(...)` 的调用，运行时再命中 `.properties`。
+
+如果业务项目暂时没有手写 `src/.../resources/i18n/en.properties`，插件现在会在编译期自动补一个兜底文件到构建输出目录：
+
+- KMP/JVM: `build/processedResources/jvm/main/i18n/en.properties`
+- JVM: `build/resources/main/i18n/en.properties`
+
+这个自动生成文件不会回写到 `src/.../resources`，只负责保证 classpath 上有可用资源。默认值会回填成源码原文，不会自动帮你翻译。
 
 ## Key Rule
 

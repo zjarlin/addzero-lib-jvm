@@ -28,17 +28,20 @@ import java.io.File
 @OptIn(DeprecatedForRemovalCompilerApi::class, UnsafeDuringIrConstructionAPI::class, ObsoleteDescriptorBasedAPI::class)
 class I18NIrGenerationExtension(
     private val targetLocale: String = "en",
-    private val resourceBasePath: String = "i18n"
+    private val resourceBasePath: String = "i18n",
+    private val generatedResourceFile: String? = null,
 ) : IrGenerationExtension {
 
     // 缓存t函数符号
     private var tFunctionSymbol: IrSimpleFunctionSymbol? = null
+    private val generatedEntries = linkedMapOf<String, String>()
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         moduleFragment.files.forEach { file ->
             // 处理文件中的字符串字面量
             processStringLiterals(file, pluginContext)
         }
+        writeGeneratedResources()
     }
 
     /**
@@ -103,6 +106,9 @@ class I18NIrGenerationExtension(
                         } catch (e: Exception) {
                             null
                         }
+                        if (componentName in ignoredCallNames || functionName in ignoredCallNames) {
+                            return super.visitConst(expression)
+                        }
 
                         // 生成资源键，按照要求的格式：文件名_函数名_组件名_参数名
                         val resourceKey = generateResourceKey(
@@ -111,6 +117,7 @@ class I18NIrGenerationExtension(
                             componentName,
                             stringValue
                         )
+                        generatedEntries.putIfAbsent(resourceKey, stringValue)
 
                         println("[I18N] Generated resource key: '$resourceKey' for string: '$stringValue'")
 
@@ -175,5 +182,149 @@ class I18NIrGenerationExtension(
             )
         tFunctionSymbol = tFunction
         return tFunction
+    }
+
+    private fun writeGeneratedResources() {
+        val outputPath = generatedResourceFile?.takeIf(String::isNotBlank) ?: return
+        val outputFile = File(outputPath)
+        outputFile.parentFile?.mkdirs()
+        val mergedEntries = linkedMapOf<String, String>()
+        if (outputFile.isFile) {
+            mergedEntries.putAll(readProperties(outputFile))
+        }
+        generatedEntries.forEach { (key, value) ->
+            mergedEntries.putIfAbsent(key, value)
+        }
+        outputFile.writeText(
+            buildString {
+                mergedEntries.forEach { (key, value) ->
+                    append(escapeKey(key))
+                    append('=')
+                    append(escapeValue(value))
+                    append('\n')
+                }
+            },
+        )
+    }
+
+    private fun readProperties(file: File): Map<String, String> {
+        val entries = linkedMapOf<String, String>()
+        file.readLines().forEach { rawLine ->
+            val trimmedStart = rawLine.trimStart()
+            if (trimmedStart.isBlank() || trimmedStart.startsWith("#") || trimmedStart.startsWith("!")) {
+                return@forEach
+            }
+            val separatorIndex = findSeparatorIndex(rawLine)
+            val rawKey = if (separatorIndex >= 0) {
+                rawLine.substring(0, separatorIndex)
+            } else {
+                rawLine
+            }
+            val rawValue = if (separatorIndex >= 0) {
+                rawLine.substring(separatorIndex + 1).trimStart()
+            } else {
+                ""
+            }
+            entries[decodeEscapes(rawKey)] = decodeEscapes(rawValue)
+        }
+        return entries
+    }
+
+    private fun findSeparatorIndex(line: String): Int {
+        for (index in line.indices) {
+            val current = line[index]
+            if ((current == '=' || current == ':') && !isEscaped(line, index)) {
+                return index
+            }
+        }
+        return -1
+    }
+
+    private fun isEscaped(text: String, index: Int): Boolean {
+        var backslashCount = 0
+        var cursor = index - 1
+        while (cursor >= 0 && text[cursor] == '\\') {
+            backslashCount += 1
+            cursor -= 1
+        }
+        return backslashCount % 2 == 1
+    }
+
+    private fun decodeEscapes(text: String): String {
+        if ('\\' !in text) {
+            return text
+        }
+        val decoded = StringBuilder(text.length)
+        var index = 0
+        while (index < text.length) {
+            val current = text[index]
+            if (current != '\\' || index == text.lastIndex) {
+                decoded.append(current)
+                index += 1
+                continue
+            }
+            val escaped = text[index + 1]
+            when (escaped) {
+                't' -> decoded.append('\t')
+                'r' -> decoded.append('\r')
+                'n' -> decoded.append('\n')
+                'f' -> decoded.append('\u000C')
+                'u' -> {
+                    val unicodeEnd = index + 6
+                    if (unicodeEnd <= text.length) {
+                        decoded.append(text.substring(index + 2, unicodeEnd).toInt(16).toChar())
+                        index += 6
+                        continue
+                    }
+                    decoded.append(escaped)
+                }
+                else -> decoded.append(escaped)
+            }
+            index += 2
+        }
+        return decoded.toString()
+    }
+
+    private fun escapeKey(text: String): String {
+        return buildString {
+            text.forEachIndexed { index, char ->
+                when {
+                    char == '\\' -> append("\\\\")
+                    char == '=' -> append("\\=")
+                    char == ':' -> append("\\:")
+                    char == '\n' -> append("\\n")
+                    char == '\r' -> append("\\r")
+                    char == '\t' -> append("\\t")
+                    char == '#' && index == 0 -> append("\\#")
+                    char == '!' && index == 0 -> append("\\!")
+                    else -> append(char)
+                }
+            }
+        }
+    }
+
+    private fun escapeValue(text: String): String {
+        return buildString {
+            text.forEachIndexed { index, char ->
+                when {
+                    char == '\\' -> append("\\\\")
+                    char == '\n' -> append("\\n")
+                    char == '\r' -> append("\\r")
+                    char == '\t' -> append("\\t")
+                    char == ' ' && index == 0 -> append("\\ ")
+                    else -> append(char)
+                }
+            }
+        }
+    }
+
+    companion object {
+        private val ignoredCallNames = setOf(
+            "sourceInformation",
+            "sourceInformationMarkerStart",
+            "sourceInformationMarkerEnd",
+            "traceEventStart",
+            "traceEventEnd",
+        )
     }
 }

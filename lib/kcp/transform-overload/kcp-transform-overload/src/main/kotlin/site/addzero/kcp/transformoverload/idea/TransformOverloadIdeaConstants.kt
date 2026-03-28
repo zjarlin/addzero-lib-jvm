@@ -10,7 +10,6 @@ internal object TransformOverloadIdeaConstants {
     const val transformProvider =
         "site.addzero.kcp.transformoverload.annotations.TransformProvider"
 
-    const val stubRootRelativePath = ".transform-overload/ideaStubs"
     const val stubFileName = "TransformOverloadStubs.kt"
     const val stubErrorMessage = "Transform overload IDE stub only"
 

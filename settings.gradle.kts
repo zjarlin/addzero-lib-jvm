@@ -28,7 +28,9 @@ val activeBuildLogicDir = when {
   else -> localBuildLogicDir
 }
 
-includeBuild(activeBuildLogicDir)
+includeBuild(activeBuildLogicDir) {
+  name = "addzero-lib-jvm-build-logic"
+}
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
 // Generated at: 2026-03-28T13:04:04.118052
@@ -41,3 +43,15 @@ project(":lib:ksp:route:route-core").projectDir = file("lib/ksp/route/route-core
 
 include(":lib:ksp:route:route-processor")
 project(":lib:ksp:route:route-processor").projectDir = file("lib/ksp/route/route-processor")
+
+include(":lib:kcp:kcp-i18n")
+project(":lib:kcp:kcp-i18n").projectDir = file("lib/kcp/kcp-i18n")
+
+include(":lib:kcp:kcp-i18n-runtime")
+project(":lib:kcp:kcp-i18n-runtime").projectDir = file("lib/kcp/kcp-i18n-runtime")
+
+include(":lib:kcp:kcp-i18n-gradle-plugin")
+project(":lib:kcp:kcp-i18n-gradle-plugin").projectDir = file("lib/kcp/kcp-i18n-gradle-plugin")
+
+include(":lib:kcp:kcp-i18n-idea-plugin")
+project(":lib:kcp:kcp-i18n-idea-plugin").projectDir = file("lib/kcp/kcp-i18n-idea-plugin")

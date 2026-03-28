@@ -16,5 +16,9 @@ class I18NPluginConfiguration {
         fun getResourceBasePath(configuration: CompilerConfiguration): String {
             return configuration.get(I18NPluginKeys.resourceBasePathKey) ?: "i18n"
         }
+
+        fun getGeneratedResourceFile(configuration: CompilerConfiguration): String? {
+            return configuration.get(I18NPluginKeys.generatedResourceFileKey)
+        }
     }
 }

@@ -13,6 +13,13 @@ class I18NCompilerPlugin : CompilerPluginRegistrar() {
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val targetLocale = I18NPluginConfiguration.getTargetLocale(configuration)
         val resourceBasePath = I18NPluginConfiguration.getResourceBasePath(configuration)
-        IrGenerationExtension.registerExtension(I18NIrGenerationExtension(targetLocale, resourceBasePath))
+        val generatedResourceFile = I18NPluginConfiguration.getGeneratedResourceFile(configuration)
+        IrGenerationExtension.registerExtension(
+            I18NIrGenerationExtension(
+                targetLocale = targetLocale,
+                resourceBasePath = resourceBasePath,
+                generatedResourceFile = generatedResourceFile,
+            ),
+        )
     }
 }

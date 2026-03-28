@@ -26,6 +26,13 @@ class I18NCommandLineProcessor : CommandLineProcessor {
             required = false,
             allowMultipleOccurrences = false,
         ),
+        CliOption(
+            optionName = I18NPluginKeys.generatedResourceFileOption,
+            valueDescription = "<generated-resource-file>",
+            description = "Absolute path of the fallback generated i18n properties file.",
+            required = false,
+            allowMultipleOccurrences = false,
+        ),
     )
 
     override fun processOption(
@@ -40,6 +47,10 @@ class I18NCommandLineProcessor : CommandLineProcessor {
 
             I18NPluginKeys.resourceBasePathOption -> {
                 configuration.put(I18NPluginKeys.resourceBasePathKey, value)
+            }
+
+            I18NPluginKeys.generatedResourceFileOption -> {
+                configuration.put(I18NPluginKeys.generatedResourceFileKey, value)
             }
 
             else -> {

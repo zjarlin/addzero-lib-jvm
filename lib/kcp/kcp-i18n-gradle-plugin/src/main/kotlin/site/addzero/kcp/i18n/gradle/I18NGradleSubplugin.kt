@@ -35,11 +35,25 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     override fun applyToCompilation(
         kotlinCompilation: KotlinCompilation<*>,
     ) = kotlinCompilation.target.project.provider<List<SubpluginOption>> {
-        val extension = kotlinCompilation.target.project.extensions.getByType(I18NGradleExtension::class.java)
-        listOf(
+        val project = kotlinCompilation.target.project
+        val extension = project.extensions.getByType(I18NGradleExtension::class.java)
+        buildList {
+            add(
             SubpluginOption(TARGET_LOCALE_OPTION, extension.targetLocale.get()),
-            SubpluginOption(RESOURCE_BASE_PATH_OPTION, extension.resourceBasePath.get()),
-        )
+            )
+            add(
+                SubpluginOption(RESOURCE_BASE_PATH_OPTION, extension.resourceBasePath.get()),
+            )
+            val generatedResourceFile = resolveGeneratedResourceFile(
+                project = project,
+                kotlinCompilation = kotlinCompilation,
+                resourceBasePath = extension.resourceBasePath.get(),
+                targetLocale = extension.targetLocale.get(),
+            )
+            if (generatedResourceFile != null) {
+                add(SubpluginOption(GENERATED_RESOURCE_FILE_OPTION, generatedResourceFile))
+            }
+        }
     }
 
     override fun getCompilerPluginId(): String {
@@ -68,7 +82,6 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         val configurationNames = listOf(
             "implementation",
             "api",
-            "commonMainImplementation",
             "jvmMainImplementation",
         )
         configurationNames.forEach { configurationName ->
@@ -95,6 +108,31 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         val version: String,
     )
 
+    private fun resolveGeneratedResourceFile(
+        project: Project,
+        kotlinCompilation: KotlinCompilation<*>,
+        resourceBasePath: String,
+        targetLocale: String,
+    ): String? {
+        if (kotlinCompilation.compilationName != "main") {
+            return null
+        }
+        val normalizedBasePath = resourceBasePath.trim().trim('/').ifBlank { "i18n" }
+        val relativePath = "$normalizedBasePath/$targetLocale.properties"
+        val outputFile = if (project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+            project.layout.buildDirectory
+                .file("processedResources/${kotlinCompilation.target.name}/${kotlinCompilation.compilationName}/$relativePath")
+                .get()
+                .asFile
+        } else {
+            project.layout.buildDirectory
+                .file("resources/${kotlinCompilation.compilationName}/$relativePath")
+                .get()
+                .asFile
+        }
+        return outputFile.absolutePath
+    }
+
     companion object {
         const val GRADLE_PLUGIN_ID: String = "site.addzero.kcp.i18n"
         const val COMPILER_PLUGIN_ID: String = "site.addzero.kcp.i18n"
@@ -102,6 +140,7 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         const val RUNTIME_ARTIFACT_ID: String = "kcp-i18n-runtime"
         const val TARGET_LOCALE_OPTION: String = "targetLocale"
         const val RESOURCE_BASE_PATH_OPTION: String = "resourceBasePath"
+        const val GENERATED_RESOURCE_FILE_OPTION: String = "generatedResourceFile"
 
         private const val RUNTIME_MARKER = "site.addzero.kcp.i18n.runtime-added"
         private const val PROPERTIES_RESOURCE = "site/addzero/kcp/i18n/gradle-plugin.properties"
