@@ -1,5 +1,6 @@
 plugins {
-  id("site.addzero.buildlogic.kmp.kmp-json-withtool")
+  id("site.addzero.buildlogic.jvm.kotlin-convention")
+  id("site.addzero.buildlogic.jvm.jvm-json-withtool")
 }
 val libs = versionCatalogs.named("libs")
 
@@ -12,4 +13,3 @@ dependencies {
   // Test Implementation
   testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
 }
-

@@ -5,7 +5,7 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(projects.lib.starterSpi)
+    implementation(project(":lib:tool-kmp:ktor:starter:starter-spi"))
     implementation(libs.findLibrary("io-ktor-ktor-server-core").get())
     implementation(libs.findLibrary("io-ktor-ktor-server-swagger").get())
 }

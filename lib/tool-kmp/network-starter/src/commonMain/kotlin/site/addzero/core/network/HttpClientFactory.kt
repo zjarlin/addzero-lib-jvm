@@ -43,8 +43,8 @@ data class HttpClientFeaturePolicy(
 
     fun resolve(): HttpClientFeatures {
         return HttpClientFeatures(
-            enableSse = enableSse == true,
-            enableWebSocket = enableWebSocket == true,
+            enableSse = enableSse ?: false,
+            enableWebSocket = enableWebSocket ?: false,
         )
     }
 }
@@ -293,7 +293,7 @@ class HttpClientFactory {
     }
 }
 
-private fun String.normalizeHttpClientProfile(): String {
+internal fun String.normalizeHttpClientProfile(): String {
     return trim().ifBlank { DEFAULT_HTTP_CLIENT_PROFILE }
 }
 

@@ -33,9 +33,47 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-28T13:04:04.118052
-// Loaded: 1, Excluded: 0, Total: 1
+// Generated at: 2026-03-29T19:47:13.583979
+// Loaded: 39, Excluded: 0, Total: 39
+include(":lib:api:api-music-spi")
+include(":lib:api:api-netease")
+include(":lib:api:api-qqmusic")
+include(":lib:api:api-suno")
 include(":lib:compose:compose-icon-map")
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+include(":lib:kbox-plugin-api")
+include(":lib:ksp:logger-api")
+include(":lib:ksp:metadata:apiprovider-gradle-plugin")
+include(":lib:ksp:metadata:apiprovider-processor")
+include(":lib:ksp:metadata:controller2api-gradle-plugin")
+include(":lib:ksp:metadata:controller2api-idea-plugin")
+include(":lib:ksp:metadata:controller2api-processor")
+include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-api")
+include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
+include(":lib:ksp:metadata:singleton-adapter-api")
+include(":lib:openapi-codegen")
+include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
+include(":lib:tool-jvm:network-call:chat:api-models-chat")
+include(":lib:tool-jvm:network-call:music:api-music-spi")
+include(":lib:tool-jvm:network-call:music:api-netease")
+include(":lib:tool-jvm:network-call:music:api-netease-semantic-impl")
+include(":lib:tool-jvm:network-call:music:tool-api-music-search")
+include(":lib:tool-jvm:network-call:music:tool-api-suno")
+include(":lib:tool-jvm:network-call:tool-api-maven")
+include(":lib:tool-jvm:network-call:tool-api-ocr")
+include(":lib:tool-jvm:network-call:tool-api-payment")
+include(":lib:tool-jvm:network-call:tool-api-soft-download")
+include(":lib:tool-jvm:network-call:tool-api-temp-mail")
+include(":lib:tool-jvm:network-call:tool-api-translate")
+include(":lib:tool-jvm:network-call:tool-api-tyc")
+include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
+include(":lib:tool-jvm:network-call:tool-api-video-parse")
+include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
+include(":lib:tool-jvm:network-call:tool-api-weather")
+include(":lib:tool-jvm:tool-api-jvm")
+include(":lib:tool-kmp:ktor:starter:starter-openapi")
+include(":lib:tool-kmp:ktor:starter:starter-spi")
+include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:route:route-core")
@@ -312,3 +350,101 @@ project(":lib:ksp:published-gradle-plugin-tests").projectDir = file("lib/ksp/pub
 
 include(":lib:tool-kmp:network-starter")
 project(":lib:tool-kmp:network-starter").projectDir = file("lib/tool-kmp/network-starter")
+
+include(":lib:tool-kmp:ktor:ktor-banner")
+project(":lib:tool-kmp:ktor:ktor-banner").projectDir = file("lib/tool-kmp/ktor/ktor-banner")
+
+include(":lib:tool-kmp:ktor:starter:starter-spi")
+project(":lib:tool-kmp:ktor:starter:starter-spi").projectDir = file("lib/tool-kmp/ktor/starter/starter-spi")
+
+include(":lib:tool-kmp:ktor:starter:starter-banner")
+project(":lib:tool-kmp:ktor:starter:starter-banner").projectDir = file("lib/tool-kmp/ktor/starter/starter-banner")
+
+include(":lib:tool-kmp:ktor:starter:starter-koin")
+project(":lib:tool-kmp:ktor:starter:starter-koin").projectDir = file("lib/tool-kmp/ktor/starter/starter-koin")
+
+include(":lib:tool-kmp:ktor:starter:starter-openapi")
+project(":lib:tool-kmp:ktor:starter:starter-openapi").projectDir = file("lib/tool-kmp/ktor/starter/starter-openapi")
+
+include(":lib:tool-kmp:ktor:starter:starter-serialization")
+project(":lib:tool-kmp:ktor:starter:starter-serialization").projectDir =
+  file("lib/tool-kmp/ktor/starter/starter-serialization")
+
+include(":lib:tool-kmp:ktor:starter:starter-statuspages")
+project(":lib:tool-kmp:ktor:starter:starter-statuspages").projectDir =
+  file("lib/tool-kmp/ktor/starter/starter-statuspages")
+
+include(":lib:tool-kmp:ktor:starter:starter-flyway")
+project(":lib:tool-kmp:ktor:starter:starter-flyway").projectDir =
+  file("lib/tool-kmp/ktor/starter/starter-flyway")
+
+include(":lib:tool-kmp:ktor:plugin:ktor-jimmer-plugin")
+project(":lib:tool-kmp:ktor:plugin:ktor-jimmer-plugin").projectDir =
+  file("lib/tool-kmp/ktor/plugin/ktor-jimmer-plugin")
+
+include(":lib:tool-kmp:ktor:plugin:ktor-s3-plugin")
+project(":lib:tool-kmp:ktor:plugin:ktor-s3-plugin").projectDir =
+  file("lib/tool-kmp/ktor/plugin/ktor-s3-plugin")
+
+include(":lib:api:api-music-spi")
+project(":lib:api:api-music-spi").projectDir = file("lib/api/api-music-spi")
+
+include(":lib:api:api-netease")
+project(":lib:api:api-netease").projectDir = file("lib/api/api-netease")
+
+include(":lib:api:api-qqmusic")
+project(":lib:api:api-qqmusic").projectDir = file("lib/api/api-qqmusic")
+
+include(":lib:api:api-suno")
+project(":lib:api:api-suno").projectDir = file("lib/api/api-suno")
+
+include(":lib:compose:app-sidebar")
+project(":lib:compose:app-sidebar").projectDir = file("lib/compose/app-sidebar")
+
+include(":lib:compose:glass-components")
+project(":lib:compose:glass-components").projectDir = file("lib/compose/glass-components")
+
+include(":lib:compose:liquid-glass")
+project(":lib:compose:liquid-glass").projectDir = file("lib/compose/liquid-glass")
+
+include(":lib:compose:media-playlist-player")
+project(":lib:compose:media-playlist-player").projectDir = file("lib/compose/media-playlist-player")
+
+include(":lib:compose:scaffold-spi")
+project(":lib:compose:scaffold-spi").projectDir = file("lib/compose/scaffold-spi")
+
+include(":lib:config-center:client")
+project(":lib:config-center:client").projectDir = file("lib/config-center/client")
+
+include(":lib:config-center:ktor")
+project(":lib:config-center:ktor").projectDir = file("lib/config-center/ktor")
+
+include(":lib:config-center:runtime-jvm")
+project(":lib:config-center:runtime-jvm").projectDir = file("lib/config-center/runtime-jvm")
+
+include(":lib:config-center:spec")
+project(":lib:config-center:spec").projectDir = file("lib/config-center/spec")
+
+include(":lib:kbox-core")
+project(":lib:kbox-core").projectDir = file("lib/kbox-core")
+
+include(":lib:kbox-plugin-api")
+project(":lib:kbox-plugin-api").projectDir = file("lib/kbox-plugin-api")
+
+include(":lib:kbox-plugin-runtime")
+project(":lib:kbox-plugin-runtime").projectDir = file("lib/kbox-plugin-runtime")
+
+include(":lib:kbox-ssh")
+project(":lib:kbox-ssh").projectDir = file("lib/kbox-ssh")
+
+include(":lib:kcloud-core")
+project(":lib:kcloud-core").projectDir = file("lib/kcloud-core")
+
+include(":lib:kcloud-paths")
+project(":lib:kcloud-paths").projectDir = file("lib/kcloud-paths")
+
+include(":lib:openapi-codegen")
+project(":lib:openapi-codegen").projectDir = file("lib/openapi-codegen")
+
+include(":lib:spec:system-spec")
+project(":lib:spec:system-spec").projectDir = file("lib/spec/system-spec")

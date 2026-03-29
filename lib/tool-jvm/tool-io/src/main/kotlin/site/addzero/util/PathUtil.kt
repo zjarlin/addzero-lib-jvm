@@ -33,6 +33,19 @@ object PathUtil {
         )
     }
 
+    fun configuredDirectory(
+        defaultDirectory: File,
+        systemProperty: String? = null,
+        createDirectories: Boolean = false,
+    ): File {
+        val overridePath = systemProperty
+            ?.takeIf { it.isNotBlank() }
+            ?.let(::propertyValue)
+            ?.takeIf { it.isNotBlank() }
+        val resolved = overridePath?.let(::File) ?: defaultDirectory
+        return materializeDirectory(resolved, createDirectories)
+    }
+
 
     fun child(
         parent: File,
