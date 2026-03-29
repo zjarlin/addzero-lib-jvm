@@ -7,6 +7,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
@@ -20,16 +21,25 @@ internal const val ROUTE_TABLE_NAME = "RouteTable"
 internal const val ROUTE_KEYS_NAME = "RouteKeys"
 
 internal data class RouteRecord(
-    val value: String,
+    val legacyValue: String,
     val title: String,
     val routePath: String,
     val icon: String,
     val order: Double,
     val qualifiedName: String,
     val simpleName: String,
+    val sceneId: String,
+    val sceneName: String,
+    val sceneIcon: String,
+    val sceneOrder: Int,
+    val menuPath: List<String>,
+    val defaultInScene: Boolean,
 ) {
     val uniqueId: String
         get() = qualifiedName.ifBlank { routePath }
+
+    val hasStructuredScene: Boolean
+        get() = sceneId.isNotBlank()
 }
 
 /**
@@ -88,6 +98,7 @@ class RouteMetadataProcessor(
             sharedSourceDir = Settings.sharedSourceDir,
             routeGenPkg = Settings.routeGenPkg,
             routeOwnerModuleDir = Settings.routeOwnerModule,
+            moduleKeyHint = options["routeModuleKey"].orEmpty(),
             moduleSourceRoots = moduleSourceRoots.toList(),
             routeItems = sortRoutes(collectedRoutes),
             logger = logger,
@@ -127,15 +138,31 @@ class RouteMetadataProcessor(
                 ?: 0.0
             val group = annotation.arguments.firstOrNull { it.name?.asString() == "value" }?.value as? String
                 ?: ""
+            val placement = annotation.arguments.firstOrNull { it.name?.asString() == "placement" }?.value as? KSAnnotation
+            val scene = placement?.arguments?.firstOrNull { it.name?.asString() == "scene" }?.value as? KSAnnotation
+            val menuPath = placement?.arguments
+                ?.firstOrNull { it.name?.asString() == "menuPath" }
+                ?.value
+                .asStringList()
+            val defaultInScene = placement?.arguments
+                ?.firstOrNull { it.name?.asString() == "defaultInScene" }
+                ?.value as? Boolean
+                ?: false
 
             RouteRecord(
-                value = group,
+                legacyValue = group,
                 title = title,
                 routePath = routePath,
                 icon = icon,
                 order = order,
                 qualifiedName = qualifiedName,
                 simpleName = simpleName,
+                sceneId = scene.stringArg("id"),
+                sceneName = scene.stringArg("name"),
+                sceneIcon = scene.stringArg("icon").ifBlank { "Apps" },
+                sceneOrder = scene.intArg("order", Int.MAX_VALUE),
+                menuPath = menuPath,
+                defaultInScene = defaultInScene,
             )
         } catch (e: Exception) {
             logger.error("Error processing Route annotation: ${e.message}", declaration)
@@ -182,24 +209,29 @@ internal fun renderRouteKeysCode(routeItems: List<RouteRecord>): String {
     val routeKeyNames = buildRouteKeyNames(routeItems)
     val routeKeyConstants = routeItems.joinToString("\n    ") { route ->
         val routeKeyName = routeKeyNames.getValue(route.uniqueId)
-        "const val $routeKeyName = \"${route.routePath}\""
+        "const val $routeKeyName = ${route.routePath.asKotlinStringLiteral()}"
     }
     val allMetaItems = routeItems.joinToString(",\n        ") { route ->
         "Route(" +
-            "value = \"${route.value}\", " +
-            "title = \"${route.title}\", " +
-            "routePath = \"${route.routePath}\", " +
-            "icon = \"${route.icon}\", " +
+            "value = ${route.legacyValue.asKotlinStringLiteral()}, " +
+            "title = ${route.title.asKotlinStringLiteral()}, " +
+            "routePath = ${route.routePath.asKotlinStringLiteral()}, " +
+            "icon = ${route.icon.asKotlinStringLiteral()}, " +
             "order = ${route.order}, " +
-            "qualifiedName = \"${route.qualifiedName}\", " +
-            "simpleName = \"${route.simpleName}\"" +
+            "placement = ${route.renderPlacementCode()}, " +
+            "qualifiedName = ${route.qualifiedName.asKotlinStringLiteral()}, " +
+            "simpleName = ${route.simpleName.asKotlinStringLiteral()}" +
             ")"
     }
 
     return """
+        |@file:Suppress("DEPRECATION")
+        |
         |package ${Settings.routeGenPkg}
         |
         |import site.addzero.annotation.Route
+        |import site.addzero.annotation.RoutePlacement
+        |import site.addzero.annotation.RouteScene
         |
         |/**
         | * 路由键
@@ -274,10 +306,71 @@ internal expect fun aggregateAndGenerateRoutes(
     sharedSourceDir: String,
     routeGenPkg: String,
     routeOwnerModuleDir: String,
+    moduleKeyHint: String,
     moduleSourceRoots: List<String>,
     routeItems: List<RouteRecord>,
     logger: KSPLogger,
 )
+
+private fun RouteRecord.renderPlacementCode(): String {
+    val menuPathCode = if (menuPath.isEmpty()) {
+        "emptyArray()"
+    } else {
+        menuPath.joinToString(
+            prefix = "arrayOf(",
+            postfix = ")",
+        ) { segment ->
+            segment.asKotlinStringLiteral()
+        }
+    }
+    return "RoutePlacement(" +
+        "scene = RouteScene(" +
+        "id = ${sceneId.asKotlinStringLiteral()}, " +
+        "name = ${sceneName.asKotlinStringLiteral()}, " +
+        "icon = ${sceneIcon.asKotlinStringLiteral()}, " +
+        "order = $sceneOrder" +
+        "), " +
+        "menuPath = $menuPathCode, " +
+        "defaultInScene = $defaultInScene" +
+        ")"
+}
+
+private fun Any?.asStringList(): List<String> {
+    return (this as? List<*>)
+        ?.mapNotNull { value -> value as? String }
+        ?: emptyList()
+}
+
+private fun KSAnnotation?.stringArg(name: String): String {
+    return this?.arguments
+        ?.firstOrNull { argument -> argument.name?.asString() == name }
+        ?.value as? String
+        ?: ""
+}
+
+private fun KSAnnotation?.intArg(name: String, defaultValue: Int): Int {
+    return this?.arguments
+        ?.firstOrNull { argument -> argument.name?.asString() == name }
+        ?.value as? Int
+        ?: defaultValue
+}
+
+private fun String.asKotlinStringLiteral(): String {
+    return buildString(length + 2) {
+        append('"')
+        this@asKotlinStringLiteral.forEach { ch ->
+            when (ch) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                '\t' -> append("\\t")
+                else -> append(ch)
+            }
+        }
+        append('"')
+    }
+}
 
 /**
  * 菜单元数据注解处理器提供者

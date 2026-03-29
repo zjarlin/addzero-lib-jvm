@@ -1,0 +1,197 @@
+package site.addzero.device.driver.modbus.rtu
+
+import com.fazecast.jSerialComm.SerialPort
+import com.ghgande.j2mod.modbus.facade.ModbusSerialMaster
+import com.ghgande.j2mod.modbus.net.AbstractSerialConnection
+import com.ghgande.j2mod.modbus.procimg.SimpleRegister
+import com.ghgande.j2mod.modbus.util.SerialParameters
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
+
+data class ModbusRtuEndpointConfig(
+    val serviceId: String,
+    val portPath: String,
+    val unitId: Int,
+    val baudRate: Int,
+    val dataBits: Int = 8,
+    val stopBits: Int = 1,
+    val parity: ModbusSerialParity = ModbusSerialParity.NONE,
+    val timeoutMs: Long,
+    val retries: Int,
+)
+
+enum class ModbusSerialParity {
+    NONE,
+    EVEN,
+    ODD,
+}
+
+interface ModbusRtuConfigProvider {
+    val serviceId: String
+    fun defaultConfig(): ModbusRtuEndpointConfig
+}
+
+class ModbusRtuConfigRegistry(
+    providers: List<ModbusRtuConfigProvider>,
+) {
+    private val configs: Map<String, ModbusRtuEndpointConfig> =
+        providers.associate { provider -> provider.serviceId to provider.defaultConfig() }
+
+    fun require(serviceId: String): ModbusRtuEndpointConfig =
+        configs[serviceId] ?: error("未找到 Modbus RTU 配置：$serviceId")
+}
+
+interface ModbusRtuExecutor {
+    suspend fun readHoldingRegisters(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        quantity: Int,
+    ): List<Int>
+
+    suspend fun readInputRegisters(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        quantity: Int,
+    ): List<Int>
+
+    suspend fun writeSingleCoil(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        value: Boolean,
+    )
+
+    suspend fun writeSingleRegister(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        value: Int,
+    )
+
+    suspend fun writeMultipleRegisters(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        values: List<Int>,
+    )
+}
+
+@Single
+class J2modModbusRtuExecutor : ModbusRtuExecutor {
+    override suspend fun readHoldingRegisters(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        withSerialMaster(config) { master ->
+            master.readMultipleRegisters(config.unitId, address, quantity).map { register -> register.toUnsignedShort() }
+        }
+
+    override suspend fun readInputRegisters(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        withSerialMaster(config) { master ->
+            master.readInputRegisters(config.unitId, address, quantity).map { register -> register.toUnsignedShort() }
+        }
+
+    override suspend fun writeSingleCoil(config: ModbusRtuEndpointConfig, address: Int, value: Boolean) {
+        withSerialMaster(config) { master ->
+            master.writeCoil(config.unitId, address, value)
+        }
+    }
+
+    override suspend fun writeSingleRegister(config: ModbusRtuEndpointConfig, address: Int, value: Int) {
+        withSerialMaster(config) { master ->
+            master.writeSingleRegister(config.unitId, address, SimpleRegister(value and 0xFFFF))
+        }
+    }
+
+    override suspend fun writeMultipleRegisters(config: ModbusRtuEndpointConfig, address: Int, values: List<Int>) {
+        withSerialMaster(config) { master ->
+            val registers = values.map { value -> SimpleRegister(value and 0xFFFF) }.toTypedArray()
+            master.writeMultipleRegisters(config.unitId, address, registers)
+        }
+    }
+
+    private suspend fun <T> withSerialMaster(
+        config: ModbusRtuEndpointConfig,
+        block: suspend (ModbusSerialMaster) -> T,
+    ): T = withContext(Dispatchers.IO) {
+        val totalAttempts = config.retries.coerceAtLeast(0) + 1
+        var lastError: Throwable? = null
+        repeat(totalAttempts) { attempt ->
+            val master = createSerialMaster(config)
+            try {
+                master.connect()
+                return@withContext block(master)
+            } catch (throwable: Throwable) {
+                lastError = throwable
+                if (attempt < totalAttempts - 1) {
+                    delay(80L)
+                }
+            } finally {
+                runCatching { master.disconnect() }
+            }
+        }
+
+        throw IllegalStateException(
+            "Modbus RTU 通信失败：service=${config.serviceId} port=${config.portPath} unit=${config.unitId}",
+            lastError,
+        )
+    }
+}
+
+internal fun createSerialMaster(config: ModbusRtuEndpointConfig): ModbusSerialMaster =
+    ModbusSerialMaster(createSerialParameters(config), config.timeoutMs.toInt())
+
+internal fun createSerialParameters(config: ModbusRtuEndpointConfig): SerialParameters =
+    SerialParameters(
+        config.portPath,
+        config.baudRate,
+        SerialPort.FLOW_CONTROL_DISABLED,
+        SerialPort.FLOW_CONTROL_DISABLED,
+        config.dataBits,
+        config.stopBits.toSerialStopBits(),
+        config.parity.toSerialParity(),
+        false,
+    ).apply {
+        encoding = "rtu"
+        openDelay = 0
+    }
+
+private fun Int.toSerialStopBits(): Int =
+    when (this) {
+        2 -> SerialPort.TWO_STOP_BITS
+        else -> SerialPort.ONE_STOP_BIT
+    }
+
+private fun ModbusSerialParity.toSerialParity(): Int =
+    when (this) {
+        ModbusSerialParity.NONE -> SerialPort.NO_PARITY
+        ModbusSerialParity.EVEN -> SerialPort.EVEN_PARITY
+        ModbusSerialParity.ODD -> SerialPort.ODD_PARITY
+    }
+
+class UnsupportedModbusRtuExecutor : ModbusRtuExecutor {
+    override suspend fun readHoldingRegisters(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+
+    override suspend fun readInputRegisters(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+
+    override suspend fun writeSingleCoil(config: ModbusRtuEndpointConfig, address: Int, value: Boolean) {
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+    }
+
+    override suspend fun writeSingleRegister(config: ModbusRtuEndpointConfig, address: Int, value: Int) {
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+    }
+
+    override suspend fun writeMultipleRegisters(config: ModbusRtuEndpointConfig, address: Int, values: List<Int>) {
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+    }
+}
+
+/**
+ * Modbus RTU 运行时的 Koin 模块。
+ *
+ * 统一通过 KCP 注解扫描收集运行时实现，不再暴露手写 DSL 模块。
+ */
+@Module
+@ComponentScan("site.addzero.device.driver.modbus.rtu")
+class ModbusRuntimeKoinModule

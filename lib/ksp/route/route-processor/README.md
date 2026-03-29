@@ -7,6 +7,32 @@
 
 这里的设计目标是把“可共享的路由常量”与“真正持有 Composable 映射表的 owner 模块”拆开，避免跨模块直接把 `RouteTable` 落到公共源码目录。
 
+## Route 元数据模型
+
+当前推荐通过 `placement` 承载导航语义，而不是继续扩展顶层 `scene*` 字段：
+
+```kotlin
+@Route(
+    title = "用户列表",
+    routePath = "system/users",
+    placement = RoutePlacement(
+        scene = RouteScene(
+            id = "system",
+            name = "系统",
+            icon = "AdminPanelSettings",
+            order = 100,
+        ),
+        menuPath = ["用户中心"],
+        defaultInScene = true,
+    ),
+)
+```
+
+- `Route.value` 已降级为兼容字段，不再建议作为菜单分组语义使用
+- `placement.scene` 定义顶部场景切换所需元数据
+- `placement.menuPath` 定义场景内侧边栏分组
+- `placement.defaultInScene` 用于显式标记场景默认页
+
 ## 支持的符号
 
 当前会处理以下带 `@Route` 的声明：
@@ -38,6 +64,7 @@
 
 - 输出目录：`sharedSourceDir`
 - 用途：共享路由常量与 `allMeta`
+- `allMeta` 会保留结构化 `RoutePlacement` / `RouteScene` 数据
 
 ### `RouteTable.kt`
 
@@ -124,6 +151,14 @@ ksp {
 ### 重复 `routePath`
 
 如果不同声明生成了相同的 `routePath`，聚合阶段会记录 warning，并按最后写入的快照结果覆盖。
+
+### 重复 `scene.id`
+
+如果多个路由声明了同一个 `scene.id`，它们的 `scene.name` / `scene.icon` / `scene.order` 必须完全一致，否则聚合阶段会直接失败。
+
+### 重复 `defaultInScene`
+
+同一个 `scene.id` 只能有一个 `defaultInScene = true`，否则聚合阶段会直接失败。
 
 ### 重复 Route 常量名
 

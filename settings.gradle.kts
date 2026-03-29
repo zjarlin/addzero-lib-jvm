@@ -55,3 +55,18 @@ project(":lib:kcp:kcp-i18n-gradle-plugin").projectDir = file("lib/kcp/kcp-i18n-g
 
 include(":lib:kcp:kcp-i18n-idea-plugin")
 project(":lib:kcp:kcp-i18n-idea-plugin").projectDir = file("lib/kcp/kcp-i18n-idea-plugin")
+
+include(":lib:compose:compose-zh-fonts")
+project(":lib:compose:compose-zh-fonts").projectDir = file("lib/compose/compose-zh-fonts")
+
+include(":lib:ksp:metadata:modbus:modbus-runtime")
+project(":lib:ksp:metadata:modbus:modbus-runtime").projectDir = file("lib/ksp/metadata/modbus/modbus-runtime")
+
+include(":lib:ksp:metadata:modbus:modbus-ksp-core")
+project(":lib:ksp:metadata:modbus:modbus-ksp-core").projectDir = file("lib/ksp/metadata/modbus/modbus-ksp-core")
+
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+project(":lib:ksp:metadata:modbus:modbus-ksp-rtu").projectDir = file("lib/ksp/metadata/modbus/modbus-ksp-rtu")
+
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+project(":lib:ksp:metadata:modbus:modbus-ksp-tcp").projectDir = file("lib/ksp/metadata/modbus/modbus-ksp-tcp")
