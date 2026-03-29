@@ -3,7 +3,7 @@ package site.addzero.vibepocket.api.netease
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.plugins.*
 import io.ktor.http.*
-import site.addzero.core.network.apiClient
+import site.addzero.core.network.HttpClientFactory
 
 /**
  * 网易云音乐 API 客户端
@@ -14,12 +14,14 @@ import site.addzero.core.network.apiClient
 object MusicSearchClient {
 
     private const val BASE_URL = "https://music.163.com/api/"
+    private val httpClientFactory: HttpClientFactory
+        get() = HttpClientFactory.shared()
 
     var mytoken: String? = null
 
     private val music163Ktorfit = Ktorfit.Builder()
         .baseUrl(BASE_URL)
-        .httpClient(apiClient.config {
+        .httpClient(httpClientFactory.get().config {
             defaultRequest {
                 url(BASE_URL)
             }

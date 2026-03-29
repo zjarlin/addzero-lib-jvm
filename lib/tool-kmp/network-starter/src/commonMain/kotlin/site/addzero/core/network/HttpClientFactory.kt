@@ -19,9 +19,9 @@ import site.addzero.ktor2curl.KtorToCurl
 import site.addzero.util.KoinInjector
 import kotlin.time.Duration.Companion.minutes
 
-const val DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE = "default"
+const val DEFAULT_HTTP_CLIENT_PROFILE = "default"
 
-data class AddZeroHttpClientRequestContribution(
+data class HttpClientRequestContribution(
     val headers: Map<String, String> = emptyMap(),
     val bearerToken: String? = null,
 ) {
@@ -30,81 +30,81 @@ data class AddZeroHttpClientRequestContribution(
     }
 }
 
-data class AddZeroHttpClientFeaturePolicy(
+data class HttpClientFeaturePolicy(
     val enableSse: Boolean? = null,
     val enableWebSocket: Boolean? = null,
 ) {
-    fun merge(other: AddZeroHttpClientFeaturePolicy): AddZeroHttpClientFeaturePolicy {
-        return AddZeroHttpClientFeaturePolicy(
+    fun merge(other: HttpClientFeaturePolicy): HttpClientFeaturePolicy {
+        return HttpClientFeaturePolicy(
             enableSse = other.enableSse ?: enableSse,
             enableWebSocket = other.enableWebSocket ?: enableWebSocket,
         )
     }
 
-    fun resolve(): AddZeroHttpClientResolvedFeatures {
-        return AddZeroHttpClientResolvedFeatures(
+    fun resolve(): HttpClientFeatures {
+        return HttpClientFeatures(
             enableSse = enableSse == true,
             enableWebSocket = enableWebSocket == true,
         )
     }
 }
 
-data class AddZeroHttpClientResolvedFeatures(
+data class HttpClientFeatures(
     val enableSse: Boolean = false,
     val enableWebSocket: Boolean = false,
 )
 
-interface AddZeroHttpClientProfileSpi {
+interface HttpClientProfileSpi {
     val profile: String
-        get() = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE
+        get() = DEFAULT_HTTP_CLIENT_PROFILE
 
     val order: Int
         get() = 0
 
-    fun requestContribution(): AddZeroHttpClientRequestContribution {
-        return AddZeroHttpClientRequestContribution()
+    fun requestContribution(): HttpClientRequestContribution {
+        return HttpClientRequestContribution()
     }
 
-    fun featurePolicy(): AddZeroHttpClientFeaturePolicy {
-        return AddZeroHttpClientFeaturePolicy()
+    fun featurePolicy(): HttpClientFeaturePolicy {
+        return HttpClientFeaturePolicy()
     }
 
     fun configure(config: HttpClientConfig<*>) = Unit
 }
 
-private data class AddZeroHttpClientRuntimeSettings(
-    val requestContribution: AddZeroHttpClientRequestContribution = AddZeroHttpClientRequestContribution(),
-    val featurePolicy: AddZeroHttpClientFeaturePolicy = AddZeroHttpClientFeaturePolicy(),
+private data class HttpClientRuntimeSettings(
+    val requestContribution: HttpClientRequestContribution = HttpClientRequestContribution(),
+    val featurePolicy: HttpClientFeaturePolicy = HttpClientFeaturePolicy(),
 ) {
     fun isEmpty(): Boolean {
         return requestContribution.isEmpty() &&
-            featurePolicy == AddZeroHttpClientFeaturePolicy()
+            featurePolicy == HttpClientFeaturePolicy()
     }
 }
 
 @Single
-class AddZeroHttpClientFactory {
+class HttpClientFactory {
     companion object {
-        fun shared(): AddZeroHttpClientFactory {
+        fun shared(): HttpClientFactory {
             return KoinInjector.inject()
         }
     }
 
     private data class CacheKey(
         val profile: String,
-        val features: AddZeroHttpClientResolvedFeatures,
+        val features: HttpClientFeatures,
     )
 
-    private val settingsByProfile = mutableMapOf<String, AddZeroHttpClientRuntimeSettings>()
+    private val settingsByProfile = mutableMapOf<String, HttpClientRuntimeSettings>()
     private val clients = linkedMapOf<CacheKey, HttpClient>()
 
     fun get(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
-        overrides: AddZeroHttpClientFeaturePolicy = AddZeroHttpClientFeaturePolicy(),
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
+        overrides: HttpClientFeaturePolicy = HttpClientFeaturePolicy(),
     ): HttpClient {
         val normalizedProfile = profile.normalizeHttpClientProfile()
-        val contributors = collectContributors(normalizedProfile)
-        val resolvedFeatures = contributors.fold(AddZeroHttpClientFeaturePolicy()) { acc, contributor ->
+        val contributors = collectProfiles(normalizedProfile)
+        val resolvedFeatures = contributors.fold(HttpClientFeaturePolicy()) { acc, contributor ->
             acc.merge(contributor.featurePolicy())
         }.merge(snapshotSettings(normalizedProfile).featurePolicy)
             .merge(overrides)
@@ -125,7 +125,7 @@ class AddZeroHttpClientFactory {
     }
 
     fun putHeader(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
         name: String,
         value: String?,
     ) {
@@ -146,13 +146,13 @@ class AddZeroHttpClientFactory {
     }
 
     fun removeHeader(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
         name: String,
     ) {
         putHeader(profile = profile, name = name, value = null)
     }
 
-    fun clearHeaders(profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE) {
+    fun clearHeaders(profile: String = DEFAULT_HTTP_CLIENT_PROFILE) {
         updateRuntimeSettings(profile) { settings ->
             settings.copy(
                 requestContribution = settings.requestContribution.copy(
@@ -163,7 +163,7 @@ class AddZeroHttpClientFactory {
     }
 
     fun setBearerToken(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
         token: String?,
     ) {
         updateRuntimeSettings(profile) { settings ->
@@ -176,8 +176,8 @@ class AddZeroHttpClientFactory {
     }
 
     fun setFeaturePolicy(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
-        featurePolicy: AddZeroHttpClientFeaturePolicy,
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
+        featurePolicy: HttpClientFeaturePolicy,
     ) {
         updateFeaturePolicy(profile) {
             featurePolicy
@@ -185,7 +185,7 @@ class AddZeroHttpClientFactory {
     }
 
     fun setSseEnabled(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
         enabled: Boolean?,
     ) {
         updateFeaturePolicy(profile) { featurePolicy ->
@@ -194,7 +194,7 @@ class AddZeroHttpClientFactory {
     }
 
     fun setWebSocketEnabled(
-        profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE,
+        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
         enabled: Boolean?,
     ) {
         updateFeaturePolicy(profile) { featurePolicy ->
@@ -202,23 +202,23 @@ class AddZeroHttpClientFactory {
         }
     }
 
-    fun clear(profile: String = DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE) {
+    fun clear(profile: String = DEFAULT_HTTP_CLIENT_PROFILE) {
         val normalizedProfile = profile.normalizeHttpClientProfile()
         val previousFeaturePolicy = snapshotSettings(normalizedProfile).featurePolicy
         synchronized(this) {
             settingsByProfile.remove(normalizedProfile)
         }
-        if (previousFeaturePolicy != AddZeroHttpClientFeaturePolicy()) {
+        if (previousFeaturePolicy != HttpClientFeaturePolicy()) {
             invalidate(normalizedProfile)
         }
     }
 
     private fun buildClient(
         profile: String,
-        contributors: List<AddZeroHttpClientProfileSpi>,
-        features: AddZeroHttpClientResolvedFeatures,
+        contributors: List<HttpClientProfileSpi>,
+        features: HttpClientFeatures,
     ): HttpClient {
-        return HttpClient(addZeroHttpClientEngineFactory) {
+        return HttpClient(httpClientEngineFactory) {
             configClient().invoke(this)
             if (features.enableSse) {
                 install(SSE) {
@@ -249,28 +249,28 @@ class AddZeroHttpClientFactory {
         removed.forEach(HttpClient::close)
     }
 
-    private fun collectContributors(profile: String): List<AddZeroHttpClientProfileSpi> {
-        return KoinInjector.injectList<AddZeroHttpClientProfileSpi>()
+    private fun collectProfiles(profile: String): List<HttpClientProfileSpi> {
+        return KoinInjector.injectList<HttpClientProfileSpi>()
             .filter { contributor -> contributor.profile.normalizeHttpClientProfile() == profile }
-            .sortedBy(AddZeroHttpClientProfileSpi::order)
+            .sortedBy(HttpClientProfileSpi::order)
     }
 
-    private fun snapshotSettings(profile: String): AddZeroHttpClientRuntimeSettings {
+    private fun snapshotSettings(profile: String): HttpClientRuntimeSettings {
         return synchronized(this) {
-            settingsByProfile[profile] ?: AddZeroHttpClientRuntimeSettings()
+            settingsByProfile[profile] ?: HttpClientRuntimeSettings()
         }
     }
 
     private fun updateRuntimeSettings(
         profile: String,
-        transform: (AddZeroHttpClientRuntimeSettings) -> AddZeroHttpClientRuntimeSettings,
-    ): AddZeroHttpClientRuntimeSettings {
+        transform: (HttpClientRuntimeSettings) -> HttpClientRuntimeSettings,
+    ): HttpClientRuntimeSettings {
         val normalizedProfile = profile.normalizeHttpClientProfile()
         return synchronized(this) {
-            val updated = transform(settingsByProfile[normalizedProfile] ?: AddZeroHttpClientRuntimeSettings())
+            val updated = transform(settingsByProfile[normalizedProfile] ?: HttpClientRuntimeSettings())
             if (updated.isEmpty()) {
                 settingsByProfile.remove(normalizedProfile)
-                AddZeroHttpClientRuntimeSettings()
+                HttpClientRuntimeSettings()
             } else {
                 settingsByProfile[normalizedProfile] = updated
                 updated
@@ -280,7 +280,7 @@ class AddZeroHttpClientFactory {
 
     private fun updateFeaturePolicy(
         profile: String,
-        transform: (AddZeroHttpClientFeaturePolicy) -> AddZeroHttpClientFeaturePolicy,
+        transform: (HttpClientFeaturePolicy) -> HttpClientFeaturePolicy,
     ) {
         val normalizedProfile = profile.normalizeHttpClientProfile()
         val previousFeaturePolicy = snapshotSettings(normalizedProfile).featurePolicy
@@ -294,12 +294,12 @@ class AddZeroHttpClientFactory {
 }
 
 private fun String.normalizeHttpClientProfile(): String {
-    return trim().ifBlank { DEFAULT_ADDZERO_HTTP_CLIENT_PROFILE }
+    return trim().ifBlank { DEFAULT_HTTP_CLIENT_PROFILE }
 }
 
 private fun HeadersBuilder.applyProfileContributions(
-    contributors: List<AddZeroHttpClientProfileSpi>,
-    runtimeContribution: AddZeroHttpClientRequestContribution,
+    contributors: List<HttpClientProfileSpi>,
+    runtimeContribution: HttpClientRequestContribution,
 ) {
     contributors.forEach { contributor ->
         applyContribution(contributor.requestContribution())
@@ -308,7 +308,7 @@ private fun HeadersBuilder.applyProfileContributions(
 }
 
 private fun HeadersBuilder.applyContribution(
-    contribution: AddZeroHttpClientRequestContribution,
+    contribution: HttpClientRequestContribution,
 ) {
     contribution.headers.forEach { (name, value) ->
         remove(name)
@@ -320,7 +320,7 @@ private fun HeadersBuilder.applyContribution(
     }
 }
 
-internal expect val addZeroHttpClientEngineFactory: HttpClientEngineFactory<*>
+internal expect val httpClientEngineFactory: HttpClientEngineFactory<*>
 
 private fun configClient(): HttpClientConfig<*>.() -> Unit = {
     configTimeout()
