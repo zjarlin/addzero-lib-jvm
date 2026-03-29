@@ -12,7 +12,27 @@
 
 ## Gradle 接入
 
-最小接入：
+推荐直接使用消费插件：
+
+```kotlin
+plugins {
+    kotlin("jvm")
+    id("site.addzero.ksp.spring2ktor-server")
+}
+
+spring2ktorServer {
+    generatedPackage.set("com.example.generated.springktor")
+}
+```
+
+这个插件会自动：
+
+- 应用 `com.google.devtools.ksp`
+- 注入 `spring2ktor-server-processor`
+- 注入 `spring2ktor-server-core`
+- 添加 `compileOnly("org.springframework:spring-web")`
+
+如果你需要最低层手动控制，仍然可以继续使用原始依赖写法：
 
 ```kotlin
 plugins {

@@ -2,8 +2,8 @@ package site.addzero
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
-import site.addzero.context.SettingContext.settings
-import site.addzero.context.Settings
+import site.addzero.jdbc2enum.processor.context.SettingContext.settings
+import site.addzero.jdbc2enum.processor.context.Settings
 import site.addzero.util.PinYin4JUtils
 import site.addzero.util.str.isNotBlank
 import site.addzero.util.str.withPkg

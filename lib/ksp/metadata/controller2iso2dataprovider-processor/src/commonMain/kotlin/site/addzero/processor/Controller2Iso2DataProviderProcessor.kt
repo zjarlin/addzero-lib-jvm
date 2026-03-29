@@ -1,6 +1,7 @@
 package site.addzero.processor
 
 import site.addzero.context.SettingContext
+import site.addzero.context.SettingContext.settings
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -129,7 +130,7 @@ class Controller2Iso2DataProviderProcessor(
         val entityClassName = entityType.declaration.simpleName.asString()
         // 根据实体类名生成同构体全限定名：实体名 + Iso 后缀（避免重复添加 Iso）
         val isoClassName = if (entityClassName.endsWith("Iso")) entityClassName else "${entityClassName}Iso"
-        val isoQualifiedName = "site.addzero.generated.isomorphic.$isoClassName"
+        val isoQualifiedName = "${settings.isomorphicPackageName}.$isoClassName"
 
         return ControllerInfo(
             controllerName = controller.simpleName.asString(),
@@ -143,13 +144,12 @@ class Controller2Iso2DataProviderProcessor(
      */
     private fun generateIso2DataProvider(controllerInfos: List<ControllerInfo>) {
         // 从 KSP 配置中获取包名，默认为 site.addzero.form_mapping
-        val packageName =
-            options["iso2DataProviderPackage"] ?: throw IllegalArgumentException("iso2DataProviderPackage 不能为空")
+        val packageName = options["iso2DataProviderPackage"]
+            ?.takeIf { it.isNotBlank() }
+            ?: settings.iso2DataProviderPackage
 
         val packagePath = packageName.replace(".", "/")
-
-        // 生成到 shared 源码目录，而不是 build 目录
-        val outputDir = File(SettingContext.settings.sharedComposeSourceDir, packagePath)
+        val outputDir = File(settings.sharedComposeSourceDir, packagePath)
         outputDir.mkdirs()
 
         // 生成导入语句
@@ -167,7 +167,7 @@ class Controller2Iso2DataProviderProcessor(
         val code = """
             |package $packageName
             |
-            |import site.addzero.generated.api.ApiProvider
+            |import ${settings.apiClientPackageName}.ApiProvider
             |$imports
             |
             |

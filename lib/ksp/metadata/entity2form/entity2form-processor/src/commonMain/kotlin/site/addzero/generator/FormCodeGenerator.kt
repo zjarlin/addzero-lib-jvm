@@ -8,6 +8,7 @@ import androidx.room.compiler.processing.XType
 import androidx.room.compiler.processing.XTypeElement
 import com.google.devtools.ksp.processing.KSPLogger
 import java.io.File
+import site.addzero.context.SettingContext
 
 /**
  * 表单代码生成器（XProcessing 版本）
@@ -22,6 +23,8 @@ class FormCodeGenerator(
         val entityClassName = entity.name
         val isoClassName = "${entityClassName}Iso"
         val properties = collectProperties(entity)
+        val settings = SettingContext.settings
+        val apiProviderImport = "${settings.iso2DataProviderPackage}.Iso2DataProvider"
 
         val formFields = properties.joinToString(",\n") { property ->
             generateFieldCode(entityClassName, property)
@@ -59,9 +62,9 @@ class FormCodeGenerator(
             |import site.addzero.component.form.selector.AddGenericMultiSelector
             |import site.addzero.core.ext.parseObjectByKtx
             |import site.addzero.core.validation.RegexEnum
-            |import site.addzero.generated.isomorphic.*
-            |import site.addzero.generated.forms.dataprovider.Iso2DataProvider
-            |import site.addzero.generated.enums.*
+            |import ${settings.isomorphicPackageName}.*
+            |import $apiProviderImport
+            |import ${settings.enumOutputPackage}.*
             |
             |$formProps
             |

@@ -3,17 +3,18 @@ package site.addzero.processor
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSNode
 import java.nio.file.Files
+import java.util.Base64
 import kotlin.io.path.createDirectories
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFailsWith
-import site.addzero.context.Settings
+import site.addzero.route.processor.context.Settings
 
 class RouteMetadataAggregatorJvmTest {
     @Test
-    fun renderRouteKeysCodeIncludesPlacementMetadata() {
+    fun renderRouteKeysCodeIncludesSceneAndParentMetadata() {
         Settings.fromOptions(
             mapOf(
                 "sharedSourceDir" to "/tmp/shared/src/commonMain/kotlin",
@@ -25,22 +26,25 @@ class RouteMetadataAggregatorJvmTest {
         val code = renderRouteKeysCode(
             listOf(
                 routeRecord(
+                    parentName = "控制台",
                     title = "Dashboard",
                     routePath = "system/dashboard",
                     qualifiedName = "sample.DashboardScreen",
                     simpleName = "DashboardScreen",
-                    sceneId = "system",
                     sceneName = "系统",
                     sceneIcon = "AdminPanelSettings",
                     sceneOrder = 100,
-                    menuPath = listOf("控制台"),
                     defaultInScene = true,
                 ),
             ),
         )
 
         assertContains(code, """import site.addzero.annotation.RoutePlacement""")
-        assertContains(code, """RoutePlacement(scene = RouteScene(id = "system", name = "系统", icon = "AdminPanelSettings", order = 100), menuPath = arrayOf("控制台"), defaultInScene = true)""")
+        assertContains(code, "Route(value = \"控制台\"")
+        assertContains(
+            code,
+            """RoutePlacement(scene = RouteScene(name = "系统", icon = "AdminPanelSettings", order = 100), defaultInScene = true)""",
+        )
     }
 
     @Test
@@ -58,18 +62,40 @@ class RouteMetadataAggregatorJvmTest {
                 "routeOwnerModule" to ownerSourceDir.toString(),
             ),
         )
-        snapshotDir.resolve("legacy.route-snapshot").writeText(
+        snapshotDir.resolve("legacy-v1.route-snapshot").writeText(
             buildString {
                 appendLine("# addzero-route-snapshot:v1")
                 appendLine(
                     encodeSnapshotLineV1(
-                        legacyValue = "旧菜单",
-                        title = "Legacy Screen",
-                        routePath = "legacy/screen",
+                        parentName = "旧菜单",
+                        title = "Legacy V1 Screen",
+                        routePath = "legacy/v1-screen",
                         icon = "Apps",
                         order = 1.0,
-                        qualifiedName = "legacy.LegacyScreen",
-                        simpleName = "LegacyScreen",
+                        qualifiedName = "legacy.LegacyV1Screen",
+                        simpleName = "LegacyV1Screen",
+                    ),
+                )
+            },
+        )
+        snapshotDir.resolve("legacy-v2.route-snapshot").writeText(
+            buildString {
+                appendLine("# addzero-route-snapshot:v2")
+                appendLine(
+                    encodeSnapshotLineV2(
+                        legacyValue = "",
+                        title = "Legacy V2 Screen",
+                        routePath = "legacy/v2-screen",
+                        icon = "Apps",
+                        order = 2.0,
+                        qualifiedName = "legacy.LegacyV2Screen",
+                        simpleName = "LegacyV2Screen",
+                        sceneId = "legacy-scene",
+                        sceneName = "Legacy",
+                        sceneIcon = "Apps",
+                        sceneOrder = 20,
+                        menuPath = listOf("Legacy Root", "Legacy Group"),
+                        defaultInScene = true,
                     ),
                 )
             },
@@ -83,15 +109,14 @@ class RouteMetadataAggregatorJvmTest {
             moduleSourceRoots = listOf(tempRoot.resolve("feature/src/commonMain/kotlin").toString()),
             routeItems = listOf(
                 routeRecord(
+                    parentName = "Fresh Menu",
                     title = "Fresh Screen",
                     routePath = "fresh/screen",
                     qualifiedName = "fresh.FreshScreen",
                     simpleName = "FreshScreen",
-                    sceneId = "fresh-scene",
                     sceneName = "Fresh",
                     sceneIcon = "Apps",
                     sceneOrder = 10,
-                    menuPath = listOf("Fresh Menu"),
                     defaultInScene = true,
                 ),
             ),
@@ -102,10 +127,13 @@ class RouteMetadataAggregatorJvmTest {
             .resolve("site/addzero/generated/RouteKeys.kt")
             .readText()
 
-        assertContains(routeKeysCode, "\"legacy/screen\"")
+        assertContains(routeKeysCode, "\"legacy/v1-screen\"")
+        assertContains(routeKeysCode, "\"legacy/v2-screen\"")
         assertContains(routeKeysCode, "\"fresh/screen\"")
-        assertContains(routeKeysCode, """RoutePlacement(scene = RouteScene(id = "", name = "", icon = "Apps", order = 2147483647), menuPath = emptyArray(), defaultInScene = false)""")
-        assertContains(routeKeysCode, """RoutePlacement(scene = RouteScene(id = "fresh-scene", name = "Fresh", icon = "Apps", order = 10), menuPath = arrayOf("Fresh Menu"), defaultInScene = true)""")
+        assertContains(routeKeysCode, "Route(value = \"旧菜单\"")
+        assertContains(routeKeysCode, "Route(value = \"Legacy Root/Legacy Group\"")
+        assertContains(routeKeysCode, """RoutePlacement(scene = RouteScene(name = "Legacy", icon = "Apps", order = 20), defaultInScene = true)""")
+        assertContains(routeKeysCode, """RoutePlacement(scene = RouteScene(name = "Fresh", icon = "Apps", order = 10), defaultInScene = true)""")
     }
 
     @Test
@@ -126,21 +154,19 @@ class RouteMetadataAggregatorJvmTest {
         )
         staleSnapshot.writeText(
             buildString {
-                appendLine("# addzero-route-snapshot:v2")
+                appendLine("# addzero-route-snapshot:v3")
                 appendLine(
-                    encodeSnapshotLineV2(
-                        legacyValue = "",
+                    encodeSnapshotLineV3(
+                        parentName = "",
                         title = "Stale Screen",
                         routePath = "stale/screen",
                         icon = "Apps",
                         order = 0.0,
                         qualifiedName = "stale.StaleScreen",
                         simpleName = "StaleScreen",
-                        sceneId = "",
                         sceneName = "",
                         sceneIcon = "Apps",
                         sceneOrder = Int.MAX_VALUE,
-                        menuPath = emptyList(),
                         defaultInScene = false,
                     ),
                 )
@@ -172,7 +198,6 @@ class RouteMetadataAggregatorJvmTest {
                         routePath = "system/one",
                         qualifiedName = "sample.OneScreen",
                         simpleName = "OneScreen",
-                        sceneId = "system",
                         sceneName = "系统",
                         sceneIcon = "AdminPanelSettings",
                         sceneOrder = 100,
@@ -182,8 +207,7 @@ class RouteMetadataAggregatorJvmTest {
                         routePath = "system/two",
                         qualifiedName = "sample.TwoScreen",
                         simpleName = "TwoScreen",
-                        sceneId = "system",
-                        sceneName = "System",
+                        sceneName = "系统",
                         sceneIcon = "Apps",
                         sceneOrder = 200,
                     ),
@@ -192,8 +216,8 @@ class RouteMetadataAggregatorJvmTest {
             )
         }
 
-        assertContains(error.message.orEmpty(), "scene.id=system metadata mismatch")
-        assertContains(logger.errors.single(), "scene.id=system metadata mismatch")
+        assertContains(error.message.orEmpty(), "scene.name=系统 metadata mismatch")
+        assertContains(logger.errors.single(), "scene.name=系统 metadata mismatch")
     }
 
     @Test
@@ -208,7 +232,6 @@ class RouteMetadataAggregatorJvmTest {
                         routePath = "system/one",
                         qualifiedName = "sample.OneScreen",
                         simpleName = "OneScreen",
-                        sceneId = "system",
                         sceneName = "系统",
                         sceneIcon = "AdminPanelSettings",
                         sceneOrder = 100,
@@ -219,7 +242,6 @@ class RouteMetadataAggregatorJvmTest {
                         routePath = "system/two",
                         qualifiedName = "sample.TwoScreen",
                         simpleName = "TwoScreen",
-                        sceneId = "system",
                         sceneName = "系统",
                         sceneIcon = "AdminPanelSettings",
                         sceneOrder = 100,
@@ -230,42 +252,39 @@ class RouteMetadataAggregatorJvmTest {
             )
         }
 
-        assertContains(error.message.orEmpty(), "scene.id=system has multiple default routes")
-        assertContains(logger.errors.single(), "scene.id=system has multiple default routes")
+        assertContains(error.message.orEmpty(), "scene.name=系统 has multiple default routes")
+        assertContains(logger.errors.single(), "scene.name=系统 has multiple default routes")
     }
 }
 
 private fun routeRecord(
+    parentName: String = "",
     title: String,
     routePath: String,
     qualifiedName: String,
     simpleName: String,
-    sceneId: String = "",
     sceneName: String = "",
     sceneIcon: String = "Apps",
     sceneOrder: Int = Int.MAX_VALUE,
-    menuPath: List<String> = emptyList(),
     defaultInScene: Boolean = false,
 ): RouteRecord {
     return RouteRecord(
-        legacyValue = "",
+        parentName = parentName,
         title = title,
         routePath = routePath,
         icon = "Apps",
         order = 0.0,
         qualifiedName = qualifiedName,
         simpleName = simpleName,
-        sceneId = sceneId,
         sceneName = sceneName,
         sceneIcon = sceneIcon,
         sceneOrder = sceneOrder,
-        menuPath = menuPath,
         defaultInScene = defaultInScene,
     )
 }
 
 private fun encodeSnapshotLineV1(
-    legacyValue: String,
+    parentName: String,
     title: String,
     routePath: String,
     icon: String,
@@ -274,18 +293,14 @@ private fun encodeSnapshotLineV1(
     simpleName: String,
 ): String {
     return listOf(
-        legacyValue,
+        parentName,
         title,
         routePath,
         icon,
         order.toString(),
         qualifiedName,
         simpleName,
-    ).joinToString("|") { value ->
-        java.util.Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(value.toByteArray(Charsets.UTF_8))
-    }
+    ).joinToString("|", transform = ::encodeSnapshotField)
 }
 
 private fun encodeSnapshotLineV2(
@@ -317,11 +332,41 @@ private fun encodeSnapshotLineV2(
         sceneOrder.toString(),
         menuPath.joinToString("\u001F"),
         defaultInScene.toString(),
-    ).joinToString("|") { value ->
-        java.util.Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(value.toByteArray(Charsets.UTF_8))
-    }
+    ).joinToString("|", transform = ::encodeSnapshotField)
+}
+
+private fun encodeSnapshotLineV3(
+    parentName: String,
+    title: String,
+    routePath: String,
+    icon: String,
+    order: Double,
+    qualifiedName: String,
+    simpleName: String,
+    sceneName: String,
+    sceneIcon: String,
+    sceneOrder: Int,
+    defaultInScene: Boolean,
+): String {
+    return listOf(
+        parentName,
+        title,
+        routePath,
+        icon,
+        order.toString(),
+        qualifiedName,
+        simpleName,
+        sceneName,
+        sceneIcon,
+        sceneOrder.toString(),
+        defaultInScene.toString(),
+    ).joinToString("|", transform = ::encodeSnapshotField)
+}
+
+private fun encodeSnapshotField(value: String): String {
+    return Base64.getUrlEncoder()
+        .withoutPadding()
+        .encodeToString(value.toByteArray(Charsets.UTF_8))
 }
 
 private class TestKspLogger : KSPLogger {

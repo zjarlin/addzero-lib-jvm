@@ -100,6 +100,52 @@
 
 ## Gradle 配置示例
 
+推荐直接使用消费插件：
+
+```kotlin
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+
+plugins {
+    id("site.addzero.ksp.route")
+}
+
+val sharedSourceDir = project(":shared-route")
+    .extensions
+    .getByType<KotlinMultiplatformExtension>()
+    .sourceSets
+    .getByName("commonMain")
+    .kotlin
+    .srcDirs
+    .first()
+    .absolutePath
+
+val routeOwnerModuleDir = project(":app-desktop")
+    .extensions
+    .getByType<KotlinMultiplatformExtension>()
+    .sourceSets
+    .getByName("commonMain")
+    .kotlin
+    .srcDirs
+    .first()
+    .absolutePath
+
+route {
+    sharedSourceDir.set(sharedSourceDir)
+    generatedPackage.set("site.addzero.generated")
+    routeOwnerModule.set(routeOwnerModuleDir)
+    moduleKey.set("feature-route")
+}
+```
+
+这个插件会自动：
+
+- 应用 `com.google.devtools.ksp`
+- 注入 `route-processor`
+- 注入 `route-core`
+- 根据 JVM / KMP 模块类型选择正确的 KSP configuration
+
+如果你需要最低层手动控制，也可以继续保留原始 `ksp(...)` 写法：
+
 ```kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 

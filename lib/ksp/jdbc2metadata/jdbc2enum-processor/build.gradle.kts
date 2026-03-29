@@ -4,14 +4,14 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
-    alias(libs.plugins.addzeroKspBuddy)
+    id("site.addzero.gradle.plugin.processor-buddy") version "+"
 }
 val catalogLibs = versionCatalogs.named("libs")
 
-// 配置 KSP 参数
-
-kspBuddy {
-    mustMap = mapOf<String, String>(
+processorBuddy {
+    packageName.set("site.addzero.jdbc2enum.processor.context")
+    mustMap.set(
+        mapOf<String, String>(
         "enumOutputPackage" to "site.addzero.generated.enums",
         "dictTableName" to "sys_dict",
         "dictIdColumn" to "id",
@@ -22,15 +22,13 @@ kspBuddy {
         "dictItemCodeColumn" to "item_value",
         "dictItemNameColumn" to "item_text",
         "sharedSourceDir" to ""
+        )
     )
-
-    // 配置 KSP 脚本输出路径（默认值,不配置就是这个）
-    val string = "checkouts/build-logic-klibs/src/main/kotlin/site/addzero/buildlogic/generated"
-    kspScriptOutputDir = string
+    readmeEnabled.set(false)
 }
 kotlin {
-    sourceSets.commonMain {
-        kotlin.srcDir("build/generated/ksp-buddy")
+  sourceSets.commonMain {
+        kotlin.srcDir("build/generated/processor-buddy")
     }
 }
 kotlin {

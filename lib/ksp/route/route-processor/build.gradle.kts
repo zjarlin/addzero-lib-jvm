@@ -5,14 +5,13 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 processorBuddy {
-  mustMap=mapOf(
-    "sharedSourceDir" to "",
-    "routeGenPkg" to "site.addzero.generated",
-    "routeOwnerModule" to "",
-    // KSP loads all processors in one classloader. Keep this Settings shape
-    // aligned with controller2api-processor to avoid NoSuchMethodError.
-    "apiClientPackageName" to "site.addzero.generated.api",
-    "apiClientOutputDir" to ""
+  packageName.set("site.addzero.route.processor.context")
+  mustMap.set(
+    mapOf(
+      "sharedSourceDir" to "",
+      "routeGenPkg" to "site.addzero.generated",
+      "routeOwnerModule" to "",
+    )
   )
 }
 kotlin {

@@ -1,5 +1,6 @@
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ktor-client")
+    id("site.addzero.buildlogic.kmp.kmp-koin-core")
 }
 val libs = versionCatalogs.named("libs")
 
@@ -8,6 +9,8 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.findLibrary("de-jensklingenberg-ktorfit-ktorfit-lib").get())
             implementation(libs.findLibrary("site-addzero-tool-json").get())
+            implementation(libs.findLibrary("site-addzero-tool-koin-v2025").get())
+            implementation(libs.findLibrary("io-ktor-ktor-client-websockets").get())
         }
     }
 }

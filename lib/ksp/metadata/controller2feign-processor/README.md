@@ -4,6 +4,24 @@
 
 ## Gradle
 
+推荐直接使用消费插件：
+
+```kotlin
+plugins {
+    id("site.addzero.ksp.controller2feign")
+}
+
+controller2feign {
+    outputPackage.set("com.example.feign")
+    outputDir.set(layout.projectDirectory.dir("src/commonMain/kotlin").asFile.absolutePath)
+    enabled.set(true)
+}
+```
+
+这个插件会自动应用 KSP 并注入 `controller2feign-processor`。
+
+如果你需要手动控制底层依赖，仍然可以继续使用原始 `ksp(...)` 方式：
+
 ```kotlin
 plugins {
     id("com.google.devtools.ksp") version "2.0.0-1.0.21"

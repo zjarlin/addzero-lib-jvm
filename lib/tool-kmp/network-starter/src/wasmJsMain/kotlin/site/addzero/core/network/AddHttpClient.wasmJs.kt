@@ -1,7 +1,6 @@
 package site.addzero.core.network
 
-
-import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.js.*
 
-actual val apiClient: HttpClient = HttpClient(Js, configClient())
+internal actual val addZeroHttpClientEngineFactory: HttpClientEngineFactory<*> = Js

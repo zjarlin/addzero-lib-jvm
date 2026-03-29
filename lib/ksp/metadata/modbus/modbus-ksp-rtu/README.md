@@ -11,10 +11,23 @@ Modbus RTU KSP 处理器模块。
 ## 怎么接
 
 ```kotlin
-dependencies {
-    ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-rtu"))
+plugins {
+    id("site.addzero.ksp.modbus-rtu")
+}
+
+modbusRtu {
+    codegenModes.set(listOf("server"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
+
+这个插件会自动：
+
+- 应用 `com.google.devtools.ksp`
+- 注入 `modbus-ksp-rtu`
+- 注入 `modbus-runtime`
+
+如果你需要手动控制底层依赖，仍然可以继续使用原始 `ksp(...)` 接法。
 
 ### 在契约源码模块里生成 C 壳子
 
@@ -26,7 +39,7 @@ dependencies {
 
 ksp {
     arg("addzero.modbus.codegen.mode", "contract")
-    arg("addzero.modbus.contractPackage", "site.addzero.device.contract")
+    arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
 }
 ```
 
@@ -45,7 +58,7 @@ dependencies {
 
 ksp {
     arg("addzero.modbus.codegen.mode", "server")
-    arg("addzero.modbus.contractPackage", "site.addzero.esp32_host_computer.api")
+    arg("addzero.modbus.contractPackages", "site.addzero.esp32_host_computer.api")
 }
 ```
 
@@ -58,7 +71,7 @@ ksp {
 ```kotlin
 ksp {
     arg("addzero.modbus.codegen.mode", "server,contract")
-    arg("addzero.modbus.contractPackage", "site.addzero.device.contract")
+    arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
 }
 ```
 
@@ -81,4 +94,4 @@ ksp {
 ## 使用提醒
 
 - 契约接口本身应该放在业务模块里，不要再单独造一个 `device-contract-api` 公共壳模块。
-- 处理器只扫描你通过 `addzero.modbus.contractPackage` 指定的包。
+- 处理器只扫描你通过 `addzero.modbus.contractPackages` 指定的包列表。

@@ -14,32 +14,27 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.validate
 import site.addzero.annotation.Route
-import site.addzero.context.Settings
+import site.addzero.route.processor.context.Settings
 import site.addzero.util.str.toUnderLineCase
 
 internal const val ROUTE_TABLE_NAME = "RouteTable"
 internal const val ROUTE_KEYS_NAME = "RouteKeys"
 
 internal data class RouteRecord(
-    val legacyValue: String,
+    val parentName: String,
     val title: String,
     val routePath: String,
     val icon: String,
     val order: Double,
     val qualifiedName: String,
     val simpleName: String,
-    val sceneId: String,
     val sceneName: String,
     val sceneIcon: String,
     val sceneOrder: Int,
-    val menuPath: List<String>,
     val defaultInScene: Boolean,
 ) {
     val uniqueId: String
         get() = qualifiedName.ifBlank { routePath }
-
-    val hasStructuredScene: Boolean
-        get() = sceneId.isNotBlank()
 }
 
 /**
@@ -140,28 +135,22 @@ class RouteMetadataProcessor(
                 ?: ""
             val placement = annotation.arguments.firstOrNull { it.name?.asString() == "placement" }?.value as? KSAnnotation
             val scene = placement?.arguments?.firstOrNull { it.name?.asString() == "scene" }?.value as? KSAnnotation
-            val menuPath = placement?.arguments
-                ?.firstOrNull { it.name?.asString() == "menuPath" }
-                ?.value
-                .asStringList()
             val defaultInScene = placement?.arguments
                 ?.firstOrNull { it.name?.asString() == "defaultInScene" }
                 ?.value as? Boolean
                 ?: false
 
             RouteRecord(
-                legacyValue = group,
+                parentName = group.trim(),
                 title = title,
                 routePath = routePath,
                 icon = icon,
                 order = order,
                 qualifiedName = qualifiedName,
                 simpleName = simpleName,
-                sceneId = scene.stringArg("id"),
                 sceneName = scene.stringArg("name"),
                 sceneIcon = scene.stringArg("icon").ifBlank { "Apps" },
                 sceneOrder = scene.intArg("order", Int.MAX_VALUE),
-                menuPath = menuPath,
                 defaultInScene = defaultInScene,
             )
         } catch (e: Exception) {
@@ -213,7 +202,7 @@ internal fun renderRouteKeysCode(routeItems: List<RouteRecord>): String {
     }
     val allMetaItems = routeItems.joinToString(",\n        ") { route ->
         "Route(" +
-            "value = ${route.legacyValue.asKotlinStringLiteral()}, " +
+            "value = ${route.parentName.asKotlinStringLiteral()}, " +
             "title = ${route.title.asKotlinStringLiteral()}, " +
             "routePath = ${route.routePath.asKotlinStringLiteral()}, " +
             "icon = ${route.icon.asKotlinStringLiteral()}, " +
@@ -225,8 +214,6 @@ internal fun renderRouteKeysCode(routeItems: List<RouteRecord>): String {
     }
 
     return """
-        |@file:Suppress("DEPRECATION")
-        |
         |package ${Settings.routeGenPkg}
         |
         |import site.addzero.annotation.Route
@@ -313,32 +300,14 @@ internal expect fun aggregateAndGenerateRoutes(
 )
 
 private fun RouteRecord.renderPlacementCode(): String {
-    val menuPathCode = if (menuPath.isEmpty()) {
-        "emptyArray()"
-    } else {
-        menuPath.joinToString(
-            prefix = "arrayOf(",
-            postfix = ")",
-        ) { segment ->
-            segment.asKotlinStringLiteral()
-        }
-    }
     return "RoutePlacement(" +
         "scene = RouteScene(" +
-        "id = ${sceneId.asKotlinStringLiteral()}, " +
         "name = ${sceneName.asKotlinStringLiteral()}, " +
         "icon = ${sceneIcon.asKotlinStringLiteral()}, " +
         "order = $sceneOrder" +
         "), " +
-        "menuPath = $menuPathCode, " +
         "defaultInScene = $defaultInScene" +
         ")"
-}
-
-private fun Any?.asStringList(): List<String> {
-    return (this as? List<*>)
-        ?.mapNotNull { value -> value as? String }
-        ?: emptyList()
 }
 
 private fun KSAnnotation?.stringArg(name: String): String {

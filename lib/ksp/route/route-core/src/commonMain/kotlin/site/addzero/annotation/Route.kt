@@ -5,7 +5,6 @@ package site.addzero.annotation
  */
 @Retention(AnnotationRetention.SOURCE)
 annotation class RouteScene(
-    val id: String = "",
     val name: String = "",
     val icon: String = "Apps",
     val order: Int = Int.MAX_VALUE,
@@ -17,7 +16,6 @@ annotation class RouteScene(
 @Retention(AnnotationRetention.SOURCE)
 annotation class RoutePlacement(
     val scene: RouteScene = RouteScene(),
-    val menuPath: Array<String> = [],
     val defaultInScene: Boolean = false,
 )
 
@@ -32,8 +30,7 @@ annotation class RoutePlacement(
 )
 @Retention(AnnotationRetention.SOURCE)
 annotation class Route(
-    @Deprecated("Use placement.menuPath")
-    val value: String = "",
+    val value: String = "",      // 父级名称, 为空时挂到场景根节点
     val title: String = "",      // 路由标题
     val routePath: String = "",  // 为空时使用全限定名
     val icon: String = "Apps",   // 页面图标

@@ -15,7 +15,25 @@ Compose Props Processor 是一个基于 KSP (Kotlin Symbol Processing) 的代码
 
 ### 1. 添加依赖
 
-在你的 `build.gradle.kts` 文件中添加 KSP 插件和依赖：
+推荐直接使用消费插件：
+
+```kotlin
+plugins {
+    id("site.addzero.ksp.compose-props")
+}
+
+composeProps {
+    suffix.set("State")
+}
+```
+
+这个插件会自动：
+
+- 应用 `com.google.devtools.ksp`
+- 注入 `compose-props-processor`
+- 注入 `compose-props-annotations`
+
+如果你需要最低层手动控制，也可以继续手写原始依赖：
 
 ```kotlin
 plugins {

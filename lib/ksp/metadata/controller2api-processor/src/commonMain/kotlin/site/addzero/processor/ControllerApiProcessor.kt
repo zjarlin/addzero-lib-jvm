@@ -1,6 +1,6 @@
 package site.addzero.processor
 
-import site.addzero.context.Settings
+import site.addzero.controller2api.processor.context.Settings
 import site.addzero.processor.type.TypeMappingManager
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
@@ -8,10 +8,7 @@ import com.google.devtools.ksp.validate
 import java.io.File
 
 private const val REST_CONTROLLER_ANNOTATION = "org.springframework.web.bind.annotation.RestController"
-private val fileRequestMappingAnnotations = setOf(
-    "site.addzero.springktor.runtime.RequestMapping",
-    "org.springframework.web.bind.annotation.RequestMapping",
-)
+private const val FILE_REQUEST_MAPPING_ANNOTATION = "site.addzero.springktor.runtime.RequestMapping"
 
 private val springMvcMappingAnnotations = listOf(
     "org.springframework.web.bind.annotation.GetMapping",
@@ -403,7 +400,10 @@ class ControllerApiProcessor(
         }
 
         val annotation = file.annotations.firstOrNull { fileAnnotation ->
-            fileAnnotation.annotationType.resolve().declaration.qualifiedName?.asString() in fileRequestMappingAnnotations
+            val qualifiedName = fileAnnotation.annotationType.resolve().declaration.qualifiedName?.asString()
+            qualifiedName == FILE_REQUEST_MAPPING_ANNOTATION ||
+                qualifiedName == "org.springframework.web.bind.annotation.RequestMapping" ||
+                fileAnnotation.shortName.asString() == "RequestMapping"
         } ?: return ""
 
         return getPathFromAnnotation(annotation)

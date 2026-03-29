@@ -1,16 +1,17 @@
 package site.addzero.events
 
-import site.addzero.core.network.GlobalEventDispatcher
+import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.Single
+import site.addzero.core.network.HttpResponseEventHandlerSpi
 
 @Single(createdAtStart = true)
-fun emitEventBus() {
-    GlobalEventDispatcher.handler = {
+class EventBusHttpResponseHandler : HttpResponseEventHandlerSpi {
+    override fun handle(response: HttpResponse) {
         CoroutineScope(Dispatchers.Main).launch {
-            EventBus.emit(it)
+            EventBus.emit(response)
         }
     }
 }

@@ -21,7 +21,7 @@ class Entity2McpExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
 
         val logger = context.logger
         SettingContext.initialize(context.options)
-        val packageName = "site.addzero.generated.mcp"
+        val packageName = SettingContext.settings.mcpPackageName
         val generatedMcpServices = mutableSetOf<String>()
         val mcpCodeGenerator = McpServiceCodeGenerator()
 

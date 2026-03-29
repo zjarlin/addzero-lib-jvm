@@ -1,6 +1,6 @@
 package site.addzero
 
-import site.addzero.context.SettingContext
+import site.addzero.jdbc2enum.processor.context.SettingContext
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import java.sql.SQLException

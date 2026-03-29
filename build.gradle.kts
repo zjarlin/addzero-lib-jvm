@@ -1,6 +1,12 @@
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     configurations.classpath {
@@ -37,6 +43,25 @@ subprojects {
     println("项目版本为$versionStr")
     if (path.startsWith(":checkouts:")) {
         apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
+    }
+
+    val shouldUseJava11ForPublishedKspPlugins =
+        path == ":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base" ||
+            (path.startsWith(":lib:ksp:") && name.endsWith("-gradle-plugin"))
+    if (shouldUseJava11ForPublishedKspPlugins) {
+        plugins.withId("org.jetbrains.kotlin.jvm") {
+            extensions.configure(JavaPluginExtension::class.java) {
+                sourceCompatibility = JavaVersion.VERSION_11
+                targetCompatibility = JavaVersion.VERSION_11
+                toolchain.languageVersion.set(JavaLanguageVersion.of(11))
+            }
+            extensions.configure(KotlinJvmProjectExtension::class.java) {
+                jvmToolchain(11)
+            }
+            tasks.withType(KotlinCompile::class.java).configureEach {
+                compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
+            }
+        }
     }
 }
 //}

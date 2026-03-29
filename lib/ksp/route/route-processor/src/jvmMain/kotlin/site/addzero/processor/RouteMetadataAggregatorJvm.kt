@@ -11,7 +11,7 @@ import java.nio.channels.OverlappingFileLockException
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
-private const val SNAPSHOT_VERSION = "v2"
+private const val SNAPSHOT_VERSION = "v3"
 private const val FILE_LOCK_RETRY_COUNT = 20
 private const val FILE_LOCK_RETRY_DELAY_MS = 50L
 private val aggregateLocks = ConcurrentHashMap<String, Any>()
@@ -207,9 +207,9 @@ internal fun validateMergedRoutes(
 ) {
     val validationErrors = buildList {
         routeItems
-            .filter { route -> route.sceneId.isNotBlank() }
-            .groupBy { route -> route.sceneId }
-            .forEach { (sceneId, routes) ->
+            .filter { route -> route.normalizedSceneName().isNotBlank() }
+            .groupBy { route -> route.normalizedSceneName() }
+            .forEach { (sceneName, routes) ->
                 val reference = routes.first()
                 routes.drop(1).forEach { route ->
                     if (
@@ -218,7 +218,7 @@ internal fun validateMergedRoutes(
                         route.sceneOrder != reference.sceneOrder
                     ) {
                         add(
-                            "scene.id=$sceneId metadata mismatch: ${reference.qualifiedName} " +
+                            "scene.name=$sceneName metadata mismatch: ${reference.qualifiedName} " +
                                 "declares (${reference.sceneName}, ${reference.sceneIcon}, ${reference.sceneOrder}) " +
                                 "but ${route.qualifiedName} declares (${route.sceneName}, ${route.sceneIcon}, ${route.sceneOrder})"
                         )
@@ -228,7 +228,7 @@ internal fun validateMergedRoutes(
                 val defaultRoutes = routes.filter { route -> route.defaultInScene }
                 if (defaultRoutes.size > 1) {
                     add(
-                        "scene.id=$sceneId has multiple default routes: " +
+                        "scene.name=$sceneName has multiple default routes: " +
                             defaultRoutes.joinToString { route -> route.qualifiedName }
                     )
                 }
@@ -329,18 +329,16 @@ private fun readSnapshot(snapshotFile: File): List<RouteRecord> {
 
 private fun RouteRecord.encodeSnapshotLine(): String {
     return listOf(
-        legacyValue,
+        parentName,
         title,
         routePath,
         icon,
         order.toString(),
         qualifiedName,
         simpleName,
-        sceneId,
         sceneName,
         sceneIcon,
         sceneOrder.toString(),
-        menuPath.joinToString("\u001F"),
         defaultInScene.toString(),
     ).joinToString("|") { encodeSnapshotField(it) }
 }
@@ -350,45 +348,63 @@ private fun decodeSnapshotLine(line: String): RouteRecord? {
     return when (parts.size) {
         7 -> decodeV1Snapshot(parts)
         13 -> decodeV2Snapshot(parts)
+        11 -> decodeV3Snapshot(parts)
         else -> null
     }
 }
 
 private fun decodeV1Snapshot(parts: List<String>): RouteRecord {
     return RouteRecord(
-        legacyValue = decodeSnapshotField(parts[0]),
+        parentName = decodeSnapshotField(parts[0]),
         title = decodeSnapshotField(parts[1]),
         routePath = decodeSnapshotField(parts[2]),
         icon = decodeSnapshotField(parts[3]),
         order = decodeSnapshotField(parts[4]).toDoubleOrNull() ?: 0.0,
         qualifiedName = decodeSnapshotField(parts[5]),
         simpleName = decodeSnapshotField(parts[6]),
-        sceneId = "",
         sceneName = "",
         sceneIcon = "Apps",
         sceneOrder = Int.MAX_VALUE,
-        menuPath = emptyList(),
         defaultInScene = false,
     )
 }
 
 private fun decodeV2Snapshot(parts: List<String>): RouteRecord {
+    val legacyValue = decodeSnapshotField(parts[0])
+    val legacySceneId = decodeSnapshotField(parts[7])
+    val legacySceneName = decodeSnapshotField(parts[8])
+    val legacyMenuPath = decodeSnapshotField(parts[11])
+        .split('\u001F')
+        .filter { segment -> segment.isNotBlank() }
+
     return RouteRecord(
-        legacyValue = decodeSnapshotField(parts[0]),
+        parentName = legacyValue.ifBlank { legacyMenuPath.joinToString("/") },
         title = decodeSnapshotField(parts[1]),
         routePath = decodeSnapshotField(parts[2]),
         icon = decodeSnapshotField(parts[3]),
         order = decodeSnapshotField(parts[4]).toDoubleOrNull() ?: 0.0,
         qualifiedName = decodeSnapshotField(parts[5]),
         simpleName = decodeSnapshotField(parts[6]),
-        sceneId = decodeSnapshotField(parts[7]),
-        sceneName = decodeSnapshotField(parts[8]),
+        sceneName = legacySceneName.ifBlank { legacySceneId },
         sceneIcon = decodeSnapshotField(parts[9]).ifBlank { "Apps" },
         sceneOrder = decodeSnapshotField(parts[10]).toIntOrNull() ?: Int.MAX_VALUE,
-        menuPath = decodeSnapshotField(parts[11])
-            .split('\u001F')
-            .filter { segment -> segment.isNotBlank() },
         defaultInScene = decodeSnapshotField(parts[12]).toBoolean(),
+    )
+}
+
+private fun decodeV3Snapshot(parts: List<String>): RouteRecord {
+    return RouteRecord(
+        parentName = decodeSnapshotField(parts[0]),
+        title = decodeSnapshotField(parts[1]),
+        routePath = decodeSnapshotField(parts[2]),
+        icon = decodeSnapshotField(parts[3]),
+        order = decodeSnapshotField(parts[4]).toDoubleOrNull() ?: 0.0,
+        qualifiedName = decodeSnapshotField(parts[5]),
+        simpleName = decodeSnapshotField(parts[6]),
+        sceneName = decodeSnapshotField(parts[7]),
+        sceneIcon = decodeSnapshotField(parts[8]).ifBlank { "Apps" },
+        sceneOrder = decodeSnapshotField(parts[9]).toIntOrNull() ?: Int.MAX_VALUE,
+        defaultInScene = decodeSnapshotField(parts[10]).toBoolean(),
     )
 }
 
@@ -432,6 +448,10 @@ private fun deleteAggregatedOutputs(
     if (routeTableFile?.exists() == true) {
         routeTableFile.delete()
     }
+}
+
+private fun RouteRecord.normalizedSceneName(): String {
+    return sceneName.trim()
 }
 
 private fun deleteLegacySharedRouteTable(

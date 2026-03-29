@@ -1,5 +1,28 @@
 # IOC Processor
 
+## Gradle 接入
+
+推荐直接使用消费插件：
+
+```kotlin
+plugins {
+    id("site.addzero.ksp.ioc")
+}
+
+ioc {
+    modulePackage.set("demo.generated.ioc")
+    app.set(true)
+}
+```
+
+这个插件会自动：
+
+- 应用 `com.google.devtools.ksp`
+- 注入 `ioc-processor`
+- 注入 `ioc-core`
+
+如果你需要最低层手动控制，仍然可以继续手写 `ksp(...)` 与参数，但默认文档入口不再推荐那种方式。
+
 ## @Component 注解介绍
 
 这个 IOC 容器提供了一个简单的 Bean 注册表功能，特别适合用于实现策略模式，让你无需手动编写工厂类。

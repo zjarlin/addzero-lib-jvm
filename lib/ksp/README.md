@@ -1,25 +1,50 @@
-# KSP 相关模块
+# KSP Modules
 
-这一组是仓库里编译期代码生成最活跃的一块，既有公共支撑，也有面向具体场景的处理器。
+This repository now documents KSP consumption in a plugin-first form.
 
-## 推荐入口
+- Default: apply `id("site.addzero.ksp.<feature>")`
+- Fallback: wire raw `ksp(...)` dependencies manually only when you need low-level control
+- Policy: see [`../../docs/ksp-gradle-plugin-policy.md`](../../docs/ksp-gradle-plugin-policy.md)
 
-- [`common/ksp-easycode`](./common/ksp-easycode/)：通用 KSP 模板与基础能力
-- [`metadata/controller2feign-processor`](./metadata/controller2feign-processor/)：Controller 到 Feign 生成
-- [`metadata/entity2iso-processor`](./metadata/entity2iso-processor/)：实体同构体生成
-- [`metadata/ioc/ioc-processor`](./metadata/ioc/ioc-processor/)：IOC 处理器
-- [`metadata/method-semanticizer`](./metadata/method-semanticizer/)：方法语义化方向
-- [`metadata/singleton-adapter-processor`](./metadata/singleton-adapter-processor/)：单例适配处理器
-- [`metadata/spring2ktor-server-processor`](./metadata/spring2ktor-server-processor/)：Spring 到 Ktor 迁移辅助
+## Consumer Plugins
 
-## 分组理解
+| Plugin id | Processor artifact | Notes |
+| --- | --- | --- |
+| `site.addzero.ksp.jdbc2controller` | `jdbc2controller-processor` | JVM/KSP consumer plugin |
+| `site.addzero.ksp.jdbc2entity` | `jdbc2entity-processor` | JVM/KSP consumer plugin |
+| `site.addzero.ksp.jdbc2enum` | `jdbc2enum-processor` | Typed JDBC/dict settings extension |
+| `site.addzero.ksp.logger` | `logger-processor` | Zero-config marker plugin |
+| `site.addzero.ksp.apiprovider` | `apiprovider-processor` | KMP metadata processor wiring |
+| `site.addzero.ksp.compose-props` | `compose-props-processor` | Auto-adds `compose-props-annotations` |
+| `site.addzero.ksp.controller2api` | `controller2api-processor` | Typed package/output config |
+| `site.addzero.ksp.controller2feign` | `controller2feign-processor` | Typed Feign output config |
+| `site.addzero.ksp.controller2iso2dataprovider` | `controller2iso2dataprovider-processor` | Typed generated package config |
+| `site.addzero.ksp.enum` | `enum-processor` | Zero-config marker plugin |
+| `site.addzero.ksp.gen-reified` | `gen-reified-processor` | Zero-config marker plugin |
+| `site.addzero.ksp.ioc` | `ioc-processor` | Auto-adds `ioc-core` |
+| `site.addzero.ksp.jimmer-entity-external` | `jimmer-entity-external-processor` | Umbrella plugin, also adds `entity2iso`, `entity2form`, `entity2mcp` SPI processors |
+| `site.addzero.ksp.ksp-dsl-builder` | `ksp-dsl-builder-processor` | Zero-config marker plugin |
+| `site.addzero.ksp.method-semanticizer` | `method-semanticizer-processor` | Auto-adds `method-semanticizer-api` |
+| `site.addzero.ksp.modbus-rtu` | `modbus-ksp-rtu` | Auto-adds `modbus-runtime` |
+| `site.addzero.ksp.modbus-tcp` | `modbus-ksp-tcp` | Auto-adds `modbus-runtime` |
+| `site.addzero.ksp.multireceiver` | `multireceiver-processor` | Auto-adds `kcp-multireceiver-annotations` |
+| `site.addzero.ksp.singleton-adapter` | `singleton-adapter-processor` | Auto-adds `singleton-adapter-api` |
+| `site.addzero.ksp.spring2ktor-server` | `spring2ktor-server-processor` | Auto-adds `spring2ktor-server-core` and `compileOnly("org.springframework:spring-web")` |
+| `site.addzero.ksp.route` | `route-processor` | Auto-adds `route-core` |
 
-- `common/`：公共底座
-- `metadata/`：面向具体元数据和生成目标的核心处理器
-- `route/`：路由相关
-- `jdbc2metadata/`：从数据库或 JDBC 信息出发的生成方向
+## SPI-Only Processors
 
-## 适合什么时候看
+The following are not standalone consumer plugins:
 
-- 想知道这个仓库的代码生成主力都放在哪
-- 想找可复用的 KSP 处理器结构和拆分方式
+- `entity2iso-processor`
+- `entity2form-processor`
+- `entity2mcp-processor`
+
+Consume them through `site.addzero.ksp.jimmer-entity-external`.
+
+## Layout
+
+- `common/`: shared KSP support and base infrastructure
+- `jdbc2metadata/`: JDBC-driven generators and their consumer plugins
+- `metadata/`: feature processors, umbrella processors, and consumer plugins
+- `route/`: route metadata processor, runtime core, and consumer plugin

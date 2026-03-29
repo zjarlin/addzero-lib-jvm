@@ -1,7 +1,7 @@
 package site.addzero
 
-import site.addzero.context.SettingContext.settings
-import site.addzero.context.Settings
+import site.addzero.jdbc2enum.processor.context.SettingContext.settings
+import site.addzero.jdbc2enum.processor.context.Settings
 import site.addzero.util.str.withPkg
 
 /**

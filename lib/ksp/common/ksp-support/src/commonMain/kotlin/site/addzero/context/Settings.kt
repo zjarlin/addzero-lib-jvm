@@ -31,6 +31,8 @@ data class Settings(
     val formPackageName: String = "site.addzero.generated.forms",
     val enumOutputPackage: String = "site.addzero.generated.enums",
     val apiClientPackageName: String = "site.addzero.generated.api",
+    val iso2DataProviderPackage: String = "site.addzero.generated.forms.dataprovider",
+    val mcpPackageName: String = "site.addzero.generated.mcp",
 
     // 其他配置
     val isomorphicClassSuffix: String = "Iso",
@@ -73,6 +75,11 @@ data class Settings(
      * API客户端输出目录（shared 源码目录）
      */
     val apiClientOutputDir: String = sharedComposeSourceDir.withPkg(apiClientPackageName)
+
+    /**
+     * Iso2DataProvider 输出目录（shared compose 源码目录）
+     */
+    val iso2DataProviderOutputDir: String = sharedComposeSourceDir.withPkg(iso2DataProviderPackage)
 
     /**
      * 从jdbc生成的模型输出目录

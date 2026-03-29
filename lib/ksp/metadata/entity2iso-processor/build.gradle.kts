@@ -10,7 +10,7 @@ processorBuddy {
   packageName.set("site.addzero.entity2iso.processor.context")
   mustMap.set(
     mapOf(
-      "isomorphicPkg" to "site.addzero.entity2iso.generated",
+      "isomorphicPkg" to "site.addzero.generated.isomorphic",
       "isomorphicGenDir" to sharedDir
     )
   )
