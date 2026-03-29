@@ -14,11 +14,17 @@ class I18NCompilerPlugin : CompilerPluginRegistrar() {
         val resourceBasePath = I18NPluginConfiguration.getResourceBasePath(configuration)
         val generatedCatalogFile = I18NPluginConfiguration.getGeneratedCatalogFile(configuration)
         val scanScope = I18NPluginConfiguration.getScanScope(configuration)
+        val useDefaultAnnotationRules = I18NPluginConfiguration.getUseDefaultAnnotationRules(configuration)
+        val annotationWhitelist = I18NPluginConfiguration.getAnnotationWhitelist(configuration)
+        val annotationBlacklist = I18NPluginConfiguration.getAnnotationBlacklist(configuration)
         IrGenerationExtension.registerExtension(
             I18NIrGenerationExtension(
                 resourceBasePath = resourceBasePath,
                 generatedCatalogFile = generatedCatalogFile,
                 scanScope = scanScope,
+                useDefaultAnnotationRules = useDefaultAnnotationRules,
+                annotationWhitelist = annotationWhitelist,
+                annotationBlacklist = annotationBlacklist,
             ),
         )
     }

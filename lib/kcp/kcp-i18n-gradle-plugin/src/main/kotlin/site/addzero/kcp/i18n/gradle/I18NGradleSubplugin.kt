@@ -3,11 +3,13 @@ package site.addzero.kcp.i18n.gradle
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
+import org.gradle.api.plugins.JavaPluginExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
@@ -65,6 +67,24 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
             )
             add(
                 SubpluginOption(SCAN_SCOPE_OPTION, extension.scanScope.get()),
+            )
+            add(
+                SubpluginOption(
+                    USE_DEFAULT_ANNOTATION_RULES_OPTION,
+                    extension.useDefaultAnnotationRules.get().toString(),
+                ),
+            )
+            add(
+                SubpluginOption(
+                    ANNOTATION_WHITELIST_OPTION,
+                    joinNameList(extension.annotationWhitelist.orNull.orEmpty()),
+                ),
+            )
+            add(
+                SubpluginOption(
+                    ANNOTATION_BLACKLIST_OPTION,
+                    joinNameList(extension.annotationBlacklist.orNull.orEmpty()),
+                ),
             )
             val generatedCatalogFile = resolveGeneratedCatalogFile(
                 project = project,
@@ -136,6 +156,13 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         targetName: String,
     ) {
         configureCompileTaskForCatalogRebuild(project, compileTaskName)
+        registerCatalogRuntimeResources(
+            project = project,
+            extension = extension,
+            compileTaskName = compileTaskName,
+            sourceSetName = sourceSetName,
+            targetName = targetName,
+        )
         if (project.extensions.extraProperties.has(LOCALE_TASKS_MARKER)) {
             return
         }
@@ -217,6 +244,54 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         project.tasks.matching { task -> task.name == "check" }.configureEach { task ->
             task.dependsOn(checkTaskProvider)
         }
+    }
+
+    private fun registerCatalogRuntimeResources(
+        project: Project,
+        extension: I18NGradleExtension,
+        compileTaskName: String,
+        sourceSetName: String,
+        targetName: String,
+    ) {
+        val compileTaskProvider = project.tasks.named(compileTaskName)
+        val generatedResourcesDir = project.layout.buildDirectory.dir(
+            buildString {
+                append("generated/kcp-i18n/runtime-resources/")
+                append(if (targetName.isBlank()) "jvm" else targetName)
+                append('/')
+                append(sourceSetName)
+            },
+        )
+        val copyTaskProvider = project.tasks.register(
+            buildCatalogResourceTaskName(sourceSetName, targetName),
+        ) { task ->
+            task.group = "i18n"
+            task.description = "Copy the generated i18n catalog into runtime resources."
+            task.dependsOn(compileTaskProvider)
+            task.outputs.dir(generatedResourcesDir)
+            task.doLast {
+                val outputDir = generatedResourcesDir.get().asFile
+                if (outputDir.exists()) {
+                    outputDir.deleteRecursively()
+                }
+                val catalogFile = resolveGeneratedCatalogFile(
+                    project = project,
+                    targetName = targetName,
+                    compilationName = "main",
+                )
+                    ?.let(::File)
+                    ?: return@doLast
+                if (!catalogFile.isFile) {
+                    return@doLast
+                }
+                val normalizedBasePath = normalizeBasePath(extension.resourceBasePath.get())
+                val outputFile = outputDir.resolve("$normalizedBasePath/$CATALOG_RESOURCE_NAME")
+                outputFile.parentFile.mkdirs()
+                catalogFile.copyTo(outputFile, overwrite = true)
+            }
+        }
+        attachCatalogResourceDirectory(project, sourceSetName, generatedResourcesDir.get().asFile)
+        configureCatalogResourceTasks(project, sourceSetName, targetName, copyTaskProvider.name)
     }
 
     private fun configureCompileTaskForCatalogRebuild(
@@ -310,10 +385,43 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         sourceSetName: String,
         resourceBasePath: String,
     ): File {
-        val normalizedBasePath = resourceBasePath.trim().trim('/').ifBlank { "i18n" }
+        val normalizedBasePath = normalizeBasePath(resourceBasePath)
         return project.layout.projectDirectory
             .dir("src/$sourceSetName/resources/$normalizedBasePath")
             .asFile
+    }
+
+    private fun attachCatalogResourceDirectory(
+        project: Project,
+        sourceSetName: String,
+        generatedResourcesDir: File,
+    ) {
+        if (sourceSetName == "main") {
+            project.extensions.findByType(JavaPluginExtension::class.java)
+                ?.sourceSets
+                ?.named("main") { sourceSet ->
+                    sourceSet.resources.srcDir(generatedResourcesDir)
+                }
+        }
+        project.extensions.findByType(KotlinMultiplatformExtension::class.java)
+            ?.sourceSets
+            ?.named(sourceSetName) { sourceSet ->
+                sourceSet.resources.srcDir(generatedResourcesDir)
+            }
+    }
+
+    private fun configureCatalogResourceTasks(
+        project: Project,
+        sourceSetName: String,
+        targetName: String,
+        copyTaskName: String,
+    ) {
+        val supportedTaskNames = buildResourceTaskNames(sourceSetName, targetName)
+        project.tasks.configureEach { task ->
+            if (task.name in supportedTaskNames) {
+                task.dependsOn(copyTaskName)
+            }
+        }
     }
 
     private fun requireCatalog(
@@ -502,6 +610,59 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
+    private fun buildCatalogResourceTaskName(
+        sourceSetName: String,
+        targetName: String,
+    ): String {
+        return buildString {
+            append("prepareI18n")
+            if (targetName.isNotBlank()) {
+                append(targetName.capitalized())
+            }
+            append(sourceSetName.capitalized())
+            append("CatalogResource")
+        }
+    }
+
+    private fun buildResourceTaskNames(
+        sourceSetName: String,
+        targetName: String,
+    ): Set<String> {
+        val capitalizedSourceSetName = sourceSetName.capitalized()
+        return buildSet {
+            if (sourceSetName == "main") {
+                add("processResources")
+            }
+            add("process${capitalizedSourceSetName}Resources")
+            if (targetName.isNotBlank()) {
+                add("${targetName}ProcessResources")
+            }
+        }
+    }
+
+    private fun normalizeBasePath(value: String): String {
+        return value.trim().trim('/').ifBlank { "i18n" }
+    }
+
+    private fun joinNameList(values: List<String>): String {
+        return values
+            .asSequence()
+            .map(String::trim)
+            .filter(String::isNotBlank)
+            .distinct()
+            .joinToString(",")
+    }
+
+    private fun String.capitalized(): String {
+        return replaceFirstChar { firstChar ->
+            if (firstChar.isLowerCase()) {
+                firstChar.titlecase()
+            } else {
+                firstChar.toString()
+            }
+        }
+    }
+
     companion object {
         const val GRADLE_PLUGIN_ID: String = "site.addzero.kcp.i18n"
         const val COMPILER_PLUGIN_ID: String = "site.addzero.kcp.i18n"
@@ -510,10 +671,14 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         const val RESOURCE_BASE_PATH_OPTION: String = "resourceBasePath"
         const val GENERATED_CATALOG_FILE_OPTION: String = "generatedCatalogFile"
         const val SCAN_SCOPE_OPTION: String = "scanScope"
+        const val USE_DEFAULT_ANNOTATION_RULES_OPTION: String = "useDefaultAnnotationRules"
+        const val ANNOTATION_WHITELIST_OPTION: String = "annotationWhitelist"
+        const val ANNOTATION_BLACKLIST_OPTION: String = "annotationBlacklist"
 
         private const val RUNTIME_MARKER = "site.addzero.kcp.i18n.runtime-added"
         private const val LOCALE_TASKS_MARKER = "site.addzero.kcp.i18n.locale-tasks-added"
         private const val PROPERTIES_RESOURCE = "site/addzero/kcp/i18n/gradle-plugin.properties"
+        private const val CATALOG_RESOURCE_NAME = "_catalog.properties"
     }
 }
 

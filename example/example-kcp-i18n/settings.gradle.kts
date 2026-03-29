@@ -7,7 +7,7 @@ pluginManagement {
     fun readRepoVersion(): String {
         val gradlePropertiesFile = file("../../gradle.properties")
         if (!gradlePropertiesFile.isFile) {
-            return "2026.10329.101"
+            return "2026.10329.10127"
         }
         return gradlePropertiesFile
             .readLines()
@@ -15,7 +15,7 @@ pluginManagement {
             ?.substringAfter("=")
             ?.trim()
             ?.takeIf(String::isNotBlank)
-            ?: "2026.10329.101"
+            ?: "2026.10329.10127"
     }
 
     if (useIncludedBuild) {

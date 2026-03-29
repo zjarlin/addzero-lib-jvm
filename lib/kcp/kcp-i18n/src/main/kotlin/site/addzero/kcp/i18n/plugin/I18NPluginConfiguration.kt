@@ -19,5 +19,17 @@ class I18NPluginConfiguration {
         fun getScanScope(configuration: CompilerConfiguration): String {
             return configuration.get(I18NPluginKeys.scanScopeKey) ?: I18NPluginKeys.scanScopeAll
         }
+
+        fun getUseDefaultAnnotationRules(configuration: CompilerConfiguration): Boolean {
+            return configuration.get(I18NPluginKeys.useDefaultAnnotationRulesKey) ?: true
+        }
+
+        fun getAnnotationWhitelist(configuration: CompilerConfiguration): List<String> {
+            return configuration.get(I18NPluginKeys.annotationWhitelistKey).orEmpty()
+        }
+
+        fun getAnnotationBlacklist(configuration: CompilerConfiguration): List<String> {
+            return configuration.get(I18NPluginKeys.annotationBlacklistKey).orEmpty()
+        }
     }
 }

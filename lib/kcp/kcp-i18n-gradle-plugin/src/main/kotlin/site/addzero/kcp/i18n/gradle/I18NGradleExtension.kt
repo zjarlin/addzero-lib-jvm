@@ -12,4 +12,7 @@ abstract class I18NGradleExtension @Inject constructor(
     val resourceBasePath: Property<String> = objects.property(String::class.java).convention("i18n")
     val managedLocales: ListProperty<String> = objects.listProperty(String::class.java).convention(emptyList())
     val scanScope: Property<String> = objects.property(String::class.java).convention("all")
+    val useDefaultAnnotationRules: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
+    val annotationWhitelist: ListProperty<String> = objects.listProperty(String::class.java).convention(emptyList())
+    val annotationBlacklist: ListProperty<String> = objects.listProperty(String::class.java).convention(emptyList())
 }

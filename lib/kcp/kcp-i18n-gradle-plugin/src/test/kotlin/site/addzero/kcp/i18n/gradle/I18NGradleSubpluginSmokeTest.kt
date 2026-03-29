@@ -163,7 +163,7 @@ class I18NGradleSubpluginSmokeTest {
     }
 
     @Test
-    fun annotation_values_are_skipped_and_composable_only_scope_limits_rewrites() {
+    fun annotation_values_are_skipped_by_default_and_composable_only_scope_limits_rewrites() {
         val javaHome = System.getProperty("java.home")
         val gradlePluginClasspath = System.getProperty("i18n.gradlePluginClasspath")
             ?: error("Missing i18n.gradlePluginClasspath system property")
@@ -258,6 +258,277 @@ class I18NGradleSubpluginSmokeTest {
         }
     }
 
+    @Test
+    fun builtin_route_annotation_values_are_catalog_only_and_can_translate_by_source() {
+        val javaHome = System.getProperty("java.home")
+        val gradlePluginClasspath = System.getProperty("i18n.gradlePluginClasspath")
+            ?: error("Missing i18n.gradlePluginClasspath system property")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("i18n-gradle-annotation-whitelist")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(
+            testProjectDir,
+            "build.gradle.kts",
+            buildFile(
+                gradlePluginClasspath = gradlePluginClasspath,
+                managedLocales = listOf("en"),
+            ),
+        )
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/Route.kt",
+            """
+                package site.addzero.example
+
+                @Retention(AnnotationRetention.RUNTIME)
+                annotation class Route(val label: String)
+            """.trimIndent(),
+        )
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/I18NTargets.kt",
+            """
+                package site.addzero.example
+
+                @Route("用户管理")
+                fun screenRoute() {
+                }
+            """.trimIndent(),
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "syncI18nLocales")
+            .forwardOutput()
+            .build()
+
+        val enFile = testProjectDir.resolve("src/main/resources/i18n/en.properties").toFile()
+        val generatedTranslations = enFile.readText()
+        assertTrue(generatedTranslations.contains("Route_text_用户管理="), generatedTranslations)
+        val routeKey = generatedTranslations
+            .lineSequence()
+            .firstOrNull { line -> line.contains("Route_text_用户管理=") }
+            ?.substringBefore('=')
+            ?: error("Missing Route annotation key in generated translations")
+        enFile.writeText(
+            generatedTranslations.replace("$routeKey=", "$routeKey=User Management"),
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "build")
+            .forwardOutput()
+            .build()
+
+        val catalogResource = testProjectDir.resolve("build/resources/main/i18n/_catalog.properties").toFile()
+        assertTrue(catalogResource.isFile, "Missing runtime catalog resource: ${catalogResource.absolutePath}")
+        assertTrue(catalogResource.readText().contains("$routeKey=用户管理"), catalogResource.readText())
+
+        val targetsKt = loadClass(
+            classesDir = testProjectDir.resolve("build/classes/kotlin/main"),
+            resourcesDir = testProjectDir.resolve("build/resources/main"),
+            name = "site.addzero.example.I18NTargetsKt",
+        )
+        @Suppress("UNCHECKED_CAST")
+        val routeAnnotationClass = targetsKt.classLoader.loadClass("site.addzero.example.Route") as Class<out Annotation>
+        val routeAnnotation = targetsKt.getMethod("screenRoute").getAnnotation(routeAnnotationClass)
+        assertEquals("用户管理", routeAnnotationClass.getMethod("label").invoke(routeAnnotation))
+
+        val runtimeUtil = targetsKt.classLoader.loadClass("site.addzero.util.I8nutil")
+        val runtimeUtilInstance = runtimeUtil.getField("INSTANCE").get(null)
+        runtimeUtil.getMethod("setLocale", String::class.java).invoke(runtimeUtilInstance, "en")
+        try {
+            assertEquals(
+                "User Management",
+                runtimeUtil.getMethod("tBySource", String::class.java, String::class.java)
+                    .invoke(runtimeUtilInstance, "用户管理", "i18n"),
+            )
+        } finally {
+            runtimeUtil.getMethod("clearLocale").invoke(runtimeUtilInstance)
+        }
+    }
+
+    @Test
+    fun custom_annotation_whitelist_extends_builtin_rules() {
+        val javaHome = System.getProperty("java.home")
+        val gradlePluginClasspath = System.getProperty("i18n.gradlePluginClasspath")
+            ?: error("Missing i18n.gradlePluginClasspath system property")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("i18n-gradle-custom-annotation-whitelist")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(
+            testProjectDir,
+            "build.gradle.kts",
+            buildFile(
+                gradlePluginClasspath = gradlePluginClasspath,
+                managedLocales = listOf("en"),
+                annotationWhitelist = listOf("ScreenLabel"),
+            ),
+        )
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/ScreenLabel.kt",
+            """
+                package site.addzero.example
+
+                @Retention(AnnotationRetention.RUNTIME)
+                annotation class ScreenLabel(val text: String)
+            """.trimIndent(),
+        )
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/I18NTargets.kt",
+            """
+                package site.addzero.example
+
+                @ScreenLabel("设备中心")
+                fun deviceScreen() {
+                }
+            """.trimIndent(),
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "syncI18nLocales")
+            .forwardOutput()
+            .build()
+
+        val enFile = testProjectDir.resolve("src/main/resources/i18n/en.properties").toFile()
+        val generatedTranslations = enFile.readText()
+        assertTrue(generatedTranslations.contains("ScreenLabel_text_设备中心="), generatedTranslations)
+    }
+
+    @Test
+    fun annotation_blacklist_overrides_builtin_whitelist() {
+        val javaHome = System.getProperty("java.home")
+        val gradlePluginClasspath = System.getProperty("i18n.gradlePluginClasspath")
+            ?: error("Missing i18n.gradlePluginClasspath system property")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("i18n-gradle-annotation-blacklist")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(
+            testProjectDir,
+            "build.gradle.kts",
+            buildFile(
+                gradlePluginClasspath = gradlePluginClasspath,
+                managedLocales = listOf("en"),
+                annotationBlacklist = listOf("site.addzero.example.Route"),
+            ),
+        )
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/Route.kt",
+            """
+                package site.addzero.example
+
+                @Retention(AnnotationRetention.RUNTIME)
+                annotation class Route(val label: String)
+            """.trimIndent(),
+        )
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/I18NTargets.kt",
+            """
+                package site.addzero.example
+
+                @Route("用户管理")
+                fun screenRoute() {
+                }
+
+                fun helloMessage(): String = "你好"
+            """.trimIndent(),
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "syncI18nLocales", "build")
+            .forwardOutput()
+            .build()
+
+        val enText = testProjectDir.resolve("src/main/resources/i18n/en.properties").toFile().readText()
+        assertTrue(enText.contains("I18NTargets_helloMessage_text_你好="), enText)
+        assertTrue(!enText.contains("Route_text_用户管理="), enText)
+
+        val targetsKt = loadClass(
+            classesDir = testProjectDir.resolve("build/classes/kotlin/main"),
+            resourcesDir = testProjectDir.resolve("build/resources/main"),
+            name = "site.addzero.example.I18NTargetsKt",
+        )
+        val runtimeUtil = targetsKt.classLoader.loadClass("site.addzero.util.I8nutil")
+        val runtimeUtilInstance = runtimeUtil.getField("INSTANCE").get(null)
+        runtimeUtil.getMethod("setLocale", String::class.java).invoke(runtimeUtilInstance, "en")
+        try {
+            assertEquals(
+                "用户管理",
+                runtimeUtil.getMethod("tBySource", String::class.java, String::class.java)
+                    .invoke(runtimeUtilInstance, "用户管理", "i18n"),
+            )
+        } finally {
+            runtimeUtil.getMethod("clearLocale").invoke(runtimeUtilInstance)
+        }
+    }
+
+    @Test
+    fun builtin_annotation_rules_can_be_disabled() {
+        val javaHome = System.getProperty("java.home")
+        val gradlePluginClasspath = System.getProperty("i18n.gradlePluginClasspath")
+            ?: error("Missing i18n.gradlePluginClasspath system property")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("i18n-gradle-disable-builtin-annotation-rules")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(
+            testProjectDir,
+            "build.gradle.kts",
+            buildFile(
+                gradlePluginClasspath = gradlePluginClasspath,
+                managedLocales = listOf("en"),
+                useDefaultAnnotationRules = false,
+            ),
+        )
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/Route.kt",
+            """
+                package site.addzero.example
+
+                @Retention(AnnotationRetention.RUNTIME)
+                annotation class Route(val label: String)
+            """.trimIndent(),
+        )
+        writeFile(
+            testProjectDir,
+            "src/main/kotlin/site/addzero/example/I18NTargets.kt",
+            """
+                package site.addzero.example
+
+                @Route("用户管理")
+                fun screenRoute() {
+                }
+
+                fun helloMessage(): String = "你好"
+            """.trimIndent(),
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments("--stacktrace", "--console=plain", "syncI18nLocales", "build")
+            .forwardOutput()
+            .build()
+
+        val enText = testProjectDir.resolve("src/main/resources/i18n/en.properties").toFile().readText()
+        assertTrue(enText.contains("I18NTargets_helloMessage_text_你好="), enText)
+        assertTrue(!enText.contains("Route_text_用户管理="), enText)
+    }
+
     private fun settingsFile(localRepositoryDir: Path): String {
         return """
             import org.gradle.api.initialization.resolve.RepositoriesMode
@@ -279,6 +550,9 @@ class I18NGradleSubpluginSmokeTest {
         gradlePluginClasspath: String,
         managedLocales: List<String> = emptyList(),
         scanScope: String? = null,
+        useDefaultAnnotationRules: Boolean? = null,
+        annotationWhitelist: List<String> = emptyList(),
+        annotationBlacklist: List<String> = emptyList(),
     ): String {
         val classpathEntries = gradlePluginClasspath
             .split(File.pathSeparator)
@@ -286,16 +560,6 @@ class I18NGradleSubpluginSmokeTest {
             .joinToString(separator = ",\n                        ") { path ->
                 path.quoteForKotlin()
             }
-        val managedLocalesDsl = if (managedLocales.isEmpty()) {
-            ""
-        } else {
-            """
-                managedLocales.addAll(${managedLocales.joinToString(", ") { locale -> locale.quoteForKotlin() }})
-            """.trimIndent()
-        }
-        val scanScopeDsl = scanScope?.let { value ->
-            """scanScope.set(${value.quoteForKotlin()})"""
-        }.orEmpty()
         return """
             buildscript {
                 dependencies {
@@ -310,12 +574,62 @@ class I18NGradleSubpluginSmokeTest {
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper>()
             apply(plugin = "site.addzero.kcp.i18n")
 
-            configure<site.addzero.kcp.i18n.gradle.I18NGradleExtension> {
-                targetLocale.set("en")
-                resourceBasePath.set("i18n")
-                $managedLocalesDsl
-                $scanScopeDsl
+            val i18nExtension = extensions.getByName("i18n")
+
+            fun isCompatibleParameter(parameterType: Class<*>, value: Any): Boolean {
+                if (parameterType.isAssignableFrom(value.javaClass)) {
+                    return true
+                }
+                if (!parameterType.isPrimitive) {
+                    return false
+                }
+                return when (parameterType) {
+                    java.lang.Boolean.TYPE -> value is Boolean
+                    java.lang.Integer.TYPE -> value is Int
+                    java.lang.Long.TYPE -> value is Long
+                    java.lang.Double.TYPE -> value is Double
+                    java.lang.Float.TYPE -> value is Float
+                    else -> false
+                }
             }
+
+            fun findCompatibleSingleArgMethod(target: Any, methodName: String, value: Any): java.lang.reflect.Method {
+                return target.javaClass.methods.first { method ->
+                    method.name == methodName &&
+                        method.parameterCount == 1 &&
+                        isCompatibleParameter(method.parameterTypes[0], value)
+                }
+            }
+
+            fun setI18nProperty(getterName: String, value: Any) {
+                val property = i18nExtension.javaClass.getMethod(getterName).invoke(i18nExtension)
+                val setter = findCompatibleSingleArgMethod(property, "set", value)
+                setter.invoke(property, value)
+            }
+
+            fun addI18nListPropertyValue(getterName: String, value: String) {
+                val property = i18nExtension.javaClass.getMethod(getterName).invoke(i18nExtension)
+                val addMethod = findCompatibleSingleArgMethod(property, "add", value)
+                addMethod.invoke(property, value)
+            }
+
+            setI18nProperty("getTargetLocale", "en")
+            setI18nProperty("getResourceBasePath", "i18n")
+            ${managedLocales.joinToString("\n") { locale ->
+                "addI18nListPropertyValue(\"getManagedLocales\", ${locale.quoteForKotlin()})"
+            }}
+            ${scanScope?.let { value ->
+                "setI18nProperty(\"getScanScope\", ${value.quoteForKotlin()})"
+            }.orEmpty()}
+            ${useDefaultAnnotationRules?.let { value ->
+                "setI18nProperty(\"getUseDefaultAnnotationRules\", $value)"
+            }.orEmpty()}
+            ${annotationWhitelist.joinToString("\n") { value ->
+                "addI18nListPropertyValue(\"getAnnotationWhitelist\", ${value.quoteForKotlin()})"
+            }}
+            ${annotationBlacklist.joinToString("\n") { value ->
+                "addI18nListPropertyValue(\"getAnnotationBlacklist\", ${value.quoteForKotlin()})"
+            }}
         """.trimIndent()
     }
 

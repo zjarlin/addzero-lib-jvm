@@ -10,6 +10,9 @@ object I18NPluginKeys {
     const val resourceBasePathOption: String = "resourceBasePath"
     const val generatedCatalogFileOption: String = "generatedCatalogFile"
     const val scanScopeOption: String = "scanScope"
+    const val useDefaultAnnotationRulesOption: String = "useDefaultAnnotationRules"
+    const val annotationWhitelistOption: String = "annotationWhitelist"
+    const val annotationBlacklistOption: String = "annotationBlacklist"
     const val scanScopeAll: String = "all"
     const val scanScopeComposableOnly: String = "composableOnly"
 
@@ -19,6 +22,12 @@ object I18NPluginKeys {
         CompilerConfigurationKey.create(generatedCatalogFileOption)
     val scanScopeKey: CompilerConfigurationKey<String> =
         CompilerConfigurationKey.create(scanScopeOption)
+    val useDefaultAnnotationRulesKey: CompilerConfigurationKey<Boolean> =
+        CompilerConfigurationKey.create(useDefaultAnnotationRulesOption)
+    val annotationWhitelistKey: CompilerConfigurationKey<List<String>> =
+        CompilerConfigurationKey.create(annotationWhitelistOption)
+    val annotationBlacklistKey: CompilerConfigurationKey<List<String>> =
+        CompilerConfigurationKey.create(annotationBlacklistOption)
 
     val runtimeFunctionCallableId: CallableId = CallableId(
         FqName("site.addzero.util"),

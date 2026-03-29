@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object I8nutil {
     private val bundles = ConcurrentHashMap<String, Properties>()
+    private val sourceLookupCache = ConcurrentHashMap<String, Map<String, List<String>>>()
     @Volatile
     private var currentLocaleOverride: String? = null
 
@@ -16,15 +17,37 @@ object I8nutil {
         fallback: String,
         basePath: String,
     ): String {
-        val normalizedBasePath = basePath
-            .trim()
-            .trim('/')
-            .ifBlank { "i18n" }
+        val normalizedBasePath = normalizeBasePath(basePath)
         val resolvedValue = buildLocaleCandidates(resolveLocale())
             .asSequence()
             .mapNotNull { locale -> loadValue(normalizedBasePath, locale, key) }
             .firstOrNull { it.isNotBlank() }
         return resolvedValue ?: fallback
+    }
+
+    fun tBySource(
+        sourceText: String,
+        basePath: String = "i18n",
+    ): String {
+        if (sourceText.isBlank()) {
+            return sourceText
+        }
+        val normalizedBasePath = normalizeBasePath(basePath)
+        val sourceLookup = sourceLookupCache
+            .computeIfAbsent(normalizedBasePath, ::loadSourceLookup)
+        val keys = sourceLookup[sourceText].orEmpty()
+        if (keys.isEmpty()) {
+            return sourceText
+        }
+        buildLocaleCandidates(resolveLocale()).forEach { locale ->
+            keys.forEach { key ->
+                val translatedValue = loadValue(normalizedBasePath, locale, key)
+                if (!translatedValue.isNullOrBlank()) {
+                    return translatedValue
+                }
+            }
+        }
+        return sourceText
     }
 
     fun setLocale(locale: String) {
@@ -83,6 +106,10 @@ object I8nutil {
         }
     }
 
+    private fun normalizeBasePath(basePath: String): String {
+        return basePath.trim().trim('/').ifBlank { "i18n" }
+    }
+
     private fun normalizeLocale(locale: String): String {
         val trimmed = locale.trim().ifBlank { "zh" }
         return trimmed.replace('_', '-')
@@ -102,6 +129,18 @@ object I8nutil {
             }
         }
         return properties
+    }
+
+    private fun loadSourceLookup(basePath: String): Map<String, List<String>> {
+        val catalogResourceName = "$basePath/_catalog.properties"
+        val catalog = bundles.computeIfAbsent(catalogResourceName, ::loadProperties)
+        return catalog.stringPropertyNames()
+            .sorted()
+            .groupBy(
+                keySelector = { key -> catalog.getProperty(key).orEmpty() },
+                valueTransform = { key -> key },
+            )
+            .filterKeys { sourceText -> sourceText.isNotBlank() }
     }
 
     private fun parseProperties(reader: InputStreamReader): Map<String, String> {
@@ -190,4 +229,11 @@ fun i18nT(
     basePath: String,
 ): String {
     return I8nutil.t(key, fallback, basePath)
+}
+
+fun i18nTBySource(
+    sourceText: String,
+    basePath: String = "i18n",
+): String {
+    return I8nutil.tBySource(sourceText, basePath)
 }

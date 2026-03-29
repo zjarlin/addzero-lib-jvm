@@ -1,24 +1,24 @@
 # KCP I18N
 
-`kcp-i18n` 现在是运行时语言切换方案，不再把目标语言编进字节码。
+`kcp-i18n` 是运行时国际化方案。
 
 - `kcp-i18n`
-  Kotlin 编译器插件，负责把源码里的字符串字面量改写成运行期翻译调用，并生成源码语言目录。
+  Kotlin 编译器插件，扫描源码里的字符串字面量并改写成运行时翻译调用，同时生成源码 catalog。
 - `kcp-i18n-runtime`
-  运行时翻译库，负责根据当前 locale 从 `resources` 读取翻译，缺失时回退到源码原文。
+  运行时翻译库，按当前 locale 从 `resources` 读取翻译，缺失时回退到源码原文。
 - `kcp-i18n-gradle-plugin`
-  业务项目直接接的 Gradle 插件，负责透传编译器参数、自动补运行时依赖，并提供语言文件同步/校验任务。
+  业务项目直接接入的 Gradle 插件，负责透传编译参数、自动补 runtime 依赖，并提供语言文件同步/校验任务。
 - `kcp-i18n-idea-plugin`
-  IDEA companion plugin，用来在 IDE 启动后刷新分析并输出插件检测日志。
+  IDEA companion plugin，用来辅助 IDE 导入和分析刷新。
 
-## Business Usage
+## 业务项目接法
 
-业务项目推荐直接接 `site.addzero.kcp.i18n`，不要再手写 `-Xplugin`。
+不要手写 `-Xplugin`，直接接 Gradle 插件：
 
 ```kotlin
 plugins {
     kotlin("jvm") version "2.3.20-RC"
-    id("site.addzero.kcp.i18n") version "2026.10329.101"
+    id("site.addzero.kcp.i18n") version "<version>"
 }
 
 i18n {
@@ -28,39 +28,169 @@ i18n {
 }
 ```
 
-这个 Gradle 插件会自动做三件事：
-
-1. 把 `resourceBasePath` 传给编译器插件
-2. 自动给业务项目补上 `site.addzero:kcp-i18n-runtime`
-3. 注册 `syncI18nLocales` / `checkI18nLocales`
-
-`targetLocale` 还保留着，只作为兼容旧脚本的单语言别名；新项目直接用 `managedLocales`。
-
-`scanScope` 用来控制扫描范围：
-
-- `"all"`: 扫描当前编译目标里的普通字符串字面量
-- `"composableOnly"`: 只扫描 `@Composable` 函数里的字符串，适合 Compose 前端模块
-
-如果你的主要诉求是 Compose UI 国际化，推荐直接配成：
+如果你是通过 `plugins { id(...) }` 方式解析插件，`settings.gradle.kts` 里要保证 `pluginManagement.repositories` 包含 `mavenCentral()`：
 
 ```kotlin
-i18n {
-    managedLocales.addAll("en", "ja")
-    scanScope.set("composableOnly")
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
 }
 ```
 
-## Runtime Model
+这个插件会自动做三件事：
 
-编译后源码里的中文会被改写成：
+1. 把 `resourceBasePath`、`scanScope`、注解规则传给编译器插件
+2. 自动补 `site.addzero:kcp-i18n-runtime`
+3. 注册 `syncI18nLocales` / `checkI18nLocales`
+
+`targetLocale` 还保留着，只是旧的单语言别名；新项目直接用 `managedLocales`。
+
+## 作用域设计
+
+`scanScope` 控制普通字符串字面量的扫描范围：
+
+- `"all"`：扫描 JVM 目标里的普通字符串字面量
+- `"composableOnly"`：只扫描 `@Composable` 函数体里的字符串，适合 Compose 前端模块
+
+推荐做法：
+
+1. Compose 前端模块：`scanScope.set("composableOnly")`
+2. 后端或纯服务模块：通常不要接这个插件，或者拆模块隔离
+3. 业务项目默认吃内置注解规则，只有自定义注解才补配置
+
+例如这类路径字符串默认就不应该翻译：
+
+```kotlin
+@RequestMapping("/abcd")
+fun endpoint() = "/abcd"
+```
+
+插件默认内置了一组“展示型注解白名单”，这类注解的字符串会自动进入 catalog：
+
+- `Route`
+- `RouteTitle`
+- `Menu`
+- `MenuTitle`
+- `NavTitle`
+- `PageTitle`
+- `TabTitle`
+- `Label`
+- `Placeholder`
+- `Description`
+- `DisplayName`
+- `Help`
+- `HelpText`
+- `Tooltip`
+
+插件也内置了一组“机器协议型注解黑名单”，这类注解默认不会进 i18n：
+
+- `RequestMapping`
+- `GetMapping`
+- `PostMapping`
+- `PutMapping`
+- `DeleteMapping`
+- `PatchMapping`
+- `Path`
+- `PathVariable`
+- `RequestParam`
+- `Query`
+- `QueryParam`
+- `Header`
+- `HeaderParam`
+- `SerialName`
+- `JsonProperty`
+- `JsonAlias`
+- `JsonClassDiscriminator`
+- `Column`
+- `JoinColumn`
+- `Table`
+- `CollectionTable`
+- `Named`
+- `Qualifier`
+- `Value`
+- `Cacheable`
+- `CachePut`
+- `CacheEvict`
+- `KafkaListener`
+
+所以像 `@Route("用户管理")` 这种，默认就会被收集，不需要再配白名单。
+
+如果你有自己的展示型注解，例如 `@ScreenLabel("设备中心")`，再追加到白名单：
+
+```kotlin
+i18n {
+    annotationWhitelist.add("ScreenLabel")
+}
+```
+
+支持两种匹配方式：
+
+- 简名：`"Route"`
+- 全限定名：`"site.addzero.example.Route"`
+
+`annotationWhitelist` / `annotationBlacklist` 都是“追加规则”，不会覆盖内置规则。
+
+黑名单优先级高于白名单：
+
+```kotlin
+i18n {
+    annotationBlacklist.add("site.addzero.example.Route")
+}
+```
+
+如果你就是想完全关闭内置规则，切成纯自定义模式：
+
+```kotlin
+i18n {
+    useDefaultAnnotationRules.set(false)
+    annotationWhitelist.add("Route")
+}
+```
+
+## 注解翻译的工作方式
+
+这一点要分清：
+
+1. 注解参数不会被改写
+2. 白名单命中的注解字符串只会进入 catalog
+3. 运行时需要按“源码原文”去查翻译
+
+原因很直接：注解参数必须是编译期常量，不能改写成 `i18nT(...)`。
+
+所以：
+
+```kotlin
+@Route("用户管理")
+fun userRoute() = Unit
+```
+
+编译后 `@Route("用户管理")` 还是原样保留；只是 `"用户管理"` 会进入生成的 catalog。消费方在渲染菜单、标题、路由描述时，应该这样取翻译：
+
+```kotlin
+import site.addzero.util.I8nutil
+
+val label = I8nutil.tBySource("用户管理")
+```
+
+如果你拿到的是注解值，也一样：
+
+```kotlin
+val label = I8nutil.tBySource(route.label)
+```
+
+## 运行时模型
+
+普通源码字符串会被改写成：
 
 ```kotlin
 i18nT(key = "...", fallback = "源码原文", basePath = "i18n")
 ```
 
-运行时读取顺序：
+运行时查找顺序：
 
-1. 当前设置的 locale
+1. 当前 locale
 2. 当前 locale 的语言部分，比如 `en-US -> en`
 3. 源码原文 fallback
 
@@ -68,9 +198,9 @@ i18nT(key = "...", fallback = "源码原文", basePath = "i18n")
 
 - 不需要维护 `zh.properties`
 - `en.properties` / `ja.properties` 只维护翻译值
-- 某个 key 没翻译时，界面会直接回退到源码里的中文
+- 缺翻译时直接回退到源码里的中文
 
-运行时切语言示例：
+运行时切语言：
 
 ```kotlin
 import site.addzero.util.I8nutil
@@ -80,53 +210,39 @@ I8nutil.setLocale("ja")
 I8nutil.clearLocale()
 ```
 
-## Scope Design
-
-当前推荐的作用域设计是：
-
-1. 前端 Compose 模块：`scanScope.set("composableOnly")`
-2. 后端 / 路由 / 控制器模块：不要接这个插件，或者保持单独模块隔离
-3. 注解参数永远跳过，不参与 i18n 改写
-
-例如下面这种不会被改写：
+按源码原文翻译：
 
 ```kotlin
-@RequestMapping("/abcd")
-fun endpoint() = "/abcd"
+I8nutil.tBySource("用户管理")
 ```
 
-因为 `"/abcd"` 是注解参数；而在 `composableOnly` 模式下，普通函数体里的字符串也不会被改写。
+## 资源文件布局
 
-## Resource Layout
-
-翻译资源默认放在：
+源码里维护的翻译文件：
 
 ```text
 src/main/resources/i18n/en.properties
+src/main/resources/i18n/ja.properties
 ```
 
-KMP Compose 模块通常对应：
+KMP Compose JVM 目标通常是：
 
 ```text
 src/jvmMain/resources/i18n/en.properties
 src/jvmMain/resources/i18n/ja.properties
 ```
 
-示例：
+插件在构建期还会自动放一份运行时 catalog 到输出目录：
 
-```properties
-# 你好
-Messages_helloMessage_text_你好=hello
-
-# 再见
-Messages_farewellMessage_text_再见=goodbye
+```text
+build/resources/main/i18n/_catalog.properties
 ```
 
-注意这里的中文只是注释，不是数据副本。真正的中文 source of truth 在 Kotlin 源码里。
+这份 `_catalog.properties` 是自动生成的，不用手改；你删掉构建输出后，下次构建会重新生成。
 
-## Sync And Check
+## 同步与校验
 
-不要手写补 key，直接让插件生成：
+不要手工补 key，直接跑：
 
 ```bash
 ./gradlew syncI18nLocales
@@ -134,52 +250,48 @@ Messages_farewellMessage_text_再见=goodbye
 
 这个任务会：
 
-- 从编译器插件生成的源码语言目录同步所有 key
+- 从源码生成 catalog
 - 给每个受管语言文件补齐缺失 key
 - 移除已经不存在的旧 key
 - 保留已有翻译值
 - 在每个 key 上方写源码原文注释，方便翻译
 
-语言一致性校验：
+校验语言文件是否齐全：
 
 ```bash
 ./gradlew checkI18nLocales
 ```
 
-它会检查每个受管语言的 key 集合是否与源码目录一致。这个任务已经挂到 `check` 上，某个语言多词条或少词条时会直接失败。
+它会检查每个受管语言的 key 集合是否和源码 catalog 一致。某个语言多 key 或少 key，会直接失败。
 
-## Key Rule
+## 翻译文件怎么维护
 
-当前 key 规则还是：
+推荐流程：
 
-```text
-文件名_函数名_调用组件名_text_原始字符串
+1. UI 和展示文本直接写中文源码
+2. 跑一次 `syncI18nLocales`
+3. 只填写 `en.properties`、`ja.properties` 里 `=` 右边的翻译值
+4. 新增语言时，再把空模板同步出来补值
+
+示例：
+
+```properties
+# 你好
+Messages_helloMessage_text_你好=hello
+
+# 用户管理
+Routes_userRoute_Route_text_用户管理=User Management
 ```
 
-例如：
+注意：
 
-```text
-Messages_helloMessage_text_你好
-```
+- 中文不是单独维护的副本，源码本身就是中文 source of truth
+- 翻译人员不需要自己造 key，只改 `=` 右边
+- `checkI18nLocales` 会兜底拦截某个语言多词条或少词条
 
-消费方不需要自己补 key，只需要改 `=` 右边的翻译值。
+## 验证命令
 
-## Example
-
-源码：
-
-```kotlin
-fun helloMessage(): String = "你好"
-fun farewellMessage(): String = "再见"
-```
-
-运行时切到 `en` 时命中 `en.properties`，切到 `ja` 时命中 `ja.properties`，切回 `zh` 或缺翻译时回退到源码里的中文。
-
-## Verification
-
-仓库里现在有两条验证链路：
-
-1. 仓库内 example 验证
+仓库内 example：
 
 ```bash
 ./gradlew -p example/example-kcp-i18n test
@@ -187,26 +299,22 @@ fun farewellMessage(): String = "再见"
 ./gradlew -p example/example-kcp-i18n run --args=en
 ```
 
-其中：
-
-- `run` 用来验证缺翻译时会回退源码中文
-- `run --args=en` 用来验证运行时切到英文后能命中 `en.properties`
-- 这个 example 默认走 composite build，不需要先 `publishToMavenLocal`
-
-2. 业务项目直连 Gradle 插件验证
+Gradle 插件烟测：
 
 ```bash
 ./gradlew :lib:kcp:kcp-i18n-gradle-plugin:test \
-  --tests site.addzero.kcp.i18n.gradle.I18NGradleSubpluginSmokeTest
+  --tests site.addzero.kcp.i18n.gradle.I18NGradleSubpluginSmokeTest \
+  --no-configuration-cache
 ```
 
-第二条烟测验证的是：
+烟测覆盖点：
 
 - 业务工程通过插件 ID 接入
-- `i18n { managedLocales }` DSL 生效
-- runtime 自动注入成功
-- `syncI18nLocales` 会补齐语言文件
-- `checkI18nLocales` 会拦截 key 漂移
+- `scanScope` 生效
+- 注解白名单/黑名单生效
+- 注解值不改写，但能进入 catalog
+- `I8nutil.tBySource(...)` 能命中翻译
+- `syncI18nLocales` / `checkI18nLocales` 能兜底 key 漂移
 
 ## IDEA Plugin
 
@@ -219,17 +327,12 @@ fun farewellMessage(): String = "再见"
 产物位置：
 
 ```text
-lib/kcp/kcp-i18n-idea-plugin/build/distributions/kcp-i18n-idea-plugin-2026.10329.101.zip
+lib/kcp/kcp-i18n-idea-plugin/build/distributions/kcp-i18n-idea-plugin-<version>.zip
 ```
 
-安装后它会：
+## 限制
 
-- 检测 Kotlin facet 里是否带上了 `kcp-i18n` 编译器插件 classpath
-- 在项目启动后刷新 PSI / Daemon 分析
-
-## Notes
-
-- 当前会处理非空字符串字面量。
-- 当前不会改写 `site.addzero.util.I8nutil` 自己内部的字符串。
-- 当前字符串模板还是分段翻译，比如 `"按钮已经点击 $count 次。"` 还会拆成前后两段；对语序差异特别大的语言还不够理想。
-- 如果业务项目直接接 `site.addzero.kcp.i18n`，就不要再重复手写 `-Xplugin`。
+- 当前处理的是非空字符串字面量
+- `site.addzero.util.I8nutil` 自己内部的字符串不会再被改写
+- 字符串模板仍然是分段翻译，例如 `"按钮已经点击 $count 次"` 会拆成多个片段
+- 如果业务项目已经接了 `site.addzero.kcp.i18n`，不要再重复手写 `-Xplugin`

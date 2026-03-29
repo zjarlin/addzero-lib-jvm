@@ -33,6 +33,27 @@ class I18NCommandLineProcessor : CommandLineProcessor {
             required = false,
             allowMultipleOccurrences = false,
         ),
+        CliOption(
+            optionName = I18NPluginKeys.useDefaultAnnotationRulesOption,
+            valueDescription = "<true|false>",
+            description = "Whether to enable built-in annotation i18n whitelist and blacklist rules.",
+            required = false,
+            allowMultipleOccurrences = false,
+        ),
+        CliOption(
+            optionName = I18NPluginKeys.annotationWhitelistOption,
+            valueDescription = "<comma-separated-annotation-names>",
+            description = "Whitelisted annotations whose string arguments should be collected into the i18n catalog.",
+            required = false,
+            allowMultipleOccurrences = false,
+        ),
+        CliOption(
+            optionName = I18NPluginKeys.annotationBlacklistOption,
+            valueDescription = "<comma-separated-annotation-names>",
+            description = "Blacklisted annotations whose string arguments must be excluded from the i18n catalog.",
+            required = false,
+            allowMultipleOccurrences = false,
+        ),
     )
 
     override fun processOption(
@@ -53,9 +74,36 @@ class I18NCommandLineProcessor : CommandLineProcessor {
                 configuration.put(I18NPluginKeys.scanScopeKey, value)
             }
 
+            I18NPluginKeys.useDefaultAnnotationRulesOption -> {
+                configuration.put(I18NPluginKeys.useDefaultAnnotationRulesKey, parseBoolean(value))
+            }
+
+            I18NPluginKeys.annotationWhitelistOption -> {
+                configuration.put(I18NPluginKeys.annotationWhitelistKey, parseNameList(value))
+            }
+
+            I18NPluginKeys.annotationBlacklistOption -> {
+                configuration.put(I18NPluginKeys.annotationBlacklistKey, parseNameList(value))
+            }
+
             else -> {
                 error("Unknown option: ${option.optionName}")
             }
         }
+    }
+
+    private fun parseNameList(value: String): List<String> {
+        return value
+            .split(',', '\n', '\r')
+            .map(String::trim)
+            .filter(String::isNotBlank)
+            .distinct()
+    }
+
+    private fun parseBoolean(value: String): Boolean {
+        return value.trim().toBooleanStrictOrNull()
+            ?: error(
+                "Unsupported boolean option value `$value`. Supported values: `true`, `false`.",
+            )
     }
 }
