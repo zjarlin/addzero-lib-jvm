@@ -8,7 +8,11 @@ processorBuddy {
   mustMap=mapOf(
     "sharedSourceDir" to "",
     "routeGenPkg" to "site.addzero.generated",
-    "routeOwnerModule" to ""
+    "routeOwnerModule" to "",
+    // KSP loads all processors in one classloader. Keep this Settings shape
+    // aligned with controller2api-processor to avoid NoSuchMethodError.
+    "apiClientPackageName" to "site.addzero.generated.api",
+    "apiClientOutputDir" to ""
   )
 }
 kotlin {

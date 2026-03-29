@@ -70,3 +70,12 @@ project(":lib:ksp:metadata:modbus:modbus-ksp-rtu").projectDir = file("lib/ksp/me
 
 include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
 project(":lib:ksp:metadata:modbus:modbus-ksp-tcp").projectDir = file("lib/ksp/metadata/modbus/modbus-ksp-tcp")
+
+include(":lib:ksp:metadata:controller2api-processor")
+project(":lib:ksp:metadata:controller2api-processor").projectDir = file("lib/ksp/metadata/controller2api-processor")
+
+include(":lib:ksp:metadata:spring2ktor-server-core")
+project(":lib:ksp:metadata:spring2ktor-server-core").projectDir = file("lib/ksp/metadata/spring2ktor-server-core")
+
+include(":lib:ksp:metadata:spring2ktor-server-processor")
+project(":lib:ksp:metadata:spring2ktor-server-processor").projectDir = file("lib/ksp/metadata/spring2ktor-server-processor")

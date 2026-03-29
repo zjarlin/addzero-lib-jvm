@@ -9,6 +9,11 @@ val defaultSharedComposeDir = rootDir.resolve("shared/src/commonMain/kotlin")
 processorBuddy {
     mustMap.set(
         mapOf(
+            // KSP loads all processors in one classloader. Keep this Settings shape
+            // aligned with route-processor to avoid NoSuchMethodError.
+            "sharedSourceDir" to "",
+            "routeGenPkg" to "site.addzero.generated",
+            "routeOwnerModule" to "",
             "apiClientPackageName" to defaultApiClientPackageName,
             "apiClientOutputDir" to defaultSharedComposeDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))

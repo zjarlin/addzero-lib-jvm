@@ -8,7 +8,10 @@ import com.google.devtools.ksp.validate
 import java.io.File
 
 private const val REST_CONTROLLER_ANNOTATION = "org.springframework.web.bind.annotation.RestController"
-private const val FILE_REQUEST_MAPPING_ANNOTATION = "site.addzero.springktor.runtime.RequestMapping"
+private val fileRequestMappingAnnotations = setOf(
+    "site.addzero.springktor.runtime.RequestMapping",
+    "org.springframework.web.bind.annotation.RequestMapping",
+)
 
 private val springMvcMappingAnnotations = listOf(
     "org.springframework.web.bind.annotation.GetMapping",
@@ -400,7 +403,7 @@ class ControllerApiProcessor(
         }
 
         val annotation = file.annotations.firstOrNull { fileAnnotation ->
-            fileAnnotation.annotationType.resolve().declaration.qualifiedName?.asString() == FILE_REQUEST_MAPPING_ANNOTATION
+            fileAnnotation.annotationType.resolve().declaration.qualifiedName?.asString() in fileRequestMappingAnnotations
         } ?: return ""
 
         return getPathFromAnnotation(annotation)

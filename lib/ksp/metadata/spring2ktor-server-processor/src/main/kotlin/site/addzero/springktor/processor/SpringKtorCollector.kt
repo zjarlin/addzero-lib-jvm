@@ -18,7 +18,10 @@ import com.google.devtools.ksp.validate
 
 private const val REST_CONTROLLER = "org.springframework.web.bind.annotation.RestController"
 private const val REQUEST_MAPPING = "org.springframework.web.bind.annotation.RequestMapping"
-private const val FILE_REQUEST_MAPPING = "site.addzero.springktor.runtime.RequestMapping"
+private val FILE_REQUEST_MAPPINGS = setOf(
+    "site.addzero.springktor.runtime.RequestMapping",
+    "org.springframework.web.bind.annotation.RequestMapping",
+)
 private const val GET_MAPPING = "org.springframework.web.bind.annotation.GetMapping"
 private const val POST_MAPPING = "org.springframework.web.bind.annotation.PostMapping"
 private const val PUT_MAPPING = "org.springframework.web.bind.annotation.PutMapping"
@@ -245,7 +248,9 @@ class SpringKtorCollector(
             return ""
         }
 
-        val annotation = file.findFileAnnotation(FILE_REQUEST_MAPPING) ?: return ""
+        val annotation = FILE_REQUEST_MAPPINGS
+            .firstNotNullOfOrNull { annotationName -> file.findFileAnnotation(annotationName) }
+            ?: return ""
         return extractMappingPath(annotation)
     }
 

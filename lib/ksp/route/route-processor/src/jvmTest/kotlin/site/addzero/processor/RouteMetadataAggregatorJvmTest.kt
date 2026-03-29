@@ -128,12 +128,21 @@ class RouteMetadataAggregatorJvmTest {
             buildString {
                 appendLine("# addzero-route-snapshot:v2")
                 appendLine(
-                    routeRecord(
+                    encodeSnapshotLineV2(
+                        legacyValue = "",
                         title = "Stale Screen",
                         routePath = "stale/screen",
+                        icon = "Apps",
+                        order = 0.0,
                         qualifiedName = "stale.StaleScreen",
                         simpleName = "StaleScreen",
-                    ).encodeSnapshotLine(),
+                        sceneId = "",
+                        sceneName = "",
+                        sceneIcon = "Apps",
+                        sceneOrder = Int.MAX_VALUE,
+                        menuPath = emptyList(),
+                        defaultInScene = false,
+                    ),
                 )
             },
         )
@@ -148,7 +157,7 @@ class RouteMetadataAggregatorJvmTest {
             logger = TestKspLogger(),
         )
 
-        kotlin.test.assertFalse(staleSnapshot.exists())
+        kotlin.test.assertFalse(Files.exists(staleSnapshot))
     }
 
     @Test
@@ -272,6 +281,42 @@ private fun encodeSnapshotLineV1(
         order.toString(),
         qualifiedName,
         simpleName,
+    ).joinToString("|") { value ->
+        java.util.Base64.getUrlEncoder()
+            .withoutPadding()
+            .encodeToString(value.toByteArray(Charsets.UTF_8))
+    }
+}
+
+private fun encodeSnapshotLineV2(
+    legacyValue: String,
+    title: String,
+    routePath: String,
+    icon: String,
+    order: Double,
+    qualifiedName: String,
+    simpleName: String,
+    sceneId: String,
+    sceneName: String,
+    sceneIcon: String,
+    sceneOrder: Int,
+    menuPath: List<String>,
+    defaultInScene: Boolean,
+): String {
+    return listOf(
+        legacyValue,
+        title,
+        routePath,
+        icon,
+        order.toString(),
+        qualifiedName,
+        simpleName,
+        sceneId,
+        sceneName,
+        sceneIcon,
+        sceneOrder.toString(),
+        menuPath.joinToString("\u001F"),
+        defaultInScene.toString(),
     ).joinToString("|") { value ->
         java.util.Base64.getUrlEncoder()
             .withoutPadding()
