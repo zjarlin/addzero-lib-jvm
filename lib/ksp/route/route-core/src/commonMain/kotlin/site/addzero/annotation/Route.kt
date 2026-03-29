@@ -35,6 +35,7 @@ annotation class Route(
     val routePath: String = "",  // 为空时使用全限定名
     val icon: String = "Apps",   // 页面图标
     val order: Double = 0.0,     // 页面排序(支持小数,方便插入新项)
+    val enabled: Boolean = true, // 是否参与路由聚合
     val placement: RoutePlacement = RoutePlacement(),
     val qualifiedName: String = "",
     val simpleName: String = "",

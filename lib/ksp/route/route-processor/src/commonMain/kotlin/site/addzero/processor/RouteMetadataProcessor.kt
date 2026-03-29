@@ -123,6 +123,11 @@ class RouteMetadataProcessor(
             val annotation = declaration.annotations.first {
                 it.annotationType.resolve().declaration.qualifiedName?.asString() == Route::class.qualifiedName
             }
+            val enabled = annotation.arguments.firstOrNull { it.name?.asString() == "enabled" }?.value as? Boolean
+                ?: true
+            if (!enabled) {
+                return null
+            }
             val title = annotation.arguments.firstOrNull { it.name?.asString() == "title" }?.value as? String
                 ?: simpleName
             val icon = annotation.arguments.firstOrNull { it.name?.asString() == "icon" }?.value as? String
