@@ -729,12 +729,13 @@ $methodsCode
     private fun generateMethodWithTemplate(method: MethodInfo): String {
         val methodDoc = generateMethodDocumentation(method)
         val httpAnnotation = generateHttpAnnotation(method)
-//        val headersAnnotation = generateHeadersAnnotation(method)
+        val headersAnnotation = generateHeadersAnnotation(method)
         val methodSignature = generateMethodSignature(method)
 
         return """
 $methodDoc
-$httpAnnotation$methodSignature
+$httpAnnotation
+$headersAnnotation$methodSignature
         """.trimIndent()
     }
 
@@ -749,8 +750,8 @@ $httpAnnotation$methodSignature
             } -> {
                 "    @Headers(\"Content-Type: multipart/form-data\")\n"
             }
-            // 普通的POST/PUT/PATCH请求
-            method.httpMethod in listOf("POST", "PUT", "PATCH") -> {
+            // 仅在存在请求体时声明 JSON 内容类型，避免无 body 的 POST 被误标注
+            method.parameters.any { it.isRequestBody } -> {
                 "    @Headers(\"Content-Type: application/json\")\n"
             }
 

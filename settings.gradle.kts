@@ -180,8 +180,27 @@ project(":lib:lsi:lsi-ksp").projectDir = file("lib/lsi/lsi-ksp")
 include(":lib:compose:compose-zh-fonts")
 project(":lib:compose:compose-zh-fonts").projectDir = file("lib/compose/compose-zh-fonts")
 
+include(":lib:compose:compose-native-component-high-level")
+project(":lib:compose:compose-native-component-high-level").projectDir =
+  file("lib/compose/compose-native-component-high-level")
+
+include(":lib:compose:compose-native-component-button")
+project(":lib:compose:compose-native-component-button").projectDir =
+  file("lib/compose/compose-native-component-button")
+
+include(":lib:compose:compose-native-component-searchbar")
+project(":lib:compose:compose-native-component-searchbar").projectDir =
+  file("lib/compose/compose-native-component-searchbar")
+
+include(":lib:compose:compose-native-component-tree")
+project(":lib:compose:compose-native-component-tree").projectDir =
+  file("lib/compose/compose-native-component-tree")
+
 include(":lib:tool-kmp:tool-coll")
 project(":lib:tool-kmp:tool-coll").projectDir = file("lib/tool-kmp/tool-coll")
+
+include(":lib:tool-kmp:tool-tree")
+project(":lib:tool-kmp:tool-tree").projectDir = file("lib/tool-kmp/tool-tree")
 
 include(":lib:ksp:metadata:modbus:modbus-runtime")
 project(":lib:ksp:metadata:modbus:modbus-runtime").projectDir = file("lib/ksp/metadata/modbus/modbus-runtime")
