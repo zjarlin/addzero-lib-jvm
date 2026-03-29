@@ -26,6 +26,13 @@ class I18NCommandLineProcessor : CommandLineProcessor {
             required = false,
             allowMultipleOccurrences = false,
         ),
+        CliOption(
+            optionName = I18NPluginKeys.scanScopeOption,
+            valueDescription = "<all|composableOnly>",
+            description = "Controls which functions are scanned for translatable strings.",
+            required = false,
+            allowMultipleOccurrences = false,
+        ),
     )
 
     override fun processOption(
@@ -40,6 +47,10 @@ class I18NCommandLineProcessor : CommandLineProcessor {
 
             I18NPluginKeys.generatedCatalogFileOption -> {
                 configuration.put(I18NPluginKeys.generatedCatalogFileKey, value)
+            }
+
+            I18NPluginKeys.scanScopeOption -> {
+                configuration.put(I18NPluginKeys.scanScopeKey, value)
             }
 
             else -> {

@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
 
@@ -16,8 +17,27 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     private val logger = Logging.getLogger(I18NGradleSubplugin::class.java)
 
     override fun apply(target: Project) {
-        target.extensions.create("i18n", I18NGradleExtension::class.java)
+        val extension = target.extensions.create("i18n", I18NGradleExtension::class.java)
         addRuntimeDependency(target)
+        ensureLocaleTaskPlaceholders(target)
+        target.pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+            registerLocaleTasks(
+                project = target,
+                extension = extension,
+                compileTaskName = "compileKotlin",
+                sourceSetName = "main",
+                targetName = "",
+            )
+        }
+        target.pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
+            registerLocaleTasks(
+                project = target,
+                extension = extension,
+                compileTaskName = "compileKotlinJvm",
+                sourceSetName = "jvmMain",
+                targetName = "jvm",
+            )
+        }
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
@@ -39,14 +59,12 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     ) = kotlinCompilation.target.project.provider<List<SubpluginOption>> {
         val project = kotlinCompilation.target.project
         val extension = project.extensions.getByType(I18NGradleExtension::class.java)
-        registerLocaleTasks(
-            project = project,
-            kotlinCompilation = kotlinCompilation,
-            extension = extension,
-        )
         buildList {
             add(
                 SubpluginOption(RESOURCE_BASE_PATH_OPTION, extension.resourceBasePath.get()),
+            )
+            add(
+                SubpluginOption(SCAN_SCOPE_OPTION, extension.scanScope.get()),
             )
             val generatedCatalogFile = resolveGeneratedCatalogFile(
                 project = project,
@@ -112,20 +130,20 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
 
     private fun registerLocaleTasks(
         project: Project,
-        kotlinCompilation: KotlinCompilation<*>,
         extension: I18NGradleExtension,
+        compileTaskName: String,
+        sourceSetName: String,
+        targetName: String,
     ) {
-        if (kotlinCompilation.compilationName != "main") {
-            return
-        }
+        configureCompileTaskForCatalogRebuild(project, compileTaskName)
         if (project.extensions.extraProperties.has(LOCALE_TASKS_MARKER)) {
             return
         }
         project.extensions.extraProperties.set(LOCALE_TASKS_MARKER, true)
 
-        val compileTaskProvider = kotlinCompilation.compileTaskProvider
+        val compileTaskProvider = project.tasks.named(compileTaskName)
 
-        project.tasks.register("syncI18nLocales") { task ->
+        project.tasks.named("syncI18nLocales") { task ->
             task.group = "i18n"
             task.description = "Sync managed locale properties files with the generated i18n catalog."
             task.dependsOn(compileTaskProvider)
@@ -136,12 +154,16 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
                     return@doLast
                 }
                 val resourceBasePath = extension.resourceBasePath.get()
-                val catalogFile = resolveGeneratedCatalogFile(project, kotlinCompilation)
+                val catalogFile = resolveGeneratedCatalogFile(
+                    project = project,
+                    targetName = targetName,
+                    compilationName = "main",
+                )
                     ?.let(::File)
                     ?: throw GradleException("Missing generated i18n catalog location for ${project.path}")
                 val catalog = readProperties(catalogFile)
                 requireCatalog(catalogFile, catalog)
-                val resourcesDir = resolveSourceResourcesDir(project, kotlinCompilation, resourceBasePath)
+                val resourcesDir = resolveSourceResourcesDir(project, sourceSetName, resourceBasePath)
                 managedLocales.forEach { locale ->
                     val localeFile = File(resourcesDir, "$locale.properties")
                     val existing = if (localeFile.isFile) readProperties(localeFile) else emptyMap()
@@ -150,7 +172,7 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
             }
         }
 
-        val checkTaskProvider = project.tasks.register("checkI18nLocales") { task ->
+        val checkTaskProvider = project.tasks.named("checkI18nLocales") { task ->
             task.group = "verification"
             task.description = "Verify that managed locale properties files match the generated i18n catalog."
             task.dependsOn(compileTaskProvider)
@@ -160,12 +182,16 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
                     return@doLast
                 }
                 val resourceBasePath = extension.resourceBasePath.get()
-                val catalogFile = resolveGeneratedCatalogFile(project, kotlinCompilation)
+                val catalogFile = resolveGeneratedCatalogFile(
+                    project = project,
+                    targetName = targetName,
+                    compilationName = "main",
+                )
                     ?.let(::File)
                     ?: throw GradleException("Missing generated i18n catalog location for ${project.path}")
                 val catalog = readProperties(catalogFile)
                 requireCatalog(catalogFile, catalog)
-                val resourcesDir = resolveSourceResourcesDir(project, kotlinCompilation, resourceBasePath)
+                val resourcesDir = resolveSourceResourcesDir(project, sourceSetName, resourceBasePath)
                 val failures = managedLocales.mapNotNull { locale ->
                     val localeFile = File(resourcesDir, "$locale.properties")
                     val translations = if (localeFile.isFile) readProperties(localeFile) else emptyMap()
@@ -193,15 +219,71 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
+    private fun configureCompileTaskForCatalogRebuild(
+        project: Project,
+        compileTaskName: String,
+    ) {
+        if (!shouldForceFullCatalogRebuild(project)) {
+            return
+        }
+        project.tasks.withType(KotlinCompile::class.java).configureEach { task ->
+            if (task.name != compileTaskName) {
+                return@configureEach
+            }
+            // The compiler plugin writes a single catalog file. For sync/check/build flows we need
+            // a full main-source recompile so incremental compilation does not truncate the catalog
+            // to only the recently changed files.
+            task.incremental = false
+            task.outputs.upToDateWhen { false }
+        }
+    }
+
+    private fun ensureLocaleTaskPlaceholders(project: Project) {
+        if (project.tasks.findByName("syncI18nLocales") == null) {
+            project.tasks.register("syncI18nLocales") { task ->
+                task.group = "i18n"
+                task.description = "Sync managed locale properties files with the generated i18n catalog."
+            }
+        }
+        if (project.tasks.findByName("checkI18nLocales") == null) {
+            project.tasks.register("checkI18nLocales") { task ->
+                task.group = "verification"
+                task.description = "Verify that managed locale properties files match the generated i18n catalog."
+            }
+        }
+    }
+
     private fun resolveGeneratedCatalogFile(
         project: Project,
         kotlinCompilation: KotlinCompilation<*>,
     ): String? {
-        if (kotlinCompilation.compilationName != "main") {
+        return resolveGeneratedCatalogFile(
+            project = project,
+            targetName = kotlinCompilation.target.name,
+            compilationName = kotlinCompilation.compilationName,
+        )
+    }
+
+    private fun resolveGeneratedCatalogFile(
+        project: Project,
+        targetName: String,
+        compilationName: String,
+    ): String? {
+        if (compilationName != "main") {
             return null
         }
+        val relativePath = buildString {
+            append("generated/kcp-i18n/catalog")
+            if (targetName.isNotBlank()) {
+                append('/')
+                append(targetName)
+            }
+            append('/')
+            append(compilationName)
+            append("/catalog.properties")
+        }
         val outputFile = project.layout.buildDirectory
-            .file("generated/kcp-i18n/catalog/${kotlinCompilation.target.name}/${kotlinCompilation.compilationName}/catalog.properties")
+            .file(relativePath)
             .get()
             .asFile
         return outputFile.absolutePath
@@ -225,12 +307,12 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
 
     private fun resolveSourceResourcesDir(
         project: Project,
-        kotlinCompilation: KotlinCompilation<*>,
+        sourceSetName: String,
         resourceBasePath: String,
     ): File {
         val normalizedBasePath = resourceBasePath.trim().trim('/').ifBlank { "i18n" }
         return project.layout.projectDirectory
-            .dir("src/${kotlinCompilation.defaultSourceSet.name}/resources/$normalizedBasePath")
+            .dir("src/$sourceSetName/resources/$normalizedBasePath")
             .asFile
     }
 
@@ -427,6 +509,7 @@ class I18NGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         const val RUNTIME_ARTIFACT_ID: String = "kcp-i18n-runtime"
         const val RESOURCE_BASE_PATH_OPTION: String = "resourceBasePath"
         const val GENERATED_CATALOG_FILE_OPTION: String = "generatedCatalogFile"
+        const val SCAN_SCOPE_OPTION: String = "scanScope"
 
         private const val RUNTIME_MARKER = "site.addzero.kcp.i18n.runtime-added"
         private const val LOCALE_TASKS_MARKER = "site.addzero.kcp.i18n.locale-tasks-added"
@@ -449,5 +532,21 @@ internal fun shouldDisableCompilerPluginForIdeSync(
         taskName == "ideaSyncTask" ||
             taskName == "prepareKotlinIdeaImport" ||
             taskName.endsWith("SyncTask")
+    }
+}
+
+internal fun shouldForceFullCatalogRebuild(project: Project): Boolean {
+    return shouldForceFullCatalogRebuild(project.gradle.startParameter.taskNames)
+}
+
+internal fun shouldForceFullCatalogRebuild(taskNames: Iterable<String>): Boolean {
+    val triggeringTasks = setOf(
+        "syncI18nLocales",
+        "checkI18nLocales",
+        "check",
+        "build",
+    )
+    return taskNames.any { taskName ->
+        taskName.substringAfterLast(':') in triggeringTasks
     }
 }

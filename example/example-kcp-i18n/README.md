@@ -1,65 +1,81 @@
 # example-kcp-i18n
 
-这个 example 现在已经改成“业务项目直连 Gradle 插件”的写法，不再手写 `-Xplugin`。
+这个 example 用来验证一件事：业务项目只接 `site.addzero.kcp.i18n` 这个 Gradle 插件，不再手写 `-Xplugin`。
 
-当前 `build.gradle.kts` 只保留两块核心配置：
+## Minimal Config
+
+当前示例的核心配置就是这几行：
 
 ```kotlin
 plugins {
+    alias(libs.plugins.kotlinJvm)
+    application
     id("site.addzero.kcp.i18n")
 }
 
 i18n {
-    targetLocale.set("en")
     resourceBasePath.set("i18n")
+    managedLocales.add("en")
 }
 ```
 
-## Why It Was Complex Before
+插件会自动完成：
 
-之前之所以写得很底层，不是因为 `kcp-i18n` 必须那样接，而是因为当时这个 example 还在做“仓库内自举验证”：
+1. 透传编译器参数给 `kcp-i18n`
+2. 自动补上 `site.addzero:kcp-i18n-runtime`
+3. 注册 `syncI18nLocales` / `checkI18nLocales`
 
-- 直接拿编译器插件 jar
-- 手写 `-Xplugin`
-- 手写 `-P plugin:...`
+## How To Run
 
-这种方式适合排查编译器插件本体，不适合业务项目。
+这个 example 的 [`settings.gradle.kts`](/Users/zjarlin/IdeaProjects/addzero-lib-jvm/example/example-kcp-i18n/settings.gradle.kts) 默认开启了 composite build：
 
-## Why It Still Needs `mavenLocal()`
-
-这里虽然已经是业务接法，但它仍然在同一个 monorepo 里。
-
-Gradle 的 `plugins { id("...") }` 在脚本解析阶段就要先把插件解析出来；这时候同仓库里的 sibling module
-`:lib:kcp:kcp-i18n-gradle-plugin` 还没有被当成“已发布插件”提供给 plugin resolution。
-
-所以仓库内 example 要模拟真实业务项目，仍然需要先把三件套发布到本机 `mavenLocal()`：
-
-```bash
-./gradlew \
-  :lib:kcp:kcp-i18n:publishToMavenLocal \
-  :lib:kcp:kcp-i18n-runtime:publishToMavenLocal \
-  :lib:kcp:kcp-i18n-gradle-plugin:publishToMavenLocal
+```kotlin
+val useIncludedBuild =
+    System.getenv("ADDZERO_USE_INCLUDED_BUILD")
+        ?.toBooleanStrictOrNull()
+        ?: true
 ```
 
-然后再跑 example：
+所以在当前仓库里直接跑即可，不需要先 `publishToMavenLocal`：
 
 ```bash
-./gradlew :example:example-kcp-i18n:test
-./gradlew :example:example-kcp-i18n:run
+./gradlew -p example/example-kcp-i18n test
+./gradlew -p example/example-kcp-i18n run
+./gradlew -p example/example-kcp-i18n run --args=en
+./gradlew -p example/example-kcp-i18n syncI18nLocales
+./gradlew -p example/example-kcp-i18n checkI18nLocales
 ```
 
-## Verification
+运行行为：
 
-我已经按这条链路验证通过，运行输出：
+- `run` 不带参数时，示例不会主动切语言；如果当前 locale 没有翻译文件，就回退到源码里的中文
+- `run --args=en` 时，示例会调用 `I8nutil.setLocale("en")`，输出英文
 
-```text
-hello
-goodbye
+## Runtime Usage
+
+示例主程序写法：
+
+```kotlin
+import site.addzero.util.I8nutil
+
+fun main(args: Array<String>) {
+    args.firstOrNull()?.let(I8nutil::setLocale)
+    println(helloMessage())
+    println(farewellMessage())
+}
+```
+
+业务项目里通常在应用启动、用户切换语言、读取本地配置时调用：
+
+```kotlin
+I8nutil.setLocale("en")
+I8nutil.setLocale("ja")
+I8nutil.clearLocale()
 ```
 
 ## Resource Layout
 
-资源文件位置：
+翻译文件位置：
 
 ```text
 src/main/resources/i18n/en.properties
@@ -68,12 +84,31 @@ src/main/resources/i18n/en.properties
 当前示例内容：
 
 ```properties
+# 你好
 Messages_helloMessage_text_你好=hello
+
+# 再见
 Messages_farewellMessage_text_再见=goodbye
 ```
 
-## Summary
+这里没有 `zh.properties`。中文原文只在 Kotlin 源码里维护，`en.properties` 只维护翻译值。
 
-- 业务项目外部接入：直接 `id("site.addzero.kcp.i18n")` 就对
-- 仓库内 example：也可以写成同样形式
-- 但因为它和插件源码在同一个仓库里，所以要先 `publishToMavenLocal` 一次，才能让 plugin id 被解析到
+## Simulate External Consumer
+
+如果你要模拟“仓库外业务项目从制品仓库解析插件”这条链路，再关闭 composite build：
+
+```bash
+ADDZERO_USE_INCLUDED_BUILD=false ./gradlew \
+  :lib:kcp:kcp-i18n:publishToMavenLocal \
+  :lib:kcp:kcp-i18n-runtime:publishToMavenLocal \
+  :lib:kcp:kcp-i18n-gradle-plugin:publishToMavenLocal
+```
+
+然后再跑：
+
+```bash
+ADDZERO_USE_INCLUDED_BUILD=false ./gradlew -p example/example-kcp-i18n test
+ADDZERO_USE_INCLUDED_BUILD=false ./gradlew -p example/example-kcp-i18n run --args=en
+```
+
+这一步只是为了模拟外部消费方。当前仓库内开发默认不需要这样做。

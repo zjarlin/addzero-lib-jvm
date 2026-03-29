@@ -17,8 +17,11 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import java.io.File
 
@@ -29,11 +32,13 @@ import java.io.File
 class I18NIrGenerationExtension(
     private val resourceBasePath: String = "i18n",
     private val generatedCatalogFile: String? = null,
+    scanScope: String = I18NPluginKeys.scanScopeAll,
 ) : IrGenerationExtension {
 
     // 缓存t函数符号
     private var tFunctionSymbol: IrSimpleFunctionSymbol? = null
     private val generatedEntries = linkedMapOf<String, String>()
+    private val effectiveScanScope = ScanScope.from(scanScope)
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         moduleFragment.files.forEach { file ->
@@ -105,7 +110,10 @@ class I18NIrGenerationExtension(
                         } catch (e: Exception) {
                             null
                         }
-                        if (componentName in ignoredCallNames || functionName in ignoredCallNames) {
+                        if (isAnnotationArgument(currentCall) || !shouldScanCurrentFunction(currentFunction)) {
+                            return super.visitConst(expression)
+                        }
+                        if (shouldIgnoreStringLiteral(stringValue, functionName, componentName)) {
                             return super.visitConst(expression)
                         }
 
@@ -240,11 +248,63 @@ class I18NIrGenerationExtension(
 
     companion object {
         private val ignoredCallNames = setOf(
+            "mutableStateOf",
+            "getUri",
+            "readBytes",
             "sourceInformation",
             "sourceInformationMarkerStart",
             "sourceInformationMarkerEnd",
             "traceEventStart",
             "traceEventEnd",
         )
+    }
+
+    private enum class ScanScope {
+        ALL,
+        COMPOSABLE_ONLY,
+        ;
+
+        companion object {
+            fun from(value: String): ScanScope {
+                return when (value.trim()) {
+                    I18NPluginKeys.scanScopeComposableOnly -> COMPOSABLE_ONLY
+                    "", I18NPluginKeys.scanScopeAll -> ALL
+                    else -> error(
+                        "Unsupported kcp-i18n scanScope `$value`. " +
+                            "Supported values: `${I18NPluginKeys.scanScopeAll}`, `${I18NPluginKeys.scanScopeComposableOnly}`.",
+                    )
+                }
+            }
+        }
+    }
+
+    private fun shouldIgnoreStringLiteral(
+        stringValue: String,
+        functionName: String?,
+        componentName: String?,
+    ): Boolean {
+        if (componentName in ignoredCallNames || functionName in ignoredCallNames) {
+            return true
+        }
+        return stringValue.startsWith("composeResources/")
+    }
+
+    private fun shouldScanCurrentFunction(function: IrFunction?): Boolean {
+        return when (effectiveScanScope) {
+            ScanScope.ALL -> true
+            ScanScope.COMPOSABLE_ONLY -> function?.hasAnnotation(I18NPluginKeys.composableAnnotationFqName) == true
+        }
+    }
+
+    private fun IrFunction.hasAnnotation(annotationFqName: FqName): Boolean {
+        return annotations.any { annotation ->
+            (annotation.symbol.owner.parent as? IrClass)?.fqNameWhenAvailable == annotationFqName
+        }
+    }
+
+    private fun isAnnotationArgument(call: IrFunctionAccessExpression?): Boolean {
+        val constructorCall = call as? IrConstructorCall ?: return false
+        val annotationClass = constructorCall.symbol.owner.parent as? IrClass ?: return false
+        return annotationClass.kind == ClassKind.ANNOTATION_CLASS
     }
 }

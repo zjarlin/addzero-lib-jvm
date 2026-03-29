@@ -15,5 +15,9 @@ class I18NPluginConfiguration {
         fun getGeneratedCatalogFile(configuration: CompilerConfiguration): String? {
             return configuration.get(I18NPluginKeys.generatedCatalogFileKey)
         }
+
+        fun getScanScope(configuration: CompilerConfiguration): String {
+            return configuration.get(I18NPluginKeys.scanScopeKey) ?: I18NPluginKeys.scanScopeAll
+        }
     }
 }

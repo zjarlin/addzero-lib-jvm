@@ -1,17 +1,24 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.kotlin-convention")
+    alias(libs.plugins.kotlinJvm)
     application
     id("site.addzero.kcp.i18n")
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
+i18n {
+    resourceBasePath.set("i18n")
+    managedLocales.add("en")
 }
 
-i18n {
-    targetLocale.set("en")
-    resourceBasePath.set("i18n")
+kotlin {
+    jvmToolchain(17)
+}
+
+dependencies {
+    testImplementation(kotlin("test"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {

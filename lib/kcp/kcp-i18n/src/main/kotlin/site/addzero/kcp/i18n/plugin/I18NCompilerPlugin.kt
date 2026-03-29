@@ -13,10 +13,12 @@ class I18NCompilerPlugin : CompilerPluginRegistrar() {
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val resourceBasePath = I18NPluginConfiguration.getResourceBasePath(configuration)
         val generatedCatalogFile = I18NPluginConfiguration.getGeneratedCatalogFile(configuration)
+        val scanScope = I18NPluginConfiguration.getScanScope(configuration)
         IrGenerationExtension.registerExtension(
             I18NIrGenerationExtension(
                 resourceBasePath = resourceBasePath,
                 generatedCatalogFile = generatedCatalogFile,
+                scanScope = scanScope,
             ),
         )
     }

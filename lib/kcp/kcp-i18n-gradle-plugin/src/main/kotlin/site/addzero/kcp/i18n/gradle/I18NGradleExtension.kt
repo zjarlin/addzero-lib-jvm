@@ -11,4 +11,5 @@ abstract class I18NGradleExtension @Inject constructor(
     val targetLocale: Property<String> = objects.property(String::class.java)
     val resourceBasePath: Property<String> = objects.property(String::class.java).convention("i18n")
     val managedLocales: ListProperty<String> = objects.listProperty(String::class.java).convention(emptyList())
+    val scanScope: Property<String> = objects.property(String::class.java).convention("all")
 }
