@@ -17,7 +17,7 @@ annotation class GenerateModbusTcpServer
  * 可选覆盖注解。
  *
  * 不写 @ModbusOperation 时，处理器会直接按接口方法签名生成操作；
- * 只有需要覆盖默认 functionCode / address / quantity 时才需要写。
+ * 只有需要覆盖默认 functionCode / address 时才需要写。
  */
 annotation class ModbusOperation(
     /**
@@ -41,13 +41,6 @@ annotation class ModbusOperation(
      * 如果需要与既有固件地址表对齐，建议显式写出。
      */
     val address: Int = -1,
-    /**
-     * 标准 Modbus 数量字段。
-     *
-     * 表示本次操作涉及的 coil / discrete input / register 数量；
-     * 传 -1 时由处理器按参数或返回 DTO 自动推导。
-     */
-    val quantity: Int = -1,
 )
 
 @Target(AnnotationTarget.VALUE_PARAMETER)

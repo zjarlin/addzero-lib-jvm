@@ -112,7 +112,7 @@ class ModbusSymbolCollector(
             operationId = "",
             functionCodeName = functionCodeName,
             address = operationAnnotation?.intArg("address") ?: -1,
-            quantity = operationAnnotation?.intArg("quantity") ?: -1,
+            quantity = -1,
             requestClassName = requestClassName,
             requestQualifiedName = "${requestPrefix.substringBeforeLast("Request", requestPrefix)}.$requestClassName",
             parameters = resolvedParameters,
