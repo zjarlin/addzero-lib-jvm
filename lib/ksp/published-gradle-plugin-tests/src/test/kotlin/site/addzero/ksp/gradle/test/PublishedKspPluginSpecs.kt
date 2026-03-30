@@ -128,6 +128,7 @@ object PublishedKspPluginSpecs {
                 "entity2Iso.enabled" to true,
                 "entity2Iso.packageName" to "site.addzero.generated.isomorphic",
                 "entity2Iso.classSuffix" to "Iso",
+                "entity2Iso.serializableEnabled" to true,
                 "entity2Form.enabled" to true,
                 "entity2Form.packageName" to "site.addzero.generated.forms",
                 "entity2Mcp.enabled" to true,

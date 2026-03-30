@@ -9,4 +9,5 @@ object JimmerEntityProcessorOptions {
     const val ISO_PACKAGE_NAME_LEGACY = "isomorphicPkg"
     const val ISO_OUTPUT_DIR = "isomorphicGenDir"
     const val ISO_CLASS_SUFFIX = "isomorphicClassSuffix"
+    const val ISO_SERIALIZABLE_ENABLED = "isomorphicSerializableEnabled"
 }

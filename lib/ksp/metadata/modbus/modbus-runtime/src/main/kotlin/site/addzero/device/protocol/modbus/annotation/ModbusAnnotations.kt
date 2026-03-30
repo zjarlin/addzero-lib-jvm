@@ -17,10 +17,9 @@ annotation class GenerateModbusTcpServer
  * 可选覆盖注解。
  *
  * 不写 @ModbusOperation 时，处理器会直接按接口方法签名生成操作；
- * 只有需要覆盖默认 operationId / functionCode / address / quantity 时才需要写。
+ * 只有需要覆盖默认 functionCode / address / quantity 时才需要写。
  */
 annotation class ModbusOperation(
-    val operationId: String = "",
     /**
      * 默认使用 AUTO，根据签名自动推导。
      *

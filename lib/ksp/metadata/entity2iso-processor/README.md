@@ -19,9 +19,15 @@ jimmerEntityExternal {
     entity2Iso {
         packageName.set("site.addzero.isomorphic")
         classSuffix.set("Iso")
+        serializableEnabled.set(true)
     }
 }
 ```
+
+Generated `Iso` will now copy entity/property doc comments into KDoc by default.
+
+- `entity2Iso.serializableEnabled=true`: generate `@Serializable` and `@Contextual`
+- `entity2Iso.serializableEnabled=false`: generate plain Kotlin `data class`
 
 The umbrella plugin injects:
 

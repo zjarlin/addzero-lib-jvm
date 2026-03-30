@@ -109,7 +109,7 @@ class ModbusSymbolCollector(
 
         return ModbusOperationModel(
             methodName = methodName,
-            operationId = operationAnnotation?.stringArg("operationId").orEmpty(),
+            operationId = "",
             functionCodeName = functionCodeName,
             address = operationAnnotation?.intArg("address") ?: -1,
             quantity = operationAnnotation?.intArg("quantity") ?: -1,

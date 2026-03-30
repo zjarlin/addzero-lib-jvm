@@ -9,9 +9,10 @@ processorBuddy {
   val sharedDir = rootDir.resolve("shared/src/commonMain/kotlin").absolutePath
   packageName.set("site.addzero.entity2iso.processor.context")
   mustMap.set(
-    mapOf(
+    mapOf<String, String>(
       "isomorphicPkg" to "site.addzero.generated.isomorphic",
-      "isomorphicGenDir" to sharedDir
+      "isomorphicGenDir" to sharedDir,
+      "isomorphicSerializableEnabled" to "true",
     )
   )
 }

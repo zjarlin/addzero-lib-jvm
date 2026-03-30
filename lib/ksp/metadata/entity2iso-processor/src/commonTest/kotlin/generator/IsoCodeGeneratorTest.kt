@@ -2,6 +2,7 @@ package generator
 
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertFalse
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerPropertyMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerTypeKind
@@ -33,6 +34,34 @@ class IsoCodeGeneratorTest {
         assertContains(code, "package demo.generated.iso")
         assertContains(code, "data class DeviceProfileSnapshot(")
         assertContains(code, "val deviceKey: String = \"\"")
+    }
+
+    @Test
+    fun `generator emits entity and property kdoc`() {
+        val code = IsoCodeGenerator.generateIsoCode(
+            entity = JimmerEntityMeta(
+                qualifiedName = "demo.domain.DeviceProfile",
+                packageName = "demo.domain",
+                simpleName = "DeviceProfile",
+                docComment = "设备档案",
+                properties = listOf(
+                    JimmerPropertyMeta(
+                        name = "deviceKey",
+                        docComment = "设备唯一键",
+                        type = JimmerTypeRef(
+                            qualifiedName = "kotlin.String",
+                            simpleName = "String",
+                            kind = JimmerTypeKind.BASIC,
+                        ),
+                    ),
+                )
+            ),
+            packageName = "demo.generated.iso",
+            classSuffix = "Iso",
+        )
+
+        assertContains(code, "/**\n * 设备档案\n */\n@Serializable\ndata class DeviceProfileIso(")
+        assertContains(code, "    /**\n     * 设备唯一键\n     */\n    val deviceKey: String = \"\"")
     }
 
     @Test
@@ -110,6 +139,35 @@ class IsoCodeGeneratorTest {
     }
 
     @Test
+    fun `generator can disable serialization annotations`() {
+        val code = IsoCodeGenerator.generateIsoCode(
+            entity = JimmerEntityMeta(
+                qualifiedName = "demo.domain.Device",
+                packageName = "demo.domain",
+                simpleName = "Device",
+                properties = listOf(
+                    JimmerPropertyMeta(
+                        name = "lastSeenAt",
+                        type = JimmerTypeRef(
+                            qualifiedName = "java.time.Instant",
+                            simpleName = "Instant",
+                            kind = JimmerTypeKind.DATE_TIME,
+                        ),
+                    ),
+                ),
+            ),
+            packageName = "demo.generated.iso",
+            classSuffix = "Iso",
+            serializableEnabled = false,
+        )
+
+        assertFalse(code.contains("@Serializable"))
+        assertFalse(code.contains("@Contextual"))
+        assertFalse(code.contains("import kotlinx.serialization.Serializable"))
+        assertContains(code, "val lastSeenAt: Instant = kotlinx.datetime.Clock.System.now()")
+    }
+
+    @Test
     fun `generator normalizes malformed primitive token and instant default`() {
         val code = IsoCodeGenerator.generateIsoCode(
             entity = JimmerEntityMeta(
@@ -141,6 +199,6 @@ class IsoCodeGeneratorTest {
 
         assertContains(code, "val id: Long = 0L")
         assertContains(code, "@Contextual val lastSeenAt: Instant = kotlinx.datetime.Clock.System.now()")
-        kotlin.test.assertFalse(code.contains("import kotlin.time.Clock"))
+        assertFalse(code.contains("import kotlin.time.Clock"))
     }
 }

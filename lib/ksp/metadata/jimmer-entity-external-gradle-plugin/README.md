@@ -16,6 +16,7 @@ jimmerEntityExternal {
 
     entity2Iso.packageName.set("demo.generated.iso")
     entity2Iso.classSuffix.set("Iso")
+    entity2Iso.serializableEnabled.set(true)
     entity2Form.enabled.set(false)
     entity2Mcp.enabled.set(false)
 }
@@ -24,6 +25,7 @@ jimmerEntityExternal {
 ## Child Processor Switches
 
 - `entity2Iso.enabled`: default `true`
+- `entity2Iso.serializableEnabled`: default `true`, controls whether generated `Iso` emits `@Serializable` and `@Contextual`
 - `entity2Form.enabled`: default `true`
 - `entity2Mcp.enabled`: default `true`
 

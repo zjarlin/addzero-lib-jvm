@@ -12,11 +12,13 @@ abstract class JimmerEntity2IsoExtension {
     abstract val enabled: Property<Boolean>
     abstract val packageName: Property<String>
     abstract val classSuffix: Property<String>
+    abstract val serializableEnabled: Property<Boolean>
 
     init {
         enabled.convention(true)
         packageName.convention("site.addzero.generated.isomorphic")
         classSuffix.convention("Iso")
+        serializableEnabled.convention(true)
     }
 }
 
@@ -121,6 +123,7 @@ class JimmerEntityExternalGradlePlugin : AbstractPublishedKspConsumerPlugin() {
             "backendServerSourceDir" to backendServerSourceDir,
             "isomorphicPackageName" to isoPackage,
             "isomorphicClassSuffix" to jimmer.entity2Iso.classSuffix.get(),
+            "isomorphicSerializableEnabled" to jimmer.entity2Iso.serializableEnabled.get().toString(),
             "entity2Iso.enabled" to jimmer.entity2Iso.enabled.get().toString(),
             "entity2Form.enabled" to jimmer.entity2Form.enabled.get().toString(),
             "entity2Mcp.enabled" to jimmer.entity2Mcp.enabled.get().toString(),

@@ -8,10 +8,16 @@ import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerGeneratedSourceWriter
 import site.addzero.lsi.processor.ProcessorSpi
 
+/**
+ * `entity2iso` 子处理器。
+ *
+ * 在 umbrella 主处理器完成实体元数据收集后，统一生成 `Iso` 数据类。
+ */
 class Entity2IsoExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Unit> {
     override val id: String = JimmerEntityProcessorIds.ENTITY2_ISO
     override lateinit var ctx: JimmerEntityProcessContext
 
+    /** 按当前上下文配置输出所有实体对应的 `Iso` 文件。 */
     override fun onFinish() {
         val context = ctx
         val entities = context.entities
@@ -32,6 +38,9 @@ class Entity2IsoExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
         val classSuffix = context.options[JimmerEntityProcessorOptions.ISO_CLASS_SUFFIX]
             ?.takeIf(String::isNotBlank)
             ?: "Iso"
+        val serializableEnabled = context.options[JimmerEntityProcessorOptions.ISO_SERIALIZABLE_ENABLED]
+            ?.let { value -> value.equals("true", ignoreCase = true) }
+            ?: Settings.isomorphicSerializableEnabled
 
         logger.warn("开始生成同构体类...")
         var generatedCount = 0
@@ -50,7 +59,8 @@ class Entity2IsoExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
                     val isoCode = IsoCodeGenerator.generateIsoCode(
                         entity = entity,
                         packageName = packageName,
-                        classSuffix = classSuffix
+                        classSuffix = classSuffix,
+                        serializableEnabled = serializableEnabled,
                     )
                     val fileName = "$entitySimpleName$classSuffix.kt"
                     val file = JimmerGeneratedSourceWriter.writeKotlinFile(

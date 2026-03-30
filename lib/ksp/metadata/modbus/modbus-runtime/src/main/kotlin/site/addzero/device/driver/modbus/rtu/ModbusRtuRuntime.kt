@@ -13,6 +13,19 @@ import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 
+/**
+ * 单个 Modbus RTU 终端的默认连接参数。
+ *
+ * @property serviceId 运行时内部使用的服务标识，通常由 KSP 生成网关引用
+ * @property portPath 串口设备路径，例如 `/dev/ttyUSB0`
+ * @property unitId Modbus 从站地址
+ * @property baudRate 串口波特率
+ * @property dataBits 数据位，默认 8 位
+ * @property stopBits 停止位，目前按 1 或 2 位映射到底层串口参数
+ * @property parity 串口奇偶校验位
+ * @property timeoutMs 单次请求超时时间，单位毫秒
+ * @property retries 失败后的额外重试次数，不包含首次请求
+ */
 data class ModbusRtuEndpointConfig(
     val serviceId: String,
     val portPath: String,
@@ -25,70 +38,123 @@ data class ModbusRtuEndpointConfig(
     val retries: Int,
 )
 
+/**
+ * 运行时统一使用的串口校验位抽象。
+ *
+ * 这里不直接暴露 jSerialComm 常量，避免上层配置模型被底层串口库类型污染。
+ */
 enum class ModbusSerialParity {
     NONE,
     EVEN,
     ODD,
 }
 
+/**
+ * 提供某个 RTU 服务默认配置的注册点。
+ *
+ * 一般由 KSP 生成代码或业务模块实现，再交给 [ModbusRtuConfigRegistry] 汇总。
+ */
 interface ModbusRtuConfigProvider {
     val serviceId: String
     fun defaultConfig(): ModbusRtuEndpointConfig
 }
 
+/**
+ * 按 `serviceId` 汇总默认 RTU 配置的查询表。
+ *
+ * 运行时只做快速查找，不承担动态刷新、热更新或合并多层配置的职责。
+ */
 class ModbusRtuConfigRegistry(
     providers: List<ModbusRtuConfigProvider>,
 ) {
+    /**
+     * 启动期把 provider 列表收敛成只读索引，避免每次请求都遍历实现列表。
+     */
     private val configs: Map<String, ModbusRtuEndpointConfig> =
         providers.associate { provider -> provider.serviceId to provider.defaultConfig() }
 
+    /**
+     * 返回指定服务的默认配置；如果缺失，直接暴露配置装配错误。
+     */
     fun require(serviceId: String): ModbusRtuEndpointConfig =
         configs[serviceId] ?: error("未找到 Modbus RTU 配置：$serviceId")
 }
 
+/**
+ * Modbus RTU 运行时执行契约。
+ *
+ * 上层网关只依赖这个抽象，不直接感知 j2mod、串口连接参数拼装或重试细节。
+ * 读操作统一返回 `Int` 列表：
+ * 1. 位类型使用 `0/1`
+ * 2. 寄存器类型使用无符号 16 位数值展开后的 `Int`
+ */
 interface ModbusRtuExecutor {
+    /**
+     * 读取线圈状态，返回按请求顺序排列的 `0/1` 列表。
+     */
     suspend fun readCoils(
         config: ModbusRtuEndpointConfig,
         address: Int,
         quantity: Int,
     ): List<Int>
 
+    /**
+     * 读取离散输入，返回按请求顺序排列的 `0/1` 列表。
+     */
     suspend fun readDiscreteInputs(
         config: ModbusRtuEndpointConfig,
         address: Int,
         quantity: Int,
     ): List<Int>
 
+    /**
+     * 读取保持寄存器，返回无符号 16 位语义下的寄存器值。
+     */
     suspend fun readHoldingRegisters(
         config: ModbusRtuEndpointConfig,
         address: Int,
         quantity: Int,
     ): List<Int>
 
+    /**
+     * 读取输入寄存器，返回无符号 16 位语义下的寄存器值。
+     */
     suspend fun readInputRegisters(
         config: ModbusRtuEndpointConfig,
         address: Int,
         quantity: Int,
     ): List<Int>
 
+    /**
+     * 写入单个线圈。
+     */
     suspend fun writeSingleCoil(
         config: ModbusRtuEndpointConfig,
         address: Int,
         value: Boolean,
     )
 
+    /**
+     * 从起始地址开始连续写入多个线圈。
+     */
     suspend fun writeMultipleCoils(
         config: ModbusRtuEndpointConfig,
         address: Int,
         values: List<Boolean>,
     )
 
+    /**
+     * 写入单个保持寄存器，只保留低 16 位。
+     */
     suspend fun writeSingleRegister(
         config: ModbusRtuEndpointConfig,
         address: Int,
         value: Int,
     )
 
+    /**
+     * 从起始地址开始连续写入多个保持寄存器，每项只保留低 16 位。
+     */
     suspend fun writeMultipleRegisters(
         config: ModbusRtuEndpointConfig,
         address: Int,
@@ -165,6 +231,11 @@ class J2modModbusRtuExecutor : ModbusRtuExecutor {
         config: ModbusRtuEndpointConfig,
         block: suspend (ModbusSerialMaster) -> T,
     ): T = withContext(Dispatchers.IO) {
+        /**
+         * 每次调用都独立创建和关闭主站连接，避免把串口生命周期泄漏到上层。
+         *
+         * 这里的重试是“重新建连后再执行”语义，而不是对同一个失效连接重复发送。
+         */
         val totalAttempts = config.retries.coerceAtLeast(0) + 1
         var lastError: Throwable? = null
         repeat(totalAttempts) { attempt ->
@@ -189,9 +260,15 @@ class J2modModbusRtuExecutor : ModbusRtuExecutor {
     }
 }
 
+/**
+ * 根据项目里的配置模型创建 j2mod 主站实例。
+ */
 internal fun createSerialMaster(config: ModbusRtuEndpointConfig): ModbusSerialMaster =
     ModbusSerialMaster(createSerialParameters(config), config.timeoutMs.toInt())
 
+/**
+ * 把项目配置转换成 j2mod / jSerialComm 所需的串口参数对象。
+ */
 internal fun createSerialParameters(config: ModbusRtuEndpointConfig): SerialParameters =
     SerialParameters(
         config.portPath,
@@ -207,12 +284,18 @@ internal fun createSerialParameters(config: ModbusRtuEndpointConfig): SerialPara
         openDelay = 0
     }
 
+/**
+ * 当前运行时只支持常见的 1 位和 2 位停止位；其他输入统一按 1 位处理。
+ */
 private fun Int.toSerialStopBits(): Int =
     when (this) {
         2 -> SerialPort.TWO_STOP_BITS
         else -> SerialPort.ONE_STOP_BIT
     }
 
+/**
+ * 把运行时的校验位枚举映射到底层串口库常量。
+ */
 private fun ModbusSerialParity.toSerialParity(): Int =
     when (this) {
         ModbusSerialParity.NONE -> SerialPort.NO_PARITY
@@ -220,6 +303,11 @@ private fun ModbusSerialParity.toSerialParity(): Int =
         ModbusSerialParity.ODD -> SerialPort.ODD_PARITY
     }
 
+/**
+ * 默认占位执行器。
+ *
+ * 当宿主应用还没有接入真实串口能力时，明确在调用点失败，避免静默降级成假成功。
+ */
 class UnsupportedModbusRtuExecutor : ModbusRtuExecutor {
     override suspend fun readCoils(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
         error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")

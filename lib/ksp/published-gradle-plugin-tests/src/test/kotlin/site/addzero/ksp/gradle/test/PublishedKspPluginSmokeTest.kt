@@ -231,6 +231,7 @@ class PublishedKspPluginSmokeTest {
                 "site.addzero:entity2form-processor|" +
                 "site.addzero:entity2mcp-processor",
             "entity2Iso.enabled=true",
+            "isomorphicSerializableEnabled=true",
             "entity2Form.enabled=true",
             "entity2Mcp.enabled=true",
             "isomorphicPkg=demo.generated.isomorphic",
@@ -252,6 +253,7 @@ class PublishedKspPluginSmokeTest {
                         site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalExtension::class.java
                     ) {
                         entity2Iso.enabled.set(true)
+                        entity2Iso.serializableEnabled.set(false)
                         entity2Form.enabled.set(false)
                         entity2Mcp.enabled.set(false)
                     }
@@ -262,6 +264,7 @@ class PublishedKspPluginSmokeTest {
         assertContains(
             output,
             "entity2Iso.enabled=true",
+            "isomorphicSerializableEnabled=false",
             "entity2Form.enabled=false",
             "entity2Mcp.enabled=false",
         )
