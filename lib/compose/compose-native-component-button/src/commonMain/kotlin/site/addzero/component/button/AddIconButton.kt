@@ -22,20 +22,30 @@ fun AddIconButton(
     modifier: Modifier = Modifier,
     tint: Color = LocalContentColor.current,
     content: (@Composable () -> Unit)? = null,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     if (!showFlag) {
         return
     }
 
+    val iconTint = if (enabled) {
+        tint
+    } else {
+        tint.copy(alpha = 0.38f)
+    }
 
     val defaultContent: @Composable () -> Unit = content ?: {
 
         IconButton(
             onClick = onClick,
+            enabled = enabled,
         ) {
             Icon(
-                imageVector = imageVector, contentDescription = text, tint = tint, modifier = modifier
+                imageVector = imageVector,
+                contentDescription = text,
+                tint = iconTint,
+                modifier = modifier
             )
         }
 
@@ -48,4 +58,3 @@ fun AddIconButton(
         defaultContent()
     }
 }
-

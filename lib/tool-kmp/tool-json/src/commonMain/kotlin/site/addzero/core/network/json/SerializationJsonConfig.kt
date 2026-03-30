@@ -1,5 +1,9 @@
 package site.addzero.core.network.json
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
@@ -16,5 +20,9 @@ val json = Json {
     //注册Any序列化器
     serializersModule = SerializersModule {
         contextual(Any::class, AnySerializer)
+        contextual(Instant::class, Instant.serializer())
+        contextual(LocalDate::class, LocalDate.serializer())
+        contextual(LocalDateTime::class, LocalDateTime.serializer())
+        contextual(LocalTime::class, LocalTime.serializer())
     }
 }

@@ -33,13 +33,15 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-30T12:54:21.439858
-// Loaded: 6, Excluded: 0, Total: 6
+// Generated at: 2026-03-30T14:28:06.990791
+// Loaded: 8, Excluded: 0, Total: 8
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
-include(":lib:ksp:metadata:controller2iso2dataprovider-gradle-plugin")
-include(":lib:ksp:metadata:controller2iso2dataprovider-processor")
-include(":lib:ksp:metadata:entity2iso-processor")
-include(":lib:ksp:metadata:jimmer-entity-spi")
+include(":lib:ksp:metadata:modbus:modbus-ksp-core")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 include(":lib:lsi:lsi-core")
 // <<< Gradle Module Sleep: End Of Block <<<
 
@@ -69,6 +71,12 @@ project(":lib:ksp:logger-api").projectDir = file("lib/ksp/logger-api")
 
 include(":lib:ksp:logger-implementation")
 project(":lib:ksp:logger-implementation").projectDir = file("lib/ksp/logger-implementation")
+
+include(":lib:ksp:common:ksp-support")
+project(":lib:ksp:common:ksp-support").projectDir = file("lib/ksp/common/ksp-support")
+
+include(":lib:ksp:common:ksp-support-jdbc")
+project(":lib:ksp:common:ksp-support-jdbc").projectDir = file("lib/ksp/common/ksp-support-jdbc")
 
 include(":lib:ksp:metadata:apiprovider-processor")
 project(":lib:ksp:metadata:apiprovider-processor").projectDir =

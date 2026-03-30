@@ -26,6 +26,7 @@ object IsoCodeGenerator {
 
         val props = propertyModels.joinToString(",\n") { it.code }
         val imports = propertyModels.flatMap { it.imports }.toMutableSet()
+        imports.add("import kotlinx.serialization.Serializable")
 
         val needsExperimentalTimeOptIn = propertyModels.any { it.needsExperimentalTimeOptIn }
         if (needsExperimentalTimeOptIn) {
@@ -42,6 +43,7 @@ object IsoCodeGenerator {
             |
             |${optimizedImports.takeIf { it.isNotBlank() } ?: ""}
             |
+            |@Serializable
             |data class $isoClassName(
             |$props
             |)

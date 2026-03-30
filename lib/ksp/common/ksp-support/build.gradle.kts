@@ -7,7 +7,7 @@ val libs = versionCatalogs.named("libs")
 kotlin {
     sourceSets {
         commonMain.dependencies {
-//            implementation(libs.findLibrary("site-addzero-tool-json").get())
+            implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
             api(libs.findLibrary("site-addzero-tool-str").get())
         }
         jvmMain.dependencies {

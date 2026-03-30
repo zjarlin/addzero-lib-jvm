@@ -28,6 +28,10 @@ kotlin {
       implementation(kotlin("test"))
     }
 
+    jvmTest.dependencies {
+      implementation(kotlin("test"))
+    }
+
     jvmMain.dependencies {
       implementation(catalogLibs.findLibrary("androidx-room-compiler-processing").get())
     }
