@@ -32,7 +32,7 @@ class Entity2FormExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Un
             .forEach { entity ->
                 val qualifiedName = entity.qualifiedName
 
-                val entitySimpleName = entity.name
+                val entitySimpleName = entity.simpleName
                 if (entitySimpleName.isBlank()) {
                     logger.error("生成表单失败: 实体类名为空, 实体: $qualifiedName")
                     return@forEach

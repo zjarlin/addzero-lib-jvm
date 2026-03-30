@@ -18,6 +18,9 @@ import site.addzero.ktor2curl.CurlLogger
 import site.addzero.ktor2curl.KtorToCurl
 import site.addzero.util.KoinInjector
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 const val DEFAULT_HTTP_CLIENT_PROFILE = "default"
 
@@ -95,6 +98,9 @@ class HttpClientFactory {
         val features: HttpClientFeatures,
     )
 
+    private val curlLogDeduplicator = CurlLogDeduplicator(
+        window = 5.seconds,
+    )
     private val settingsByProfile = mutableMapOf<String, HttpClientRuntimeSettings>()
     private val clients = linkedMapOf<CacheKey, HttpClient>()
 
@@ -219,7 +225,9 @@ class HttpClientFactory {
         features: HttpClientFeatures,
     ): HttpClient {
         return HttpClient(httpClientEngineFactory) {
-            configClient().invoke(this)
+            configClient(
+                curlLogDeduplicator = curlLogDeduplicator,
+            ).invoke(this)
             if (features.enableSse) {
                 install(SSE) {
                     showCommentEvents()
@@ -322,7 +330,9 @@ private fun HeadersBuilder.applyContribution(
 
 internal expect val httpClientEngineFactory: HttpClientEngineFactory<*>
 
-private fun configClient(): HttpClientConfig<*>.() -> Unit = {
+private fun configClient(
+    curlLogDeduplicator: CurlLogDeduplicator,
+): HttpClientConfig<*>.() -> Unit = {
     configTimeout()
     install(createClientPlugin("HttpResponseInterceptor") {
         onResponse { response ->
@@ -338,15 +348,61 @@ private fun configClient(): HttpClientConfig<*>.() -> Unit = {
     })
     configLog()
     configJson()
-    configCurl()
+    configCurl(curlLogDeduplicator)
 }
 
-private fun HttpClientConfig<*>.configCurl() {
+private fun HttpClientConfig<*>.configCurl(
+    curlLogDeduplicator: CurlLogDeduplicator,
+) {
     install(KtorToCurl) {
         converter = object : CurlLogger {
             override fun log(curl: String) {
-                println(curl)
+                if (curlLogDeduplicator.shouldLog(curl)) {
+                    println(curl)
+                }
             }
+        }
+    }
+}
+
+private class CurlLogDeduplicator(
+    private val window: kotlin.time.Duration,
+    private val maxEntries: Int = 128,
+) {
+    private val recentMarks = linkedMapOf<String, TimeMark>()
+
+    fun shouldLog(curl: String): Boolean {
+        return synchronized(this) {
+            pruneExpired()
+            val lastSeen = recentMarks[curl]
+            if (lastSeen != null && lastSeen.elapsedNow() < window) {
+                false
+            } else {
+                recentMarks.remove(curl)
+                recentMarks[curl] = TimeSource.Monotonic.markNow()
+                trimToMaxEntries()
+                true
+            }
+        }
+    }
+
+    private fun pruneExpired() {
+        val iterator = recentMarks.entries.iterator()
+        while (iterator.hasNext()) {
+            if (iterator.next().value.elapsedNow() >= window) {
+                iterator.remove()
+            }
+        }
+    }
+
+    private fun trimToMaxEntries() {
+        while (recentMarks.size > maxEntries) {
+            val iterator = recentMarks.entries.iterator()
+            if (!iterator.hasNext()) {
+                return
+            }
+            iterator.next()
+            iterator.remove()
         }
     }
 }
@@ -354,7 +410,7 @@ private fun HttpClientConfig<*>.configCurl() {
 private fun HttpClientConfig<*>.configLog() {
     install(Logging) {
         logger = Logger.DEFAULT
-        level = LogLevel.ALL
+        level = LogLevel.NONE
     }
 }
 

@@ -1,14 +1,10 @@
 package site.addzero.generator
 
-import androidx.room.compiler.processing.XAnnotated
-import androidx.room.compiler.processing.XFieldElement
-import androidx.room.compiler.processing.XMethodElement
-import androidx.room.compiler.processing.XNullability
-import androidx.room.compiler.processing.XType
-import androidx.room.compiler.processing.XTypeElement
 import com.google.devtools.ksp.processing.KSPLogger
-import java.io.File
 import site.addzero.context.SettingContext
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerGeneratedSourceWriter
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerTypeRef
 
 /**
  * 表单代码生成器（XProcessing 版本）
@@ -17,10 +13,10 @@ class FormCodeGenerator(
     private val logger: KSPLogger
 ) {
     fun generateFormCodeWithStrategy(
-        entity: XTypeElement,
+        entity: JimmerEntityMeta,
         packageName: String = "site.addzero.forms"
     ): String {
-        val entityClassName = entity.name
+        val entityClassName = entity.simpleName
         val isoClassName = "${entityClassName}Iso"
         val properties = collectProperties(entity)
         val settings = SettingContext.settings
@@ -189,59 +185,35 @@ class FormCodeGenerator(
         """.trimMargin()
     }
 
-    fun writeFormFileWithStrategy(entity: XTypeElement, outputDir: String, packageName: String) {
+    fun writeFormFileWithStrategy(entity: JimmerEntityMeta, outputDir: String, packageName: String) {
         val formCode = generateFormCodeWithStrategy(entity, packageName)
-        val fileName = "${entity.name}Form.kt"
-        val file = File("$outputDir/$fileName")
-        file.parentFile?.mkdirs()
-        file.writeText(formCode)
+        val fileName = "${entity.simpleName}Form.kt"
+        val file = JimmerGeneratedSourceWriter.writeKotlinFile(
+            rootOutputDir = outputDir,
+            packageName = packageName,
+            fileName = fileName,
+            content = formCode
+        )
         logger.info("生成表单文件（XProcessing）: ${file.absolutePath}")
     }
 
-    private fun collectProperties(entity: XTypeElement): List<PropertyModel> {
+    private fun collectProperties(entity: JimmerEntityMeta): List<PropertyModel> {
         val baseEntityFields = setOf(
             "id", "createTime", "updateTime", "createBy", "updateBy",
             "deleted", "version", "tenantId"
         )
-        val fieldByName = entity.getAllFieldsIncludingPrivateSupers().associateBy { it.name }
         val byName = linkedMapOf<String, PropertyModel>()
 
-        entity.getAllMethods()
-            .asSequence()
-            .filter { it.isKotlinPropertyGetter() }
-            .filter { it.parameters.isEmpty() }
-            .filter { !it.isStatic() }
-            .forEach { method ->
-                val propertyName = method.propertyName ?: normalizeMethodPropertyName(method)
-                if (propertyName.isBlank() || propertyName in baseEntityFields) {
-                    return@forEach
-                }
-                val relatedField = fieldByName[propertyName]
-                if (hasFormIgnore(method) || (relatedField != null && hasFormIgnore(relatedField))) {
-                    return@forEach
-                }
-                byName[propertyName] = createPropertyModel(
-                    name = propertyName,
-                    type = method.returnType,
-                    nullable = method.returnType.nullability == XNullability.NULLABLE,
-                    comment = method.docComment
-                )
-            }
-
-        if (byName.isNotEmpty()) {
-            return byName.values.toList()
-        }
-
-        fieldByName.values.forEach { field ->
-            val name = field.name
-            if (name in baseEntityFields || hasFormIgnore(field)) {
+        entity.properties.forEach { property ->
+            val name = property.name
+            if (name in baseEntityFields || property.formIgnored) {
                 return@forEach
             }
             byName[name] = createPropertyModel(
                 name = name,
-                type = field.type,
-                nullable = field.type.nullability == XNullability.NULLABLE,
-                comment = field.docComment
+                type = property.type,
+                nullable = property.type.nullable,
+                comment = property.docComment
             )
         }
 
@@ -250,7 +222,7 @@ class FormCodeGenerator(
 
     private fun createPropertyModel(
         name: String,
-        type: XType,
+        type: JimmerTypeRef,
         nullable: Boolean,
         comment: String?
     ): PropertyModel {
@@ -262,24 +234,6 @@ class FormCodeGenerator(
             kind = classifyFieldKind(type),
             defaultValue = defaultValueFor(type, nullable)
         )
-    }
-
-    private fun hasFormIgnore(target: XAnnotated): Boolean {
-        return target.getAllAnnotations().any { annotation ->
-            annotation.qualifiedName == "site.addzero.entity2form.annotation.FormIgnore" ||
-                annotation.name == "FormIgnore"
-        }
-    }
-
-    private fun normalizeMethodPropertyName(method: XMethodElement): String {
-        val methodName = method.name
-        if (methodName.startsWith("get") && methodName.length > 3) {
-            return methodName.substring(3).replaceFirstChar { it.lowercase() }
-        }
-        if (methodName.startsWith("is") && methodName.length > 2) {
-            return methodName.substring(2).replaceFirstChar { it.lowercase() }
-        }
-        return methodName
     }
 
     private fun generateFieldCode(entityClassName: String, property: PropertyModel): String {
@@ -382,8 +336,8 @@ class FormCodeGenerator(
         }
     }
 
-    private fun classifyFieldKind(type: XType): FieldKind {
-        val qualifiedName = type.typeElement?.qualifiedName ?: type.asTypeName().toString()
+    private fun classifyFieldKind(type: JimmerTypeRef): FieldKind {
+        val qualifiedName = type.qualifiedName ?: type.sourceTypeName
         return when {
             qualifiedName == "kotlin.Boolean" || qualifiedName == "java.lang.Boolean" || qualifiedName == "boolean" -> FieldKind.BOOLEAN
             qualifiedName.contains("LocalDateTime") || qualifiedName.contains("Instant") -> FieldKind.DATETIME
@@ -392,11 +346,11 @@ class FormCodeGenerator(
         }
     }
 
-    private fun defaultValueFor(type: XType, nullable: Boolean): String {
+    private fun defaultValueFor(type: JimmerTypeRef, nullable: Boolean): String {
         if (nullable) {
             return "null"
         }
-        val qualifiedName = type.typeElement?.qualifiedName ?: type.asTypeName().toString()
+        val qualifiedName = type.qualifiedName ?: type.sourceTypeName
         return when {
             qualifiedName == "kotlin.Boolean" || qualifiedName == "java.lang.Boolean" || qualifiedName == "boolean" -> "false"
             qualifiedName == "kotlin.Long" || qualifiedName == "java.lang.Long" || qualifiedName == "long" -> "0L"

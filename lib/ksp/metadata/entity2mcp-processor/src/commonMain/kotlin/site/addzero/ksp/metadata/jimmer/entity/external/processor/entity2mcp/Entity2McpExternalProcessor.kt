@@ -1,11 +1,11 @@
 package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2mcp
 
-import androidx.room.compiler.processing.XTypeElement
 import site.addzero.context.SettingContext
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerGeneratedSourceWriter
 import site.addzero.lsi.processor.ProcessorSpi
-import site.addzero.util.genCode
 
 class Entity2McpExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Unit> {
     override val id: String = JimmerEntityProcessorIds.ENTITY2_MCP
@@ -31,7 +31,7 @@ class Entity2McpExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
             .sortedBy { it.qualifiedName }
             .forEach { entity ->
                 val qualifiedName = entity.qualifiedName
-                val className = entity.name
+                val className = entity.simpleName
                 if (className.isBlank()) {
                     logger.error("生成MCP服务失败: 实体类名为空, 实体: $qualifiedName")
                     return@forEach
@@ -59,14 +59,14 @@ class Entity2McpExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
 
 class McpServiceCodeGenerator {
     fun generateMcpService(
-        entity: XTypeElement,
+        entity: JimmerEntityMeta,
         packageName: String
     ) {
-        val entityName = entity.name
+        val entityName = entity.simpleName
         val entityPackageName = entity.packageName
         val entityDescription = entity.docComment
-            ?.lineSequence()
-            ?.firstOrNull()
+            .lineSequence()
+            .firstOrNull()
             ?.trim()
             .orEmpty()
             .ifBlank { entityName.lowercase() }
@@ -95,7 +95,6 @@ class McpServiceCodeGenerator {
         val isomorphicClassSuffix = settings.isomorphicClassSuffix
         val isoFullName = "$isomorphicPackageName.${entityName}$isomorphicClassSuffix"
 
-        val fileName = "$serviceClassName.kt"
         val fileContent = generateServiceFileContent(
             packageName = packageName,
             serviceClassName = serviceClassName,
@@ -104,8 +103,12 @@ class McpServiceCodeGenerator {
             isoFullName = isoFullName,
             entityDescription = entityDescription
         )
-        val mcpDir = "${settings.backendServerSourceDir}/${packageName.replace(".", "/")}/$fileName"
-        genCode(mcpDir, fileContent, false)
+        JimmerGeneratedSourceWriter.writeKotlinFile(
+            rootOutputDir = settings.backendServerSourceDir,
+            packageName = packageName,
+            fileName = "$serviceClassName.kt",
+            content = fileContent
+        )
     }
 
     private fun generateServiceFileContent(

@@ -15,5 +15,9 @@ kotlin {
             implementation(project(":lib:ksp:metadata:entity2iso-processor"))
             implementation(project(":lib:ksp:metadata:entity2mcp-processor"))
         }
+
+        jvmTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }

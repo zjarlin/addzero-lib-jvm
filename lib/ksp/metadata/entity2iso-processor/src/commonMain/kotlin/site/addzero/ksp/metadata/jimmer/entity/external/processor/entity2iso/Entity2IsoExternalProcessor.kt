@@ -2,10 +2,11 @@ package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2iso
 
 import generator.IsoCodeGenerator
 import site.addzero.entity2iso.processor.context.Settings
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorOptions
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
+import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerGeneratedSourceWriter
 import site.addzero.lsi.processor.ProcessorSpi
-import java.io.File
 
 class Entity2IsoExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Unit> {
     override val id: String = JimmerEntityProcessorIds.ENTITY2_ISO
@@ -20,9 +21,17 @@ class Entity2IsoExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
 
         val logger = context.logger
         Settings.fromOptions(context.options)
-        val packageName = Settings.isomorphicPkg
-        val outputDir = Settings.isomorphicGenDir
-        val outputDirFile = File(outputDir).also { it.mkdirs() }
+        val packageName = context.options[JimmerEntityProcessorOptions.ISO_PACKAGE_NAME]
+            ?.takeIf(String::isNotBlank)
+            ?: context.options[JimmerEntityProcessorOptions.ISO_PACKAGE_NAME_LEGACY]
+            ?.takeIf(String::isNotBlank)
+            ?: Settings.isomorphicPkg
+        val outputDir = context.options[JimmerEntityProcessorOptions.ISO_OUTPUT_DIR]
+            ?.takeIf(String::isNotBlank)
+            ?: Settings.isomorphicGenDir
+        val classSuffix = context.options[JimmerEntityProcessorOptions.ISO_CLASS_SUFFIX]
+            ?.takeIf(String::isNotBlank)
+            ?: "Iso"
 
         logger.warn("开始生成同构体类...")
         var generatedCount = 0
@@ -31,19 +40,27 @@ class Entity2IsoExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
             .asSequence()
             .sortedBy { it.qualifiedName }
             .forEach { entity ->
-                val entitySimpleName = entity.name
+                val entitySimpleName = entity.simpleName
                 if (entitySimpleName.isBlank()) {
                     logger.error("生成同构体失败: 类名为空")
                     return@forEach
                 }
 
                 try {
-                    val isoCode = IsoCodeGenerator.generateIsoCode(entity, packageName)
-                    val fileName = "${entitySimpleName}Iso.kt"
-                    val file = File(outputDirFile, fileName)
-                    file.writeText(isoCode)
+                    val isoCode = IsoCodeGenerator.generateIsoCode(
+                        entity = entity,
+                        packageName = packageName,
+                        classSuffix = classSuffix
+                    )
+                    val fileName = "$entitySimpleName$classSuffix.kt"
+                    val file = JimmerGeneratedSourceWriter.writeKotlinFile(
+                        rootOutputDir = outputDir,
+                        packageName = packageName,
+                        fileName = fileName,
+                        content = isoCode
+                    )
                     generatedCount++
-                    logger.info("生成同构体: ${entitySimpleName}Iso")
+                    logger.info("生成同构体: ${file.absolutePath}")
                 } catch (e: Exception) {
                     logger.error("生成同构体失败: $entitySimpleName, 错误: ${e.message}")
                 }

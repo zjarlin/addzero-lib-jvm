@@ -24,6 +24,10 @@ kotlin {
       implementation(project(":lib:ksp:metadata:jimmer-entity-spi"))
     }
 
+    commonTest.dependencies {
+      implementation(kotlin("test"))
+    }
+
     jvmMain.dependencies {
       implementation(catalogLibs.findLibrary("androidx-room-compiler-processing").get())
     }

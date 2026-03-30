@@ -9,27 +9,33 @@ import site.addzero.gradle.kspconsumer.PublishedKspArtifactKind
 import site.addzero.gradle.kspconsumer.PublishedProcessorArtifact
 
 abstract class JimmerEntity2IsoExtension {
+    abstract val enabled: Property<Boolean>
     abstract val packageName: Property<String>
     abstract val classSuffix: Property<String>
 
     init {
+        enabled.convention(true)
         packageName.convention("site.addzero.generated.isomorphic")
         classSuffix.convention("Iso")
     }
 }
 
 abstract class JimmerEntity2FormExtension {
+    abstract val enabled: Property<Boolean>
     abstract val packageName: Property<String>
 
     init {
+        enabled.convention(true)
         packageName.convention("site.addzero.generated.forms")
     }
 }
 
 abstract class JimmerEntity2McpExtension {
+    abstract val enabled: Property<Boolean>
     abstract val packageName: Property<String>
 
     init {
+        enabled.convention(true)
         packageName.convention("site.addzero.generated.mcp")
     }
 }
@@ -115,6 +121,9 @@ class JimmerEntityExternalGradlePlugin : AbstractPublishedKspConsumerPlugin() {
             "backendServerSourceDir" to backendServerSourceDir,
             "isomorphicPackageName" to isoPackage,
             "isomorphicClassSuffix" to jimmer.entity2Iso.classSuffix.get(),
+            "entity2Iso.enabled" to jimmer.entity2Iso.enabled.get().toString(),
+            "entity2Form.enabled" to jimmer.entity2Form.enabled.get().toString(),
+            "entity2Mcp.enabled" to jimmer.entity2Mcp.enabled.get().toString(),
             "formPackageName" to jimmer.entity2Form.packageName.get(),
             "enumOutputPackage" to jimmer.enumOutputPackage.get(),
             "apiClientPackageName" to jimmer.apiClientPackageName.get(),

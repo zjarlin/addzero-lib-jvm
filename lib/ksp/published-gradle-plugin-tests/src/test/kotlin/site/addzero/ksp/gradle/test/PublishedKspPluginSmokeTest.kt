@@ -230,9 +230,40 @@ class PublishedKspPluginSmokeTest {
                 "site.addzero:entity2iso-processor|" +
                 "site.addzero:entity2form-processor|" +
                 "site.addzero:entity2mcp-processor",
+            "entity2Iso.enabled=true",
+            "entity2Form.enabled=true",
+            "entity2Mcp.enabled=true",
             "isomorphicPkg=demo.generated.isomorphic",
             "formPackageName=demo.generated.forms",
             "mcpPackageName=demo.generated.mcp",
+        )
+    }
+
+    @Test
+    fun `kmp umbrella plugin serializes child processor enable flags`() {
+        val output = runBuild(
+            projectName = "jimmer-external-disabled-consumer",
+            buildScript = kmpBuildScript(
+                pluginClass = "site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalGradlePlugin",
+                serializedArgsKey =
+                    "site.addzero.kspconsumer.site.addzero.ksp.jimmer-entity-external.serializedArgs",
+                extraBody = """
+                    extensions.configure(
+                        site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalExtension::class.java
+                    ) {
+                        entity2Iso.enabled.set(true)
+                        entity2Form.enabled.set(false)
+                        entity2Mcp.enabled.set(false)
+                    }
+                """.trimIndent(),
+            ),
+        )
+
+        assertContains(
+            output,
+            "entity2Iso.enabled=true",
+            "entity2Form.enabled=false",
+            "entity2Mcp.enabled=false",
         )
     }
 
