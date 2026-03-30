@@ -26,6 +26,8 @@ object ModbusCodecSupport {
 
     fun encodeValue(codec: ModbusCodec, value: String): List<Int> =
         when (codec) {
+            ModbusCodec.AUTO ->
+                error("AUTO 编解码器必须在代码生成阶段完成推导，运行时不应直接参与编码")
             ModbusCodec.BOOL_COIL -> listOf(if (value.toBooleanStrictOrNull() == true) 1 else 0)
             ModbusCodec.U16 -> listOf(value.toInt())
             ModbusCodec.U32_BE -> {

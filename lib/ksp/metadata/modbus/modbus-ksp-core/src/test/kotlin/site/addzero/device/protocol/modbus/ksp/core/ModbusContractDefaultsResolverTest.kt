@@ -47,6 +47,32 @@ class ModbusContractDefaultsResolverTest {
                 returnType = commandResultReturnType(),
             ),
         )
+        assertEquals(
+            "WRITE_MULTIPLE_COILS",
+            ModbusContractDefaultsResolver.resolveFunctionCodeName(
+                explicitFunctionCodeName = "AUTO",
+                parameters =
+                    listOf(
+                        parameter(
+                            name = "relay0",
+                            order = 0,
+                            codecName = "BOOL_COIL",
+                            registerOffset = 0,
+                            registerWidth = 1,
+                            valueKind = ModbusValueKind.BOOLEAN,
+                        ),
+                        parameter(
+                            name = "relay1",
+                            order = 1,
+                            codecName = "BOOL_COIL",
+                            registerOffset = 1,
+                            registerWidth = 1,
+                            valueKind = ModbusValueKind.BOOLEAN,
+                        ),
+                    ),
+                returnType = commandResultReturnType(),
+            ),
+        )
     }
 
     @Test

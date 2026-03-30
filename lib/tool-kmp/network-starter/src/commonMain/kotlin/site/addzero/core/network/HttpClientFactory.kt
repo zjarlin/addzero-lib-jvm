@@ -64,6 +64,9 @@ interface HttpClientProfileSpi {
     val order: Int
         get() = 0
 
+    val enableCurlLogging: Boolean
+        get() = true
+
     fun requestContribution(): HttpClientRequestContribution {
         return HttpClientRequestContribution()
     }
@@ -227,6 +230,7 @@ class HttpClientFactory {
         return HttpClient(httpClientEngineFactory) {
             configClient(
                 curlLogDeduplicator = curlLogDeduplicator,
+                enableCurlLogging = contributors.all(HttpClientProfileSpi::enableCurlLogging),
             ).invoke(this)
             if (features.enableSse) {
                 install(SSE) {
@@ -332,6 +336,7 @@ internal expect val httpClientEngineFactory: HttpClientEngineFactory<*>
 
 private fun configClient(
     curlLogDeduplicator: CurlLogDeduplicator,
+    enableCurlLogging: Boolean,
 ): HttpClientConfig<*>.() -> Unit = {
     configTimeout()
     install(createClientPlugin("HttpResponseInterceptor") {
@@ -348,7 +353,9 @@ private fun configClient(
     })
     configLog()
     configJson()
-    configCurl(curlLogDeduplicator)
+    if (enableCurlLogging) {
+        configCurl(curlLogDeduplicator)
+    }
 }
 
 private fun HttpClientConfig<*>.configCurl(

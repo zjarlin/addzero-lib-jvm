@@ -43,8 +43,35 @@ enum class ModbusFunctionCode {
 }
 
 enum class ModbusCodec {
+    /**
+     * 自动推导编解码方式。
+     *
+     * 默认规则：
+     * - coil / discrete 场景下的 Boolean -> BOOL_COIL
+     * - 寄存器场景下的 Boolean -> BIT_FLAG
+     * - Int -> U16
+     *
+     * 无法安全推导为 U32_BE 时，不会自动升级，仍需显式声明。
+     */
+    AUTO,
+
+    /**
+     * Kotlin `Boolean` <-> Modbus coil/discrete 单个位。
+     */
     BOOL_COIL,
+
+    /**
+     * Kotlin `Boolean` <-> 寄存器内某一 bit 位。
+     */
     BIT_FLAG,
+
+    /**
+     * Kotlin `Int` <-> 单个 16 位无符号寄存器。
+     */
     U16,
+
+    /**
+     * Kotlin `Int` <-> 两个 16 位寄存器拼出的 32 位大端值。
+     */
     U32_BE,
 }

@@ -57,11 +57,14 @@ class ModbusArtifactRendererTest {
         val header = artifacts.first { artifact -> artifact.fileName == "modbus_rtu_dispatch" && artifact.extensionName == "h" }
         val source = artifacts.first { artifact -> artifact.fileName == "modbus_rtu_dispatch" && artifact.extensionName == "c" }
 
+        assertTrue(header.content.contains("bool modbus_rtu_dispatch_read_coils("))
+        assertTrue(header.content.contains("bool modbus_rtu_dispatch_write_multiple_coils("))
         assertTrue(header.content.contains("bool modbus_rtu_dispatch_write_multiple_registers("))
         assertTrue(source.content.contains("case FLASH_FIRMWARE_CHUNK_ADDRESS:"))
         assertTrue(source.content.contains("return flash_handle_firmware_chunk(input_registers, quantity, &service_result);").not())
         assertTrue(source.content.contains("const bool handled = flash_handle_firmware_chunk(input_registers, quantity, &service_result);"))
         assertTrue(source.content.contains("case SELF_DEV_BOARD_READ_INFO_ADDRESS:"))
+        assertTrue(source.content.contains("const bool input_coils[1] = {value};"))
     }
 
     @Test

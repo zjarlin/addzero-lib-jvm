@@ -20,7 +20,7 @@ object IsoCodeGenerator {
             PropertyModel(
                 code = "    ${contextualAnnotation}val ${property.name}: ${typeResult.rendered}$nullableSuffix = ${defaultValueResult.code}",
                 imports = typeResult.imports + defaultValueResult.imports,
-                needsExperimentalTimeOptIn = defaultValueResult.needsExperimentalTimeOptIn
+                needsExperimentalTimeOptIn = defaultValueResult.needsExperimentalTimeOptIn,
             )
         }
 
@@ -46,14 +46,14 @@ object IsoCodeGenerator {
     private data class PropertyModel(
         val code: String,
         val imports: Set<String>,
-        val needsExperimentalTimeOptIn: Boolean
+        val needsExperimentalTimeOptIn: Boolean,
     )
 
     private data class IsoTypeResult(
         val rendered: String,
         val imports: Set<String> = emptySet(),
         val kind: JimmerTypeKind = JimmerTypeKind.OTHER,
-        val contextual: Boolean = false
+        val contextual: Boolean = false,
     )
 
     private data class DefaultValueResult(
@@ -90,7 +90,7 @@ object IsoCodeGenerator {
             return IsoTypeResult(
                 rendered = "BigDecimal",
                 imports = setOf("import java.math.BigDecimal"),
-                kind = JimmerTypeKind.BASIC
+                kind = JimmerTypeKind.BASIC,
             )
         }
 
@@ -101,7 +101,7 @@ object IsoCodeGenerator {
                 imports = setOf("import kotlinx.datetime.$mapped") +
                     if (contextual) setOf("import kotlinx.serialization.Contextual") else emptySet(),
                 kind = JimmerTypeKind.DATE_TIME,
-                contextual = contextual
+                contextual = contextual,
             )
         }
 
@@ -180,27 +180,27 @@ object IsoCodeGenerator {
             )
 
             JimmerTypeKind.DATE_TIME -> {
-                val imports = mutableSetOf("import kotlinx.datetime.Clock")
+                val imports = mutableSetOf<String>()
                 val code = when (type.rendered) {
                     "LocalDateTime" -> {
                         imports.add("import kotlinx.datetime.TimeZone")
                         imports.add("import kotlinx.datetime.toLocalDateTime")
-                        "Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())"
+                        "kotlinx.datetime.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())"
                     }
 
                     "LocalDate" -> {
                         imports.add("import kotlinx.datetime.TimeZone")
                         imports.add("import kotlinx.datetime.toLocalDateTime")
-                        "Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date"
+                        "kotlinx.datetime.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date"
                     }
 
                     "LocalTime" -> {
                         imports.add("import kotlinx.datetime.TimeZone")
                         imports.add("import kotlinx.datetime.toLocalDateTime")
-                        "Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time"
+                        "kotlinx.datetime.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time"
                     }
 
-                    "Instant" -> "Clock.System.now()"
+                    "Instant" -> "kotlinx.datetime.Clock.System.now()"
                     else -> "TODO()"
                 }
                 DefaultValueResult(code = code, imports = imports)
@@ -213,7 +213,7 @@ object IsoCodeGenerator {
     }
 
     private fun mapToKotlinPrimitive(qualifiedName: String?, simpleName: String): String? {
-        return when ((qualifiedName ?: simpleName).lowercase()) {
+        return when (normalizeTypeToken(qualifiedName ?: simpleName).lowercase()) {
             "kotlin.int", "java.lang.integer", "int", "integer" -> "Int"
             "kotlin.long", "java.lang.long", "long" -> "Long"
             "kotlin.short", "java.lang.short", "short" -> "Short"
@@ -227,7 +227,7 @@ object IsoCodeGenerator {
     }
 
     private fun mapToKotlinxDateTime(qualifiedName: String?, simpleName: String): String? {
-        val normalized = qualifiedName ?: simpleName
+        val normalized = normalizeTypeToken(qualifiedName ?: simpleName)
         return when (normalized) {
             "java.time.LocalDate" -> "LocalDate"
             "java.time.LocalDateTime" -> "LocalDateTime"
@@ -239,6 +239,15 @@ object IsoCodeGenerator {
             "kotlinx.datetime.Instant" -> "Instant"
             else -> null
         }
+    }
+
+    private fun normalizeTypeToken(typeName: String): String {
+        return typeName
+            .trim()
+            .trimStart('[', '(')
+            .trimEnd(']', ')', ',', ';')
+            .removeSuffix("?")
+            .ifBlank { "Any" }
     }
 
     private fun shouldImport(qualifiedName: String): Boolean {

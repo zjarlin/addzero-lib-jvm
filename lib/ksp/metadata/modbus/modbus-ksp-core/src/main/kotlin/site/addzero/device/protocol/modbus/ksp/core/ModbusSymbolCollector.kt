@@ -47,20 +47,11 @@ class ModbusSymbolCollector(
             return null
         }
 
-        val deviceApiAnnotation = requireAnnotation(ModbusAnnotationNames.deviceApi)
         val interfaceName = simpleName.asString()
-        val serviceId =
-            deviceApiAnnotation
-                ?.stringArg("serviceId")
-                .orEmpty()
-                .ifBlank { ModbusContractDefaultsResolver.defaultServiceId(interfaceName) }
+        val serviceId = ModbusContractDefaultsResolver.defaultServiceId(interfaceName)
         val interfaceDoc = ModbusKdocParser.parse(docString, fallbackSummary = "设备服务接口。")
-        val summary =
-            deviceApiAnnotation
-                ?.stringArg("summary")
-                .orEmpty()
-                .ifBlank { interfaceDoc.summary }
-        val basePath = deviceApiAnnotation?.stringArg("basePath").orEmpty().ifBlank { "/api/modbus" }
+        val summary = interfaceDoc.summary
+        val basePath = "/api/modbus"
         val requestPrefix = interfaceName + transport.transportId.replaceFirstChar(Char::uppercase)
         val operations =
             declarations
@@ -96,15 +87,13 @@ class ModbusSymbolCollector(
                 .mapNotNull { parameter -> parameter.toParameterModel(doc.parameterDocs[parameter.name?.asString().orEmpty()].orEmpty()) }
                 .sortedBy(ModbusParameterModel::order)
                 .withSequentialOffsets()
-        val returnType = toReturnTypeModel() ?: return null
-        val requestClassName =
-            requestPrefix + methodName.replaceFirstChar(Char::uppercase) + "Request"
+        val rawReturnType = toReturnTypeModel() ?: return null
         val functionCodeName =
             try {
                 ModbusContractDefaultsResolver.resolveFunctionCodeName(
                     explicitFunctionCodeName = operationAnnotation?.enumArg("functionCode").orEmpty(),
                     parameters = parameters,
-                    returnType = returnType,
+                    returnType = rawReturnType,
                 )
             } catch (exception: IllegalArgumentException) {
                 logger.error(
@@ -113,6 +102,10 @@ class ModbusSymbolCollector(
                 )
                 return null
             }
+        val resolvedParameters = parameters.resolveAutoCodecNames(functionCodeName)
+        val returnType = rawReturnType.resolveAutoCodecNames(functionCodeName)
+        val requestClassName =
+            requestPrefix + methodName.replaceFirstChar(Char::uppercase) + "Request"
 
         return ModbusOperationModel(
             methodName = methodName,
@@ -123,7 +116,7 @@ class ModbusSymbolCollector(
             capabilityKey = operationAnnotation?.stringArg("capabilityKey").orEmpty(),
             requestClassName = requestClassName,
             requestQualifiedName = "${requestPrefix.substringBeforeLast("Request", requestPrefix)}.$requestClassName",
-            parameters = parameters,
+            parameters = resolvedParameters,
             returnType = returnType,
             doc = doc,
         )
@@ -292,6 +285,49 @@ class ModbusSymbolCollector(
         when (codecName) {
             "U32_BE" -> 2 * length
             else -> length
+        }
+
+    private fun List<ModbusParameterModel>.resolveAutoCodecNames(functionCodeName: String): List<ModbusParameterModel> =
+        map { parameter ->
+            if (parameter.codecName != "AUTO") {
+                parameter
+            } else {
+                parameter.copy(codecName = inferCodecName(parameter.valueKind, functionCodeName))
+            }
+        }
+
+    private fun ModbusReturnTypeModel.resolveAutoCodecNames(functionCodeName: String): ModbusReturnTypeModel =
+        if (kind != ModbusReturnKind.DTO) {
+            this
+        } else {
+            copy(
+                properties =
+                    properties.map { property ->
+                        val field = property.field
+                        if (field == null || field.codecName != "AUTO") {
+                            property
+                        } else {
+                            property.copy(
+                                field = field.copy(codecName = inferCodecName(property.valueKind, functionCodeName)),
+                            )
+                        }
+                    },
+            )
+        }
+
+    private fun inferCodecName(
+        valueKind: ModbusValueKind,
+        functionCodeName: String,
+    ): String =
+        when (valueKind) {
+            ModbusValueKind.BOOLEAN ->
+                if (functionCodeName in setOf("READ_COILS", "READ_DISCRETE_INPUTS", "WRITE_SINGLE_COIL", "WRITE_MULTIPLE_COILS")) {
+                    "BOOL_COIL"
+                } else {
+                    "BIT_FLAG"
+                }
+
+            ModbusValueKind.INT -> "U16"
         }
 
     private fun KSAnnotated.requireAnnotation(qualifiedName: String): KSAnnotation? =

@@ -11,14 +11,6 @@ annotation class GenerateModbusRtuServer
 @Retention(AnnotationRetention.BINARY)
 annotation class GenerateModbusTcpServer
 
-@Target(AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.BINARY)
-annotation class ModbusDeviceApi(
-    val serviceId: String = "",
-    val summary: String = "",
-    val basePath: String = "",
-)
-
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 /**
@@ -44,6 +36,10 @@ annotation class ModbusOperation(
      * - Coil 00001 对应 address = 0
      * - Input Register 30001 对应 address = 0
      * - Holding Register 40001 对应 address = 0
+     *
+     * 传 -1 时由处理器按 serviceId + 方法签名稳定推导。
+     * 如果主机端和固件端都基于同一份契约生成，可以省略；
+     * 如果需要与既有固件地址表对齐，建议显式写出。
      */
     val address: Int = -1,
     /**
@@ -53,6 +49,15 @@ annotation class ModbusOperation(
      * 传 -1 时由处理器按参数或返回 DTO 自动推导。
      */
     val quantity: Int = -1,
+    /**
+     * 操作的业务能力标识。
+     *
+     * 它不是 Modbus 标准字段，而是给生成出来的协议文档、能力清单、
+     * 后续权限映射或功能开关使用的稳定语义 key。
+     *
+     * 传空字符串时，默认直接复用 operationId；
+     * 大多数场景可以省略，只有你想让“能力名”和“接口方法名”解耦时才需要显式写。
+     */
     val capabilityKey: String = "",
 )
 
@@ -60,14 +65,32 @@ annotation class ModbusOperation(
 @Retention(AnnotationRetention.BINARY)
 annotation class ModbusParam(
     val order: Int,
-    val codec: ModbusCodec,
+    /**
+     * 默认 AUTO。
+     *
+     * 常见场景可以完全省略：
+     * - Boolean 线圈 -> BOOL_COIL
+     * - Boolean 寄存器位 -> BIT_FLAG
+     * - Int -> U16
+     *
+     * 只有需要 U32_BE 或强制覆盖默认推导时才建议显式写。
+     */
+    val codec: ModbusCodec = ModbusCodec.AUTO,
     /**
      * 对寄存器功能码表示寄存器偏移；
      * 对 coil/discrete 功能码表示线圈位序号偏移。
+     *
+     * 传 -1 时按声明顺序自动顺延：
+     * - 第一个参数默认 0
+     * - 第二个参数默认接在前一个参数后面
+     *
+     * 只有需要“跳地址”或多个字段复用同一寄存器时才建议显式写。
      */
     val registerOffset: Int = -1,
     /**
      * 仅寄存器位字段使用，表示 0..15 的 bit 位偏移。
+     *
+     * 对 Boolean + AUTO/BIT_FLAG，默认值为 0。
      */
     val bitOffset: Int = -1,
 )
@@ -75,14 +98,26 @@ annotation class ModbusParam(
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.BINARY)
 annotation class ModbusField(
-    val codec: ModbusCodec,
+    /**
+     * 默认 AUTO。
+     *
+     * 常见场景可以完全省略：
+     * - Boolean 线圈 -> BOOL_COIL
+     * - Boolean 寄存器位 -> BIT_FLAG
+     * - Int -> U16
+     */
+    val codec: ModbusCodec = ModbusCodec.AUTO,
     /**
      * 对寄存器功能码表示寄存器偏移；
      * 对 coil/discrete 功能码表示线圈位序号偏移。
+     *
+     * 传 -1 时按字段声明顺序自动顺延。
      */
     val registerOffset: Int = -1,
     /**
      * 仅寄存器位字段使用，表示 0..15 的 bit 位偏移。
+     *
+     * 对 Boolean + AUTO/BIT_FLAG，默认值为 0。
      */
     val bitOffset: Int = -1,
     val length: Int = 1,

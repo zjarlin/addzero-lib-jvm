@@ -847,6 +847,15 @@ object ModbusArtifactRenderer {
                         appendLine("    return true;")
                     }
 
+                    ModbusReturnKind.BOOLEAN,
+                    ModbusReturnKind.INT -> {
+                        appendLine("    if (out_value == NULL) {")
+                        appendLine("        return false;")
+                        appendLine("    }")
+                        appendLine("    *out_value = 0;")
+                        appendLine("    return true;")
+                    }
+
                     else -> {
                         appendLine("    /* TODO: 在这里接入真实硬件逻辑。 */")
                         appendLine("    return true;")
@@ -921,11 +930,18 @@ object ModbusArtifactRenderer {
 
     private fun ModbusOperationModel.generatedDispatchSignature(service: ModbusServiceModel): String =
         when (functionCodeName) {
+            "READ_COILS",
+            "READ_DISCRETE_INPUTS" ->
+                "bool ${dispatchFunctionName(service)}(bool *out_coils, size_t coil_count)"
+
             "READ_HOLDING_REGISTERS",
             "READ_INPUT_REGISTERS" ->
                 "bool ${dispatchFunctionName(service)}(uint16_t *out_registers, size_t register_count)"
 
             "WRITE_SINGLE_COIL",
+            "WRITE_MULTIPLE_COILS" ->
+                "bool ${dispatchFunctionName(service)}(const bool *input_coils, size_t coil_count, ${service.cServiceName}_command_result_t *out_result)"
+
             "WRITE_SINGLE_REGISTER",
             "WRITE_MULTIPLE_REGISTERS" ->
                 "bool ${dispatchFunctionName(service)}(const uint16_t *input_registers, size_t register_count, ${service.cServiceName}_command_result_t *out_result)"
@@ -938,102 +954,180 @@ object ModbusArtifactRenderer {
             ModbusReturnKind.DTO ->
                 "bool ${userFunctionName(service)}(${responseStructName(service)} *out_response)"
 
-            ModbusReturnKind.COMMAND_RESULT,
-            ModbusReturnKind.UNIT,
             ModbusReturnKind.BOOLEAN,
-            ModbusReturnKind.INT -> {
-                val requestPart =
-                    if (parameters.isEmpty()) {
-                        ""
-                    } else {
-                        "const ${requestStructName(service)} *request"
-                    }
-                val resultPart =
-                    if (returnType.kind == ModbusReturnKind.COMMAND_RESULT) {
-                        "${if (requestPart.isNotEmpty()) ", " else ""}${service.cServiceName}_command_result_t *out_result"
-                    } else {
-                        ""
-                    }
-                "bool ${userFunctionName(service)}($requestPart$resultPart)"
-            }
+            ModbusReturnKind.INT ->
+                if (isReadOperation) {
+                    "bool ${userFunctionName(service)}(${returnType.scalarOutType()} *out_value)"
+                } else {
+                    buildWriteUserContractSignature(service)
+                }
+
+            ModbusReturnKind.COMMAND_RESULT,
+            ModbusReturnKind.UNIT -> buildWriteUserContractSignature(service)
         }
 
     private fun ModbusOperationModel.renderCDispatchBody(service: ModbusServiceModel): List<String> =
+        if (isReadOperation) {
+            renderReadDispatchBody(service)
+        } else {
+            renderWriteDispatchBody(service)
+        }
+
+    private fun ModbusOperationModel.buildWriteUserContractSignature(service: ModbusServiceModel): String {
+        val requestPart =
+            if (parameters.isEmpty()) {
+                ""
+            } else {
+                "const ${requestStructName(service)} *request"
+            }
+        val resultPart =
+            if (returnType.kind == ModbusReturnKind.COMMAND_RESULT) {
+                "${if (requestPart.isNotEmpty()) ", " else ""}${service.cServiceName}_command_result_t *out_result"
+            } else {
+                ""
+            }
+        return "bool ${userFunctionName(service)}($requestPart$resultPart)"
+    }
+
+    private fun ModbusOperationModel.renderReadDispatchBody(service: ModbusServiceModel): List<String> =
         when (returnType.kind) {
             ModbusReturnKind.DTO ->
+                if (usesCoilBits) {
+                    buildList {
+                        add("if (out_coils == NULL || coil_count < ${quantity}) {")
+                        add("    return false;")
+                        add("}")
+                        add("${responseStructName(service)} response = {0};")
+                        add("if (!${userFunctionName(service)}(&response)) {")
+                        add("    return false;")
+                        add("}")
+                        returnType.properties.forEach { property ->
+                            val field = property.field ?: return@forEach
+                            add("out_coils[${field.registerOffset}] = response.${property.name.toSnakeCase()};")
+                        }
+                        add("return true;")
+                    }
+                } else {
+                    buildList {
+                        add("if (out_registers == NULL || register_count < ${quantity}) {")
+                        add("    return false;")
+                        add("}")
+                        add("${responseStructName(service)} response = {0};")
+                        add("if (!${userFunctionName(service)}(&response)) {")
+                        add("    return false;")
+                        add("}")
+                        returnType.properties
+                            .filter { property -> property.field != null }
+                            .groupBy { property -> property.field!!.registerOffset }
+                            .forEach { (registerOffset, properties) ->
+                                add("out_registers[$registerOffset] = 0u;")
+                                properties.forEach { property ->
+                                    val field = property.field ?: return@forEach
+                                    when (property.valueKind) {
+                                        ModbusValueKind.BOOLEAN -> {
+                                            if (field.codecName == "BIT_FLAG") {
+                                                add("out_registers[$registerOffset] |= response.${property.name.toSnakeCase()} ? (uint16_t)(1u << ${field.bitOffset}) : 0u;")
+                                            } else {
+                                                add("out_registers[$registerOffset] = response.${property.name.toSnakeCase()} ? 1u : 0u;")
+                                            }
+                                        }
+
+                                        ModbusValueKind.INT -> {
+                                            if (field.codecName == "U32_BE") {
+                                                add("out_registers[$registerOffset] = (uint16_t)((response.${property.name.toSnakeCase()} >> 16) & 0xFFFFu);")
+                                                add("out_registers[${registerOffset + 1}] = (uint16_t)(response.${property.name.toSnakeCase()} & 0xFFFFu);")
+                                            } else {
+                                                add("out_registers[$registerOffset] = (uint16_t)(response.${property.name.toSnakeCase()});")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        add("return true;")
+                    }
+                }
+
+            ModbusReturnKind.BOOLEAN ->
+                buildList {
+                    if (usesCoilBits) {
+                        add("if (out_coils == NULL || coil_count < ${quantity}) {")
+                    } else {
+                        add("if (out_registers == NULL || register_count < ${quantity}) {")
+                    }
+                    add("    return false;")
+                    add("}")
+                    add("bool value = false;")
+                    add("if (!${userFunctionName(service)}(&value)) {")
+                    add("    return false;")
+                    add("}")
+                    if (usesCoilBits) {
+                        add("out_coils[0] = value;")
+                    } else {
+                        add("out_registers[0] = value ? 1u : 0u;")
+                    }
+                    add("return true;")
+                }
+
+            ModbusReturnKind.INT ->
                 buildList {
                     add("if (out_registers == NULL || register_count < ${quantity}) {")
                     add("    return false;")
                     add("}")
-                    add("${responseStructName(service)} response = {0};")
-                    add("if (!${userFunctionName(service)}(&response)) {")
+                    add("int32_t value = 0;")
+                    add("if (!${userFunctionName(service)}(&value)) {")
                     add("    return false;")
                     add("}")
-                    returnType.properties
-                        .filter { property -> property.field != null }
-                        .groupBy { property -> property.field!!.registerOffset }
-                        .forEach { (registerOffset, properties) ->
-                            add("out_registers[$registerOffset] = 0u;")
-                            properties.forEach { property ->
-                                val field = property.field ?: return@forEach
-                                when (property.valueKind) {
-                                    ModbusValueKind.BOOLEAN -> {
-                                        if (field.codecName == "BIT_FLAG") {
-                                            add("out_registers[$registerOffset] |= response.${property.name.toSnakeCase()} ? (uint16_t)(1u << ${field.bitOffset}) : 0u;")
-                                        } else {
-                                            add("out_registers[$registerOffset] = response.${property.name.toSnakeCase()} ? 1u : 0u;")
-                                        }
-                                    }
-
-                                    ModbusValueKind.INT -> {
-                                        if (field.codecName == "U32_BE") {
-                                            add("out_registers[$registerOffset] = (uint16_t)((response.${property.name.toSnakeCase()} >> 16) & 0xFFFFu);")
-                                            add("out_registers[${registerOffset + 1}] = (uint16_t)(response.${property.name.toSnakeCase()} & 0xFFFFu);")
-                                        } else {
-                                            add("out_registers[$registerOffset] = (uint16_t)(response.${property.name.toSnakeCase()});")
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    add("out_registers[0] = (uint16_t)(value);")
                     add("return true;")
                 }
 
-            else ->
-                buildList {
-                    val minimumRegisterCount = quantity.coerceAtLeast(1)
-                    add("if (out_result == NULL || input_registers == NULL || register_count < $minimumRegisterCount) {")
-                    add("    return false;")
-                    add("}")
-                    if (parameters.isNotEmpty()) {
-                        add("${requestStructName(service)} request = {0};")
-                        parameters.forEach { parameter ->
-                            when (parameter.valueKind) {
-                                ModbusValueKind.BOOLEAN ->
-                                    add("request.${parameter.name.toSnakeCase()} = input_registers[${parameter.registerOffset}] != 0u;")
+            ModbusReturnKind.UNIT,
+            ModbusReturnKind.COMMAND_RESULT -> listOf("return false;")
+        }
 
-                                ModbusValueKind.INT -> {
-                                    if (parameter.codecName == "U32_BE") {
-                                        add("request.${parameter.name.toSnakeCase()} = (int)(((uint32_t)input_registers[${parameter.registerOffset}] << 16) | input_registers[${parameter.registerOffset + 1}]);")
-                                    } else {
-                                        add("request.${parameter.name.toSnakeCase()} = (int)input_registers[${parameter.registerOffset}];")
-                                    }
-                                }
-                            }
+    private fun ModbusOperationModel.renderWriteDispatchBody(service: ModbusServiceModel): List<String> =
+        buildList {
+            val minimumRegisterCount = quantity.coerceAtLeast(1)
+            if (usesCoilBits) {
+                add("if (out_result == NULL || input_coils == NULL || coil_count < $minimumRegisterCount) {")
+            } else {
+                add("if (out_result == NULL || input_registers == NULL || register_count < $minimumRegisterCount) {")
+            }
+            add("    return false;")
+            add("}")
+            if (parameters.isNotEmpty()) {
+                add("${requestStructName(service)} request = {0};")
+                parameters.forEach { parameter ->
+                    when {
+                        usesCoilBits -> {
+                            add("request.${parameter.name.toSnakeCase()} = input_coils[${parameter.registerOffset}];")
+                        }
+
+                        parameter.valueKind == ModbusValueKind.BOOLEAN && parameter.codecName == "BIT_FLAG" -> {
+                            add("request.${parameter.name.toSnakeCase()} = (input_registers[${parameter.registerOffset}] & (uint16_t)(1u << ${parameter.bitOffset})) != 0u;")
+                        }
+
+                        parameter.valueKind == ModbusValueKind.INT && parameter.codecName == "U32_BE" -> {
+                            add("request.${parameter.name.toSnakeCase()} = (int)(((uint32_t)input_registers[${parameter.registerOffset}] << 16) | input_registers[${parameter.registerOffset + 1}]);")
+                        }
+
+                        else -> {
+                            add("request.${parameter.name.toSnakeCase()} = (int32_t)input_registers[${parameter.registerOffset}];")
                         }
                     }
-                    if (returnType.kind == ModbusReturnKind.COMMAND_RESULT) {
-                        add("return ${userFunctionName(service)}(${if (parameters.isNotEmpty()) "&request, " else ""}out_result);")
-                    } else if (parameters.isNotEmpty()) {
-                        add("out_result->accepted = ${userFunctionName(service)}(&request);")
-                        add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
-                        add("return out_result->accepted;")
-                    } else {
-                        add("out_result->accepted = ${userFunctionName(service)}();")
-                        add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
-                        add("return out_result->accepted;")
-                    }
                 }
+            }
+            if (returnType.kind == ModbusReturnKind.COMMAND_RESULT) {
+                add("return ${userFunctionName(service)}(${if (parameters.isNotEmpty()) "&request, " else ""}out_result);")
+            } else if (parameters.isNotEmpty()) {
+                add("out_result->accepted = ${userFunctionName(service)}(&request);")
+                add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
+                add("return out_result->accepted;")
+            } else {
+                add("out_result->accepted = ${userFunctionName(service)}();")
+                add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
+                add("return out_result->accepted;")
+            }
         }
 
     private fun ModbusOperationModel.dispatchFunctionName(service: ModbusServiceModel): String =
@@ -1067,6 +1161,13 @@ object ModbusArtifactRenderer {
         when (kind) {
             ModbusReturnKind.UNIT -> "kotlin.Unit"
             else -> qualifiedName
+        }
+
+    private fun ModbusReturnTypeModel.scalarOutType(): String =
+        when (kind) {
+            ModbusReturnKind.BOOLEAN -> "bool"
+            ModbusReturnKind.INT -> "int32_t"
+            else -> error("只有标量返回才能生成 C out 参数类型：$kind")
         }
 
     private fun ModbusOperationModel.renderBooleanDecodeExpression(): String =

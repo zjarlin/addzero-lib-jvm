@@ -21,13 +21,13 @@ class IsoCodeGeneratorTest {
                         type = JimmerTypeRef(
                             qualifiedName = "kotlin.String",
                             simpleName = "String",
-                            kind = JimmerTypeKind.BASIC
-                        )
-                    )
+                            kind = JimmerTypeKind.BASIC,
+                        ),
+                    ),
                 )
             ),
             packageName = "demo.generated.iso",
-            classSuffix = "Snapshot"
+            classSuffix = "Snapshot",
         )
 
         assertContains(code, "package demo.generated.iso")
@@ -48,8 +48,8 @@ class IsoCodeGeneratorTest {
                         type = JimmerTypeRef(
                             qualifiedName = "demo.domain.Child",
                             simpleName = "Child",
-                            kind = JimmerTypeKind.ENTITY
-                        )
+                            kind = JimmerTypeKind.ENTITY,
+                        ),
                     ),
                     JimmerPropertyMeta(
                         name = "children",
@@ -61,26 +61,26 @@ class IsoCodeGeneratorTest {
                                 JimmerTypeRef(
                                     qualifiedName = "demo.domain.Child",
                                     simpleName = "Child",
-                                    kind = JimmerTypeKind.ENTITY
-                                )
-                            )
-                        )
+                                    kind = JimmerTypeKind.ENTITY,
+                                ),
+                            ),
+                        ),
                     ),
                     JimmerPropertyMeta(
                         name = "status",
                         type = JimmerTypeRef(
                             qualifiedName = "demo.domain.ParentStatus",
                             simpleName = "ParentStatus",
-                            kind = JimmerTypeKind.ENUM
-                        )
+                            kind = JimmerTypeKind.ENUM,
+                        ),
                     ),
                     JimmerPropertyMeta(
                         name = "createdAt",
                         type = JimmerTypeRef(
                             qualifiedName = "java.time.LocalDateTime",
                             simpleName = "LocalDateTime",
-                            kind = JimmerTypeKind.DATE_TIME
-                        )
+                            kind = JimmerTypeKind.DATE_TIME,
+                        ),
                     ),
                     JimmerPropertyMeta(
                         name = "remark",
@@ -88,21 +88,59 @@ class IsoCodeGeneratorTest {
                             qualifiedName = "kotlin.String",
                             simpleName = "String",
                             nullable = true,
-                            kind = JimmerTypeKind.BASIC
-                        )
-                    )
-                )
+                            kind = JimmerTypeKind.BASIC,
+                        ),
+                    ),
+                ),
             ),
             packageName = "demo.generated.iso",
-            classSuffix = "Iso"
+            classSuffix = "Iso",
         )
 
         assertContains(code, "val child: ChildIso = ChildIso()")
         assertContains(code, "val children: List<ChildIso> = emptyList()")
         assertContains(code, "val status: ParentStatus = ParentStatus.entries.first()")
-        assertContains(code, "@Contextual val createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())")
+        assertContains(
+            code,
+            "@Contextual val createdAt: LocalDateTime = kotlinx.datetime.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())",
+        )
         assertContains(code, "val remark: String? = null")
         assertContains(code, "import demo.domain.ParentStatus")
         assertContains(code, "import kotlinx.datetime.LocalDateTime")
+    }
+
+    @Test
+    fun `generator normalizes malformed primitive token and instant default`() {
+        val code = IsoCodeGenerator.generateIsoCode(
+            entity = JimmerEntityMeta(
+                qualifiedName = "demo.domain.Device",
+                packageName = "demo.domain",
+                simpleName = "Device",
+                properties = listOf(
+                    JimmerPropertyMeta(
+                        name = "id",
+                        type = JimmerTypeRef(
+                            qualifiedName = null,
+                            simpleName = "Long]",
+                            kind = JimmerTypeKind.OTHER,
+                        ),
+                    ),
+                    JimmerPropertyMeta(
+                        name = "lastSeenAt",
+                        type = JimmerTypeRef(
+                            qualifiedName = "java.time.Instant",
+                            simpleName = "Instant",
+                            kind = JimmerTypeKind.DATE_TIME,
+                        ),
+                    ),
+                ),
+            ),
+            packageName = "demo.generated.iso",
+            classSuffix = "Iso",
+        )
+
+        assertContains(code, "val id: Long = 0L")
+        assertContains(code, "@Contextual val lastSeenAt: Instant = kotlinx.datetime.Clock.System.now()")
+        kotlin.test.assertFalse(code.contains("import kotlin.time.Clock"))
     }
 }

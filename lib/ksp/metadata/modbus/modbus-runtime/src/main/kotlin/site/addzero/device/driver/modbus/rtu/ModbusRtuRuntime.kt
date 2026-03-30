@@ -96,6 +96,20 @@ interface ModbusRtuExecutor {
     )
 }
 
+/**
+ * 基于 j2mod 的 Modbus RTU 执行器。
+ *
+ * `J2mod` 是底层采用的 Java Modbus 协议库名，
+ * 这个类的职责就是把项目里的高层 `ModbusRtuExecutor` 调用
+ * 翻译成 j2mod 的串口主站读写动作。
+ *
+ * 当前职责边界只有两层：
+ * 1. 根据 [ModbusRtuEndpointConfig] 创建串口主站连接
+ * 2. 把读写请求映射到 j2mod 的功能码调用，并做基础重试
+ *
+ * 它不负责协议建模、寄存器地址定义或业务语义，
+ * 那些都应该留在上层的 KSP 生成网关或业务契约里。
+ */
 @Single
 class J2modModbusRtuExecutor : ModbusRtuExecutor {
     override suspend fun readCoils(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =

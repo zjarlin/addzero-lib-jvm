@@ -37,21 +37,17 @@ internal object ModbusContractDefaultsResolver {
         }
 
         val totalWidth = parameters.maxOfOrNull { parameter -> parameter.registerOffset + parameter.registerWidth } ?: 0
-        val allBooleanCoils =
-            parameters.isNotEmpty() &&
-                parameters.all { parameter ->
-                    parameter.valueKind == ModbusValueKind.BOOLEAN && parameter.codecName == "BOOL_COIL"
-                }
+        val allBooleans = parameters.isNotEmpty() && parameters.all { parameter -> parameter.valueKind == ModbusValueKind.BOOLEAN }
         if (parameters.size == 1) {
             val parameter = parameters.single()
-            if (parameter.valueKind == ModbusValueKind.BOOLEAN && parameter.codecName == "BOOL_COIL") {
+            if (parameter.valueKind == ModbusValueKind.BOOLEAN) {
                 return "WRITE_SINGLE_COIL"
             }
             if (totalWidth <= 1) {
                 return "WRITE_SINGLE_REGISTER"
             }
         }
-        if (allBooleanCoils) {
+        if (allBooleans) {
             return "WRITE_MULTIPLE_COILS"
         }
 

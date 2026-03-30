@@ -9,7 +9,6 @@ import com.google.devtools.ksp.symbol.KSFile
 object ModbusAnnotationNames {
     const val generateRtuServer = "site.addzero.device.protocol.modbus.annotation.GenerateModbusRtuServer"
     const val generateTcpServer = "site.addzero.device.protocol.modbus.annotation.GenerateModbusTcpServer"
-    const val deviceApi = "site.addzero.device.protocol.modbus.annotation.ModbusDeviceApi"
     const val operation = "site.addzero.device.protocol.modbus.annotation.ModbusOperation"
     const val param = "site.addzero.device.protocol.modbus.annotation.ModbusParam"
     const val field = "site.addzero.device.protocol.modbus.annotation.ModbusField"
