@@ -33,47 +33,17 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-29T19:47:13.583979
-// Loaded: 39, Excluded: 0, Total: 39
-include(":lib:api:api-music-spi")
-include(":lib:api:api-netease")
-include(":lib:api:api-qqmusic")
-include(":lib:api:api-suno")
+// Generated at: 2026-03-30T10:40:29.406314
+// Loaded: 8, Excluded: 1, Total: 9
+// Excluded (build infrastructure): :checkouts:build-logic
 include(":lib:compose:compose-icon-map")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
-include(":lib:kbox-plugin-api")
-include(":lib:ksp:logger-api")
-include(":lib:ksp:metadata:apiprovider-gradle-plugin")
-include(":lib:ksp:metadata:apiprovider-processor")
-include(":lib:ksp:metadata:controller2api-gradle-plugin")
-include(":lib:ksp:metadata:controller2api-idea-plugin")
-include(":lib:ksp:metadata:controller2api-processor")
-include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-api")
-include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
-include(":lib:ksp:metadata:singleton-adapter-api")
-include(":lib:openapi-codegen")
-include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
-include(":lib:tool-jvm:network-call:chat:api-models-chat")
-include(":lib:tool-jvm:network-call:music:api-music-spi")
-include(":lib:tool-jvm:network-call:music:api-netease")
-include(":lib:tool-jvm:network-call:music:api-netease-semantic-impl")
-include(":lib:tool-jvm:network-call:music:tool-api-music-search")
-include(":lib:tool-jvm:network-call:music:tool-api-suno")
-include(":lib:tool-jvm:network-call:tool-api-maven")
-include(":lib:tool-jvm:network-call:tool-api-ocr")
-include(":lib:tool-jvm:network-call:tool-api-payment")
-include(":lib:tool-jvm:network-call:tool-api-soft-download")
-include(":lib:tool-jvm:network-call:tool-api-temp-mail")
-include(":lib:tool-jvm:network-call:tool-api-translate")
-include(":lib:tool-jvm:network-call:tool-api-tyc")
-include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
-include(":lib:tool-jvm:network-call:tool-api-video-parse")
-include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
-include(":lib:tool-jvm:network-call:tool-api-weather")
-include(":lib:tool-jvm:tool-api-jvm")
-include(":lib:tool-kmp:ktor:starter:starter-openapi")
-include(":lib:tool-kmp:ktor:starter:starter-spi")
-include(":lib:tool-kmp:network-starter")
+include(":lib:ksp:metadata:modbus:modbus-ksp-core")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:route:route-core")
