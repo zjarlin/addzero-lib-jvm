@@ -114,8 +114,10 @@ private fun XType.toJimmerTypeRef(): JimmerTypeRef {
     val typeElement = typeElement
     val sourceTypeName = asTypeName().toString()
     val qualifiedName = typeElement?.qualifiedName
-    val simpleName = qualifiedName?.substringAfterLast('.')
-        ?: parseSimpleTypeName(sourceTypeName)
+    val simpleName = sanitizeSimpleTypeName(
+        qualifiedName?.substringAfterLast('.')
+            ?: parseSimpleTypeName(sourceTypeName)
+    )
     val typeArguments = typeArguments.map { it.toJimmerTypeRef() }
     val typeKind = when {
         isArray() -> JimmerTypeKind.ARRAY
@@ -226,5 +228,13 @@ private fun parseSimpleTypeName(typeName: String): String {
         .substringAfterLast('.')
         .removeSuffix("?")
         .trim()
+        .ifBlank { "Any" }
+}
+
+private fun sanitizeSimpleTypeName(simpleName: String): String {
+    return simpleName
+        .trim()
+        .trimStart('[', '(')
+        .trimEnd(']', ')', ',')
         .ifBlank { "Any" }
 }

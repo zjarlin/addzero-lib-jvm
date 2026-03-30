@@ -32,6 +32,10 @@ object ModbusCodecSupport {
                 val number = value.toLong()
                 listOf(((number shr 16) and 0xFFFF).toInt(), (number and 0xFFFF).toInt())
             }
-            ModbusCodec.BIT_FLAG -> listOf(value.toInt())
+            ModbusCodec.BIT_FLAG ->
+                listOf(
+                    value.toBooleanStrictOrNull()?.let { booleanValue -> if (booleanValue) 1 else 0 }
+                        ?: value.toInt(),
+                )
         }
 }

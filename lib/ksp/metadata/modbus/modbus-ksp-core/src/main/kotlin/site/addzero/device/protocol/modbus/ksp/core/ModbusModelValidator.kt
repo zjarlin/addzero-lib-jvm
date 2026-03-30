@@ -85,7 +85,7 @@ object ModbusModelValidator {
             }
         }
 
-        val totalWidth = operation.parameters.maxOfOrNull { parameter -> parameter.registerOffset + parameter.registerWidth } ?: 0
+        val totalSpan = operation.parameterSpan()
         when (operation.functionCodeName) {
             "WRITE_SINGLE_COIL" -> {
                 if (operation.parameters.size != 1 || operation.parameters.singleOrNull()?.valueKind != ModbusValueKind.BOOLEAN) {
@@ -96,8 +96,20 @@ object ModbusModelValidator {
                 }
             }
 
+            "WRITE_MULTIPLE_COILS" -> {
+                if (operation.parameters.isEmpty()) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 使用 WRITE_MULTIPLE_COILS 时至少需要一个参数。"
+                }
+                if (operation.parameters.any { parameter -> parameter.valueKind != ModbusValueKind.BOOLEAN || parameter.codecName != "BOOL_COIL" }) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 使用 WRITE_MULTIPLE_COILS 时参数必须全部为 BOOL_COIL Boolean。"
+                }
+                if (operation.quantity in 0 until totalSpan) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 quantity=${operation.quantity} 小于线圈写入跨度 $totalSpan。"
+                }
+            }
+
             "WRITE_SINGLE_REGISTER" -> {
-                if (totalWidth > 1) {
+                if (totalSpan > 1) {
                     errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 使用 WRITE_SINGLE_REGISTER 时参数宽度不能超过 1 个寄存器。"
                 }
                 if (operation.quantity != 1) {
@@ -106,8 +118,8 @@ object ModbusModelValidator {
             }
 
             "WRITE_MULTIPLE_REGISTERS" -> {
-                if (operation.quantity in 0 until totalWidth) {
-                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 quantity=${operation.quantity} 小于参数编码宽度 $totalWidth。"
+                if (operation.quantity in 0 until totalSpan) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 quantity=${operation.quantity} 小于参数编码宽度 $totalSpan。"
                 }
             }
         }
@@ -124,7 +136,7 @@ object ModbusModelValidator {
 
             ModbusReturnKind.BOOLEAN -> {
                 if (operation.quantity < 1) {
-                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 Boolean 返回至少需要 1 个寄存器。"
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 Boolean 返回至少需要 1 个数据位。"
                 }
             }
 
@@ -160,13 +172,9 @@ object ModbusModelValidator {
                         }
                     }
                 }
-                val totalWidth =
-                    operation.returnType.properties
-                        .mapNotNull { property -> property.field?.let { field -> field.registerOffset + field.registerWidth } }
-                        .maxOrNull()
-                        ?: 0
-                if (operation.quantity in 0 until totalWidth) {
-                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 quantity=${operation.quantity} 小于返回 DTO 编码宽度 $totalWidth。"
+                val totalSpan = operation.returnSpan()
+                if (operation.quantity in 0 until totalSpan) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 quantity=${operation.quantity} 小于返回编码跨度 $totalSpan。"
                 }
             }
         }
@@ -203,9 +211,33 @@ object ModbusModelValidator {
         }
     }
 
+    private fun ModbusOperationModel.parameterSpan(): Int =
+        when (functionCodeName) {
+            "WRITE_SINGLE_COIL" -> 1
+            "WRITE_MULTIPLE_COILS" -> parameters.maxOfOrNull { parameter -> parameter.registerOffset + 1 } ?: 0
+            else -> parameters.maxOfOrNull { parameter -> parameter.registerOffset + parameter.registerWidth } ?: 0
+        }
+
+    private fun ModbusOperationModel.returnSpan(): Int =
+        when {
+            returnType.kind != ModbusReturnKind.DTO -> quantity.coerceAtLeast(0)
+            usesCoilBits ->
+                returnType.properties
+                    .mapNotNull { property -> property.field?.let { field -> field.registerOffset + 1 } }
+                    .maxOrNull()
+                    ?: 0
+
+            else ->
+                returnType.properties
+                    .mapNotNull { property -> property.field?.let { field -> field.registerOffset + field.registerWidth } }
+                    .maxOrNull()
+                    ?: 0
+        }
+
     private fun ModbusParameterModel.locationKeys(): Set<String> =
         when (codecName) {
             "BIT_FLAG" -> setOf("r${registerOffset}:b${bitOffset}")
+            "BOOL_COIL" -> setOf("c$registerOffset")
             else -> (registerOffset until registerOffset + registerWidth).mapTo(linkedSetOf()) { register -> "r$register" }
         }
 
@@ -213,6 +245,7 @@ object ModbusModelValidator {
         val field = field ?: return emptySet()
         return when (field.codecName) {
             "BIT_FLAG" -> setOf("r${field.registerOffset}:b${field.bitOffset}")
+            "BOOL_COIL" -> setOf("c${field.registerOffset}")
             else -> (field.registerOffset until field.registerOffset + field.registerWidth).mapTo(linkedSetOf()) { register -> "r$register" }
         }
     }

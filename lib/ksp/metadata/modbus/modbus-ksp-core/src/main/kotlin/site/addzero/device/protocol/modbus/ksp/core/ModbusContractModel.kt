@@ -127,9 +127,11 @@ enum class ModbusReturnKind {
 }
 
 enum class ModbusAddressSpace {
-    COIL,
+    COIL_READ,
+    DISCRETE_INPUT,
     INPUT_REGISTER,
     HOLDING_REGISTER_READ,
+    COIL_WRITE,
     HOLDING_REGISTER_WRITE,
 }
 
@@ -196,11 +198,25 @@ data class ModbusOperationModel(
     val returnType: ModbusReturnTypeModel,
     val doc: ModbusDocModel,
 ) {
+    val isReadOperation: Boolean = functionCodeName.startsWith("READ_")
+
+    val usesCoilBits: Boolean =
+        functionCodeName in
+            setOf(
+                "READ_COILS",
+                "READ_DISCRETE_INPUTS",
+                "WRITE_SINGLE_COIL",
+                "WRITE_MULTIPLE_COILS",
+            )
+
     val addressSpace: ModbusAddressSpace =
         when (functionCodeName) {
-            "WRITE_SINGLE_COIL" -> ModbusAddressSpace.COIL
+            "READ_COILS" -> ModbusAddressSpace.COIL_READ
+            "READ_DISCRETE_INPUTS" -> ModbusAddressSpace.DISCRETE_INPUT
             "READ_INPUT_REGISTERS" -> ModbusAddressSpace.INPUT_REGISTER
             "READ_HOLDING_REGISTERS" -> ModbusAddressSpace.HOLDING_REGISTER_READ
+            "WRITE_SINGLE_COIL",
+            "WRITE_MULTIPLE_COILS" -> ModbusAddressSpace.COIL_WRITE
             "WRITE_SINGLE_REGISTER",
             "WRITE_MULTIPLE_REGISTERS" -> ModbusAddressSpace.HOLDING_REGISTER_WRITE
             else -> error("未知的 Modbus 功能码：$functionCodeName")

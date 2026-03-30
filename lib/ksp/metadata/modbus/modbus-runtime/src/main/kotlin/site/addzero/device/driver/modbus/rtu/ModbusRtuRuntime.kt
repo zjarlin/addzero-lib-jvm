@@ -4,6 +4,7 @@ import com.fazecast.jSerialComm.SerialPort
 import com.ghgande.j2mod.modbus.facade.ModbusSerialMaster
 import com.ghgande.j2mod.modbus.net.AbstractSerialConnection
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister
+import com.ghgande.j2mod.modbus.util.BitVector
 import com.ghgande.j2mod.modbus.util.SerialParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -46,6 +47,18 @@ class ModbusRtuConfigRegistry(
 }
 
 interface ModbusRtuExecutor {
+    suspend fun readCoils(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        quantity: Int,
+    ): List<Int>
+
+    suspend fun readDiscreteInputs(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        quantity: Int,
+    ): List<Int>
+
     suspend fun readHoldingRegisters(
         config: ModbusRtuEndpointConfig,
         address: Int,
@@ -64,6 +77,12 @@ interface ModbusRtuExecutor {
         value: Boolean,
     )
 
+    suspend fun writeMultipleCoils(
+        config: ModbusRtuEndpointConfig,
+        address: Int,
+        values: List<Boolean>,
+    )
+
     suspend fun writeSingleRegister(
         config: ModbusRtuEndpointConfig,
         address: Int,
@@ -79,6 +98,16 @@ interface ModbusRtuExecutor {
 
 @Single
 class J2modModbusRtuExecutor : ModbusRtuExecutor {
+    override suspend fun readCoils(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        withSerialMaster(config) { master ->
+            master.readCoils(config.unitId, address, quantity).toBitStates(quantity)
+        }
+
+    override suspend fun readDiscreteInputs(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        withSerialMaster(config) { master ->
+            master.readInputDiscretes(config.unitId, address, quantity).toBitStates(quantity)
+        }
+
     override suspend fun readHoldingRegisters(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
         withSerialMaster(config) { master ->
             master.readMultipleRegisters(config.unitId, address, quantity).map { register -> register.toUnsignedShort() }
@@ -92,6 +121,16 @@ class J2modModbusRtuExecutor : ModbusRtuExecutor {
     override suspend fun writeSingleCoil(config: ModbusRtuEndpointConfig, address: Int, value: Boolean) {
         withSerialMaster(config) { master ->
             master.writeCoil(config.unitId, address, value)
+        }
+    }
+
+    override suspend fun writeMultipleCoils(config: ModbusRtuEndpointConfig, address: Int, values: List<Boolean>) {
+        withSerialMaster(config) { master ->
+            val coils = BitVector(values.size)
+            values.forEachIndexed { index, value ->
+                coils.setBit(index, value)
+            }
+            master.writeMultipleCoils(config.unitId, address, coils)
         }
     }
 
@@ -168,6 +207,12 @@ private fun ModbusSerialParity.toSerialParity(): Int =
     }
 
 class UnsupportedModbusRtuExecutor : ModbusRtuExecutor {
+    override suspend fun readCoils(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+
+    override suspend fun readDiscreteInputs(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+
     override suspend fun readHoldingRegisters(config: ModbusRtuEndpointConfig, address: Int, quantity: Int): List<Int> =
         error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
 
@@ -175,6 +220,10 @@ class UnsupportedModbusRtuExecutor : ModbusRtuExecutor {
         error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
 
     override suspend fun writeSingleCoil(config: ModbusRtuEndpointConfig, address: Int, value: Boolean) {
+        error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
+    }
+
+    override suspend fun writeMultipleCoils(config: ModbusRtuEndpointConfig, address: Int, values: List<Boolean>) {
         error("默认 RTU 执行器尚未接入真实串口实现：${config.serviceId}")
     }
 
@@ -195,3 +244,6 @@ class UnsupportedModbusRtuExecutor : ModbusRtuExecutor {
 @Module
 @ComponentScan("site.addzero.device.driver.modbus.rtu")
 class ModbusRuntimeKoinModule
+
+private fun BitVector.toBitStates(quantity: Int): List<Int> =
+    List(quantity) { index -> if (getBit(index)) 1 else 0 }

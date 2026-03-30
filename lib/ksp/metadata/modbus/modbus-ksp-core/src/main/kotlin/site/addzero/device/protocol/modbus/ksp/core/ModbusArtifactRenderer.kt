@@ -278,9 +278,12 @@ object ModbusArtifactRenderer {
             appendLine("    const char *summary;")
             appendLine("} ${transport.dispatchResultTypeName()};")
             appendLine()
+            appendLine("bool ${transport.dispatchFunctionPrefix()}_read_coils(uint16_t start_address, uint16_t quantity, bool *out_coils);")
+            appendLine("bool ${transport.dispatchFunctionPrefix()}_read_discrete_inputs(uint16_t start_address, uint16_t quantity, bool *out_inputs);")
             appendLine("bool ${transport.dispatchFunctionPrefix()}_read_input_registers(uint16_t start_address, uint16_t quantity, uint16_t *out_registers);")
             appendLine("bool ${transport.dispatchFunctionPrefix()}_read_holding_registers(uint16_t start_address, uint16_t quantity, uint16_t *out_registers);")
             appendLine("bool ${transport.dispatchFunctionPrefix()}_write_single_coil(uint16_t address, bool value, ${transport.dispatchResultTypeName()} *out_result);")
+            appendLine("bool ${transport.dispatchFunctionPrefix()}_write_multiple_coils(uint16_t start_address, uint16_t quantity, const bool *input_coils, ${transport.dispatchResultTypeName()} *out_result);")
             appendLine("bool ${transport.dispatchFunctionPrefix()}_write_single_register(uint16_t address, uint16_t value, ${transport.dispatchResultTypeName()} *out_result);")
             appendLine("bool ${transport.dispatchFunctionPrefix()}_write_multiple_registers(uint16_t start_address, uint16_t quantity, const uint16_t *input_registers, ${transport.dispatchResultTypeName()} *out_result);")
             appendLine()
@@ -308,11 +311,17 @@ object ModbusArtifactRenderer {
             appendLine("    out_result->summary = summary;")
             appendLine("}")
             appendLine()
+            append(renderTransportReadDispatch(transport, services, "READ_COILS"))
+            appendLine()
+            append(renderTransportReadDispatch(transport, services, "READ_DISCRETE_INPUTS"))
+            appendLine()
             append(renderTransportReadDispatch(transport, services, "READ_INPUT_REGISTERS"))
             appendLine()
             append(renderTransportReadDispatch(transport, services, "READ_HOLDING_REGISTERS"))
             appendLine()
             append(renderTransportWriteSingleCoilDispatch(transport, services))
+            appendLine()
+            append(renderTransportWriteMultipleCoilsDispatch(transport, services))
             appendLine()
             append(renderTransportWriteSingleRegisterDispatch(transport, services))
             appendLine()
@@ -324,10 +333,21 @@ object ModbusArtifactRenderer {
         services: List<ModbusServiceModel>,
         functionCodeName: String,
     ): String {
-        val functionName =
+        val functionName = transport.readDispatchFunctionName(functionCodeName)
+        val outputType =
             when (functionCodeName) {
-                "READ_INPUT_REGISTERS" -> "${transport.dispatchFunctionPrefix()}_read_input_registers"
-                "READ_HOLDING_REGISTERS" -> "${transport.dispatchFunctionPrefix()}_read_holding_registers"
+                "READ_COILS" -> "bool *out_coils"
+                "READ_DISCRETE_INPUTS" -> "bool *out_inputs"
+                "READ_INPUT_REGISTERS",
+                "READ_HOLDING_REGISTERS" -> "uint16_t *out_registers"
+                else -> error("不支持的读功能码：$functionCodeName")
+            }
+        val outputName =
+            when (functionCodeName) {
+                "READ_COILS" -> "out_coils"
+                "READ_DISCRETE_INPUTS" -> "out_inputs"
+                "READ_INPUT_REGISTERS",
+                "READ_HOLDING_REGISTERS" -> "out_registers"
                 else -> error("不支持的读功能码：$functionCodeName")
             }
         val operations =
@@ -337,10 +357,10 @@ object ModbusArtifactRenderer {
                     .map { operation -> service to operation }
             }
         return buildString {
-            appendLine("bool $functionName(uint16_t start_address, uint16_t quantity, uint16_t *out_registers) {")
-            appendLine("    if (out_registers == NULL) {")
-            appendLine("        return false;")
-            appendLine("    }")
+            appendLine("bool $functionName(uint16_t start_address, uint16_t quantity, $outputType) {")
+            appendLine("    if ($outputName == NULL) {")
+                appendLine("        return false;")
+                appendLine("    }")
             appendLine()
             appendLine("    switch (start_address) {")
             operations.forEach { (service, operation) ->
@@ -348,7 +368,7 @@ object ModbusArtifactRenderer {
                 appendLine("            if (quantity != ${operation.macroPrefix(service)}_QUANTITY) {")
                 appendLine("                return false;")
                 appendLine("            }")
-                appendLine("            return ${operation.dispatchFunctionName(service)}(out_registers, quantity);")
+                appendLine("            return ${operation.dispatchFunctionName(service)}($outputName, quantity);")
             }
             appendLine("        default:")
             appendLine("            return false;")
@@ -382,15 +402,59 @@ object ModbusArtifactRenderer {
             appendLine("    switch (address) {")
             operations.forEach { (service, operation) ->
                 appendLine("        case ${operation.macroPrefix(service)}_ADDRESS: {")
-                appendLine("            const uint16_t input_registers[${operation.quantity}] = {value ? 1u : 0u};")
+                appendLine("            const bool input_coils[${operation.quantity}] = {value};")
                 appendLine("            ${service.cServiceName}_command_result_t service_result = {0};")
-                appendLine("            const bool handled = ${operation.dispatchFunctionName(service)}(input_registers, ${operation.quantity}, &service_result);")
+                appendLine("            const bool handled = ${operation.dispatchFunctionName(service)}(input_coils, ${operation.quantity}, &service_result);")
                 appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, service_result.accepted, service_result.summary);")
                 appendLine("            return handled;")
                 appendLine("        }")
             }
             appendLine("        default:")
             appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"未支持的写线圈地址。\");")
+            appendLine("            return false;")
+            appendLine("    }")
+            appendLine("}")
+        }
+    }
+
+    private fun renderTransportWriteMultipleCoilsDispatch(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+    ): String {
+        val operations =
+            services.flatMap { service ->
+                service.operations
+                    .filter { operation -> operation.functionCodeName == "WRITE_MULTIPLE_COILS" }
+                    .map { operation -> service to operation }
+            }
+        return buildString {
+            appendLine(
+                "bool ${transport.dispatchFunctionPrefix()}_write_multiple_coils(" +
+                    "uint16_t start_address, " +
+                    "uint16_t quantity, " +
+                    "const bool *input_coils, " +
+                    "${transport.dispatchResultTypeName()} *out_result" +
+                    ") {",
+            )
+            appendLine("    if (out_result == NULL || input_coils == NULL) {")
+            appendLine("        return false;")
+            appendLine("    }")
+            appendLine()
+            appendLine("    switch (start_address) {")
+            operations.forEach { (service, operation) ->
+                appendLine("        case ${operation.macroPrefix(service)}_ADDRESS: {")
+                appendLine("            if (quantity != ${operation.macroPrefix(service)}_QUANTITY) {")
+                appendLine("                ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"${escapeCComment(operation.operationId)} 线圈数量不匹配。\");")
+                appendLine("                return false;")
+                appendLine("            }")
+                appendLine("            ${service.cServiceName}_command_result_t service_result = {0};")
+                appendLine("            const bool handled = ${operation.dispatchFunctionName(service)}(input_coils, quantity, &service_result);")
+                appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, service_result.accepted, service_result.summary);")
+                appendLine("            return handled;")
+                appendLine("        }")
+            }
+            appendLine("        default:")
+            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"未支持的多线圈写地址。\");")
             appendLine("            return false;")
             appendLine("    }")
             appendLine("}")
@@ -566,7 +630,7 @@ object ModbusArtifactRenderer {
                         )
 
                     ModbusReturnKind.BOOLEAN ->
-                        appendLine("        return ModbusCodecSupport.decodeBoolean(ModbusCodec.BOOL_COIL, registers, 0, 0)")
+                        appendLine("        return ${operation.renderBooleanDecodeExpression()}")
 
                     ModbusReturnKind.INT ->
                         appendLine("        return ModbusCodecSupport.decodeInt(ModbusCodec.U16, registers, 0)")
@@ -795,6 +859,9 @@ object ModbusArtifactRenderer {
 
     private fun renderGatewayExecution(operation: ModbusOperationModel): List<String> =
         when (operation.functionCodeName) {
+            "READ_COILS" -> listOf("val registers = executor.readCoils(resolvedConfig, ${operation.address}, ${operation.quantity})")
+            "READ_DISCRETE_INPUTS" ->
+                listOf("val registers = executor.readDiscreteInputs(resolvedConfig, ${operation.address}, ${operation.quantity})")
             "READ_HOLDING_REGISTERS" -> listOf("val registers = executor.readHoldingRegisters(resolvedConfig, ${operation.address}, ${operation.quantity})")
             "READ_INPUT_REGISTERS" -> listOf("val registers = executor.readInputRegisters(resolvedConfig, ${operation.address}, ${operation.quantity})")
             "WRITE_SINGLE_COIL" -> {
@@ -802,21 +869,29 @@ object ModbusArtifactRenderer {
                 listOf("executor.writeSingleCoil(resolvedConfig, ${operation.address}, ${parameter.coilExpression()})")
             }
 
+            "WRITE_MULTIPLE_COILS" ->
+                buildList {
+                    add("val coilValues = MutableList(${operation.quantity}) { false }")
+                    operation.parameters.forEach { parameter ->
+                        add("coilValues[${parameter.registerOffset}] = ${parameter.coilExpression()}")
+                    }
+                    add("executor.writeMultipleCoils(resolvedConfig, ${operation.address}, coilValues)")
+                }
+
             "WRITE_SINGLE_REGISTER" -> {
                 val parameter = operation.parameters.first()
                 listOf(
-                    "val encodedValues = ModbusCodecSupport.encodeValue(ModbusCodec.${parameter.codecName}, ${parameter.name}.toString())",
-                    "executor.writeSingleRegister(resolvedConfig, ${operation.address}, encodedValues.first())",
+                    "val registerValue = ${parameter.renderSingleRegisterEncodeExpression()}",
+                    "executor.writeSingleRegister(resolvedConfig, ${operation.address}, registerValue)",
                 )
             }
 
             "WRITE_MULTIPLE_REGISTERS" ->
                 buildList {
-                    add("val encodedValues = buildList {")
+                    add("val encodedValues = MutableList(${operation.quantity}) { 0 }")
                     operation.parameters.forEach { parameter ->
-                        add("    addAll(ModbusCodecSupport.encodeValue(ModbusCodec.${parameter.codecName}, ${parameter.name}.toString()))")
+                        parameter.renderRegisterPackLines().forEach { line -> add(line) }
                     }
-                    add("}")
                     add("executor.writeMultipleRegisters(resolvedConfig, ${operation.address}, encodedValues)")
                 }
 
@@ -994,6 +1069,15 @@ object ModbusArtifactRenderer {
             else -> qualifiedName
         }
 
+    private fun ModbusOperationModel.renderBooleanDecodeExpression(): String =
+        when (functionCodeName) {
+            "READ_COILS",
+            "READ_DISCRETE_INPUTS" -> "registers.getOrElse(0) { 0 } != 0"
+            "READ_INPUT_REGISTERS",
+            "READ_HOLDING_REGISTERS" -> "registers.getOrElse(0) { 0 } != 0"
+            else -> error("写功能码不支持布尔返回：$functionCodeName")
+        }
+
     private fun ModbusPropertyModel.renderDecodeExpression(): String {
         val fieldModel = field ?: error("字段缺少 ModbusField 映射：$name")
         return when (valueKind) {
@@ -1017,6 +1101,30 @@ object ModbusArtifactRenderer {
             name
         } else {
             "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString()).first() != 0"
+        }
+
+    private fun ModbusParameterModel.renderSingleRegisterEncodeExpression(): String =
+        when (codecName) {
+            "BIT_FLAG" ->
+                "if (${name}) (1 shl ${bitOffset}) else 0"
+
+            else -> "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString()).first()"
+        }
+
+    private fun ModbusParameterModel.renderRegisterPackLines(): List<String> =
+        when (codecName) {
+            "BIT_FLAG" ->
+                listOf(
+                    "if (${name}) {",
+                    "    encodedValues[${registerOffset}] = encodedValues[${registerOffset}] or (1 shl ${bitOffset})",
+                    "}",
+                )
+
+            else ->
+                listOf(
+                    "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString())",
+                    "    .forEachIndexed { index, value -> encodedValues[${registerOffset} + index] = value }",
+                )
         }
 
     private fun ModbusPropertyModel.kotlinTypeSimpleName(): String =
@@ -1201,6 +1309,15 @@ private fun GeneratedModbusTcpRequestConfig.toEndpointConfig(defaultConfig: Modb
     private fun ModbusTransportKind.dispatchFileName(): String = "modbus_${transportId}_dispatch"
 
     private fun ModbusTransportKind.dispatchFunctionPrefix(): String = dispatchFileName()
+
+    private fun ModbusTransportKind.readDispatchFunctionName(functionCodeName: String): String =
+        when (functionCodeName) {
+            "READ_COILS" -> "${dispatchFunctionPrefix()}_read_coils"
+            "READ_DISCRETE_INPUTS" -> "${dispatchFunctionPrefix()}_read_discrete_inputs"
+            "READ_INPUT_REGISTERS" -> "${dispatchFunctionPrefix()}_read_input_registers"
+            "READ_HOLDING_REGISTERS" -> "${dispatchFunctionPrefix()}_read_holding_registers"
+            else -> error("不支持的读功能码：$functionCodeName")
+        }
 
     private fun ModbusTransportKind.dispatchResultTypeName(): String = "${dispatchFunctionPrefix()}_command_result_t"
 

@@ -2,6 +2,7 @@ package site.addzero.device.driver.modbus.tcp
 
 import com.ghgande.j2mod.modbus.facade.ModbusTCPMaster
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister
+import com.ghgande.j2mod.modbus.util.BitVector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -34,6 +35,18 @@ class ModbusTcpConfigRegistry(
 }
 
 interface ModbusTcpExecutor {
+    suspend fun readCoils(
+        config: ModbusTcpEndpointConfig,
+        address: Int,
+        quantity: Int,
+    ): List<Int>
+
+    suspend fun readDiscreteInputs(
+        config: ModbusTcpEndpointConfig,
+        address: Int,
+        quantity: Int,
+    ): List<Int>
+
     suspend fun readHoldingRegisters(
         config: ModbusTcpEndpointConfig,
         address: Int,
@@ -52,6 +65,12 @@ interface ModbusTcpExecutor {
         value: Boolean,
     )
 
+    suspend fun writeMultipleCoils(
+        config: ModbusTcpEndpointConfig,
+        address: Int,
+        values: List<Boolean>,
+    )
+
     suspend fun writeSingleRegister(
         config: ModbusTcpEndpointConfig,
         address: Int,
@@ -67,6 +86,16 @@ interface ModbusTcpExecutor {
 
 @Single
 class J2modModbusTcpExecutor : ModbusTcpExecutor {
+    override suspend fun readCoils(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
+        withTcpMaster(config) { master ->
+            master.readCoils(config.unitId, address, quantity).toBitStates(quantity)
+        }
+
+    override suspend fun readDiscreteInputs(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
+        withTcpMaster(config) { master ->
+            master.readInputDiscretes(config.unitId, address, quantity).toBitStates(quantity)
+        }
+
     override suspend fun readHoldingRegisters(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
         withTcpMaster(config) { master ->
             master.readMultipleRegisters(config.unitId, address, quantity).map { register -> register.toUnsignedShort() }
@@ -80,6 +109,16 @@ class J2modModbusTcpExecutor : ModbusTcpExecutor {
     override suspend fun writeSingleCoil(config: ModbusTcpEndpointConfig, address: Int, value: Boolean) {
         withTcpMaster(config) { master ->
             master.writeCoil(config.unitId, address, value)
+        }
+    }
+
+    override suspend fun writeMultipleCoils(config: ModbusTcpEndpointConfig, address: Int, values: List<Boolean>) {
+        withTcpMaster(config) { master ->
+            val coils = BitVector(values.size)
+            values.forEachIndexed { index, value ->
+                coils.setBit(index, value)
+            }
+            master.writeMultipleCoils(config.unitId, address, coils)
         }
     }
 
@@ -135,3 +174,6 @@ class J2modModbusTcpExecutor : ModbusTcpExecutor {
 @Module
 @ComponentScan("site.addzero.device.driver.modbus.tcp")
 class ModbusTcpRuntimeKoinModule
+
+private fun BitVector.toBitStates(quantity: Int): List<Int> =
+    List(quantity) { index -> if (getBit(index)) 1 else 0 }

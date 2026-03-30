@@ -28,17 +28,10 @@ object IsoCodeGenerator {
         val imports = propertyModels.flatMap { it.imports }.toMutableSet()
         imports.add("import kotlinx.serialization.Serializable")
 
-        val needsExperimentalTimeOptIn = propertyModels.any { it.needsExperimentalTimeOptIn }
-        if (needsExperimentalTimeOptIn) {
-            imports.add("import kotlin.time.ExperimentalTime")
-        }
-
         val optimizedImports = imports.sorted().joinToString("\n")
-        val fileOptIn = if (needsExperimentalTimeOptIn) "@file:OptIn(ExperimentalTime::class)\n\n" else ""
         val isoClassName = "${entity.simpleName}$classSuffix"
 
         return """
-            |$fileOptIn
             |package $packageName
             |
             |${optimizedImports.takeIf { it.isNotBlank() } ?: ""}
@@ -187,8 +180,7 @@ object IsoCodeGenerator {
             )
 
             JimmerTypeKind.DATE_TIME -> {
-                val imports = mutableSetOf("import kotlin.time.Clock")
-                val needsExperimentalTime = true
+                val imports = mutableSetOf("import kotlinx.datetime.Clock")
                 val code = when (type.rendered) {
                     "LocalDateTime" -> {
                         imports.add("import kotlinx.datetime.TimeZone")
@@ -211,7 +203,7 @@ object IsoCodeGenerator {
                     "Instant" -> "Clock.System.now()"
                     else -> "TODO()"
                 }
-                DefaultValueResult(code = code, imports = imports, needsExperimentalTimeOptIn = needsExperimentalTime)
+                DefaultValueResult(code = code, imports = imports)
             }
 
             JimmerTypeKind.ENUM -> DefaultValueResult("${type.rendered}.entries.first()")

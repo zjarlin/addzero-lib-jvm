@@ -37,6 +37,11 @@ internal object ModbusContractDefaultsResolver {
         }
 
         val totalWidth = parameters.maxOfOrNull { parameter -> parameter.registerOffset + parameter.registerWidth } ?: 0
+        val allBooleanCoils =
+            parameters.isNotEmpty() &&
+                parameters.all { parameter ->
+                    parameter.valueKind == ModbusValueKind.BOOLEAN && parameter.codecName == "BOOL_COIL"
+                }
         if (parameters.size == 1) {
             val parameter = parameters.single()
             if (parameter.valueKind == ModbusValueKind.BOOLEAN && parameter.codecName == "BOOL_COIL") {
@@ -45,6 +50,9 @@ internal object ModbusContractDefaultsResolver {
             if (totalWidth <= 1) {
                 return "WRITE_SINGLE_REGISTER"
             }
+        }
+        if (allBooleanCoils) {
+            return "WRITE_MULTIPLE_COILS"
         }
 
         return "WRITE_MULTIPLE_REGISTERS"
@@ -100,8 +108,12 @@ internal object ModbusContractDefaultsResolver {
         when (operation.functionCodeName) {
             "WRITE_SINGLE_COIL",
             "WRITE_SINGLE_REGISTER" -> 1
+            "WRITE_MULTIPLE_COILS" ->
+                operation.parameters.maxOfOrNull { parameter -> parameter.registerOffset + 1 } ?: 0
             "WRITE_MULTIPLE_REGISTERS" ->
                 operation.parameters.maxOfOrNull { parameter -> parameter.registerOffset + parameter.registerWidth } ?: 0
+            "READ_COILS",
+            "READ_DISCRETE_INPUTS",
             "READ_INPUT_REGISTERS",
             "READ_HOLDING_REGISTERS" -> inferredReturnWidth(operation.returnType)
             else -> error("暂不支持的功能码：${operation.functionCodeName}")
@@ -121,7 +133,9 @@ internal object ModbusContractDefaultsResolver {
 
     private fun defaultBaseAddress(addressSpace: ModbusAddressSpace): Int =
         when (addressSpace) {
-            ModbusAddressSpace.COIL -> 0
+            ModbusAddressSpace.COIL_READ,
+            ModbusAddressSpace.DISCRETE_INPUT,
+            ModbusAddressSpace.COIL_WRITE -> 0
             ModbusAddressSpace.INPUT_REGISTER -> 0
             ModbusAddressSpace.HOLDING_REGISTER_READ -> 320
             ModbusAddressSpace.HOLDING_REGISTER_WRITE -> 512
@@ -129,9 +143,11 @@ internal object ModbusContractDefaultsResolver {
 
     private fun addressSlotSize(addressSpace: ModbusAddressSpace): Int =
         when (addressSpace) {
+            ModbusAddressSpace.COIL_READ,
+            ModbusAddressSpace.DISCRETE_INPUT,
+            ModbusAddressSpace.COIL_WRITE -> 16
             ModbusAddressSpace.INPUT_REGISTER,
             ModbusAddressSpace.HOLDING_REGISTER_READ -> 16
-            ModbusAddressSpace.COIL,
             ModbusAddressSpace.HOLDING_REGISTER_WRITE -> 1
         }
 
