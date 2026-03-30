@@ -17,7 +17,7 @@ annotation class GenerateModbusTcpServer
  * 可选覆盖注解。
  *
  * 不写 @ModbusOperation 时，处理器会直接按接口方法签名生成操作；
- * 只有需要覆盖默认 operationId / functionCode / address / quantity / capabilityKey 时才需要写。
+ * 只有需要覆盖默认 operationId / functionCode / address / quantity 时才需要写。
  */
 annotation class ModbusOperation(
     val operationId: String = "",
@@ -49,16 +49,6 @@ annotation class ModbusOperation(
      * 传 -1 时由处理器按参数或返回 DTO 自动推导。
      */
     val quantity: Int = -1,
-    /**
-     * 操作的业务能力标识。
-     *
-     * 它不是 Modbus 标准字段，而是给生成出来的协议文档、能力清单、
-     * 后续权限映射或功能开关使用的稳定语义 key。
-     *
-     * 传空字符串时，默认直接复用 operationId；
-     * 大多数场景可以省略，只有你想让“能力名”和“接口方法名”解耦时才需要显式写。
-     */
-    val capabilityKey: String = "",
 )
 
 @Target(AnnotationTarget.VALUE_PARAMETER)

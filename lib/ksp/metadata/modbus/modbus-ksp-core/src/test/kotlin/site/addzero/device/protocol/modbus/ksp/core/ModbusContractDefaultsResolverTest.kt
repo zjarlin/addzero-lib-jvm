@@ -82,7 +82,7 @@ class ModbusContractDefaultsResolverTest {
     }
 
     @Test
-    fun resolveOperationsInfersCapabilityAndQuantity() {
+    fun resolveOperationsInfersOperationIdAndQuantity() {
         val resolved =
             ModbusContractDefaultsResolver.resolveOperations(
                 serviceId = "mcuinfo",
@@ -90,11 +90,9 @@ class ModbusContractDefaultsResolverTest {
             ).associateBy(ModbusOperationModel::methodName)
 
         assertEquals("read-identity", resolved.getValue("readIdentity").operationId)
-        assertEquals("read-identity", resolved.getValue("readIdentity").capabilityKey)
         assertEquals(7, resolved.getValue("readIdentity").quantity)
 
         assertEquals("read-partition-layout", resolved.getValue("readPartitionLayout").operationId)
-        assertEquals("read-partition-layout", resolved.getValue("readPartitionLayout").capabilityKey)
         assertEquals(9, resolved.getValue("readPartitionLayout").quantity)
     }
 
@@ -217,7 +215,6 @@ class ModbusContractDefaultsResolverTest {
         operation(
             methodName = "firmwareStart",
             functionCodeName = "WRITE_MULTIPLE_REGISTERS",
-            capabilityKey = "flash-start",
             parameters =
                 listOf(
                     parameter(name = "totalBytes", order = 0, codecName = "U32_BE", registerOffset = 0, registerWidth = 2),
@@ -229,7 +226,6 @@ class ModbusContractDefaultsResolverTest {
         operation(
             methodName = "firmwareChunk",
             functionCodeName = "WRITE_MULTIPLE_REGISTERS",
-            capabilityKey = "flash-chunk",
             parameters =
                 listOf(
                     parameter(name = "sequence", order = 0, codecName = "U16", registerOffset = 0, registerWidth = 1),
@@ -245,7 +241,6 @@ class ModbusContractDefaultsResolverTest {
         operation(
             methodName = "firmwareCommit",
             functionCodeName = "WRITE_SINGLE_REGISTER",
-            capabilityKey = "flash-commit",
             parameters =
                 listOf(
                     parameter(name = "totalChunks", order = 0, codecName = "U16", registerOffset = 0, registerWidth = 1),
@@ -255,7 +250,6 @@ class ModbusContractDefaultsResolverTest {
     private fun operation(
         methodName: String,
         functionCodeName: String,
-        capabilityKey: String = "",
         parameters: List<ModbusParameterModel> = emptyList(),
         returnType: ModbusReturnTypeModel = commandResultReturnType(),
     ): ModbusOperationModel =
@@ -265,7 +259,6 @@ class ModbusContractDefaultsResolverTest {
             functionCodeName = functionCodeName,
             address = -1,
             quantity = -1,
-            capabilityKey = capabilityKey,
             requestClassName = "${methodName.replaceFirstChar(Char::uppercase)}Request",
             requestQualifiedName = "site.addzero.generated.${methodName.replaceFirstChar(Char::uppercase)}Request",
             parameters = parameters,

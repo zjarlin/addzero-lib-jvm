@@ -166,7 +166,7 @@ object ModbusArtifactRenderer {
             appendLine()
             append(
                 renderMarkdownTable(
-                    headers = listOf("Operation ID", "Method", "Function Code", "Address", "Quantity", "Capability", "Return", "Summary"),
+                    headers = listOf("Operation ID", "Method", "Function Code", "Address", "Quantity", "Return", "Summary"),
                     rows =
                         service.operations.map { operation ->
                             listOf(
@@ -175,7 +175,6 @@ object ModbusArtifactRenderer {
                                 "`${operation.functionCodeName}`",
                                 "`${operation.address}`",
                                 "`${operation.quantity}`",
-                                operation.capabilityKey.ifBlank { "-" },
                                 operation.returnType.renderProtocolReturnSummary(),
                                 operation.doc.summary.ifBlank { "-" },
                             )
@@ -195,9 +194,6 @@ object ModbusArtifactRenderer {
                                 add(listOf("Function Code", "`${operation.functionCodeName}`"))
                                 add(listOf("Address", "`${operation.address}`"))
                                 add(listOf("Quantity", "`${operation.quantity}`"))
-                                if (operation.capabilityKey.isNotBlank()) {
-                                    add(listOf("Capability Key", "`${operation.capabilityKey}`"))
-                                }
                                 add(listOf("Return Type", operation.returnType.renderProtocolReturnSummary()))
                                 add(listOf("Summary", operation.doc.summary.ifBlank { "-" }))
                             },

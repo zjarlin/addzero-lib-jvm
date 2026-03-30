@@ -190,7 +190,6 @@ data class ModbusOperationModel(
     val functionCodeName: String,
     val address: Int,
     val quantity: Int,
-    val capabilityKey: String,
     val requestClassName: String,
     val requestQualifiedName: String,
     val parameters: List<ModbusParameterModel>,

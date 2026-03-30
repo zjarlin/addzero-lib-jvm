@@ -22,7 +22,7 @@ class ModbusArtifactRendererTest {
         val protocolDoc = artifacts.first { artifact -> artifact.fileName == "self-dev-board.rtu.protocol" && artifact.extensionName == "md" }
 
         assertTrue(protocolDoc.content.contains("| Key | Value |"))
-        assertTrue(protocolDoc.content.contains("| Operation ID | Method | Function Code | Address | Quantity | Capability | Return | Summary |"))
+        assertTrue(protocolDoc.content.contains("| Operation ID | Method | Function Code | Address | Quantity | Return | Summary |"))
         assertTrue(protocolDoc.content.contains("| Name | Type | Codec | Register Offset | Bit Offset | Width | Description |"))
         assertTrue(protocolDoc.content.contains("| `on` | `Boolean` | `BOOL_COIL` | `0` | `0` | `1` | LED 是否点亮。 |"))
         assertTrue(protocolDoc.content.contains("| `protocolVersion` | `Int` | `U16` | `0` | `0` | `1` | 协议版本。 |"))
@@ -87,7 +87,6 @@ internal fun sampleSetLedOperation(): ModbusOperationModel =
         functionCodeName = "WRITE_SINGLE_COIL",
         address = 0,
         quantity = 1,
-        capabilityKey = "control-led",
         requestClassName = "SampleSetLedRequest",
         requestQualifiedName = "site.addzero.generated.SampleSetLedRequest",
         parameters =
@@ -120,7 +119,6 @@ internal fun sampleFirmwareChunkOperation(): ModbusOperationModel =
         functionCodeName = "WRITE_MULTIPLE_REGISTERS",
         address = 42,
         quantity = 10,
-        capabilityKey = "flash-chunk",
         requestClassName = "SampleFirmwareChunkRequest",
         requestQualifiedName = "site.addzero.generated.SampleFirmwareChunkRequest",
         parameters =
@@ -208,7 +206,6 @@ internal fun sampleFirmwareStartOperation(): ModbusOperationModel =
         functionCodeName = "WRITE_MULTIPLE_REGISTERS",
         address = 24,
         quantity = 4,
-        capabilityKey = "flash-start",
         requestClassName = "SampleFirmwareStartRequest",
         requestQualifiedName = "site.addzero.generated.SampleFirmwareStartRequest",
         parameters =
@@ -269,7 +266,6 @@ internal fun sampleService(
                 functionCodeName = "READ_INPUT_REGISTERS",
                 address = 0,
                 quantity = 4,
-                capabilityKey = "probe",
                 requestClassName = "SampleReadInfoRequest",
                 requestQualifiedName = "site.addzero.generated.SampleReadInfoRequest",
                 parameters = emptyList(),

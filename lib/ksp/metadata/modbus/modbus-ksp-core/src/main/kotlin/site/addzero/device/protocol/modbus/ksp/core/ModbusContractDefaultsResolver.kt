@@ -3,7 +3,7 @@ package site.addzero.device.protocol.modbus.ksp.core
 /**
  * Modbus 契约默认值解析器。
  *
- * 把方法名、能力标识、数量、地址这些可推导元数据统一收敛到这里，
+ * 把方法名、数量、地址这些可推导元数据统一收敛到这里，
  * 避免调用侧继续手填重复信息。
  */
 internal object ModbusContractDefaultsResolver {
@@ -60,7 +60,6 @@ internal object ModbusContractDefaultsResolver {
     ): List<ModbusOperationModel> =
         operations
             .resolveOperationIds()
-            .resolveCapabilityKeys()
             .resolveQuantities()
             .resolveAddresses(serviceId)
 
@@ -70,15 +69,6 @@ internal object ModbusContractDefaultsResolver {
                 operation
             } else {
                 operation.copy(operationId = defaultOperationId(operation.methodName))
-            }
-        }
-
-    private fun List<ModbusOperationModel>.resolveCapabilityKeys(): List<ModbusOperationModel> =
-        map { operation ->
-            if (operation.capabilityKey.isNotBlank()) {
-                operation
-            } else {
-                operation.copy(capabilityKey = operation.operationId)
             }
         }
 

@@ -16,7 +16,6 @@ class ModbusModelValidatorTest {
                             functionCodeName = "WRITE_SINGLE_REGISTER",
                             address = 64,
                             quantity = 1,
-                            capabilityKey = "control-threshold",
                             requestClassName = "SampleWriteThresholdRequest",
                             requestQualifiedName = "site.addzero.generated.SampleWriteThresholdRequest",
                             parameters =
@@ -61,7 +60,6 @@ class ModbusModelValidatorTest {
                             functionCodeName = "WRITE_MULTIPLE_REGISTERS",
                             address = 1024,
                             quantity = 2,
-                            capabilityKey = "gpio-write",
                             requestClassName = "SampleGpioWriteRequest",
                             requestQualifiedName = "site.addzero.generated.SampleGpioWriteRequest",
                             parameters =
