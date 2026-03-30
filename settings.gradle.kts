@@ -33,16 +33,14 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-30T18:43:50.183194
-// Loaded: 8, Excluded: 0, Total: 8
-include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+// Generated at: 2026-03-30T19:45:55.382454
+// Loaded: 6, Excluded: 0, Total: 6
 include(":lib:ksp:metadata:modbus:modbus-ksp-core")
-include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
-include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
-include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
-include(":lib:ksp:metadata:modbus:modbus-runtime")
-include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 include(":lib:lsi:lsi-core")
+include(":lib:tool-jvm:jimmer:jimmer-ktx-serializer")
+include(":lib:tool-jvm:tool-serial")
+include(":lib:tool-kmp:ktor:starter:starter-serialization")
+include(":lib:tool-kmp:ktor:starter:starter-spi")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:route:route-core")
@@ -360,6 +358,12 @@ project(":lib:tool-kmp:ktor:plugin:ktor-jimmer-plugin").projectDir =
 include(":lib:tool-kmp:ktor:plugin:ktor-s3-plugin")
 project(":lib:tool-kmp:ktor:plugin:ktor-s3-plugin").projectDir =
   file("lib/tool-kmp/ktor/plugin/ktor-s3-plugin")
+
+include(":lib:tool-jvm:tool-serial")
+project(":lib:tool-jvm:tool-serial").projectDir = file("lib/tool-jvm/tool-serial")
+
+include(":lib:tool-jvm:tool-modbus")
+project(":lib:tool-jvm:tool-modbus").projectDir = file("lib/tool-jvm/tool-modbus")
 
 include(":lib:api:api-music-spi")
 project(":lib:api:api-music-spi").projectDir = file("lib/api/api-music-spi")

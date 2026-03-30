@@ -87,6 +87,8 @@ interface AdminWorkbenchActions {
 interface AdminWorkbenchSlots {
     val pageActions: @Composable RowScope.() -> Unit
         get() = {}
+    val showContentHeader: Boolean
+        get() = true
     val titleContent: (@Composable ColumnScope.() -> Unit)?
         get() = null
     val detail: (@Composable BoxScope.() -> Unit)?
@@ -155,11 +157,13 @@ fun adminWorkbenchActions(
 
 fun adminWorkbenchSlots(
     pageActions: @Composable RowScope.() -> Unit = {},
+    showContentHeader: Boolean = true,
     titleContent: (@Composable ColumnScope.() -> Unit)? = null,
     detail: (@Composable BoxScope.() -> Unit)? = null,
     userContent: (@Composable RowScope.() -> Unit)? = null,
 ): AdminWorkbenchSlots = DefaultAdminWorkbenchSlots(
     pageActions = pageActions,
+    showContentHeader = showContentHeader,
     titleContent = titleContent,
     detail = detail,
     userContent = userContent,
@@ -210,11 +214,15 @@ fun AdminWorkbenchScaffold(
                 state = scaffoldState,
                 config = config,
                 slots = workbenchScaffoldSlots(
-                    contentHeader = {
-                        AdminWorkbenchContentHeader(
-                            page = page,
-                            slots = slots,
-                        )
+                    contentHeader = if (slots.showContentHeader) {
+                        {
+                            AdminWorkbenchContentHeader(
+                                page = page,
+                                slots = slots,
+                            )
+                        }
+                    } else {
+                        null
                     },
                     detail = slots.detail,
                 ),
@@ -704,6 +712,7 @@ private data class DefaultAdminWorkbenchActions(
 
 private data class DefaultAdminWorkbenchSlots(
     override val pageActions: @Composable RowScope.() -> Unit,
+    override val showContentHeader: Boolean,
     override val titleContent: (@Composable ColumnScope.() -> Unit)?,
     override val detail: (@Composable BoxScope.() -> Unit)?,
     override val userContent: (@Composable RowScope.() -> Unit)?,

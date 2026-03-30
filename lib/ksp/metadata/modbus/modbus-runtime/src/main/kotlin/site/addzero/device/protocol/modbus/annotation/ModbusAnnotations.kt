@@ -1,7 +1,6 @@
 package site.addzero.device.protocol.modbus.annotation
 
 import site.addzero.device.protocol.modbus.model.ModbusCodec
-import site.addzero.device.protocol.modbus.model.ModbusFunctionCode
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
@@ -17,17 +16,9 @@ annotation class GenerateModbusTcpServer
  * 可选覆盖注解。
  *
  * 不写 @ModbusOperation 时，处理器会直接按接口方法签名生成操作；
- * 只有需要覆盖默认 functionCode / address 时才需要写。
+ * 只有需要覆盖默认 address 时才需要写。
  */
 annotation class ModbusOperation(
-    /**
-     * 默认使用 AUTO，根据签名自动推导。
-     *
-     * 只有需要 READ_HOLDING_REGISTERS / READ_COILS / READ_DISCRETE_INPUTS
-     * 或其他非默认语义时，
-     * 才建议显式写出 functionCode。
-     */
-    val functionCode: ModbusFunctionCode = ModbusFunctionCode.AUTO,
     /**
      * 标准 Modbus 零基起始地址。
      *

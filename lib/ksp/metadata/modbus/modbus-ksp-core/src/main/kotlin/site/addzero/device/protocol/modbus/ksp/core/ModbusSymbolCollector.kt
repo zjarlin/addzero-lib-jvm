@@ -91,7 +91,7 @@ class ModbusSymbolCollector(
         val functionCodeName =
             try {
                 ModbusContractDefaultsResolver.resolveFunctionCodeName(
-                    explicitFunctionCodeName = operationAnnotation?.enumArg("functionCode").orEmpty(),
+                    explicitFunctionCodeName = "",
                     parameters = parameters,
                     returnType = rawReturnType,
                 )
