@@ -13,7 +13,7 @@ processorBuddy {
             "apiClientPackageName" to defaultApiClientPackageName,
             "apiClientOutputDir" to defaultSharedComposeDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
-                .absolutePath,
+                .absolutePath.replace('\\', '/'),
         )
     )
 }

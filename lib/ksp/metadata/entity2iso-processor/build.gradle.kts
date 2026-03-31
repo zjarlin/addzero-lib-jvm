@@ -6,7 +6,7 @@ val catalogLibs = versionCatalogs.named("libs")
 
 // 动态获取 shared 目录（通常为 src/commonMain/kotlin）
 processorBuddy {
-  val sharedDir = rootDir.resolve("shared/src/commonMain/kotlin").absolutePath
+  val sharedDir = rootDir.resolve("shared/src/commonMain/kotlin").absolutePath.replace('\\', '/')
   packageName.set("site.addzero.entity2iso.processor.context")
   mustMap.set(
     mapOf<String, String>(
