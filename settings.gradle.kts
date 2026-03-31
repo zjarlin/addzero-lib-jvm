@@ -33,8 +33,8 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-31T14:01:15.842538
-// Loaded: 16, Excluded: 0, Total: 16
+// Generated at: 2026-03-31T15:17:00.306559
+// Loaded: 17, Excluded: 0, Total: 17
 include(":lib:api:api-netease")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:ksp:common:ksp-support-jdbc")
@@ -44,6 +44,7 @@ include(":lib:ksp:metadata:modbus:modbus-ksp-core")
 include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
 include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
 include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
 include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
 include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
 include(":lib:ksp:metadata:modbus:modbus-runtime")
@@ -230,12 +231,20 @@ include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
 project(":lib:ksp:metadata:modbus:modbus-ksp-c-contract").projectDir =
   file("lib/ksp/metadata/modbus/modbus-ksp-c-contract")
 
+include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync")
+project(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync").projectDir =
+  file("lib/ksp/metadata/modbus/modbus-ksp-keil-sync")
+
 include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
 project(":lib:ksp:metadata:modbus:modbus-ksp-markdown").projectDir =
   file("lib/ksp/metadata/modbus/modbus-ksp-markdown")
 
 include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
 project(":lib:ksp:metadata:modbus:modbus-ksp-rtu").projectDir = file("lib/ksp/metadata/modbus/modbus-ksp-rtu")
+
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
+project(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke").projectDir =
+  file("lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke")
 
 include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
 project(":lib:ksp:metadata:modbus:modbus-ksp-tcp").projectDir = file("lib/ksp/metadata/modbus/modbus-ksp-tcp")

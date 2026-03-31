@@ -114,6 +114,7 @@ data class ModbusDocModel(
 enum class ModbusValueKind {
     BOOLEAN,
     INT,
+    STRING,
 }
 
 /**

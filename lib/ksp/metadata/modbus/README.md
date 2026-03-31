@@ -4,6 +4,10 @@
 
 ## Module Split
 
+- `modbus-rtu-gradle-plugin`
+  - 项目级 RTU KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-rtu`。
+- `modbus-tcp-gradle-plugin`
+  - 项目级 TCP KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-tcp`。
 - `modbus-runtime`
   - 注解、功能码枚举、RTU/TCP runtime 抽象。
 - `modbus-ksp-core`
@@ -18,6 +22,44 @@
   - RTU processor 入口，组合上面三个生成模块。
 - `modbus-ksp-tcp`
   - TCP processor 入口，组合上面三个生成模块。
+
+## Recommended Consumption
+
+默认走项目级 Gradle plugin，不再优先要求业务工程手写 processor 依赖：
+
+```kotlin
+plugins {
+    id("site.addzero.ksp.modbus-rtu")
+}
+
+modbusRtu {
+    codegenModes.set(listOf("server"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+}
+```
+
+TCP 同理：
+
+```kotlin
+plugins {
+    id("site.addzero.ksp.modbus-tcp")
+}
+
+modbusTcp {
+    codegenModes.set(listOf("server"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+}
+```
+
+只有在你明确需要直接控制 processor artifact 时，才退回到底层 `ksp(...)` 接法。
+
+如果是跨仓库本地联调，并且消费仓库已经把 `../addzero-lib-jvm` 的相关模块 remap 成 project path，推荐做法是：
+
+1. 在 `addzero-lib-jvm` 里先把 `gradle-ksp-consumer-base` 和 `modbus-*-gradle-plugin` 发布到 `mavenLocal`
+2. 消费仓库继续通过 `plugins { id("site.addzero.ksp.modbus-*") }` 使用 typed DSL
+3. 让处理器与 runtime 通过 remap 进来的本地 project path 优先解析
+
+不推荐把整个 `addzero-lib-jvm` 塞进消费仓库的 `pluginManagement.includeBuild(...)`。当前这套 Modbus suite 在这种接法下会把配置阶段带到 `modbus-ksp-core` 的缺失 project path 问题。
 
 ## SPI Contract
 

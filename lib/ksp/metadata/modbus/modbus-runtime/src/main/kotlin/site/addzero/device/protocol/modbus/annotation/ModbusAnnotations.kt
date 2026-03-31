@@ -53,8 +53,9 @@ annotation class ModbusParam(
      * - Boolean 线圈 -> BOOL_COIL
      * - Boolean 寄存器位 -> BIT_FLAG
      * - Int -> U16
+     * - String -> STRING_UTF8
      *
-     * 只有需要 U32_BE 或强制覆盖默认推导时才建议显式写。
+     * 只有需要 U32_BE / STRING_ASCII 或强制覆盖默认推导时才建议显式写。
      */
     val codec: ModbusCodec = ModbusCodec.AUTO,
     /**
@@ -74,6 +75,14 @@ annotation class ModbusParam(
      * 对 Boolean + AUTO/BIT_FLAG，默认值为 0。
      */
     val bitOffset: Int = -1,
+    /**
+     * 字段长度。
+     *
+     * - 对 U16 / BOOL_COIL / BIT_FLAG 通常保持 1
+     * - 对 U32_BE 表示值个数，实际寄存器宽度为 `2 * length`
+     * - 对 STRING_* 表示占用的寄存器数，实际最大字节数为 `length * 2 - 1`
+     */
+    val length: Int = 1,
 )
 
 @Target(AnnotationTarget.PROPERTY)
@@ -86,6 +95,7 @@ annotation class ModbusField(
      * - Boolean 线圈 -> BOOL_COIL
      * - Boolean 寄存器位 -> BIT_FLAG
      * - Int -> U16
+     * - String -> STRING_UTF8
      */
     val codec: ModbusCodec = ModbusCodec.AUTO,
     /**
@@ -101,5 +111,12 @@ annotation class ModbusField(
      * 对 Boolean + AUTO/BIT_FLAG，默认值为 0。
      */
     val bitOffset: Int = -1,
+    /**
+     * 字段长度。
+     *
+     * - 对 U16 / BOOL_COIL / BIT_FLAG 通常保持 1
+     * - 对 U32_BE 表示值个数，实际寄存器宽度为 `2 * length`
+     * - 对 STRING_* 表示占用的寄存器数，实际最大字节数为 `length * 2 - 1`
+     */
     val length: Int = 1,
 )

@@ -12,7 +12,9 @@ import java.nio.charset.StandardCharsets
 import site.addzero.device.protocol.modbus.ksp.core.CollectedModbusService
 import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactRenderer
 import site.addzero.device.protocol.modbus.ksp.core.ModbusCodegenMode
+import site.addzero.device.protocol.modbus.ksp.core.ModbusExternalCArtifactWriter
 import site.addzero.device.protocol.modbus.ksp.core.ModbusModelValidator
+import site.addzero.device.protocol.modbus.ksp.core.ModbusProjectSyncRunner
 import site.addzero.device.protocol.modbus.ksp.core.ModbusSymbolCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 
@@ -23,6 +25,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
         val collector = ModbusSymbolCollector(environment.logger)
         val modes = ModbusCodegenMode.from(environment)
+        val externalCArtifactWriter = ModbusExternalCArtifactWriter.from(environment)
         val contractPackages =
             environment
                 .resolveContractPackages()
@@ -55,25 +58,37 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                 }
 
                 if (ModbusCodegenMode.CONTRACT in modes) {
+                    val externalContractSources = mutableListOf<java.io.File>()
                     services.forEach { service ->
-                        writeArtifacts(
+                        externalContractSources += writeArtifacts(
+                            logger = environment.logger,
                             codeGenerator = environment.codeGenerator,
                             dependencies = dependenciesFor(service.originatingFiles, aggregating = false),
                             artifacts = ModbusArtifactRenderer.renderContractArtifacts(service.model),
+                            externalCArtifactWriter = externalCArtifactWriter,
                         )
                     }
-                    writeArtifacts(
+                    externalContractSources += writeArtifacts(
+                        logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
                         artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(ModbusTransportKind.TCP, services.map(CollectedModbusService::model)),
+                        externalCArtifactWriter = externalCArtifactWriter,
+                    )
+                    ModbusProjectSyncRunner.syncIfNeeded(
+                        environment = environment,
+                        transport = ModbusTransportKind.TCP,
+                        externalSourceFiles = externalContractSources.filter { file -> file.extension == "c" },
                     )
                 }
 
                 if (ModbusCodegenMode.SERVER in modes) {
                     writeArtifacts(
+                        logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
                         artifacts = ModbusArtifactRenderer.renderServerArtifacts(ModbusTransportKind.TCP, services.map(CollectedModbusService::model)),
+                        externalCArtifactWriter = null,
                     )
                 }
             }
@@ -93,10 +108,13 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
     }
 
     private fun writeArtifacts(
+        logger: com.google.devtools.ksp.processing.KSPLogger,
         codeGenerator: CodeGenerator,
         dependencies: Dependencies,
         artifacts: List<site.addzero.device.protocol.modbus.ksp.core.GeneratedArtifact>,
-    ) {
+        externalCArtifactWriter: ModbusExternalCArtifactWriter?,
+    ): List<java.io.File> {
+        val externalFiles = mutableListOf<java.io.File>()
         artifacts.forEach { artifact ->
             val output = codeGenerator.createNewFile(
                 dependencies = dependencies,
@@ -107,7 +125,9 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
             OutputStreamWriter(output, StandardCharsets.UTF_8).use { writer ->
                 writer.write(artifact.content)
             }
+            externalCArtifactWriter?.writeIfSupported(artifact, logger)?.let(externalFiles::add)
         }
+        return externalFiles
     }
 
     private fun SymbolProcessorEnvironment.resolveContractPackages(): List<String> =

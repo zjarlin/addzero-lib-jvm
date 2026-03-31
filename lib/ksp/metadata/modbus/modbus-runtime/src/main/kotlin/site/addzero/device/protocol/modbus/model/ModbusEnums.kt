@@ -50,6 +50,7 @@ enum class ModbusCodec {
      * - coil / discrete 场景下的 Boolean -> BOOL_COIL
      * - 寄存器场景下的 Boolean -> BIT_FLAG
      * - Int -> U16
+     * - String -> STRING_UTF8
      *
      * 无法安全推导为 U32_BE 时，不会自动升级，仍需显式声明。
      */
@@ -74,4 +75,14 @@ enum class ModbusCodec {
      * Kotlin `Int` <-> 两个 16 位寄存器拼出的 32 位大端值。
      */
     U32_BE,
+
+    /**
+     * Kotlin `String` <-> 固定寄存器窗口中的 ASCII 字节串。
+     */
+    STRING_ASCII,
+
+    /**
+     * Kotlin `String` <-> 固定寄存器窗口中的 UTF-8 字节串。
+     */
+    STRING_UTF8,
 }

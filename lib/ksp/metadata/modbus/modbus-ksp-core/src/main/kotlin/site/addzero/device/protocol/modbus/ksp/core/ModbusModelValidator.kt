@@ -257,6 +257,16 @@ object ModbusModelValidator {
                 }
             }
 
+            "STRING_ASCII",
+            "STRING_UTF8" -> {
+                if (valueKind != ModbusValueKind.STRING) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 $subjectName 使用 $codecName 时必须是 String。"
+                }
+                if (bitOffset !in setOf(-1, 0)) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 $subjectName 使用 $codecName 时 bitOffset 必须为 0。"
+                }
+            }
+
             else -> errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 使用了未知 codec：$codecName。"
         }
     }

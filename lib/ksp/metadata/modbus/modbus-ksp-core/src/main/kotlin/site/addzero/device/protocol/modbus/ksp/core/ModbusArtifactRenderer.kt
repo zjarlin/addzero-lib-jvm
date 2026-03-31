@@ -101,8 +101,8 @@ object ModbusArtifactTemplates {
             ),
             GeneratedArtifact(
                 packageName = outputPackage,
-                fileName = "${cServiceName}_bridge",
-                extensionName = "sample.c",
+                fileName = "${cServiceName}_bridge_impl",
+                extensionName = "c",
                 content = renderBridgeSampleSource(service),
             ),
         )
@@ -152,7 +152,7 @@ object ModbusArtifactTemplates {
                     GeneratedArtifact(
                         packageName = outputPackage,
                         fileName = "modbus_rtu_agile_slave_adapter",
-                        extensionName = "sample.h",
+                        extensionName = "h",
                         content = renderRtuAgileSlaveAdapterHeader(),
                     )
                 )
@@ -160,7 +160,7 @@ object ModbusArtifactTemplates {
                     GeneratedArtifact(
                         packageName = outputPackage,
                         fileName = "modbus_rtu_agile_slave_adapter",
-                        extensionName = "sample.c",
+                        extensionName = "c",
                         content = renderRtuAgileSlaveAdapterSource(),
                     )
                 )
@@ -303,6 +303,7 @@ object ModbusArtifactTemplates {
             appendLine()
             appendLine("/*")
             appendLine(" * ${transport.displayName} 聚合分发入口。")
+            appendLine(" * 请勿手动修改此文件。")
             appendLine(" *")
             appendLine(" * 桥接链路：")
             appendLine(" * agile_modbus callback")
@@ -426,6 +427,7 @@ object ModbusArtifactTemplates {
             appendLine()
             appendLine("/*")
             appendLine(" * RTU + agile_modbus 适配入口。")
+            appendLine(" * 请勿手动修改此文件。")
             appendLine(" *")
             appendLine(" * 在 freertos.c 或你的串口任务里，把 agile_modbus_slave_handle(...) 的 callback")
             appendLine(" * 替换成 generated_modbus_rtu_agile_slave_callback。")
@@ -451,6 +453,7 @@ object ModbusArtifactTemplates {
             appendLine()
             appendLine("/*")
             appendLine(" * 这个文件只做 transport/runtime 适配：")
+            appendLine(" * 请勿手动修改此文件。")
             appendLine(" * 1. 从 agile_modbus 解析请求")
             appendLine(" * 2. 调用 modbus_rtu_dispatch_*")
             appendLine(" * 3. 把 dispatch 返回值重新打包回 agile_modbus send_buf")
@@ -584,7 +587,7 @@ object ModbusArtifactTemplates {
                 appendLine("        }")
             }
             appendLine("        default:")
-            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"未支持的写线圈地址。\");")
+            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"unsupported write single coil address\");")
             appendLine("            return false;")
             appendLine("    }")
             appendLine("}")
@@ -618,7 +621,7 @@ object ModbusArtifactTemplates {
             operations.forEach { (service, operation) ->
                 appendLine("        case ${operation.macroPrefix(service)}_ADDRESS: {")
                 appendLine("            if (quantity != ${operation.macroPrefix(service)}_QUANTITY) {")
-                appendLine("                ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"${escapeCComment(operation.operationId)} 线圈数量不匹配。\");")
+                appendLine("                ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"${escapeCComment(operation.operationId)} coil quantity mismatch\");")
                 appendLine("                return false;")
                 appendLine("            }")
                 appendLine("            ${service.cServiceName}_command_result_t service_result = {0};")
@@ -628,7 +631,7 @@ object ModbusArtifactTemplates {
                 appendLine("        }")
             }
             appendLine("        default:")
-            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"未支持的多线圈写地址。\");")
+            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"unsupported write multiple coils address\");")
             appendLine("            return false;")
             appendLine("    }")
             appendLine("}")
@@ -668,7 +671,7 @@ object ModbusArtifactTemplates {
                 appendLine("        }")
             }
             appendLine("        default:")
-            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"未支持的写单寄存器地址。\");")
+            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"unsupported write single register address\");")
             appendLine("            return false;")
             appendLine("    }")
             appendLine("}")
@@ -702,7 +705,7 @@ object ModbusArtifactTemplates {
             operations.forEach { (service, operation) ->
                 appendLine("        case ${operation.macroPrefix(service)}_ADDRESS: {")
                 appendLine("            if (quantity != ${operation.macroPrefix(service)}_QUANTITY) {")
-                appendLine("                ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"${escapeCComment(operation.operationId)} 寄存器数量不匹配。\");")
+                appendLine("                ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"${escapeCComment(operation.operationId)} register quantity mismatch\");")
                 appendLine("                return false;")
                 appendLine("            }")
                 appendLine("            ${service.cServiceName}_command_result_t service_result = {0};")
@@ -712,7 +715,7 @@ object ModbusArtifactTemplates {
                 appendLine("        }")
             }
             appendLine("        default:")
-            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"未支持的写寄存器地址。\");")
+            appendLine("            ${transport.dispatchFunctionPrefix()}_set_result(out_result, false, \"unsupported write registers address\");")
             appendLine("            return false;")
             appendLine("    }")
             appendLine("}")
@@ -905,8 +908,9 @@ object ModbusArtifactTemplates {
             service.doc.descriptionLines.forEach { line ->
                 appendLine(" * ${escapeCComment(line)}")
             }
+            appendLine(" * 请勿手动修改此文件。")
             appendLine(" *")
-            appendLine(" * 该文件由 ${service.transport.displayName} KSP 自动生成，请勿直接手改。")
+            appendLine(" * 该文件由 ${service.transport.displayName} KSP 自动生成。")
             appendLine(" *")
             appendLine(" * 职责：")
             appendLine(" * - 定义该 service 的 Modbus address / quantity 常量")
@@ -914,7 +918,7 @@ object ModbusArtifactTemplates {
             appendLine(" * - 声明 generated dispatch 入口")
             appendLine(" *")
             appendLine(" * 固件同事真正要实现的板级逻辑不在这里，")
-            appendLine(" * 而是在 ${service.cServiceName}_bridge.h 对应的 bridge 实现文件里。")
+            appendLine(" * 而是在 ${service.cServiceName}_bridge_impl.c 这类 bridge 实现文件里。")
             appendLine(" */")
             appendLine()
             appendLine("#define ${service.cServiceName.uppercase()}_SERVICE_ID \"${service.serviceId}\"")
@@ -936,8 +940,8 @@ object ModbusArtifactTemplates {
                     ModbusReturnKind.DTO -> {
                         appendLine("typedef struct {")
                         operation.returnType.properties.forEach { property ->
-                            appendLine("    /* ${escapeCComment(property.doc)} */")
-                            appendLine("    ${property.cType()} ${property.name.toSnakeCase()};")
+                            appendLine("    /* ${escapeCComment(property.cFieldComment())} */")
+                            appendLine("    ${property.cMemberDeclaration()}")
                         }
                         appendLine("} ${service.cServiceName}_${operation.operationId.toSnakeCase()}_response_t;")
                         appendLine()
@@ -948,8 +952,8 @@ object ModbusArtifactTemplates {
                 if (operation.parameters.isNotEmpty()) {
                     appendLine("typedef struct {")
                     operation.parameters.forEach { parameter ->
-                        appendLine("    /* ${escapeCComment(parameter.doc)} */")
-                        appendLine("    ${parameter.cType()} ${parameter.name.toSnakeCase()};")
+                        appendLine("    /* ${escapeCComment(parameter.cFieldComment())} */")
+                        appendLine("    ${parameter.cMemberDeclaration()}")
                     }
                     appendLine("} ${service.cServiceName}_${operation.operationId.toSnakeCase()}_request_t;")
                     appendLine()
@@ -973,6 +977,7 @@ object ModbusArtifactTemplates {
             appendLine()
             appendLine("/*")
             appendLine(" * ${service.interfaceSimpleName} bridge SPI。")
+            appendLine(" * 请勿手动修改此文件。")
             appendLine(" *")
             appendLine(" * 这是固件业务层唯一需要长期维护的 service 接口面。")
             appendLine(" *")
@@ -985,7 +990,7 @@ object ModbusArtifactTemplates {
             appendLine(" * 桥接链路：adapter -> dispatch -> generated -> bridge implementation")
             appendLine(" *")
             appendLine(" * 不要修改 *_generated.c；")
-            appendLine(" * 若要接板级逻辑，只改你自己的 bridge 实现文件。")
+            appendLine(" * 若要接板级逻辑，只改你自己的 ${service.cServiceName}_bridge_impl.c。")
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
@@ -1000,9 +1005,71 @@ object ModbusArtifactTemplates {
         buildString {
             appendLine("#include \"${service.cServiceName}_generated.h\"")
             appendLine("#include \"${service.cServiceName}_bridge.h\"")
+            if (service.usesStringRegisters()) {
+                appendLine()
+                appendLine("static void ${service.cServiceName}_generated_encode_string_registers(")
+                appendLine("    const char *input,")
+                appendLine("    uint16_t *out_registers,")
+                appendLine("    size_t register_offset,")
+                appendLine("    size_t register_width")
+                appendLine(") {")
+                appendLine("    if (out_registers == NULL) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    for (size_t register_index = 0; register_index < register_width; ++register_index) {")
+                appendLine("        out_registers[register_offset + register_index] = 0u;")
+                appendLine("    }")
+                appendLine("    if (input == NULL) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    const size_t byte_capacity = register_width * 2u;")
+                appendLine("    for (size_t byte_index = 0; byte_index < byte_capacity; ++byte_index) {")
+                appendLine("        const unsigned char value = (unsigned char)input[byte_index];")
+                appendLine("        if (value == 0u) {")
+                appendLine("            break;")
+                appendLine("        }")
+                appendLine("        const size_t target_register = register_offset + (byte_index / 2u);")
+                appendLine("        if ((byte_index % 2u) == 0u) {")
+                appendLine("            out_registers[target_register] = (uint16_t)(value << 8);")
+                appendLine("        } else {")
+                appendLine("            out_registers[target_register] |= (uint16_t)value;")
+                appendLine("        }")
+                appendLine("    }")
+                appendLine("}")
+                appendLine()
+                appendLine("static void ${service.cServiceName}_generated_decode_string_registers(")
+                appendLine("    const uint16_t *input_registers,")
+                appendLine("    size_t register_offset,")
+                appendLine("    size_t register_width,")
+                appendLine("    char *out_text,")
+                appendLine("    size_t out_capacity")
+                appendLine(") {")
+                appendLine("    if (out_text == NULL || out_capacity == 0u) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    out_text[0] = '\\0';")
+                appendLine("    if (input_registers == NULL) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    const size_t byte_capacity = register_width * 2u;")
+                appendLine("    const size_t text_capacity = out_capacity - 1u;")
+                appendLine("    size_t written = 0u;")
+                appendLine("    for (size_t byte_index = 0; byte_index < byte_capacity && written < text_capacity; ++byte_index) {")
+                appendLine("        const uint16_t raw = input_registers[register_offset + (byte_index / 2u)];")
+                appendLine("        const unsigned char value =")
+                appendLine("            ((byte_index % 2u) == 0u) ? (unsigned char)((raw >> 8) & 0xFFu) : (unsigned char)(raw & 0xFFu);")
+                appendLine("        if (value == 0u) {")
+                appendLine("            break;")
+                appendLine("        }")
+                appendLine("        out_text[written++] = (char)value;")
+                appendLine("    }")
+                appendLine("    out_text[written] = '\\0';")
+                appendLine("}")
+            }
             appendLine()
             appendLine("/*")
             appendLine(" * generated dispatch 实现。")
+            appendLine(" * 请勿手动修改此文件。")
             appendLine(" *")
             appendLine(" * 它负责：")
             appendLine(" * - 检查 Modbus quantity / buffer 边界")
@@ -1025,19 +1092,28 @@ object ModbusArtifactTemplates {
             appendLine("#include \"${service.cServiceName}_bridge.h\"")
             appendLine()
             appendLine("/*")
-            appendLine(" * bridge 示例实现。")
+            appendLine(" * bridge implementation entry.")
             appendLine(" *")
-            appendLine(" * 推荐做法：")
-            appendLine(" * - 复制这个 sample 为你的板级文件，例如 ${service.cServiceName}_bridge_impl.c")
-            appendLine(" * - 在复制后的文件里接入 GPIO / ADC / 业务状态机 / Flash / 传感器驱动")
+            appendLine(" * This file is the board-facing implementation entry generated from the contract.")
+            appendLine(" *")
+            appendLine(" * 集成方法：")
+            appendLine(" * - 在下面这些 ${service.cServiceName}_bridge_* 函数体里接入 GPIO / ADC / 状态机 / Flash / 传感器驱动")
             appendLine(" * - 保留 #include \"${service.cServiceName}_bridge.h\"")
+            appendLine(" * - 不要修改函数签名")
+            appendLine(" * - 这个文件建议放在 Core/Src/modbus 或你通过 KSP 参数指定的业务目录")
             appendLine(" *")
             appendLine(" * 不要直接修改 generated 的 *_generated.c。")
             appendLine(" * Modbus 桥接最终会自动调用这里声明的 SPI 函数。")
+            appendLine(" *")
+            appendLine(" * 要改哪里：")
+            appendLine(" * - 只改下面这些 ${service.cServiceName}_bridge_* 函数的函数体")
+            appendLine(" * - 把真实硬件读写逻辑填进去")
+            appendLine(" * - 不要改函数签名，不要改 *_generated.c / *_dispatch.c / adapter")
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
                 appendLine("${operation.bridgeSignature(service)} {")
+                appendLine("    /* 要改哪里：从这里开始补板级业务逻辑。 */")
                 appendLine("    /* ${escapeCComment(operation.doc.summary)} */")
                 when (operation.returnType.kind) {
                     ModbusReturnKind.DTO -> {
@@ -1045,7 +1121,7 @@ object ModbusArtifactTemplates {
                         appendLine("        return false;")
                         appendLine("    }")
                         operation.returnType.properties.forEach { property ->
-                            appendLine("    out_response->${property.name.toSnakeCase()} = 0;")
+                            appendLine("    ${property.renderBridgeDefaultAssignment("out_response->")}")
                         }
                         appendLine("    return true;")
                     }
@@ -1073,6 +1149,7 @@ object ModbusArtifactTemplates {
                         appendLine("    return true;")
                     }
                 }
+                appendLine("    /* 要改哪里：到这里结束。 */")
                 appendLine("}")
                 appendLine()
             }
@@ -1252,6 +1329,10 @@ object ModbusArtifactTemplates {
                                                 add("out_registers[$registerOffset] = (uint16_t)(response.${property.name.toSnakeCase()});")
                                             }
                                         }
+
+                                        ModbusValueKind.STRING -> {
+                                            add("${service.cServiceName}_generated_encode_string_registers(response.${property.name.toSnakeCase()}, out_registers, ${field.registerOffset}, ${field.registerWidth});")
+                                        }
                                     }
                                 }
                             }
@@ -1323,6 +1404,10 @@ object ModbusArtifactTemplates {
                             add("request.${parameter.name.toSnakeCase()} = (int)(((uint32_t)input_registers[${parameter.registerOffset}] << 16) | input_registers[${parameter.registerOffset + 1}]);")
                         }
 
+                        parameter.valueKind == ModbusValueKind.STRING -> {
+                            add("${service.cServiceName}_generated_decode_string_registers(input_registers, ${parameter.registerOffset}, ${parameter.registerWidth}, request.${parameter.name.toSnakeCase()}, sizeof(request.${parameter.name.toSnakeCase()}));")
+                        }
+
                         else -> {
                             add("request.${parameter.name.toSnakeCase()} = (int32_t)input_registers[${parameter.registerOffset}];")
                         }
@@ -1333,17 +1418,17 @@ object ModbusArtifactTemplates {
                 add("return ${bridgeFunctionName(service)}(${if (parameters.isNotEmpty()) "&request, " else ""}out_result);")
             } else if (parameters.isNotEmpty()) {
                 add("out_result->accepted = ${bridgeFunctionName(service)}(&request);")
-                add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
+                add("out_result->summary = out_result->accepted ? \"operation succeeded\" : \"operation failed\";")
                 add("return out_result->accepted;")
             } else {
                 add("out_result->accepted = ${bridgeFunctionName(service)}();")
-                add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
+                add("out_result->summary = out_result->accepted ? \"operation succeeded\" : \"operation failed\";")
                 add("return out_result->accepted;")
             }
         }
 
     private fun ModbusOperationModel.dispatchFunctionName(service: ModbusServiceModel): String =
-        "${service.cServiceName}_handle_${operationId.toSnakeCase()}"
+        "${service.cServiceName}_generated_${operationId.toSnakeCase()}"
 
     private fun ModbusOperationModel.bridgeFunctionName(service: ModbusServiceModel): String =
         "${service.cServiceName}_bridge_${operationId.toSnakeCase()}"
@@ -1361,12 +1446,14 @@ object ModbusArtifactTemplates {
         when (valueKind) {
             ModbusValueKind.BOOLEAN -> "bool"
             ModbusValueKind.INT -> "int32_t"
+            ModbusValueKind.STRING -> "char"
         }
 
     private fun ModbusPropertyModel.cType(): String =
         when (valueKind) {
             ModbusValueKind.BOOLEAN -> "bool"
             ModbusValueKind.INT -> "int32_t"
+            ModbusValueKind.STRING -> "char"
         }
 
     private fun ModbusReturnTypeModel.renderKotlinType(): String =
@@ -1399,6 +1486,9 @@ object ModbusArtifactTemplates {
 
             ModbusValueKind.INT ->
                 "ModbusCodecSupport.decodeInt(ModbusCodec.${fieldModel.codecName}, registers, ${fieldModel.registerOffset})"
+
+            ModbusValueKind.STRING ->
+                "ModbusCodecSupport.decodeString(ModbusCodec.${fieldModel.codecName}, registers, ${fieldModel.registerOffset}, ${fieldModel.registerWidth})"
         }
     }
 
@@ -1406,6 +1496,7 @@ object ModbusArtifactTemplates {
         when (qualifiedType) {
             "kotlin.Boolean" -> "Boolean"
             "kotlin.Int" -> "Int"
+            "kotlin.String" -> "String"
             else -> qualifiedType
         }
 
@@ -1421,6 +1512,8 @@ object ModbusArtifactTemplates {
             "BIT_FLAG" ->
                 "if (${name}) (1 shl ${bitOffset}) else 0"
 
+            "STRING_ASCII",
+            "STRING_UTF8" -> "ModbusCodecSupport.encodeString(ModbusCodec.${codecName}, ${name}, ${registerWidth}).first()"
             else -> "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString()).first()"
         }
 
@@ -1435,7 +1528,7 @@ object ModbusArtifactTemplates {
 
             else ->
                 listOf(
-                    "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString())",
+                    renderRegisterPackExpression(),
                     "    .forEachIndexed { index, value -> encodedValues[${registerOffset} + index] = value }",
                 )
         }
@@ -1444,6 +1537,7 @@ object ModbusArtifactTemplates {
         when (qualifiedType) {
             "kotlin.Boolean" -> "Boolean"
             "kotlin.Int" -> "Int"
+            "kotlin.String" -> "String"
             else -> qualifiedType
         }
 

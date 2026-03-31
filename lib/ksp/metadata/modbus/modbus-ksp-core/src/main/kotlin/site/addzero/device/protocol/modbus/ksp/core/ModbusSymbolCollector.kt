@@ -148,6 +148,11 @@ class ModbusSymbolCollector(
                     kind = ModbusReturnKind.INT,
                 )
 
+            "kotlin.String" -> {
+                logger.error("暂不支持直接返回 String；请改为返回包含 String 字段的 DTO。", this)
+                null
+            }
+
             "site.addzero.device.protocol.modbus.model.ModbusCommandResult" ->
                 ModbusReturnTypeModel(
                     qualifiedName = qualifiedName,
@@ -241,7 +246,7 @@ class ModbusSymbolCollector(
             codecName = codecName,
             registerOffset = paramAnnotation.intArg("registerOffset"),
             bitOffset = paramAnnotation.intArg("bitOffset"),
-            registerWidth = registerWidth(codecName),
+            registerWidth = registerWidth(codecName, paramAnnotation.intArg("length")),
             doc = docFallback.ifBlank { "${name?.asString().orEmpty()} 参数。" },
         )
     }
@@ -250,6 +255,7 @@ class ModbusSymbolCollector(
         when (qualifiedType) {
             "kotlin.Boolean" -> ModbusValueKind.BOOLEAN
             "kotlin.Int" -> ModbusValueKind.INT
+            "kotlin.String" -> ModbusValueKind.STRING
             else -> null
         }
 
@@ -327,6 +333,7 @@ class ModbusSymbolCollector(
                 }
 
             ModbusValueKind.INT -> "U16"
+            ModbusValueKind.STRING -> "STRING_UTF8"
         }
 
     private fun KSAnnotated.requireAnnotation(qualifiedName: String): KSAnnotation? =
