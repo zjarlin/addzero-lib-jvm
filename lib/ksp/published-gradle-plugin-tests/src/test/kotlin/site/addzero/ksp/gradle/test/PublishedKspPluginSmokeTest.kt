@@ -83,28 +83,6 @@ class PublishedKspPluginSmokeTest {
     }
 
     @Test
-    fun `kmp no-options apiprovider plugin targets common metadata configuration`() {
-        val output = runBuild(
-            projectName = "apiprovider-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.apiprovider.gradle.ApiProviderGradlePlugin",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.apiprovider.serializedArgs",
-                extraBody = "",
-            ),
-        )
-
-        assertContains(
-            output,
-            "CONF[kspCommonMainMetadata]=site.addzero:apiprovider-processor",
-            "build/generated/ksp/metadata/commonMain/kotlin",
-            "build/generated/ksp/jvm/jvmMain/kotlin",
-            "TASK[compileKotlinJvm]=",
-            "kspKotlinJvm",
-            "ARGS={}",
-        )
-    }
-
-    @Test
     fun `kmp options route plugin injects route core and must-map args`() {
         val output = runBuild(
             projectName = "route-consumer",

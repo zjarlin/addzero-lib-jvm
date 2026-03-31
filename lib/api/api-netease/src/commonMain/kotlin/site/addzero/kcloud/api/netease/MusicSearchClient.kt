@@ -3,6 +3,7 @@ package site.addzero.kcloud.api.netease
 import io.ktor.client.HttpClient
 import org.koin.core.annotation.Single
 import site.addzero.core.network.ApiClients
+import site.addzero.util.KoinInjector
 
 internal expect fun buildNeteaseApi(
     baseUrl: String,
@@ -24,7 +25,7 @@ class MusicSearchClient(
         const val API_ENDPOINT = "netease-music-api"
 
         fun shared(): MusicSearchClient {
-            return MusicSearchClient(ApiClients.shared())
+            return MusicSearchClient(KoinInjector.inject<ApiClients>())
         }
     }
 

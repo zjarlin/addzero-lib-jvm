@@ -1,10 +1,11 @@
 package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2form
 
-import site.addzero.context.SettingContext
 import site.addzero.generator.FormCodeGenerator
+import site.addzero.entity2form.processor.context.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
 import site.addzero.lsi.processor.ProcessorSpi
+import site.addzero.util.str.withPkg
 
 class Entity2FormExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Unit> {
     override val id: String = JimmerEntityProcessorIds.ENTITY2_FORM
@@ -19,9 +20,9 @@ class Entity2FormExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Un
         }
 
         val logger = context.logger
-        SettingContext.initialize(context.options)
-        val packageName = SettingContext.settings.formPackageName
-        val outputDir = SettingContext.settings.formOutputDir
+        Settings.fromOptions(context.options)
+        val packageName = Settings.formPackageName
+        val outputDir = Settings.sharedComposeSourceDir.withPkg(packageName)
         val generatedFormClasses = mutableSetOf<String>()
         val formCodeGenerator = FormCodeGenerator(logger)
 

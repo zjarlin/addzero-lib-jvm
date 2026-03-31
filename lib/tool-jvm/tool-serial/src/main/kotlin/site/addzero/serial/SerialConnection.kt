@@ -21,9 +21,25 @@ import java.nio.charset.Charset
  * 这些应留给更上层的协议库，例如 Modbus RTU、AT 命令封装或厂商私有协议实现。
  */
 class SerialConnection internal constructor(
+    /**
+     * 真正负责和操作系统串口交互的底层驱动。
+     *
+     * 这里故意不直接暴露 `jSerialComm`，这样测试时可以替换成 fake。
+     */
     private val driver: SerialDriver,
+    /**
+     * 打开当前连接时使用的串口参数。
+     *
+     * 这个配置是“当时怎么打开的”，不是可变运行态配置。
+     */
     val config: SerialPortConfig,
 ) : Closeable {
+    /**
+     * 当前底层驱动识别到的系统串口名。
+     *
+     * 这个值一般会和 [SerialPortConfig.portName] 接近，
+     * 但仍以驱动最终打开的端口信息为准。
+     */
     val systemPortName: String
         get() = driver.systemPortName
 
@@ -51,6 +67,10 @@ class SerialConnection internal constructor(
 
         var offset = 0
         while (offset < bytes.size) {
+            /**
+             * 某些驱动一次不一定能把剩余数据全部写完，
+             * 所以这里必须循环补写，直到整帧写完为止。
+             */
             val written = driver.write(bytes, offset, bytes.size - offset)
             if (written <= 0) {
                 throw SerialTimeoutException("串口写入超时：port=$systemPortName expected=${bytes.size} written=$offset")
@@ -102,6 +122,10 @@ class SerialConnection internal constructor(
         while (out.size() < size) {
             val remaining = size - out.size()
             val chunk = ByteArray(remaining)
+            /**
+             * 这里每次只申请“还差多少字节”的缓冲区，
+             * 这样逻辑最直观，也方便报错时展示当前已拼出的长度。
+             */
             val read = driver.read(chunk)
             if (read <= 0) {
                 throw SerialTimeoutException(
@@ -136,6 +160,10 @@ class SerialConnection internal constructor(
         val out = ByteArrayOutputStream()
         while (out.size() < maxBytes) {
             val remaining = maxBytes - out.size()
+            /**
+             * 分隔符模式下不知道一次会读到多少数据，
+             * 因此按固定 chunk 逐步累积，避免单次申请过大缓冲区。
+             */
             val nextChunkSize = remaining.coerceAtMost(DEFAULT_READ_CHUNK_SIZE)
             val chunk = ByteArray(nextChunkSize)
             val read = driver.read(chunk)
@@ -146,6 +174,10 @@ class SerialConnection internal constructor(
             }
             out.write(chunk, 0, read)
             val current = out.toByteArray()
+            /**
+             * 分隔符可能跨 chunk 边界出现，
+             * 所以不能只在本次 `chunk` 里找，必须在累计结果里找。
+             */
             val delimiterIndex = current.indexOfSequence(delimiter)
             if (delimiterIndex >= 0) {
                 val endExclusive =
@@ -176,6 +208,10 @@ class SerialConnection internal constructor(
         }
         val out = ByteArrayOutputStream()
         while (out.size() < maxBytes) {
+            /**
+             * 先看驱动当前说“已经到达”的字节数，
+             * 再决定本轮最多读多少，避免不必要的阻塞等待。
+             */
             val available = driver.bytesAvailable().coerceAtLeast(0)
             if (available <= 0) {
                 break
@@ -210,11 +246,27 @@ class SerialConnection internal constructor(
     }
 
     companion object {
+        /**
+         * 普通读取场景下的默认单次拉取块大小。
+         *
+         * 这个值不是协议限制，只是折中后的默认读取粒度。
+         */
         private const val DEFAULT_READ_CHUNK_SIZE = 256
+
+        /**
+         * 基础工具层允许读取的默认最大报文大小。
+         *
+         * 如果你的设备响应明显更大，调用方应显式传更高的 `maxBytes`。
+         */
         private const val DEFAULT_MAX_PACKET_SIZE = 4096
     }
 }
 
+/**
+ * 在当前字节数组里查找目标连续片段第一次出现的位置。
+ *
+ * 这个实现是线性扫描，足够应付串口短报文场景。
+ */
 private fun ByteArray.indexOfSequence(target: ByteArray): Int {
     if (target.isEmpty() || size < target.size) {
         return -1
@@ -223,6 +275,10 @@ private fun ByteArray.indexOfSequence(target: ByteArray): Int {
     for (start in 0..lastStart) {
         var matched = true
         for (offset in target.indices) {
+            /**
+             * 只要某一位不匹配，就立刻结束本次起点尝试，
+             * 然后继续尝试下一个起点。
+             */
             if (this[start + offset] != target[offset]) {
                 matched = false
                 break

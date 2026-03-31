@@ -10,6 +10,11 @@ import kotlin.test.assertEquals
 
 class ModbusTcpServerTest {
     private var server: ModbusTcpServer? = null
+
+    /**
+     * 直接使用 j2mod 原生主站验证服务端暴露的数据，
+     * 这样能证明我们的服务端封装确实兼容标准 Modbus 主站实现。
+     */
     private var externalMaster: ModbusTCPMaster? = null
 
     @AfterTest

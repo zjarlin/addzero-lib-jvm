@@ -1,13 +1,13 @@
 package site.addzero.processor
 
-import site.addzero.util.getCompleteTypeString
-import site.addzero.util.getSimplifiedTypeString
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Nullability
 import com.google.devtools.ksp.validate
+import site.addzero.lsi.ksp.type.getCompleteTypeString
+import site.addzero.lsi.ksp.type.getSimplifiedTypeString
 
 private const val propsXd = "var"
 

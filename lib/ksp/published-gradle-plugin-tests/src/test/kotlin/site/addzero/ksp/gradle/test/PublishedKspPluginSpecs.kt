@@ -37,12 +37,6 @@ object PublishedKspPluginSpecs {
             resourcePath = "site/addzero/ksp/logger/gradle-plugin.properties",
         ),
         PublishedKspPluginSpec(
-            implementationClass = "site.addzero.ksp.apiprovider.gradle.ApiProviderGradlePlugin",
-            pluginId = "site.addzero.ksp.apiprovider",
-            processorArtifactId = "apiprovider-processor",
-            resourcePath = "site/addzero/ksp/apiprovider/gradle-plugin.properties",
-        ),
-        PublishedKspPluginSpec(
             implementationClass = "site.addzero.ksp.composeprops.gradle.ComposePropsGradlePlugin",
             pluginId = "site.addzero.ksp.compose-props",
             processorArtifactId = "compose-props-processor",

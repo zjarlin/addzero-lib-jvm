@@ -24,7 +24,15 @@ import site.addzero.serial.SerialStopBits
  * - 接收外部主站对 coil / register 的读写
  */
 class ModbusRtuServer private constructor(
+    /**
+     * 当前 RTU 从站的串口与地址配置。
+     */
     val config: ModbusRtuServerConfig,
+    /**
+     * 从站工厂。
+     *
+     * 默认接 j2mod，测试里则替换成 fake。
+     */
     private val slaveFactory: ModbusRtuSlaveFactory,
 ) : Closeable {
     private val lock = Any()
@@ -33,6 +41,9 @@ class ModbusRtuServer private constructor(
     @Volatile
     private var slave: ModbusRtuSlaveBinding? = null
 
+    /**
+     * 生产环境入口，使用真实 j2mod 串口从站。
+     */
     constructor(config: ModbusRtuServerConfig) : this(config, J2modModbusRtuSlaveFactory)
 
     internal constructor(
@@ -78,6 +89,10 @@ class ModbusRtuServer private constructor(
                 }
             val existingImages =
                 if (images.isEmpty()) {
+                    /**
+                     * 即使调用方没有预先写任何寄存器，
+                     * 也至少挂一个默认 unit，保证从站可访问。
+                     */
                     listOf(image(config.defaultUnitId))
                 } else {
                     images.values.toList()
@@ -105,17 +120,30 @@ class ModbusRtuServer private constructor(
 }
 
 internal fun interface ModbusRtuSlaveFactory {
+    /**
+     * 按当前配置创建一个底层 RTU 从站绑定对象。
+     */
     fun create(config: ModbusRtuServerConfig): ModbusRtuSlaveBinding
 }
 
 internal interface ModbusRtuSlaveBinding : Closeable {
+    /**
+     * 把某个 unit id 的寄存器映像挂到底层从站。
+     */
     fun addProcessImage(unitId: Int, image: SimpleProcessImage)
 
+    /**
+     * 真正开始监听串口并响应主站请求。
+     */
     fun open()
 }
 
 internal object J2modModbusRtuSlaveFactory : ModbusRtuSlaveFactory {
     override fun create(config: ModbusRtuServerConfig): ModbusRtuSlaveBinding {
+        /**
+         * j2mod 的串口从站创建入口比较底层，
+         * 这里集中做适配，避免上层四处碰到底层 API。
+         */
         val slave = ModbusSlaveFactory.createSerialSlave(createRtuSerialParameters(config.serialConfig))
         return J2modModbusRtuSlaveBinding(slave)
     }
@@ -148,10 +176,20 @@ internal fun createRtuSerialParameters(config: SerialPortConfig): SerialParamete
         config.parity.toJSerialComm(),
         false,
     ).apply {
+        /**
+         * 明确指定 RTU 编码，避免 j2mod 走 ASCII 等其他串口模式。
+         */
         encoding = Modbus.SERIAL_ENCODING_RTU
+
+        /**
+         * 复用串口工具层的“打开后安全等待”配置。
+         */
         openDelay = config.openSafetySleepTimeMs
     }
 
+/**
+ * 把串口工具层的停止位配置转成 `jSerialComm` 常量。
+ */
 private fun SerialStopBits.toJSerialComm(): Int =
     when (this) {
         SerialStopBits.ONE -> SerialPort.ONE_STOP_BIT
@@ -159,6 +197,9 @@ private fun SerialStopBits.toJSerialComm(): Int =
         SerialStopBits.TWO -> SerialPort.TWO_STOP_BITS
     }
 
+/**
+ * 把串口工具层的校验位配置转成 `jSerialComm` 常量。
+ */
 private fun SerialParity.toJSerialComm(): Int =
     when (this) {
         SerialParity.NONE -> SerialPort.NO_PARITY
@@ -168,6 +209,9 @@ private fun SerialParity.toJSerialComm(): Int =
         SerialParity.SPACE -> SerialPort.SPACE_PARITY
     }
 
+/**
+ * 把流控模式拆成“输入方向”位掩码。
+ */
 private fun SerialFlowControl.toJSerialCommInput(): Int =
     when (this) {
         SerialFlowControl.NONE -> SerialPort.FLOW_CONTROL_DISABLED
@@ -176,6 +220,9 @@ private fun SerialFlowControl.toJSerialCommInput(): Int =
         SerialFlowControl.XON_XOFF -> SerialPort.FLOW_CONTROL_XONXOFF_IN_ENABLED
     }
 
+/**
+ * 把流控模式拆成“输出方向”位掩码。
+ */
 private fun SerialFlowControl.toJSerialCommOutput(): Int =
     when (this) {
         SerialFlowControl.NONE -> SerialPort.FLOW_CONTROL_DISABLED

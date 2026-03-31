@@ -33,14 +33,21 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-03-30T19:45:55.382454
-// Loaded: 6, Excluded: 0, Total: 6
+// Generated at: 2026-03-31T08:16:37.890560
+// Loaded: 13, Excluded: 0, Total: 13
+include(":lib:api:api-netease")
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+include(":lib:ksp:common:ksp-support-jdbc")
+include(":lib:ksp:jdbc2metadata:jdbc2entity-processor")
 include(":lib:ksp:metadata:modbus:modbus-ksp-core")
-include(":lib:lsi:lsi-core")
-include(":lib:tool-jvm:jimmer:jimmer-ktx-serializer")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
+include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-jvm:tool-serial")
-include(":lib:tool-kmp:ktor:starter:starter-serialization")
-include(":lib:tool-kmp:ktor:starter:starter-spi")
+include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:ksp:route:route-core")
@@ -70,15 +77,8 @@ project(":lib:ksp:logger-api").projectDir = file("lib/ksp/logger-api")
 include(":lib:ksp:logger-implementation")
 project(":lib:ksp:logger-implementation").projectDir = file("lib/ksp/logger-implementation")
 
-include(":lib:ksp:common:ksp-support")
-project(":lib:ksp:common:ksp-support").projectDir = file("lib/ksp/common/ksp-support")
-
 include(":lib:ksp:common:ksp-support-jdbc")
 project(":lib:ksp:common:ksp-support-jdbc").projectDir = file("lib/ksp/common/ksp-support-jdbc")
-
-include(":lib:ksp:metadata:apiprovider-processor")
-project(":lib:ksp:metadata:apiprovider-processor").projectDir =
-  file("lib/ksp/metadata/apiprovider-processor")
 
 include(":lib:ksp:metadata:compose-props:compose-props-annotations")
 project(":lib:ksp:metadata:compose-props:compose-props-annotations").projectDir =
@@ -246,10 +246,6 @@ project(":lib:ksp:jdbc2metadata:jdbc2enum-gradle-plugin").projectDir =
 
 include(":lib:ksp:logger-gradle-plugin")
 project(":lib:ksp:logger-gradle-plugin").projectDir = file("lib/ksp/logger-gradle-plugin")
-
-include(":lib:ksp:metadata:apiprovider-gradle-plugin")
-project(":lib:ksp:metadata:apiprovider-gradle-plugin").projectDir =
-  file("lib/ksp/metadata/apiprovider-gradle-plugin")
 
 include(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin")
 project(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin").projectDir =

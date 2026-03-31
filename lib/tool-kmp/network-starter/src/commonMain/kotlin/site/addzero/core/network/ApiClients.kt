@@ -6,10 +6,8 @@ import site.addzero.util.KoinInjector
 
 
 interface ApiClientSpi {
-  val endpointId: String
+  val endpointId get() = this::class.simpleName!!
   val baseUrl: String
-  val clientProfile: String
-    get() = endpointId
   val enableSse: Boolean
     get() = false
   val enableWebSocket: Boolean
@@ -25,15 +23,10 @@ class ApiClients(
   private val apiClientSpis: List<ApiClientSpi>,
   private val httpClientFactory: HttpClientFactory,
 ) {
-  companion object {
-    fun shared(): ApiClients {
-      return KoinInjector.inject()
-    }
-  }
 
   fun setBearerToken(endpointId: String, token: String?) {
     val spi = spi(endpointId)
-    httpClientFactory.setBearerToken(spi.clientProfile, token)
+    httpClientFactory.setBearerToken(spi.endpointId, token)
   }
 
   fun <T> create(
@@ -42,17 +35,17 @@ class ApiClients(
   ): T {
     val spi = spi(endpointId)
     configureProfile(spi)
-    return builder(spi.baseUrl, httpClientFactory.get(spi.clientProfile))
+    return builder(spi.baseUrl, httpClientFactory.get(spi.endpointId))
   }
 
   private fun configureProfile(spi: ApiClientSpi) {
-    httpClientFactory.clearHeaders(spi.clientProfile)
+    httpClientFactory.clearHeaders(spi.endpointId)
     spi.headers.forEach { (name, value) ->
-      httpClientFactory.putHeader(spi.clientProfile, name, value)
+      httpClientFactory.putHeader(spi.endpointId, name, value)
     }
-    httpClientFactory.setBearerToken(spi.clientProfile, spi.bearerToken)
-    httpClientFactory.setSseEnabled(spi.clientProfile, spi.enableSse)
-    httpClientFactory.setWebSocketEnabled(spi.clientProfile, spi.enableWebSocket)
+    httpClientFactory.setBearerToken(spi.endpointId, spi.bearerToken)
+    httpClientFactory.setSseEnabled(spi.endpointId, spi.enableSse)
+    httpClientFactory.setWebSocketEnabled(spi.endpointId, spi.enableWebSocket)
   }
 
   private fun spi(endpointId: String): ApiClientSpi {

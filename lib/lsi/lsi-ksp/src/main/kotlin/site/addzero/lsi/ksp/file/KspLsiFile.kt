@@ -23,7 +23,7 @@ class KspLsiFile(internal val resolver: Resolver, private val kspFile: KSFile) :
 
   override fun findClassByName(name: String): LsiClass? {
     val firstOrNull = kspFile.getAllClassDeclarations().firstOrNull { it.simpleName.asString() == name }
-    val toLsiClass = firstOrNull?.toLsiClass()
+    val toLsiClass = firstOrNull?.toLsiClass(resolver)
     return toLsiClass
   }
 
@@ -35,7 +35,7 @@ class KspLsiFile(internal val resolver: Resolver, private val kspFile: KSFile) :
   override val currentClass: LsiClass?
     get() {
       val firstOrNull = kspFile.getAllClassDeclarations().firstOrNull()
-      val toLsiClass = firstOrNull?.toLsiClass()
+      val toLsiClass = firstOrNull?.toLsiClass(resolver)
       return toLsiClass
     }
 }

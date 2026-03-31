@@ -33,7 +33,9 @@ kotlin {
 }
 kotlin {
     dependencies {
-        implementation(catalogLibs.findLibrary("site-addzero-ksp-support-jdbc").get())
-        implementation(catalogLibs.findLibrary("site-addzero-ksp-support").get())
+        implementation(catalogLibs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
+        implementation(project(":lib:ksp:common:ksp-support-jdbc"))
+        implementation(catalogLibs.findLibrary("site-addzero-tool-pinyin").get())
+        implementation(catalogLibs.findLibrary("site-addzero-tool-str").get())
     }
 }

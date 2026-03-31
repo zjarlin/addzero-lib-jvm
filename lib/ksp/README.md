@@ -14,9 +14,8 @@ This repository now documents KSP consumption in a plugin-first form.
 | `site.addzero.ksp.jdbc2entity` | `jdbc2entity-processor` | JVM/KSP consumer plugin |
 | `site.addzero.ksp.jdbc2enum` | `jdbc2enum-processor` | Typed JDBC/dict settings extension |
 | `site.addzero.ksp.logger` | `logger-processor` | Zero-config marker plugin |
-| `site.addzero.ksp.apiprovider` | `apiprovider-processor` | KMP metadata processor wiring |
 | `site.addzero.ksp.compose-props` | `compose-props-processor` | Auto-adds `compose-props-annotations` |
-| `site.addzero.ksp.controller2api` | `controller2api-processor` | Typed package/output config |
+| `site.addzero.ksp.controller2api` | `controller2api-processor` | Typed package/output config and aggregated `ApiProvider` |
 | `site.addzero.ksp.controller2feign` | `controller2feign-processor` | Typed Feign output config |
 | `site.addzero.ksp.controller2iso2dataprovider` | `controller2iso2dataprovider-processor` | Typed generated package config |
 | `site.addzero.ksp.enum` | `enum-processor` | Zero-config marker plugin |
@@ -44,7 +43,7 @@ Consume them through `site.addzero.ksp.jimmer-entity-external`.
 
 ## Layout
 
-- `common/`: shared KSP support and base infrastructure
+- `common/`: shared base infrastructure
 - `jdbc2metadata/`: JDBC-driven generators and their consumer plugins
 - `metadata/`: feature processors, umbrella processors, and consumer plugins
 - `route/`: route metadata processor, runtime core, and consumer plugin

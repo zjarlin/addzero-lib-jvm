@@ -1,6 +1,5 @@
 package site.addzero.processor
 
-import site.addzero.context.SettingContext
 import site.addzero.entity.JdbcTableMetadata
 import site.addzero.util.JdbcMetadataExtractor
 import site.addzero.util.str.toBigCamelCase
@@ -9,6 +8,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
+import site.addzero.jdbc2entity.processor.context.Settings
 
 /**
  * JDBC 转 Jimmer 实体处理器
@@ -38,8 +38,7 @@ class Jdbc2EntityProcessor(
     var entityCodeGenerator: JimmerEntityCodeGenerator = JimmerEntityCodeGenerator(codeGenerator, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        // 初始化设置上下文
-        SettingContext.initialize(options)
+        Settings.fromOptions(options)
         jdbcTables = JdbcMetadataExtractor.initAndGetJdbcMetaDataTables(options)
 
         return emptyList()
@@ -69,5 +68,4 @@ class Jdbc2EntityProcessor(
     }
 
 }
-
 

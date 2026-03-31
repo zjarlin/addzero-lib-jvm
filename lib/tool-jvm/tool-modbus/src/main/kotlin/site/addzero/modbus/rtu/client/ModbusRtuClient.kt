@@ -26,11 +26,25 @@ import site.addzero.serial.SerialStopBits
  * 但最终会表现为无响应、CRC 错误或超时。
  */
 class ModbusRtuClient private constructor(
+    /**
+     * 当前客户端的协议与串口配置。
+     */
     val config: ModbusRtuClientConfig,
+    /**
+     * 会话工厂。
+     *
+     * 正式环境创建真实串口主站，测试环境创建 fake。
+     */
     private val sessionFactory: ModbusRtuSessionFactory,
 ) : Closeable {
+    /**
+     * 非“按请求重连”模式下复用的会话。
+     */
     private var sharedSession: ModbusRtuSession? = null
 
+    /**
+     * 生产环境入口，默认接入 j2mod 实现。
+     */
     constructor(config: ModbusRtuClientConfig) : this(config, J2modModbusRtuSessionFactory)
 
     internal constructor(
@@ -165,6 +179,9 @@ class ModbusRtuClient private constructor(
 
     @Synchronized
     override fun close() {
+        /**
+         * 关闭时不向上抛异常，避免资源释放阶段掩盖原始业务异常。
+         */
         runCatching {
             sharedSession?.close()
         }
@@ -172,6 +189,10 @@ class ModbusRtuClient private constructor(
     }
 
     private fun <T> execute(message: String, block: (ModbusRtuSession) -> T): T {
+        /**
+         * `retries` 表示“失败后再试几次”，
+         * 所以总尝试次数需要 +1。
+         */
         val totalAttempts = config.retries + 1
         var lastError: Throwable? = null
         for (attempt in 0 until totalAttempts) {
@@ -179,9 +200,16 @@ class ModbusRtuClient private constructor(
             try {
                 ephemeralSession =
                     if (config.reconnectPerRequest) {
+                        /**
+                         * 每次请求都新建一个临时会话，
+                         * 用完后在 finally 里立即关闭。
+                         */
                         sessionFactory.open(config)
                     } else {
                         if (sharedSession == null) {
+                            /**
+                             * 懒初始化共享会话，只在第一次真正需要时打开串口。
+                             */
                             sharedSession = sessionFactory.open(config)
                         }
                         null
@@ -191,6 +219,10 @@ class ModbusRtuClient private constructor(
             } catch (throwable: Throwable) {
                 lastError = throwable
                 if (!config.reconnectPerRequest) {
+                    /**
+                     * 共享会话一旦出错，直接丢弃重建，
+                     * 避免下一次请求复用到半失效状态的串口连接。
+                     */
                     runCatching { sharedSession?.close() }
                     sharedSession = null
                 }
@@ -224,6 +256,9 @@ class ModbusRtuClient private constructor(
  * 单元测试可以替换成 fake 实现，避免依赖真实设备。
  */
 internal fun interface ModbusRtuSessionFactory {
+    /**
+     * 按配置创建一个可直接执行 Modbus RTU 请求的会话。
+     */
     fun open(config: ModbusRtuClientConfig): ModbusRtuSession
 }
 
@@ -231,6 +266,10 @@ internal fun interface ModbusRtuSessionFactory {
  * 单个已建立的 RTU 主站会话。
  */
 internal interface ModbusRtuSession : Closeable {
+    /**
+     * 下面这些接口和公开客户端 API 一一对应，
+     * 作用是把“协议层流程”与“具体 j2mod 调用”隔离开。
+     */
     fun readCoils(unitId: Int, address: Int, count: Int): List<Boolean>
 
     fun readDiscreteInputs(unitId: Int, address: Int, count: Int): List<Boolean>
@@ -250,6 +289,10 @@ internal interface ModbusRtuSession : Closeable {
 
 internal object J2modModbusRtuSessionFactory : ModbusRtuSessionFactory {
     override fun open(config: ModbusRtuClientConfig): ModbusRtuSession {
+        /**
+         * 串口参数的创建逻辑与服务端保持一致，
+         * 避免客户端和服务端对同一份串口配置有不同解释。
+         */
         val serialParameters = createRtuSerialParameters(config.serialConfig)
         val master =
             if (config.transmitDelayMs >= 0) {
@@ -265,6 +308,10 @@ private class J2modModbusRtuSession(
     private val master: ModbusSerialMaster,
 ) : ModbusRtuSession {
     init {
+        /**
+         * 会话对象一旦创建成功，就保证已经连上串口，
+         * 避免调用方拿到一个“半初始化”的会话。
+         */
         master.connect()
     }
 
@@ -289,6 +336,10 @@ private class J2modModbusRtuSession(
     }
 
     override fun writeMultipleCoils(unitId: Int, address: Int, values: List<Boolean>) {
+        /**
+         * j2mod 批量写 coil 需要 `BitVector`，
+         * 这里把更直观的 `List<Boolean>` 转成它需要的格式。
+         */
         val coils = BitVector(values.size)
         values.forEachIndexed { index, value ->
             coils.setBit(index, value)

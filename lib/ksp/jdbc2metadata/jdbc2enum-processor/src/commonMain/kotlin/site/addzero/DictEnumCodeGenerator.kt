@@ -1,10 +1,9 @@
 package site.addzero
 
+import PinYin4JUtils
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
-import site.addzero.jdbc2enum.processor.context.SettingContext.settings
 import site.addzero.jdbc2enum.processor.context.Settings
-import site.addzero.util.PinYin4JUtils
 import site.addzero.util.str.isNotBlank
 import site.addzero.util.str.withPkg
 import java.io.File
@@ -70,8 +69,8 @@ class DictEnumCodeGenerator(
         val fullEnumName = "Enum$enumName"
 
         // 构建枚举类内容
-        val enumOutputPackage = settings.enumOutputPackage
-        val enumOutputDir = settings.enumOutputDir
+        val enumOutputPackage = Settings.enumOutputPackage
+        val enumOutputDir = Settings.enumOutputDir
         val enumContent = """
            package $enumOutputPackage
             /**
@@ -136,7 +135,7 @@ class DictEnumCodeGenerator(
     private fun writeEnumToFile(fileName: String, content: String, outputDir: String) {
 
 
-        val enumOutputDir = settings.enumOutputDir
+        val enumOutputDir = Settings.enumOutputDir
 
         // 创建目录
         val dir = File(enumOutputDir)

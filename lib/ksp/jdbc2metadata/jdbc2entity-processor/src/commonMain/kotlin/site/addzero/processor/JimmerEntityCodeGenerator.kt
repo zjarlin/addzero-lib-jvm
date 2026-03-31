@@ -1,12 +1,10 @@
 package site.addzero.processor
 
-import site.addzero.context.SettingContext
 import site.addzero.entity.JdbcColumnMetadata
 import site.addzero.entity.JdbcTableMetadata
-import site.addzero.util.TypeMapper.mapToKotlinType
-import site.addzero.util.filterBaseEntity
 import site.addzero.util.str.toBigCamelCase
 import site.addzero.util.str.toLowCamelCase
+import site.addzero.jdbc2entity.processor.context.Settings
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import java.io.File
@@ -25,15 +23,12 @@ class JimmerEntityCodeGenerator(
      * 生成 Jimmer 实体类（使用 IO 直接写入文件）
      */
     fun generateEntityWithIO(table: JdbcTableMetadata) {
-        val settings = SettingContext.settings
-
-        val modelPackageName = settings.modelPackageName
+        val modelPackageName = Settings.modelPackageName
         val className = getEntityClassName(table.tableName)
         val fileName = "$className.kt"
         val fileContent = generateEntityFileContent(table, modelPackageName)
 
-        val modelOutputDir = settings.modelOutputDir
-
+        val modelOutputDir = Settings.modelOutputDir
 
         val targetDir = File(modelOutputDir)
 
@@ -69,7 +64,7 @@ class JimmerEntityCodeGenerator(
         val imports = generateImports(table, true)
 
         // 生成属性（排除 id 字段，因为它在 BaseEntity 中已定义）
-        val filteredColumns = table.columns.filter { filterBaseEntity(it.columnName) }
+        val filteredColumns = table.columns.filter { shouldKeepGeneratedColumn(it.columnName) }
 
         val properties = filteredColumns.joinToString("\n\n") { column ->
             generateProperty(column)
@@ -104,12 +99,14 @@ class JimmerEntityCodeGenerator(
         imports.add("import org.babyfish.jimmer.sql.*")
 
         // 始终导入 BaseEntity
-        imports.add("import ${SettingContext.settings.baseEntityPackage}")
+        if (Settings.baseEntityPackage.isNotBlank()) {
+            imports.add("import ${Settings.baseEntityPackage}")
+        }
 
 
         // 根据列类型添加导入
         table.columns.forEach { column ->
-            val baseType = mapToKotlinType(column.columnType)
+            val baseType = mapJdbcColumnType(column.columnType)
             when {
                 baseType.contains("LocalDate") -> imports.add("import java.time.LocalDate")
                 baseType.contains("LocalTime") -> imports.add("import java.time.LocalTime")
@@ -169,7 +166,7 @@ class JimmerEntityCodeGenerator(
      */
     private fun getKotlinType(column: JdbcColumnMetadata): String {
         // 先获取基础类型
-        val baseType = mapToKotlinType(column.columnType, false)
+        val baseType = mapJdbcColumnType(column.columnType, isKmp = false)
 
         // 再处理可空性
         return if (column.nullable) {
@@ -179,12 +176,4 @@ class JimmerEntityCodeGenerator(
         }
     }
 
-    /**
-     * 判断列名是否为 id 字段
-     * 因为 id 字段在 BaseEntity 中已定义，所以不需要在实体中重复定义
-     */
-    private fun isIdField(columnName: String): Boolean {
-        val fieldName = columnName.toLowCamelCase()
-        return fieldName == "id"
-    }
 }

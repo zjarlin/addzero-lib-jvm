@@ -7,11 +7,7 @@ import site.addzero.core.network.ApiClientSpi
 
 @Single
 class NeteaseApiClient : ApiClientSpi {
-    override val endpointId: String = MusicSearchClient.API_ENDPOINT
-
-    override val baseUrl: String = "https://music.163.com/api/"
-
-    override val clientProfile: String = MusicSearchClient.CLIENT_PROFILE
+    override val baseUrl = "https://music.163.com/api/"
 }
 
 @Module

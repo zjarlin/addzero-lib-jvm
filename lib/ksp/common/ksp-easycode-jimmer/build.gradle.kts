@@ -12,17 +12,14 @@ val libs = versionCatalogs.named("libs")
 
 kotlin {
     dependencies {
-        implementation(libs.findLibrary("site-addzero-ksp-support").get())
+        implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
         implementation(libs.findLibrary("site-addzero-ksp-easycode").get())
         implementation(libs.findLibrary("site-addzero-entity2analysed-support").get())
-
         implementation(libs.findLibrary("site-addzero-tool-koin-v2025").get())
-
     }
     sourceSets {
         commonMain.dependencies {
             implementation(libs.findLibrary("org-apache-velocity-velocity-engine-core").get())
         }
     }
-
 }

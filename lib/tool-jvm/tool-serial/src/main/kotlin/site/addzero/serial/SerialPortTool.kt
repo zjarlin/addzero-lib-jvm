@@ -54,6 +54,10 @@ object SerialPortTool {
 
 private fun SerialPort.toDescriptor(): SerialPortDescriptor =
     SerialPortDescriptor(
+        /**
+         * `jSerialComm` 某些平台下可能给空字符串或 null，
+         * 这里统一兜底成稳定的 Kotlin 非空字段。
+         */
         systemPortName = systemPortName.orEmpty(),
         systemPortPath = systemPortPath.orEmpty(),
         descriptivePortName = descriptivePortName.orEmpty(),

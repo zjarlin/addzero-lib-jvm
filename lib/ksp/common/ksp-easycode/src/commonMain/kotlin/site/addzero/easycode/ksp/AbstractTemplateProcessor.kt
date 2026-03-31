@@ -7,7 +7,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSFile
 import site.addzero.easycode.inter.AbsCodegenContext
-import site.addzero.util.genCode
+import site.addzero.util.io.codegen.genCode
 import site.addzero.util.str.withFileName
 import site.addzero.util.str.withFileSuffix
 import site.addzero.util.str.withPkg

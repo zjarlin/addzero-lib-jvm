@@ -10,11 +10,19 @@ import site.addzero.modbus.ModbusToolException
 import site.addzero.serial.SerialPortConfig
 
 class ModbusRtuClientTest {
+    /**
+     * 收集测试期间打开过的 fake 会话，
+     * 用来断言重连次数和关闭行为。
+     */
     private val openedSessions = mutableListOf<FakeRtuSession>()
     private var failFirstOpen = false
 
     private val sessionFactory =
         ModbusRtuSessionFactory {
+            /**
+             * 通过开关控制“第一次打开失败”，
+             * 用来验证客户端的重试逻辑。
+             */
             if (failFirstOpen) {
                 failFirstOpen = false
                 throw IllegalStateException("open failed")
@@ -30,7 +38,8 @@ class ModbusRtuClientTest {
 
     @Test
     fun `客户端可以通过会话读取和写入 RTU 数据`() {
-        val client = ModbusRtuClient(defaultClientConfig(), sessionFactory)
+      val config = defaultClientConfig()
+      val client = ModbusRtuClient(config, sessionFactory)
         client.connect()
         val session = openedSessions.single()
         session.coils = listOf(true, false, true)
@@ -99,6 +108,9 @@ class ModbusRtuClientTest {
 }
 
 private class FakeRtuSession : ModbusRtuSession {
+    /**
+     * 下面这些字段分别模拟设备当前能读到的数据区。
+     */
     var coils: List<Boolean> = listOf(false)
     var discreteInputs: List<Boolean> = listOf(false)
     var holdingRegisters: List<Int> = listOf(0)

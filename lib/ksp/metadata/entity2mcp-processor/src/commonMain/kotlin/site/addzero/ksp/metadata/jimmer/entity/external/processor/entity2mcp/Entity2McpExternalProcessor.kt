@@ -1,6 +1,6 @@
 package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2mcp
 
-import site.addzero.context.SettingContext
+import site.addzero.entity2mcp.processor.context.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
@@ -20,8 +20,8 @@ class Entity2McpExternalProcessor : ProcessorSpi<JimmerEntityProcessContext, Uni
         }
 
         val logger = context.logger
-        SettingContext.initialize(context.options)
-        val packageName = SettingContext.settings.mcpPackageName
+        Settings.fromOptions(context.options)
+        val packageName = Settings.mcpPackageName
         val generatedMcpServices = mutableSetOf<String>()
         val mcpCodeGenerator = McpServiceCodeGenerator()
 
@@ -90,9 +90,8 @@ class McpServiceCodeGenerator {
         } else {
             "${entityPackageName}.${entityName}"
         }
-        val settings = SettingContext.settings
-        val isomorphicPackageName = settings.isomorphicPackageName
-        val isomorphicClassSuffix = settings.isomorphicClassSuffix
+        val isomorphicPackageName = Settings.isomorphicPackageName
+        val isomorphicClassSuffix = Settings.isomorphicClassSuffix
         val isoFullName = "$isomorphicPackageName.${entityName}$isomorphicClassSuffix"
 
         val fileContent = generateServiceFileContent(
@@ -104,7 +103,7 @@ class McpServiceCodeGenerator {
             entityDescription = entityDescription
         )
         JimmerGeneratedSourceWriter.writeKotlinFile(
-            rootOutputDir = settings.backendServerSourceDir,
+            rootOutputDir = Settings.backendServerSourceDir,
             packageName = packageName,
             fileName = "$serviceClassName.kt",
             content = fileContent

@@ -18,7 +18,6 @@ dependencies {
     testImplementation(project(":lib:ksp:jdbc2metadata:jdbc2entity-gradle-plugin"))
     testImplementation(project(":lib:ksp:jdbc2metadata:jdbc2enum-gradle-plugin"))
     testImplementation(project(":lib:ksp:logger-gradle-plugin"))
-    testImplementation(project(":lib:ksp:metadata:apiprovider-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:controller2api-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:controller2feign-gradle-plugin"))

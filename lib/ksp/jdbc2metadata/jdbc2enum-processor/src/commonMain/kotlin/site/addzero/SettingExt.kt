@@ -1,6 +1,5 @@
 package site.addzero
 
-import site.addzero.jdbc2enum.processor.context.SettingContext.settings
 import site.addzero.jdbc2enum.processor.context.Settings
 import site.addzero.util.str.withPkg
 
@@ -9,9 +8,9 @@ import site.addzero.util.str.withPkg
  */
 val Settings.enumOutputDir: String
     get() = run {
-        val sharedSourceDir: String = settings.sharedSourceDir
-        if (sharedSourceDir.isBlank()) {
+        val targetSharedSourceDir = this.sharedSourceDir
+        if (targetSharedSourceDir.isBlank()) {
             error("您没有设置要生成的目标共享目录位置")
         }
-        sharedSourceDir.withPkg(settings.enumOutputPackage)
+        targetSharedSourceDir.withPkg(this.enumOutputPackage)
     }

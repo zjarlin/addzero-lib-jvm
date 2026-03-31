@@ -1,9 +1,9 @@
 package site.addzero
 
-import site.addzero.jdbc2enum.processor.context.SettingContext
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import java.sql.SQLException
+import site.addzero.jdbc2enum.processor.context.Settings
 
 /**
  * 字典枚举元数据处理器提供者
@@ -63,7 +63,7 @@ class DictEnumMetadataProcessor(
     private var dictMetadataList: List<DictMetadataExtractor.DictMetadata> = emptyList()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        SettingContext.initialize(options)
+        Settings.fromOptions(options)
         // process 阶段只收集元数据，不生成代码
         if (dictMetadataList.isEmpty()) {
             try {

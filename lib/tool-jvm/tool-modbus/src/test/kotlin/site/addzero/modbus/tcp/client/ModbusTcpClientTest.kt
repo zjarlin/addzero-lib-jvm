@@ -11,6 +11,9 @@ import site.addzero.modbus.tcp.server.ModbusTcpServer
 import site.addzero.modbus.tcp.server.ModbusTcpServerConfig
 
 class ModbusTcpClientTest {
+    /**
+     * 记录当前测试启动的服务端，方便在 `tearDown` 里统一关闭。
+     */
     private var server: ModbusTcpServer? = null
 
     @AfterTest
@@ -95,6 +98,10 @@ class ModbusTcpClientTest {
 }
 
 private fun freeTcpPort(): Int =
+    /**
+     * 通过临时占用 0 端口的方式向操作系统申请一个空闲端口，
+     * 用来降低并发测试时的端口冲突概率。
+     */
     ServerSocket(0).use { socket ->
         socket.localPort
     }

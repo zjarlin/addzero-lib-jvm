@@ -9,17 +9,43 @@ import com.fazecast.jSerialComm.SerialPort
  * 避免单元测试必须绑定真实串口设备。
  */
 internal interface SerialDriver {
+    /**
+     * 操作系统识别到的端口名。
+     */
     val systemPortName: String
+
+    /**
+     * 当前驱动是否仍持有打开状态的串口句柄。
+     */
     val isOpen: Boolean
 
+    /**
+     * 尝试把数据读进调用方提供的缓冲区。
+     *
+     * 返回实际读取的字节数；`0` 通常表示本次未读到数据。
+     */
     fun read(buffer: ByteArray): Int
 
+    /**
+     * 从 [offset] 开始写入 [length] 字节。
+     *
+     * 返回实际写出的字节数，允许小于请求值。
+     */
     fun write(buffer: ByteArray, offset: Int, length: Int): Int
 
+    /**
+     * 估算当前驱动缓冲区内还有多少可读字节。
+     */
     fun bytesAvailable(): Int
 
+    /**
+     * 清空驱动收发缓冲区。
+     */
     fun flushIoBuffers(): Boolean
 
+    /**
+     * 关闭底层端口。
+     */
     fun close()
 }
 
@@ -70,6 +96,10 @@ internal class JSerialCommDriver(
         if (buffer.isEmpty()) {
             return 0
         }
+        /**
+         * `readBytes` 返回 -1 代表底层读调用失败，
+         * 这里统一翻译成项目自己的异常类型。
+         */
         val read = serialPort.readBytes(buffer, buffer.size)
         if (read == -1) {
             throw SerialPortException("串口读取失败：port=${config.portName}")
@@ -81,6 +111,11 @@ internal class JSerialCommDriver(
         if (length == 0) {
             return 0
         }
+        /**
+         * 这里不在驱动层补写，保持职责单一：
+         * - 驱动层只报告“本次写了多少”
+         * - 连接层决定是否循环补写直到完整发完
+         */
         val written = serialPort.writeBytes(buffer, length, offset)
         return when (written) {
             -1 -> throw SerialPortException("串口写入失败：port=${config.portName}")
@@ -97,12 +132,19 @@ internal class JSerialCommDriver(
     override fun flushIoBuffers(): Boolean = serialPort.flushIOBuffers()
 
     override fun close() {
+        /**
+         * 某些驱动会返回 false，但端口其实已经关闭；
+         * 因此这里补一个 `isOpen` 判断，避免误报。
+         */
         if (!serialPort.closePort() && serialPort.isOpen) {
             throw SerialPortException("串口关闭失败：port=${config.portName}")
         }
     }
 }
 
+/**
+ * 把项目里的停止位枚举转换成 `jSerialComm` 常量。
+ */
 private fun SerialStopBits.toJSerialComm(): Int =
     when (this) {
         SerialStopBits.ONE -> SerialPort.ONE_STOP_BIT
@@ -110,6 +152,9 @@ private fun SerialStopBits.toJSerialComm(): Int =
         SerialStopBits.TWO -> SerialPort.TWO_STOP_BITS
     }
 
+/**
+ * 把项目里的校验位枚举转换成 `jSerialComm` 常量。
+ */
 private fun SerialParity.toJSerialComm(): Int =
     when (this) {
         SerialParity.NONE -> SerialPort.NO_PARITY
@@ -119,6 +164,12 @@ private fun SerialParity.toJSerialComm(): Int =
         SerialParity.SPACE -> SerialPort.SPACE_PARITY
     }
 
+/**
+ * 把项目里的流控枚举转换成 `jSerialComm` 常量。
+ *
+ * `jSerialComm` 对硬件/软件流控都使用位掩码组合，
+ * 因此这里直接把对应输入输出位合并。
+ */
 private fun SerialFlowControl.toJSerialComm(): Int =
     when (this) {
         SerialFlowControl.NONE -> SerialPort.FLOW_CONTROL_DISABLED

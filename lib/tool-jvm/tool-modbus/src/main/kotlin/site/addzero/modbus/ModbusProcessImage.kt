@@ -13,7 +13,15 @@ import com.ghgande.j2mod.modbus.procimg.SimpleRegister
  * 它只负责把 j2mod 的 `SimpleProcessImage` 包装成更直接的 Kotlin API。
  */
 class ModbusProcessImage internal constructor(
+    /**
+     * 当前寄存器映像所属的从站地址。
+     */
     val unitId: Int,
+    /**
+     * 真正存储点位数据的 j2mod 对象。
+     *
+     * 对外隐藏这个实现细节，调用方只操作更直接的 Kotlin API。
+     */
     internal val delegate: SimpleProcessImage,
 ) {
     /**
@@ -21,6 +29,10 @@ class ModbusProcessImage internal constructor(
      */
     fun setCoil(address: Int, value: Boolean) {
         validateAddress(address)
+        /**
+         * j2mod 的 process image 通过“按地址放对象”的方式维护点位，
+         * 因此这里每次写入时都重新放入当前地址的最新值对象。
+         */
         delegate.addDigitalOut(address, SimpleDigitalOut(value))
     }
 
@@ -89,6 +101,10 @@ class ModbusProcessImage internal constructor(
      */
     fun setHoldingRegister(address: Int, value: Int) {
         validateAddress(address)
+        /**
+         * Modbus 寄存器本质是 16 位无符号值，
+         * 这里统一截断到低 16 位，避免上层传入大于 0xFFFF 的整数时语义不清。
+         */
         delegate.addRegister(address, SimpleRegister(value and 0xFFFF))
     }
 
@@ -158,6 +174,9 @@ class ModbusProcessImage internal constructor(
         }
     }
 
+    /**
+     * 对“起始地址 + 连续数量”这种调用统一做参数兜底。
+     */
     private fun validateAddressAndCount(address: Int, count: Int) {
         validateAddress(address)
         require(count > 0) {

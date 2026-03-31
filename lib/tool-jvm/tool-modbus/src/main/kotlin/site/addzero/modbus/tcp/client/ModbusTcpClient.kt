@@ -15,8 +15,16 @@ import site.addzero.modbus.ModbusToolException
  * 3. 把连接和异常处理统一到一个地方
  */
 class ModbusTcpClient(
+    /**
+     * 当前客户端的连接参数。
+     */
     val config: ModbusTcpClientConfig,
 ) : Closeable {
+    /**
+     * j2mod 提供的 TCP 主站对象。
+     *
+     * 连接管理、请求发送都由它完成，本类只做 Kotlin 化封装。
+     */
     private val master =
         ModbusTCPMaster(
             config.host,
@@ -192,6 +200,10 @@ class ModbusTcpClient(
     }
 
     private fun ensureConnected() {
+        /**
+         * j2mod 支持“先 new，再在第一次请求时 connect”，
+         * 这里把这层惰性连接逻辑隐藏起来。
+         */
         if (!master.isConnected) {
             master.connect()
         }
@@ -214,6 +226,9 @@ class ModbusTcpClient(
         try {
             block()
         } catch (throwable: Throwable) {
+            /**
+             * 统一包成项目自己的异常，避免把 j2mod 的细碎异常类型直接暴露给业务层。
+             */
             throw ModbusToolException(message, throwable)
         }
 }

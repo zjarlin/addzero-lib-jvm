@@ -9,6 +9,10 @@ import kotlin.test.assertTrue
 import site.addzero.serial.SerialPortConfig
 
 class ModbusRtuServerTest {
+    /**
+     * 收集测试里创建出的 fake 从站绑定对象，
+     * 用来验证映像挂载和关闭行为。
+     */
     private val bindings = mutableListOf<FakeRtuSlaveBinding>()
 
     private val slaveFactory =
@@ -69,6 +73,10 @@ class ModbusRtuServerTest {
 }
 
 private class FakeRtuSlaveBinding : ModbusRtuSlaveBinding {
+    /**
+     * 保存每个 unit id 挂进去的底层 process image，
+     * 相当于 fake 从站内部的寄存器仓库。
+     */
     val images = linkedMapOf<Int, SimpleProcessImage>()
     var opened: Boolean = false
     var closed: Boolean = false

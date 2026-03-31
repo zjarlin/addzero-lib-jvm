@@ -1,12 +1,11 @@
 package site.addzero.processor
 
-import site.addzero.context.SettingContext
-import site.addzero.context.SettingContext.settings
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
 import java.io.File
+import site.addzero.controller2iso2dataprovider.processor.context.Settings
 
 /**
  * Controller 转 Iso2DataProvider 处理器提供者
@@ -34,8 +33,7 @@ class Controller2Iso2DataProviderProcessor(
     private val collectedControllers = mutableSetOf<String>()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        // 初始化设置上下文
-        SettingContext.initialize(options)
+        Settings.fromOptions(options)
 
         // 查找所有带有 @RestController 注解的类
         val controllers = resolver.getSymbolsWithAnnotation("org.springframework.web.bind.annotation.RestController")
@@ -130,7 +128,7 @@ class Controller2Iso2DataProviderProcessor(
         val entityClassName = entityType.declaration.simpleName.asString()
         // 根据实体类名生成同构体全限定名：实体名 + Iso 后缀（避免重复添加 Iso）
         val isoClassName = if (entityClassName.endsWith("Iso")) entityClassName else "${entityClassName}Iso"
-        val isoQualifiedName = "${settings.isomorphicPackageName}.$isoClassName"
+        val isoQualifiedName = "${Settings.isomorphicPackageName}.$isoClassName"
 
         return ControllerInfo(
             controllerName = controller.simpleName.asString(),
@@ -146,10 +144,10 @@ class Controller2Iso2DataProviderProcessor(
         // 从 KSP 配置中获取包名，默认为 site.addzero.form_mapping
         val packageName = options["iso2DataProviderPackage"]
             ?.takeIf { it.isNotBlank() }
-            ?: settings.iso2DataProviderPackage
+            ?: Settings.iso2DataProviderPackage
 
         val packagePath = packageName.replace(".", "/")
-        val outputDir = File(settings.sharedComposeSourceDir, packagePath)
+        val outputDir = File(Settings.sharedComposeSourceDir, packagePath)
         outputDir.mkdirs()
 
         // 生成导入语句
@@ -167,7 +165,7 @@ class Controller2Iso2DataProviderProcessor(
         val code = """
             |package $packageName
             |
-            |import ${settings.apiClientPackageName}.ApiProvider
+            |import ${Settings.apiClientPackageName}.ApiProvider
             |$imports
             |
             |

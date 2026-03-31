@@ -52,6 +52,7 @@ class ControllerApiProcessor(
         collectedControllers.forEach { metadata ->
             generateKtorfitInterfaceFromMetadata(metadata)
         }
+        generateApiProvider(collectedControllers)
         collectedControllers.clear()
         collectedSourceKeys.clear()
     }
@@ -610,13 +611,61 @@ class ControllerApiProcessor(
             )
 
             file.use { outputStream ->
-                val code = generateKtorfitCode(controllerInfo, apiClassName, "site.addzero.api")
+                val code = generateKtorfitCode(controllerInfo, apiClassName, Settings.apiClientPackageName)
                 outputStream.write(code.toByteArray())
             }
 
-            logger.info("Fallback: Generated Ktorfit interface to build directory: site.addzero.generated.api.$apiClassName")
+            logger.info("Fallback: Generated Ktorfit interface to build directory: ${Settings.apiClientPackageName}.$apiClassName")
         } catch (e: Exception) {
             logger.error("Fallback generation also failed: ${e.message}")
+        }
+    }
+
+    /**
+     * 生成聚合后的 ApiProvider。
+     */
+    private fun generateApiProvider(metadataList: List<ControllerMetadata>) {
+        val generatedApis = metadataList
+            .map(::toGeneratedApiDescriptor)
+            .distinctBy { it.apiClassName }
+            .sortedBy { it.propertyName }
+
+        if (generatedApis.isEmpty()) {
+            logger.info("没有生成任何 Ktorfit 接口，跳过 ApiProvider 生成")
+            return
+        }
+
+        try {
+            val outputDirFile = File(Settings.apiClientOutputDir)
+            if (!outputDirFile.exists()) {
+                outputDirFile.mkdirs()
+            }
+            val outputFile = File(outputDirFile, "ApiProvider.kt")
+            outputFile.writeText(renderApiProviderCode(Settings.apiClientPackageName, generatedApis))
+            logger.info("Generated ApiProvider: ${outputFile.absolutePath}")
+        } catch (e: Exception) {
+            logger.error("Failed to generate ApiProvider via file IO: ${e.message}")
+            fallbackApiProviderToCodeGenerator(generatedApis)
+        }
+    }
+
+    /**
+     * 回退方案：将 ApiProvider 生成到 build 目录。
+     */
+    private fun fallbackApiProviderToCodeGenerator(generatedApis: List<GeneratedApiDescriptor>) {
+        try {
+            codeGenerator.createNewFile(
+                dependencies = Dependencies(false),
+                packageName = Settings.apiClientPackageName,
+                fileName = "ApiProvider",
+            ).use { outputStream ->
+                outputStream.write(
+                    renderApiProviderCode(Settings.apiClientPackageName, generatedApis).toByteArray()
+                )
+            }
+            logger.info("Fallback: Generated ApiProvider to build directory: ${Settings.apiClientPackageName}.ApiProvider")
+        } catch (e: Exception) {
+            logger.error("Fallback ApiProvider generation also failed: ${e.message}")
         }
     }
 
@@ -924,6 +973,63 @@ private data class TopLevelFileRound(
     val functions: MutableList<KSFunctionDeclaration> = mutableListOf(),
     var hasInvalidSymbols: Boolean = false
 )
+
+internal data class GeneratedApiDescriptor(
+    val apiClassName: String,
+    val propertyName: String
+)
+
+internal fun toGeneratedApiDescriptor(metadata: ControllerMetadata): GeneratedApiDescriptor {
+    val apiClassName = metadata.generatedApiClassName
+        ?: metadata.originalClassName.replace("Controller", "Api")
+    return GeneratedApiDescriptor(
+        apiClassName = apiClassName,
+        propertyName = apiClassName.replaceFirstChar { it.lowercase() },
+    )
+}
+
+internal fun renderApiProviderCode(
+    packageName: String,
+    generatedApis: List<GeneratedApiDescriptor>
+): String {
+    val serviceProperties = generatedApis.joinToString("\n\n") { api ->
+        """
+        |    /**
+        |     * ${api.apiClassName} 服务实例
+        |     */
+        |    val ${api.propertyName}: ${api.apiClassName}
+        |        get() = requireKtorfit().create<${api.apiClassName}>()
+        """.trimMargin()
+    }
+
+    return """
+        |package $packageName
+        |
+        |import de.jensklingenberg.ktorfit.Ktorfit
+        |import $packageName.*
+        |
+        |/**
+        | * 聚合后的 Ktorfit 服务提供者
+        | *
+        | * 仅聚合 controller2api 生成的接口，不扫描手写接口。
+        | */
+        |object ApiProvider {
+        |    @Volatile
+        |    private var currentKtorfit: Ktorfit? = null
+        |
+        |    fun configure(ktorfit: Ktorfit) {
+        |        currentKtorfit = ktorfit
+        |    }
+        |
+        |    private fun requireKtorfit(): Ktorfit {
+        |        return currentKtorfit
+        |            ?: error("ApiProvider 尚未配置 Ktorfit，请先调用 ApiProvider.configure(ktorfit)")
+        |    }
+        |
+        |$serviceProperties
+        |}
+    """.trimMargin()
+}
 
 private fun KSFunctionDeclaration.signatureKey(): String {
     val parentName = parentDeclaration?.qualifiedName?.asString()

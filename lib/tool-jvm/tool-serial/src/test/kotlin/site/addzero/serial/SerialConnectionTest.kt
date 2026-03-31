@@ -10,6 +10,10 @@ import kotlin.test.assertTrue
 class SerialConnectionTest {
     @Test
     fun `readExact 会把多个分片拼成完整报文`() {
+        /**
+         * fake 驱动每次只吐一小段数据，
+         * 用来模拟真实串口分片到达的情况。
+         */
         val driver = FakeSerialDriver(readChunks = listOf("AB".encodeToByteArray(), "CD".encodeToByteArray()))
         val connection = SerialConnection(driver, SerialPortConfig(portName = "FAKE"))
 
@@ -78,7 +82,16 @@ class SerialConnectionTest {
 private class FakeSerialDriver(
     readChunks: List<ByteArray> = emptyList(),
 ) : SerialDriver {
+    /**
+     * 预置待读取的数据队列。
+     *
+     * 每个元素代表底层驱动一次可能返回的一块数据。
+     */
     private val queue = ArrayDeque(readChunks.map { it.copyOf() })
+
+    /**
+     * 收集测试过程中写入的数据，便于断言调用方最终发出了什么。
+     */
     val written = ByteArrayOutputStream()
 
     override val systemPortName: String = "FAKE"
@@ -89,6 +102,10 @@ private class FakeSerialDriver(
         val read = minOf(buffer.size, chunk.size)
         chunk.copyInto(buffer, endIndex = read)
         if (read < chunk.size) {
+            /**
+             * 如果调用方给的缓冲区比当前 chunk 小，
+             * 把没读完的尾部重新塞回队列头部，模拟下次继续读。
+             */
             queue.addFirst(chunk.copyOfRange(read, chunk.size))
         }
         return read
@@ -108,5 +125,8 @@ private class FakeSerialDriver(
 
     override fun close() = Unit
 
+    /**
+     * 统计 fake 驱动里还没被消费掉的总字节数。
+     */
     fun remainingBytes(): Int = queue.sumOf { chunk -> chunk.size }
 }

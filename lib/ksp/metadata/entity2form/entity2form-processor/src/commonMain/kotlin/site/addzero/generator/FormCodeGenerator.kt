@@ -1,7 +1,7 @@
 package site.addzero.generator
 
 import com.google.devtools.ksp.processing.KSPLogger
-import site.addzero.context.SettingContext
+import site.addzero.entity2form.processor.context.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerGeneratedSourceWriter
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerTypeRef
@@ -19,8 +19,7 @@ class FormCodeGenerator(
         val entityClassName = entity.simpleName
         val isoClassName = "${entityClassName}Iso"
         val properties = collectProperties(entity)
-        val settings = SettingContext.settings
-        val apiProviderImport = "${settings.iso2DataProviderPackage}.Iso2DataProvider"
+        val apiProviderImport = "${Settings.iso2DataProviderPackage}.Iso2DataProvider"
 
         val formFields = properties.joinToString(",\n") { property ->
             generateFieldCode(entityClassName, property)
@@ -58,9 +57,9 @@ class FormCodeGenerator(
             |import site.addzero.component.form.selector.AddGenericMultiSelector
             |import site.addzero.core.ext.parseObjectByKtx
             |import site.addzero.core.validation.RegexEnum
-            |import ${settings.isomorphicPackageName}.*
+            |import ${Settings.isomorphicPackageName}.*
             |import $apiProviderImport
-            |import ${settings.enumOutputPackage}.*
+            |import ${Settings.enumOutputPackage}.*
             |
             |$formProps
             |

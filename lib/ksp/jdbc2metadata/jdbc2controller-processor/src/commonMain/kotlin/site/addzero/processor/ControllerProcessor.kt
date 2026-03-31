@@ -6,9 +6,8 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
-import site.addzero.context.SettingContext
-import site.addzero.context.SettingContext.settings
 import site.addzero.entity.JdbcTableMetadata
+import site.addzero.jdbc2controller.processor.context.Settings
 import site.addzero.util.JdbcMetadataExtractor
 import site.addzero.util.str.*
 import java.io.File
@@ -17,13 +16,9 @@ class ControllerProcessor(
     private val environment: SymbolProcessorEnvironment
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        SettingContext.initialize(environment.options)
-//        resolver.getde
+        Settings.fromOptions(environment.options)
         val tables = JdbcMetadataExtractor.initAndGetJdbcMetaDataTables(environment.options)
-        // 通过KSP options获取JDBC配置
-        // 获取所有表的元数据
         println("解析到${tables.size}张表元数据")
-        // 为每个表生成表单和formState
         tables.forEach { table ->
             generateFormFile(table)
         }
@@ -34,8 +29,8 @@ class ControllerProcessor(
     private fun generateFormFile(table: JdbcTableMetadata) {
         val tableName = table.tableName
         val entityName = tableName.toBigCamelCase()
-        val dir = SettingContext.settings.backendServerSourceDir
-        val controllerOutPackage = settings.controllerOutPackage
+        val dir = Settings.backendServerSourceDir
+        val controllerOutPackage = Settings.controllerOutPackage
         val withPkg = dir.withPkg(controllerOutPackage)
         val className = "${entityName}Controller"
         val fileName = className.withFileSuffix(".kt")
