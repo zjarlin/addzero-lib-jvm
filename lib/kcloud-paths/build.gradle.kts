@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.buildlogic.jvm.jvm-json")
+    id("site.addzero.buildlogic.jvm.jvm-json-withtool")
 }
 
 dependencies {
