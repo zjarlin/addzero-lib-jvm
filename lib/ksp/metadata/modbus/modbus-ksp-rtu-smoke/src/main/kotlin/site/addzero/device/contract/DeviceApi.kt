@@ -127,4 +127,7 @@ data class DeviceRuntimeInfo(
     /** 波特率编码。 */
     @ModbusField(codec = ModbusCodec.U16, registerOffset = 3)
     val baudRateCode: Int,
+    /** 设备名称。 */
+    @ModbusField(codec = ModbusCodec.STRING_UTF8, registerOffset = 4, length = 16)
+    val deviceName: String,
 )

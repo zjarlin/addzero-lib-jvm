@@ -1550,6 +1550,52 @@ object ModbusArtifactTemplates {
             ModbusReturnKind.DTO -> "`${simpleName}`"
         }
 
+    private fun ModbusParameterModel.renderRegisterPackExpression(): String =
+        when (valueKind) {
+            ModbusValueKind.STRING -> "ModbusCodecSupport.encodeString(ModbusCodec.${codecName}, ${name}, ${registerWidth})"
+            else -> "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString())"
+        }
+
+    private fun ModbusParameterModel.cMemberDeclaration(): String =
+        when (valueKind) {
+            ModbusValueKind.STRING -> "char ${name.toSnakeCase()}[${stringCharCapacity()}];"
+            else -> "${cType()} ${name.toSnakeCase()};"
+        }
+
+    private fun ModbusPropertyModel.cMemberDeclaration(): String =
+        when (valueKind) {
+            ModbusValueKind.STRING -> "char ${name.toSnakeCase()}[${stringCharCapacity()}];"
+            else -> "${cType()} ${name.toSnakeCase()};"
+        }
+
+    private fun ModbusParameterModel.cFieldComment(): String =
+        when (valueKind) {
+            ModbusValueKind.STRING -> "${doc} codec=$codecName registers=$registerWidth charCapacity=${stringCharCapacity()}。"
+            else -> doc
+        }
+
+    private fun ModbusPropertyModel.cFieldComment(): String =
+        when (valueKind) {
+            ModbusValueKind.STRING -> "${doc} codec=${field?.codecName.orEmpty()} registers=${field?.registerWidth ?: 0} charCapacity=${stringCharCapacity()}。"
+            else -> doc
+        }
+
+    private fun ModbusPropertyModel.renderBridgeDefaultAssignment(prefix: String): String =
+        when (valueKind) {
+            ModbusValueKind.STRING -> "${prefix}${name.toSnakeCase()}[0] = '\\0';"
+            else -> "${prefix}${name.toSnakeCase()} = 0;"
+        }
+
+    private fun ModbusParameterModel.stringCharCapacity(): Int = (registerWidth * 2) + 1
+
+    private fun ModbusPropertyModel.stringCharCapacity(): Int = ((field?.registerWidth ?: 0) * 2) + 1
+
+    private fun ModbusServiceModel.usesStringRegisters(): Boolean =
+        operations.any { operation ->
+            operation.parameters.any { parameter -> parameter.valueKind == ModbusValueKind.STRING } ||
+                operation.returnType.properties.any { property -> property.valueKind == ModbusValueKind.STRING }
+        }
+
     private fun renderTransportDefaultsMarkdownRows(transport: ModbusTransportKind): List<List<String>> =
         when (transport) {
             ModbusTransportKind.RTU ->

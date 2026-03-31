@@ -86,7 +86,7 @@ class ModbusContractDefaultsResolverTest {
         val resolved =
             ModbusContractDefaultsResolver.resolveOperations(
                 serviceId = "mcuinfo",
-                operations = listOf(readIdentityOperation(), readPartitionLayoutOperation()),
+                operations = listOf(readIdentityOperation(), readPartitionLayoutOperation(), readRuntimeNameOperation()),
             ).associateBy(ModbusOperationModel::methodName)
 
         assertEquals("read-identity", resolved.getValue("readIdentity").operationId)
@@ -94,6 +94,8 @@ class ModbusContractDefaultsResolverTest {
 
         assertEquals("read-partition-layout", resolved.getValue("readPartitionLayout").operationId)
         assertEquals(9, resolved.getValue("readPartitionLayout").quantity)
+        assertEquals("read-runtime-name", resolved.getValue("readRuntimeName").operationId)
+        assertEquals(8, resolved.getValue("readRuntimeName").quantity)
     }
 
     @Test
@@ -194,6 +196,28 @@ class ModbusContractDefaultsResolverTest {
                 ),
         )
 
+    private fun readRuntimeNameOperation(): ModbusOperationModel =
+        operation(
+            methodName = "readRuntimeName",
+            functionCodeName = "READ_INPUT_REGISTERS",
+            returnType =
+                ModbusReturnTypeModel(
+                    qualifiedName = "site.addzero.esp32_host_computer.api.RuntimeNameInfo",
+                    simpleName = "RuntimeNameInfo",
+                    kind = ModbusReturnKind.DTO,
+                    properties =
+                        listOf(
+                            property(
+                                name = "deviceName",
+                                codecName = "STRING_UTF8",
+                                registerOffset = 0,
+                                valueKind = ModbusValueKind.STRING,
+                                registerWidth = 8,
+                            ),
+                        ),
+                ),
+        )
+
     private fun resetDeviceOperation(): ModbusOperationModel =
         operation(
             methodName = "resetDevice",
@@ -276,7 +300,12 @@ class ModbusContractDefaultsResolverTest {
     ): ModbusParameterModel =
         ModbusParameterModel(
             name = name,
-            qualifiedType = if (valueKind == ModbusValueKind.BOOLEAN) "kotlin.Boolean" else "kotlin.Int",
+            qualifiedType =
+                when (valueKind) {
+                    ModbusValueKind.BOOLEAN -> "kotlin.Boolean"
+                    ModbusValueKind.INT -> "kotlin.Int"
+                    ModbusValueKind.STRING -> "kotlin.String"
+                },
             valueKind = valueKind,
             order = order,
             codecName = codecName,
@@ -298,18 +327,24 @@ class ModbusContractDefaultsResolverTest {
         codecName: String,
         registerOffset: Int,
         valueKind: ModbusValueKind = ModbusValueKind.INT,
+        registerWidth: Int = if (codecName == "U32_BE") 2 else 1,
     ): ModbusPropertyModel =
         ModbusPropertyModel(
             name = name,
-            qualifiedType = if (valueKind == ModbusValueKind.BOOLEAN) "kotlin.Boolean" else "kotlin.Int",
+            qualifiedType =
+                when (valueKind) {
+                    ModbusValueKind.BOOLEAN -> "kotlin.Boolean"
+                    ModbusValueKind.INT -> "kotlin.Int"
+                    ModbusValueKind.STRING -> "kotlin.String"
+                },
             valueKind = valueKind,
             field =
                 ModbusFieldModel(
                     codecName = codecName,
                     registerOffset = registerOffset,
                     bitOffset = 0,
-                    length = 1,
-                    registerWidth = if (codecName == "U32_BE") 2 else 1,
+                    length = if (valueKind == ModbusValueKind.STRING) registerWidth else 1,
+                    registerWidth = registerWidth,
                 ),
             doc = "$name 字段",
         )

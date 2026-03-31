@@ -64,20 +64,23 @@ class ModbusRtuSmokeGenerationTest {
         }
 
         assertTrue(gatewayKt.readText().contains("executor.readCoils(resolvedConfig, 0, 24)"))
-        assertTrue(gatewayKt.readText().contains("executor.readInputRegisters(resolvedConfig, 100, 4)"))
+        assertTrue(gatewayKt.readText().contains("executor.readInputRegisters(resolvedConfig, 100, 20)"))
         assertTrue(gatewayKt.readText().contains("class DeviceApiGeneratedRtuGateway"))
         assertTrue(gatewayKt.readText().contains("suspend fun getDeviceRuntimeInfo("))
+        assertTrue(gatewayKt.readText().contains("deviceName = ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 4, 16)"))
 
         assertTrue(generatedHeader.readText().contains("请勿手动修改此文件。"))
         assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_INFO_QUANTITY 24"))
         assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_RUNTIME_INFO_ADDRESS 100"))
-        assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_RUNTIME_INFO_QUANTITY 4"))
+        assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_RUNTIME_INFO_QUANTITY 20"))
         assertTrue(generatedHeader.readText().contains("bool ch24;"))
         assertTrue(generatedHeader.readText().contains("int32_t protocol_version;"))
+        assertTrue(generatedHeader.readText().contains("char device_name[33];"))
 
         assertTrue(generatedSource.readText().contains("device_bridge_get_device_info"))
         assertTrue(generatedSource.readText().contains("device_bridge_get_device_runtime_info"))
         assertTrue(generatedSource.readText().contains("请勿手动修改此文件。"))
+        assertTrue(generatedSource.readText().contains("device_generated_encode_string_registers(response.device_name, out_registers, 4, 16);"))
 
         assertTrue(bridgeHeader.readText().contains("请勿手动修改此文件。"))
         assertTrue(bridgeHeader.readText().contains("在你的板级/业务 .c 文件中 #include \"device_bridge.h\""))
@@ -101,8 +104,9 @@ class ModbusRtuSmokeGenerationTest {
 
         assertTrue(protocolMarkdown.readText().contains("| `get-device-info` | `getDeviceInfo` | `READ_COILS` | `0` | `24` | `DeviceInfo24` | 读取 24 路输出通道状态。 |"))
         assertTrue(protocolMarkdown.readText().contains("| `ch24` | `Boolean` | `BOOL_COIL` | `23` | `0` | `1` | 通道 24。 |"))
-        assertTrue(protocolMarkdown.readText().contains("| `get-device-runtime-info` | `getDeviceRuntimeInfo` | `READ_INPUT_REGISTERS` | `100` | `4` | `DeviceRuntimeInfo` | 读取设备运行信息。 |"))
+        assertTrue(protocolMarkdown.readText().contains("| `get-device-runtime-info` | `getDeviceRuntimeInfo` | `READ_INPUT_REGISTERS` | `100` | `20` | `DeviceRuntimeInfo` | 读取设备运行信息。 |"))
         assertTrue(protocolMarkdown.readText().contains("| `protocolVersion` | `Int` | `U16` | `0` | `0` | `1` | 协议版本。 |"))
+        assertTrue(protocolMarkdown.readText().contains("| `deviceName` | `String` | `STRING_UTF8` | `4` | `0` | `16` | 设备名称。 |"))
 
         assertTrue(externalGeneratedHeader.readText().contains("请勿手动修改此文件。"))
         assertTrue(externalBridgeHeader.readText().contains("device_bridge_get_device_info"))
