@@ -25,8 +25,8 @@ Modbus KSP 共享 IR、校验与渲染核心。
     - `modbus_tcp_dispatch.c`
     - `*_generated.h`
     - `*_generated.c`
-    - `*_user_contract.h`
-    - `*_user_impl.sample.c`
+    - `*_bridge.h`
+    - `*_bridge.sample.c`
 
 ## 设计约束
 

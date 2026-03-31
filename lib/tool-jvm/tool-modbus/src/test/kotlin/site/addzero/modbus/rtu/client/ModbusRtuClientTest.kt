@@ -37,20 +37,55 @@ class ModbusRtuClientTest {
     }
 
     @Test
-    fun `客户端可以通过会话读取和写入 RTU 数据`() {
-      val config = defaultClientConfig()
-      val client = ModbusRtuClient(config, sessionFactory)
+    fun `上位机访问下位机时应作为 RTU client 并读取从站 1 的 24 路线圈`() {
+        val client =
+            ModbusRtuClient(
+                defaultClientConfig(
+                    portName = "/dev/cu.usbserial-2140",
+                    unitId = 1,
+                ),
+                sessionFactory,
+            )
         client.connect()
         val session = openedSessions.single()
-        session.coils = listOf(true, false, true)
-        session.discreteInputs = listOf(false, true)
-        session.holdingRegisters = listOf(11, 22)
-        session.inputRegisters = listOf(33)
+        session.setCoils(
+            0,
+            listOf(
+                true, false, true, false, true, false,
+                true, false, true, false, true, false,
+                true, false, true, false, true, false,
+                true, false, true, false, true, false,
+            ),
+        )
+
+        val actual = client.readCoils(address = 0, count = 24)
+
+        assertEquals(Triple(1, 0, 24), session.lastReadCoils)
+        assertEquals(24, actual.size)
+        assertTrue(actual[0])
+        assertEquals(false, actual[1])
+        assertTrue(actual[22])
+        assertEquals(false, actual[23])
+    }
+
+    @Test
+    fun `客户端可以通过会话读写不同类型的 RTU 数据`() {
+        val client = ModbusRtuClient(defaultClientConfig(), sessionFactory)
+        client.connect()
+        val session = openedSessions.single()
+        session.setCoils(0, listOf(true, false, true))
+        session.setDiscreteInputs(10, listOf(false, true))
+        session.setHoldingRegisters(20, listOf(11, 22))
+        session.setInputRegisters(30, listOf(33))
 
         assertContentEquals(listOf(true, false, true), client.readCoils(0, 3))
+        assertEquals(Triple(1, 0, 3), session.lastReadCoils)
         assertContentEquals(listOf(false, true), client.readDiscreteInputs(10, 2))
+        assertEquals(Triple(1, 10, 2), session.lastReadDiscreteInputs)
         assertContentEquals(listOf(11, 22), client.readHoldingRegisters(20, 2))
+        assertEquals(Triple(1, 20, 2), session.lastReadHoldingRegisters)
         assertContentEquals(listOf(33), client.readInputRegisters(30, 1))
+        assertEquals(Triple(1, 30, 1), session.lastReadInputRegisters)
 
         client.writeSingleCoil(1, true)
         client.writeMultipleCoils(2, listOf(false, true))
@@ -98,12 +133,19 @@ class ModbusRtuClientTest {
     }
 
     private fun defaultClientConfig(): ModbusRtuClientConfig =
+        defaultClientConfig(portName = "/dev/cu.usbserial-2140")
+
+    private fun defaultClientConfig(
+        portName: String,
+        unitId: Int = 1,
+    ): ModbusRtuClientConfig =
         ModbusRtuClientConfig(
             serialConfig =
                 SerialPortConfig(
-                    portName = "/dev/ttyUSB0",
+                    portName = portName,
                     baudRate = 9600,
                 ),
+            unitId = unitId,
         )
 }
 
@@ -111,23 +153,63 @@ private class FakeRtuSession : ModbusRtuSession {
     /**
      * 下面这些字段分别模拟设备当前能读到的数据区。
      */
-    var coils: List<Boolean> = listOf(false)
-    var discreteInputs: List<Boolean> = listOf(false)
-    var holdingRegisters: List<Int> = listOf(0)
-    var inputRegisters: List<Int> = listOf(0)
+    private val coils = mutableMapOf<Int, Boolean>()
+    private val discreteInputs = mutableMapOf<Int, Boolean>()
+    private val holdingRegisters = mutableMapOf<Int, Int>()
+    private val inputRegisters = mutableMapOf<Int, Int>()
+    var lastReadCoils: Triple<Int, Int, Int>? = null
+    var lastReadDiscreteInputs: Triple<Int, Int, Int>? = null
+    var lastReadHoldingRegisters: Triple<Int, Int, Int>? = null
+    var lastReadInputRegisters: Triple<Int, Int, Int>? = null
     var singleCoilWrite: Triple<Int, Int, Boolean>? = null
     var multiCoilWrite: Triple<Int, Int, List<Boolean>>? = null
     var singleRegisterWrite: Triple<Int, Int, Int>? = null
     var multiRegisterWrite: Triple<Int, Int, List<Int>>? = null
     var closed: Boolean = false
 
-    override fun readCoils(unitId: Int, address: Int, count: Int): List<Boolean> = coils.take(count)
+    fun setCoils(address: Int, values: List<Boolean>) {
+        values.forEachIndexed { index, value ->
+            coils[address + index] = value
+        }
+    }
 
-    override fun readDiscreteInputs(unitId: Int, address: Int, count: Int): List<Boolean> = discreteInputs.take(count)
+    fun setDiscreteInputs(address: Int, values: List<Boolean>) {
+        values.forEachIndexed { index, value ->
+            discreteInputs[address + index] = value
+        }
+    }
 
-    override fun readHoldingRegisters(unitId: Int, address: Int, count: Int): List<Int> = holdingRegisters.take(count)
+    fun setHoldingRegisters(address: Int, values: List<Int>) {
+        values.forEachIndexed { index, value ->
+            holdingRegisters[address + index] = value
+        }
+    }
 
-    override fun readInputRegisters(unitId: Int, address: Int, count: Int): List<Int> = inputRegisters.take(count)
+    fun setInputRegisters(address: Int, values: List<Int>) {
+        values.forEachIndexed { index, value ->
+            inputRegisters[address + index] = value
+        }
+    }
+
+    override fun readCoils(unitId: Int, address: Int, count: Int): List<Boolean> {
+        lastReadCoils = Triple(unitId, address, count)
+        return List(count) { offset -> coils[address + offset] ?: false }
+    }
+
+    override fun readDiscreteInputs(unitId: Int, address: Int, count: Int): List<Boolean> {
+        lastReadDiscreteInputs = Triple(unitId, address, count)
+        return List(count) { offset -> discreteInputs[address + offset] ?: false }
+    }
+
+    override fun readHoldingRegisters(unitId: Int, address: Int, count: Int): List<Int> {
+        lastReadHoldingRegisters = Triple(unitId, address, count)
+        return List(count) { offset -> holdingRegisters[address + offset] ?: 0 }
+    }
+
+    override fun readInputRegisters(unitId: Int, address: Int, count: Int): List<Int> {
+        lastReadInputRegisters = Triple(unitId, address, count)
+        return List(count) { offset -> inputRegisters[address + offset] ?: 0 }
+    }
 
     override fun writeSingleCoil(unitId: Int, address: Int, value: Boolean) {
         singleCoilWrite = Triple(unitId, address, value)

@@ -241,6 +241,26 @@ class SerialConnection internal constructor(
         }
     }
 
+    /**
+     * 显式切换 DTR 线路状态。
+     */
+    fun setDtr(enabled: Boolean) {
+        require(isOpen) {
+            "串口尚未打开：$systemPortName"
+        }
+        driver.setDtr(enabled)
+    }
+
+    /**
+     * 显式切换 RTS 线路状态。
+     */
+    fun setRts(enabled: Boolean) {
+        require(isOpen) {
+            "串口尚未打开：$systemPortName"
+        }
+        driver.setRts(enabled)
+    }
+
     override fun close() {
         driver.close()
     }

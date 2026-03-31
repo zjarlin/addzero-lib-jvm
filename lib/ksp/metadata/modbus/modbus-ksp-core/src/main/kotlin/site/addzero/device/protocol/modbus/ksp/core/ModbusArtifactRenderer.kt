@@ -1,10 +1,14 @@
 package site.addzero.device.protocol.modbus.ksp.core
 
 /**
- * 统一渲染 Kotlin 与 C 产物。
+ * Modbus 产物模板集合。
+ *
+ * 这里保留实际模板渲染逻辑；
+ * 具体由哪个模块暴露成 Kotlin gateway / C contract / Markdown 文档，
+ * 由外层 SPI facade 决定。
  */
-object ModbusArtifactRenderer {
-    fun renderServerArtifacts(
+object ModbusArtifactTemplates {
+    fun renderGatewayArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
     ): List<GeneratedArtifact> {
@@ -68,10 +72,14 @@ object ModbusArtifactRenderer {
         )
     }
 
-    fun renderContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> {
+    fun renderServerArtifacts(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services)
+
+    fun renderServiceContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> {
         val outputPackage = "generated.modbus.${service.transport.transportId}"
         val cServiceName = service.cServiceName
-        val protocolFileBaseName = "${service.protocolDocBaseName()}.${service.transport.transportId}.protocol"
         return listOf(
             GeneratedArtifact(
                 packageName = outputPackage,
@@ -87,16 +95,22 @@ object ModbusArtifactRenderer {
             ),
             GeneratedArtifact(
                 packageName = outputPackage,
-                fileName = "${cServiceName}_user_contract",
+                fileName = "${cServiceName}_bridge",
                 extensionName = "h",
-                content = renderUserContractHeader(service),
+                content = renderBridgeHeader(service),
             ),
             GeneratedArtifact(
                 packageName = outputPackage,
-                fileName = "${cServiceName}_user_impl",
+                fileName = "${cServiceName}_bridge",
                 extensionName = "sample.c",
-                content = renderUserSampleSource(service),
+                content = renderBridgeSampleSource(service),
             ),
+        )
+    }
+
+    fun renderMarkdownArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> {
+        val protocolFileBaseName = "${service.protocolDocBaseName()}.${service.transport.transportId}.protocol"
+        return listOf(
             GeneratedArtifact(
                 packageName = "generated.modbus.protocols",
                 fileName = protocolFileBaseName,
@@ -105,6 +119,9 @@ object ModbusArtifactRenderer {
             ),
         )
     }
+
+    fun renderContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> =
+        renderServiceContractArtifacts(service) + renderMarkdownArtifacts(service)
 
     fun renderTransportContractArtifacts(
         transport: ModbusTransportKind,
@@ -115,20 +132,40 @@ object ModbusArtifactRenderer {
         }
 
         val outputPackage = "generated.modbus.${transport.transportId}"
-        return listOf(
+        return buildList {
+            add(
             GeneratedArtifact(
                 packageName = outputPackage,
                 fileName = transport.dispatchFileName(),
                 extensionName = "h",
                 content = renderTransportDispatchHeader(transport, services),
-            ),
+            ))
+            add(
             GeneratedArtifact(
                 packageName = outputPackage,
                 fileName = transport.dispatchFileName(),
                 extensionName = "c",
                 content = renderTransportDispatchSource(transport, services),
-            ),
-        )
+            ))
+            if (transport == ModbusTransportKind.RTU) {
+                add(
+                    GeneratedArtifact(
+                        packageName = outputPackage,
+                        fileName = "modbus_rtu_agile_slave_adapter",
+                        extensionName = "sample.h",
+                        content = renderRtuAgileSlaveAdapterHeader(),
+                    )
+                )
+                add(
+                    GeneratedArtifact(
+                        packageName = outputPackage,
+                        fileName = "modbus_rtu_agile_slave_adapter",
+                        extensionName = "sample.c",
+                        content = renderRtuAgileSlaveAdapterSource(),
+                    )
+                )
+            }
+        }
     }
 
     private fun renderProtocolMarkdown(service: ModbusServiceModel): String =
@@ -266,8 +303,15 @@ object ModbusArtifactRenderer {
             appendLine()
             appendLine("/*")
             appendLine(" * ${transport.displayName} 聚合分发入口。")
-            appendLine(" * 生成层已经把 address / quantity / 编解码粘合逻辑收口到这里。")
-            appendLine(" * 固件侧只需要把运行时收到的请求转发到这些函数，再实现各个 *_user_* 业务方法。")
+            appendLine(" *")
+            appendLine(" * 桥接链路：")
+            appendLine(" * agile_modbus callback")
+            appendLine(" *   -> ${transport.dispatchFileName()}.c")
+            appendLine(" *   -> *_generated.c")
+            appendLine(" *   -> *_bridge.h / 板级 bridge 实现")
+            appendLine(" *")
+            appendLine(" * 固件侧不需要在这里手写地址判断。")
+            appendLine(" * 只需要实现每个 service 的 *_bridge_* 业务函数，然后把 RTU adapter 接到 agile_modbus。")
             appendLine(" */")
             appendLine("typedef struct {")
             appendLine("    bool accepted;")
@@ -372,6 +416,140 @@ object ModbusArtifactRenderer {
             appendLine("}")
         }
     }
+
+    private fun renderRtuAgileSlaveAdapterHeader(): String =
+        buildString {
+            appendLine("#ifndef MODBUS_RTU_AGILE_SLAVE_ADAPTER_H")
+            appendLine("#define MODBUS_RTU_AGILE_SLAVE_ADAPTER_H")
+            appendLine()
+            appendLine("#include \"agile_modbus.h\"")
+            appendLine()
+            appendLine("/*")
+            appendLine(" * RTU + agile_modbus 适配入口。")
+            appendLine(" *")
+            appendLine(" * 在 freertos.c 或你的串口任务里，把 agile_modbus_slave_handle(...) 的 callback")
+            appendLine(" * 替换成 generated_modbus_rtu_agile_slave_callback。")
+            appendLine(" *")
+            appendLine(" * 业务桥接函数不需要在这个文件里实现；")
+            appendLine(" * 它们会通过 modbus_rtu_dispatch.c -> *_generated.c -> *_bridge.h 自动被调用。")
+            appendLine(" */")
+            appendLine()
+            appendLine("int generated_modbus_rtu_agile_slave_callback(")
+            appendLine("    agile_modbus_t *ctx,")
+            appendLine("    struct agile_modbus_slave_info *slave_info,")
+            appendLine("    const void *data")
+            appendLine(");")
+            appendLine()
+            appendLine("#endif")
+        }
+
+    private fun renderRtuAgileSlaveAdapterSource(): String =
+        buildString {
+            appendLine("#include \"modbus_rtu_agile_slave_adapter.h\"")
+            appendLine()
+            appendLine("#include \"modbus_rtu_dispatch.h\"")
+            appendLine()
+            appendLine("/*")
+            appendLine(" * 这个文件只做 transport/runtime 适配：")
+            appendLine(" * 1. 从 agile_modbus 解析请求")
+            appendLine(" * 2. 调用 modbus_rtu_dispatch_*")
+            appendLine(" * 3. 把 dispatch 返回值重新打包回 agile_modbus send_buf")
+            appendLine(" *")
+            appendLine(" * 它不承载任何板级业务逻辑。")
+            appendLine(" */")
+            appendLine()
+            appendLine("static int generated_pack_read_coils(agile_modbus_t *ctx, struct agile_modbus_slave_info *slave_info, bool (*dispatch_fn)(uint16_t, uint16_t, bool *)) {")
+            appendLine("    if (ctx == NULL || slave_info == NULL || dispatch_fn == NULL) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("    }")
+            appendLine("    bool coil_values[256] = {0};")
+            appendLine("    if (slave_info->nb > 256) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("    }")
+            appendLine("    if (!dispatch_fn((uint16_t)slave_info->address, (uint16_t)slave_info->nb, coil_values)) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;")
+            appendLine("    }")
+            appendLine("    for (int i = 0; i < slave_info->nb; ++i) {")
+            appendLine("        agile_modbus_slave_io_set(ctx->send_buf + slave_info->send_index, i, coil_values[i] ? 1 : 0);")
+            appendLine("    }")
+            appendLine("    return 0;")
+            appendLine("}")
+            appendLine()
+            appendLine("static int generated_pack_read_registers(agile_modbus_t *ctx, struct agile_modbus_slave_info *slave_info, bool (*dispatch_fn)(uint16_t, uint16_t, uint16_t *)) {")
+            appendLine("    if (ctx == NULL || slave_info == NULL || dispatch_fn == NULL) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("    }")
+            appendLine("    uint16_t register_values[128] = {0};")
+            appendLine("    if (slave_info->nb > 128) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("    }")
+            appendLine("    if (!dispatch_fn((uint16_t)slave_info->address, (uint16_t)slave_info->nb, register_values)) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;")
+            appendLine("    }")
+            appendLine("    for (int i = 0; i < slave_info->nb; ++i) {")
+            appendLine("        agile_modbus_slave_register_set(ctx->send_buf + slave_info->send_index, i, register_values[i]);")
+            appendLine("    }")
+            appendLine("    return 0;")
+            appendLine("}")
+            appendLine()
+            appendLine("int generated_modbus_rtu_agile_slave_callback(")
+            appendLine("    agile_modbus_t *ctx,")
+            appendLine("    struct agile_modbus_slave_info *slave_info,")
+            appendLine("    const void *data")
+            appendLine(") {")
+            appendLine("    (void)data;")
+            appendLine("    if (ctx == NULL || slave_info == NULL || slave_info->sft == NULL) {")
+            appendLine("        return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("    }")
+            appendLine()
+            appendLine("    switch (slave_info->sft->function) {")
+            appendLine("        case AGILE_MODBUS_FC_READ_COILS:")
+            appendLine("            return generated_pack_read_coils(ctx, slave_info, modbus_rtu_dispatch_read_coils);")
+            appendLine("        case AGILE_MODBUS_FC_READ_DISCRETE_INPUTS:")
+            appendLine("            return generated_pack_read_coils(ctx, slave_info, modbus_rtu_dispatch_read_discrete_inputs);")
+            appendLine("        case AGILE_MODBUS_FC_READ_INPUT_REGISTERS:")
+            appendLine("            return generated_pack_read_registers(ctx, slave_info, modbus_rtu_dispatch_read_input_registers);")
+            appendLine("        case AGILE_MODBUS_FC_READ_HOLDING_REGISTERS:")
+            appendLine("            return generated_pack_read_registers(ctx, slave_info, modbus_rtu_dispatch_read_holding_registers);")
+            appendLine("        case AGILE_MODBUS_FC_WRITE_SINGLE_COIL: {")
+            appendLine("            modbus_rtu_dispatch_command_result_t result = {0};")
+            appendLine("            const int accepted = modbus_rtu_dispatch_write_single_coil((uint16_t)slave_info->address, *((int *)slave_info->buf) != 0, &result);")
+            appendLine("            return accepted ? 0 : -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;")
+            appendLine("        }")
+            appendLine("        case AGILE_MODBUS_FC_WRITE_MULTIPLE_COILS: {")
+            appendLine("            bool coil_values[256] = {0};")
+            appendLine("            if (slave_info->nb > 256) {")
+            appendLine("                return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("            }")
+            appendLine("            for (int i = 0; i < slave_info->nb; ++i) {")
+            appendLine("                coil_values[i] = agile_modbus_slave_io_get(slave_info->buf, i) != 0;")
+            appendLine("            }")
+            appendLine("            modbus_rtu_dispatch_command_result_t result = {0};")
+            appendLine("            const int accepted = modbus_rtu_dispatch_write_multiple_coils((uint16_t)slave_info->address, (uint16_t)slave_info->nb, coil_values, &result);")
+            appendLine("            return accepted ? 0 : -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;")
+            appendLine("        }")
+            appendLine("        case AGILE_MODBUS_FC_WRITE_SINGLE_REGISTER: {")
+            appendLine("            modbus_rtu_dispatch_command_result_t result = {0};")
+            appendLine("            const int accepted = modbus_rtu_dispatch_write_single_register((uint16_t)slave_info->address, (uint16_t)(*((int *)slave_info->buf)), &result);")
+            appendLine("            return accepted ? 0 : -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;")
+            appendLine("        }")
+            appendLine("        case AGILE_MODBUS_FC_WRITE_MULTIPLE_REGISTERS: {")
+            appendLine("            uint16_t register_values[128] = {0};")
+            appendLine("            if (slave_info->nb > 128) {")
+            appendLine("                return -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;")
+            appendLine("            }")
+            appendLine("            for (int i = 0; i < slave_info->nb; ++i) {")
+            appendLine("                register_values[i] = agile_modbus_slave_register_get(slave_info->buf, i);")
+            appendLine("            }")
+            appendLine("            modbus_rtu_dispatch_command_result_t result = {0};")
+            appendLine("            const int accepted = modbus_rtu_dispatch_write_multiple_registers((uint16_t)slave_info->address, (uint16_t)slave_info->nb, register_values, &result);")
+            appendLine("            return accepted ? 0 : -AGILE_MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;")
+            appendLine("        }")
+            appendLine("        default:")
+            appendLine("            return -AGILE_MODBUS_EXCEPTION_ILLEGAL_FUNCTION;")
+            appendLine("    }")
+            appendLine("}")
+        }
 
     private fun renderTransportWriteSingleCoilDispatch(
         transport: ModbusTransportKind,
@@ -588,7 +766,7 @@ object ModbusArtifactRenderer {
             appendLine("/**")
             appendLine(" * ${escapeComment(service.doc.summary)}")
             appendLine(" *")
-            appendLine(" * 该网关由 KSP 自动生成，负责把高阶 Kotlin 接口翻译成 ${service.transport.displayName} 调用。")
+            appendLine(" * 该 gateway 由 KSP 自动生成，负责把高阶 Kotlin 接口翻译成 ${service.transport.displayName} 调用。")
             appendLine(" */")
             appendLine(
                 "class ${service.gatewayClassName}(" +
@@ -728,7 +906,15 @@ object ModbusArtifactRenderer {
                 appendLine(" * ${escapeCComment(line)}")
             }
             appendLine(" *")
-            appendLine(" * 该文件由 ${service.transport.displayName} KSP 处理器自动生成，请勿直接手改。")
+            appendLine(" * 该文件由 ${service.transport.displayName} KSP 自动生成，请勿直接手改。")
+            appendLine(" *")
+            appendLine(" * 职责：")
+            appendLine(" * - 定义该 service 的 Modbus address / quantity 常量")
+            appendLine(" * - 定义 request/response DTO 对应的 C struct")
+            appendLine(" * - 声明 generated dispatch 入口")
+            appendLine(" *")
+            appendLine(" * 固件同事真正要实现的板级逻辑不在这里，")
+            appendLine(" * 而是在 ${service.cServiceName}_bridge.h 对应的 bridge 实现文件里。")
             appendLine(" */")
             appendLine()
             appendLine("#define ${service.cServiceName.uppercase()}_SERVICE_ID \"${service.serviceId}\"")
@@ -777,22 +963,34 @@ object ModbusArtifactRenderer {
             appendLine("#endif")
         }
 
-    private fun renderUserContractHeader(service: ModbusServiceModel): String =
+    private fun renderBridgeHeader(service: ModbusServiceModel): String =
         buildString {
-            val guard = "${service.cServiceName}_user_contract_h".uppercase()
+            val guard = "${service.cServiceName}_bridge_h".uppercase()
             appendLine("#ifndef $guard")
             appendLine("#define $guard")
             appendLine()
             appendLine("#include \"${service.cServiceName}_generated.h\"")
             appendLine()
             appendLine("/*")
-            appendLine(" * 这个头文件属于固件同事的业务层扩展面。")
-            appendLine(" * 生成层只会调用这里声明的函数，不会覆盖你手写的实现。")
+            appendLine(" * ${service.interfaceSimpleName} bridge SPI。")
+            appendLine(" *")
+            appendLine(" * 这是固件业务层唯一需要长期维护的 service 接口面。")
+            appendLine(" *")
+            appendLine(" * 集成方法：")
+            appendLine(" * 1. 在你的板级/业务 .c 文件中 #include \"${service.cServiceName}_bridge.h\"")
+            appendLine(" * 2. 实现下面声明的 ${service.cServiceName}_bridge_* 函数")
+            appendLine(" * 3. 这些 bridge 函数负责读取真实 GPIO、寄存器、传感器状态，或处理写请求")
+            appendLine(" * 4. *_generated.c 会调用这些 bridge 函数完成 DTO <-> Modbus 数据转换")
+            appendLine(" *")
+            appendLine(" * 桥接链路：adapter -> dispatch -> generated -> bridge implementation")
+            appendLine(" *")
+            appendLine(" * 不要修改 *_generated.c；")
+            appendLine(" * 若要接板级逻辑，只改你自己的 bridge 实现文件。")
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
                 appendLine("/* ${escapeCComment(operation.doc.summary)} */")
-                appendLine("${operation.userContractSignature(service)};")
+                appendLine("${operation.bridgeSignature(service)};")
                 appendLine()
             }
             appendLine("#endif")
@@ -801,7 +999,18 @@ object ModbusArtifactRenderer {
     private fun renderGeneratedSource(service: ModbusServiceModel): String =
         buildString {
             appendLine("#include \"${service.cServiceName}_generated.h\"")
-            appendLine("#include \"${service.cServiceName}_user_contract.h\"")
+            appendLine("#include \"${service.cServiceName}_bridge.h\"")
+            appendLine()
+            appendLine("/*")
+            appendLine(" * generated dispatch 实现。")
+            appendLine(" *")
+            appendLine(" * 它负责：")
+            appendLine(" * - 检查 Modbus quantity / buffer 边界")
+            appendLine(" * - 在 request/response struct 与 Modbus bit/register buffer 之间编解码")
+            appendLine(" * - 调用 ${service.cServiceName}_bridge_* SPI 获取或提交业务数据")
+            appendLine(" *")
+            appendLine(" * 固件业务代码不要改这里。")
+            appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
                 appendLine("${operation.generatedDispatchSignature(service)} {")
@@ -811,17 +1020,24 @@ object ModbusArtifactRenderer {
             }
         }
 
-    private fun renderUserSampleSource(service: ModbusServiceModel): String =
+    private fun renderBridgeSampleSource(service: ModbusServiceModel): String =
         buildString {
-            appendLine("#include \"${service.cServiceName}_user_contract.h\"")
+            appendLine("#include \"${service.cServiceName}_bridge.h\"")
             appendLine()
             appendLine("/*")
-            appendLine(" * 示例实现文件。")
-            appendLine(" * 请复制为你自己的 .c 文件后继续完善，不要直接修改这个 sample 文件。")
+            appendLine(" * bridge 示例实现。")
+            appendLine(" *")
+            appendLine(" * 推荐做法：")
+            appendLine(" * - 复制这个 sample 为你的板级文件，例如 ${service.cServiceName}_bridge_impl.c")
+            appendLine(" * - 在复制后的文件里接入 GPIO / ADC / 业务状态机 / Flash / 传感器驱动")
+            appendLine(" * - 保留 #include \"${service.cServiceName}_bridge.h\"")
+            appendLine(" *")
+            appendLine(" * 不要直接修改 generated 的 *_generated.c。")
+            appendLine(" * Modbus 桥接最终会自动调用这里声明的 SPI 函数。")
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
-                appendLine("${operation.userContractSignature(service)} {")
+                appendLine("${operation.bridgeSignature(service)} {")
                 appendLine("    /* ${escapeCComment(operation.doc.summary)} */")
                 when (operation.returnType.kind) {
                     ModbusReturnKind.DTO -> {
@@ -839,7 +1055,7 @@ object ModbusArtifactRenderer {
                         appendLine("        return false;")
                         appendLine("    }")
                         appendLine("    out_result->accepted = true;")
-                        appendLine("    out_result->summary = \"请补充业务实现\";")
+                        appendLine("    out_result->summary = \"TODO: bridge implementation\";")
                         appendLine("    return true;")
                     }
 
@@ -945,21 +1161,21 @@ object ModbusArtifactRenderer {
             else -> "bool ${dispatchFunctionName(service)}(void)"
         }
 
-    private fun ModbusOperationModel.userContractSignature(service: ModbusServiceModel): String =
+    private fun ModbusOperationModel.bridgeSignature(service: ModbusServiceModel): String =
         when (returnType.kind) {
             ModbusReturnKind.DTO ->
-                "bool ${userFunctionName(service)}(${responseStructName(service)} *out_response)"
+                "bool ${bridgeFunctionName(service)}(${responseStructName(service)} *out_response)"
 
             ModbusReturnKind.BOOLEAN,
             ModbusReturnKind.INT ->
                 if (isReadOperation) {
-                    "bool ${userFunctionName(service)}(${returnType.scalarOutType()} *out_value)"
+                    "bool ${bridgeFunctionName(service)}(${returnType.scalarOutType()} *out_value)"
                 } else {
-                    buildWriteUserContractSignature(service)
+                    buildWriteBridgeSignature(service)
                 }
 
             ModbusReturnKind.COMMAND_RESULT,
-            ModbusReturnKind.UNIT -> buildWriteUserContractSignature(service)
+            ModbusReturnKind.UNIT -> buildWriteBridgeSignature(service)
         }
 
     private fun ModbusOperationModel.renderCDispatchBody(service: ModbusServiceModel): List<String> =
@@ -969,7 +1185,7 @@ object ModbusArtifactRenderer {
             renderWriteDispatchBody(service)
         }
 
-    private fun ModbusOperationModel.buildWriteUserContractSignature(service: ModbusServiceModel): String {
+    private fun ModbusOperationModel.buildWriteBridgeSignature(service: ModbusServiceModel): String {
         val requestPart =
             if (parameters.isEmpty()) {
                 ""
@@ -982,7 +1198,7 @@ object ModbusArtifactRenderer {
             } else {
                 ""
             }
-        return "bool ${userFunctionName(service)}($requestPart$resultPart)"
+        return "bool ${bridgeFunctionName(service)}($requestPart$resultPart)"
     }
 
     private fun ModbusOperationModel.renderReadDispatchBody(service: ModbusServiceModel): List<String> =
@@ -994,7 +1210,7 @@ object ModbusArtifactRenderer {
                         add("    return false;")
                         add("}")
                         add("${responseStructName(service)} response = {0};")
-                        add("if (!${userFunctionName(service)}(&response)) {")
+                        add("if (!${bridgeFunctionName(service)}(&response)) {")
                         add("    return false;")
                         add("}")
                         returnType.properties.forEach { property ->
@@ -1009,7 +1225,7 @@ object ModbusArtifactRenderer {
                         add("    return false;")
                         add("}")
                         add("${responseStructName(service)} response = {0};")
-                        add("if (!${userFunctionName(service)}(&response)) {")
+                        add("if (!${bridgeFunctionName(service)}(&response)) {")
                         add("    return false;")
                         add("}")
                         returnType.properties
@@ -1053,7 +1269,7 @@ object ModbusArtifactRenderer {
                     add("    return false;")
                     add("}")
                     add("bool value = false;")
-                    add("if (!${userFunctionName(service)}(&value)) {")
+                    add("if (!${bridgeFunctionName(service)}(&value)) {")
                     add("    return false;")
                     add("}")
                     if (usesCoilBits) {
@@ -1070,7 +1286,7 @@ object ModbusArtifactRenderer {
                     add("    return false;")
                     add("}")
                     add("int32_t value = 0;")
-                    add("if (!${userFunctionName(service)}(&value)) {")
+                    add("if (!${bridgeFunctionName(service)}(&value)) {")
                     add("    return false;")
                     add("}")
                     add("out_registers[0] = (uint16_t)(value);")
@@ -1114,13 +1330,13 @@ object ModbusArtifactRenderer {
                 }
             }
             if (returnType.kind == ModbusReturnKind.COMMAND_RESULT) {
-                add("return ${userFunctionName(service)}(${if (parameters.isNotEmpty()) "&request, " else ""}out_result);")
+                add("return ${bridgeFunctionName(service)}(${if (parameters.isNotEmpty()) "&request, " else ""}out_result);")
             } else if (parameters.isNotEmpty()) {
-                add("out_result->accepted = ${userFunctionName(service)}(&request);")
+                add("out_result->accepted = ${bridgeFunctionName(service)}(&request);")
                 add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
                 add("return out_result->accepted;")
             } else {
-                add("out_result->accepted = ${userFunctionName(service)}();")
+                add("out_result->accepted = ${bridgeFunctionName(service)}();")
                 add("out_result->summary = out_result->accepted ? \"操作执行成功\" : \"操作执行失败\";")
                 add("return out_result->accepted;")
             }
@@ -1129,8 +1345,8 @@ object ModbusArtifactRenderer {
     private fun ModbusOperationModel.dispatchFunctionName(service: ModbusServiceModel): String =
         "${service.cServiceName}_handle_${operationId.toSnakeCase()}"
 
-    private fun ModbusOperationModel.userFunctionName(service: ModbusServiceModel): String =
-        "${service.cServiceName}_user_${operationId.toSnakeCase()}"
+    private fun ModbusOperationModel.bridgeFunctionName(service: ModbusServiceModel): String =
+        "${service.cServiceName}_bridge_${operationId.toSnakeCase()}"
 
     private fun ModbusOperationModel.requestStructName(service: ModbusServiceModel): String =
         "${service.cServiceName}_${operationId.toSnakeCase()}_request_t"

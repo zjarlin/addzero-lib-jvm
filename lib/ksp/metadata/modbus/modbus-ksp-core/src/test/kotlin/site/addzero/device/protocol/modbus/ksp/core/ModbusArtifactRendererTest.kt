@@ -1,6 +1,7 @@
 package site.addzero.device.protocol.modbus.ksp.core
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ModbusArtifactRendererTest {
@@ -41,6 +42,7 @@ class ModbusArtifactRendererTest {
         assertTrue(content.contains("@Module"))
         assertTrue(content.contains("class GeneratedModbusRtuKoinModule"))
         assertTrue(content.contains("fun modbusRtuConfigRegistry("))
+        assertTrue(content.contains("该 gateway 由 KSP 自动生成"))
     }
 
     @Test
@@ -65,6 +67,47 @@ class ModbusArtifactRendererTest {
         assertTrue(source.content.contains("const bool handled = flash_handle_firmware_chunk(input_registers, quantity, &service_result);"))
         assertTrue(source.content.contains("case SELF_DEV_BOARD_READ_INFO_ADDRESS:"))
         assertTrue(source.content.contains("const bool input_coils[1] = {value};"))
+    }
+
+    @Test
+    fun renderSemanticCoilDtoArtifactsUseReadCoilsAndBoolFields() {
+        val service = semanticCoilService()
+        val gateway =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(ModbusTransportKind.RTU, listOf(service))
+                .single()
+                .content
+        val contractArtifacts = ModbusArtifactRenderer.renderContractArtifacts(service)
+        val generatedSource =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_generated" && artifact.extensionName == "c" }
+                .content
+        val generatedHeader =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_generated" && artifact.extensionName == "h" }
+                .content
+        val dispatch =
+            ModbusArtifactRenderer
+                .renderTransportContractArtifacts(ModbusTransportKind.RTU, listOf(service))
+                .first { artifact -> artifact.extensionName == "c" }
+                .content
+
+        assertTrue(gateway.contains("executor.readCoils(resolvedConfig, 0, 24)"))
+        assertTrue(gateway.contains("ch24 = ModbusCodecSupport.decodeBoolean(ModbusCodec.BOOL_COIL, registers, 23, 0)"))
+        assertTrue(generatedHeader.contains("#define DEVICE_GET_DEVICE_INFO_QUANTITY 24"))
+        assertTrue(generatedHeader.contains("bool ch1;"))
+        assertTrue(generatedHeader.contains("bool ch24;"))
+        assertTrue(generatedSource.contains("out_coils[0] = response.ch1;"))
+        assertTrue(generatedSource.contains("out_coils[23] = response.ch24;"))
+        assertTrue(dispatch.contains("case DEVICE_GET_DEVICE_INFO_ADDRESS:"))
+        assertTrue(dispatch.contains("return device_handle_get_device_info(out_coils, quantity);"))
+    }
+
+    @Test
+    fun codegenModeAcceptsGatewayAlias() {
+        assertEquals(setOf(ModbusCodegenMode.SERVER), ModbusCodegenMode.parse("gateway"))
+        assertEquals(setOf(ModbusCodegenMode.SERVER), ModbusCodegenMode.parse("client_gateway"))
+        assertEquals(setOf(ModbusCodegenMode.SERVER, ModbusCodegenMode.CONTRACT), ModbusCodegenMode.parse("gateway,contract"))
     }
 
     @Test
@@ -310,4 +353,53 @@ internal fun sampleService(
                 descriptionLines = listOf("固件同事可以基于这里继续完善业务实现。"),
             ),
         operations = operations,
+    )
+
+internal fun semanticCoilService(): ModbusServiceModel =
+    ModbusServiceModel(
+        interfacePackage = "site.addzero.device.api.internal",
+        interfaceSimpleName = "DeviceService",
+        interfaceQualifiedName = "site.addzero.device.api.internal.DeviceService",
+        serviceId = "device",
+        summary = "读取 24 路数字输入状态。",
+        basePath = "/api/modbus",
+        transport = ModbusTransportKind.RTU,
+        doc = ModbusDocModel(summary = "设备状态业务接口。"),
+        operations =
+            listOf(
+                ModbusOperationModel(
+                    methodName = "getDeviceInfo",
+                    operationId = "get-device-info",
+                    functionCodeName = "READ_COILS",
+                    address = 0,
+                    quantity = 24,
+                    requestClassName = "DeviceServiceRtuGetDeviceInfoRequest",
+                    requestQualifiedName = "site.addzero.generated.DeviceServiceRtuGetDeviceInfoRequest",
+                    parameters = emptyList(),
+                    returnType =
+                        ModbusReturnTypeModel(
+                            qualifiedName = "site.addzero.device.api.internal.DeviceInfo24",
+                            simpleName = "DeviceInfo24",
+                            kind = ModbusReturnKind.DTO,
+                            properties =
+                                (1..24).map { index ->
+                                    ModbusPropertyModel(
+                                        name = "ch$index",
+                                        qualifiedType = "kotlin.Boolean",
+                                        valueKind = ModbusValueKind.BOOLEAN,
+                                        field =
+                                            ModbusFieldModel(
+                                                codecName = "BOOL_COIL",
+                                                registerOffset = index - 1,
+                                                bitOffset = 0,
+                                                length = 1,
+                                                registerWidth = 1,
+                                            ),
+                                        doc = "通道 $index 当前状态。",
+                                    )
+                                },
+                        ),
+                    doc = ModbusDocModel(summary = "读取设备信息。"),
+                )
+            ),
     )

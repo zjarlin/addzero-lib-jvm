@@ -1,0 +1,2 @@
+site.addzero.device.protocol.modbus.ksp.c.ModbusCServiceContractArtifactGenerator
+site.addzero.device.protocol.modbus.ksp.c.ModbusCTransportContractArtifactGenerator

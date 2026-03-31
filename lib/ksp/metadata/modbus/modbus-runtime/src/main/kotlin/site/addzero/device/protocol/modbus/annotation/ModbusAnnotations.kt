@@ -1,6 +1,7 @@
 package site.addzero.device.protocol.modbus.annotation
 
 import site.addzero.device.protocol.modbus.model.ModbusCodec
+import site.addzero.device.protocol.modbus.model.ModbusFunctionCode
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
@@ -32,6 +33,13 @@ annotation class ModbusOperation(
      * 如果需要与既有固件地址表对齐，建议显式写出。
      */
     val address: Int = -1,
+    /**
+     * 显式指定功能码。
+     *
+     * 传 AUTO 时按方法签名自动推导。
+     * 对语义 DTO 读取尤其建议显式写出，避免把 Boolean DTO 默认推导到 input register。
+     */
+    val functionCode: ModbusFunctionCode = ModbusFunctionCode.AUTO,
 )
 
 @Target(AnnotationTarget.VALUE_PARAMETER)

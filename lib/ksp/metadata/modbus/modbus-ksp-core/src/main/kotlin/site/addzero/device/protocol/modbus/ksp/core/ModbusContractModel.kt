@@ -19,8 +19,10 @@ object ModbusAnnotationNames {
  *
  * 支持通过 `addzero.modbus.codegen.mode` 传单值或多值：
  * - `server`
+ * - `gateway`
  * - `contract`
  * - `server,contract`
+ * - `gateway,contract`
  */
 enum class ModbusCodegenMode {
     CONTRACT,
@@ -44,11 +46,11 @@ enum class ModbusCodegenMode {
             val resolved = linkedSetOf<ModbusCodegenMode>()
             tokens.forEach { token ->
                 when (token.lowercase()) {
-                    "server" -> resolved += SERVER
+                    "server", "gateway", "client_gateway" -> resolved += SERVER
                     "contract" -> resolved += CONTRACT
                     else -> {
                         error(
-                            "未知的 Modbus 代码生成模式：$rawValue；可选值为 server、contract，支持逗号分隔多选。",
+                            "未知的 Modbus 代码生成模式：$rawValue；可选值为 server、gateway、client_gateway、contract，支持逗号分隔多选。",
                         )
                     }
                 }
@@ -264,4 +266,29 @@ data class GeneratedArtifact(
     val fileName: String,
     val extensionName: String,
     val content: String,
+)
+
+/**
+ * 面向协议套件的生成上下文。
+ *
+ * 这里把“语义契约 -> 多产物协议暴露”的输入统一建模，
+ * 方便后续在 Modbus / MQTT 间复用同一套 suite 级 SPI 设计。
+ */
+data class ModbusProtocolSuiteModel(
+    val protocolId: String = "modbus",
+    val transport: ModbusTransportKind,
+    val services: List<ModbusServiceModel>,
+)
+
+enum class ModbusArtifactKind {
+    KOTLIN_GATEWAY,
+    C_SERVICE_CONTRACT,
+    C_TRANSPORT_CONTRACT,
+    MARKDOWN_PROTOCOL,
+}
+
+data class ModbusArtifactRenderContext(
+    val kind: ModbusArtifactKind,
+    val suite: ModbusProtocolSuiteModel,
+    val service: ModbusServiceModel? = null,
 )

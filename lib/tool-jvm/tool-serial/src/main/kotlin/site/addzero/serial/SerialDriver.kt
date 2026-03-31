@@ -44,6 +44,16 @@ internal interface SerialDriver {
     fun flushIoBuffers(): Boolean
 
     /**
+     * 显式设置 DTR 线路状态。
+     */
+    fun setDtr(enabled: Boolean)
+
+    /**
+     * 显式设置 RTS 线路状态。
+     */
+    fun setRts(enabled: Boolean)
+
+    /**
      * 关闭底层端口。
      */
     fun close()
@@ -130,6 +140,22 @@ internal class JSerialCommDriver(
     override fun bytesAvailable(): Int = serialPort.bytesAvailable()
 
     override fun flushIoBuffers(): Boolean = serialPort.flushIOBuffers()
+
+    override fun setDtr(enabled: Boolean) {
+        if (enabled) {
+            serialPort.setDTR()
+        } else {
+            serialPort.clearDTR()
+        }
+    }
+
+    override fun setRts(enabled: Boolean) {
+        if (enabled) {
+            serialPort.setRTS()
+        } else {
+            serialPort.clearRTS()
+        }
+    }
 
     override fun close() {
         /**

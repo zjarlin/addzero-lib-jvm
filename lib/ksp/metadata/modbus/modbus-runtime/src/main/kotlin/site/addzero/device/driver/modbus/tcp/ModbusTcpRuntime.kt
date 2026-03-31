@@ -1,14 +1,12 @@
 package site.addzero.device.driver.modbus.tcp
 
-import com.ghgande.j2mod.modbus.facade.ModbusTCPMaster
-import com.ghgande.j2mod.modbus.procimg.SimpleRegister
-import com.ghgande.j2mod.modbus.util.BitVector
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import site.addzero.modbus.tcp.client.ModbusTcpClient
+import site.addzero.modbus.tcp.client.ModbusTcpClientConfig
 
 data class ModbusTcpEndpointConfig(
     val serviceId: String,
@@ -85,83 +83,68 @@ interface ModbusTcpExecutor {
 }
 
 @Single
-class J2modModbusTcpExecutor : ModbusTcpExecutor {
+class J2modModbusTcpExecutor internal constructor(
+    private val clientFactory: (ModbusTcpEndpointConfig) -> ToolModbusTcpClient = ::defaultToolModbusTcpClient,
+) : ModbusTcpExecutor {
     override suspend fun readCoils(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
-        withTcpMaster(config) { master ->
-            master.readCoils(config.unitId, address, quantity).toBitStates(quantity)
+        runTcp(config) { client ->
+            client.readCoils(address, quantity).map { bit -> if (bit) 1 else 0 }
         }
 
     override suspend fun readDiscreteInputs(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
-        withTcpMaster(config) { master ->
-            master.readInputDiscretes(config.unitId, address, quantity).toBitStates(quantity)
+        runTcp(config) { client ->
+            client.readDiscreteInputs(address, quantity).map { bit -> if (bit) 1 else 0 }
         }
 
     override suspend fun readHoldingRegisters(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
-        withTcpMaster(config) { master ->
-            master.readMultipleRegisters(config.unitId, address, quantity).map { register -> register.toUnsignedShort() }
+        runTcp(config) { client ->
+            client.readHoldingRegisters(address, quantity)
         }
 
     override suspend fun readInputRegisters(config: ModbusTcpEndpointConfig, address: Int, quantity: Int): List<Int> =
-        withTcpMaster(config) { master ->
-            master.readInputRegisters(config.unitId, address, quantity).map { register -> register.toUnsignedShort() }
+        runTcp(config) { client ->
+            client.readInputRegisters(address, quantity)
         }
 
     override suspend fun writeSingleCoil(config: ModbusTcpEndpointConfig, address: Int, value: Boolean) {
-        withTcpMaster(config) { master ->
-            master.writeCoil(config.unitId, address, value)
+        runTcp(config) { client ->
+            client.writeSingleCoil(address, value)
         }
     }
 
     override suspend fun writeMultipleCoils(config: ModbusTcpEndpointConfig, address: Int, values: List<Boolean>) {
-        withTcpMaster(config) { master ->
-            val coils = BitVector(values.size)
-            values.forEachIndexed { index, value ->
-                coils.setBit(index, value)
-            }
-            master.writeMultipleCoils(config.unitId, address, coils)
+        runTcp(config) { client ->
+            client.writeMultipleCoils(address, values)
         }
     }
 
     override suspend fun writeSingleRegister(config: ModbusTcpEndpointConfig, address: Int, value: Int) {
-        withTcpMaster(config) { master ->
-            master.writeSingleRegister(config.unitId, address, SimpleRegister(value and 0xFFFF))
+        runTcp(config) { client ->
+            client.writeSingleRegister(address, value)
         }
     }
 
     override suspend fun writeMultipleRegisters(config: ModbusTcpEndpointConfig, address: Int, values: List<Int>) {
-        withTcpMaster(config) { master ->
-            val registers = values.map { value -> SimpleRegister(value and 0xFFFF) }.toTypedArray()
-            master.writeMultipleRegisters(config.unitId, address, registers)
+        runTcp(config) { client ->
+            client.writeMultipleRegisters(address, values)
         }
     }
 
-    private suspend fun <T> withTcpMaster(
+    private suspend fun <T> runTcp(
         config: ModbusTcpEndpointConfig,
-        block: suspend (ModbusTCPMaster) -> T,
+        block: (ToolModbusTcpClient) -> T,
     ): T = withContext(Dispatchers.IO) {
-        val totalAttempts = config.retries.coerceAtLeast(0) + 1
-        var lastError: Throwable? = null
-        repeat(totalAttempts) { attempt ->
-            val master = ModbusTCPMaster(config.host, config.port)
-            master.setTimeout(config.timeoutMs.toInt())
-            master.setRetries(config.retries)
-            try {
-                master.connect()
-                return@withContext block(master)
-            } catch (throwable: Throwable) {
-                lastError = throwable
-                if (attempt < totalAttempts - 1) {
-                    delay(80L)
-                }
-            } finally {
-                runCatching { master.disconnect() }
-            }
+        val client = clientFactory(config)
+        try {
+            block(client)
+        } catch (throwable: Throwable) {
+            throw IllegalStateException(
+                "Modbus TCP 通信失败：service=${config.serviceId} host=${config.host}:${config.port} unit=${config.unitId}",
+                throwable,
+            )
+        } finally {
+            runCatching { client.close() }
         }
-
-        throw IllegalStateException(
-            "Modbus TCP 通信失败：service=${config.serviceId} host=${config.host}:${config.port} unit=${config.unitId}",
-            lastError,
-        )
     }
 }
 
@@ -175,5 +158,70 @@ class J2modModbusTcpExecutor : ModbusTcpExecutor {
 @ComponentScan("site.addzero.device.driver.modbus.tcp")
 class ModbusTcpRuntimeKoinModule
 
-private fun BitVector.toBitStates(quantity: Int): List<Int> =
-    List(quantity) { index -> if (getBit(index)) 1 else 0 }
+internal interface ToolModbusTcpClient : AutoCloseable {
+    fun readCoils(address: Int, quantity: Int): List<Boolean>
+
+    fun readDiscreteInputs(address: Int, quantity: Int): List<Boolean>
+
+    fun readHoldingRegisters(address: Int, quantity: Int): List<Int>
+
+    fun readInputRegisters(address: Int, quantity: Int): List<Int>
+
+    fun writeSingleCoil(address: Int, value: Boolean)
+
+    fun writeMultipleCoils(address: Int, values: List<Boolean>)
+
+    fun writeSingleRegister(address: Int, value: Int)
+
+    fun writeMultipleRegisters(address: Int, values: List<Int>)
+
+    override fun close()
+}
+
+internal fun ModbusTcpEndpointConfig.toClientConfig(): ModbusTcpClientConfig {
+    return ModbusTcpClientConfig(
+        host = host,
+        port = port,
+        unitId = unitId,
+        timeoutMs = timeoutMs.toInt(),
+        reconnectPerRequest = true,
+    )
+}
+
+private fun defaultToolModbusTcpClient(
+    config: ModbusTcpEndpointConfig,
+): ToolModbusTcpClient {
+    return ToolModbusTcpClientAdapter(ModbusTcpClient(config.toClientConfig()))
+}
+
+private class ToolModbusTcpClientAdapter(
+    private val delegate: ModbusTcpClient,
+) : ToolModbusTcpClient {
+    override fun readCoils(address: Int, quantity: Int): List<Boolean> = delegate.readCoils(address, quantity)
+
+    override fun readDiscreteInputs(address: Int, quantity: Int): List<Boolean> = delegate.readDiscreteInputs(address, quantity)
+
+    override fun readHoldingRegisters(address: Int, quantity: Int): List<Int> = delegate.readHoldingRegisters(address, quantity)
+
+    override fun readInputRegisters(address: Int, quantity: Int): List<Int> = delegate.readInputRegisters(address, quantity)
+
+    override fun writeSingleCoil(address: Int, value: Boolean) {
+        delegate.writeSingleCoil(address, value)
+    }
+
+    override fun writeMultipleCoils(address: Int, values: List<Boolean>) {
+        delegate.writeMultipleCoils(address, values)
+    }
+
+    override fun writeSingleRegister(address: Int, value: Int) {
+        delegate.writeSingleRegister(address, value)
+    }
+
+    override fun writeMultipleRegisters(address: Int, values: List<Int>) {
+        delegate.writeMultipleRegisters(address, values)
+    }
+
+    override fun close() {
+        delegate.close()
+    }
+}

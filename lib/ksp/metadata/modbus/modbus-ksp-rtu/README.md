@@ -6,7 +6,7 @@ Modbus RTU KSP 处理器模块。
 - 本地路径：`lib/ksp/metadata/modbus/modbus-ksp-rtu`
 - 作用：
   - 解析带注解的设备接口
-  - 生成 RTU 侧 Ktor / Koin / C 产物
+  - 生成 RTU 侧 Kotlin gateway / Koin / C 产物
 
 ## 怎么接
 
@@ -16,7 +16,7 @@ plugins {
 }
 
 modbusRtu {
-    codegenModes.set(listOf("server"))
+    codegenModes.set(listOf("gateway"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
@@ -48,7 +48,7 @@ ksp {
 - `build/generated/ksp/main/resources/generated/modbus/rtu/*.h`
 - `build/generated/ksp/main/resources/generated/modbus/rtu/*.c`
 
-### 在 server 模块里生成 RTU 路由与网关
+### 在 gateway 模块里生成 RTU 路由与网关
 
 ```kotlin
 dependencies {
@@ -57,7 +57,7 @@ dependencies {
 }
 
 ksp {
-    arg("addzero.modbus.codegen.mode", "server")
+    arg("addzero.modbus.codegen.mode", "gateway")
     arg("addzero.modbus.contractPackages", "site.addzero.esp32_host_computer.api")
 }
 ```
@@ -66,11 +66,11 @@ ksp {
 
 - `build/generated/ksp/main/kotlin/site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtu.kt`
 
-### 一次同时生成服务端与契约产物
+### 一次同时生成 gateway 与契约产物
 
 ```kotlin
 ksp {
-    arg("addzero.modbus.codegen.mode", "server,contract")
+    arg("addzero.modbus.codegen.mode", "gateway,contract")
     arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
 }
 ```
