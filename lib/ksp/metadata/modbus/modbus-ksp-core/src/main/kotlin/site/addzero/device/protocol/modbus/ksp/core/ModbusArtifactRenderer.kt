@@ -810,7 +810,13 @@ object ModbusArtifactTemplates {
                         appendLine("        return ${operation.renderBooleanDecodeExpression()}")
 
                     ModbusReturnKind.INT ->
-                        appendLine("        return ModbusCodecSupport.decodeInt(ModbusCodec.U16, registers, 0)")
+                        appendLine("        return ModbusCodecSupport.decodeInt(ModbusCodec.${operation.returnType.codecName}, registers, 0)")
+
+                    ModbusReturnKind.STRING ->
+                        appendLine(
+                            "        return ModbusCodecSupport.decodeString(" +
+                                "ModbusCodec.${operation.returnType.codecName}, registers, 0, ${operation.returnType.registerWidth})",
+                        )
 
                     ModbusReturnKind.DTO -> {
                         appendLine("        return ${operation.returnType.qualifiedName}(")
@@ -1144,6 +1150,14 @@ object ModbusArtifactTemplates {
                         appendLine("    return true;")
                     }
 
+                    ModbusReturnKind.STRING -> {
+                        appendLine("    if (out_value == NULL || out_capacity == 0u) {")
+                        appendLine("        return false;")
+                        appendLine("    }")
+                        appendLine("    out_value[0] = '\\0';")
+                        appendLine("    return true;")
+                    }
+
                     else -> {
                         appendLine("    /* TODO: 在这里接入真实硬件逻辑。 */")
                         appendLine("    return true;")
@@ -1247,6 +1261,13 @@ object ModbusArtifactTemplates {
             ModbusReturnKind.INT ->
                 if (isReadOperation) {
                     "bool ${bridgeFunctionName(service)}(${returnType.scalarOutType()} *out_value)"
+                } else {
+                    buildWriteBridgeSignature(service)
+                }
+
+            ModbusReturnKind.STRING ->
+                if (isReadOperation) {
+                    "bool ${bridgeFunctionName(service)}(char *out_value, size_t out_capacity)"
                 } else {
                     buildWriteBridgeSignature(service)
                 }
@@ -1374,6 +1395,19 @@ object ModbusArtifactTemplates {
                     add("return true;")
                 }
 
+            ModbusReturnKind.STRING ->
+                buildList {
+                    add("if (out_registers == NULL || register_count < ${quantity}) {")
+                    add("    return false;")
+                    add("}")
+                    add("char value[${returnType.stringCharCapacity()}] = {0};")
+                    add("if (!${bridgeFunctionName(service)}(value, sizeof(value))) {")
+                    add("    return false;")
+                    add("}")
+                    add("${service.cServiceName}_generated_encode_string_registers(value, out_registers, 0u, ${returnType.registerWidth});")
+                    add("return true;")
+                }
+
             ModbusReturnKind.UNIT,
             ModbusReturnKind.COMMAND_RESULT -> listOf("return false;")
         }
@@ -1466,6 +1500,7 @@ object ModbusArtifactTemplates {
         when (kind) {
             ModbusReturnKind.BOOLEAN -> "bool"
             ModbusReturnKind.INT -> "int32_t"
+            ModbusReturnKind.STRING -> "char"
             else -> error("只有标量返回才能生成 C out 参数类型：$kind")
         }
 
@@ -1546,6 +1581,7 @@ object ModbusArtifactTemplates {
             ModbusReturnKind.UNIT -> "`Unit`"
             ModbusReturnKind.BOOLEAN -> "`Boolean`"
             ModbusReturnKind.INT -> "`Int`"
+            ModbusReturnKind.STRING -> "`String`"
             ModbusReturnKind.COMMAND_RESULT -> "`ModbusCommandResult`"
             ModbusReturnKind.DTO -> "`${simpleName}`"
         }
@@ -1593,8 +1629,11 @@ object ModbusArtifactTemplates {
     private fun ModbusServiceModel.usesStringRegisters(): Boolean =
         operations.any { operation ->
             operation.parameters.any { parameter -> parameter.valueKind == ModbusValueKind.STRING } ||
+                operation.returnType.kind == ModbusReturnKind.STRING ||
                 operation.returnType.properties.any { property -> property.valueKind == ModbusValueKind.STRING }
         }
+
+    private fun ModbusReturnTypeModel.stringCharCapacity(): Int = (registerWidth * 2) + 1
 
     private fun renderTransportDefaultsMarkdownRows(transport: ModbusTransportKind): List<List<String>> =
         when (transport) {

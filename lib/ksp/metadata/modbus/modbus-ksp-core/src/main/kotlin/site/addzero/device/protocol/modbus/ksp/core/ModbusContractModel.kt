@@ -124,6 +124,7 @@ enum class ModbusReturnKind {
     UNIT,
     BOOLEAN,
     INT,
+    STRING,
     DTO,
     COMMAND_RESULT,
 }
@@ -181,6 +182,10 @@ data class ModbusReturnTypeModel(
     val qualifiedName: String,
     val simpleName: String,
     val kind: ModbusReturnKind,
+    val valueKind: ModbusValueKind? = null,
+    val codecName: String = "AUTO",
+    val length: Int = 1,
+    val registerWidth: Int = 1,
     val properties: List<ModbusPropertyModel> = emptyList(),
 )
 

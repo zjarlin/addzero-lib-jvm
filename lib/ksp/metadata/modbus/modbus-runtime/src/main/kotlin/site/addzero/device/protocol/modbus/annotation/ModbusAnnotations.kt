@@ -40,6 +40,21 @@ annotation class ModbusOperation(
      * 对语义 DTO 读取尤其建议显式写出，避免把 Boolean DTO 默认推导到 input register。
      */
     val functionCode: ModbusFunctionCode = ModbusFunctionCode.AUTO,
+    /**
+     * 标量返回值的编解码方式。
+     *
+     * 仅在返回 `Boolean` / `Int` / `String` 时生效；
+     * 返回 DTO 时请继续在 DTO 字段上声明 `@ModbusField`。
+     */
+    val returnCodec: ModbusCodec = ModbusCodec.AUTO,
+    /**
+     * 标量返回值长度。
+     *
+     * - 对 `U16` / `BOOL_COIL` / `BIT_FLAG` 通常保持 1
+     * - 对 `U32_BE` 表示值个数，实际寄存器宽度为 `2 * returnLength`
+     * - 对 `STRING_*` 表示占用的寄存器数，实际最大字节数为 `returnLength * 2 - 1`
+     */
+    val returnLength: Int = 1,
 )
 
 @Target(AnnotationTarget.VALUE_PARAMETER)

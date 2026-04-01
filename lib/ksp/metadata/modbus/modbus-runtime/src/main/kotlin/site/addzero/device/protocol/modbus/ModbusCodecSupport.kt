@@ -1,6 +1,5 @@
 package site.addzero.device.protocol.modbus
 
-import java.nio.charset.Charset
 import site.addzero.device.protocol.modbus.model.ModbusCodec
 
 object ModbusCodecSupport {

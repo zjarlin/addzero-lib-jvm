@@ -134,6 +134,37 @@ class ModbusArtifactRendererTest {
     }
 
     @Test
+    fun renderScalarStringArtifactsUseStringBridgeSignature() {
+        val service = scalarStringService()
+        val gateway =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(ModbusTransportKind.RTU, listOf(service))
+                .single()
+                .content
+        val contractArtifacts = ModbusArtifactRenderer.renderContractArtifacts(service)
+        val generatedHeader =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_generated" && artifact.extensionName == "h" }
+                .content
+        val generatedSource =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_generated" && artifact.extensionName == "c" }
+                .content
+        val bridgeHeader =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_bridge" && artifact.extensionName == "h" }
+                .content
+
+        assertTrue(gateway.contains("executor.readInputRegisters(resolvedConfig, 140, 16)"))
+        assertTrue(gateway.contains("return ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 0, 16)"))
+        assertTrue(generatedHeader.contains("#define DEVICE_GET_DEVICE_DISPLAY_NAME_QUANTITY 16"))
+        assertTrue(generatedSource.contains("char value[33] = {0};"))
+        assertTrue(generatedSource.contains("device_bridge_get_device_display_name(value, sizeof(value))"))
+        assertTrue(generatedSource.contains("device_generated_encode_string_registers(value, out_registers, 0u, 16);"))
+        assertTrue(bridgeHeader.contains("bool device_bridge_get_device_display_name(char *out_value, size_t out_capacity);"))
+    }
+
+    @Test
     fun codegenModeAcceptsGatewayAlias() {
         assertEquals(setOf(ModbusCodegenMode.SERVER), ModbusCodegenMode.parse("gateway"))
         assertEquals(setOf(ModbusCodegenMode.SERVER), ModbusCodegenMode.parse("client_gateway"))
@@ -497,9 +528,45 @@ internal fun semanticRegisterStringService(): ModbusServiceModel =
                                         field = ModbusFieldModel(codecName = "STRING_UTF8", registerOffset = 4, bitOffset = 0, length = 16, registerWidth = 16),
                                         doc = "设备名称。",
                                     ),
-                                },
+                                ),
                         ),
                     doc = ModbusDocModel(summary = "读取设备运行信息。"),
+                )
+            ),
+    )
+
+internal fun scalarStringService(): ModbusServiceModel =
+    ModbusServiceModel(
+        interfacePackage = "site.addzero.device.api.internal",
+        interfaceSimpleName = "DeviceService",
+        interfaceQualifiedName = "site.addzero.device.api.internal.DeviceService",
+        serviceId = "device",
+        summary = "读取设备显示名称。",
+        basePath = "/api/modbus",
+        transport = ModbusTransportKind.RTU,
+        doc = ModbusDocModel(summary = "设备显示名称业务接口。"),
+        operations =
+            listOf(
+                ModbusOperationModel(
+                    methodName = "getDeviceDisplayName",
+                    operationId = "get-device-display-name",
+                    functionCodeName = "READ_INPUT_REGISTERS",
+                    address = 140,
+                    quantity = 16,
+                    requestClassName = "DeviceServiceRtuGetDeviceDisplayNameRequest",
+                    requestQualifiedName = "site.addzero.generated.DeviceServiceRtuGetDeviceDisplayNameRequest",
+                    parameters = emptyList(),
+                    returnType =
+                        ModbusReturnTypeModel(
+                            qualifiedName = "kotlin.String",
+                            simpleName = "String",
+                            kind = ModbusReturnKind.STRING,
+                            valueKind = ModbusValueKind.STRING,
+                            codecName = "STRING_UTF8",
+                            length = 16,
+                            registerWidth = 16,
+                        ),
+                    doc = ModbusDocModel(summary = "读取设备显示名称。"),
                 )
             ),
     )

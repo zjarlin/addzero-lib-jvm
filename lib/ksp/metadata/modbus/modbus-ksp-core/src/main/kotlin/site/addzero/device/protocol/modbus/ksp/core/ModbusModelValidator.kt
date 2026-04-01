@@ -155,6 +155,7 @@ object ModbusModelValidator {
 
             ModbusReturnKind.BOOLEAN,
             ModbusReturnKind.INT,
+            ModbusReturnKind.STRING,
             ModbusReturnKind.DTO ->
                 errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 是写功能码，只允许返回 Unit 或 ModbusCommandResult。"
         }
@@ -172,12 +173,35 @@ object ModbusModelValidator {
             }
 
             ModbusReturnKind.BOOLEAN,
-            ModbusReturnKind.INT -> {
+            ModbusReturnKind.INT,
+            ModbusReturnKind.STRING -> {
                 if (operation.quantity < 1) {
                     errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的标量返回至少需要 1 个数据单元。"
                 }
                 if (operation.usesCoilBits && operation.returnType.kind != ModbusReturnKind.BOOLEAN) {
                     errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 读取 coil/discrete 时只能返回 Boolean 或仅包含 BOOL_COIL 字段的 DTO。"
+                }
+                val valueKind =
+                    when (operation.returnType.kind) {
+                        ModbusReturnKind.BOOLEAN -> ModbusValueKind.BOOLEAN
+                        ModbusReturnKind.INT -> ModbusValueKind.INT
+                        ModbusReturnKind.STRING -> ModbusValueKind.STRING
+                        else -> null
+                    }
+                if (valueKind != null) {
+                    validateCodecShape(
+                        service = service,
+                        operation = operation,
+                        subjectName = "return",
+                        codecName = operation.returnType.codecName,
+                        valueKind = valueKind,
+                        bitOffset = 0,
+                        errors = errors,
+                    )
+                    validateCodecUsageInFunction(service, operation, "return", operation.returnType.codecName, errors)
+                }
+                if (operation.quantity < operation.returnType.registerWidth) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 quantity=${operation.quantity} 小于标量返回编码宽度 ${operation.returnType.registerWidth}。"
                 }
             }
 

@@ -87,7 +87,7 @@ class ModbusSymbolCollector(
                 .mapNotNull { parameter -> parameter.toParameterModel(doc.parameterDocs[parameter.name?.asString().orEmpty()].orEmpty()) }
                 .sortedBy(ModbusParameterModel::order)
                 .withSequentialOffsets()
-        val rawReturnType = toReturnTypeModel() ?: return null
+        val rawReturnType = toReturnTypeModel(operationAnnotation) ?: return null
         val functionCodeName =
             try {
                 ModbusContractDefaultsResolver.resolveFunctionCodeName(
@@ -121,11 +121,13 @@ class ModbusSymbolCollector(
         )
     }
 
-    private fun KSFunctionDeclaration.toReturnTypeModel(): ModbusReturnTypeModel? {
+    private fun KSFunctionDeclaration.toReturnTypeModel(operationAnnotation: KSAnnotation?): ModbusReturnTypeModel? {
         val resolved = returnType?.resolve()
         val declaration = resolved?.declaration as? KSClassDeclaration
         val qualifiedName = declaration?.qualifiedName?.asString().orEmpty()
         val simpleName = declaration?.simpleName?.asString().orEmpty()
+        val returnCodecName = operationAnnotation?.enumArg("returnCodec").orEmpty().ifBlank { "AUTO" }
+        val returnLength = (operationAnnotation?.intArg("returnLength") ?: 1).coerceAtLeast(1)
         return when (qualifiedName) {
             "kotlin.Unit" ->
                 ModbusReturnTypeModel(
@@ -139,6 +141,10 @@ class ModbusSymbolCollector(
                     qualifiedName = qualifiedName,
                     simpleName = simpleName,
                     kind = ModbusReturnKind.BOOLEAN,
+                    valueKind = ModbusValueKind.BOOLEAN,
+                    codecName = returnCodecName,
+                    length = returnLength,
+                    registerWidth = registerWidth(returnCodecName, returnLength),
                 )
 
             "kotlin.Int" ->
@@ -146,12 +152,22 @@ class ModbusSymbolCollector(
                     qualifiedName = qualifiedName,
                     simpleName = simpleName,
                     kind = ModbusReturnKind.INT,
+                    valueKind = ModbusValueKind.INT,
+                    codecName = returnCodecName,
+                    length = returnLength,
+                    registerWidth = registerWidth(returnCodecName, returnLength),
                 )
 
-            "kotlin.String" -> {
-                logger.error("暂不支持直接返回 String；请改为返回包含 String 字段的 DTO。", this)
-                null
-            }
+            "kotlin.String" ->
+                ModbusReturnTypeModel(
+                    qualifiedName = qualifiedName,
+                    simpleName = simpleName,
+                    kind = ModbusReturnKind.STRING,
+                    valueKind = ModbusValueKind.STRING,
+                    codecName = returnCodecName,
+                    length = returnLength,
+                    registerWidth = registerWidth(returnCodecName, returnLength),
+                )
 
             "site.addzero.device.protocol.modbus.model.ModbusCommandResult" ->
                 ModbusReturnTypeModel(
@@ -302,9 +318,7 @@ class ModbusSymbolCollector(
         }
 
     private fun ModbusReturnTypeModel.resolveAutoCodecNames(functionCodeName: String): ModbusReturnTypeModel =
-        if (kind != ModbusReturnKind.DTO) {
-            this
-        } else {
+        if (kind == ModbusReturnKind.DTO) {
             copy(
                 properties =
                     properties.map { property ->
@@ -318,6 +332,14 @@ class ModbusSymbolCollector(
                         }
                     },
             )
+        } else if (codecName == "AUTO" && valueKind != null) {
+            val resolvedCodecName = inferCodecName(valueKind, functionCodeName)
+            copy(
+                codecName = resolvedCodecName,
+                registerWidth = registerWidth(resolvedCodecName, length),
+            )
+        } else {
+            copy(registerWidth = registerWidth(codecName, length))
         }
 
     private fun inferCodecName(

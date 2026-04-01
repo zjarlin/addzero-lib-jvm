@@ -30,6 +30,7 @@ internal object ModbusContractDefaultsResolver {
             return when (returnType.kind) {
                 ModbusReturnKind.BOOLEAN,
                 ModbusReturnKind.INT,
+                ModbusReturnKind.STRING,
                 ModbusReturnKind.DTO -> "READ_INPUT_REGISTERS"
                 ModbusReturnKind.UNIT,
                 ModbusReturnKind.COMMAND_RESULT -> error("无参数且返回 ${returnType.kind.name} 的操作无法自动推导 functionCode，请显式声明。")
@@ -110,7 +111,8 @@ internal object ModbusContractDefaultsResolver {
             ModbusReturnKind.UNIT,
             ModbusReturnKind.COMMAND_RESULT -> 0
             ModbusReturnKind.BOOLEAN,
-            ModbusReturnKind.INT -> 1
+            ModbusReturnKind.INT,
+            ModbusReturnKind.STRING -> returnType.registerWidth
             ModbusReturnKind.DTO ->
                 returnType.properties.maxOfOrNull { property ->
                     property.field?.let { field -> field.registerOffset + field.registerWidth } ?: 0
