@@ -13,10 +13,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import org.koin.core.annotation.Single
+import org.koin.mp.KoinPlatform
 import site.addzero.core.network.json.json
 import site.addzero.ktor2curl.CurlLogger
 import site.addzero.ktor2curl.KtorToCurl
-import site.addzero.util.KoinInjector
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
@@ -90,12 +90,6 @@ private data class HttpClientRuntimeSettings(
 
 @Single
 class HttpClientFactory {
-    companion object {
-        fun shared(): HttpClientFactory {
-            return KoinInjector.inject()
-        }
-    }
-
     private data class CacheKey(
         val profile: String,
         val features: HttpClientFeatures,
@@ -262,7 +256,7 @@ class HttpClientFactory {
     }
 
     private fun collectProfiles(profile: String): List<HttpClientProfileSpi> {
-        return KoinInjector.injectList<HttpClientProfileSpi>()
+        return KoinPlatform.getKoin().getAll<HttpClientProfileSpi>()
             .filter { contributor -> contributor.profile.normalizeHttpClientProfile() == profile }
             .sortedBy(HttpClientProfileSpi::order)
     }

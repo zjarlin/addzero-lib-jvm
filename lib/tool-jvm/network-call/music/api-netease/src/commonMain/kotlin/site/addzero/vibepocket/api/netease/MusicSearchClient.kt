@@ -3,6 +3,7 @@ package site.addzero.vibepocket.api.netease
 import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.plugins.*
 import io.ktor.http.*
+import org.koin.mp.KoinPlatform
 import site.addzero.core.network.HttpClientFactory
 
 /**
@@ -15,7 +16,7 @@ object MusicSearchClient {
 
     private const val BASE_URL = "https://music.163.com/api/"
     private val httpClientFactory: HttpClientFactory
-        get() = HttpClientFactory.shared()
+        get() = KoinPlatform.getKoin().get()
 
     var mytoken: String? = null
 

@@ -13,7 +13,7 @@ dependencies {
 ## Basic Usage
 
 ```kotlin
-val client = HttpClientFactory.shared().get().config {
+val client = HttpClientFactory().get().config {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true }, contentType = ContentType.Text.Plain)
         json(Json { ignoreUnknownKeys = true }, contentType = ContentType.Text.Html)

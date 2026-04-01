@@ -1,7 +1,7 @@
 package site.addzero.core.network
 
 import io.ktor.client.statement.HttpResponse
-import site.addzero.util.KoinInjector
+import org.koin.mp.KoinPlatform
 
 /**
  * 拓扑Spi接口
@@ -24,7 +24,7 @@ interface HttpResponseEventHandlerSpi : TopologicalSpi {
 
 internal fun dispatchHttpResponseEvent(response: HttpResponse) {
   runCatching {
-    KoinInjector.injectList<HttpResponseEventHandlerSpi>()
+    KoinPlatform.getKoin().getAll<HttpResponseEventHandlerSpi>()
       .sortedBy(HttpResponseEventHandlerSpi::order)
   }.getOrDefault(emptyList()).forEach { handler ->
     runCatching {

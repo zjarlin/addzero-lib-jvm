@@ -19,7 +19,7 @@ dependencies {
 ## Usage
 
 ```kotlin
-val client = MusicSearchClient.shared()
+val client = KoinPlatform.getKoin().get<MusicSearchClient>()
 client.mytoken = "your-token"
 
 val songs = client.musicApi.search("稻香")

@@ -58,11 +58,21 @@ internal object ModbusContractDefaultsResolver {
     fun resolveOperations(
         serviceId: String,
         operations: List<ModbusOperationModel>,
-    ): List<ModbusOperationModel> =
+    ): List<ModbusOperationModel> {
+        val resolvedOperations = resolveOperationIdsAndQuantities(operations)
+        return resolveAddresses(serviceId, resolvedOperations)
+    }
+
+    fun resolveOperationIdsAndQuantities(operations: List<ModbusOperationModel>): List<ModbusOperationModel> =
         operations
             .resolveOperationIds()
             .resolveQuantities()
-            .resolveAddresses(serviceId)
+
+    fun resolveAddresses(
+        serviceId: String,
+        operations: List<ModbusOperationModel>,
+    ): List<ModbusOperationModel> =
+        operations.resolveAddresses(serviceId)
 
     private fun List<ModbusOperationModel>.resolveOperationIds(): List<ModbusOperationModel> =
         map { operation ->
@@ -119,7 +129,7 @@ internal object ModbusContractDefaultsResolver {
                 } ?: 0
         }
 
-    private fun defaultBaseAddress(addressSpace: ModbusAddressSpace): Int =
+    fun defaultBaseAddress(addressSpace: ModbusAddressSpace): Int =
         when (addressSpace) {
             ModbusAddressSpace.COIL_READ,
             ModbusAddressSpace.DISCRETE_INPUT,

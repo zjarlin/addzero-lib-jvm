@@ -11,7 +11,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":lib:tool-kmp:network-starter"))
-            implementation(libs.findLibrary("site-addzero-tool-koin-v2025").get())
         }
     }
 }

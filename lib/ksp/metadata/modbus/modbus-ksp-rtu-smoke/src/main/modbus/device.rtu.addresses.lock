@@ -1,0 +1,13 @@
+# Modbus address lock file.
+# Commit this file to keep addresses stable across machines.
+# Do not hand edit unless you are migrating the protocol on purpose.
+meta.schemaVersion=1
+meta.protocol=modbus
+meta.transport=rtu
+op.device|get-device-display-name|READ_INPUT_REGISTERS|INPUT_REGISTER=140|16|16
+op.device|get-device-info|READ_COILS|COIL_READ=0|24|24
+op.device|get-device-runtime-info|READ_INPUT_REGISTERS|INPUT_REGISTER=100|20|20
+op.flash|firmware-chunk|WRITE_MULTIPLE_REGISTERS|HOLDING_REGISTER_WRITE=520|10|10
+op.flash|firmware-commit|WRITE_SINGLE_REGISTER|HOLDING_REGISTER_WRITE=530|1|1
+op.flash|firmware-start|WRITE_MULTIPLE_REGISTERS|HOLDING_REGISTER_WRITE=512|4|4
+op.flash|reset-device|WRITE_SINGLE_COIL|COIL_WRITE=64|1|1

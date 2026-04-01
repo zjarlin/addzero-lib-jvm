@@ -2,7 +2,6 @@ package site.addzero.core.network
 
 import io.ktor.client.HttpClient
 import org.koin.core.annotation.Single
-import site.addzero.util.KoinInjector
 
 
 interface ApiClientSpi {
@@ -53,6 +52,5 @@ class ApiClients(
       ?: error("No ApiClientSpi registered for endpointId=$endpointId")
   }
 }
-
 
 

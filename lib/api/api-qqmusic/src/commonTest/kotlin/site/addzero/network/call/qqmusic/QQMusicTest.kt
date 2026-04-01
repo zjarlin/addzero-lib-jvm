@@ -29,7 +29,7 @@ class QQMusicTest {
      * 都需要注册为 JSON 反序列化。
      */
     private val qqJson = Json { ignoreUnknownKeys = true; isLenient = true }
-    private val qqClient = HttpClientFactory.shared().get().config {
+    private val qqClient = HttpClientFactory().get().config {
         install(ContentNegotiation) {
             json(qqJson, contentType = ContentType.Text.Plain)
             json(qqJson, contentType = ContentType.Text.Html)

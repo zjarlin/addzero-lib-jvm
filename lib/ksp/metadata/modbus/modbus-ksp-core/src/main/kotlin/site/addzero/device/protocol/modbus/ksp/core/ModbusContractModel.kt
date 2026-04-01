@@ -182,6 +182,7 @@ data class ModbusReturnTypeModel(
     val qualifiedName: String,
     val simpleName: String,
     val kind: ModbusReturnKind,
+    val docSummary: String = "",
     val valueKind: ModbusValueKind? = null,
     val codecName: String = "AUTO",
     val length: Int = 1,

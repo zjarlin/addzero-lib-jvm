@@ -1,6 +1,7 @@
 package site.addzero.kcloud.api.netease
 
 import kotlinx.coroutines.test.runTest
+import org.koin.mp.KoinPlatform
 import kotlin.test.Test
 
 /**
@@ -10,8 +11,8 @@ import kotlin.test.Test
  */
 @Suppress("NonAsciiCharacters")
 class NeteaseModelsTest {
-
-    private val client = MusicSearchClient.shared()
+    private val client: MusicSearchClient
+        get() = KoinPlatform.getKoin().get()
 
     @Test
     fun searchSongs() = runTest {

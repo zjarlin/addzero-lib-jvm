@@ -10,7 +10,6 @@ kotlin {
       implementation("site.addzero:tool-coll:2026.03.08")
       implementation(libs.findLibrary("de-jensklingenberg-ktorfit-ktorfit-lib").get())
       implementation(libs.findLibrary("site-addzero-tool-json").get())
-      implementation(libs.findLibrary("site-addzero-tool-koin-v2025").get())
       implementation(libs.findLibrary("io-ktor-ktor-client-websockets").get())
     }
   }

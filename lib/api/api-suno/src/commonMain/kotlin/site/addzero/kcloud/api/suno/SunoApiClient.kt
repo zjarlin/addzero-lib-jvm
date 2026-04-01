@@ -17,6 +17,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.koin.mp.KoinPlatform
 import site.addzero.core.network.HttpClientFactory
 import kotlin.math.roundToInt
 
@@ -528,5 +529,5 @@ class SunoApiClient(
 }
 
 private fun resolveHttpClientFactory(): HttpClientFactory {
-    return HttpClientFactory.shared()
+    return KoinPlatform.getKoin().get()
 }

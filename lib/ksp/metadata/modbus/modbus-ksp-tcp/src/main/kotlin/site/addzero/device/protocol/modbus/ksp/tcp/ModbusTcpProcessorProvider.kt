@@ -10,6 +10,8 @@ import com.google.devtools.ksp.symbol.KSFile
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import site.addzero.device.protocol.modbus.ksp.core.CollectedModbusService
+import site.addzero.device.protocol.modbus.ksp.core.ModbusAddressLockFile
+import site.addzero.device.protocol.modbus.ksp.core.ModbusAddressPlanner
 import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactRenderer
 import site.addzero.device.protocol.modbus.ksp.core.ModbusCodegenMode
 import site.addzero.device.protocol.modbus.ksp.core.ModbusExternalCArtifactWriter
@@ -26,6 +28,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
         val collector = ModbusSymbolCollector(environment.logger)
         val modes = ModbusCodegenMode.from(environment)
         val externalCArtifactWriter = ModbusExternalCArtifactWriter.from(environment)
+        val addressLockFile = ModbusAddressLockFile.from(environment)
         val contractPackages =
             environment
                 .resolveContractPackages()
@@ -51,20 +54,27 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                 }
 
                 val services = collected.values.toList()
-                val errors = ModbusModelValidator.validate(services.map(CollectedModbusService::model))
+                val resolvedServices =
+                    ModbusAddressPlanner.resolveServices(
+                        services = services.map(CollectedModbusService::model),
+                        lockFile = addressLockFile,
+                        logger = environment.logger,
+                    )
+                val errors = ModbusModelValidator.validate(resolvedServices)
                 if (errors.isNotEmpty()) {
                     errors.forEach(environment.logger::error)
                     return
                 }
+                ModbusAddressPlanner.persist(resolvedServices, addressLockFile)
 
                 if (ModbusCodegenMode.CONTRACT in modes) {
                     val externalContractSources = mutableListOf<java.io.File>()
-                    services.forEach { service ->
+                    services.zip(resolvedServices).forEach { (collectedService, resolvedService) ->
                         externalContractSources += writeArtifacts(
                             logger = environment.logger,
                             codeGenerator = environment.codeGenerator,
-                            dependencies = dependenciesFor(service.originatingFiles, aggregating = false),
-                            artifacts = ModbusArtifactRenderer.renderContractArtifacts(service.model),
+                            dependencies = dependenciesFor(collectedService.originatingFiles, aggregating = false),
+                            artifacts = ModbusArtifactRenderer.renderContractArtifacts(resolvedService),
                             externalCArtifactWriter = externalCArtifactWriter,
                         )
                     }
@@ -72,7 +82,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(ModbusTransportKind.TCP, services.map(CollectedModbusService::model)),
+                        artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(ModbusTransportKind.TCP, resolvedServices),
                         externalCArtifactWriter = externalCArtifactWriter,
                     )
                     ModbusProjectSyncRunner.syncIfNeeded(
@@ -87,7 +97,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(ModbusTransportKind.TCP, services.map(CollectedModbusService::model)),
+                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(ModbusTransportKind.TCP, resolvedServices),
                         externalCArtifactWriter = null,
                     )
                 }

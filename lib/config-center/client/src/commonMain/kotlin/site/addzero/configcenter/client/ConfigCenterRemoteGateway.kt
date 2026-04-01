@@ -1,6 +1,7 @@
 package site.addzero.configcenter.client
 
 import io.ktor.client.HttpClient
+import org.koin.mp.KoinPlatform
 import site.addzero.core.network.HttpClientFactory
 import site.addzero.configcenter.spec.ConfigCenterGateway
 import site.addzero.configcenter.spec.ConfigEntryDto
@@ -18,7 +19,7 @@ internal expect fun buildConfigCenterHttpApi(
 object ConfigCenterApiClient {
     private const val httpClientProfile = "config-center"
     private val httpClientFactory: HttpClientFactory
-        get() = HttpClientFactory.shared()
+        get() = KoinPlatform.getKoin().get()
 
     @Volatile
     private var baseUrl: String = "http://localhost:8080/"

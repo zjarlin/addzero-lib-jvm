@@ -128,6 +128,7 @@ class ModbusArtifactRendererTest {
         assertTrue(gateway.contains("executor.readInputRegisters(resolvedConfig, 100, 20)"))
         assertTrue(gateway.contains("deviceName = ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 4, 16)"))
         assertTrue(generatedHeader.contains("#define DEVICE_GET_DEVICE_RUNTIME_INFO_QUANTITY 20"))
+        assertTrue(generatedHeader.contains("/* 设备运行信息。 */"))
         assertTrue(generatedHeader.contains("char device_name[33];"))
         assertTrue(generatedSource.contains("device_generated_encode_string_registers(response.device_name, out_registers, 4, 16);"))
         assertTrue(protocolDoc.contains("| `deviceName` | `String` | `STRING_UTF8` | `4` | `0` | `16` | 设备名称。 |"))
@@ -487,13 +488,14 @@ internal fun semanticRegisterStringService(): ModbusServiceModel =
                     requestQualifiedName = "site.addzero.generated.DeviceServiceRtuGetDeviceRuntimeInfoRequest",
                     parameters = emptyList(),
                     returnType =
-                        ModbusReturnTypeModel(
-                            qualifiedName = "site.addzero.device.api.internal.DeviceRuntimeInfo",
-                            simpleName = "DeviceRuntimeInfo",
-                            kind = ModbusReturnKind.DTO,
-                            properties =
-                                listOf(
-                                    ModbusPropertyModel(
+                    ModbusReturnTypeModel(
+                        qualifiedName = "site.addzero.device.api.internal.DeviceRuntimeInfo",
+                        simpleName = "DeviceRuntimeInfo",
+                        kind = ModbusReturnKind.DTO,
+                        docSummary = "设备运行信息。",
+                        properties =
+                            listOf(
+                                ModbusPropertyModel(
                                         name = "protocolVersion",
                                         qualifiedType = "kotlin.Int",
                                         valueKind = ModbusValueKind.INT,

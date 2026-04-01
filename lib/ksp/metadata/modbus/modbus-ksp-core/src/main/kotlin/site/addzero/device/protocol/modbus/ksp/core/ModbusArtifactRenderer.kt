@@ -944,6 +944,9 @@ object ModbusArtifactTemplates {
             service.operations.forEach { operation ->
                 when (operation.returnType.kind) {
                     ModbusReturnKind.DTO -> {
+                        if (operation.returnType.docSummary.isNotBlank()) {
+                            appendLine("/* ${escapeCComment(operation.returnType.docSummary)} */")
+                        }
                         appendLine("typedef struct {")
                         operation.returnType.properties.forEach { property ->
                             appendLine("    /* ${escapeCComment(property.cFieldComment())} */")
@@ -956,6 +959,7 @@ object ModbusArtifactTemplates {
                     else -> Unit
                 }
                 if (operation.parameters.isNotEmpty()) {
+                    appendLine("/* ${escapeCComment(operation.doc.summary)} 请求参数。 */")
                     appendLine("typedef struct {")
                     operation.parameters.forEach { parameter ->
                         appendLine("    /* ${escapeCComment(parameter.cFieldComment())} */")
@@ -966,7 +970,7 @@ object ModbusArtifactTemplates {
                 }
             }
             service.operations.forEach { operation ->
-                appendLine("/* ${escapeCComment(operation.doc.summary)} */")
+                operation.generatedFunctionCommentLines(service).forEach(::appendLine)
                 appendLine("${operation.generatedDispatchSignature(service)};")
                 appendLine()
             }
@@ -1000,7 +1004,7 @@ object ModbusArtifactTemplates {
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
-                appendLine("/* ${escapeCComment(operation.doc.summary)} */")
+                operation.bridgeFunctionCommentLines(service).forEach(::appendLine)
                 appendLine("${operation.bridgeSignature(service)};")
                 appendLine()
             }
@@ -1086,6 +1090,7 @@ object ModbusArtifactTemplates {
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
+                operation.generatedFunctionCommentLines(service).forEach(::appendLine)
                 appendLine("${operation.generatedDispatchSignature(service)} {")
                 operation.renderCDispatchBody(service).forEach { line -> appendLine("    $line") }
                 appendLine("}")
@@ -1118,13 +1123,21 @@ object ModbusArtifactTemplates {
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
+                operation.bridgeFunctionCommentLines(service).forEach(::appendLine)
                 appendLine("${operation.bridgeSignature(service)} {")
                 appendLine("    /* 要改哪里：从这里开始补板级业务逻辑。 */")
                 appendLine("    /* ${escapeCComment(operation.doc.summary)} */")
+                if (operation.parameters.isNotEmpty()) {
+                    appendLine("    /* 输入参数：")
+                    operation.parameters.forEach { parameter ->
+                        appendLine("     * - request->${parameter.name.toSnakeCase()}: ${escapeCComment(parameter.doc)}")
+                    }
+                    appendLine("     */")
+                }
                 when (operation.returnType.kind) {
                     ModbusReturnKind.DTO -> {
                         appendLine("    if (out_response == NULL) {")
-                        appendLine("        return false;")
+                            appendLine("        return false;")
                         appendLine("    }")
                         operation.returnType.properties.forEach { property ->
                             appendLine("    ${property.renderBridgeDefaultAssignment("out_response->")}")
@@ -1475,6 +1488,80 @@ object ModbusArtifactTemplates {
 
     private fun ModbusOperationModel.macroPrefix(service: ModbusServiceModel): String =
         "${service.cServiceName}_${operationId}".uppercase().replace('-', '_')
+
+    private fun ModbusOperationModel.generatedFunctionCommentLines(service: ModbusServiceModel): List<String> =
+        cFunctionCommentLines(
+            summary = doc.summary,
+            params =
+                when {
+                    isReadOperation && usesCoilBits ->
+                        listOf(
+                            "out_coils" to "输出 Modbus 线圈缓冲区。",
+                            "coil_count" to "out_coils 可写入的线圈数量。",
+                        )
+                    isReadOperation ->
+                        listOf(
+                            "out_registers" to "输出 Modbus 寄存器缓冲区。",
+                            "register_count" to "out_registers 可写入的寄存器数量。",
+                        )
+                    usesCoilBits ->
+                        listOf(
+                            "input_coils" to "输入 Modbus 线圈缓冲区。",
+                            "coil_count" to "input_coils 中有效的线圈数量。",
+                            "out_result" to "命令处理结果输出。",
+                        )
+                    else ->
+                        listOf(
+                            "input_registers" to "输入 Modbus 寄存器缓冲区。",
+                            "register_count" to "input_registers 中有效的寄存器数量。",
+                            "out_result" to "命令处理结果输出。",
+                        )
+                },
+        )
+
+    private fun ModbusOperationModel.bridgeFunctionCommentLines(service: ModbusServiceModel): List<String> =
+        cFunctionCommentLines(
+            summary = doc.summary,
+            params =
+                when {
+                    isReadOperation && returnType.kind == ModbusReturnKind.DTO ->
+                        listOf("out_response" to "${responseStructName(service)} 输出对象。")
+                    isReadOperation && returnType.kind == ModbusReturnKind.STRING ->
+                        listOf(
+                            "out_value" to "输出字符串缓冲区。",
+                            "out_capacity" to "out_value 的字节容量，包含结尾 '\\0'。",
+                        )
+                    isReadOperation ->
+                        listOf("out_value" to "输出读取到的标量值。")
+                    parameters.isNotEmpty() && returnType.kind == ModbusReturnKind.COMMAND_RESULT ->
+                        listOf(
+                            "request" to "${requestStructName(service)} 输入参数对象。",
+                            "out_result" to "命令处理结果输出。",
+                        )
+                    parameters.isNotEmpty() ->
+                        listOf("request" to "${requestStructName(service)} 输入参数对象。")
+                    returnType.kind == ModbusReturnKind.COMMAND_RESULT ->
+                        listOf("out_result" to "命令处理结果输出。")
+                    else -> emptyList()
+                },
+        )
+
+    private fun cFunctionCommentLines(
+        summary: String,
+        params: List<Pair<String, String>>,
+    ): List<String> =
+        buildList {
+            add("/*")
+            add(" * ${escapeCComment(summary)}")
+            if (params.isNotEmpty()) {
+                add(" *")
+                add(" * 参数：")
+                params.forEach { (name, doc) ->
+                    add(" * - $name: ${escapeCComment(doc)}")
+                }
+            }
+            add(" */")
+        }
 
     private fun ModbusParameterModel.cType(): String =
         when (valueKind) {

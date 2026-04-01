@@ -59,7 +59,7 @@ class ModbusSymbolCollector(
                 .filter { function -> function.isProtocolOperation() }
                 .mapNotNull { function -> function.toOperationModel(requestPrefix) }
                 .toList()
-                .let { collectedOperations -> ModbusContractDefaultsResolver.resolveOperations(serviceId, collectedOperations) }
+                .let(ModbusContractDefaultsResolver::resolveOperationIdsAndQuantities)
 
         return CollectedModbusService(
             model =
@@ -182,10 +182,12 @@ class ModbusSymbolCollector(
                     return null
                 }
                 val properties = classDeclaration.toPropertyModels()
+                val typeDoc = ModbusKdocParser.parse(classDeclaration.docString, fallbackSummary = "")
                 ModbusReturnTypeModel(
                     qualifiedName = qualifiedName,
                     simpleName = simpleName,
                     kind = ModbusReturnKind.DTO,
+                    docSummary = typeDoc.summary,
                     properties = properties,
                 )
             }
