@@ -52,5 +52,6 @@ include(":lib:ksp:metadata:modbus:modbus-runtime")
 include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-jvm:tool-serial")
+include(":lib:tool-jvm:tool-stm32-bootloader")
 include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<

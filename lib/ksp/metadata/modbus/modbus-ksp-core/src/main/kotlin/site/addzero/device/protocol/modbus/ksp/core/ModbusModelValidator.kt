@@ -25,11 +25,168 @@ object ModbusModelValidator {
                 validateParameters(service, operation, errors)
                 validateReturnType(service, operation, errors)
             }
+            service.workflows.forEach { workflow ->
+                if (!operationIds.add(workflow.workflowId)) {
+                    errors += "服务 ${service.interfaceQualifiedName} 存在重复的 workflowId：${workflow.workflowId}。"
+                }
+                val route = "${service.basePath}/${service.transport.transportId}/${service.serviceId}/${workflow.workflowId}"
+                val previous = routeIndex.putIfAbsent(route, service.interfaceQualifiedName)
+                if (previous != null && previous != service.interfaceQualifiedName) {
+                    errors += "路由冲突：$route 同时来自 $previous 和 ${service.interfaceQualifiedName}。"
+                }
+                validateWorkflow(service, workflow, errors)
+            }
         }
 
         validateAddressConflicts(services, errors)
 
         return errors
+    }
+
+    private fun validateWorkflow(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        errors: MutableList<String>,
+    ) {
+        when (workflow.kind) {
+            ModbusWorkflowKind.FLASH_FIRMWARE -> validateFlashWorkflow(service, workflow, errors)
+        }
+    }
+
+    private fun validateFlashWorkflow(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        errors: MutableList<String>,
+    ) {
+        val startOperation = service.operationByMethodName(workflow.startMethodName)
+        val chunkOperation = service.operationByMethodName(workflow.chunkMethodName)
+        val commitOperation = service.operationByMethodName(workflow.commitMethodName)
+        val resetOperation =
+            workflow.resetMethodName
+                ?.let { methodName -> service.operationByMethodName(methodName) }
+
+        if (startOperation == null) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 缺少必需的低层方法：${workflow.startMethodName}。"
+        }
+        if (chunkOperation == null) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 缺少必需的低层方法：${workflow.chunkMethodName}。"
+        }
+        if (commitOperation == null) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 缺少必需的低层方法：${workflow.commitMethodName}。"
+        }
+        if (startOperation == null || chunkOperation == null || commitOperation == null) {
+            return
+        }
+
+        if (workflow.returnType.kind != ModbusReturnKind.DTO) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 必须返回 FlashResult DTO。"
+        }
+        val propertyNames = workflow.returnType.properties.mapTo(linkedSetOf(), ModbusPropertyModel::name)
+        listOf("accepted", "summary", "totalBytes", "totalChunks", "resetIssued").forEach { requiredName ->
+            if (requiredName !in propertyNames) {
+                errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 FlashResult 缺少字段：$requiredName。"
+            }
+        }
+
+        validateFlashStartOperation(service, workflow, startOperation, errors)
+        validateFlashChunkOperation(service, workflow, chunkOperation, errors)
+        validateFlashCommitOperation(service, workflow, commitOperation, errors)
+        if (resetOperation != null) {
+            validateFlashResetOperation(service, workflow, resetOperation, errors)
+        }
+    }
+
+    private fun validateFlashStartOperation(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        operation: ModbusOperationModel,
+        errors: MutableList<String>,
+    ) {
+        if (operation.functionCodeName != "WRITE_MULTIPLE_REGISTERS") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须使用 WRITE_MULTIPLE_REGISTERS。"
+        }
+        if (operation.returnType.kind != ModbusReturnKind.COMMAND_RESULT) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须返回 ModbusCommandResult。"
+        }
+        val totalBytes = operation.parameters.find { parameter -> parameter.name == "totalBytes" }
+        if (totalBytes == null || totalBytes.codecName != "U32_BE") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须包含 totalBytes: U32_BE。"
+        }
+        val crc32 = operation.parameters.find { parameter -> parameter.name == "crc32" }
+        if (crc32 != null && crc32.codecName != "U32_BE") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 如果声明 crc32，必须使用 U32_BE。"
+        }
+        if (operation.parameters.any { parameter -> parameter.name !in setOf("totalBytes", "crc32") }) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 目前只支持 totalBytes 和可选 crc32 两个参数。"
+        }
+    }
+
+    private fun validateFlashChunkOperation(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        operation: ModbusOperationModel,
+        errors: MutableList<String>,
+    ) {
+        if (operation.functionCodeName != "WRITE_MULTIPLE_REGISTERS") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须使用 WRITE_MULTIPLE_REGISTERS。"
+        }
+        if (operation.returnType.kind != ModbusReturnKind.COMMAND_RESULT) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须返回 ModbusCommandResult。"
+        }
+        val sequence = operation.parameters.find { parameter -> parameter.name == "sequence" }
+        val usedBytes = operation.parameters.find { parameter -> parameter.name == "usedBytes" }
+        if (sequence == null || sequence.codecName != "U16") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须包含 sequence: U16。"
+        }
+        if (usedBytes == null || usedBytes.codecName != "U16") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须包含 usedBytes: U16。"
+        }
+        val payloadParameters =
+            operation.parameters
+                .filter { parameter -> parameter.name != "sequence" && parameter.name != "usedBytes" }
+                .sortedBy(ModbusParameterModel::registerOffset)
+        if (payloadParameters.isEmpty()) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 至少要包含一个 payload 字段。"
+        }
+        if (payloadParameters.any { parameter -> parameter.codecName !in setOf("U16", "U32_BE") }) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} payload 字段目前只支持 U16 / U32_BE。"
+        }
+    }
+
+    private fun validateFlashCommitOperation(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        operation: ModbusOperationModel,
+        errors: MutableList<String>,
+    ) {
+        if (operation.functionCodeName !in setOf("WRITE_SINGLE_REGISTER", "WRITE_MULTIPLE_REGISTERS")) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须使用寄存器写功能码。"
+        }
+        if (operation.returnType.kind != ModbusReturnKind.COMMAND_RESULT) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须返回 ModbusCommandResult。"
+        }
+        val totalChunks = operation.parameters.find { parameter -> parameter.name == "totalChunks" }
+        if (totalChunks == null || totalChunks.codecName != "U16") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须包含 totalChunks: U16。"
+        }
+    }
+
+    private fun validateFlashResetOperation(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        operation: ModbusOperationModel,
+        errors: MutableList<String>,
+    ) {
+        if (operation.functionCodeName != "WRITE_SINGLE_COIL") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须使用 WRITE_SINGLE_COIL。"
+        }
+        if (operation.returnType.kind != ModbusReturnKind.COMMAND_RESULT) {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须返回 ModbusCommandResult。"
+        }
+        val trigger = operation.parameters.find { parameter -> parameter.name == "trigger" }
+        if (trigger == null || trigger.codecName != "BOOL_COIL") {
+            errors += "工作流 ${service.interfaceQualifiedName}.${workflow.methodName} 的 ${operation.methodName} 必须包含 trigger: BOOL_COIL。"
+        }
     }
 
     private fun validateAddressConflicts(
@@ -326,4 +483,7 @@ object ModbusModelValidator {
             else -> (field.registerOffset until field.registerOffset + field.registerWidth).mapTo(linkedSetOf()) { register -> "r$register" }
         }
     }
+
+    private fun ModbusServiceModel.operationByMethodName(methodName: String): ModbusOperationModel? =
+        operations.firstOrNull { operation -> operation.methodName == methodName }
 }

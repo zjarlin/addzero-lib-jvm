@@ -11,10 +11,12 @@ import site.addzero.gradle.kspconsumer.PublishedProcessorArtifact
 abstract class ModbusTcpExtension {
     abstract val codegenModes: ListProperty<String>
     abstract val contractPackages: ListProperty<String>
+    abstract val transports: ListProperty<String>
 
     init {
         codegenModes.convention(listOf("server"))
         contractPackages.convention(emptyList())
+        transports.convention(listOf("tcp"))
     }
 }
 
@@ -45,6 +47,7 @@ class ModbusTcpGradlePlugin : AbstractPublishedKspConsumerPlugin() {
         val modbus = extension as ModbusTcpExtension
         return linkedMapOf<String, String>().apply {
             put("addzero.modbus.codegen.mode", modbus.codegenModes.get().joinToString(","))
+            put("addzero.modbus.transports", modbus.transports.get().joinToString(","))
             modbus.contractPackages.get()
                 .takeIf { it.isNotEmpty() }
                 ?.let { put("addzero.modbus.contractPackages", it.joinToString(",")) }

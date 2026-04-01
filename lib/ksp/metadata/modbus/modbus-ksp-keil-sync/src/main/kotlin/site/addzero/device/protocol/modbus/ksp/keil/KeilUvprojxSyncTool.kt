@@ -69,49 +69,69 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
         groupName: String,
         newline: String,
     ): String {
-        val groupBlock =
-            findBlocks(targetBlock, "Group").firstOrNull { block ->
-                block.content.contains("<GroupName>$groupName</GroupName>")
+        val managedGroups =
+            findBlocks(targetBlock, "Group").filter { block ->
+                val currentGroupName = extractGroupName(block.content)
+                currentGroupName == groupName || currentGroupName.startsWith("$groupName/")
             }
-        val renderedGroup =
-            renderGroup(
+        val renderedGroups =
+            renderGroups(
                 uvprojxFile = uvprojxFile,
                 sourceFiles = sourceFiles,
-                groupName = groupName,
+                groupNamePrefix = groupName,
                 newline = newline,
                 indent = inferGroupIndent(targetBlock),
             )
-        if (groupBlock != null) {
-            return targetBlock.replaceRange(groupBlock.range, renderedGroup)
+        if (managedGroups.isNotEmpty()) {
+            val start = managedGroups.first().range.first
+            val endExclusive = managedGroups.last().range.last + 1
+            return targetBlock.replaceRange(start, endExclusive, renderedGroups)
         }
 
         val groupsEndRegex = Regex("""</Groups>""")
         val groupsEndMatch = groupsEndRegex.find(targetBlock)
             ?: error("Cannot find </Groups> in target block for group insertion")
-        val insertion = renderedGroup + newline
+        val insertion = renderedGroups + newline
         return targetBlock.replaceRange(groupsEndMatch.range.first, groupsEndMatch.range.first, insertion)
     }
 
-    private fun renderGroup(
+    private fun renderGroups(
         uvprojxFile: File,
         sourceFiles: List<File>,
-        groupName: String,
+        groupNamePrefix: String,
         newline: String,
         indent: String,
     ): String =
         buildString {
-            append(indent).append("<Group>").append(newline)
-            append(indent).append("  <GroupName>${escapeXml(groupName)}</GroupName>").append(newline)
-            append(indent).append("  <Files>").append(newline)
-            sourceFiles.forEach { file ->
-                append(indent).append("    <File>").append(newline)
-                append(indent).append("      <FileName>${escapeXml(file.name)}</FileName>").append(newline)
-                append(indent).append("      <FileType>1</FileType>").append(newline)
-                append(indent).append("      <FilePath>${escapeXml(toUvprojxPath(uvprojxFile, file))}</FilePath>").append(newline)
-                append(indent).append("    </File>").append(newline)
+            val groupedEntries =
+                sourceFiles
+                    .sortedWith(compareBy<File>({ it.parentFile.name }, { it.name }))
+                    .groupBy { file -> file.parentFile.name.ifBlank { "misc" } }
+                    .entries
+                    .toList()
+            groupedEntries.forEachIndexed { index, (groupSuffix, files) ->
+                val groupName =
+                    if (groupSuffix == "misc") {
+                        groupNamePrefix
+                    } else {
+                        "$groupNamePrefix/$groupSuffix"
+                    }
+                append(indent).append("<Group>").append(newline)
+                append(indent).append("  <GroupName>${escapeXml(groupName)}</GroupName>").append(newline)
+                append(indent).append("  <Files>").append(newline)
+                files.forEach { file ->
+                    append(indent).append("    <File>").append(newline)
+                    append(indent).append("      <FileName>${escapeXml(file.name)}</FileName>").append(newline)
+                    append(indent).append("      <FileType>1</FileType>").append(newline)
+                    append(indent).append("      <FilePath>${escapeXml(toUvprojxPath(uvprojxFile, file))}</FilePath>").append(newline)
+                    append(indent).append("    </File>").append(newline)
+                }
+                append(indent).append("  </Files>").append(newline)
+                append(indent).append("</Group>")
+                if (index != groupedEntries.lastIndex) {
+                    append(newline)
+                }
             }
-            append(indent).append("  </Files>").append(newline)
-            append(indent).append("</Group>")
         }
 
     private fun toUvprojxPath(
@@ -161,6 +181,9 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
 
     private fun inferGroupIndent(targetBlock: String): String =
         Regex("""(?m)^([ \t]*)</Groups>""").find(targetBlock)?.groupValues?.get(1)?.plus("  ") ?: "        "
+
+    private fun extractGroupName(groupBlock: String): String =
+        Regex("""<GroupName>(.*?)</GroupName>""").find(groupBlock)?.groupValues?.get(1).orEmpty()
 
     private fun escapeXml(value: String): String =
         value

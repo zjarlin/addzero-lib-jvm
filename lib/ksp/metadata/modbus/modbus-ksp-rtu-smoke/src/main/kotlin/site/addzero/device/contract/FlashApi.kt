@@ -1,5 +1,6 @@
 package site.addzero.device.contract
 
+import kotlinx.serialization.Serializable
 import site.addzero.device.protocol.modbus.annotation.GenerateModbusRtuServer
 import site.addzero.device.protocol.modbus.annotation.ModbusOperation
 import site.addzero.device.protocol.modbus.annotation.ModbusParam
@@ -12,6 +13,13 @@ import site.addzero.device.protocol.modbus.model.ModbusFunctionCode
  */
 @GenerateModbusRtuServer
 interface FlashApi {
+    /**
+     * 执行完整固件烧录工作流。
+     *
+     * @param bytes 待烧录的完整固件字节数组。
+     */
+    suspend fun flashFirmware(bytes: ByteArray): FlashResult
+
     /**
      * 触发设备复位。
      *
@@ -86,3 +94,22 @@ interface FlashApi {
         totalChunks: Int,
     ): ModbusCommandResult
 }
+
+/**
+ * 固件烧录结果。
+ */
+@Serializable
+data class FlashResult(
+    /** 工作流是否已被完整执行。 */
+    val accepted: Boolean,
+    /** 工作流执行摘要。 */
+    val summary: String,
+    /** 固件总字节数。 */
+    val totalBytes: Int,
+    /** 实际发送的总分片数。 */
+    val totalChunks: Int,
+    /** 上位机计算并下发的 CRC32；若协议未声明则为 null。 */
+    val crc32: Int?,
+    /** 是否已经触发设备复位。 */
+    val resetIssued: Boolean,
+)

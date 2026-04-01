@@ -53,13 +53,22 @@ class ModbusSymbolCollector(
         val summary = interfaceDoc.summary
         val basePath = "/api/modbus"
         val requestPrefix = interfaceName + transport.transportId.replaceFirstChar(Char::uppercase)
-        val operations =
+        val functions =
             declarations
                 .filterIsInstance<KSFunctionDeclaration>()
-                .filter { function -> function.isProtocolOperation() }
+                .filter { function -> function.isCandidateContractMethod() }
+                .toList()
+        val operations =
+            functions
+                .filter { function -> function.isLowLevelOperation() }
                 .mapNotNull { function -> function.toOperationModel(requestPrefix) }
                 .toList()
                 .let(ModbusContractDefaultsResolver::resolveOperationIdsAndQuantities)
+        val workflows =
+            functions
+                .filter { function -> function.isFirmwareWorkflow() }
+                .mapNotNull { function -> function.toWorkflowModel(requestPrefix) }
+                .toList()
 
         return CollectedModbusService(
             model =
@@ -73,6 +82,7 @@ class ModbusSymbolCollector(
                     transport = transport,
                     doc = interfaceDoc,
                     operations = operations,
+                    workflows = workflows,
                 ),
             originatingFiles = listOfNotNull(containingFile),
         )
@@ -192,6 +202,42 @@ class ModbusSymbolCollector(
                 )
             }
         }
+    }
+
+    private fun KSFunctionDeclaration.toWorkflowModel(requestPrefix: String): ModbusWorkflowModel? {
+        val methodName = simpleName.asString()
+        val doc = ModbusKdocParser.parse(docString, fallbackSummary = "执行 $methodName 工作流。")
+        val bytesParameter = parameters.singleOrNull()
+        if (bytesParameter == null) {
+            logger.error("高层工作流 $methodName 必须且只能包含一个 bytes: ByteArray 参数。", this)
+            return null
+        }
+        val parameterName = bytesParameter.name?.asString().orEmpty()
+        val parameterType = bytesParameter.type.resolve().declaration.qualifiedName?.asString().orEmpty()
+        if (parameterName != "bytes" || parameterType != "kotlin.ByteArray") {
+            logger.error("高层工作流 $methodName 必须声明为 suspend fun $methodName(bytes: ByteArray): FlashResult。", this)
+            return null
+        }
+        val returnType = toReturnTypeModel(operationAnnotation = null) ?: return null
+        if (returnType.kind != ModbusReturnKind.DTO || returnType.simpleName != "FlashResult") {
+            logger.error("高层工作流 $methodName 的返回类型必须是 FlashResult DTO。", this)
+            return null
+        }
+        val requestClassName = requestPrefix + methodName.replaceFirstChar(Char::uppercase) + "Request"
+        return ModbusWorkflowModel(
+            kind = ModbusWorkflowKind.FLASH_FIRMWARE,
+            methodName = methodName,
+            workflowId = ModbusContractDefaultsResolver.defaultOperationId(methodName),
+            requestClassName = requestClassName,
+            requestQualifiedName = "${requestPrefix.substringBeforeLast("Request", requestPrefix)}.$requestClassName",
+            bytesParameterName = parameterName,
+            returnType = returnType,
+            doc = doc,
+            startMethodName = "firmwareStart",
+            chunkMethodName = "firmwareChunk",
+            commitMethodName = "firmwareCommit",
+            resetMethodName = "resetDevice",
+        )
     }
 
     private fun KSClassDeclaration.toPropertyModels(): List<ModbusPropertyModel> {
@@ -371,10 +417,17 @@ class ModbusSymbolCollector(
     private fun KSClassDeclaration.hasProtocolOperations(): Boolean =
         declarations
             .filterIsInstance<KSFunctionDeclaration>()
-            .any { function -> function.isProtocolOperation() }
+            .any { function -> function.isLowLevelOperation() || function.isFirmwareWorkflow() }
 
-    private fun KSFunctionDeclaration.isProtocolOperation(): Boolean =
+    private fun KSFunctionDeclaration.isCandidateContractMethod(): Boolean =
         simpleName.asString() != "<init>"
+
+    private fun KSFunctionDeclaration.isLowLevelOperation(): Boolean =
+        requireAnnotation(ModbusAnnotationNames.operation) != null
+
+    private fun KSFunctionDeclaration.isFirmwareWorkflow(): Boolean =
+        simpleName.asString() == "flashFirmware" &&
+            requireAnnotation(ModbusAnnotationNames.operation) == null
 
     private fun KSClassDeclaration.matchesTransport(transport: ModbusTransportKind): Boolean {
         val hasRtu = hasAnnotation(ModbusAnnotationNames.generateRtuServer)

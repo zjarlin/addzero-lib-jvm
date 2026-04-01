@@ -183,6 +183,58 @@ class ModbusArtifactRendererTest {
         assertTrue(source.contains("if (out_result == NULL || input_registers == NULL || register_count < 4) {"))
         assertTrue(source.contains("if (out_result == NULL || input_registers == NULL || register_count < 10) {"))
     }
+
+    @Test
+    fun renderFlashWorkflowGatewayAndDocs() {
+        val service = sampleFlashWorkflowService()
+        val gateway =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(ModbusTransportKind.RTU, listOf(service))
+                .single()
+                .content
+        val contractArtifacts = ModbusArtifactRenderer.renderContractArtifacts(service)
+        val bridgeHeader =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "flash_bridge" && artifact.extensionName == "h" }
+                .content
+        val bridgeImpl =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "flash_bridge_impl" && artifact.extensionName == "c" }
+                .content
+        val markdown =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "flash.rtu.protocol" && artifact.extensionName == "md" }
+                .content
+
+        assertTrue(gateway.contains("override suspend fun flashFirmware(bytes: ByteArray): site.addzero.device.contract.FlashResult"))
+        assertTrue(gateway.contains("require(bytes.isNotEmpty()) { \"flashFirmware bytes must not be empty\" }"))
+        assertTrue(gateway.contains("val firmwareCrc32 = generatedModbusCrc32(bytes)"))
+        assertTrue(gateway.contains("val maxPayloadBytesPerChunk = 16"))
+        assertTrue(gateway.contains("val startResult = firmwareStart(config = resolvedConfig, totalBytes = totalBytes, crc32 = firmwareCrc32)"))
+        assertTrue(gateway.contains("val chunkResult = firmwareChunk(config = resolvedConfig, sequence = sequence, usedBytes = chunkBytes.size, word0 = word0, word1 = word1, word2 = word2, word3 = word3)"))
+        assertTrue(gateway.contains("val commitResult = firmwareCommit(config = resolvedConfig, totalChunks = totalChunks)"))
+        assertTrue(gateway.contains("val resetResult = resetDevice(config = resolvedConfig, trigger = true)"))
+        assertTrue(gateway.contains("crc32 = firmwareCrc32"))
+        assertTrue(bridgeHeader.contains("高层工作流：flashFirmware(bytes)"))
+        assertTrue(bridgeHeader.contains("属于高层 flashFirmware(bytes) 工作流的低层步骤。"))
+        assertTrue(bridgeImpl.contains("Kotlin 上位机会自动计算 CRC32、切片并顺序调用 begin/chunk/commit/reset"))
+        assertTrue(markdown.contains("## Workflows Summary"))
+        assertTrue(markdown.contains("## Workflow `flash-firmware`"))
+        assertTrue(markdown.contains("Chunk Max Bytes: `16`"))
+        assertTrue(markdown.contains("CRC32: 由上位机自动计算并通过 firmwareStart 下发"))
+    }
+
+    @Test
+    fun renderFlashWorkflowWithoutCrcUsesNullResultField() {
+        val gateway =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(ModbusTransportKind.RTU, listOf(sampleFlashWorkflowServiceWithoutCrc()))
+                .single()
+                .content
+
+        assertTrue(gateway.contains("val startResult = firmwareStart(config = resolvedConfig, totalBytes = totalBytes)"))
+        assertTrue(gateway.contains("crc32 = null"))
+    }
 }
 
 internal fun sampleSetLedOperation(): ModbusOperationModel =
@@ -347,6 +399,123 @@ internal fun sampleFirmwareStartOperation(): ModbusOperationModel =
         doc = ModbusDocModel(summary = "初始化一次烧录会话。"),
     )
 
+internal fun sampleFirmwareStartOperationWithoutCrc(): ModbusOperationModel =
+    sampleFirmwareStartOperation().copy(
+        quantity = 2,
+        parameters =
+            listOf(
+                ModbusParameterModel(
+                    name = "totalBytes",
+                    qualifiedType = "kotlin.Int",
+                    valueKind = ModbusValueKind.INT,
+                    order = 0,
+                    codecName = "U32_BE",
+                    registerOffset = 0,
+                    bitOffset = 0,
+                    registerWidth = 2,
+                    doc = "固件总长度。",
+                ),
+            ),
+    )
+
+internal fun sampleFirmwareCommitOperation(): ModbusOperationModel =
+    ModbusOperationModel(
+        methodName = "firmwareCommit",
+        operationId = "firmware-commit",
+        functionCodeName = "WRITE_SINGLE_REGISTER",
+        address = 60,
+        quantity = 1,
+        requestClassName = "SampleFirmwareCommitRequest",
+        requestQualifiedName = "site.addzero.generated.SampleFirmwareCommitRequest",
+        parameters =
+            listOf(
+                ModbusParameterModel(
+                    name = "totalChunks",
+                    qualifiedType = "kotlin.Int",
+                    valueKind = ModbusValueKind.INT,
+                    order = 0,
+                    codecName = "U16",
+                    registerOffset = 0,
+                    bitOffset = 0,
+                    registerWidth = 1,
+                    doc = "总分片数。",
+                ),
+            ),
+        returnType =
+            ModbusReturnTypeModel(
+                qualifiedName = "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+                simpleName = "ModbusCommandResult",
+                kind = ModbusReturnKind.COMMAND_RESULT,
+            ),
+        doc = ModbusDocModel(summary = "提交烧录结果。"),
+    )
+
+internal fun sampleResetDeviceOperation(): ModbusOperationModel =
+    ModbusOperationModel(
+        methodName = "resetDevice",
+        operationId = "reset-device",
+        functionCodeName = "WRITE_SINGLE_COIL",
+        address = 64,
+        quantity = 1,
+        requestClassName = "SampleResetDeviceRequest",
+        requestQualifiedName = "site.addzero.generated.SampleResetDeviceRequest",
+        parameters =
+            listOf(
+                ModbusParameterModel(
+                    name = "trigger",
+                    qualifiedType = "kotlin.Boolean",
+                    valueKind = ModbusValueKind.BOOLEAN,
+                    order = 0,
+                    codecName = "BOOL_COIL",
+                    registerOffset = 0,
+                    bitOffset = 0,
+                    registerWidth = 1,
+                    doc = "写入 true 时触发复位。",
+                ),
+            ),
+        returnType =
+            ModbusReturnTypeModel(
+                qualifiedName = "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+                simpleName = "ModbusCommandResult",
+                kind = ModbusReturnKind.COMMAND_RESULT,
+            ),
+        doc = ModbusDocModel(summary = "触发设备复位。"),
+    )
+
+internal fun sampleFlashWorkflowModel(): ModbusWorkflowModel =
+    ModbusWorkflowModel(
+        kind = ModbusWorkflowKind.FLASH_FIRMWARE,
+        methodName = "flashFirmware",
+        workflowId = "flash-firmware",
+        requestClassName = "FlashApiRtuFlashFirmwareRequest",
+        requestQualifiedName = "site.addzero.generated.FlashApiRtuFlashFirmwareRequest",
+        bytesParameterName = "bytes",
+        returnType =
+            ModbusReturnTypeModel(
+                qualifiedName = "site.addzero.device.contract.FlashResult",
+                simpleName = "FlashResult",
+                kind = ModbusReturnKind.DTO,
+                properties =
+                    listOf(
+                        ModbusPropertyModel("accepted", "kotlin.Boolean", ModbusValueKind.BOOLEAN, field = null, doc = "是否成功。"),
+                        ModbusPropertyModel("summary", "kotlin.String", ModbusValueKind.STRING, field = null, doc = "执行摘要。"),
+                        ModbusPropertyModel("totalBytes", "kotlin.Int", ModbusValueKind.INT, field = null, doc = "总字节数。"),
+                        ModbusPropertyModel("totalChunks", "kotlin.Int", ModbusValueKind.INT, field = null, doc = "总分片数。"),
+                        ModbusPropertyModel("crc32", "kotlin.Int", ModbusValueKind.INT, field = null, doc = "CRC32。"),
+                        ModbusPropertyModel("resetIssued", "kotlin.Boolean", ModbusValueKind.BOOLEAN, field = null, doc = "是否已复位。"),
+                    ),
+            ),
+        doc =
+            ModbusDocModel(
+                summary = "执行完整固件烧录工作流。",
+                parameterDocs = mapOf("bytes" to "待烧录的完整固件字节数组。"),
+            ),
+        startMethodName = "firmwareStart",
+        chunkMethodName = "firmwareChunk",
+        commitMethodName = "firmwareCommit",
+        resetMethodName = "resetDevice",
+    )
+
 internal fun sampleReadInfoOperation(): ModbusOperationModel = sampleService().operations.single()
 
 internal fun sampleFlashService(): ModbusServiceModel =
@@ -359,7 +528,24 @@ internal fun sampleFlashService(): ModbusServiceModel =
         basePath = "/api/modbus",
         transport = ModbusTransportKind.RTU,
         doc = ModbusDocModel(summary = "固件烧录接口。"),
-        operations = listOf(sampleFirmwareStartOperation(), sampleFirmwareChunkOperation()),
+        operations = listOf(sampleResetDeviceOperation(), sampleFirmwareStartOperation(), sampleFirmwareChunkOperation(), sampleFirmwareCommitOperation()),
+    )
+
+internal fun sampleFlashWorkflowService(): ModbusServiceModel =
+    sampleFlashService().copy(
+        workflows = listOf(sampleFlashWorkflowModel()),
+    )
+
+internal fun sampleFlashWorkflowServiceWithoutCrc(): ModbusServiceModel =
+    sampleFlashService().copy(
+        operations =
+            listOf(
+                sampleResetDeviceOperation(),
+                sampleFirmwareStartOperationWithoutCrc(),
+                sampleFirmwareChunkOperation(),
+                sampleFirmwareCommitOperation(),
+            ),
+        workflows = listOf(sampleFlashWorkflowModel()),
     )
 
 internal fun sampleService(

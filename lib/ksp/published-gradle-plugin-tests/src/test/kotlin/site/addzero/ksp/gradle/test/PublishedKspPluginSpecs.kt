@@ -150,6 +150,7 @@ object PublishedKspPluginSpecs {
             defaultValues = mapOf(
                 "codegenModes" to listOf("server"),
                 "contractPackages" to emptyList<String>(),
+                "transports" to listOf("rtu"),
             ),
         ),
         PublishedKspPluginSpec(
@@ -161,6 +162,7 @@ object PublishedKspPluginSpecs {
             defaultValues = mapOf(
                 "codegenModes" to listOf("server"),
                 "contractPackages" to emptyList<String>(),
+                "transports" to listOf("tcp"),
             ),
         ),
         PublishedKspPluginSpec(

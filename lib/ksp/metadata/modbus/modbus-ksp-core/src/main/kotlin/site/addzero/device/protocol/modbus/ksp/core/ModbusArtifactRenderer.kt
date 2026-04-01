@@ -15,6 +15,7 @@ object ModbusArtifactTemplates {
         if (services.isEmpty()) {
             return emptyList()
         }
+        val hasFirmwareWorkflow = services.any { service -> service.workflows.isNotEmpty() }
 
         val fileContent =
             buildString {
@@ -28,6 +29,9 @@ object ModbusArtifactTemplates {
                 appendLine("import org.koin.core.annotation.Module")
                 appendLine("import org.koin.core.annotation.Single")
                 appendLine("import org.koin.mp.KoinPlatform")
+                if (hasFirmwareWorkflow) {
+                    appendLine("import java.util.zip.CRC32")
+                }
                 when (transport) {
                     ModbusTransportKind.RTU -> {
                         appendLine("import site.addzero.device.driver.modbus.rtu.ModbusRtuConfigProvider")
@@ -47,6 +51,10 @@ object ModbusArtifactTemplates {
                 appendLine("import site.addzero.device.protocol.modbus.ModbusCodecSupport")
                 appendLine("import site.addzero.device.protocol.modbus.model.ModbusCodec")
                 appendLine()
+                if (hasFirmwareWorkflow) {
+                    append(renderFirmwareWorkflowSupport())
+                    appendLine()
+                }
                 append(renderTransportRequestSupport(transport))
                 appendLine()
                 services.forEach { service ->
@@ -168,6 +176,29 @@ object ModbusArtifactTemplates {
         }
     }
 
+    private fun renderFirmwareWorkflowSupport(): String =
+        buildString {
+            appendLine("private fun generatedModbusPackU16(source: ByteArray, startIndex: Int): Int {")
+            appendLine("    val high = source.getOrElse(startIndex) { 0 }.toInt() and 0xFF")
+            appendLine("    val low = source.getOrElse(startIndex + 1) { 0 }.toInt() and 0xFF")
+            appendLine("    return (high shl 8) or low")
+            appendLine("}")
+            appendLine()
+            appendLine("private fun generatedModbusPackU32Be(source: ByteArray, startIndex: Int): Int {")
+            appendLine("    val b0 = source.getOrElse(startIndex) { 0 }.toInt() and 0xFF")
+            appendLine("    val b1 = source.getOrElse(startIndex + 1) { 0 }.toInt() and 0xFF")
+            appendLine("    val b2 = source.getOrElse(startIndex + 2) { 0 }.toInt() and 0xFF")
+            appendLine("    val b3 = source.getOrElse(startIndex + 3) { 0 }.toInt() and 0xFF")
+            appendLine("    return (b0 shl 24) or (b1 shl 16) or (b2 shl 8) or b3")
+            appendLine("}")
+            appendLine()
+            appendLine("private fun generatedModbusCrc32(bytes: ByteArray): Int {")
+            appendLine("    val crc32 = CRC32()")
+            appendLine("    crc32.update(bytes)")
+            appendLine("    return crc32.value.toInt()")
+            appendLine("}")
+        }
+
     private fun renderProtocolMarkdown(service: ModbusServiceModel): String =
         buildString {
             appendLine("# ${service.interfaceSimpleName} Protocol Metadata (${service.transport.displayName})")
@@ -187,7 +218,7 @@ object ModbusArtifactTemplates {
                             listOf("Interface", "`${service.interfaceQualifiedName}`"),
                             listOf("Summary", service.summary.ifBlank { "-" }),
                         ),
-                )
+                ),
             )
             appendLine()
             appendLine("## Transport Defaults")
@@ -196,7 +227,7 @@ object ModbusArtifactTemplates {
                 renderMarkdownTable(
                     headers = listOf("Field", "Default"),
                     rows = renderTransportDefaultsMarkdownRows(service.transport),
-                )
+                ),
             )
             appendLine()
             appendLine("## Operations Summary")
@@ -216,8 +247,28 @@ object ModbusArtifactTemplates {
                                 operation.doc.summary.ifBlank { "-" },
                             )
                         },
-                )
+                ),
             )
+            if (service.workflows.isNotEmpty()) {
+                appendLine()
+                appendLine("## Workflows Summary")
+                appendLine()
+                append(
+                    renderMarkdownTable(
+                        headers = listOf("Workflow ID", "Method", "Return", "Summary", "Low-Level Steps"),
+                        rows =
+                            service.workflows.map { workflow ->
+                                listOf(
+                                    "`${workflow.workflowId}`",
+                                    "`${workflow.methodName}`",
+                                    workflow.returnType.renderProtocolReturnSummary(),
+                                    workflow.doc.summary.ifBlank { "-" },
+                                    workflow.renderWorkflowStepSummary(),
+                                )
+                            },
+                    ),
+                )
+            }
             service.operations.forEach { operation ->
                 appendLine()
                 appendLine("## `${operation.operationId}`")
@@ -234,7 +285,7 @@ object ModbusArtifactTemplates {
                                 add(listOf("Return Type", operation.returnType.renderProtocolReturnSummary()))
                                 add(listOf("Summary", operation.doc.summary.ifBlank { "-" }))
                             },
-                    )
+                    ),
                 )
                 if (operation.parameters.isNotEmpty()) {
                     appendLine()
@@ -255,7 +306,7 @@ object ModbusArtifactTemplates {
                                         parameter.doc.ifBlank { "-" },
                                     )
                                 },
-                        )
+                        ),
                     )
                 }
                 if (operation.returnType.kind == ModbusReturnKind.DTO) {
@@ -278,8 +329,47 @@ object ModbusArtifactTemplates {
                                         property.doc.ifBlank { "-" },
                                     )
                                 },
-                        )
+                        ),
                     )
+                }
+            }
+            service.workflows.forEach { workflow ->
+                appendLine()
+                appendLine("## Workflow `${workflow.workflowId}`")
+                appendLine()
+                append(
+                    renderMarkdownTable(
+                        headers = listOf("Field", "Value"),
+                        rows =
+                            buildList {
+                                add(listOf("Method", "`${workflow.methodName}`"))
+                                add(listOf("Return Type", workflow.returnType.renderProtocolReturnSummary()))
+                                add(listOf("Summary", workflow.doc.summary.ifBlank { "-" }))
+                                add(listOf("Low-Level Steps", workflow.renderWorkflowStepSummary()))
+                            },
+                    ),
+                )
+                when (workflow.kind) {
+                    ModbusWorkflowKind.FLASH_FIRMWARE -> {
+                        val startOperation = service.requireOperation(workflow.startMethodName)
+                        val chunkOperation = service.requireOperation(workflow.chunkMethodName)
+                        val commitOperation = service.requireOperation(workflow.commitMethodName)
+                        val chunkFields = chunkOperation.flashChunkPayloadFields()
+                        appendLine()
+                        appendLine("### Firmware Workflow")
+                        appendLine()
+                        appendLine("1. Kotlin 上位机先调用 `${startOperation.methodName}`。")
+                        appendLine("2. 然后自动按 chunk payload 宽度切片并循环调用 `${chunkOperation.methodName}`。")
+                        appendLine("3. 全部分片完成后调用 `${commitOperation.methodName}`。")
+                        if (service.operationOrNull(workflow.resetMethodName) != null) {
+                            appendLine("4. 成功提交后，Kotlin 上位机会继续调用 `${workflow.resetMethodName}`。")
+                        }
+                        appendLine()
+                        appendLine("- CRC32: ${if (startOperation.flashStartHasCrc32()) "由上位机自动计算并通过 firmwareStart 下发" else "当前协议未声明 CRC32 字段，上位机不会下发 CRC32"}")
+                        appendLine("- Chunk Max Bytes: `${chunkFields.sumOf { field -> field.payloadByteWidth() }}`")
+                        appendLine("- Chunk Byte Order: `U16/U32_BE` payload 均按大端顺序把 `bytes` 填入寄存器窗口。")
+                        appendLine("- C 侧职责：`begin` 初始化烧录会话，`chunk` 写分片，`commit` 完成提交，`reset` 负责板级重启。")
+                    }
                 }
             }
         }
@@ -298,7 +388,7 @@ object ModbusArtifactTemplates {
             appendLine("#include <stdint.h>")
             appendLine()
             services.forEach { service ->
-                appendLine("#include \"${service.cServiceName}_generated.h\"")
+                appendLine("#include \"${service.cServiceName}/${service.cServiceName}_generated.h\"")
             }
             appendLine()
             appendLine("/*")
@@ -336,7 +426,7 @@ object ModbusArtifactTemplates {
         services: List<ModbusServiceModel>,
     ): String =
         buildString {
-            appendLine("#include \"${transport.dispatchFileName()}.h\"")
+            appendLine("#include \"transport/${transport.dispatchFileName()}.h\"")
             appendLine()
             appendLine(
                 "static void ${transport.dispatchFunctionPrefix()}_set_result(" +
@@ -447,9 +537,9 @@ object ModbusArtifactTemplates {
 
     private fun renderRtuAgileSlaveAdapterSource(): String =
         buildString {
-            appendLine("#include \"modbus_rtu_agile_slave_adapter.h\"")
+            appendLine("#include \"transport/modbus_rtu_agile_slave_adapter.h\"")
             appendLine()
-            appendLine("#include \"modbus_rtu_dispatch.h\"")
+            appendLine("#include \"transport/modbus_rtu_dispatch.h\"")
             appendLine()
             appendLine("/*")
             appendLine(" * 这个文件只做 transport/runtime 适配：")
@@ -741,6 +831,18 @@ object ModbusArtifactTemplates {
                 appendLine(") : ${service.transport.requestConfigInterfaceName()}")
                 appendLine()
             }
+            service.workflows.forEach { workflow ->
+                appendLine("/**")
+                appendLine(" * ${escapeComment(workflow.doc.summary)}")
+                appendLine(" */")
+                appendLine("@Serializable")
+                appendLine("data class ${workflow.requestClassName}(")
+                appendLine(service.transport.requestConfigFields())
+                appendLine("    /** ${escapeComment(workflow.doc.parameterDocs[workflow.bytesParameterName].orEmpty().ifBlank { "待烧录的完整固件字节数组。" })} */")
+                appendLine("    val ${workflow.bytesParameterName}: ByteArray")
+                appendLine(") : ${service.transport.requestConfigInterfaceName()}")
+                appendLine()
+            }
         }
 
     private fun renderConfigProvider(service: ModbusServiceModel): String =
@@ -830,7 +932,41 @@ object ModbusArtifactTemplates {
                 appendLine("    }")
                 appendLine()
             }
+            service.workflows.forEach { workflow ->
+                append(renderWorkflowGatewayMethods(service, workflow))
+                appendLine()
+            }
             appendLine("}")
+        }
+
+    private fun renderWorkflowGatewayMethods(
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+    ): String =
+        buildString {
+            when (workflow.kind) {
+                ModbusWorkflowKind.FLASH_FIRMWARE -> {
+                    appendLine("    override suspend fun ${workflow.methodName}(${workflow.bytesParameterName}: ByteArray): ${workflow.returnType.renderKotlinType()} =")
+                    appendLine("        ${workflow.methodName}(config = null, ${workflow.bytesParameterName} = ${workflow.bytesParameterName})")
+                    appendLine()
+                    appendLine("    /**")
+                    appendLine("     * ${escapeComment(workflow.doc.summary)}")
+                    appendLine("     *")
+                    appendLine("     * 这是由 `${workflow.methodName}(bytes)` 高层工作流展开出来的自动实现。")
+                    appendLine("     * 业务层无需手写 CRC32、分片切片和寄存器 packing。")
+                    appendLine("     */")
+                    appendLine(
+                        "    suspend fun ${workflow.methodName}(" +
+                            "config: ${service.transport.endpointConfigSimpleName()}? = null, " +
+                            "${workflow.bytesParameterName}: ByteArray" +
+                            "): ${workflow.returnType.renderKotlinType()} {",
+                    )
+                    workflow.renderFirmwareWorkflowExecution(service).forEach { line ->
+                        appendLine("        $line")
+                    }
+                    appendLine("    }")
+                }
+            }
         }
 
     private fun renderModule(
@@ -895,6 +1031,15 @@ object ModbusArtifactTemplates {
                     appendLine("        call.respond(gateway.${operation.methodName}(config = config${operation.renderGatewayArguments(valuePrefix = "request.")}))")
                     appendLine("    }")
                 }
+                service.workflows.forEach { workflow ->
+                    val routePath = "${service.basePath}/${transport.transportId}/${service.serviceId}/${workflow.workflowId}"
+                    appendLine("    post(\"$routePath\") {")
+                    appendLine("        val request = call.receive<${workflow.requestClassName}>()")
+                    appendLine("        val gateway = KoinPlatform.getKoin().get<${service.gatewayClassName}>()")
+                    appendLine("        val config = request.toEndpointConfig(gateway.defaultConfig())")
+                    appendLine("        call.respond(gateway.${workflow.methodName}(config = config, ${workflow.bytesParameterName} = request.${workflow.bytesParameterName}))")
+                    appendLine("    }")
+                }
             }
             appendLine("}")
         }
@@ -922,6 +1067,9 @@ object ModbusArtifactTemplates {
             appendLine(" * - 定义该 service 的 Modbus address / quantity 常量")
             appendLine(" * - 定义 request/response DTO 对应的 C struct")
             appendLine(" * - 声明 generated dispatch 入口")
+            if (service.workflows.isNotEmpty()) {
+                appendLine(" * - 标注高层 workflow 对应的低层 begin/chunk/commit/reset SPI")
+            }
             appendLine(" *")
             appendLine(" * 固件同事真正要实现的板级逻辑不在这里，")
             appendLine(" * 而是在 ${service.cServiceName}_bridge_impl.c 这类 bridge 实现文件里。")
@@ -983,7 +1131,7 @@ object ModbusArtifactTemplates {
             appendLine("#ifndef $guard")
             appendLine("#define $guard")
             appendLine()
-            appendLine("#include \"${service.cServiceName}_generated.h\"")
+            appendLine("#include \"${service.cServiceName}/${service.cServiceName}_generated.h\"")
             appendLine()
             appendLine("/*")
             appendLine(" * ${service.interfaceSimpleName} bridge SPI。")
@@ -992,10 +1140,18 @@ object ModbusArtifactTemplates {
             appendLine(" * 这是固件业务层唯一需要长期维护的 service 接口面。")
             appendLine(" *")
             appendLine(" * 集成方法：")
-            appendLine(" * 1. 在你的板级/业务 .c 文件中 #include \"${service.cServiceName}_bridge.h\"")
+            appendLine(" * 1. 在你的板级/业务 .c 文件中 #include \"${service.cServiceName}/${service.cServiceName}_bridge.h\"")
             appendLine(" * 2. 实现下面声明的 ${service.cServiceName}_bridge_* 函数")
             appendLine(" * 3. 这些 bridge 函数负责读取真实 GPIO、寄存器、传感器状态，或处理写请求")
             appendLine(" * 4. *_generated.c 会调用这些 bridge 函数完成 DTO <-> Modbus 数据转换")
+            if (service.workflows.isNotEmpty()) {
+                appendLine(" *")
+                service.workflows.forEach { workflow ->
+                    appendLine(" * 高层工作流：${workflow.methodName}(bytes)")
+                    appendLine(" * - Kotlin 上位机会自动拆成 ${workflow.startMethodName} -> ${workflow.chunkMethodName} -> ${workflow.commitMethodName}${if (workflow.resetMethodName != null) " -> ${workflow.resetMethodName}" else ""}")
+                    appendLine(" * - C 同事只需要实现下面这些低层 bridge SPI。")
+                }
+            }
             appendLine(" *")
             appendLine(" * 桥接链路：adapter -> dispatch -> generated -> bridge implementation")
             appendLine(" *")
@@ -1013,8 +1169,8 @@ object ModbusArtifactTemplates {
 
     private fun renderGeneratedSource(service: ModbusServiceModel): String =
         buildString {
-            appendLine("#include \"${service.cServiceName}_generated.h\"")
-            appendLine("#include \"${service.cServiceName}_bridge.h\"")
+            appendLine("#include \"${service.cServiceName}/${service.cServiceName}_generated.h\"")
+            appendLine("#include \"${service.cServiceName}/${service.cServiceName}_bridge.h\"")
             if (service.usesStringRegisters()) {
                 appendLine()
                 appendLine("static void ${service.cServiceName}_generated_encode_string_registers(")
@@ -1100,7 +1256,7 @@ object ModbusArtifactTemplates {
 
     private fun renderBridgeSampleSource(service: ModbusServiceModel): String =
         buildString {
-            appendLine("#include \"${service.cServiceName}_bridge.h\"")
+            appendLine("#include \"${service.cServiceName}/${service.cServiceName}_bridge.h\"")
             appendLine()
             appendLine("/*")
             appendLine(" * bridge implementation entry.")
@@ -1109,9 +1265,12 @@ object ModbusArtifactTemplates {
             appendLine(" *")
             appendLine(" * 集成方法：")
             appendLine(" * - 在下面这些 ${service.cServiceName}_bridge_* 函数体里接入 GPIO / ADC / 状态机 / Flash / 传感器驱动")
-            appendLine(" * - 保留 #include \"${service.cServiceName}_bridge.h\"")
+            appendLine(" * - 保留 #include \"${service.cServiceName}/${service.cServiceName}_bridge.h\"")
             appendLine(" * - 不要修改函数签名")
-            appendLine(" * - 这个文件建议放在 Core/Src/modbus 或你通过 KSP 参数指定的业务目录")
+            appendLine(" * - 这个文件建议放在 Core/Src/modbus/<transport>/<service>，例如 Core/Src/modbus/rtu/${service.cServiceName}；也可以放在你通过 KSP 参数指定的业务目录")
+            if (service.workflows.isNotEmpty()) {
+                appendLine(" * - 如果这个 service 包含高层烧录工作流，Kotlin 上位机会自动计算 CRC32、切片并顺序调用 begin/chunk/commit/reset")
+            }
             appendLine(" *")
             appendLine(" * 不要直接修改 generated 的 *_generated.c。")
             appendLine(" * Modbus 桥接最终会自动调用这里声明的 SPI 函数。")
@@ -1222,6 +1381,74 @@ object ModbusArtifactTemplates {
 
             else -> listOf("error(\"暂不支持的功能码：${operation.functionCodeName}\")")
         }
+
+    private fun ModbusWorkflowModel.renderFirmwareWorkflowExecution(service: ModbusServiceModel): List<String> {
+        val startOperation = service.requireOperation(startMethodName)
+        val chunkOperation = service.requireOperation(chunkMethodName)
+        val commitOperation = service.requireOperation(commitMethodName)
+        val resetOperation = service.operationOrNull(resetMethodName)
+        val payloadFields = chunkOperation.flashChunkPayloadFields()
+        val payloadBytesPerChunk = payloadFields.sumOf { field -> field.payloadByteWidth() }
+        val hasCrc32 = startOperation.flashStartHasCrc32()
+        return buildList {
+            add("require(${bytesParameterName}.isNotEmpty()) { \"flashFirmware bytes must not be empty\" }")
+            add("val resolvedConfig = resolveConfig(config)")
+            add("val totalBytes = ${bytesParameterName}.size")
+            if (hasCrc32) {
+                add("val firmwareCrc32 = generatedModbusCrc32(${bytesParameterName})")
+            }
+            add("val maxPayloadBytesPerChunk = $payloadBytesPerChunk")
+            add("val totalChunks = (totalBytes + maxPayloadBytesPerChunk - 1) / maxPayloadBytesPerChunk")
+            add(
+                buildString {
+                    append("val startResult = ${startOperation.methodName}(config = resolvedConfig, ")
+                    append(startOperation.flashStartCallArguments(hasCrc32))
+                    append(")")
+                },
+            )
+            add("check(startResult.accepted) { startResult.summary }")
+            add("for (sequence in 0 until totalChunks) {")
+            add("    val chunkStart = sequence * maxPayloadBytesPerChunk")
+            add("    val chunkEnd = minOf(chunkStart + maxPayloadBytesPerChunk, totalBytes)")
+            add("    val chunkBytes = ${bytesParameterName}.copyOfRange(chunkStart, chunkEnd)")
+            add("    var payloadCursor = 0")
+            payloadFields.forEach { field ->
+                val packExpression =
+                    when (field.codecName) {
+                        "U16" -> "generatedModbusPackU16(chunkBytes, payloadCursor)"
+                        "U32_BE" -> "generatedModbusPackU32Be(chunkBytes, payloadCursor)"
+                        else -> error("Unsupported firmware chunk payload codec: ${field.codecName}")
+                    }
+                add("    val ${field.name} = $packExpression")
+                add("    payloadCursor += ${field.payloadByteWidth()}")
+            }
+            add(
+                buildString {
+                    append("    val chunkResult = ${chunkOperation.methodName}(config = resolvedConfig, ")
+                    append(chunkOperation.flashChunkCallArguments(payloadFields))
+                    append(")")
+                },
+            )
+            add("    check(chunkResult.accepted) { chunkResult.summary }")
+            add("}")
+            add("val commitResult = ${commitOperation.methodName}(config = resolvedConfig, ${commitOperation.flashCommitParameterName()} = totalChunks)")
+            add("check(commitResult.accepted) { commitResult.summary }")
+            if (resetOperation != null) {
+                val resetParameterName = resetOperation.flashResetTriggerParameterName()
+                add("val resetResult = ${resetOperation.methodName}(config = resolvedConfig, $resetParameterName = true)")
+                add("check(resetResult.accepted) { resetResult.summary }")
+            }
+            add("val resetIssued = ${if (resetOperation != null) "true" else "false"}")
+            add("return ${returnType.qualifiedName}(")
+            add("    accepted = true,")
+            add("    summary = \"flash workflow completed\",")
+            add("    totalBytes = totalBytes,")
+            add("    totalChunks = totalChunks,")
+            add("    crc32 = ${if (hasCrc32) "firmwareCrc32" else "null"},")
+            add("    resetIssued = resetIssued,")
+            add(")")
+        }
+    }
 
     private fun ModbusOperationModel.renderGatewayArguments(valuePrefix: String = ""): String =
         if (parameters.isEmpty()) {
@@ -1489,9 +1716,44 @@ object ModbusArtifactTemplates {
     private fun ModbusOperationModel.macroPrefix(service: ModbusServiceModel): String =
         "${service.cServiceName}_${operationId}".uppercase().replace('-', '_')
 
+    private fun ModbusServiceModel.requireOperation(methodName: String): ModbusOperationModel =
+        operationOrNull(methodName) ?: error("Missing workflow operation: $methodName in ${interfaceQualifiedName}")
+
+    private fun ModbusServiceModel.operationOrNull(methodName: String?): ModbusOperationModel? =
+        methodName?.let { expected -> operations.firstOrNull { operation -> operation.methodName == expected } }
+
+    private fun ModbusWorkflowModel.renderWorkflowStepSummary(): String =
+        buildString {
+            append("`${startMethodName}` -> `${chunkMethodName}` -> `${commitMethodName}`")
+            if (resetMethodName != null) {
+                append(" -> `${resetMethodName}`")
+            }
+        }
+
+    private fun ModbusServiceModel.workflowNotesFor(operation: ModbusOperationModel): List<String> =
+        workflows
+            .filter { workflow ->
+                operation.methodName in
+                    setOf(
+                        workflow.startMethodName,
+                        workflow.chunkMethodName,
+                        workflow.commitMethodName,
+                        workflow.resetMethodName,
+                    )
+            }.flatMap { workflow ->
+                when (workflow.kind) {
+                    ModbusWorkflowKind.FLASH_FIRMWARE ->
+                        listOf(
+                            "属于高层 ${workflow.methodName}(bytes) 工作流的低层步骤。",
+                            "Kotlin 上位机会自动负责整包 CRC32、chunk slicing 和顺序调度。",
+                        )
+                }
+            }
+
     private fun ModbusOperationModel.generatedFunctionCommentLines(service: ModbusServiceModel): List<String> =
         cFunctionCommentLines(
             summary = doc.summary,
+            notes = service.workflowNotesFor(this),
             params =
                 when {
                     isReadOperation && usesCoilBits ->
@@ -1522,6 +1784,7 @@ object ModbusArtifactTemplates {
     private fun ModbusOperationModel.bridgeFunctionCommentLines(service: ModbusServiceModel): List<String> =
         cFunctionCommentLines(
             summary = doc.summary,
+            notes = service.workflowNotesFor(this),
             params =
                 when {
                     isReadOperation && returnType.kind == ModbusReturnKind.DTO ->
@@ -1548,11 +1811,15 @@ object ModbusArtifactTemplates {
 
     private fun cFunctionCommentLines(
         summary: String,
+        notes: List<String> = emptyList(),
         params: List<Pair<String, String>>,
     ): List<String> =
         buildList {
             add("/*")
             add(" * ${escapeCComment(summary)}")
+            notes.forEach { note ->
+                add(" * ${escapeCComment(note)}")
+            }
             if (params.isNotEmpty()) {
                 add(" *")
                 add(" * 参数：")
@@ -1562,6 +1829,40 @@ object ModbusArtifactTemplates {
             }
             add(" */")
         }
+
+    private fun ModbusOperationModel.flashStartHasCrc32(): Boolean =
+        parameters.any { parameter -> parameter.name == "crc32" }
+
+    private fun ModbusOperationModel.flashChunkPayloadFields(): List<ModbusParameterModel> =
+        parameters
+            .filter { parameter -> parameter.name != "sequence" && parameter.name != "usedBytes" }
+            .sortedBy(ModbusParameterModel::registerOffset)
+
+    private fun ModbusParameterModel.payloadByteWidth(): Int = registerWidth * 2
+
+    private fun ModbusOperationModel.flashStartCallArguments(hasCrc32: Boolean): String =
+        buildString {
+            append("totalBytes = totalBytes")
+            if (hasCrc32) {
+                append(", crc32 = firmwareCrc32")
+            }
+        }
+
+    private fun ModbusOperationModel.flashChunkCallArguments(payloadFields: List<ModbusParameterModel>): String =
+        buildString {
+            append("sequence = sequence, usedBytes = chunkBytes.size")
+            payloadFields.forEach { field ->
+                append(", ${field.name} = ${field.name}")
+            }
+        }
+
+    private fun ModbusOperationModel.flashCommitParameterName(): String =
+        parameters.firstOrNull { parameter -> parameter.name == "totalChunks" }?.name
+            ?: error("Missing totalChunks parameter on ${methodName}")
+
+    private fun ModbusOperationModel.flashResetTriggerParameterName(): String =
+        parameters.firstOrNull { parameter -> parameter.name == "trigger" }?.name
+            ?: error("Missing trigger parameter on ${methodName}")
 
     private fun ModbusParameterModel.cType(): String =
         when (valueKind) {

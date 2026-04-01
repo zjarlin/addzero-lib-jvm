@@ -12,9 +12,9 @@ import java.io.File
  * - C 头文件/源文件额外镜像到固件工程，避免再手动复制
  *
  * 当前落点约定：
- * - `*.h` -> `<project>/Core/Inc/generated/modbus`
- * - generated `*.c` -> `<project>/Core/Src/generated/modbus`
- * - `*_bridge_impl.c` -> 可配置业务实现目录，默认 `<project>/Core/Src/modbus`
+ * - `*.h` -> `<project>/Core/Inc/generated/modbus/<transport>/<service-or-transport>`
+ * - generated `*.c` -> `<project>/Core/Src/generated/modbus/<transport>/<service-or-transport>`
+ * - `*_bridge_impl.c` -> 可配置业务实现根目录下的 `<transport>/<service>` 子目录，默认 `<project>/Core/Src/modbus/<transport>/<service>`
  */
 class ModbusExternalCArtifactWriter private constructor(
     private val firmwareProjectDir: File,
@@ -27,11 +27,13 @@ class ModbusExternalCArtifactWriter private constructor(
         artifact: GeneratedArtifact,
         logger: KSPLogger,
     ): File? {
+        val transportDirName = artifact.externalTransportDirectoryName()
+        val groupDirName = artifact.externalGroupDirectoryName()
         val targetFile =
             when {
-                artifact.extensionName == "h" -> headerOutputDir.resolve("${artifact.fileName}.h")
-                artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_impl") -> resolveBridgeImplFile(artifact)
-                artifact.extensionName == "c" -> sourceOutputDir.resolve("${artifact.fileName}.c")
+                artifact.extensionName == "h" -> headerOutputDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.h")
+                artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_impl") -> resolveBridgeImplFile(artifact, transportDirName, groupDirName)
+                artifact.extensionName == "c" -> sourceOutputDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.c")
                 else -> return null
             }
 
@@ -44,16 +46,75 @@ class ModbusExternalCArtifactWriter private constructor(
         if (artifact.fileName.endsWith("_bridge_impl") && targetFile.exists()) {
             logger.logging("Skip overwriting editable bridge implementation: ${targetFile.absolutePath}")
             cleanupLegacyGeneratedBridgeSource(artifact, logger)
+            cleanupLegacyFlatArtifact(artifact, logger)
             return targetFile
         }
         targetFile.writeText(artifact.content, Charsets.UTF_8)
         if (artifact.fileName.endsWith("_bridge_impl")) {
             cleanupLegacyGeneratedBridgeSource(artifact, logger)
         }
+        cleanupLegacyFlatArtifact(artifact, logger)
         return targetFile
     }
 
-    private fun resolveBridgeImplFile(artifact: GeneratedArtifact): File {
+    private fun resolveBridgeImplFile(
+        artifact: GeneratedArtifact,
+        transportDirName: String,
+        groupDirName: String,
+    ): File {
+        val configuredPath = File(bridgeImplTargetPath)
+        val base =
+            if (configuredPath.isAbsolute) {
+                configuredPath
+            } else {
+                firmwareProjectDir.resolve(bridgeImplTargetPath)
+            }
+        val rootDir = if (base.name.endsWith(".c")) base.parentFile else base
+        return rootDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.c")
+    }
+
+    private fun cleanupLegacyGeneratedBridgeSource(
+        artifact: GeneratedArtifact,
+        logger: KSPLogger,
+    ) {
+        val legacyFileName = artifact.fileName.removeSuffix("_impl")
+        val legacyFile = sourceOutputDir.resolve("$legacyFileName.c")
+        if (legacyFile.exists() && legacyFile.delete()) {
+            logger.logging("Deleted legacy generated bridge source: ${legacyFile.absolutePath}")
+        }
+    }
+
+    private fun cleanupLegacyFlatArtifact(
+        artifact: GeneratedArtifact,
+        logger: KSPLogger,
+    ) {
+        val legacyFile =
+            when {
+                artifact.extensionName == "h" -> headerOutputDir.resolve("${artifact.fileName}.h")
+                artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_impl") ->
+                    resolveLegacyFlatBridgeImplFile(artifact)
+                artifact.extensionName == "c" -> sourceOutputDir.resolve("${artifact.fileName}.c")
+                else -> null
+            } ?: return
+        if (legacyFile.exists() && legacyFile.delete()) {
+            logger.logging("Deleted legacy flat Modbus artifact: ${legacyFile.absolutePath}")
+        }
+        val legacyNoTransportFile =
+            when {
+                artifact.extensionName == "h" ->
+                    headerOutputDir.resolve(artifact.externalGroupDirectoryName()).resolve("${artifact.fileName}.h")
+                artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_impl") ->
+                    resolveLegacyBridgeImplWithoutTransportDir(artifact)
+                artifact.extensionName == "c" ->
+                    sourceOutputDir.resolve(artifact.externalGroupDirectoryName()).resolve("${artifact.fileName}.c")
+                else -> null
+            }
+        if (legacyNoTransportFile != null && legacyNoTransportFile.exists() && legacyNoTransportFile.delete()) {
+            logger.logging("Deleted legacy non-transport Modbus artifact: ${legacyNoTransportFile.absolutePath}")
+        }
+    }
+
+    private fun resolveLegacyFlatBridgeImplFile(artifact: GeneratedArtifact): File {
         val configuredPath = File(bridgeImplTargetPath)
         val base =
             if (configuredPath.isAbsolute) {
@@ -68,16 +129,33 @@ class ModbusExternalCArtifactWriter private constructor(
         }
     }
 
-    private fun cleanupLegacyGeneratedBridgeSource(
-        artifact: GeneratedArtifact,
-        logger: KSPLogger,
-    ) {
-        val legacyFileName = artifact.fileName.removeSuffix("_impl")
-        val legacyFile = sourceOutputDir.resolve("$legacyFileName.c")
-        if (legacyFile.exists() && legacyFile.delete()) {
-            logger.logging("Deleted legacy generated bridge source: ${legacyFile.absolutePath}")
-        }
+    private fun resolveLegacyBridgeImplWithoutTransportDir(artifact: GeneratedArtifact): File {
+        val configuredPath = File(bridgeImplTargetPath)
+        val base =
+            if (configuredPath.isAbsolute) {
+                configuredPath
+            } else {
+                firmwareProjectDir.resolve(bridgeImplTargetPath)
+            }
+        val rootDir = if (base.name.endsWith(".c")) base.parentFile else base
+        return rootDir.resolve(artifact.externalGroupDirectoryName()).resolve("${artifact.fileName}.c")
     }
+
+    private fun GeneratedArtifact.externalTransportDirectoryName(): String =
+        packageName
+            ?.removePrefix("generated.modbus.")
+            ?.substringBefore('.')
+            ?.takeIf(String::isNotBlank)
+            ?: "common"
+
+    private fun GeneratedArtifact.externalGroupDirectoryName(): String =
+        when {
+            fileName.startsWith("modbus_") -> "transport"
+            fileName.endsWith("_generated") -> fileName.removeSuffix("_generated")
+            fileName.endsWith("_bridge") -> fileName.removeSuffix("_bridge")
+            fileName.endsWith("_bridge_impl") -> fileName.removeSuffix("_bridge_impl")
+            else -> "misc"
+        }
 
     companion object {
         private const val EXTERNAL_PROJECT_DIR_OPTION = "addzero.modbus.c.output.projectDir"

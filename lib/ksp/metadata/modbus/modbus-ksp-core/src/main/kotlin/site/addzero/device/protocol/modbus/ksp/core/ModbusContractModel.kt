@@ -84,6 +84,42 @@ enum class ModbusTransportKind(
         generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.tcp",
         generatedFileName = "GeneratedModbusTcp",
     ),
+    ;
+
+    companion object {
+        fun parseConfigured(rawValue: String?): Set<ModbusTransportKind> {
+            val tokens =
+                rawValue
+                    ?.split(',', ';', '\n')
+                    ?.map(String::trim)
+                    ?.filter(String::isNotBlank)
+                    .orEmpty()
+            if (tokens.isEmpty()) {
+                return emptySet()
+            }
+
+            val resolved = linkedSetOf<ModbusTransportKind>()
+            tokens.forEach { token ->
+                val normalized = token.lowercase()
+                val matched =
+                    entries.firstOrNull { kind ->
+                        normalized == kind.transportId || normalized == kind.name.lowercase()
+                    }
+                        ?: error(
+                            "未知的 Modbus transport 选项：$rawValue；当前可选值为 ${
+                                entries.joinToString(",") { it.transportId }
+                            }，支持逗号分隔多选。",
+                        )
+                resolved += matched
+            }
+            return resolved
+        }
+
+        fun resolveConfiguredOrDefault(
+            rawValue: String?,
+            defaultTransport: ModbusTransportKind,
+        ): Set<ModbusTransportKind> = parseConfigured(rawValue).ifEmpty { linkedSetOf(defaultTransport) }
+    }
 }
 
 /**
@@ -237,6 +273,25 @@ data class ModbusOperationModel(
         }
 }
 
+enum class ModbusWorkflowKind {
+    FLASH_FIRMWARE,
+}
+
+data class ModbusWorkflowModel(
+    val kind: ModbusWorkflowKind,
+    val methodName: String,
+    val workflowId: String,
+    val requestClassName: String,
+    val requestQualifiedName: String,
+    val bytesParameterName: String,
+    val returnType: ModbusReturnTypeModel,
+    val doc: ModbusDocModel,
+    val startMethodName: String,
+    val chunkMethodName: String,
+    val commitMethodName: String,
+    val resetMethodName: String?,
+)
+
 /**
  * 服务定义。
  */
@@ -250,6 +305,7 @@ data class ModbusServiceModel(
     val transport: ModbusTransportKind,
     val doc: ModbusDocModel,
     val operations: List<ModbusOperationModel>,
+    val workflows: List<ModbusWorkflowModel> = emptyList(),
 ) {
     val gatewayClassName: String = "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}Gateway"
     val configProviderClassName: String =

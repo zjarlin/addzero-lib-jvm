@@ -68,6 +68,7 @@ class PublishedKspPluginSmokeTest {
                     extensions.configure(site.addzero.ksp.modbusrtu.gradle.ModbusRtuExtension::class.java) {
                         codegenModes.set(listOf("server", "contract"))
                         contractPackages.set(listOf("site.addzero.device.contract"))
+                        transports.set(listOf("rtu", "tcp"))
                     }
                 """.trimIndent(),
             ),
@@ -78,6 +79,7 @@ class PublishedKspPluginSmokeTest {
             "CONF[ksp]=site.addzero:modbus-ksp-rtu",
             "CONF[implementation]=site.addzero:modbus-runtime",
             "addzero.modbus.codegen.mode=server,contract",
+            "addzero.modbus.transports=rtu,tcp",
             "addzero.modbus.contractPackages=site.addzero.device.contract",
         )
     }

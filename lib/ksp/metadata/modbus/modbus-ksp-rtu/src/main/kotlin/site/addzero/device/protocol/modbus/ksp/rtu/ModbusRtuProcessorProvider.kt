@@ -19,12 +19,24 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusModelValidator
 import site.addzero.device.protocol.modbus.ksp.core.ModbusProjectSyncRunner
 import site.addzero.device.protocol.modbus.ksp.core.ModbusSymbolCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
+import site.addzero.device.protocol.modbus.ksp.core.resolveContractPackages
+import site.addzero.device.protocol.modbus.ksp.core.resolveEnabledTransports
 
 /**
  * Modbus RTU 代码生成入口。
  */
 class ModbusRtuProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+        val transport = ModbusTransportKind.RTU
+        val enabledTransports = environment.resolveEnabledTransports(defaultTransport = transport)
+        if (transport !in enabledTransports) {
+            environment.logger.logging(
+                "Skip Modbus RTU generation because ${transport.transportId} is not enabled in ${site.addzero.device.protocol.modbus.ksp.core.ModbusKspOptions.TRANSPORTS_OPTION}.",
+            )
+            return object : SymbolProcessor {
+                override fun process(resolver: com.google.devtools.ksp.processing.Resolver): List<KSAnnotated> = emptyList()
+            }
+        }
         val collector = ModbusSymbolCollector(environment.logger)
         val modes = ModbusCodegenMode.from(environment)
         val externalCArtifactWriter = ModbusExternalCArtifactWriter.from(environment)
@@ -40,7 +52,7 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
             override fun process(resolver: com.google.devtools.ksp.processing.Resolver): List<KSAnnotated> {
                 collector.collect(
                     resolver = resolver,
-                    transport = ModbusTransportKind.RTU,
+                    transport = transport,
                     contractPackages = contractPackages,
                 ).forEach { service ->
                     collected[service.model.interfaceQualifiedName] = service
@@ -82,12 +94,12 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(ModbusTransportKind.RTU, resolvedServices),
+                        artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(transport, resolvedServices),
                         externalCArtifactWriter = externalCArtifactWriter,
                     )
                     ModbusProjectSyncRunner.syncIfNeeded(
                         environment = environment,
-                        transport = ModbusTransportKind.RTU,
+                        transport = transport,
                         externalSourceFiles = externalContractSources.filter { file -> file.extension == "c" },
                     )
                 }
@@ -97,7 +109,7 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(ModbusTransportKind.RTU, resolvedServices),
+                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(transport, resolvedServices),
                         externalCArtifactWriter = null,
                     )
                 }
@@ -139,15 +151,4 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
         }
         return externalFiles
     }
-
-    private fun SymbolProcessorEnvironment.resolveContractPackages(): List<String> =
-        listOfNotNull(
-            options["addzero.modbus.contractPackages"],
-            options["addzero.modbus.contractPackage"],
-        ).flatMap { rawValue ->
-            rawValue
-                .split(',', ';', '\n')
-                .map(String::trim)
-                .filter(String::isNotBlank)
-        }.distinct()
 }

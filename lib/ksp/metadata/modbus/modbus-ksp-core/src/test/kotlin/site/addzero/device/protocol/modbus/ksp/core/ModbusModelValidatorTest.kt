@@ -102,4 +102,26 @@ class ModbusModelValidatorTest {
 
         assertTrue(errors.any { error -> error.contains("BOOL_COIL") })
     }
+
+    @Test
+    fun validatorRejectsFlashWorkflowWhenCommitOperationMissing() {
+        val service =
+            sampleFlashService().copy(
+                operations = listOf(sampleResetDeviceOperation(), sampleFirmwareStartOperation(), sampleFirmwareChunkOperation()),
+                workflows = listOf(sampleFlashWorkflowModel()),
+            )
+
+        val errors = ModbusModelValidator.validate(listOf(service))
+
+        assertTrue(errors.any { error -> error.contains("缺少必需的低层方法：firmwareCommit") })
+    }
+
+    @Test
+    fun validatorAcceptsFlashWorkflowWithoutCrcField() {
+        val service = sampleFlashWorkflowServiceWithoutCrc()
+
+        val errors = ModbusModelValidator.validate(listOf(service))
+
+        assertTrue(errors.isEmpty(), errors.joinToString("\n"))
+    }
 }
