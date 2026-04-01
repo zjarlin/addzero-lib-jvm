@@ -32,16 +32,6 @@ interface DeviceApi {
     )
     suspend fun getDeviceRuntimeInfo(): DeviceRuntimeInfo
 
-    /**
-     * 读取设备显示名称。
-     */
-    @ModbusOperation(
-        address = 140,
-        functionCode = ModbusFunctionCode.READ_INPUT_REGISTERS,
-        returnCodec = ModbusCodec.STRING_UTF8,
-        returnLength = 16,
-    )
-    suspend fun getDeviceDisplayName(): String
 }
 
 /**
