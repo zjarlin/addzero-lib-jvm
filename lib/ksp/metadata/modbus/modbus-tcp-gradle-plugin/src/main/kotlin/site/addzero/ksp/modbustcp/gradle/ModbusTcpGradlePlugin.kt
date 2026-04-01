@@ -2,6 +2,7 @@ package site.addzero.ksp.modbustcp.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import site.addzero.gradle.kspconsumer.AbstractPublishedKspConsumerPlugin
 import site.addzero.gradle.kspconsumer.PublishedCompanionDependency
 import site.addzero.gradle.kspconsumer.PublishedDependencyScope
@@ -9,14 +10,48 @@ import site.addzero.gradle.kspconsumer.PublishedKspArtifactKind
 import site.addzero.gradle.kspconsumer.PublishedProcessorArtifact
 
 abstract class ModbusTcpExtension {
+    /** 要启用的代码生成模式，例如 `server`、`gateway`、`contract`。 */
     abstract val codegenModes: ListProperty<String>
+
+    /** 要扫描的 Modbus 契约包列表。 */
     abstract val contractPackages: ListProperty<String>
+
+    /** 要启用的 transport 列表；支持逗号语义的多 transport 输出，例如 `rtu,tcp`。 */
     abstract val transports: ListProperty<String>
+
+    /** 固件工程根目录；配置后会把生成的 C 头/源文件额外镜像到该工程。 */
+    abstract val cOutputProjectDir: Property<String>
+
+    /**
+     * 可编辑 bridge 实现根目录。
+     *
+     * 例如配置为 `Core/Src/modbus` 时，TCP 的业务桥接文件会落到
+     * `Core/Src/modbus/tcp/<service>/<service>_bridge_impl.c`。
+     */
+    abstract val bridgeImplPath: Property<String>
+
+    /** Keil `.uvprojx` 路径；配置后会细粒度同步 generated/modbus 文件组和 include path。 */
+    abstract val keilUvprojxPath: Property<String>
+
+    /** Keil target 名称；为空时默认匹配第一个 `<Target>`。 */
+    abstract val keilTargetName: Property<String>
+
+    /** Keil group 前缀；TCP 默认是 `Core/modbus/tcp`。 */
+    abstract val keilGroupName: Property<String>
+
+    /** STM32CubeMX `.mxproject` 路径；配置后会同步缓存的源文件和头文件路径。 */
+    abstract val mxprojectPath: Property<String>
 
     init {
         codegenModes.convention(listOf("server"))
         contractPackages.convention(emptyList())
         transports.convention(listOf("tcp"))
+        cOutputProjectDir.convention("")
+        bridgeImplPath.convention("")
+        keilUvprojxPath.convention("")
+        keilTargetName.convention("")
+        keilGroupName.convention("Core/modbus/tcp")
+        mxprojectPath.convention("")
     }
 }
 
@@ -51,6 +86,18 @@ class ModbusTcpGradlePlugin : AbstractPublishedKspConsumerPlugin() {
             modbus.contractPackages.get()
                 .takeIf { it.isNotEmpty() }
                 ?.let { put("addzero.modbus.contractPackages", it.joinToString(",")) }
+            modbus.cOutputProjectDir.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.c.output.projectDir", it) }
+            modbus.bridgeImplPath.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.c.bridgeImpl.path", it) }
+            modbus.keilUvprojxPath.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.keil.uvprojx.path", it) }
+            modbus.keilTargetName.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.keil.targetName", it) }
+            modbus.keilGroupName.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.keil.groupName", it) }
+            modbus.mxprojectPath.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.mxproject.path", it) }
         }
     }
 

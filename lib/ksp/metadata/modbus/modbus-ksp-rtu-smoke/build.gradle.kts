@@ -28,6 +28,7 @@ ksp {
     arg("addzero.modbus.keil.uvprojx.path", "MDK-ARM/test1.uvprojx")
     arg("addzero.modbus.keil.targetName", "test1")
     arg("addzero.modbus.keil.groupName", "Core/modbus/rtu")
+    arg("addzero.modbus.mxproject.path", ".mxproject")
 }
 
 tasks.named<Test>("test") {
@@ -36,5 +37,6 @@ tasks.named<Test>("test") {
     systemProperty("modbus.smoke.externalProjectDir", "/Users/zjarlin/IdeaProjects/t")
     systemProperty("modbus.smoke.externalBridgeImplPath", "Core/Src/modbus/rtu/device/device_bridge_impl.c")
     systemProperty("modbus.smoke.keilUvprojxPath", "/Users/zjarlin/IdeaProjects/t/MDK-ARM/test1.uvprojx")
+    systemProperty("modbus.smoke.mxprojectPath", "/Users/zjarlin/IdeaProjects/t/.mxproject")
     systemProperty("modbus.smoke.addressLockPath", "/Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke/src/main/modbus/device.rtu.addresses.lock")
 }

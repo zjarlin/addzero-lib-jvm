@@ -1,11 +1,13 @@
 package site.addzero.device.protocol.modbus.ksp.keil
 
 import java.nio.file.Files
+import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 
 class KeilUvprojxSyncToolTest {
     private val tool = KeilUvprojxSyncTool()
@@ -56,6 +58,23 @@ class KeilUvprojxSyncToolTest {
                         <File><FileName>legacy_transport.c</FileName><FileType>1</FileType><FilePath>..\Core\Src\legacy_transport.c</FilePath></File>
                       </Files>
                     </Group>
+                    <Group>
+                      <GroupName>Core/modbus/device</GroupName>
+                      <Files>
+                        <File><FileName>legacy_device.c</FileName><FileType>1</FileType><FilePath>..\Core\Src\modbus\device\legacy_device.c</FilePath></File>
+                      </Files>
+                    </Group>
+                    <Group>
+                      <GroupName>Core/modbus/transport</GroupName>
+                      <Files>
+                        <File><FileName>legacy_old_transport.c</FileName><FileType>1</FileType><FilePath>..\Core\Src\generated\modbus\transport\legacy_old_transport.c</FilePath></File>
+                      </Files>
+                    </Group>
+                    <Cads>
+                      <VariousControls>
+                        <IncludePath>../Core/Inc;../Drivers/CMSIS/Include</IncludePath>
+                      </VariousControls>
+                    </Cads>
                   </Groups>
                 </Target>
               </Targets>
@@ -70,6 +89,7 @@ class KeilUvprojxSyncToolTest {
                 sourceFiles = listOf(sourceA.toFile(), sourceB.toFile(), sourceC.toFile()),
                 targetName = "test1",
                 groupName = "Core/modbus/rtu",
+                transport = ModbusTransportKind.RTU,
             )
 
         assertContains(updated, "<TargetName>bootloader</TargetName>")
@@ -83,7 +103,10 @@ class KeilUvprojxSyncToolTest {
         assertContains(updated, "<FilePath>..\\Core\\Src\\generated\\modbus\\rtu\\transport\\modbus_rtu_dispatch.c</FilePath>")
         assertEquals(0, "<FileName>legacy_modbus.c</FileName>".toRegex().findAll(updated).count())
         assertEquals(0, "<FileName>legacy_transport.c</FileName>".toRegex().findAll(updated).count())
+        assertEquals(0, "<FileName>legacy_device.c</FileName>".toRegex().findAll(updated).count())
+        assertEquals(0, "<FileName>legacy_old_transport.c</FileName>".toRegex().findAll(updated).count())
         assertEquals(1, "<GroupName>Core/modbus/rtu/transport</GroupName>".toRegex().findAll(updated).count())
+        assertContains(updated, "<IncludePath>../Core/Inc;../Drivers/CMSIS/Include;../Core/Inc/generated/modbus/rtu</IncludePath>")
     }
 
     @Test
@@ -117,6 +140,7 @@ class KeilUvprojxSyncToolTest {
                 sourceFiles = listOf(sourceFile.toFile()),
                 targetName = "test1",
                 groupName = "Core/modbus/rtu",
+                transport = ModbusTransportKind.RTU,
             )
 
         assertContains(updated, "<GroupName>Core</GroupName>")

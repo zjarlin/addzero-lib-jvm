@@ -4,7 +4,6 @@
 meta.schemaVersion=1
 meta.protocol=modbus
 meta.transport=rtu
-op.device|get-device-display-name|READ_INPUT_REGISTERS|INPUT_REGISTER=140|16|16
 op.device|get-device-info|READ_COILS|COIL_READ=0|24|24
 op.device|get-device-runtime-info|READ_INPUT_REGISTERS|INPUT_REGISTER=100|20|20
 op.flash|firmware-chunk|WRITE_MULTIPLE_REGISTERS|HOLDING_REGISTER_WRITE=520|10|10

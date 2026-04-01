@@ -33,6 +33,7 @@ plugins {
 }
 
 modbusRtu {
+    transports.set(listOf("rtu"))
     codegenModes.set(listOf("server"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
@@ -46,12 +47,30 @@ plugins {
 }
 
 modbusTcp {
+    transports.set(listOf("tcp"))
     codegenModes.set(listOf("server"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
 
 只有在你明确需要直接控制 processor artifact 时，才退回到底层 `ksp(...)` 接法。
+
+如果你要同时产出多种传输层目标，统一用 `transports`：
+
+```kotlin
+modbusRtu {
+    transports.set(listOf("rtu", "tcp"))
+    codegenModes.set(listOf("server", "contract"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+}
+```
+
+当前真正已实现的 provider 只有：
+
+- `rtu`
+- `tcp`
+
+`mqtt` 还没有 provider，不能只靠配置字符串假装启用。
 
 如果是跨仓库本地联调，并且消费仓库已经把 `../addzero-lib-jvm` 的相关模块 remap 成 project path，推荐做法是：
 
@@ -71,6 +90,64 @@ core 通过 `ServiceLoader<ModbusArtifactGenerator>` 聚合输出模块：
 - `MARKDOWN_PROTOCOL`
 
 这层设计的目的不是只服务 Modbus，而是把“语义契约 -> 多协议输出”的边界先定住。后面扩 MQTT 时，可以复用同一套 suite/facade/SPI 思路，再加 `mqtt-*` 输出模块，而不是把所有协议逻辑继续塞回同一个 renderer。
+
+## Firmware Project Sync
+
+如果你要把生成的 C 代码直接落到固件工程，再顺手同步 Keil / CubeMX 工程文件，推荐用 typed DSL：
+
+```kotlin
+modbusRtu {
+    transports.set(listOf("rtu"))
+    codegenModes.set(listOf("server", "contract"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+
+    cOutputProjectDir.set("/Users/zjarlin/IdeaProjects/t")
+    bridgeImplPath.set("Core/Src/modbus")
+    keilUvprojxPath.set("MDK-ARM/test1.uvprojx")
+    keilTargetName.set("test1")
+    keilGroupName.set("Core/modbus/rtu")
+    mxprojectPath.set(".mxproject")
+}
+```
+
+字段含义：
+
+- `cOutputProjectDir`
+  - 固件工程根目录。
+- `bridgeImplPath`
+  - 可编辑 bridge 实现根目录。
+  - 例如 RTU 会生成到 `Core/Src/modbus/rtu/<service>/<service>_bridge_impl.c`。
+- `keilUvprojxPath`
+  - 要同步的 `.uvprojx`。
+- `keilTargetName`
+  - 要更新的 target 名称；留空则匹配第一个 target。
+- `keilGroupName`
+  - Keil group 前缀；RTU 默认 `Core/modbus/rtu`，TCP 默认 `Core/modbus/tcp`。
+- `mxprojectPath`
+  - 要同步的 `.mxproject`。
+
+生成后的目录约定：
+
+- 不可编辑 generated 头文件：
+  - `Core/Inc/generated/modbus/<transport>/...`
+- 不可编辑 generated 源文件：
+  - `Core/Src/generated/modbus/<transport>/...`
+- 可编辑 bridge 实现：
+  - `Core/Src/modbus/<transport>/<service>/<service>_bridge_impl.c`
+
+项目文件同步范围：
+
+- 会改：
+  - `.uvprojx`
+  - `.mxproject`
+- 不会改：
+  - `.uvoptx`
+  - `.ioc`
+
+原因很直接：
+
+- `.uvoptx` 是开发者本机 UI/调试偏好，不该由 KSP 覆盖。
+- `.ioc` 是硬件配置源，不负责维护这批 generated C 文件清单。
 
 ## Semantic Contract Direction
 

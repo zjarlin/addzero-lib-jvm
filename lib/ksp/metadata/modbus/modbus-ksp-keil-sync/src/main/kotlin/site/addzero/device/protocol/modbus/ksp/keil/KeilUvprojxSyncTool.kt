@@ -3,6 +3,7 @@ package site.addzero.device.protocol.modbus.ksp.keil
 import java.io.File
 import site.addzero.device.protocol.modbus.ksp.core.ModbusProjectSyncContext
 import site.addzero.device.protocol.modbus.ksp.core.ModbusProjectSyncTool
+import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 
 /**
  * Keil uVision `.uvprojx` 细粒度同步器。
@@ -35,7 +36,15 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
 
         try {
             val original = uvprojxFile.readText(Charsets.UTF_8)
-            val updated = updateUvprojxContent(original, uvprojxFile, sourceFiles, targetName, groupName)
+            val updated =
+                updateUvprojxContent(
+                    original = original,
+                    uvprojxFile = uvprojxFile,
+                    sourceFiles = sourceFiles,
+                    targetName = targetName,
+                    groupName = groupName,
+                    transport = context.transport,
+                )
             if (updated != original) {
                 uvprojxFile.writeText(updated, Charsets.UTF_8)
             }
@@ -52,13 +61,22 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
         sourceFiles: List<File>,
         targetName: String,
         groupName: String,
+        transport: ModbusTransportKind,
     ): String {
         val newline = detectNewline(original)
         val targetBlock =
             findBlocks(original, "Target").firstOrNull { block ->
                 targetName.isBlank() || block.content.contains("<TargetName>$targetName</TargetName>")
             } ?: error("Cannot find target block in uvprojx: targetName=${targetName.ifBlank { "<first>" }}")
-        val updatedTargetBlock = updateTargetBlock(targetBlock.content, uvprojxFile, sourceFiles, groupName, newline)
+        val updatedTargetBlock =
+            updateTargetBlock(
+                targetBlock = targetBlock.content,
+                uvprojxFile = uvprojxFile,
+                sourceFiles = sourceFiles,
+                groupName = groupName,
+                newline = newline,
+                transport = transport,
+            )
         return original.replaceRange(targetBlock.range, updatedTargetBlock)
     }
 
@@ -68,11 +86,19 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
         sourceFiles: List<File>,
         groupName: String,
         newline: String,
+        transport: ModbusTransportKind,
     ): String {
+        val targetWithUpdatedIncludes =
+            updateIncludePaths(
+                targetBlock = targetBlock,
+                includePathToEnsure = generatedHeaderIncludePath(transport),
+            )
         val managedGroups =
-            findBlocks(targetBlock, "Group").filter { block ->
+            findBlocks(targetWithUpdatedIncludes, "Group").filter { block ->
                 val currentGroupName = extractGroupName(block.content)
-                currentGroupName == groupName || currentGroupName.startsWith("$groupName/")
+                currentGroupName == groupName ||
+                    currentGroupName.startsWith("$groupName/") ||
+                    currentGroupName in legacyGroupNames(groupName, sourceFiles, transport)
             }
         val renderedGroups =
             renderGroups(
@@ -80,19 +106,48 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
                 sourceFiles = sourceFiles,
                 groupNamePrefix = groupName,
                 newline = newline,
-                indent = inferGroupIndent(targetBlock),
+                indent = inferGroupIndent(targetWithUpdatedIncludes),
             )
         if (managedGroups.isNotEmpty()) {
             val start = managedGroups.first().range.first
             val endExclusive = managedGroups.last().range.last + 1
-            return targetBlock.replaceRange(start, endExclusive, renderedGroups)
+            return targetWithUpdatedIncludes.replaceRange(start, endExclusive, renderedGroups)
         }
 
         val groupsEndRegex = Regex("""</Groups>""")
-        val groupsEndMatch = groupsEndRegex.find(targetBlock)
+        val groupsEndMatch = groupsEndRegex.find(targetWithUpdatedIncludes)
             ?: error("Cannot find </Groups> in target block for group insertion")
         val insertion = renderedGroups + newline
-        return targetBlock.replaceRange(groupsEndMatch.range.first, groupsEndMatch.range.first, insertion)
+        return targetWithUpdatedIncludes.replaceRange(groupsEndMatch.range.first, groupsEndMatch.range.first, insertion)
+    }
+
+    private fun updateIncludePaths(
+        targetBlock: String,
+        includePathToEnsure: String,
+    ): String =
+        Regex("""<IncludePath>(.*?)</IncludePath>""", setOf(RegexOption.DOT_MATCHES_ALL))
+            .replace(targetBlock) { match ->
+                val existingValue = match.groupValues[1]
+                val updatedValue = ensurePathEntry(existingValue, includePathToEnsure)
+                "<IncludePath>$updatedValue</IncludePath>"
+            }
+
+    private fun legacyGroupNames(
+        groupName: String,
+        sourceFiles: List<File>,
+        transport: ModbusTransportKind,
+    ): Set<String> {
+        val suffix = "/${transport.transportId}"
+        val legacyPrefix =
+            if (groupName.endsWith(suffix)) {
+                groupName.removeSuffix(suffix)
+            } else {
+                return emptySet()
+            }
+        return sourceFiles
+            .map { file -> file.parentFile.name.ifBlank { "misc" } }
+            .distinct()
+            .mapTo(linkedSetOf()) { groupSuffix -> "$legacyPrefix/$groupSuffix" }
     }
 
     private fun renderGroups(
@@ -182,8 +237,27 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
     private fun inferGroupIndent(targetBlock: String): String =
         Regex("""(?m)^([ \t]*)</Groups>""").find(targetBlock)?.groupValues?.get(1)?.plus("  ") ?: "        "
 
+    private fun ensurePathEntry(
+        rawValue: String,
+        pathEntry: String,
+    ): String {
+        val entries =
+            rawValue
+                .split(';')
+                .map(String::trim)
+                .filter(String::isNotBlank)
+                .toMutableList()
+        if (entries.none { entry -> entry.equals(pathEntry, ignoreCase = true) }) {
+            entries += pathEntry
+        }
+        return entries.joinToString(";")
+    }
+
     private fun extractGroupName(groupBlock: String): String =
         Regex("""<GroupName>(.*?)</GroupName>""").find(groupBlock)?.groupValues?.get(1).orEmpty()
+
+    private fun generatedHeaderIncludePath(transport: ModbusTransportKind): String =
+        "../Core/Inc/generated/modbus/${transport.transportId}"
 
     private fun escapeXml(value: String): String =
         value

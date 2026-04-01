@@ -25,6 +25,7 @@ plugins {
 }
 
 modbusTcp {
+    transports.set(listOf("tcp"))
     codegenModes.set(listOf("server"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
@@ -62,6 +63,41 @@ cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
   - 会映射成 `addzero.modbus.codegen.mode`
 - `contractPackages`
   - 会映射成 `addzero.modbus.contractPackages`
+- `transports`
+  - 会映射成 `addzero.modbus.transports`
+  - 支持一次启用多个已实现 transport，例如 `listOf("rtu", "tcp")`
+- `cOutputProjectDir`
+  - 会映射成 `addzero.modbus.c.output.projectDir`
+  - 配置后会把生成的 C 文件镜像到固件工程
+- `bridgeImplPath`
+  - 会映射成 `addzero.modbus.c.bridgeImpl.path`
+  - 控制可编辑 bridge 实现目录，默认 `Core/Src/modbus`
+- `keilUvprojxPath`
+  - 会映射成 `addzero.modbus.keil.uvprojx.path`
+- `keilTargetName`
+  - 会映射成 `addzero.modbus.keil.targetName`
+- `keilGroupName`
+  - 会映射成 `addzero.modbus.keil.groupName`
+  - 默认 `Core/modbus/tcp`
+- `mxprojectPath`
+  - 会映射成 `addzero.modbus.mxproject.path`
+
+如果 TCP 场景也要落固件工程，目录约定和 RTU 一样，只是 transport 层目录切成 `tcp`：
+
+- 请勿手动修改：
+  - `Core/Inc/generated/modbus/tcp/...`
+  - `Core/Src/generated/modbus/tcp/...`
+- 需要接业务逻辑：
+  - `Core/Src/modbus/tcp/<service>/<service>_bridge_impl.c`
+
+项目文件同步范围：
+
+- 会改：
+  - `.uvprojx`
+  - `.mxproject`
+- 不会改：
+  - `.uvoptx`
+  - `.ioc`
 
 ## 兼容说明
 

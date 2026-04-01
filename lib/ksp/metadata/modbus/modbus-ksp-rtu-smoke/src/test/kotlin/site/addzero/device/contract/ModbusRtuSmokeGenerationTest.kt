@@ -10,6 +10,7 @@ class ModbusRtuSmokeGenerationTest {
     private val externalProjectDir = File(requireNotNull(System.getProperty("modbus.smoke.externalProjectDir")))
     private val externalBridgeImplFile = externalProjectDir.resolve(requireNotNull(System.getProperty("modbus.smoke.externalBridgeImplPath")))
     private val keilUvprojxFile = File(requireNotNull(System.getProperty("modbus.smoke.keilUvprojxPath")))
+    private val mxprojectFile = File(requireNotNull(System.getProperty("modbus.smoke.mxprojectPath")))
     private val addressLockFile = File(requireNotNull(System.getProperty("modbus.smoke.addressLockPath")))
     private val generatedKotlinDir = projectDir.resolve("build/generated/ksp/main/kotlin")
     private val generatedResourceDir = projectDir.resolve("build/generated/ksp/main/resources/generated/modbus/rtu")
@@ -79,6 +80,7 @@ class ModbusRtuSmokeGenerationTest {
             externalFlashBridgeImplFile,
             externalDispatchSource,
             externalAdapterSource,
+            mxprojectFile,
             addressLockFile,
         ).forEach { file ->
             assertTrue(file.isFile, "Expected generated file to exist: ${file.absolutePath}")
@@ -86,10 +88,8 @@ class ModbusRtuSmokeGenerationTest {
 
         assertTrue(gatewayKt.readText().contains("executor.readCoils(resolvedConfig, 0, 24)"))
         assertTrue(gatewayKt.readText().contains("executor.readInputRegisters(resolvedConfig, 100, 20)"))
-        assertTrue(gatewayKt.readText().contains("executor.readInputRegisters(resolvedConfig, 140, 16)"))
         assertTrue(gatewayKt.readText().contains("class DeviceApiGeneratedRtuGateway"))
         assertTrue(gatewayKt.readText().contains("suspend fun getDeviceRuntimeInfo("))
-        assertTrue(gatewayKt.readText().contains("suspend fun getDeviceDisplayName("))
         assertTrue(gatewayKt.readText().contains("suspend fun resetDevice("))
         assertTrue(gatewayKt.readText().contains("suspend fun firmwareStart("))
         assertTrue(gatewayKt.readText().contains("suspend fun firmwareChunk("))
@@ -103,7 +103,6 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(gatewayKt.readText().contains("val resetResult = resetDevice(config = resolvedConfig, trigger = true)"))
         assertTrue(gatewayKt.readText().contains("return site.addzero.device.contract.FlashResult("))
         assertTrue(gatewayKt.readText().contains("deviceName = ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 4, 16)"))
-        assertTrue(gatewayKt.readText().contains("return ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 0, 16)"))
         assertTrue(gatewayKt.readText().contains("executor.writeSingleCoil(resolvedConfig, 64, trigger)"))
         assertTrue(gatewayKt.readText().contains("executor.writeMultipleRegisters(resolvedConfig, 512, encodedValues)"))
         assertTrue(gatewayKt.readText().contains("executor.writeMultipleRegisters(resolvedConfig, 520, encodedValues)"))
@@ -113,8 +112,6 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_INFO_QUANTITY 24"))
         assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_RUNTIME_INFO_ADDRESS 100"))
         assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_RUNTIME_INFO_QUANTITY 20"))
-        assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_DISPLAY_NAME_ADDRESS 140"))
-        assertTrue(generatedHeader.readText().contains("#define DEVICE_GET_DEVICE_DISPLAY_NAME_QUANTITY 16"))
         assertTrue(generatedHeader.readText().contains("/* 设备运行信息。 */"))
         assertTrue(generatedHeader.readText().contains("bool ch24;"))
         assertTrue(generatedHeader.readText().contains("int32_t protocol_version;"))
@@ -136,16 +133,13 @@ class ModbusRtuSmokeGenerationTest {
 
         assertTrue(generatedSource.readText().contains("device_bridge_get_device_info"))
         assertTrue(generatedSource.readText().contains("device_bridge_get_device_runtime_info"))
-        assertTrue(generatedSource.readText().contains("device_bridge_get_device_display_name"))
         assertTrue(generatedSource.readText().contains("请勿手动修改此文件。"))
         assertTrue(generatedSource.readText().contains("device_generated_encode_string_registers(response.device_name, out_registers, 4, 16);"))
-        assertTrue(generatedSource.readText().contains("device_generated_encode_string_registers(value, out_registers, 0u, 16);"))
 
         assertTrue(bridgeHeader.readText().contains("请勿手动修改此文件。"))
         assertTrue(bridgeHeader.readText().contains("在你的板级/业务 .c 文件中 #include \"device/device_bridge.h\""))
         assertTrue(bridgeHeader.readText().contains("device_bridge_get_device_info"))
         assertTrue(bridgeHeader.readText().contains("device_bridge_get_device_runtime_info"))
-        assertTrue(bridgeHeader.readText().contains("device_bridge_get_device_display_name"))
         assertTrue(bridgeHeader.readText().contains("参数："))
         assertTrue(bridgeHeader.readText().contains("- out_response: device_get_device_runtime_info_response_t 输出对象。"))
 
@@ -169,8 +163,6 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(dispatchSource.readText().contains("return device_generated_get_device_info(out_coils, quantity);"))
         assertTrue(dispatchSource.readText().contains("case DEVICE_GET_DEVICE_RUNTIME_INFO_ADDRESS:"))
         assertTrue(dispatchSource.readText().contains("return device_generated_get_device_runtime_info(out_registers, quantity);"))
-        assertTrue(dispatchSource.readText().contains("case DEVICE_GET_DEVICE_DISPLAY_NAME_ADDRESS:"))
-        assertTrue(dispatchSource.readText().contains("return device_generated_get_device_display_name(out_registers, quantity);"))
         assertTrue(dispatchSource.readText().contains("case FLASH_RESET_DEVICE_ADDRESS:"))
         assertTrue(dispatchSource.readText().contains("case FLASH_FIRMWARE_START_ADDRESS:"))
         assertTrue(dispatchSource.readText().contains("case FLASH_FIRMWARE_CHUNK_ADDRESS:"))
@@ -185,7 +177,6 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(protocolMarkdown.readText().contains("| `get-device-runtime-info` | `getDeviceRuntimeInfo` | `READ_INPUT_REGISTERS` | `100` | `20` | `DeviceRuntimeInfo` | 读取设备运行信息。 |"))
         assertTrue(protocolMarkdown.readText().contains("| `protocolVersion` | `Int` | `U16` | `0` | `0` | `1` | 协议版本。 |"))
         assertTrue(protocolMarkdown.readText().contains("| `deviceName` | `String` | `STRING_UTF8` | `4` | `0` | `16` | 设备名称。 |"))
-        assertTrue(protocolMarkdown.readText().contains("| `get-device-display-name` | `getDeviceDisplayName` | `READ_INPUT_REGISTERS` | `140` | `16` | `String` | 读取设备显示名称。 |"))
         assertTrue(flashProtocolMarkdown.readText().contains("| `reset-device` | `resetDevice` | `WRITE_SINGLE_COIL` | `64` | `1` | `ModbusCommandResult` | 触发设备复位。 |"))
         assertTrue(flashProtocolMarkdown.readText().contains("| `firmware-start` | `firmwareStart` | `WRITE_MULTIPLE_REGISTERS` | `512` | `4` | `ModbusCommandResult` | 初始化一次烧录会话。 |"))
         assertTrue(flashProtocolMarkdown.readText().contains("| `totalBytes` | `Int` | `U32_BE` | `0` | `0` | `2` | 本次固件总字节数。 |"))
@@ -200,7 +191,6 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(addressLock.contains("meta.transport=rtu"))
         assertTrue(addressLock.contains("op.device|get-device-info|READ_COILS|COIL_READ=0|24|24"))
         assertTrue(addressLock.contains("op.device|get-device-runtime-info|READ_INPUT_REGISTERS|INPUT_REGISTER=100|20|20"))
-        assertTrue(addressLock.contains("op.device|get-device-display-name|READ_INPUT_REGISTERS|INPUT_REGISTER=140|16|16"))
         assertTrue(addressLock.contains("op.flash|reset-device|WRITE_SINGLE_COIL|COIL_WRITE=64|1|1"))
         assertTrue(addressLock.contains("op.flash|firmware-start|WRITE_MULTIPLE_REGISTERS|HOLDING_REGISTER_WRITE=512|4|4"))
         assertTrue(addressLock.contains("op.flash|firmware-chunk|WRITE_MULTIPLE_REGISTERS|HOLDING_REGISTER_WRITE=520|10|10"))
@@ -209,7 +199,6 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(externalGeneratedHeader.readText().contains("请勿手动修改此文件。"))
         assertTrue(externalBridgeHeader.readText().contains("device_bridge_get_device_info"))
         assertTrue(externalBridgeHeader.readText().contains("device_bridge_get_device_runtime_info"))
-        assertTrue(externalBridgeHeader.readText().contains("device_bridge_get_device_display_name"))
         assertTrue(externalFlashGeneratedHeader.readText().contains("FLASH_FIRMWARE_START_ADDRESS"))
         assertTrue(externalFlashBridgeHeader.readText().contains("flash_bridge_firmware_start"))
         assertTrue(externalDispatchHeader.readText().contains("modbus_rtu_dispatch_read_coils"))
@@ -217,17 +206,14 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(externalAdapterHeader.readText().contains("generated_modbus_rtu_agile_slave_callback"))
         assertTrue(externalGeneratedSource.readText().contains("device_bridge_get_device_info"))
         assertTrue(externalGeneratedSource.readText().contains("device_bridge_get_device_runtime_info"))
-        assertTrue(externalGeneratedSource.readText().contains("device_bridge_get_device_display_name"))
         assertTrue(externalFlashGeneratedSource.readText().contains("flash_bridge_firmware_start"))
         assertTrue(externalBridgeImplFile.readText().contains("要改哪里："))
         assertTrue(externalBridgeImplFile.readText().contains("device_bridge_get_device_runtime_info"))
-        assertTrue(externalBridgeImplFile.readText().contains("device_bridge_get_device_display_name"))
         assertTrue(externalFlashBridgeImplFile.readText().contains("request->total_bytes: 本次固件总字节数。"))
         assertFalse(externalGeneratedBridgeSource.exists(), "Generated directory should not contain editable bridge source")
         assertFalse(externalFlashGeneratedBridgeSource.exists(), "Generated directory should not contain editable flash bridge source")
         assertTrue(externalDispatchSource.readText().contains("DEVICE_GET_DEVICE_INFO_ADDRESS"))
         assertTrue(externalDispatchSource.readText().contains("DEVICE_GET_DEVICE_RUNTIME_INFO_ADDRESS"))
-        assertTrue(externalDispatchSource.readText().contains("DEVICE_GET_DEVICE_DISPLAY_NAME_ADDRESS"))
         assertTrue(externalDispatchSource.readText().contains("FLASH_FIRMWARE_START_ADDRESS"))
         assertTrue(externalAdapterSource.readText().contains("modbus_rtu_dispatch_read_coils"))
 
@@ -245,5 +231,14 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(uvprojx.contains("<FileName>modbus_rtu_agile_slave_adapter.c</FileName>"))
         assertFalse(uvprojx.contains("generated\\modbus\\device_bridge.c"))
         assertFalse(uvprojx.contains("generated\\modbus\\flash_bridge.c"))
+
+        val mxproject = mxprojectFile.readText()
+        assertTrue(mxproject.contains("HeaderPath="))
+        assertTrue(mxproject.contains("..\\Core\\Inc\\generated\\modbus\\rtu"))
+        assertTrue(mxproject.contains("..\\Core\\Src\\generated\\modbus\\rtu\\device\\device_generated.c"))
+        assertTrue(mxproject.contains("..\\Core\\Src\\modbus\\rtu\\device\\device_bridge_impl.c"))
+        assertTrue(mxproject.contains("HeaderPath#1=..\\Core\\Inc\\generated\\modbus\\rtu"))
+        assertTrue(mxproject.contains("SourcePath#1=..\\Core\\Src\\generated\\modbus\\rtu"))
+        assertTrue(mxproject.contains("SourcePath#2=..\\Core\\Src\\modbus\\rtu"))
     }
 }

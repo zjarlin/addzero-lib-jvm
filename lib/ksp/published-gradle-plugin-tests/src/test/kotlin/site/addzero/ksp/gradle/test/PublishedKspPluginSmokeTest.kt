@@ -69,6 +69,12 @@ class PublishedKspPluginSmokeTest {
                         codegenModes.set(listOf("server", "contract"))
                         contractPackages.set(listOf("site.addzero.device.contract"))
                         transports.set(listOf("rtu", "tcp"))
+                        cOutputProjectDir.set("/tmp/firmware-project")
+                        bridgeImplPath.set("Core/Src/modbus")
+                        keilUvprojxPath.set("MDK-ARM/test1.uvprojx")
+                        keilTargetName.set("test1")
+                        keilGroupName.set("Core/modbus/rtu")
+                        mxprojectPath.set(".mxproject")
                     }
                 """.trimIndent(),
             ),
@@ -81,6 +87,12 @@ class PublishedKspPluginSmokeTest {
             "addzero.modbus.codegen.mode=server,contract",
             "addzero.modbus.transports=rtu,tcp",
             "addzero.modbus.contractPackages=site.addzero.device.contract",
+            "addzero.modbus.c.output.projectDir=/tmp/firmware-project",
+            "addzero.modbus.c.bridgeImpl.path=Core/Src/modbus",
+            "addzero.modbus.keil.uvprojx.path=MDK-ARM/test1.uvprojx",
+            "addzero.modbus.keil.targetName=test1",
+            "addzero.modbus.keil.groupName=Core/modbus/rtu",
+            "addzero.modbus.mxproject.path=.mxproject",
         )
     }
 
