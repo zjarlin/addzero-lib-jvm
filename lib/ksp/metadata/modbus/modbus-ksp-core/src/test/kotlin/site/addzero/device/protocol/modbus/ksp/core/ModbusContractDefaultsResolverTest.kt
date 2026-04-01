@@ -21,6 +21,14 @@ class ModbusContractDefaultsResolverTest {
             ),
         )
         assertEquals(
+            "READ_INPUT_REGISTERS",
+            ModbusContractDefaultsResolver.resolveFunctionCodeName(
+                explicitFunctionCodeName = "AUTO",
+                parameters = emptyList(),
+                returnType = readDisplayNameOperation().returnType,
+            ),
+        )
+        assertEquals(
             "WRITE_SINGLE_COIL",
             ModbusContractDefaultsResolver.resolveFunctionCodeName(
                 explicitFunctionCodeName = "AUTO",
@@ -96,6 +104,9 @@ class ModbusContractDefaultsResolverTest {
         assertEquals(9, resolved.getValue("readPartitionLayout").quantity)
         assertEquals("read-runtime-name", resolved.getValue("readRuntimeName").operationId)
         assertEquals(8, resolved.getValue("readRuntimeName").quantity)
+        assertEquals(16, readDisplayNameOperation().copy(quantity = -1).let { operation ->
+            ModbusContractDefaultsResolver.resolveOperations(serviceId = "mcuinfo", operations = listOf(operation)).single().quantity
+        })
     }
 
     @Test
@@ -215,6 +226,22 @@ class ModbusContractDefaultsResolverTest {
                                 registerWidth = 8,
                             ),
                         ),
+                ),
+        )
+
+    private fun readDisplayNameOperation(): ModbusOperationModel =
+        operation(
+            methodName = "readDisplayName",
+            functionCodeName = "READ_INPUT_REGISTERS",
+            returnType =
+                ModbusReturnTypeModel(
+                    qualifiedName = "kotlin.String",
+                    simpleName = "String",
+                    kind = ModbusReturnKind.STRING,
+                    valueKind = ModbusValueKind.STRING,
+                    codecName = "STRING_UTF8",
+                    length = 16,
+                    registerWidth = 16,
                 ),
         )
 
