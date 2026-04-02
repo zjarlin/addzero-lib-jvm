@@ -201,152 +201,241 @@ object ModbusArtifactTemplates {
 
     private fun renderProtocolMarkdown(service: ModbusServiceModel): String =
         buildString {
-            appendLine("# ${service.interfaceSimpleName} Protocol Metadata (${service.transport.displayName})")
+            appendLine("# ${service.interfaceSimpleName} 协议说明（${service.transport.displayName}）")
             appendLine()
-            appendLine("这份文档由 Modbus contract KSP 自动生成。")
-            appendLine()
-            appendLine("## Service Overview")
+            appendLine("## 服务概览")
             appendLine()
             append(
                 renderMarkdownTable(
-                    headers = listOf("Key", "Value"),
+                    headers = listOf("项目", "内容"),
                     rows =
                         listOf(
-                            listOf("Service ID", "`${service.serviceId}`"),
-                            listOf("Transport", "`${service.transport.displayName}`"),
-                            listOf("Base Path", "`${service.basePath}`"),
-                            listOf("Interface", "`${service.interfaceQualifiedName}`"),
-                            listOf("Summary", service.summary.ifBlank { "-" }),
+                            listOf("服务标识", "`${service.serviceId}`"),
+                            listOf("传输方式", "`${service.transport.displayName}`"),
+                            listOf("基础路径", "`${service.basePath}`"),
+                            listOf("接口", "`${service.interfaceQualifiedName}`"),
+                            listOf("说明", service.summary.ifBlank { "-" }),
                         ),
                 ),
             )
             appendLine()
-            appendLine("## Transport Defaults")
+            appendLine("## 联调说明")
+            appendLine()
+            appendLine("- 这份文档给上位机、固件和联调同事共用。")
+            appendLine("- 联调时以上表 `address`、`quantity`、`function code`、标准码值为准。")
+            appendLine("- 固件侧需要实现的入口是 `${service.cServiceName}_bridge_impl.c` 里的 `${service.cServiceName}_bridge_*` 函数。")
+            appendLine("- 固件侧不要修改 `${service.cServiceName}_generated.c`、`${service.transport.dispatchFileName()}.c` 和 adapter。")
+            appendLine("- `STRING_UTF8` 字段的 `Width` 表示寄存器个数，实际可写入字节数 = `Width * 2`。")
             appendLine()
             append(
                 renderMarkdownTable(
-                    headers = listOf("Field", "Default"),
+                    headers = listOf("生成文件", "用途"),
+                    rows =
+                        listOf(
+                            listOf("`${service.cServiceName}_generated.h/.c`", "DTO 结构体、地址常量、寄存器/线圈编解码。"),
+                            listOf("`${service.cServiceName}_bridge.h`", "给固件同事看的 SPI 头文件；声明需要实现的 bridge 函数。"),
+                            listOf("`${service.cServiceName}_bridge_impl.c`", "可编辑的板级业务实现模板；只改这里。"),
+                            listOf("`${service.transport.dispatchFileName()}.h/.c`", "聚合 dispatch，负责按 address 路由到各个 service。"),
+                        ),
+                ),
+            )
+            appendLine()
+            appendLine("## 仿真软件怎么填")
+            appendLine()
+            append(
+                renderMarkdownTable(
+                    headers = listOf("项目", "填写方式"),
+                    rows = renderSimulatorConnectionMarkdownRows(service.transport),
+                ),
+            )
+            appendLine()
+            appendLine("- 常见主站软件可用 `Modbus Poll`、`QModMaster`、`ModbusClientX`。")
+            appendLine("- 常见从站仿真软件可用 `Modbus Slave`、`diagslave`。")
+            appendLine("- 主站发请求时，功能选文档里的“标准功能码 / 标准码值”，起始地址填“地址”，点位数或寄存器数填“数量”。")
+            appendLine("- 从站仿真时，先在对应数据区预置文档要求的地址范围，再用主站按同样参数发起读写。")
+            appendLine("- 读操作校验返回数据是否与字段表一致；写操作校验是否返回成功，并按需要补一次读回校验。")
+            appendLine()
+            appendLine("## 传输默认值")
+            appendLine()
+            append(
+                renderMarkdownTable(
+                    headers = listOf("字段", "默认值"),
                     rows = renderTransportDefaultsMarkdownRows(service.transport),
                 ),
             )
             appendLine()
-            appendLine("## Operations Summary")
+            appendLine("## 操作总览")
             appendLine()
             append(
                 renderMarkdownTable(
-                    headers = listOf("Operation ID", "Method", "Function Code", "Address", "Quantity", "Return", "Summary"),
-                    rows =
-                        service.operations.map { operation ->
-                            listOf(
-                                "`${operation.operationId}`",
-                                "`${operation.methodName}`",
-                                "`${operation.functionCodeName}`",
-                                "`${operation.address}`",
-                                "`${operation.quantity}`",
-                                operation.returnType.renderProtocolReturnSummary(),
-                                operation.doc.summary.ifBlank { "-" },
-                            )
-                        },
+                    headers = listOf("操作标识", "方法", "标准功能码", "标准码值", "标准含义", "地址", "数量", "返回类型", "说明"),
+                    rows = service.operations.map { operation ->
+                        val functionReference = operation.functionReference()
+                        listOf(
+                            "`${operation.operationId}`",
+                            "`${operation.methodName}`",
+                            "`${operation.functionCodeName}`",
+                            "`${functionReference.hexCode}`",
+                            functionReference.standardMeaning,
+                            "`${operation.address}`",
+                            "`${operation.quantity}`",
+                            operation.returnType.renderProtocolReturnSummary(),
+                            operation.doc.summary.ifBlank { "-" },
+                        )
+                    },
                 ),
             )
             if (service.workflows.isNotEmpty()) {
                 appendLine()
-                appendLine("## Workflows Summary")
+                appendLine("## 工作流总览")
                 appendLine()
                 append(
                     renderMarkdownTable(
-                        headers = listOf("Workflow ID", "Method", "Return", "Summary", "Low-Level Steps"),
-                        rows =
-                            service.workflows.map { workflow ->
-                                listOf(
-                                    "`${workflow.workflowId}`",
-                                    "`${workflow.methodName}`",
-                                    workflow.returnType.renderProtocolReturnSummary(),
-                                    workflow.doc.summary.ifBlank { "-" },
-                                    workflow.renderWorkflowStepSummary(),
-                                )
-                            },
+                        headers = listOf("工作流标识", "方法", "返回类型", "说明", "底层步骤"),
+                        rows = service.workflows.map { workflow ->
+                            listOf(
+                                "`${workflow.workflowId}`",
+                                "`${workflow.methodName}`",
+                                workflow.returnType.renderProtocolReturnSummary(),
+                                workflow.doc.summary.ifBlank { "-" },
+                                workflow.renderWorkflowStepSummary(),
+                            )
+                        },
                     ),
                 )
             }
             service.operations.forEach { operation ->
+                val functionReference = operation.functionReference()
                 appendLine()
                 appendLine("## `${operation.operationId}`")
                 appendLine()
                 append(
                     renderMarkdownTable(
-                        headers = listOf("Field", "Value"),
+                        headers = listOf("项目", "内容"),
                         rows =
-                            buildList {
-                                add(listOf("Method", "`${operation.methodName}`"))
-                                add(listOf("Function Code", "`${operation.functionCodeName}`"))
-                                add(listOf("Address", "`${operation.address}`"))
-                                add(listOf("Quantity", "`${operation.quantity}`"))
-                                add(listOf("Return Type", operation.returnType.renderProtocolReturnSummary()))
-                                add(listOf("Summary", operation.doc.summary.ifBlank { "-" }))
-                            },
+                            listOf(
+                                listOf("方法", "`${operation.methodName}`"),
+                                listOf("标准功能码", "`${operation.functionCodeName}`"),
+                                listOf("标准码值", "`${functionReference.hexCode}`"),
+                                listOf("标准含义", functionReference.standardMeaning),
+                                listOf("地址", "`${operation.address}`"),
+                                listOf("数量", "`${operation.quantity}`"),
+                                listOf("返回类型", operation.returnType.renderProtocolReturnSummary()),
+                                listOf("说明", operation.doc.summary.ifBlank { "-" }),
+                            ),
                     ),
                 )
+                appendLine()
+                appendLine("### 仿真软件填写")
+                appendLine()
+                append(
+                    renderMarkdownTable(
+                        headers = listOf("项目", "填写值"),
+                        rows = operation.renderSimulatorRequestRows(service.transport),
+                    ),
+                )
+                if (service.transport == ModbusTransportKind.RTU) {
+                    val frameExample = operation.rtuFrameExample()
+                    appendLine()
+                    appendLine("### RTU 报文示例")
+                    appendLine()
+                    appendLine("```text")
+                    appendLine("SEND >>>>>>>>>> ${frameExample.requestFrameHex}")
+                    appendLine("RESPONSE>>>>>>>>>> ${frameExample.responseFrameHex}")
+                    appendLine("```")
+                    appendLine()
+                    appendLine("- ${frameExample.note}")
+                    appendLine("- 请求 payload 示例：`${frameExample.requestPayloadHex}`")
+                    appendLine("- 响应 payload 示例：`${frameExample.responsePayloadHex}`")
+                    appendLine()
+                    appendLine("### RTU 请求帧拆解")
+                    appendLine()
+                    append(
+                        renderTransposedFrameSegmentsMarkdownTable(frameExample.requestSegments),
+                    )
+                }
                 if (operation.parameters.isNotEmpty()) {
                     appendLine()
-                    appendLine("### Parameters")
+                    appendLine("### 参数")
                     appendLine()
                     append(
                         renderMarkdownTable(
-                            headers = listOf("Name", "Type", "Codec", "Register Offset", "Bit Offset", "Width", "Description"),
-                            rows =
-                                operation.parameters.map { parameter ->
-                                    listOf(
-                                        "`${parameter.name}`",
-                                        "`${parameter.kotlinTypeSimpleName()}`",
-                                        "`${parameter.codecName}`",
-                                        "`${parameter.registerOffset}`",
-                                        "`${parameter.bitOffset}`",
-                                        "`${parameter.registerWidth}`",
-                                        parameter.doc.ifBlank { "-" },
-                                    )
-                                },
+                            headers = listOf("名称", "类型", "编码", "寄存器偏移", "位偏移", "宽度", "说明"),
+                            rows = operation.parameters.map { parameter ->
+                                listOf(
+                                    "`${parameter.name}`",
+                                    "`${parameter.kotlinTypeSimpleName()}`",
+                                    "`${parameter.codecName}`",
+                                    "`${parameter.registerOffset}`",
+                                    "`${parameter.bitOffset}`",
+                                    "`${parameter.registerWidth}`",
+                                    parameter.doc.ifBlank { "-" },
+                                )
+                            },
                         ),
                     )
                 }
+                val stringParameterNotes = operation.renderStringSimulatorNotes()
+                if (stringParameterNotes.isNotEmpty()) {
+                    appendLine()
+                    appendLine("### 参数里的字符串字段填写")
+                    appendLine()
+                    stringParameterNotes.forEach { note -> appendLine("- $note") }
+                }
                 if (operation.returnType.kind == ModbusReturnKind.DTO) {
                     appendLine()
-                    appendLine("### Return Fields")
+                    appendLine("### 返回字段")
                     appendLine()
                     append(
                         renderMarkdownTable(
-                            headers = listOf("Name", "Type", "Codec", "Register Offset", "Bit Offset", "Width", "Description"),
-                            rows =
-                                operation.returnType.properties.map { property ->
-                                    val field = property.field
-                                    listOf(
-                                        "`${property.name}`",
-                                        "`${property.kotlinTypeSimpleName()}`",
-                                        "`${field?.codecName ?: "n/a"}`",
-                                        "`${field?.registerOffset?.toString() ?: "-"}`",
-                                        "`${field?.bitOffset?.toString() ?: "-"}`",
-                                        "`${field?.registerWidth?.toString() ?: "-"}`",
-                                        property.doc.ifBlank { "-" },
-                                    )
-                                },
+                            headers = listOf("名称", "类型", "编码", "寄存器偏移", "位偏移", "宽度", "说明"),
+                            rows = operation.returnType.properties.map { property ->
+                                val field = property.field
+                                listOf(
+                                    "`${property.name}`",
+                                    "`${property.kotlinTypeSimpleName()}`",
+                                    "`${field?.codecName ?: "n/a"}`",
+                                    "`${field?.registerOffset?.toString() ?: "-"}`",
+                                    "`${field?.bitOffset?.toString() ?: "-"}`",
+                                    "`${field?.registerWidth?.toString() ?: "-"}`",
+                                    property.doc.ifBlank { "-" },
+                                )
+                            },
                         ),
                     )
+                    val stringReturnNotes = operation.returnType.properties.mapNotNull { property ->
+                        property.renderStringSimulatorNote(operation.address)
+                    }
+                    if (stringReturnNotes.isNotEmpty()) {
+                        appendLine()
+                        appendLine("### 返回里的字符串字段填写")
+                        appendLine()
+                        stringReturnNotes.forEach { note -> appendLine("- $note") }
+                    }
+                } else {
+                    val scalarStringReturnNote = operation.returnType.renderScalarStringSimulatorNote(operation.address)
+                    if (scalarStringReturnNote != null) {
+                        appendLine()
+                        appendLine("### 返回里的字符串字段填写")
+                        appendLine()
+                        appendLine("- $scalarStringReturnNote")
+                    }
                 }
             }
             service.workflows.forEach { workflow ->
                 appendLine()
-                appendLine("## Workflow `${workflow.workflowId}`")
+                appendLine("## 工作流 `${workflow.workflowId}`")
                 appendLine()
                 append(
                     renderMarkdownTable(
-                        headers = listOf("Field", "Value"),
+                        headers = listOf("项目", "内容"),
                         rows =
-                            buildList {
-                                add(listOf("Method", "`${workflow.methodName}`"))
-                                add(listOf("Return Type", workflow.returnType.renderProtocolReturnSummary()))
-                                add(listOf("Summary", workflow.doc.summary.ifBlank { "-" }))
-                                add(listOf("Low-Level Steps", workflow.renderWorkflowStepSummary()))
-                            },
+                            listOf(
+                                listOf("方法", "`${workflow.methodName}`"),
+                                listOf("返回类型", workflow.returnType.renderProtocolReturnSummary()),
+                                listOf("说明", workflow.doc.summary.ifBlank { "-" }),
+                                listOf("底层步骤", workflow.renderWorkflowStepSummary()),
+                            ),
                     ),
                 )
                 when (workflow.kind) {
@@ -356,7 +445,7 @@ object ModbusArtifactTemplates {
                         val commitOperation = service.requireOperation(workflow.commitMethodName)
                         val chunkFields = chunkOperation.flashChunkPayloadFields()
                         appendLine()
-                        appendLine("### Firmware Workflow")
+                        appendLine("### 固件工作流")
                         appendLine()
                         appendLine("1. Kotlin 上位机先调用 `${startOperation.methodName}`。")
                         appendLine("2. 然后自动按 chunk payload 宽度切片并循环调用 `${chunkOperation.methodName}`。")
@@ -366,8 +455,8 @@ object ModbusArtifactTemplates {
                         }
                         appendLine()
                         appendLine("- CRC32: ${if (startOperation.flashStartHasCrc32()) "由上位机自动计算并通过 firmwareStart 下发" else "当前协议未声明 CRC32 字段，上位机不会下发 CRC32"}")
-                        appendLine("- Chunk Max Bytes: `${chunkFields.sumOf { field -> field.payloadByteWidth() }}`")
-                        appendLine("- Chunk Byte Order: `U16/U32_BE` payload 均按大端顺序把 `bytes` 填入寄存器窗口。")
+                        appendLine("- 单片最大字节数: `${chunkFields.sumOf { field -> field.payloadByteWidth() }}`")
+                        appendLine("- 字节顺序: `U16/U32_BE` payload 均按大端顺序把 `bytes` 填入寄存器窗口。")
                         appendLine("- C 侧职责：`begin` 初始化烧录会话，`chunk` 写分片，`commit` 完成提交，`reset` 负责板级重启。")
                     }
                 }
@@ -1299,7 +1388,9 @@ object ModbusArtifactTemplates {
                             appendLine("        return false;")
                         appendLine("    }")
                         operation.returnType.properties.forEach { property ->
-                            appendLine("    ${property.renderBridgeDefaultAssignment("out_response->")}")
+                            property.renderBridgeDefaultAssignmentLines("out_response->").forEach { line ->
+                                appendLine("    $line")
+                            }
                         }
                         appendLine("    return true;")
                     }
@@ -1326,6 +1417,8 @@ object ModbusArtifactTemplates {
                         appendLine("    if (out_value == NULL || out_capacity == 0u) {")
                         appendLine("        return false;")
                         appendLine("    }")
+                        appendLine("    /* 返回值字符串：codec=${operation.returnType.codecName}，寄存器宽度=${operation.returnType.registerWidth}，最多 ${operation.returnType.stringByteCapacity()} 个字节，out_capacity 包含结尾 '\\0'。 */")
+                        appendLine("    /* 示例：snprintf(out_value, out_capacity, \"%s\", \"XXXXXXXX-XXXXX\"); */")
                         appendLine("    out_value[0] = '\\0';")
                         appendLine("    return true;")
                     }
@@ -2004,15 +2097,49 @@ object ModbusArtifactTemplates {
             else -> doc
         }
 
-    private fun ModbusPropertyModel.renderBridgeDefaultAssignment(prefix: String): String =
+    private fun ModbusPropertyModel.renderBridgeDefaultAssignmentLines(prefix: String): List<String> =
         when (valueKind) {
-            ModbusValueKind.STRING -> "${prefix}${name.toSnakeCase()}[0] = '\\0';"
-            else -> "${prefix}${name.toSnakeCase()} = 0;"
+            ModbusValueKind.STRING ->
+                listOf(
+                    "/* ${name.toSnakeCase()} 字符串：codec=${field?.codecName.orEmpty()}，寄存器宽度=${field?.registerWidth ?: 0}，最多 ${stringByteCapacity()} 个字节，缓冲区容量 ${stringCharCapacity()}（含 '\\0'）。 */",
+                    "/* 示例：",
+                    " * strncpy(${prefix}${name.toSnakeCase()}, \"XXXXXXXX-XXXXX\", ${stringByteCapacity()});",
+                    " * ${prefix}${name.toSnakeCase()}[${stringCharCapacity() - 1}] = '\\0';",
+                    " */",
+                    "${prefix}${name.toSnakeCase()}[${stringCharCapacity() - 1}] = '\\0';",
+                )
+            else -> listOf("${prefix}${name.toSnakeCase()} = 0;")
         }
 
     private fun ModbusParameterModel.stringCharCapacity(): Int = (registerWidth * 2) + 1
 
     private fun ModbusPropertyModel.stringCharCapacity(): Int = ((field?.registerWidth ?: 0) * 2) + 1
+
+    private fun ModbusPropertyModel.stringByteCapacity(): Int = (field?.registerWidth ?: 0) * 2
+
+    private fun ModbusReturnTypeModel.stringByteCapacity(): Int = registerWidth * 2
+
+    private data class ModbusFunctionReference(
+        val hexCode: String,
+        val standardMeaning: String,
+        val simulatorFunctionLabel: String,
+    )
+
+    private data class ModbusRtuFrameSegment(
+        val fieldName: String,
+        val bytes: ByteArray,
+        val ownership: String,
+        val description: String,
+    )
+
+    private data class ModbusRtuFrameExample(
+        val requestFrameHex: String,
+        val responseFrameHex: String,
+        val requestPayloadHex: String,
+        val responsePayloadHex: String,
+        val requestSegments: List<ModbusRtuFrameSegment>,
+        val note: String,
+    )
 
     private fun ModbusServiceModel.usesStringRegisters(): Boolean =
         operations.any { operation ->
@@ -2022,6 +2149,381 @@ object ModbusArtifactTemplates {
         }
 
     private fun ModbusReturnTypeModel.stringCharCapacity(): Int = (registerWidth * 2) + 1
+
+    private fun ModbusOperationModel.functionReference(): ModbusFunctionReference =
+        when (functionCodeName) {
+            "READ_COILS" -> ModbusFunctionReference(hexCode = "0x01", standardMeaning = "读取线圈", simulatorFunctionLabel = "01 Read Coils")
+            "READ_DISCRETE_INPUTS" ->
+                ModbusFunctionReference(
+                    hexCode = "0x02",
+                    standardMeaning = "读取离散输入",
+                    simulatorFunctionLabel = "02 Read Discrete Inputs",
+                )
+
+            "READ_HOLDING_REGISTERS" ->
+                ModbusFunctionReference(
+                    hexCode = "0x03",
+                    standardMeaning = "读取保持寄存器",
+                    simulatorFunctionLabel = "03 Read Holding Registers",
+                )
+
+            "READ_INPUT_REGISTERS" ->
+                ModbusFunctionReference(
+                    hexCode = "0x04",
+                    standardMeaning = "读取输入寄存器",
+                    simulatorFunctionLabel = "04 Read Input Registers",
+                )
+
+            "WRITE_SINGLE_COIL" ->
+                ModbusFunctionReference(
+                    hexCode = "0x05",
+                    standardMeaning = "写单个线圈",
+                    simulatorFunctionLabel = "05 Write Single Coil",
+                )
+
+            "WRITE_SINGLE_REGISTER" ->
+                ModbusFunctionReference(
+                    hexCode = "0x06",
+                    standardMeaning = "写单个寄存器",
+                    simulatorFunctionLabel = "06 Write Single Register",
+                )
+
+            "WRITE_MULTIPLE_COILS" ->
+                ModbusFunctionReference(
+                    hexCode = "0x0F",
+                    standardMeaning = "写多个线圈",
+                    simulatorFunctionLabel = "15 Write Multiple Coils",
+                )
+
+            "WRITE_MULTIPLE_REGISTERS" ->
+                ModbusFunctionReference(
+                    hexCode = "0x10",
+                    standardMeaning = "写多个寄存器",
+                    simulatorFunctionLabel = "16 Write Multiple Registers",
+                )
+
+            else -> error("未知的 Modbus 功能码：$functionCodeName")
+        }
+
+    private fun renderSimulatorConnectionMarkdownRows(transport: ModbusTransportKind): List<List<String>> =
+        when (transport) {
+            ModbusTransportKind.RTU ->
+                listOf(
+                    listOf("连接模式", "选择 `RTU`。"),
+                    listOf("串口", "填写真实串口或仿真串口，默认示例是 `/dev/ttyUSB0`。"),
+                    listOf("从站地址", "默认 `1`；若现场改过 `Unit ID`，这里同步改成现场值。"),
+                    listOf("波特率", "默认 `115200`。"),
+                    listOf("数据位", "默认 `8`。"),
+                    listOf("停止位", "默认 `1`。"),
+                    listOf("校验", "默认 `none`。"),
+                    listOf("超时", "建议先填 `1000 ms`。"),
+                )
+
+            ModbusTransportKind.TCP ->
+                listOf(
+                    listOf("连接模式", "选择 `TCP`。"),
+                    listOf("主机地址", "默认 `127.0.0.1`，联调时改成设备 IP。"),
+                    listOf("端口", "默认 `502`。"),
+                    listOf("从站地址", "默认 `1`；若现场网关改过 `Unit ID`，这里同步改成现场值。"),
+                    listOf("超时", "建议先填 `1000 ms`。"),
+                )
+        }
+
+    private fun ModbusOperationModel.renderSimulatorRequestRows(transport: ModbusTransportKind): List<List<String>> =
+        buildList {
+            val functionReference = functionReference()
+            add(listOf("主站功能选择", "`${functionReference.simulatorFunctionLabel}`"))
+            add(listOf("标准码值", "`${functionReference.hexCode}`"))
+            add(listOf("数据区", "`${addressSpace.simulatorAreaName()}`"))
+            add(listOf("起始地址", "`${address}`"))
+            add(listOf("数量", "`${quantity}`"))
+            add(listOf("绝对地址区间", "`${address}..${address + registerSpan - 1}`"))
+            add(listOf("测试重点", simulatorVerificationHint()))
+            if (transport == ModbusTransportKind.RTU) {
+                val frameExample = rtuFrameExample()
+                add(listOf("原始请求帧", "`SEND >>>>>>>>>> ${frameExample.requestFrameHex}`"))
+                add(listOf("原始响应帧", "`RESPONSE>>>>>>>>>> ${frameExample.responseFrameHex}`"))
+                add(listOf("报文说明", frameExample.note))
+            }
+        }
+
+    private fun ModbusOperationModel.renderStringSimulatorNotes(): List<String> =
+        parameters.mapNotNull { parameter -> parameter.renderStringSimulatorNote(address) }
+
+    private fun ModbusParameterModel.renderStringSimulatorNote(baseAddress: Int): String? {
+        if (valueKind != ModbusValueKind.STRING) {
+            return null
+        }
+        val startAddress = baseAddress + registerOffset
+        val endAddress = startAddress + registerWidth - 1
+        return "`$name` 使用 `${codecName}`，绝对寄存器区间 `${startAddress}..${endAddress}`，每个寄存器承载 2 个字节；字符串不足部分补 `0x00`。"
+    }
+
+    private fun ModbusPropertyModel.renderStringSimulatorNote(baseAddress: Int): String? {
+        if (valueKind != ModbusValueKind.STRING || field == null) {
+            return null
+        }
+        val startAddress = baseAddress + field.registerOffset
+        val endAddress = startAddress + field.registerWidth - 1
+        return "`$name` 使用 `${field.codecName}`，绝对寄存器区间 `${startAddress}..${endAddress}`，每个寄存器承载 2 个字节；字符串不足部分补 `0x00`。"
+    }
+
+    private fun ModbusReturnTypeModel.renderScalarStringSimulatorNote(baseAddress: Int): String? {
+        if (kind != ModbusReturnKind.STRING) {
+            return null
+        }
+        val endAddress = baseAddress + registerWidth - 1
+        return "返回值使用 `${codecName}`，绝对寄存器区间 `${baseAddress}..${endAddress}`，每个寄存器承载 2 个字节；字符串不足部分补 `0x00`。"
+    }
+
+    private fun ModbusOperationModel.simulatorVerificationHint(): String =
+        when {
+            isReadOperation && usesCoilBits ->
+                "返回 `quantity=${quantity}` 个线圈位；按下面字段表逐个核对布尔状态。"
+            isReadOperation ->
+                "返回 `quantity=${quantity}` 个寄存器；按下面字段表核对数值和字符串内容。"
+            returnType.kind == ModbusReturnKind.COMMAND_RESULT ->
+                "主站应收到成功响应；若要确认业务效果，再补一次读操作核对状态。"
+            else ->
+                "按参数表发送写请求，并核对设备是否按预期更新。"
+        }
+
+    private fun ModbusAddressSpace.simulatorAreaName(): String =
+        when (this) {
+            ModbusAddressSpace.COIL_READ,
+            ModbusAddressSpace.COIL_WRITE -> "Coils"
+            ModbusAddressSpace.DISCRETE_INPUT -> "Discrete Inputs"
+            ModbusAddressSpace.INPUT_REGISTER -> "Input Registers"
+            ModbusAddressSpace.HOLDING_REGISTER_READ,
+            ModbusAddressSpace.HOLDING_REGISTER_WRITE -> "Holding Registers"
+        }
+
+    private fun ModbusOperationModel.rtuFrameExample(unitId: Int = 1): ModbusRtuFrameExample {
+        val functionCode = functionReference().hexCode.removePrefix("0x").toInt(16)
+        val requestSegments =
+            mutableListOf(
+                ModbusRtuFrameSegment(
+                    fieldName = "从站地址",
+                    bytes = byteArrayOf(unitId.toByte()),
+                    ownership = "协议头",
+                    description = "默认 `Unit ID=$unitId`。",
+                ),
+                ModbusRtuFrameSegment(
+                    fieldName = "功能码",
+                    bytes = byteArrayOf(functionCode.toByte()),
+                    ownership = "协议头",
+                    description = "${functionReference().standardMeaning}，标准码值 `${functionReference().hexCode}`。",
+                ),
+            )
+        val payloadSegments =
+            when (functionCodeName) {
+                "READ_COILS",
+                "READ_DISCRETE_INPUTS",
+                "READ_HOLDING_REGISTERS",
+                "READ_INPUT_REGISTERS" ->
+                    listOf(
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 起始地址",
+                            bytes = byteArrayOf((address shr 8).toByte(), address.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `address=$address` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 数量",
+                            bytes = byteArrayOf((quantity shr 8).toByte(), quantity.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `quantity=$quantity` 的大端表示。",
+                        ),
+                    )
+
+                "WRITE_SINGLE_COIL" ->
+                    listOf(
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 线圈地址",
+                            bytes = byteArrayOf((address shr 8).toByte(), address.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `address=$address` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 线圈写入值",
+                            bytes = byteArrayOf(0xFF.toByte(), 0x00.toByte()),
+                            ownership = "payload",
+                            description = "示例里把目标线圈写成 `true`，标准编码是 `FF 00`。",
+                        ),
+                    )
+
+                "WRITE_SINGLE_REGISTER" ->
+                    listOf(
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 寄存器地址",
+                            bytes = byteArrayOf((address shr 8).toByte(), address.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `address=$address` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 寄存器写入值",
+                            bytes = byteArrayOf(0x00.toByte(), 0x01.toByte()),
+                            ownership = "payload",
+                            description = "示例里把目标寄存器写成 `0x0001`。",
+                        ),
+                    )
+
+                "WRITE_MULTIPLE_COILS" -> {
+                    val byteCount = ((quantity + 7) / 8).coerceAtLeast(1)
+                    listOf(
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 起始地址",
+                            bytes = byteArrayOf((address shr 8).toByte(), address.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `address=$address` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 数量",
+                            bytes = byteArrayOf((quantity shr 8).toByte(), quantity.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `quantity=$quantity` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 字节数",
+                            bytes = byteArrayOf(byteCount.toByte()),
+                            ownership = "payload",
+                            description = "线圈值区共 `${byteCount}` byte。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 线圈值区",
+                            bytes = ByteArray(byteCount),
+                            ownership = "payload",
+                            description = "示例数据全部按 `0` 填充；每一位对应一个线圈值。",
+                        ),
+                    )
+                }
+
+                "WRITE_MULTIPLE_REGISTERS" -> {
+                    val byteCount = quantity * 2
+                    listOf(
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 起始地址",
+                            bytes = byteArrayOf((address shr 8).toByte(), address.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `address=$address` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 数量",
+                            bytes = byteArrayOf((quantity shr 8).toByte(), quantity.toByte()),
+                            ownership = "payload",
+                            description = "运行时 `quantity=$quantity` 的大端表示。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 字节数",
+                            bytes = byteArrayOf(byteCount.toByte()),
+                            ownership = "payload",
+                            description = "寄存器值区共 `${byteCount}` byte。",
+                        ),
+                        ModbusRtuFrameSegment(
+                            fieldName = "payload: 寄存器值区",
+                            bytes = ByteArray(byteCount),
+                            ownership = "payload",
+                            description = "示例数据全部按 `0x00` 填充；每两个字节对应一个寄存器。",
+                        ),
+                    )
+                }
+
+                else -> error("未知的 Modbus 功能码：$functionCodeName")
+            }
+        requestSegments += payloadSegments
+        val requestPayloadBytes = payloadSegments.fold(ByteArray(0)) { acc, segment -> acc + segment.bytes }
+        val requestBody = byteArrayOf(unitId.toByte(), functionCode.toByte()) + requestPayloadBytes
+        val requestFrame = requestBody.appendModbusCrc()
+        requestSegments +=
+            ModbusRtuFrameSegment(
+                fieldName = "CRC16",
+                bytes = requestFrame.takeLast(2).toByteArray(),
+                ownership = "协议尾",
+                description = "Modbus RTU CRC16 校验码。",
+            )
+
+        val responseBody =
+            when (functionCodeName) {
+                "READ_COILS",
+                "READ_DISCRETE_INPUTS" -> {
+                    val byteCount = ((quantity + 7) / 8).coerceAtLeast(1)
+                    byteArrayOf(unitId.toByte(), functionCode.toByte(), byteCount.toByte()) + ByteArray(byteCount)
+                }
+
+                "READ_HOLDING_REGISTERS",
+                "READ_INPUT_REGISTERS" -> {
+                    val byteCount = quantity * 2
+                    byteArrayOf(unitId.toByte(), functionCode.toByte(), byteCount.toByte()) + ByteArray(byteCount)
+                }
+
+                "WRITE_SINGLE_COIL",
+                "WRITE_SINGLE_REGISTER" -> requestBody
+
+                "WRITE_MULTIPLE_COILS",
+                "WRITE_MULTIPLE_REGISTERS" ->
+                    byteArrayOf(
+                        unitId.toByte(),
+                        functionCode.toByte(),
+                        (address shr 8).toByte(),
+                        address.toByte(),
+                        (quantity shr 8).toByte(),
+                        quantity.toByte(),
+                    )
+
+                else -> error("未知的 Modbus 功能码：$functionCodeName")
+            }
+        val responseFrame = responseBody.appendModbusCrc()
+        val responsePayloadBytes = responseBody.copyOfRange(2, responseBody.size)
+
+        val note =
+            when {
+                isReadOperation && usesCoilBits -> "示例响应里数据区全部按 `0` 演示；实际联调时每一位对应一个线圈状态。"
+                isReadOperation -> "示例响应里寄存器数据全部按 `0x0000` 演示；实际联调时按下面字段表解码。"
+                functionCodeName == "WRITE_SINGLE_COIL" -> "示例请求里把目标线圈写成 `true`，响应帧会原样回显。"
+                functionCodeName == "WRITE_SINGLE_REGISTER" -> "示例请求里把目标寄存器写成 `0x0001`，响应帧会原样回显。"
+                else -> "示例请求里写入数据区全部按 `0` 演示，响应帧返回起始地址和数量。"
+            }
+
+        return ModbusRtuFrameExample(
+            requestFrameHex = requestFrame.toHexStringWithSpaces(),
+            responseFrameHex = responseFrame.toHexStringWithSpaces(),
+            requestPayloadHex = requestPayloadBytes.toHexStringWithSpaces(),
+            responsePayloadHex = responsePayloadBytes.toHexStringWithSpaces(),
+            requestSegments = requestSegments,
+            note = note,
+        )
+    }
+
+    private fun ByteArray.appendModbusCrc(): ByteArray {
+        var crc = 0xFFFF
+        for (byte in this) {
+            crc = crc xor (byte.toInt() and 0xFF)
+            repeat(8) {
+                crc =
+                    if ((crc and 0x0001) != 0) {
+                        (crc ushr 1) xor 0xA001
+                    } else {
+                        crc ushr 1
+                    }
+            }
+        }
+        return this + byteArrayOf((crc and 0xFF).toByte(), ((crc ushr 8) and 0xFF).toByte())
+    }
+
+    private fun ByteArray.toHexStringWithSpaces(): String =
+        joinToString(separator = " ") { byte -> "%02X".format(byte.toInt() and 0xFF) }
+
+    private fun renderTransposedFrameSegmentsMarkdownTable(segments: List<ModbusRtuFrameSegment>): String =
+        renderMarkdownTable(
+            headers = listOf("项目") + segments.map { segment -> segment.fieldName },
+            rows =
+                listOf(
+                    listOf("长度") + segments.map { segment -> "`${segment.bytes.size} byte`" },
+                    listOf("示例") + segments.map { segment -> "`${segment.bytes.toHexStringWithSpaces()}`" },
+                    listOf("归属") + segments.map { segment -> segment.ownership },
+                    listOf("说明") + segments.map { segment -> segment.description },
+                ),
+        )
 
     private fun renderTransportDefaultsMarkdownRows(transport: ModbusTransportKind): List<List<String>> =
         when (transport) {

@@ -19,9 +19,12 @@ import java.io.File
 class ModbusExternalCArtifactWriter private constructor(
     private val firmwareProjectDir: File,
     private val bridgeImplTargetPath: String,
+    private val markdownOutputPath: String,
 ) {
     private val headerOutputDir: File = firmwareProjectDir.resolve("Core/Inc/generated/modbus")
     private val sourceOutputDir: File = firmwareProjectDir.resolve("Core/Src/generated/modbus")
+    private val markdownOutputDir: File =
+        firmwareProjectDir.resolve(markdownOutputPath)
 
     fun writeIfSupported(
         artifact: GeneratedArtifact,
@@ -34,6 +37,7 @@ class ModbusExternalCArtifactWriter private constructor(
                 artifact.extensionName == "h" -> headerOutputDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.h")
                 artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_impl") -> resolveBridgeImplFile(artifact, transportDirName, groupDirName)
                 artifact.extensionName == "c" -> sourceOutputDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.c")
+                artifact.extensionName == "md" -> markdownOutputDir.resolve(transportDirName).resolve("${artifact.fileName}.md")
                 else -> return null
             }
 
@@ -54,6 +58,7 @@ class ModbusExternalCArtifactWriter private constructor(
             cleanupLegacyGeneratedBridgeSource(artifact, logger)
         }
         cleanupLegacyFlatArtifact(artifact, logger)
+        cleanupLegacyMarkdownArtifact(artifact, logger)
         return targetFile
     }
 
@@ -114,6 +119,19 @@ class ModbusExternalCArtifactWriter private constructor(
         }
     }
 
+    private fun cleanupLegacyMarkdownArtifact(
+        artifact: GeneratedArtifact,
+        logger: KSPLogger,
+    ) {
+        if (artifact.extensionName != "md") {
+            return
+        }
+        val legacyMarkdownFile = markdownOutputDir.resolve("protocols").resolve("${artifact.fileName}.md")
+        if (legacyMarkdownFile.exists() && legacyMarkdownFile.delete()) {
+            logger.logging("Deleted legacy markdown artifact: ${legacyMarkdownFile.absolutePath}")
+        }
+    }
+
     private fun resolveLegacyFlatBridgeImplFile(artifact: GeneratedArtifact): File {
         val configuredPath = File(bridgeImplTargetPath)
         val base =
@@ -142,11 +160,18 @@ class ModbusExternalCArtifactWriter private constructor(
     }
 
     private fun GeneratedArtifact.externalTransportDirectoryName(): String =
-        packageName
-            ?.removePrefix("generated.modbus.")
-            ?.substringBefore('.')
-            ?.takeIf(String::isNotBlank)
-            ?: "common"
+        when {
+            extensionName == "md" -> {
+                val fileParts = fileName.split('.')
+                fileParts.getOrNull(1)?.takeIf(String::isNotBlank) ?: "common"
+            }
+            else ->
+                packageName
+                    ?.removePrefix("generated.modbus.")
+                    ?.substringBefore('.')
+                    ?.takeIf(String::isNotBlank)
+                    ?: "common"
+        }
 
     private fun GeneratedArtifact.externalGroupDirectoryName(): String =
         when {
@@ -161,7 +186,9 @@ class ModbusExternalCArtifactWriter private constructor(
         private const val EXTERNAL_PROJECT_DIR_OPTION = "addzero.modbus.c.output.projectDir"
         private const val EXTERNAL_DIR_OPTION = "addzero.modbus.c.output.dir"
         private const val BRIDGE_IMPL_PATH_OPTION = "addzero.modbus.c.bridgeImpl.path"
+        private const val MARKDOWN_OUTPUT_PATH_OPTION = "addzero.modbus.markdown.output.path"
         private const val DEFAULT_BRIDGE_IMPL_PATH = "Core/Src/modbus"
+        private const val DEFAULT_MARKDOWN_OUTPUT_PATH = "Docs/generated/modbus"
 
         fun from(environment: SymbolProcessorEnvironment): ModbusExternalCArtifactWriter? {
             val rawDir =
@@ -182,12 +209,17 @@ class ModbusExternalCArtifactWriter private constructor(
                 "Modbus C 产物会额外镜像到固件工程：${projectDir.absolutePath}",
             )
             val bridgeImplPath = environment.options[BRIDGE_IMPL_PATH_OPTION].orEmpty().ifBlank { DEFAULT_BRIDGE_IMPL_PATH }
+            val markdownOutputPath = environment.options[MARKDOWN_OUTPUT_PATH_OPTION].orEmpty().ifBlank { DEFAULT_MARKDOWN_OUTPUT_PATH }
             environment.logger.logging(
                 "Modbus bridge implementation path: ${projectDir.resolve(bridgeImplPath).absolutePath}",
+            )
+            environment.logger.logging(
+                "Modbus markdown output path: ${projectDir.resolve(markdownOutputPath).absolutePath}",
             )
             return ModbusExternalCArtifactWriter(
                 firmwareProjectDir = projectDir,
                 bridgeImplTargetPath = bridgeImplPath,
+                markdownOutputPath = markdownOutputPath,
             )
         }
     }

@@ -30,6 +30,9 @@ abstract class ModbusRtuExtension {
      */
     abstract val bridgeImplPath: Property<String>
 
+    /** 外部工程 Markdown 协议文档输出目录；相对路径默认 `Docs/generated/modbus`。 */
+    abstract val markdownOutputPath: Property<String>
+
     /** Keil `.uvprojx` 路径；配置后会细粒度同步 generated/modbus 文件组和 include path。 */
     abstract val keilUvprojxPath: Property<String>
 
@@ -48,6 +51,7 @@ abstract class ModbusRtuExtension {
         transports.convention(listOf("rtu"))
         cOutputProjectDir.convention("")
         bridgeImplPath.convention("")
+        markdownOutputPath.convention("")
         keilUvprojxPath.convention("")
         keilTargetName.convention("")
         keilGroupName.convention("Core/modbus/rtu")
@@ -90,6 +94,8 @@ class ModbusRtuGradlePlugin : AbstractPublishedKspConsumerPlugin() {
                 ?.let { put("addzero.modbus.c.output.projectDir", it) }
             modbus.bridgeImplPath.orNull?.takeIf(String::isNotBlank)
                 ?.let { put("addzero.modbus.c.bridgeImpl.path", it) }
+            modbus.markdownOutputPath.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.markdown.output.path", it) }
             modbus.keilUvprojxPath.orNull?.takeIf(String::isNotBlank)
                 ?.let { put("addzero.modbus.keil.uvprojx.path", it) }
             modbus.keilTargetName.orNull?.takeIf(String::isNotBlank)

@@ -2,6 +2,7 @@ package site.addzero.device.protocol.modbus.ksp.core
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ModbusArtifactRendererTest {
@@ -22,9 +23,16 @@ class ModbusArtifactRendererTest {
             )
         val protocolDoc = artifacts.first { artifact -> artifact.fileName == "self-dev-board.rtu.protocol" && artifact.extensionName == "md" }
 
-        assertTrue(protocolDoc.content.contains("| Key | Value |"))
-        assertTrue(protocolDoc.content.contains("| Operation ID | Method | Function Code | Address | Quantity | Return | Summary |"))
-        assertTrue(protocolDoc.content.contains("| Name | Type | Codec | Register Offset | Bit Offset | Width | Description |"))
+        assertTrue(protocolDoc.content.contains("| 项目 | 内容 |"))
+        assertTrue(protocolDoc.content.contains("## 联调说明"))
+        assertTrue(protocolDoc.content.contains("固件侧需要实现的入口是"))
+        assertTrue(protocolDoc.content.contains("联调时以上表 `address`、`quantity`、`function code`、标准码值为准。"))
+        assertTrue(protocolDoc.content.contains("`STRING_UTF8` 字段的 `Width` 表示寄存器个数"))
+        assertTrue(protocolDoc.content.contains("## 仿真软件怎么填"))
+        assertTrue(protocolDoc.content.contains("| 操作标识 | 方法 | 标准功能码 | 标准码值 | 标准含义 | 地址 | 数量 | 返回类型 | 说明 |"))
+        assertTrue(protocolDoc.content.contains("### RTU 报文示例"))
+        assertTrue(protocolDoc.content.contains("### RTU 请求帧拆解"))
+        assertTrue(protocolDoc.content.contains("| 名称 | 类型 | 编码 | 寄存器偏移 | 位偏移 | 宽度 | 说明 |"))
         assertTrue(protocolDoc.content.contains("| `on` | `Boolean` | `BOOL_COIL` | `0` | `0` | `1` | LED 是否点亮。 |"))
         assertTrue(protocolDoc.content.contains("| `protocolVersion` | `Int` | `U16` | `0` | `0` | `1` | 协议版本。 |"))
     }
@@ -120,6 +128,10 @@ class ModbusArtifactRendererTest {
             contractArtifacts
                 .first { artifact -> artifact.fileName == "device_generated" && artifact.extensionName == "c" }
                 .content
+        val bridgeImpl =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_bridge_impl" && artifact.extensionName == "c" }
+                .content
         val protocolDoc =
             contractArtifacts
                 .first { artifact -> artifact.fileName == "device.rtu.protocol" && artifact.extensionName == "md" }
@@ -131,6 +143,15 @@ class ModbusArtifactRendererTest {
         assertTrue(generatedHeader.contains("/* 设备运行信息。 */"))
         assertTrue(generatedHeader.contains("char device_name[33];"))
         assertTrue(generatedSource.contains("device_generated_encode_string_registers(response.device_name, out_registers, 4, 16);"))
+        assertTrue(bridgeImpl.contains("device_name 字符串：codec=STRING_UTF8，寄存器宽度=16，最多 32 个字节，缓冲区容量 33（含 '\\0'）。"))
+        assertTrue(bridgeImpl.contains(" * strncpy(out_response->device_name, \"XXXXXXXX-XXXXX\", 32);"))
+        assertTrue(bridgeImpl.contains(" * out_response->device_name[32] = '\\0';"))
+        assertTrue(bridgeImpl.contains("out_response->device_name[32] = '\\0';"))
+        assertFalse(bridgeImpl.contains("out_response->device_name[0] = '\\0';"))
+        assertFalse(bridgeImpl.contains("out_response->device_name[0] = 'abcdefg\\0';"))
+        assertTrue(protocolDoc.contains("## 联调说明"))
+        assertTrue(protocolDoc.contains("`device_bridge_impl.c`"))
+        assertFalse(protocolDoc.contains("这份文档由 Modbus contract KSP 自动生成。"))
         assertTrue(protocolDoc.contains("| `deviceName` | `String` | `STRING_UTF8` | `4` | `0` | `16` | 设备名称。 |"))
     }
 
@@ -155,6 +176,10 @@ class ModbusArtifactRendererTest {
             contractArtifacts
                 .first { artifact -> artifact.fileName == "device_bridge" && artifact.extensionName == "h" }
                 .content
+        val bridgeImpl =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_bridge_impl" && artifact.extensionName == "c" }
+                .content
 
         assertTrue(gateway.contains("executor.readInputRegisters(resolvedConfig, 140, 16)"))
         assertTrue(gateway.contains("return ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 0, 16)"))
@@ -163,6 +188,8 @@ class ModbusArtifactRendererTest {
         assertTrue(generatedSource.contains("device_bridge_get_device_display_name(value, sizeof(value))"))
         assertTrue(generatedSource.contains("device_generated_encode_string_registers(value, out_registers, 0u, 16);"))
         assertTrue(bridgeHeader.contains("bool device_bridge_get_device_display_name(char *out_value, size_t out_capacity);"))
+        assertTrue(bridgeImpl.contains("返回值字符串：codec=STRING_UTF8，寄存器宽度=16，最多 32 个字节，out_capacity 包含结尾 '\\0'。"))
+        assertTrue(bridgeImpl.contains("/* 示例：snprintf(out_value, out_capacity, \"%s\", \"XXXXXXXX-XXXXX\"); */"))
     }
 
     @Test
@@ -218,9 +245,12 @@ class ModbusArtifactRendererTest {
         assertTrue(bridgeHeader.contains("高层工作流：flashFirmware(bytes)"))
         assertTrue(bridgeHeader.contains("属于高层 flashFirmware(bytes) 工作流的低层步骤。"))
         assertTrue(bridgeImpl.contains("Kotlin 上位机会自动计算 CRC32、切片并顺序调用 begin/chunk/commit/reset"))
-        assertTrue(markdown.contains("## Workflows Summary"))
-        assertTrue(markdown.contains("## Workflow `flash-firmware`"))
-        assertTrue(markdown.contains("Chunk Max Bytes: `16`"))
+        assertTrue(markdown.contains("## 联调说明"))
+        assertTrue(markdown.contains("联调时以上表 `address`、`quantity`、`function code`、标准码值为准。"))
+        assertTrue(markdown.contains("## 工作流总览"))
+        assertTrue(markdown.contains("## 工作流 `flash-firmware`"))
+        assertTrue(markdown.contains("### RTU 报文示例"))
+        assertTrue(markdown.contains("单片最大字节数: `16`"))
         assertTrue(markdown.contains("CRC32: 由上位机自动计算并通过 firmwareStart 下发"))
     }
 
