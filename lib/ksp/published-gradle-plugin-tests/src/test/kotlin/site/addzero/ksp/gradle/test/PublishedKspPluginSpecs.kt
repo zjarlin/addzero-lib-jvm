@@ -87,6 +87,11 @@ object PublishedKspPluginSpecs {
             pluginId = "site.addzero.ksp.enum",
             processorArtifactId = "enum-processor",
             resourcePath = "site/addzero/ksp/enum/gradle-plugin.properties",
+            extensionName = "enumProcessor",
+            defaultValues = mapOf(
+                "enumOutputPackage" to "site.addzero.generated.enum",
+            ),
+            verifyExtensionDefaults = true,
         ),
         PublishedKspPluginSpec(
             implementationClass = "site.addzero.ksp.genreified.gradle.GenReifiedGradlePlugin",

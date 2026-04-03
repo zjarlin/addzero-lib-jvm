@@ -19,7 +19,7 @@ This repository now documents KSP consumption in a plugin-first form.
 | `site.addzero.ksp.controller2api` | `controller2api-processor` | Typed package/output config and aggregated `ApiProvider` |
 | `site.addzero.ksp.controller2feign` | `controller2feign-processor` | Typed Feign output config |
 | `site.addzero.ksp.controller2iso2dataprovider` | `controller2iso2dataprovider-processor` | Typed generated package config |
-| `site.addzero.ksp.enum` | `enum-processor` | Zero-config marker plugin |
+| `site.addzero.ksp.enum` | `enum-processor` | Typed enum registry output package |
 | `site.addzero.ksp.gen-reified` | `gen-reified-processor` | Zero-config marker plugin |
 | `site.addzero.ksp.ioc` | `ioc-processor` | Auto-adds `ioc-core` |
 | `site.addzero.ksp.jimmer-entity-external` | `jimmer-entity-external-processor` | Umbrella plugin, also adds `entity2iso`, `entity2form`, `entity2mcp` SPI processors |
@@ -41,6 +41,16 @@ The following are not standalone consumer plugins:
 - `entity2mcp-processor`
 
 Consume them through `site.addzero.ksp.jimmer-entity-external`.
+
+## Enum Registry Output
+
+`site.addzero.ksp.enum` still works with defaults, but the generated registry package can now be overridden when needed:
+
+```kotlin
+enumProcessor {
+    enumOutputPackage.set("com.example.generated.enumregistry")
+}
+```
 
 ## Layout
 

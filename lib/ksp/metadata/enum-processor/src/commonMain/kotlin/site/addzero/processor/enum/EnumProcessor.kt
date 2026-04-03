@@ -11,6 +11,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
+import site.addzero.enumprocessor.context.Settings
 
 /**
  * 枚举处理器
@@ -57,14 +58,18 @@ class EnumProcessor(
      * 生成枚举信息类
      */
     private fun generateEnumInfoClass(enumClasses: List<KSClassDeclaration>) {
+        val outputPackage = Settings.enumOutputPackage.ifBlank { DEFAULT_ENUM_OUTPUT_PACKAGE }
+        val enumEntryInfoType = ClassName(outputPackage, ENUM_ENTRY_INFO_NAME)
+        val enumInfoType = ClassName(outputPackage, ENUM_INFO_NAME)
+
         // 创建 EnumInfo 类
-        val enumInfoClass = TypeSpec.classBuilder("EnumInfo")
+        val enumInfoClass = TypeSpec.classBuilder(ENUM_INFO_NAME)
             .addModifiers(KModifier.DATA)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
                     .addParameter("name", String::class)
                     .addParameter("comment", String::class.asTypeName().copy(nullable = true))
-                    .addParameter("entries", LIST.parameterizedBy(ENUM_ENTRY_INFO))
+                    .addParameter("entries", LIST.parameterizedBy(enumEntryInfoType))
                     .build()
             )
             .addProperty(
@@ -78,14 +83,14 @@ class EnumProcessor(
                     .build()
             )
             .addProperty(
-                PropertySpec.builder("entries", LIST.parameterizedBy(ENUM_ENTRY_INFO))
+                PropertySpec.builder("entries", LIST.parameterizedBy(enumEntryInfoType))
                     .initializer("entries")
                     .build()
             )
             .build()
 
         // 创建 EnumEntryInfo 类
-        val enumEntryInfoClass = TypeSpec.classBuilder("EnumEntryInfo")
+        val enumEntryInfoClass = TypeSpec.classBuilder(ENUM_ENTRY_INFO_NAME)
             .addModifiers(KModifier.DATA)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
@@ -106,16 +111,16 @@ class EnumProcessor(
             .build()
 
         // 创建 EnumRegistry 类
-        val enumRegistryClass = TypeSpec.objectBuilder("EnumRegistry")
+        val enumRegistryClass = TypeSpec.objectBuilder(ENUM_REGISTRY_NAME)
             .addProperty(
-                PropertySpec.builder("allEnums", LIST.parameterizedBy(ENUM_INFO))
+                PropertySpec.builder("allEnums", LIST.parameterizedBy(enumInfoType))
                     .initializer(buildEnumListInitializer(enumClasses))
                     .build()
             )
             .addFunction(
                 FunSpec.builder("findEnumByName")
                     .addParameter("name", String::class)
-                    .returns(ENUM_INFO.copy(nullable = true))
+                    .returns(enumInfoType.copy(nullable = true))
                     .addCode(
                         """
                         return allEnums.find { it.name == name }
@@ -126,7 +131,7 @@ class EnumProcessor(
             .build()
 
         // 创建文件
-        val fileSpec = FileSpec.builder("site.addzero.generated.enum", "EnumRegistry")
+        val fileSpec = FileSpec.builder(outputPackage, ENUM_REGISTRY_NAME)
             .addType(enumEntryInfoClass)
             .addType(enumInfoClass)
             .addType(enumRegistryClass)
@@ -192,8 +197,10 @@ class EnumProcessor(
     }
 
     companion object {
-        private val ENUM_ENTRY_INFO = ClassName("site.addzero.generated.enum", "EnumEntryInfo")
-        private val ENUM_INFO = ClassName("site.addzero.generated.enum", "EnumInfo")
+        private const val DEFAULT_ENUM_OUTPUT_PACKAGE = "site.addzero.generated.enum"
+        private const val ENUM_ENTRY_INFO_NAME = "EnumEntryInfo"
+        private const val ENUM_INFO_NAME = "EnumInfo"
+        private const val ENUM_REGISTRY_NAME = "EnumRegistry"
         private val LIST = ClassName("kotlin.collections", "List")
     }
 }
