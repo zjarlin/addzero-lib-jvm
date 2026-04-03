@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddIconButton
 
@@ -30,15 +32,17 @@ fun AddSearchBar(
     placeholder: String = "请输入关键词搜索...",
     leftSloat: @Composable () -> Unit = {},
     rightSloat: @Composable () -> Unit = {},
+    fieldHeight: Dp = 56.dp,
+    horizontalSpacing: Dp = 12.dp,
+    fieldShape: Shape = RoundedCornerShape(8.dp),
+    showRefreshButton: Boolean = true,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
     ) {
         leftSloat()
-        // 使用一个变量来记录文本框的高度
-        val textFieldHeight = 56.dp
 
         OutlinedTextField(
             value = keyword,
@@ -73,10 +77,10 @@ fun AddSearchBar(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(8.dp),
+            shape = fieldShape,
             modifier = Modifier
                 .weight(1f)
-                .height(textFieldHeight) // 指定高度
+                .height(fieldHeight)
                 .onPreviewKeyEvent { keyEvent ->
                     if (keyEvent.type == KeyEventType.KeyUp &&
                         keyEvent.key == Key.Enter &&
@@ -96,7 +100,9 @@ fun AddSearchBar(
             supportingText = null // 移除底部提示文本以保持高度一致
         )
 
-        AddIconButton(text = "刷新", imageVector = Icons.Default.Refresh, onClick = onSearch)
+        if (showRefreshButton) {
+            AddIconButton(text = "刷新", imageVector = Icons.Default.Refresh, onClick = onSearch)
+        }
         rightSloat()
     }
 }

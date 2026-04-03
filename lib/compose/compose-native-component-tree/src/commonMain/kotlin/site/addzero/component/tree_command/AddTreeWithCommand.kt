@@ -14,6 +14,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import site.addzero.component.search_bar.AddSearchBar
 import site.addzero.component.tree.AddTree
+import site.addzero.component.tree.AddTreeColors
+import site.addzero.component.tree.AddTreeDefaults
+import site.addzero.component.tree.AddTreeMetrics
 import site.addzero.core.ext.bean2map
 
 /**
@@ -65,7 +68,11 @@ fun <T> AddTreeWithCommand(
     onCompleteSelectionChange: (site.addzero.component.tree.selection.CompleteSelectionResult) -> Unit = {},
     onItemsChanged: (List<T>) -> Unit = {},
     autoEnableMultiSelect: Boolean = false,
-    multiSelectClickToToggle: Boolean = false
+    multiSelectClickToToggle: Boolean = false,
+    metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
+    colors: AddTreeColors? = null,
+    nodeBadge: @Composable (T) -> Unit = {},
+    nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
 ) {
 
     // 🎯 创建和配置 TreeViewModel
@@ -175,7 +182,12 @@ fun <T> AddTreeWithCommand(
 
         // 🌳 树组件（完全基于 TreeViewModel）
         AddTree(
-            viewModel = viewModel, modifier = Modifier.weight(1f)
+            viewModel = viewModel,
+            modifier = Modifier.weight(1f),
+            metrics = metrics,
+            colors = colors,
+            nodeBadge = nodeBadge,
+            nodeTrailingContent = nodeTrailingContent,
         )
 
         // 📊 底部状态栏（外部声明）
@@ -220,5 +232,4 @@ private fun SelectedItemsBar(
         }
     }
 }
-
 

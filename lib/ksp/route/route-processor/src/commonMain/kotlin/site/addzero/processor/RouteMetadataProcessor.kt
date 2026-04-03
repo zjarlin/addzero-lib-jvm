@@ -167,15 +167,17 @@ class RouteMetadataProcessor(
 
 internal fun renderRouteTableCode(routeItems: List<RouteRecord>): String {
     val routeKeyNames = buildRouteKeyNames(routeItems)
-    val routeMappings = routeItems.joinToString(",\n        ") { route ->
+    val routeMappings = routeItems.joinToString("\n") { route ->
         val routeKeyName = routeKeyNames.getValue(route.uniqueId)
-        "RouteKeys.$routeKeyName to @Composable { ${route.qualifiedName}() }"
+        "        put(RouteKeys.$routeKeyName, { ${route.qualifiedName}() })"
     }
 
     return """
         |package ${Settings.routeGenPkg}
         |
         |import androidx.compose.runtime.Composable
+        |
+        |typealias RouteContent = @Composable () -> Unit
         |
         |/**
         | * 路由表
@@ -185,14 +187,14 @@ internal fun renderRouteTableCode(routeItems: List<RouteRecord>): String {
         |    /**
         |     * 所有路由映射
         |     */
-        |    val allRoutes: Map<String, @Composable () -> Unit> = mapOf(
-        |        $routeMappings
-        |    )
+        |    val allRoutes: Map<String, RouteContent> = mutableMapOf<String, RouteContent>().apply {
+        |$routeMappings
+        |    }
         |
         |    /**
         |     * 根据路由键获取对应的Composable函数
         |     */
-        |    operator fun get(routeKey: String): @Composable () -> Unit {
+        |    operator fun get(routeKey: String): RouteContent {
         |        return allRoutes[routeKey] ?: throw IllegalArgumentException("Route not found: ${'$'}routeKey")
         |    }
         |}

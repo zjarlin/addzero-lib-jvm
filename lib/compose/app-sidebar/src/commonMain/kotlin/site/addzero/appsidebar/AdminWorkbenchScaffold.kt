@@ -85,6 +85,8 @@ interface AdminWorkbenchActions {
 }
 
 interface AdminWorkbenchSlots {
+    val brandContent: (@Composable RowScope.() -> Unit)?
+        get() = null
     val pageActions: @Composable RowScope.() -> Unit
         get() = {}
     val showContentHeader: Boolean
@@ -156,12 +158,14 @@ fun adminWorkbenchActions(
 )
 
 fun adminWorkbenchSlots(
+    brandContent: (@Composable RowScope.() -> Unit)? = null,
     pageActions: @Composable RowScope.() -> Unit = {},
     showContentHeader: Boolean = true,
     titleContent: (@Composable ColumnScope.() -> Unit)? = null,
     detail: (@Composable BoxScope.() -> Unit)? = null,
     userContent: (@Composable RowScope.() -> Unit)? = null,
 ): AdminWorkbenchSlots = DefaultAdminWorkbenchSlots(
+    brandContent = brandContent,
     pageActions = pageActions,
     showContentHeader = showContentHeader,
     titleContent = titleContent,
@@ -299,7 +303,7 @@ fun WorkbenchThemeToggleButton(
             Icon(
                 imageVector = if (isDarkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
                 contentDescription = null,
-                tint = AdminWorkbenchTokens.textPrimary,
+                tint = AdminWorkbenchTokens.highlightedTextPrimary,
             )
         },
     )
@@ -349,6 +353,7 @@ private fun AdminWorkbenchGlobalBar(
     trailingInset: Dp,
     immersiveTopBar: Boolean,
 ) {
+    val compactTopBar = topBarHeight <= 48.dp
     Row(
         modifier = Modifier.fillMaxWidth()
             .height(topBarHeight)
@@ -358,40 +363,47 @@ private fun AdminWorkbenchGlobalBar(
                 ),
             )
             .padding(
-                start = 18.dp + leadingInset,
-                end = 18.dp + trailingInset,
+                start = (if (compactTopBar) 14.dp else 18.dp) + leadingInset,
+                end = (if (compactTopBar) 14.dp else 18.dp) + trailingInset,
             ),
-        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (compactTopBar) 14.dp else 18.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (compactTopBar) 10.dp else 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AdminWorkbenchBrand(
-                label = config.brandLabel,
-            )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            )
-            {
-                Text(
-                    text = config.brandLabel,
-                    color = AdminWorkbenchTokens.topBarTextPrimary,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
+            val brandContent = slots.brandContent
+            if (brandContent != null) {
+                brandContent()
+            } else {
+                AdminWorkbenchBrand(
+                    label = config.brandLabel,
+                    compact = compactTopBar,
                 )
-                Text(
-                    text = config.welcomeLabel,
-                    color = AdminWorkbenchTokens.topBarTextSecondary,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = config.brandLabel,
+                        color = AdminWorkbenchTokens.topBarTextPrimary,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                    )
+                    if (config.welcomeLabel.isNotBlank()) {
+                        Text(
+                            text = config.welcomeLabel,
+                            color = AdminWorkbenchTokens.topBarTextSecondary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             }
         }
 
-    Row(
-        modifier = Modifier.widthIn(max = 720.dp),
+        Row(
+        modifier = Modifier.widthIn(max = if (compactTopBar) 640.dp else 720.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -453,20 +465,21 @@ private fun AdminWorkbenchGlobalBar(
 private fun AdminWorkbenchBrand(
     label: String,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val brandPrimaryDot = AdminWorkbenchTokens.brandPrimaryDot
     val brandSecondaryDot = AdminWorkbenchTokens.brandSecondaryDot
 
     Box(
-        modifier = modifier.size(28.dp)
+        modifier = modifier.size(if (compact) 24.dp else 28.dp)
             .background(
                 color = AdminWorkbenchTokens.brandPlateBackground,
-                shape = RoundedCornerShape(9.dp),
+                shape = RoundedCornerShape(if (compact) 8.dp else 9.dp),
             ),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(if (compact) 15.dp else 18.dp),
         ) {
             drawCircle(
                 color = brandPrimaryDot,
@@ -551,6 +564,11 @@ private fun WorkbenchUtilityButton(
     highlighted: Boolean = false,
     leading: (@Composable () -> Unit)? = null,
 ) {
+    val contentColor = if (highlighted) {
+        AdminWorkbenchTokens.highlightedTextPrimary
+    } else {
+        AdminWorkbenchTokens.textPrimary
+    }
     Row(
         modifier = modifier.utilityButtonFrame(
             highlighted = highlighted,
@@ -563,7 +581,7 @@ private fun WorkbenchUtilityButton(
         leading?.invoke()
         Text(
             text = label,
-            color = AdminWorkbenchTokens.textPrimary,
+            color = contentColor,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
         )
@@ -574,7 +592,7 @@ private fun WorkbenchUtilityButton(
             ) {
                 Text(
                     text = badge,
-                    color = AdminWorkbenchTokens.textPrimary,
+                    color = contentColor,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                 )
@@ -589,16 +607,17 @@ private fun WorkbenchUserAvatar(
     modifier: Modifier = Modifier,
 ) {
     val avatarHalo = AdminWorkbenchTokens.avatarHalo
+    val compactTopBar = LocalWorkbenchWindowFrame.current.topBarHeight <= 48.dp
 
     Box(
-        modifier = modifier.size(24.dp).background(
+        modifier = modifier.size(if (compactTopBar) 20.dp else 24.dp).background(
             color = AdminWorkbenchTokens.avatarBackground,
             shape = CircleShape,
         ),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(if (compactTopBar) 20.dp else 24.dp),
         ) {
             drawCircle(
                 color = avatarHalo,
@@ -619,6 +638,7 @@ private fun WorkbenchUserAvatar(
 private fun Modifier.utilityButtonFrame(
     highlighted: Boolean,
 ): Modifier {
+    val compactTopBar = LocalWorkbenchWindowFrame.current.topBarHeight <= 48.dp
     val background = if (highlighted) {
         AdminWorkbenchTokens.highlightedBackground
     } else {
@@ -636,7 +656,10 @@ private fun Modifier.utilityButtonFrame(
         width = 1.dp,
         color = border,
         shape = RoundedCornerShape(999.dp),
-    ).padding(horizontal = 12.dp, vertical = 8.dp)
+    ).padding(
+        horizontal = if (compactTopBar) 10.dp else 12.dp,
+        vertical = if (compactTopBar) 6.dp else 8.dp,
+    )
 }
 
 /** 角标胶囊：用于通知数这类轻量全局状态，不把按钮撑成大块。 */
@@ -711,6 +734,7 @@ private data class DefaultAdminWorkbenchActions(
 ) : AdminWorkbenchActions
 
 private data class DefaultAdminWorkbenchSlots(
+    override val brandContent: (@Composable RowScope.() -> Unit)?,
     override val pageActions: @Composable RowScope.() -> Unit,
     override val showContentHeader: Boolean,
     override val titleContent: (@Composable ColumnScope.() -> Unit)?,
@@ -734,6 +758,7 @@ private data class AdminWorkbenchColors(
     val buttonBorder: Color,
     val highlightedBackground: Color,
     val highlightedBorder: Color,
+    val highlightedTextPrimary: Color,
     val badgeBackground: Color,
     val avatarBackground: Color,
     val avatarHalo: Color,
@@ -761,6 +786,7 @@ private val LocalAdminWorkbenchColors = staticCompositionLocalOf {
         buttonBorder = Color.White.copy(alpha = 0.18f),
         highlightedBackground = Color.White.copy(alpha = 0.18f),
         highlightedBorder = Color.White.copy(alpha = 0.26f),
+        highlightedTextPrimary = Color(0xFF0B1320),
         badgeBackground = Color(0xFFFF5A5F),
         avatarBackground = Color.White.copy(alpha = 0.20f),
         avatarHalo = Color.White.copy(alpha = 0.18f),
@@ -796,6 +822,7 @@ private fun rememberAdminWorkbenchColors(
                 buttonBorder = Color.White.copy(alpha = 0.10f),
                 highlightedBackground = colorScheme.primary.copy(alpha = 0.16f),
                 highlightedBorder = colorScheme.primary.copy(alpha = 0.28f),
+                highlightedTextPrimary = colorScheme.onSurface,
                 badgeBackground = colorScheme.errorContainer,
                 avatarBackground = colorScheme.primary.copy(alpha = 0.14f),
                 avatarHalo = colorScheme.primary.copy(alpha = 0.22f),
@@ -808,9 +835,9 @@ private fun rememberAdminWorkbenchColors(
             )
         } else {
             AdminWorkbenchColors(
-                topBarBackground = colorScheme.primary,
-                topBarTextPrimary = colorScheme.onPrimary,
-                topBarTextSecondary = colorScheme.onPrimary.copy(alpha = 0.84f),
+                topBarBackground = colorScheme.surface,
+                topBarTextPrimary = colorScheme.onSurface,
+                topBarTextSecondary = colorScheme.onSurfaceVariant.copy(alpha = 0.84f),
                 pageBackground = colorScheme.background,
                 sidebarBackground = colorScheme.surface,
                 headerBackground = colorScheme.surface,
@@ -818,18 +845,19 @@ private fun rememberAdminWorkbenchColors(
                 dividerColor = colorScheme.outline.copy(alpha = 0.22f),
                 resizeThumbColor = colorScheme.primary.copy(alpha = 0.42f),
                 resizeThumbBorder = colorScheme.primary.copy(alpha = 0.24f),
-                buttonBackground = Color.White.copy(alpha = 0.12f),
-                buttonBorder = Color.White.copy(alpha = 0.18f),
-                highlightedBackground = Color.White.copy(alpha = 0.18f),
-                highlightedBorder = Color.White.copy(alpha = 0.26f),
+                buttonBackground = colorScheme.surface,
+                buttonBorder = colorScheme.outlineVariant.copy(alpha = 0.96f),
+                highlightedBackground = Color(0xFF111827),
+                highlightedBorder = Color(0xFF111827),
+                highlightedTextPrimary = Color.White,
                 badgeBackground = Color(0xFFFF5A5F),
-                avatarBackground = Color.White.copy(alpha = 0.20f),
-                avatarHalo = Color.White.copy(alpha = 0.18f),
-                textPrimary = colorScheme.onPrimary.copy(alpha = 0.96f),
+                avatarBackground = colorScheme.primary.copy(alpha = 0.10f),
+                avatarHalo = colorScheme.primary.copy(alpha = 0.14f),
+                textPrimary = colorScheme.onSurface.copy(alpha = 0.96f),
                 headerTextPrimary = colorScheme.onSurface,
                 headerTextMuted = colorScheme.onSurfaceVariant,
-                brandPlateBackground = Color.White.copy(alpha = 0.18f),
-                brandPrimaryDot = Color.White,
+                brandPlateBackground = colorScheme.surfaceVariant.copy(alpha = 0.86f),
+                brandPrimaryDot = colorScheme.primary,
                 brandSecondaryDot = Color(0xFFFF6B6B),
             )
         }
@@ -865,6 +893,8 @@ private object AdminWorkbenchTokens {
         @Composable get() = LocalAdminWorkbenchColors.current.highlightedBackground
     val highlightedBorder: Color
         @Composable get() = LocalAdminWorkbenchColors.current.highlightedBorder
+    val highlightedTextPrimary: Color
+        @Composable get() = LocalAdminWorkbenchColors.current.highlightedTextPrimary
     val badgeBackground: Color
         @Composable get() = LocalAdminWorkbenchColors.current.badgeBackground
     val avatarBackground: Color

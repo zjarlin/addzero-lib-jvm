@@ -1,9 +1,11 @@
 package site.addzero.component.tree_command
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.*
@@ -26,16 +28,17 @@ fun CommandToolbar(
     onCommandClick: (site.addzero.component.tree_command.TreeCommand) -> Unit
 ) {
     Surface(
-        modifier = Modifier.Companion.fillMaxWidth(),
-        tonalElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surface
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.54f)),
     ) {
         Row(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.Companion.CenterVertically
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             commands.forEach { command ->
                 val (icon, tint) = when (command) {
@@ -60,12 +63,32 @@ fun CommandToolbar(
                     _root_ide_package_.site.addzero.component.tree_command.TreeCommand.IMPORT -> Icons.Default.FileUpload to MaterialTheme.colorScheme.onSurface
                 }
 
-                IconButton(onClick = { onCommandClick(command) }) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = command.name,
-                        tint = tint
-                    )
+                val isActive = command == site.addzero.component.tree_command.TreeCommand.SEARCH ||
+                    (command == site.addzero.component.tree_command.TreeCommand.MULTI_SELECT && multiSelectMode)
+
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isActive) {
+                        MaterialTheme.colorScheme.surface
+                    } else {
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.01f)
+                    },
+                    border = BorderStroke(
+                        1.dp,
+                        if (isActive) {
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.62f)
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.18f)
+                        },
+                    ),
+                ) {
+                    IconButton(onClick = { onCommandClick(command) }) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = command.name,
+                            tint = tint,
+                        )
+                    }
                 }
             }
         }

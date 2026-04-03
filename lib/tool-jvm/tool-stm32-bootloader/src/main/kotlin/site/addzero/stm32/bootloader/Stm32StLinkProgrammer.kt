@@ -195,8 +195,8 @@ class Stm32StLinkProgrammer(
     @Synchronized
     fun readFlashGeometry(targetInfo: Stm32SwdTargetInfo? = null): Stm32StLinkFlashGeometry {
         val resolvedTargetInfo = targetInfo ?: cachedTargetInfo ?: connectTarget()
-        val profile = resolveFlashProfile(resolvedTargetInfo.chipId)
-        return loadFlashGeometry(profile).also { geometry ->
+        val driver = resolveStm32StLinkFlashDriver(resolvedTargetInfo.chipId)
+        return driver.readGeometry(this, resolvedTargetInfo).also { geometry ->
             cachedFlashGeometry = geometry
         }
     }
@@ -239,141 +239,13 @@ class Stm32StLinkProgrammer(
         }
         cachedTargetInfo = targetInfo
         cachedFlashGeometry = geometry
-        reportProgress(
-            progressListener = progressListener,
-            stage = Stm32FlashStage.CONNECTING,
-            overallPercent = 0.0,
-            stageCompletedBytes = 0,
-            stageTotalBytes = 0,
-            message = "正在连接目标芯片",
-        )
-        val profile = resolveFlashProfile(targetInfo.chipId)
-        val alignedFirmware = request.firmware.padToEvenBytes(request.padByte)
-        validateFlashRange(
-            geometry = geometry,
-            startAddress = request.startAddress,
-            length = alignedFirmware.size,
-        )
-        reportProgress(
-            progressListener = progressListener,
-            stage = Stm32FlashStage.CONNECTING,
-            overallPercent = 10.0,
-            stageCompletedBytes = 0,
-            stageTotalBytes = 0,
-            message = "已连接 ${targetInfo.probe.productName ?: "ST-Link"}，chipId=0x${targetInfo.chipId.toString(16).uppercase()}",
-        )
-        softResetAndHalt()
-        when (request.eraseMode) {
-            Stm32EraseMode.None -> {
-                reportProgress(
-                    progressListener = progressListener,
-                    stage = Stm32FlashStage.ERASING,
-                    overallPercent = 20.0,
-                    stageCompletedBytes = 0,
-                    stageTotalBytes = 0,
-                    message = "跳过擦除",
-                )
-            }
-            Stm32EraseMode.Mass -> {
-                reportProgress(
-                    progressListener = progressListener,
-                    stage = Stm32FlashStage.ERASING,
-                    overallPercent = 12.0,
-                    stageCompletedBytes = 0,
-                    stageTotalBytes = 0,
-                    message = "正在整片擦除 Flash",
-                )
-                eraseFlashMass(profile)
-                reportProgress(
-                    progressListener = progressListener,
-                    stage = Stm32FlashStage.ERASING,
-                    overallPercent = 20.0,
-                    stageCompletedBytes = 0,
-                    stageTotalBytes = 0,
-                    message = "整片擦除完成",
-                )
-            }
-            is Stm32EraseMode.PageCodes -> {
-                reportProgress(
-                    progressListener = progressListener,
-                    stage = Stm32FlashStage.ERASING,
-                    overallPercent = 12.0,
-                    stageCompletedBytes = 0,
-                    stageTotalBytes = request.eraseMode.codes.size.toLong(),
-                    message = "正在按页擦除 Flash",
-                )
-                request.eraseMode.codes.forEachIndexed { index, pageCode ->
-                    eraseFlashPage(
-                        profile = profile,
-                        pageAddress = geometry.flashBaseAddress + (pageCode.toLong() * geometry.pageSizeBytes),
-                    )
-                    reportProgress(
-                        progressListener = progressListener,
-                        stage = Stm32FlashStage.ERASING,
-                        overallPercent = 12.0 + ((index + 1).toDouble() / request.eraseMode.codes.size.toDouble() * 8.0),
-                        stageCompletedBytes = (index + 1).toLong(),
-                        stageTotalBytes = request.eraseMode.codes.size.toLong(),
-                        message = "已擦除 ${index + 1}/${request.eraseMode.codes.size} 页",
-                    )
-                }
-            }
-        }
-        programFlashWithLoader(
-            profile = profile,
-            geometry = geometry,
-            startAddress = request.startAddress,
-            firmware = alignedFirmware,
-            progressListener = progressListener,
-        )
-        val verified =
-            if (request.verifyAfterWrite) {
-                verifyFlash(
-                    startAddress = request.startAddress,
-                    expected = alignedFirmware,
-                    progressListener = progressListener,
-                )
-                true
-            } else {
-                reportProgress(
-                    progressListener = progressListener,
-                    stage = Stm32FlashStage.VERIFYING,
-                    overallPercent = 90.0,
-                    stageCompletedBytes = 0,
-                    stageTotalBytes = 0,
-                    message = "跳过回读校验",
-                )
-                false
-            }
-        val startedApplication =
-            if (request.startApplicationAfterWrite) {
-                reportProgress(
-                    progressListener = progressListener,
-                    stage = Stm32FlashStage.STARTING_APPLICATION,
-                    overallPercent = 95.0,
-                    stageCompletedBytes = 0,
-                    stageTotalBytes = 0,
-                    message = "正在复位并启动应用",
-                )
-                session.releaseDebugHalt()
-                resetSystem()
-                true
-            } else {
-                false
-            }
-        reportProgress(
-            progressListener = progressListener,
-            stage = Stm32FlashStage.COMPLETED,
-            overallPercent = 100.0,
-            stageCompletedBytes = alignedFirmware.size.toLong(),
-            stageTotalBytes = alignedFirmware.size.toLong(),
-            message = "SWD 烧录完成",
-        )
-        return Stm32StLinkFlashReport(
+        val driver = resolveStm32StLinkFlashDriver(targetInfo.chipId)
+        return driver.flash(
+            programmer = this,
+            request = request,
             targetInfo = targetInfo,
             geometry = geometry,
-            bytesWritten = request.firmware.size,
-            verified = verified,
-            startedApplication = startedApplication,
+            progressListener = progressListener,
         )
     }
 
@@ -385,11 +257,15 @@ class Stm32StLinkProgrammer(
         session.softResetAndHalt()
     }
 
+    internal fun releaseDebugHalt() {
+        session.releaseDebugHalt()
+    }
+
     override fun close() {
         session.close()
     }
 
-    private fun loadFlashGeometry(profile: Stm32StLinkFlashProfile): Stm32StLinkFlashGeometry {
+    internal fun loadFlashGeometry(profile: Stm32StLinkFlashProfile): Stm32StLinkFlashGeometry {
         val flashSizeBytes = readFlashSizeBytes(profile)
         return Stm32StLinkFlashGeometry(
             flashBaseAddress = profile.flashBaseAddress,
@@ -400,7 +276,7 @@ class Stm32StLinkProgrammer(
         )
     }
 
-    private fun readFlashSizeBytes(profile: Stm32StLinkFlashProfile): Int {
+    internal fun readFlashSizeBytes(profile: Stm32StLinkFlashProfile): Int {
         val registerValue = session.readMemory32(profile.flashSizeRegisterAddress, 16).readLeUInt16(0).toLong()
         val sizeKilobytes = (registerValue and 0xFFFF).toInt()
         if (sizeKilobytes > 0) {
@@ -412,7 +288,7 @@ class Stm32StLinkProgrammer(
         throw IllegalArgumentException("目标芯片返回了无效的 Flash 大小: 0x${registerValue.toString(16).uppercase()}")
     }
 
-    private fun validateFlashRange(
+    internal fun validateFlashRange(
         geometry: Stm32StLinkFlashGeometry,
         startAddress: Long,
         length: Int,
@@ -427,7 +303,7 @@ class Stm32StLinkProgrammer(
         }
     }
 
-    private fun eraseFlashMass(profile: Stm32StLinkFlashProfile) {
+    internal fun eraseFlashMass(profile: Stm32StLinkFlashProfile) {
         session.unlockFlash(profile)
         session.waitFlashReady(profile)
         session.clearFlashStatus(profile)
@@ -450,7 +326,7 @@ class Stm32StLinkProgrammer(
         session.lockFlash(profile)
     }
 
-    private fun eraseFlashPage(
+    internal fun eraseFlashPage(
         profile: Stm32StLinkFlashProfile,
         pageAddress: Long,
     ) {
@@ -479,7 +355,7 @@ class Stm32StLinkProgrammer(
         session.lockFlash(profile)
     }
 
-    private fun programFlashWithLoader(
+    internal fun programFlashWithLoader(
         profile: Stm32StLinkFlashProfile,
         geometry: Stm32StLinkFlashGeometry,
         startAddress: Long,
@@ -523,7 +399,7 @@ class Stm32StLinkProgrammer(
         session.lockFlash(profile)
     }
 
-    private fun verifyFlash(
+    internal fun verifyFlash(
         startAddress: Long,
         expected: ByteArray,
         progressListener: Stm32FlashProgressListener,
@@ -560,7 +436,7 @@ class Stm32StLinkProgrammer(
             .copyOfRange(leadingSkip, leadingSkip + size)
     }
 
-    private fun reportProgress(
+    internal fun reportProgress(
         progressListener: Stm32FlashProgressListener,
         stage: Stm32FlashStage,
         overallPercent: Double,
@@ -1487,7 +1363,7 @@ private data class StLinkEndpointPlan(
     val replyEndpoints: List<Byte>,
 )
 
-private data class Stm32StLinkFlashProfile(
+internal data class Stm32StLinkFlashProfile(
     val chipId: Int,
     val flashBaseAddress: Long,
     val flashSizeRegisterAddress: Long,
@@ -1588,14 +1464,6 @@ private const val STM32_REG_AIRCR = 0xE000ED0CL
 private const val STM32_REG_AIRCR_VECTKEY = 0x05FA0000L
 private const val STM32_REG_AIRCR_SYSRESETREQ = 0x00000004L
 
-private const val STM32_FLASH_BASE = 0x08000000L
-private const val STM32_SRAM_BASE = 0x20000000L
-private const val STM32F1_FLASH_KEYR = 0x40022004L
-private const val STM32F1_FLASH_SR = 0x4002200CL
-private const val STM32F1_FLASH_CR = 0x40022010L
-private const val STM32F1_FLASH_AR = 0x40022014L
-private const val STM32F1_FLASH_SIZE_REG = 0x1FFFF7E0L
-
 private const val FLASH_KEY1 = 0x45670123L
 private const val FLASH_KEY2 = 0xCDEF89ABL
 private const val FLASH_SR_BSY_BIT = 0
@@ -1612,7 +1480,6 @@ private const val FLASH_CR_MER_BIT = 2
 private const val FLASH_CR_STRT_BIT = 6
 private const val FLASH_CR_LOCK_BIT = 7
 
-private const val STM32_CHIPID_F1_HD = 0x414
 private const val FLASH_OPERATION_TIMEOUT_NS = 5_000_000_000L
 
 private const val CORTEX_M0_PARTNO = 0xC20
@@ -1698,27 +1565,6 @@ internal fun resolveChipIdRegisterAddress(
     }
 }
 
-private fun resolveFlashProfile(chipId: Int): Stm32StLinkFlashProfile =
-    when (chipId) {
-        STM32_CHIPID_F1_HD ->
-            Stm32StLinkFlashProfile(
-                chipId = chipId,
-                flashBaseAddress = STM32_FLASH_BASE,
-                flashSizeRegisterAddress = STM32F1_FLASH_SIZE_REG,
-                defaultFlashSizeBytes = 256 * 1024,
-                pageSizeBytes = 0x800,
-                sramBaseAddress = STM32_SRAM_BASE,
-                sramSizeBytes = 0x10000,
-                flashKeyRegisterAddress = STM32F1_FLASH_KEYR,
-                flashStatusRegisterAddress = STM32F1_FLASH_SR,
-                flashControlRegisterAddress = STM32F1_FLASH_CR,
-                flashAddressRegisterAddress = STM32F1_FLASH_AR,
-                loaderFlashRegisterBaseOffset = 0,
-                loaderCode = STM32_VL_FLASH_LOADER,
-            )
-        else -> throw StLinkException("当前暂未实现 chipId=0x${chipId.toString(16).uppercase()} 的 ST-Link Flash 写入")
-    }
-
 private fun padCommand(payload: ByteArray): ByteArray {
     require(payload.size <= STLINK_CMD_SIZE) {
         "ST-Link 命令头不能超过 $STLINK_CMD_SIZE bytes"
@@ -1785,23 +1631,6 @@ private fun Long.hasBit(bit: Int): Boolean = (this and (1L shl bit)) != 0L
 private fun Long.setBit(bit: Int): Long = this or (1L shl bit)
 
 private fun Long.clearBit(bit: Int): Long = this and (1L shl bit).inv()
-
-private val STM32_VL_FLASH_LOADER =
-    byteArrayOf(
-        0x00, 0xBF.toByte(), 0x00, 0xBF.toByte(),
-        0x09, 0x4F, 0x1F, 0x44,
-        0x09, 0x4D, 0x3D, 0x44,
-        0x04, 0x88.toByte(), 0x0C, 0x80.toByte(),
-        0x02, 0x30, 0x02, 0x31,
-        0x4F, 0xF0.toByte(), 0x01, 0x07,
-        0x2C, 0x68, 0x3C, 0x42,
-        0xFC.toByte(), 0xD1.toByte(), 0x4F, 0xF0.toByte(),
-        0x14, 0x07, 0x3C, 0x42,
-        0x01, 0xD1.toByte(), 0x02, 0x3A,
-        0xF0.toByte(), 0xDC.toByte(), 0x00, 0xBE.toByte(),
-        0x00, 0x20, 0x02, 0x40,
-        0x0C, 0x00, 0x00, 0x00,
-    )
 
 private val supportedProductIds =
     setOf(

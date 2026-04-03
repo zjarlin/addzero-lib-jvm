@@ -4,6 +4,12 @@ plugins {
 }
 val libs = versionCatalogs.named("libs")
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile<*>>().configureEach {
+  if (name == "compileKotlinWasmJs") {
+    incremental = false
+  }
+}
+
 kotlin {
   sourceSets {
     commonMain.dependencies {

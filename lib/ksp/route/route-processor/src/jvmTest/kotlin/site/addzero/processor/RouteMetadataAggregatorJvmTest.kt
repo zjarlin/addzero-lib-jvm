@@ -48,6 +48,33 @@ class RouteMetadataAggregatorJvmTest {
     }
 
     @Test
+    fun renderRouteTableCodeUsesStableRouteContentMapping() {
+        Settings.fromOptions(
+            mapOf(
+                "sharedSourceDir" to "/tmp/shared/src/commonMain/kotlin",
+                "routeGenPkg" to "site.addzero.generated",
+                "routeOwnerModule" to "/tmp/owner/src/commonMain/kotlin",
+            ),
+        )
+
+        val code = renderRouteTableCode(
+            listOf(
+                routeRecord(
+                    title = "Dashboard",
+                    routePath = "system/dashboard",
+                    qualifiedName = "sample.DashboardScreen",
+                    simpleName = "DashboardScreen",
+                ),
+            ),
+        )
+
+        assertContains(code, "typealias RouteContent = @Composable () -> Unit")
+        assertContains(code, "mutableMapOf<String, RouteContent>().apply {")
+        assertContains(code, "put(RouteKeys.DASHBOARD_SCREEN, { sample.DashboardScreen() })")
+        assertContains(code, "operator fun get(routeKey: String): RouteContent")
+    }
+
+    @Test
     fun aggregateAndGenerateRoutesReadsV1AndV2SnapshotsTogether() {
         val tempRoot = Files.createTempDirectory("route-processor-test")
         val sharedSourceDir = tempRoot.resolve("shared/src/commonMain/kotlin").createDirectories()

@@ -1,81 +1,86 @@
 package site.addzero.component.tree
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddIconButton
 import site.addzero.component.search_bar.AddSearchBar
+import site.addzero.component.tree.selection.SelectionState
 
-/**
- * 🚀 优化版树组件 - 使用 ViewModel 管理状态
- *
- * ⚠️ 注意：此组件仍使用旧的插槽设计，建议使用重构后的 AddTree
- *
- * 🎯 核心改进：
- * - 参数从18个减少到3个（减少83%）
- * - 使用 TreeViewModel 管理所有响应式状态
- * - 清晰的职责分离：UI渲染 vs 状态管理
- * - 更好的可测试性和可维护性
- *
- * 🔄 插槽设计问题：
- * - TopSlot/BottomSlot 应该在外部声明，不需要插槽
- * - 只有内部插槽（如 contextMenu）才是必要的
- *
- * @param viewModel 树的状态管理器
- * @param modifier UI修饰符
- * @param content 自定义内容插槽（建议重构为外部声明）
- */
 @Composable
 fun <T> AddTree(
     viewModel: TreeViewModel<T>,
     modifier: Modifier = Modifier,
-    compactMode: Boolean = false, // 🚀 紧凑模式：只显示图标，不显示文本
-    content: @Composable TreeScope<T>.() -> Unit = {}
+    compactMode: Boolean = false,
+    metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
+    colors: AddTreeColors? = null,
+    nodeBadge: @Composable (T) -> Unit = {},
+    nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
+    content: @Composable TreeScope<T>.() -> Unit = {},
 ) {
-    // 🎯 创建树作用域
+    val resolvedColors = colors ?: AddTreeDefaults.g2Colors()
     val treeScope = remember(viewModel) { TreeScopeImpl(viewModel) }
 
     Column(modifier = modifier) {
-        // 🎨 自定义内容插槽（应该在外部声明）
         treeScope.content()
 
-        // 🌳 树形结构渲染 - 使用 Surface 而不是 Box
-        Surface(
-            modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
-            color = MaterialTheme.colorScheme.surface
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(metrics.contentPadding),
+            verticalArrangement = Arrangement.spacedBy(metrics.rowSpacing),
         ) {
-            Column {
-                // 使用过滤后的数据渲染
-                val items = viewModel.filteredItems
-                // 🚀 TODO: 对于大量数据，考虑使用 LazyColumn 和虚拟化
-                items.forEach { item ->
-                    TreeNodeRenderer(
-                        node = item, viewModel = viewModel, level = 0, compactMode = compactMode
-                    )
-                }
+            viewModel.filteredItems.forEach { item ->
+                TreeNodeRenderer(
+                    node = item,
+                    viewModel = viewModel,
+                    level = 0,
+                    compactMode = compactMode,
+                    metrics = metrics,
+                    colors = resolvedColors,
+                    nodeBadge = nodeBadge,
+                    nodeTrailingContent = nodeTrailingContent,
+                )
             }
         }
     }
 }
 
-/**
- * 🎭 树作用域 - 提供插槽化扩展能力
- */
 interface TreeScope<T> {
     val viewModel: TreeViewModel<T>
 
@@ -95,13 +100,9 @@ interface TreeScope<T> {
     fun ExpandCollapseControls()
 }
 
-/**
- * 🎭 树作用域实现
- */
 private class TreeScopeImpl<T>(
-    override val viewModel: TreeViewModel<T>
+    override val viewModel: TreeViewModel<T>,
 ) : TreeScope<T> {
-
     @Composable
     override fun TopSlot(content: @Composable () -> Unit) {
         content()
@@ -110,7 +111,8 @@ private class TreeScopeImpl<T>(
     @Composable
     override fun ControlsSlot(content: @Composable () -> Unit) {
         Surface(
-            modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.Transparent,
         ) {
             content()
         }
@@ -124,16 +126,14 @@ private class TreeScopeImpl<T>(
     @Composable
     override fun SearchBar() {
         if (viewModel.showSearchBar) {
-            // 🚀 使用现有的 AddSearchBar 组件，功能更丰富
             AddSearchBar(
                 keyword = viewModel.searchQuery,
-                onKeyWordChanged = { viewModel.updateSearchQuery(it) },
-                onSearch = {
-                    // 🎯 执行搜索：自动展开包含匹配项的节点
-                    viewModel.performSearch()
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                placeholder = "搜索树节点..."
+                onKeyWordChanged = viewModel::updateSearchQuery,
+                onSearch = viewModel::performSearch,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                placeholder = "搜索树节点...",
             )
         }
     }
@@ -141,27 +141,29 @@ private class TreeScopeImpl<T>(
     @Composable
     override fun ExpandCollapseControls() {
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            TextButton(
-                onClick = { viewModel.expandAll() }) {
+            TextButton(onClick = viewModel::expandAll) {
                 Text("展开全部")
             }
-
-            TextButton(
-                onClick = { viewModel.collapseAll() }) {
+            TextButton(onClick = viewModel::collapseAll) {
                 Text("收起全部")
             }
         }
     }
 }
 
-/**
- * 🌳 树节点渲染器
- */
 @Composable
 private fun <T> TreeNodeRenderer(
-    node: T, viewModel: TreeViewModel<T>, level: Int, compactMode: Boolean = false
+    node: T,
+    viewModel: TreeViewModel<T>,
+    level: Int,
+    compactMode: Boolean,
+    metrics: AddTreeMetrics,
+    colors: AddTreeColors,
+    nodeBadge: @Composable (T) -> Unit,
+    nodeTrailingContent: @Composable RowScope.(T) -> Unit,
 ) {
     val nodeId = viewModel.getId(node)
     val isExpanded = viewModel.isExpanded(nodeId)
@@ -169,31 +171,40 @@ private fun <T> TreeNodeRenderer(
     val children = viewModel.getChildrenCached(node)
     val hasChildren = children.isNotEmpty()
 
-    // 🎯 节点内容
-    TreeNodeContent(
-        node = node,
-        viewModel = viewModel,
-        level = level,
-        isExpanded = isExpanded,
-        isSelected = isSelected,
-        hasChildren = hasChildren,
-        compactMode = compactMode,
-        onToggleExpanded = { viewModel.toggleExpanded(nodeId) },
-        onClick = { viewModel.clickNode(node) })
+    Column(verticalArrangement = Arrangement.spacedBy(metrics.rowSpacing)) {
+        TreeNodeContent(
+            node = node,
+            viewModel = viewModel,
+            level = level,
+            isExpanded = isExpanded,
+            isSelected = isSelected,
+            hasChildren = hasChildren,
+            compactMode = compactMode,
+            metrics = metrics,
+            colors = colors,
+            nodeBadge = nodeBadge,
+            nodeTrailingContent = nodeTrailingContent,
+            onToggleExpanded = { viewModel.toggleExpanded(nodeId) },
+            onClick = { viewModel.clickNode(node) },
+        )
 
-    // 🌿 子节点渲染
-    if (hasChildren && isExpanded) {
-        children.forEach { child ->
-            TreeNodeRenderer(
-                node = child, viewModel = viewModel, level = level + 1, compactMode = compactMode
-            )
+        if (hasChildren && isExpanded) {
+            children.forEach { child ->
+                TreeNodeRenderer(
+                    node = child,
+                    viewModel = viewModel,
+                    level = level + 1,
+                    compactMode = compactMode,
+                    metrics = metrics,
+                    colors = colors,
+                    nodeBadge = nodeBadge,
+                    nodeTrailingContent = nodeTrailingContent,
+                )
+            }
         }
     }
 }
 
-/**
- * 🎨 树节点内容渲染 - 恢复原来的菜单项行为
- */
 @Composable
 private fun <T> TreeNodeContent(
     node: T,
@@ -202,138 +213,195 @@ private fun <T> TreeNodeContent(
     isExpanded: Boolean,
     isSelected: Boolean,
     hasChildren: Boolean,
-    compactMode: Boolean = false,
+    compactMode: Boolean,
+    metrics: AddTreeMetrics,
+    colors: AddTreeColors,
+    nodeBadge: @Composable (T) -> Unit,
+    nodeTrailingContent: @Composable RowScope.(T) -> Unit,
     onToggleExpanded: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val nodeId = viewModel.getId(node)
-    viewModel.isItemSelected(nodeId)
-
-    // 🎯 使用 Surface 而不是 Box，扁平化设计
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(
-                start = if (compactMode) 6.dp else (level * 16 + 6).dp, // 🚀 紧凑模式下减少缩进
-                end = 6.dp, top = 2.dp, bottom = 2.dp
-            ).let { modifier ->
-                // 🚀 紧凑模式下点击事件由 AddIconButton 处理，展开模式下使用 clickable
-                if (compactMode) {
-                    modifier // 紧凑模式下不添加 clickable，避免重复处理
-                } else {
-                    modifier.clickable {
-                        // 🔄 原来的行为：点击整个菜单项控制展开/收起
-                        if (hasChildren) {
-                            onToggleExpanded() // 有子节点：切换展开状态
-                        }
-                        onClick() // 总是触发点击回调
+    val rowModifier = Modifier
+        .fillMaxWidth()
+        .padding(
+            start = metrics.sideInset + metrics.levelIndent * level.toFloat(),
+            end = metrics.sideInset,
+        )
+        .let { current ->
+            if (compactMode) {
+                current
+            } else {
+                current.clickable {
+                    if (hasChildren) {
+                        onToggleExpanded()
                     }
+                    onClick()
                 }
-            }, shape = RectangleShape, // 🎨 扁平化设计，不使用圆角
-        tonalElevation = if (isSelected) 2.dp else 0.dp, color = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-        } else {
-            Color.Transparent
+            }
         }
+
+    Surface(
+        modifier = rowModifier,
+        shape = metrics.rowShape,
+        color = if (isSelected) {
+            colors.rowSelectedContainer
+        } else {
+            colors.rowContainer
+        },
+        border = if (isSelected) {
+            BorderStroke(metrics.selectedBorderWidth, colors.rowSelectedBorder)
+        } else {
+            null
+        },
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(40.dp).padding(
-                    horizontal = if (compactMode) 4.dp else 12.dp, // 🚀 紧凑模式下减少水平内边距
-                    vertical = 8.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = metrics.rowMinHeight)
+                .padding(
+                    horizontal = metrics.rowHorizontalPadding,
+                    vertical = metrics.rowVerticalPadding,
                 ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = if (compactMode) Arrangement.Center else Arrangement.Start // 🚀 紧凑模式下居中显示
+            horizontalArrangement = if (compactMode) {
+                Arrangement.Center
+            } else {
+                Arrangement.spacedBy(metrics.contentSpacing)
+            },
         ) {
-            // 🔄 多选模式复选框 - 支持半选状态（紧凑模式下隐藏）
-            if (viewModel.multiSelectMode && !compactMode) {
-                val selectionState = viewModel.getNodeSelectionState(nodeId)
-
-                TriStateCheckbox(
-                    state = when (selectionState) {
-                        site.addzero.component.tree.selection.SelectionState.SELECTED -> ToggleableState.On
-                        site.addzero.component.tree.selection.SelectionState.INDETERMINATE -> ToggleableState.Indeterminate
-                        site.addzero.component.tree.selection.SelectionState.UNSELECTED -> ToggleableState.Off
-                    }, onClick = { viewModel.toggleItemSelection(nodeId) })
-                Spacer(modifier = Modifier.width(8.dp))
+            if (isSelected && !compactMode) {
+                Box(
+                    modifier = Modifier
+                        .width(metrics.selectedIndicatorWidth)
+                        .height(metrics.selectedIndicatorHeight),
+                ) {
+                    Surface(
+                        modifier = Modifier.matchParentSize(),
+                        shape = metrics.badgeShape,
+                        color = colors.rowSelectedIndicator,
+                    ) {}
+                }
+                Spacer(modifier = Modifier.width(metrics.selectedIndicatorSpacing))
             }
 
-            // 🎨 节点图标 - 紧凑模式下使用 AddIconButton，展开模式下使用普通 Icon
-            val icon = viewModel.getIconCached(node)
+            if (viewModel.multiSelectMode && !compactMode) {
+                val selectionState = viewModel.getNodeSelectionState(nodeId)
+                TriStateCheckbox(
+                    state = when (selectionState) {
+                        SelectionState.SELECTED -> ToggleableState.On
+                        SelectionState.INDETERMINATE -> ToggleableState.Indeterminate
+                        SelectionState.UNSELECTED -> ToggleableState.Off
+                    },
+                    onClick = { viewModel.toggleItemSelection(nodeId) },
+                )
+            }
 
+            if (!compactMode) {
+                Box(
+                    modifier = Modifier.width(metrics.toggleSlotWidth),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (hasChildren) {
+                        Icon(
+                            imageVector = if (isExpanded) {
+                                Icons.Default.KeyboardArrowDown
+                            } else {
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight
+                            },
+                            contentDescription = if (isExpanded) "折叠" else "展开",
+                            modifier = Modifier.size(metrics.expandIconSize),
+                            tint = colors.secondaryContent,
+                        )
+                    }
+                }
+            }
+
+            val icon = viewModel.getIconCached(node)
             if (icon != null) {
                 if (compactMode) {
-                    // 🚀 紧凑模式：使用 AddIconButton 提供 Tooltip 支持
                     AddIconButton(
                         text = viewModel.getLabelCached(node),
                         imageVector = icon,
                         modifier = Modifier.size(32.dp),
-                        tint = if (isSelected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    ) // 🚀 紧凑模式下使用更大的点击区域
-                    {
-                        // 🔄 处理点击事件
+                        tint = resolveNodeIconTint(
+                            node = node,
+                            viewModel = viewModel,
+                            hasChildren = hasChildren,
+                        ),
+                    ) {
                         if (hasChildren) {
-                            onToggleExpanded() // 有子节点：切换展开状态
+                            onToggleExpanded()
                         }
-                        onClick() // 总是触发点击回调
+                        onClick()
                     }
                 } else {
-                    // 🎨 展开模式：使用普通 Icon
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = if (isSelected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
+                        modifier = Modifier.size(metrics.iconSize),
+                        tint = resolveNodeIconTint(
+                            node = node,
+                            viewModel = viewModel,
+                            hasChildren = hasChildren,
+                        ),
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                 }
             }
 
-            // 📝 节点标签（紧凑模式下隐藏）
             if (!compactMode) {
-                Text(
-                    text = viewModel.getLabelCached(node),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
+                ) {
+                    Text(
+                        text = viewModel.getLabelCached(node),
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
+                        color = if (isSelected) colors.contentSelected else colors.content,
+                    )
+                    nodeBadge(node)
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
+                    content = {
+                        nodeTrailingContent(node)
                     },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // 📂 展开/折叠箭头（只有子节点才显示，紧凑模式下隐藏）
-            if (hasChildren && !compactMode) {
-                Icon(
-                    imageVector = if (isExpanded) {
-                        Icons.Default.KeyboardArrowDown
-                    } else {
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight
-                    },
-                    contentDescription = if (isExpanded) "折叠" else "展开",
-                    modifier = Modifier.size(18.dp),
-                    tint = if (isSelected) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    }
                 )
             }
         }
     }
 }
 
-/**
- * 🎯 便捷构造函数 - 快速创建树组件
- *
- * ⚠️ 问题：函数名冲突，应该重命名避免混淆
- */
+@Composable
+private fun <T> resolveNodeIconTint(
+    node: T,
+    viewModel: TreeViewModel<T>,
+    hasChildren: Boolean,
+): Color {
+    val configuredType = viewModel.getNodeType(node)
+    val nodeType = if (configuredType.isBlank()) {
+        getDefaultNodeType(
+            node = node,
+            getLabel = viewModel.getLabel,
+            getId = viewModel.getId,
+            getChildren = viewModel.getChildren,
+        )
+    } else {
+        NodeType.findByKeyword(configuredType)
+    }
+    return if (hasChildren) {
+        getNodeTypeColor(nodeType)
+    } else {
+        getNodeTypeColor(nodeType).copy(alpha = 0.82f)
+    }
+}
+
 @Composable
 fun <T> AddTree(
     items: List<T>,
@@ -344,34 +412,45 @@ fun <T> AddTree(
     compactMode: Boolean = false,
     getNodeType: (T) -> String = { "" },
     getIcon: @Composable (T) -> ImageVector? = { node ->
-        // 🚀 默认使用 NodeType 推测图标
-        val label = getLabel(node)
-        val children = getChildren(node)
-        NodeType.guessIcon(label, children.isNotEmpty())
+        NodeType.guessIcon(
+            label = getLabel(node),
+            hasChildren = getChildren(node).isNotEmpty(),
+        )
     },
     initiallyExpandedIds: Set<Any> = emptySet(),
     onNodeClick: (T) -> Unit = {},
     onNodeContextMenu: (T) -> Unit = {},
     onSelectionChange: (List<T>) -> Unit = {},
-    content: @Composable TreeScope<T>.() -> Unit = {}
+    metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
+    colors: AddTreeColors? = null,
+    nodeBadge: @Composable (T) -> Unit = {},
+    nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
+    content: @Composable TreeScope<T>.() -> Unit = {},
 ) {
-    // 🎯 创建和配置 ViewModel
     val viewModel = rememberTreeViewModel<T>()
 
-    // 🔧 优化：使用新的配置方法
     LaunchedEffect(items, getId, getLabel, getChildren) {
         viewModel.configure(
-            getId = getId, getLabel = getLabel, getChildren = getChildren, getNodeType = getNodeType, getIcon = getIcon
+            getId = getId,
+            getLabel = getLabel,
+            getChildren = getChildren,
+            getNodeType = getNodeType,
+            getIcon = getIcon,
         )
         viewModel.onNodeClick = onNodeClick
         viewModel.onNodeContextMenu = onNodeContextMenu
         viewModel.onSelectionChange = onSelectionChange
-
         viewModel.setItems(items, initiallyExpandedIds)
     }
 
-    // 🚀 渲染优化版树组件
     AddTree(
-        viewModel = viewModel, modifier = modifier, compactMode = compactMode, content = content
+        viewModel = viewModel,
+        modifier = modifier,
+        compactMode = compactMode,
+        metrics = metrics,
+        colors = colors,
+        nodeBadge = nodeBadge,
+        nodeTrailingContent = nodeTrailingContent,
+        content = content,
     )
 }
