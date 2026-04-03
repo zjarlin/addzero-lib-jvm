@@ -1,5 +1,5 @@
-package site.addzero.kcp.transformoverload.annotations
+package site.addzero.kcp.spreadpack
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-annotation class GenerateTransformOverloads
+annotation class GenerateSpreadPackOverloads

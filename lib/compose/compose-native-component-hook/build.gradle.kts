@@ -6,8 +6,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":lib:compose:compose-native-component"))
-           implementation (project(":lib:compose:compose-native-component-select"))
+            implementation(project(":lib:compose:compose-native-component-autocomplet"))
+            implementation(project(":lib:compose:compose-native-component-select"))
         }
     }
 }

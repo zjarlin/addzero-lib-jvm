@@ -1,3 +1,7 @@
-package site.addzero.kcp.transformoverload.annotations
+package site.addzero.kcp.spreadpack
 
-interface TransformProvider
+enum class SpreadPackSelector {
+    PROPS,
+    ATTRS,
+    CALLBACKS,
+}

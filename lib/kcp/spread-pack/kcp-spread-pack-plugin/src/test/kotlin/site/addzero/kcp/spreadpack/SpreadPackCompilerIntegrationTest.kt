@@ -1,4 +1,4 @@
-package site.addzero.kcp.transformoverload.plugin
+package site.addzero.kcp.spreadpack
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -11,251 +11,72 @@ import java.nio.file.Paths
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 
-class TransformOverloadCompilerIntegrationTest {
+class SpreadPackCompilerIntegrationTest {
 
     @Test
-    fun generates_overloads_for_direct_lifting_cartesian_and_top_level_targets() {
+    fun generates_member_top_level_and_renamed_overloads() {
         val result = compile(
             mapOf(
-                "org/babyfish/jimmer/Stubs.kt" to jimmerStubsSource(),
-                "org/babyfish/jimmer/spring/repo/RepositoryTargets.kt" to repositoryTargetsSource(),
-                "org/babyfish/jimmer/spring/repo/RepositoryUsage.kt" to repositoryUsageSource(),
+                "site/addzero/example/SpreadPackTargets.kt" to spreadPackTargetsSource(),
             ),
         )
 
         assertEquals(0, result.exitCode, result.output)
 
-        result.loadClass("org.babyfish.jimmer.spring.repo.KotlinRepository").let { repositoryClass ->
-            val methods = repositoryClass.declaredMethods.toList()
-            val methodNames = methods.map { method -> method.name }.toSet()
-            assertTrue("saveAllViaToEntityInput" in methodNames, methodNames.toString())
-            assertTrue("saveAllViaFromDraft" in methodNames, methodNames.toString())
-            assertTrue("saveListViaToEntityInput" in methodNames, methodNames.toString())
-            assertTrue("saveSetViaToEntityInput" in methodNames, methodNames.toString())
-            assertTrue("saveSeqViaToEntityInput" in methodNames, methodNames.toString())
+        val targetsKt = result.loadClass("site.addzero.example.SpreadPackTargetsKt")
+        assertEquals("alpha:2:done:true", targetsKt.getMethod("invokeMemberProps").invoke(null))
+        assertEquals("attrs:7:false:-", targetsKt.getMethod("invokeTopLevelAttrs").invoke(null))
+        assertEquals("callback", targetsKt.getMethod("invokeTopLevelCallbacks").invoke(null))
 
-            assertTrue(
-                methods.any { method ->
-                    method.name == "save" &&
-                        method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.Input"
-                },
-                methods.joinToString("\n"),
-            )
-            assertTrue(
-                methods.any { method ->
-                    method.name == "save" &&
-                        method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.Draft"
-                },
-                methods.joinToString("\n"),
-            )
-            assertTrue(
-                methods.any { method ->
-                    method.name == "save" &&
-                        method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.AltInput"
-                },
-                methods.joinToString("\n"),
-            )
-
-            assertTrue(
-                methods.any { method ->
-                    method.name == "pair" &&
-                        method.parameterTypes.map(Class<*>::getName) == listOf(
-                            "org.babyfish.jimmer.Input",
-                            "java.lang.Object",
-                        )
-                },
-                methods.joinToString("\n"),
-            )
-            assertTrue(
-                methods.any { method ->
-                    method.name == "pair" &&
-                        method.parameterTypes.map(Class<*>::getName) == listOf(
-                            "java.lang.Object",
-                            "org.babyfish.jimmer.Input",
-                        )
-                },
-                methods.joinToString("\n"),
-            )
-            assertTrue(
-                methods.any { method ->
-                    method.name == "pair" &&
-                        method.parameterTypes.map(Class<*>::getName) == listOf(
-                            "org.babyfish.jimmer.Input",
-                            "org.babyfish.jimmer.Input",
-                        )
-                },
-                methods.joinToString("\n"),
-            )
-
-            assertTrue(
-                methods.any { method ->
-                    method.name == "pick" &&
-                        method.parameterTypes.firstOrNull()?.name == "org.babyfish.jimmer.Input"
-                },
-                methods.joinToString("\n"),
-            )
-        }
-
-        result.loadClass("org.babyfish.jimmer.spring.repo.MethodLevelRepository").let { methodRepoClass ->
-            val methods = methodRepoClass.declaredMethods.toList()
-            assertTrue(
-                methods.any { method ->
-                    method.name == "only" &&
-                        method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.Input"
-                },
-                methods.joinToString("\n"),
-            )
-            assertTrue(
-                methods.none { method ->
-                    method.name == "untouched" &&
-                        method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.Input"
-                },
-                methods.joinToString("\n"),
-            )
-        }
-
+        val rendererClass = result.loadClass("site.addzero.example.Renderer")
+        val methods = rendererClass.declaredMethods.toList()
         assertTrue(
-            result.hasDeclaredMethodInPackage("org.babyfish.jimmer.spring.repo") { method ->
-                method.name == "topSaveStringViaToEntityInput" &&
-                    method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.Input"
+            methods.any { method ->
+                method.name == "render" &&
+                    method.parameterTypes.map(Class<*>::getName) == listOf(
+                        "java.lang.String",
+                        "int",
+                        "kotlin.jvm.functions.Function0",
+                        "boolean",
+                    )
             },
-            "Expected generated top-level overload in compiled package classes",
+            methods.joinToString("\n"),
         )
     }
 
     @Test
-    fun rejects_invalid_converter_shape() {
+    fun rejects_excluding_required_field_without_default() {
         val result = compile(
             mapOf(
-                "org/babyfish/jimmer/Stubs.kt" to jimmerStubsSource(),
-                "org/babyfish/jimmer/spring/repo/BrokenTargets.kt" to """
-                    package org.babyfish.jimmer.spring.repo
+                "site/addzero/example/BrokenTargets.kt" to """
+                    package site.addzero.example
 
-                    import site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads
-                    import site.addzero.kcp.transformoverload.annotations.OverloadTransform
+                    import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+                    import site.addzero.kcp.spreadpack.SpreadPack
 
-                    @OverloadTransform
-                    fun broken(source: String, other: String): Int = source.length + other.length
+                    data class BrokenOptions(
+                        val required: String,
+                        val optional: Int = 0,
+                    )
 
-                    @GenerateTransformOverloads
-                    interface BrokenRepository {
-                        fun save(value: Int): String
-                    }
+                    @GenerateSpreadPackOverloads
+                    fun broken(
+                        @SpreadPack(exclude = ["required"])
+                        options: BrokenOptions,
+                    ): String = options.required
                 """.trimIndent(),
             ),
         )
 
         assertTrue(result.exitCode != 0, result.output)
         assertTrue(
-            result.output.contains("Invalid @OverloadTransform converter"),
+            result.output.contains("cannot omit required field required"),
             result.output,
         )
-    }
-
-    @Test
-    fun fails_when_renamed_signature_still_conflicts() {
-        val result = compile(
-            mapOf(
-                "org/babyfish/jimmer/Stubs.kt" to jimmerStubsSource(),
-                "org/babyfish/jimmer/spring/repo/ConflictTargets.kt" to """
-                    package org.babyfish.jimmer.spring.repo
-
-                    import org.babyfish.jimmer.Draft
-                    import org.babyfish.jimmer.Input
-                    import site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads
-                    import site.addzero.kcp.transformoverload.annotations.OverloadTransform
-
-                    @OverloadTransform
-                    fun <E : Any> Input<E>.toEntity(): E = toEntity()
-
-                    @OverloadTransform
-                    fun <E : Any> Draft<E>.toEntity(): E = toEntity()
-
-                    @GenerateTransformOverloads
-                    interface ConflictRepository<E : Any> {
-                        fun saveAll(values: Iterable<E>): String
-                    }
-                """.trimIndent(),
-            ),
-        )
-
-        assertTrue(result.exitCode != 0, result.output)
-        assertTrue(
-            result.output.contains("Transform overload rename conflict"),
-            result.output,
-        )
-    }
-
-    @Test
-    fun lowers_same_name_overload_when_multiple_converters_share_source_type() {
-        val result = compile(
-            mapOf(
-                "org/babyfish/jimmer/Stubs.kt" to jimmerStubsSource(),
-                "org/babyfish/jimmer/spring/repo/RuntimeTargets.kt" to """
-                    package org.babyfish.jimmer.spring.repo
-
-                    import org.babyfish.jimmer.Input
-                    import site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads
-                    import site.addzero.kcp.transformoverload.annotations.OverloadTransform
-                    import site.addzero.kcp.transformoverload.annotations.TransformProvider
-
-                    @OverloadTransform
-                    fun <E : Any> Input<E>.toEntityInput(): E = toEntity()
-
-                    object ExtraConverters : TransformProvider {
-                        @OverloadTransform
-                        fun <E : Any> Input<E>.toEntityViaProvider(): E = toEntity()
-                    }
-
-                    @GenerateTransformOverloads
-                    interface RuntimeRepository {
-                        fun save(entity: String): String
-                        fun findById(id: Long): String
-                    }
-
-                    @GenerateTransformOverloads
-                    fun topSave(entity: String): String = "top:${'$'}entity"
-
-                    class RuntimeRepositoryImpl : RuntimeRepository {
-                        override fun save(entity: String): String = "saved:${'$'}entity"
-
-                        override fun findById(id: Long): String = "id:${'$'}id"
-                    }
-
-                    class StringInput(private val value: String) : Input<String> {
-                        override fun toEntity(): String = value
-                    }
-
-                    class LongInput(private val value: Long) : Input<Long> {
-                        override fun toEntity(): Long = value
-                    }
-
-                    fun invokeSameNameSave(): String =
-                        RuntimeRepositoryImpl().save(StringInput("alpha"))
-
-                    fun invokeRenamedSave(): String =
-                        RuntimeRepositoryImpl().saveViaToEntityInput(StringInput("beta"))
-
-                    fun invokeSameNameFindById(): String =
-                        RuntimeRepositoryImpl().findById(LongInput(7))
-
-                    fun invokeTopLevel(): String =
-                        topSaveViaToEntityInput(StringInput("gamma"))
-                """.trimIndent(),
-            ),
-        )
-
-        assertEquals(0, result.exitCode, result.output)
-
-        val runtimeKt = result.loadClass("org.babyfish.jimmer.spring.repo.RuntimeTargetsKt")
-        assertEquals("saved:alpha", runtimeKt.getMethod("invokeSameNameSave").invoke(null))
-        assertEquals("saved:beta", runtimeKt.getMethod("invokeRenamedSave").invoke(null))
-        assertEquals("id:7", runtimeKt.getMethod("invokeSameNameFindById").invoke(null))
-        assertEquals("top:gamma", runtimeKt.getMethod("invokeTopLevel").invoke(null))
     }
 
     private fun compile(sources: Map<String, String>): CompilationResult {
-        val workingDir = Files.createTempDirectory("transform-overload-it")
+        val workingDir = Files.createTempDirectory("spread-pack-it")
         val sourceDir = workingDir.resolve("src").createDirectories()
         val classesDir = workingDir.resolve("classes").createDirectories()
 
@@ -265,15 +86,16 @@ class TransformOverloadCompilerIntegrationTest {
             file.writeText(content)
         }
 
-        val pluginJar = System.getProperty("transformOverload.pluginJar")
-            ?: error("Missing transformOverload.pluginJar system property")
+        val pluginJar = System.getProperty("spreadPack.pluginJar")
+            ?: error("Missing spreadPack.pluginJar system property")
         val classpath = System.getProperty("java.class.path")
         val command = mutableListOf(
             javaExecutable(),
             "-cp",
             classpath,
             "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
-            "-Xjvm-default=all",
+            "-no-stdlib",
+            "-no-reflect",
             "-d",
             classesDir.toString(),
             "-classpath",
@@ -303,119 +125,65 @@ class TransformOverloadCompilerIntegrationTest {
         return Paths.get(javaHome, "bin", "java").toString()
     }
 
-    private fun jimmerStubsSource(): String {
+    private fun spreadPackTargetsSource(): String {
         return """
-            package org.babyfish.jimmer
+            package site.addzero.example
 
-            interface Input<E> {
-                fun toEntity(): E
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadPack
+            import site.addzero.kcp.spreadpack.SpreadPackSelector
+
+            data class RenderOptions(
+                val title: String = "untitled",
+                val count: Int = 0,
+                val onDone: (() -> String)? = null,
+                val debug: Boolean = false,
+            )
+
+            @GenerateSpreadPackOverloads
+            class Renderer {
+                fun render(@SpreadPack options: RenderOptions): String {
+                    val done = options.onDone?.invoke() ?: "-"
+                    return "${'$'}{options.title}:${'$'}{options.count}:${'$'}done:${'$'}{options.debug}"
+                }
             }
 
-            interface Draft<E> {
-                fun toEntity(): E
+            @GenerateSpreadPackOverloads
+            fun renderAttrs(
+                @SpreadPack(
+                    selector = SpreadPackSelector.ATTRS,
+                    exclude = ["debug"],
+                )
+                options: RenderOptions,
+            ): String {
+                val done = options.onDone?.invoke() ?: "-"
+                return "${'$'}{options.title}:${'$'}{options.count}:${'$'}{options.debug}:${'$'}done"
             }
 
-            interface AltInput<E> {
-                fun unwrap(): E
-            }
-        """.trimIndent()
-    }
+            @GenerateSpreadPackOverloads
+            fun renderCallbacks(
+                @SpreadPack(selector = SpreadPackSelector.CALLBACKS)
+                options: RenderOptions,
+            ): String = options.onDone?.invoke() ?: "none"
 
-    private fun repositoryTargetsSource(): String {
-        return """
-            package org.babyfish.jimmer.spring.repo
+            fun invokeMemberProps(): String =
+                Renderer().render(
+                    title = "alpha",
+                    count = 2,
+                    onDone = { "done" },
+                    debug = true,
+                )
 
-            import org.babyfish.jimmer.AltInput
-            import org.babyfish.jimmer.Draft
-            import org.babyfish.jimmer.Input
-            import site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads
-            import site.addzero.kcp.transformoverload.annotations.OverloadTransform
-            import site.addzero.kcp.transformoverload.annotations.TransformProvider
+            fun invokeTopLevelAttrs(): String =
+                renderAttrs(
+                    title = "attrs",
+                    count = 7,
+                )
 
-            @OverloadTransform
-            fun <E : Any> Input<E>.toEntityInput(): E = toEntity()
-
-            @OverloadTransform
-            fun <E : Any> AltInput<E>.unwrapAlt(): E = unwrap()
-
-            object DraftProvider : TransformProvider {
-                @OverloadTransform
-                fun <E : Any> Draft<E>.fromDraft(): E = toEntity()
-            }
-
-            @GenerateTransformOverloads
-            interface KotlinRepository<E : Any> {
-                fun save(entity: E): String
-                fun saveAll(entities: Iterable<E>): String
-                fun saveList(entities: List<E>): String
-                fun saveSet(entities: Set<E>): String
-                fun saveSeq(entities: Sequence<E>): String
-                fun pair(left: E, right: E): String
-                fun pick(entity: E, mode: String = "AUTO"): String
-            }
-
-            interface MethodLevelRepository<E : Any> {
-                @GenerateTransformOverloads
-                fun only(entity: E): String
-
-                fun untouched(entity: E): String
-            }
-
-            @GenerateTransformOverloads
-            fun topSaveString(entity: String): String = entity
-        """.trimIndent()
-    }
-
-    private fun repositoryUsageSource(): String {
-        return """
-            package org.babyfish.jimmer.spring.repo
-
-            import org.babyfish.jimmer.AltInput
-            import org.babyfish.jimmer.Draft
-            import org.babyfish.jimmer.Input
-
-            class StringInput(private val value: String) : Input<String> {
-                override fun toEntity(): String = value
-            }
-
-            class StringDraft(private val value: String) : Draft<String> {
-                override fun toEntity(): String = value
-            }
-
-            class StringAlt(private val value: String) : AltInput<String> {
-                override fun unwrap(): String = value
-            }
-
-            fun use(
-                repo: KotlinRepository<String>,
-                methodRepo: MethodLevelRepository<String>,
-                input: Input<String>,
-                draft: Draft<String>,
-                alt: AltInput<String>,
-                inputs: Iterable<Input<String>>,
-                drafts: Iterable<Draft<String>>,
-                inputList: List<Input<String>>,
-                inputSet: Set<Input<String>>,
-                inputSeq: Sequence<Input<String>>,
-            ) {
-                repo.save(input)
-                repo.save(draft)
-                repo.save(alt)
-
-                repo.saveAllViaToEntityInput(inputs)
-                repo.saveAllViaFromDraft(drafts)
-                repo.saveListViaToEntityInput(inputList)
-                repo.saveSetViaToEntityInput(inputSet)
-                repo.saveSeqViaToEntityInput(inputSeq)
-
-                repo.pair(input, "right")
-                repo.pair("left", input)
-                repo.pair(input, input)
-
-                repo.pick(input)
-                methodRepo.only(input)
-                topSaveStringViaToEntityInput(input)
-            }
+            fun invokeTopLevelCallbacks(): String =
+                renderCallbacks(
+                    onDone = { "callback" },
+                )
         """.trimIndent()
     }
 
@@ -428,48 +196,13 @@ class TransformOverloadCompilerIntegrationTest {
         fun loadClass(name: String): Class<*> {
             val urls = buildList {
                 add(classesDir.toUri().toURL())
-                runtimeClasspath.forEach { path ->
-                    add(File(path).toURI().toURL())
-                }
+                runtimeClasspath
+                    .map(::File)
+                    .filter(File::exists)
+                    .forEach { file -> add(file.toURI().toURL()) }
             }.toTypedArray()
             val classLoader = URLClassLoader(urls, javaClass.classLoader)
             return classLoader.loadClass(name)
-        }
-
-        fun hasDeclaredMethodInPackage(
-            packageName: String,
-            predicate: (java.lang.reflect.Method) -> Boolean,
-        ): Boolean {
-            val urls = buildList {
-                add(classesDir.toUri().toURL())
-                runtimeClasspath.forEach { path ->
-                    add(File(path).toURI().toURL())
-                }
-            }.toTypedArray()
-            val packagePath = packageName.replace('.', File.separatorChar)
-            URLClassLoader(urls, javaClass.classLoader).use { classLoader ->
-                Files.walk(classesDir).use { paths ->
-                    val iterator = paths.iterator()
-                    while (iterator.hasNext()) {
-                        val path = iterator.next()
-                        if (!Files.isRegularFile(path) || !path.toString().endsWith(".class")) {
-                            continue
-                        }
-                        val relativePath = classesDir.relativize(path).toString()
-                        if (!relativePath.startsWith(packagePath)) {
-                            continue
-                        }
-                        val className = relativePath
-                            .removeSuffix(".class")
-                            .replace(File.separatorChar, '.')
-                        val klass = classLoader.loadClass(className)
-                        if (klass.declaredMethods.any(predicate)) {
-                            return true
-                        }
-                    }
-                }
-            }
-            return false
         }
     }
 }

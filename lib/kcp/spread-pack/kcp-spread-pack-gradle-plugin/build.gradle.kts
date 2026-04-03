@@ -18,28 +18,28 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        create("transformOverload") {
-            id = "site.addzero.kcp.transform-overload"
-            implementationClass = "site.addzero.kcp.transformoverload.gradle.TransformOverloadGradleSubplugin"
+        create("spreadPack") {
+            id = "site.addzero.kcp.spread-pack"
+            implementationClass = "site.addzero.kcp.spreadpack.SpreadPackGradleSubplugin"
         }
     }
 }
 
 tasks.processResources {
-    dependsOn("generateTransformOverloadPluginCoordinates")
+    dependsOn("generateSpreadPackPluginCoordinates")
     from(generatedCoordinatesDir)
 }
 
-val generatedCoordinatesDir = layout.buildDirectory.dir("generated/transformOverload/resources")
+val generatedCoordinatesDir = layout.buildDirectory.dir("generated/spreadPack/resources")
 val groupId = project.group.toString()
 val pluginVersion = project.version.toString()
 
-val generateTransformOverloadPluginCoordinates = tasks.register<WriteProperties>(
-    "generateTransformOverloadPluginCoordinates",
+val generateSpreadPackPluginCoordinates = tasks.register<WriteProperties>(
+    "generateSpreadPackPluginCoordinates",
 ) {
     destinationFile = generatedCoordinatesDir
         .map { dir ->
-            dir.file("site/addzero/kcp/transformoverload/gradle-plugin.properties")
+            dir.file("site/addzero/kcp/spreadpack/gradle-plugin.properties")
         }
         .get()
         .asFile
@@ -54,8 +54,8 @@ val repoRootDir = project.projectDir
     .resolve("../../../../")
     .normalize()
     .toFile()
-val compilerPluginProjectPath = ":lib:kcp:transform-overload:kcp-transform-overload-plugin"
-val annotationsProjectPath = ":lib:kcp:transform-overload:kcp-transform-overload-annotations"
+val compilerPluginProjectPath = ":lib:kcp:spread-pack:kcp-spread-pack-plugin"
+val annotationsProjectPath = ":lib:kcp:spread-pack:kcp-spread-pack-annotations"
 val compilerPluginBuildDir = project(compilerPluginProjectPath).layout.buildDirectory
 val annotationsBuildDir = project(annotationsProjectPath).layout.buildDirectory
 
@@ -66,10 +66,10 @@ tasks.test {
             languageVersion.set(JavaLanguageVersion.of(17))
         },
     )
-    systemProperty("transformOverload.repoRoot", repoRootDir.absolutePath)
-    systemProperty("transformOverload.pluginGroup", groupId)
-    systemProperty("transformOverload.pluginVersion", pluginVersion)
-    systemProperty("transformOverload.compilerPluginBuildDir", compilerPluginBuildDir.get().asFile.absolutePath)
-    systemProperty("transformOverload.annotationsBuildDir", annotationsBuildDir.get().asFile.absolutePath)
-    systemProperty("transformOverload.gradlePluginClasspath", sourceSets.main.get().runtimeClasspath.asPath)
+    systemProperty("spreadPack.repoRoot", repoRootDir.absolutePath)
+    systemProperty("spreadPack.pluginGroup", groupId)
+    systemProperty("spreadPack.pluginVersion", pluginVersion)
+    systemProperty("spreadPack.compilerPluginBuildDir", compilerPluginBuildDir.get().asFile.absolutePath)
+    systemProperty("spreadPack.annotationsBuildDir", annotationsBuildDir.get().asFile.absolutePath)
+    systemProperty("spreadPack.gradlePluginClasspath", sourceSets.main.get().runtimeClasspath.asPath)
 }

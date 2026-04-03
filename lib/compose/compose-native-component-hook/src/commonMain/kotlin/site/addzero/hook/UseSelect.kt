@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import site.addzero.component.dropdown.AddSelect
 import site.addzero.component.dropdown.SelectMode
-import site.addzero.web.ui.hooks.UseHook
 
 /**
- * 下拉选择Hook
+ * 下拉选择 Hook。
+ *
  * @param T 数据类型
  * @param items 选项列表
  * @param title 标题
@@ -26,13 +26,17 @@ class UseSelect<T>(
     val placeholder: String = "请选择",
     val selectMode: SelectMode = SelectMode.SINGLE,
     val initialValue: T? = null,
-    val initialValues: List<T> = emptyList()
-) : UseHook<UseSelect<T>> {
+    val initialValues: List<T> = emptyList(),
+) : UseHook {
 
-    // 单选模式下的选中值
+    /**
+     * 单选模式下的当前选中项。
+     */
     var selectedValue by mutableStateOf(initialValue)
 
-    // 多选模式下的选中值列表
+    /**
+     * 多选模式下的当前选中项列表。
+     */
     var selectedValues by mutableStateOf(initialValues)
 
     override val render: @Composable (() -> Unit)
@@ -46,7 +50,7 @@ class UseSelect<T>(
                 onValuesChange = { selectedValues = it },
                 selectMode = selectMode,
                 label = getLabelFun,
-                placeholder = placeholder
+                placeholder = placeholder,
             )
         }
 }

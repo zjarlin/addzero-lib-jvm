@@ -1,68 +1,57 @@
-package site.addzero.kcp.transformoverload.plugin
+package site.addzero.kcp.spreadpack
 
+import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 
-internal enum class ConverterParameterKind {
-    EXTENSION_RECEIVER,
-    VALUE_PARAMETER,
+internal enum class SelectorKind {
+    PROPS,
+    ATTRS,
+    CALLBACKS,
 }
 
-internal enum class LiftKind {
-    NONE,
-    ITERABLE,
-    COLLECTION,
-    LIST,
-    SET,
-    SEQUENCE,
-}
-
-internal data class FirConverterSpec(
-    val symbol: FirNamedFunctionSymbol,
-    val parameterKind: ConverterParameterKind,
-    val sourceType: ConeKotlinType,
-    val targetType: ConeKotlinType,
-    val typeParameters: List<FirTypeParameterSymbol>,
-    val uniqueSuffix: String,
-    val callableIdText: String,
+internal data class FirSpreadPackField(
+    val parameter: FirValueParameter,
+    val resolvedType: ConeKotlinType,
 )
 
-internal data class FirParameterTransform(
-    val converter: FirConverterSpec,
+internal data class FirSpreadPackExpansion(
     val parameterIndex: Int,
-    val generatedParameterType: ConeKotlinType,
-    val liftKind: LiftKind,
+    val carrierClassId: ClassId,
+    val selectorKind: SelectorKind,
+    val excludedNames: Set<String>,
+    val fields: List<FirSpreadPackField>,
 )
 
-internal data class FirOverloadCandidate(
+internal data class FirSpreadPackCandidate(
     val original: FirNamedFunctionSymbol,
     val generatedName: Name,
-    val parameterTransforms: List<FirParameterTransform>,
+    val expansions: List<FirSpreadPackExpansion>,
+    val generatedParameterTypes: List<ConeKotlinType>,
 )
 
-internal data class IrConverterSpec(
-    val function: IrSimpleFunction,
-    val parameterKind: ConverterParameterKind,
-    val sourceType: IrType,
-    val targetType: IrType,
-    val typeParameters: List<IrTypeParameter>,
-    val uniqueSuffix: String,
-    val callableIdText: String,
-    val supportsMemberContainer: Boolean,
+internal data class IrSpreadPackField(
+    val name: Name,
+    val type: IrType,
+    val constructorIndex: Int,
 )
 
-internal data class IrParameterTransform(
-    val converter: IrConverterSpec,
+internal data class IrSpreadPackExpansion(
     val parameterIndex: Int,
-    val liftKind: LiftKind,
+    val carrierClass: IrClass,
+    val constructor: IrConstructor,
+    val selectorKind: SelectorKind,
+    val excludedNames: Set<String>,
+    val fields: List<IrSpreadPackField>,
 )
 
-internal data class IrOverloadMatch(
+internal data class IrSpreadPackMatch(
     val original: IrSimpleFunction,
-    val parameterTransforms: List<IrParameterTransform>,
+    val expansions: List<IrSpreadPackExpansion>,
 )

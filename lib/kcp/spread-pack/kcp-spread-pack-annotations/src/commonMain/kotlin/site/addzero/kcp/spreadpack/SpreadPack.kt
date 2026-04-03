@@ -1,5 +1,8 @@
-package site.addzero.kcp.transformoverload.annotations
+package site.addzero.kcp.spreadpack
 
-@Target(AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.BINARY)
-annotation class OverloadTransform
+annotation class SpreadPack(
+    val exclude: Array<String> = [],
+    val selector: SpreadPackSelector = SpreadPackSelector.PROPS,
+)

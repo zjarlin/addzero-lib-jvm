@@ -1,9 +1,9 @@
-package site.addzero.kcp.transformoverload.plugin
+package site.addzero.kcp.spreadpack
 
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
 
-class TransformOverloadFirRegistrar : FirExtensionRegistrar() {
+class SpreadPackFirRegistrar : FirExtensionRegistrar() {
     override fun ExtensionRegistrarContext.configurePlugin() {
-        +::TransformOverloadFirExtension
+        +::SpreadPackFirExtension
     }
 }

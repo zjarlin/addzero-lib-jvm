@@ -1,23 +1,22 @@
-package site.addzero.kcp.transformoverload.gradle
+package site.addzero.kcp.spreadpack
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.Properties
 
-class TransformOverloadGradlePluginCoordinatesTest {
+class SpreadPackGradlePluginCoordinatesTest {
 
     @Test
-    fun exposes_published_coordinates_to_subplugin_runtime() {
-        val expectedGroup = System.getProperty("transformOverload.pluginGroup")
-            ?: error("Missing transformOverload.pluginGroup system property")
-        val expectedVersion = System.getProperty("transformOverload.pluginVersion")
-            ?: error("Missing transformOverload.pluginVersion system property")
-        val resourcePath = "site/addzero/kcp/transformoverload/gradle-plugin.properties"
-        val inputStream = TransformOverloadGradleSubplugin::class.java.classLoader
-            .getResourceAsStream(resourcePath)
+    fun exposes_generated_plugin_coordinates_resource() {
+        val expectedGroup = System.getProperty("spreadPack.pluginGroup")
+            ?: error("Missing spreadPack.pluginGroup system property")
+        val expectedVersion = System.getProperty("spreadPack.pluginVersion")
+            ?: error("Missing spreadPack.pluginVersion system property")
+        val inputStream = SpreadPackGradleSubplugin::class.java.classLoader
+            .getResourceAsStream("site/addzero/kcp/spreadpack/gradle-plugin.properties")
 
-        assertNotNull(inputStream, "Missing $resourcePath")
+        assertNotNull(inputStream)
 
         val properties = Properties()
         inputStream!!.use(properties::load)

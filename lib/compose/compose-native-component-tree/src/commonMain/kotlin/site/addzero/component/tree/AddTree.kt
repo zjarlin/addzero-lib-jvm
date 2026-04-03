@@ -1,6 +1,7 @@
 package site.addzero.component.tree
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,7 @@ fun <T> AddTree(
     viewModel: TreeViewModel<T>,
     modifier: Modifier = Modifier,
     compactMode: Boolean = false,
+    selectableLabel: Boolean = false,
     metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
     colors: AddTreeColors? = null,
     nodeBadge: @Composable (T) -> Unit = {},
@@ -71,6 +73,7 @@ fun <T> AddTree(
                     viewModel = viewModel,
                     level = 0,
                     compactMode = compactMode,
+                    selectableLabel = selectableLabel,
                     metrics = metrics,
                     colors = resolvedColors,
                     nodeBadge = nodeBadge,
@@ -160,6 +163,7 @@ private fun <T> TreeNodeRenderer(
     viewModel: TreeViewModel<T>,
     level: Int,
     compactMode: Boolean,
+    selectableLabel: Boolean,
     metrics: AddTreeMetrics,
     colors: AddTreeColors,
     nodeBadge: @Composable (T) -> Unit,
@@ -180,6 +184,7 @@ private fun <T> TreeNodeRenderer(
             isSelected = isSelected,
             hasChildren = hasChildren,
             compactMode = compactMode,
+            selectableLabel = selectableLabel,
             metrics = metrics,
             colors = colors,
             nodeBadge = nodeBadge,
@@ -195,6 +200,7 @@ private fun <T> TreeNodeRenderer(
                     viewModel = viewModel,
                     level = level + 1,
                     compactMode = compactMode,
+                    selectableLabel = selectableLabel,
                     metrics = metrics,
                     colors = colors,
                     nodeBadge = nodeBadge,
@@ -214,6 +220,7 @@ private fun <T> TreeNodeContent(
     isSelected: Boolean,
     hasChildren: Boolean,
     compactMode: Boolean,
+    selectableLabel: Boolean,
     metrics: AddTreeMetrics,
     colors: AddTreeColors,
     nodeBadge: @Composable (T) -> Unit,
@@ -355,15 +362,30 @@ private fun <T> TreeNodeContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
                 ) {
-                    Text(
-                        text = viewModel.getLabelCached(node),
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
-                        color = if (isSelected) colors.contentSelected else colors.content,
-                    )
+                    if (selectableLabel) {
+                        SelectionContainer(
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                text = viewModel.getLabelCached(node),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
+                                color = if (isSelected) colors.contentSelected else colors.content,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = viewModel.getLabelCached(node),
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
+                            color = if (isSelected) colors.contentSelected else colors.content,
+                        )
+                    }
                     nodeBadge(node)
                 }
                 Row(
@@ -410,6 +432,7 @@ fun <T> AddTree(
     getChildren: (T) -> List<T> = { emptyList() },
     modifier: Modifier = Modifier,
     compactMode: Boolean = false,
+    selectableLabel: Boolean = false,
     getNodeType: (T) -> String = { "" },
     getIcon: @Composable (T) -> ImageVector? = { node ->
         NodeType.guessIcon(
@@ -447,6 +470,7 @@ fun <T> AddTree(
         viewModel = viewModel,
         modifier = modifier,
         compactMode = compactMode,
+        selectableLabel = selectableLabel,
         metrics = metrics,
         colors = colors,
         nodeBadge = nodeBadge,

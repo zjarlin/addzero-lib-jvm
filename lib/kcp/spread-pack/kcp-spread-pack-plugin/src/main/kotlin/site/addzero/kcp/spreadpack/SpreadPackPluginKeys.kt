@@ -1,38 +1,33 @@
-package site.addzero.kcp.transformoverload.plugin
+package site.addzero.kcp.spreadpack
 
 import org.jetbrains.kotlin.GeneratedDeclarationKey
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
-internal object TransformOverloadPluginKeys {
-    const val compilerPluginId: String = "site.addzero.kcp.transform-overload"
+internal object SpreadPackPluginKeys {
+    const val compilerPluginId: String = "site.addzero.kcp.spread-pack"
+    const val stubErrorMessage: String = "Spread pack stub body should be lowered in IR"
 
-    val generateTransformOverloadsAnnotation = FqName(
-        "site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads",
+    val generateSpreadPackOverloadsAnnotation = FqName(
+        "site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads",
     )
-    val overloadTransformAnnotation = FqName(
-        "site.addzero.kcp.transformoverload.annotations.OverloadTransform",
+    val generateSpreadPackOverloadsAnnotationClassId = ClassId.topLevel(
+        generateSpreadPackOverloadsAnnotation,
     )
-    val transformProvider = FqName(
-        "site.addzero.kcp.transformoverload.annotations.TransformProvider",
+    val spreadPackAnnotation = FqName(
+        "site.addzero.kcp.spreadpack.SpreadPack",
     )
-
-    val iterableLiftFunction = FqName(
-        "site.addzero.kcp.transformoverload.annotations.transformOverloadLiftIterable",
+    val spreadPackAnnotationClassId = ClassId.topLevel(
+        spreadPackAnnotation,
     )
-    val collectionLiftFunction = FqName(
-        "site.addzero.kcp.transformoverload.annotations.transformOverloadLiftCollection",
+    val generatedSpreadPackOverloadAnnotation = FqName(
+        "site.addzero.kcp.spreadpack.GeneratedSpreadPackOverload",
     )
-    val listLiftFunction = FqName(
-        "site.addzero.kcp.transformoverload.annotations.transformOverloadLiftList",
-    )
-    val setLiftFunction = FqName(
-        "site.addzero.kcp.transformoverload.annotations.transformOverloadLiftSet",
-    )
-    val sequenceLiftFunction = FqName(
-        "site.addzero.kcp.transformoverload.annotations.transformOverloadLiftSequence",
+    val generatedSpreadPackOverloadAnnotationClassId = ClassId.topLevel(
+        generatedSpreadPackOverloadAnnotation,
     )
 }
 
-internal object TransformOverloadGeneratedDeclarationKey : GeneratedDeclarationKey() {
-    override fun toString(): String = "TransformOverloadGeneratedDeclarationKey"
+internal object SpreadPackGeneratedDeclarationKey : GeneratedDeclarationKey() {
+    override fun toString(): String = "SpreadPackGeneratedDeclarationKey"
 }

@@ -1,49 +1,37 @@
-package  site.addzero.web.ui.hooks
+package site.addzero.hook
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 
 /**
- * @author zjarlin
- * @date 2025/04/02
- * @constructor 创建[UseHook]
+ * 统一的 Compose Hook 渲染约定。
+ *
+ * 这一层只负责约束“自身可渲染、离开组合时可释放”的最小能力，
+ * 不再要求实现类通过不安全的自引用泛型暴露自身状态。
  */
-interface UseHook<T : UseHook<T>> {
-
-    //      var  xxxxxx  by    mutableStateOf(value)
+interface UseHook {
 
     val modifier: Modifier
         get() = Modifier
 
-    val state: T
-        get() = this as T
-
-
-    @Composable
-    fun rememberState(): T {
-        val remember = remember { state }
-        return remember
-    }
-
     val render: @Composable () -> Unit
 
-    val onDispose: (T) -> Unit
+    val onDispose: () -> Unit
         get() = {}
 
+    /**
+     * 渲染 Hook 内容，并在离开组合时触发释放回调。
+     */
     @Composable
-    fun Render(block: @Composable T.() -> Unit) {
-        val state = rememberState()
-
-        // 使用DisposableEffect确保在组件离开组合时调用dispose方法
-        DisposableEffect(state) {
+    fun Render(block: @Composable () -> Unit = {}) {
+        DisposableEffect(Unit) {
             onDispose {
-                onDispose(state)
+                onDispose()
             }
         }
 
-        block(state)
-        state.render()
+        block()
+        render()
     }
 }

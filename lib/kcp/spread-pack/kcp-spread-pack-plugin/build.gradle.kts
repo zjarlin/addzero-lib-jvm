@@ -8,7 +8,7 @@ val libs = versionCatalogs.named("libs")
 group = "site.addzero"
 
 dependencies {
-    implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
+    implementation(project(":lib:kcp:spread-pack:kcp-spread-pack-annotations"))
     compileOnly(libs.findLibrary("org-jetbrains-kotlin-kotlin-compiler-embeddable").get())
     testImplementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-compiler-embeddable").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
@@ -18,5 +18,5 @@ val pluginJar = tasks.named<Jar>("jar").flatMap { task -> task.archiveFile }
 
 tasks.test {
     dependsOn(pluginJar)
-    systemProperty("transformOverload.pluginJar", pluginJar.get().asFile.absolutePath)
+    systemProperty("spreadPack.pluginJar", pluginJar.get().asFile.absolutePath)
 }

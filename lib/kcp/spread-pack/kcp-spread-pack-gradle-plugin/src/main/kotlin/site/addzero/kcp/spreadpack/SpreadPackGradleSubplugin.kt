@@ -1,4 +1,4 @@
-package site.addzero.kcp.transformoverload.gradle
+package site.addzero.kcp.spreadpack
 
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
@@ -9,9 +9,9 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import java.util.Properties
 
-class TransformOverloadGradleSubplugin : KotlinCompilerPluginSupportPlugin {
+class SpreadPackGradleSubplugin : KotlinCompilerPluginSupportPlugin {
 
-    private val logger = Logging.getLogger(TransformOverloadGradleSubplugin::class.java)
+    private val logger = Logging.getLogger(SpreadPackGradleSubplugin::class.java)
 
     override fun apply(target: Project) {
         addAnnotationsDependency(target)
@@ -24,7 +24,7 @@ class TransformOverloadGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.target.project
         if (shouldDisableCompilerPluginForIdeSync(project)) {
             logger.info(
-                "Disabling transform-overload compiler plugin for IDE sync/import in project ${project.path}",
+                "Disabling spread-pack compiler plugin for IDE sync/import in project ${project.path}",
             )
             return false
         }
@@ -91,14 +91,14 @@ class TransformOverloadGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     )
 
     companion object {
-        const val GRADLE_PLUGIN_ID: String = "site.addzero.kcp.transform-overload"
-        const val COMPILER_PLUGIN_ID: String = "site.addzero.kcp.transform-overload"
-        const val COMPILER_ARTIFACT_ID: String = "kcp-transform-overload-plugin"
-        const val ANNOTATIONS_ARTIFACT_ID: String = "kcp-transform-overload-annotations"
+        const val GRADLE_PLUGIN_ID: String = "site.addzero.kcp.spread-pack"
+        const val COMPILER_PLUGIN_ID: String = "site.addzero.kcp.spread-pack"
+        const val COMPILER_ARTIFACT_ID: String = "kcp-spread-pack-plugin"
+        const val ANNOTATIONS_ARTIFACT_ID: String = "kcp-spread-pack-annotations"
 
-        private const val ANNOTATIONS_MARKER = "site.addzero.kcp.transform-overload.annotations-added"
+        private const val ANNOTATIONS_MARKER = "site.addzero.kcp.spread-pack.annotations-added"
         private const val PROPERTIES_RESOURCE =
-            "site/addzero/kcp/transformoverload/gradle-plugin.properties"
+            "site/addzero/kcp/spreadpack/gradle-plugin.properties"
     }
 }
 

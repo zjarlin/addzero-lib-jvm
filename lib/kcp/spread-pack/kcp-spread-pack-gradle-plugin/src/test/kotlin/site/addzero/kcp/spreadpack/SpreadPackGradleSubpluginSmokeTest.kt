@@ -1,6 +1,7 @@
-package site.addzero.kcp.transformoverload.gradle
+package site.addzero.kcp.spreadpack
 
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -12,50 +13,50 @@ import java.nio.file.StandardCopyOption
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 
-class TransformOverloadGradleSubpluginSmokeTest {
+class SpreadPackGradleSubpluginSmokeTest {
 
     @Test
-    fun compiles_consumer_project_and_exposes_generated_methods() {
+    fun compiles_consumer_project_and_runs_generated_overload() {
         val javaHome = System.getProperty("java.home")
-        val gradlePluginClasspath = System.getProperty("transformOverload.gradlePluginClasspath")
-            ?: error("Missing transformOverload.gradlePluginClasspath system property")
+        val gradlePluginClasspath = System.getProperty("spreadPack.gradlePluginClasspath")
+            ?: error("Missing spreadPack.gradlePluginClasspath system property")
         val localRepositoryDir = createLocalMavenRepository()
-        val testProjectDir = Files.createTempDirectory("transform-overload-gradle-smoke")
+        val testProjectDir = Files.createTempDirectory("spread-pack-gradle-smoke")
         writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
         writeFile(testProjectDir, "build.gradle.kts", buildFile(gradlePluginClasspath))
         writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
         writeFile(
             testProjectDir,
-            "src/main/kotlin/org/babyfish/jimmer/Stubs.kt",
+            "src/main/kotlin/site/addzero/example/SpreadPackConsumer.kt",
             """
-                package org.babyfish.jimmer
+                package site.addzero.example
 
-                interface Input<E> {
-                    fun toEntity(): E
-                }
-            """.trimIndent(),
-        )
-        writeFile(
-            testProjectDir,
-            "src/main/kotlin/org/babyfish/jimmer/spring/repo/RepositoryTargets.kt",
-            """
-                package org.babyfish.jimmer.spring.repo
+                import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+                import site.addzero.kcp.spreadpack.SpreadPack
+                import site.addzero.kcp.spreadpack.SpreadPackSelector
 
-                import org.babyfish.jimmer.Input
-                import site.addzero.kcp.transformoverload.annotations.GenerateTransformOverloads
-                import site.addzero.kcp.transformoverload.annotations.OverloadTransform
+                data class FormOptions(
+                    val name: String = "guest",
+                    val enabled: Boolean = false,
+                    val onDone: (() -> String)? = null,
+                )
 
-                @OverloadTransform
-                fun <E : Any> Input<E>.toEntityInput(): E = toEntity()
-
-                @GenerateTransformOverloads
-                interface KotlinRepository<E : Any> {
-                    fun save(value: E): String
+                @GenerateSpreadPackOverloads
+                class ConsumerService {
+                    fun submit(
+                        @SpreadPack(selector = SpreadPackSelector.ATTRS)
+                        options: FormOptions,
+                    ): String {
+                        val done = options.onDone?.invoke() ?: "-"
+                        return "${'$'}{options.name}:${'$'}{options.enabled}:${'$'}done"
+                    }
                 }
 
-                fun verify(repo: KotlinRepository<String>, value: Input<String>) {
-                    repo.save(value)
-                }
+                fun invokeGenerated(): String =
+                    ConsumerService().submit(
+                        name = "gradle",
+                        enabled = true,
+                    )
             """.trimIndent(),
         )
 
@@ -72,17 +73,9 @@ class TransformOverloadGradleSubpluginSmokeTest {
 
         assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
 
-        val repositoryClass = loadClass(
-            classesDir = testProjectDir.resolve("build/classes/kotlin/main"),
-            name = "org.babyfish.jimmer.spring.repo.KotlinRepository",
-        )
-        assertTrue(
-            repositoryClass.declaredMethods.any { method ->
-                method.name == "save" &&
-                    method.parameterTypes.singleOrNull()?.name == "org.babyfish.jimmer.Input"
-            },
-            repositoryClass.declaredMethods.joinToString("\n"),
-        )
+        val classLoader = createClassLoader(testProjectDir)
+        val consumerKt = classLoader.loadClass("site.addzero.example.SpreadPackConsumerKt")
+        assertEquals("gradle:true:-", consumerKt.getDeclaredMethod("invokeGenerated").invoke(null))
     }
 
     private fun settingsFile(localRepositoryDir: Path): String {
@@ -104,35 +97,35 @@ class TransformOverloadGradleSubpluginSmokeTest {
                 }
             }
 
-            rootProject.name = "transform-overload-consumer"
+            rootProject.name = "spread-pack-consumer"
         """.trimIndent()
     }
 
     private fun createLocalMavenRepository(): Path {
-        val pluginGroup = System.getProperty("transformOverload.pluginGroup")
-            ?: error("Missing transformOverload.pluginGroup system property")
-        val pluginVersion = System.getProperty("transformOverload.pluginVersion")
-            ?: error("Missing transformOverload.pluginVersion system property")
-        val compilerPluginBuildDir = System.getProperty("transformOverload.compilerPluginBuildDir")
+        val pluginGroup = System.getProperty("spreadPack.pluginGroup")
+            ?: error("Missing spreadPack.pluginGroup system property")
+        val pluginVersion = System.getProperty("spreadPack.pluginVersion")
+            ?: error("Missing spreadPack.pluginVersion system property")
+        val compilerPluginBuildDir = System.getProperty("spreadPack.compilerPluginBuildDir")
             ?.let(Paths::get)
-            ?: error("Missing transformOverload.compilerPluginBuildDir system property")
-        val annotationsBuildDir = System.getProperty("transformOverload.annotationsBuildDir")
+            ?: error("Missing spreadPack.compilerPluginBuildDir system property")
+        val annotationsBuildDir = System.getProperty("spreadPack.annotationsBuildDir")
             ?.let(Paths::get)
-            ?: error("Missing transformOverload.annotationsBuildDir system property")
-        val repositoryDir = Files.createTempDirectory("transform-overload-m2")
+            ?: error("Missing spreadPack.annotationsBuildDir system property")
+        val repositoryDir = Files.createTempDirectory("spread-pack-m2")
         installModule(
             repositoryDir = repositoryDir,
             groupId = pluginGroup,
-            artifactId = "kcp-transform-overload-plugin",
+            artifactId = "kcp-spread-pack-plugin",
             version = pluginVersion,
-            jarFile = findPrimaryJar(compilerPluginBuildDir, "kcp-transform-overload-plugin"),
+            jarFile = findPrimaryJar(compilerPluginBuildDir, "kcp-spread-pack-plugin"),
         )
         installModule(
             repositoryDir = repositoryDir,
             groupId = pluginGroup,
-            artifactId = "kcp-transform-overload-annotations",
+            artifactId = "kcp-spread-pack-annotations",
             version = pluginVersion,
-            jarFile = findPrimaryJar(annotationsBuildDir, "kcp-transform-overload-annotations"),
+            jarFile = findPrimaryJar(annotationsBuildDir, "kcp-spread-pack-annotations"),
         )
         return repositoryDir
     }
@@ -211,16 +204,17 @@ class TransformOverloadGradleSubpluginSmokeTest {
             }
 
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper>()
-            apply<site.addzero.kcp.transformoverload.gradle.TransformOverloadGradleSubplugin>()
+            apply<site.addzero.kcp.spreadpack.SpreadPackGradleSubplugin>()
         """.trimIndent()
     }
 
     private fun gradleProperties(javaHome: String): String {
+        val normalizedJavaHome = javaHome.replace("\\", "/")
         return """
             org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=768m -Dfile.encoding=UTF-8
             org.gradle.parallel=false
             org.gradle.configuration-cache=false
-            org.gradle.java.home=$javaHome
+            org.gradle.java.home=$normalizedJavaHome
         """.trimIndent()
     }
 
@@ -230,16 +224,16 @@ class TransformOverloadGradleSubpluginSmokeTest {
         file.writeText(content)
     }
 
-    private fun loadClass(classesDir: Path, name: String): Class<*> {
+    private fun createClassLoader(projectDir: Path): URLClassLoader {
+        val kotlinClassesDir = projectDir.resolve("build/classes/kotlin/main")
         val kotlinStdlib = findClasspathEntry("kotlin-stdlib")
         val kotlinStdlibJdk8 = findClasspathEntry("kotlin-stdlib-jdk8")
         val urls = listOfNotNull(
-            classesDir.toUri().toURL(),
+            kotlinClassesDir.toUri().toURL(),
             kotlinStdlib?.toURI()?.toURL(),
             kotlinStdlibJdk8?.toURI()?.toURL(),
         ).toTypedArray()
-        val classLoader = URLClassLoader(urls, javaClass.classLoader)
-        return classLoader.loadClass(name)
+        return URLClassLoader(urls, javaClass.classLoader)
     }
 
     private fun findClasspathEntry(fragment: String): File? {

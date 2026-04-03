@@ -1,10 +1,10 @@
-package site.addzero.kcp.transformoverload.gradle
+package site.addzero.kcp.spreadpack
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class TransformOverloadIdeSyncDetectionTest {
+class SpreadPackIdeSyncDetectionTest {
 
     @Test
     fun ignores_idea_sync_property_without_sync_tasks() {
@@ -43,7 +43,13 @@ class TransformOverloadIdeSyncDetectionTest {
         assertTrue(
             shouldDisableCompilerPluginForIdeSync(
                 systemProperties = emptyMap(),
-                taskNames = listOf("jvmSyncTask"),
+                taskNames = listOf("ideaSyncTask"),
+            ),
+        )
+        assertTrue(
+            shouldDisableCompilerPluginForIdeSync(
+                systemProperties = emptyMap(),
+                taskNames = listOf("customSyncTask"),
             ),
         )
     }

@@ -17,6 +17,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import site.addzero.component.button.AddIconButton
 
 /**
@@ -37,6 +38,9 @@ fun AddSearchBar(
     fieldShape: Shape = RoundedCornerShape(8.dp),
     showRefreshButton: Boolean = true,
 ) {
+    val fieldTextStyle = MaterialTheme.typography.bodyMedium.copy(
+        lineHeight = 16.sp,
+    )
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -50,7 +54,7 @@ fun AddSearchBar(
             placeholder = {
                 Text(
                     text = placeholder,
-                    style = MaterialTheme.typography.bodyMedium.copy(
+                    style = fieldTextStyle.copy(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
                     )
                 )
@@ -77,6 +81,7 @@ fun AddSearchBar(
                 }
             },
             singleLine = true,
+            textStyle = fieldTextStyle,
             shape = fieldShape,
             modifier = Modifier
                 .weight(1f)

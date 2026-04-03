@@ -7,6 +7,7 @@
 - [`kcp-i18n`](./kcp-i18n/)：国际化方向插件
 - [`multireceiver`](./multireceiver/)：多接收者方向实验
 - [`singleton-adapter-kcp`](./singleton-adapter-kcp/)：单例适配方向插件
+- [`spread-pack`](./spread-pack/)：dataarg / argsof 方向的参数包展开原型
 - [`transform-overload`](./transform-overload/)：重载转换方向实验
 
 ## 怎么理解这组目录
