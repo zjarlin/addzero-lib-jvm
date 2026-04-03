@@ -6,12 +6,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
+/**
+ * 侧栏的稳定视觉变体。
+ */
 @Serializable
 enum class AppSidebarStyle {
     Default,
     FlushWorkbench,
 }
 
+/**
+ * 侧栏的基础行为配置。
+ */
 interface AppSidebarConfig {
     val style: AppSidebarStyle
         get() = AppSidebarStyle.Default
@@ -23,11 +29,17 @@ interface AppSidebarConfig {
         get() = "搜索菜单"
 }
 
+/**
+ * 侧栏对外暴露的事件回调集合。
+ */
 interface AppSidebarEvents<T> {
     fun onKeywordChange(keyword: String) {}
     fun onItemClick(item: T) {}
 }
 
+/**
+ * 侧栏可插拔的布局插槽。
+ */
 interface AppSidebarSlots<T> {
     val header: @Composable ColumnScope.() -> Unit
         get() = {}
@@ -47,6 +59,9 @@ interface AppSidebarSlots<T> {
         get() = null
 }
 
+/**
+ * 创建侧栏配置。
+ */
 fun appSidebarConfig(
     style: AppSidebarStyle = AppSidebarStyle.Default,
     supportText: String? = null,
@@ -59,6 +74,9 @@ fun appSidebarConfig(
     searchPlaceholder = searchPlaceholder,
 )
 
+/**
+ * 创建侧栏事件集合。
+ */
 fun <T> appSidebarEvents(
     onKeywordChange: (String) -> Unit = {},
     onItemClick: (T) -> Unit = {},
@@ -67,6 +85,9 @@ fun <T> appSidebarEvents(
     onItemClickHandler = onItemClick,
 )
 
+/**
+ * 创建侧栏插槽集合。
+ */
 fun <T> appSidebarSlots(
     header: @Composable ColumnScope.() -> Unit = {},
     footer: @Composable ColumnScope.() -> Unit = {},

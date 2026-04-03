@@ -10,6 +10,9 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
+/**
+ * 侧栏搜索、选中和展开状态的统一持有者。
+ */
 @Stable
 class AppSidebarState internal constructor(
     initialSelectedId: String?,
@@ -22,22 +25,39 @@ class AppSidebarState internal constructor(
 
     internal val expandedItems = mutableStateMapOf<String, Boolean>()
 
+    /**
+     * 更新当前选中的节点 ID。
+     */
     fun updateSelectedId(id: String?) {
         selectedId = id
     }
 
+    /**
+     * 更新搜索关键字。
+     */
     fun updateKeyword(nextKeyword: String) {
         keyword = nextKeyword
     }
 
+    /**
+     * 清空当前搜索关键字。
+     */
     fun clearKeyword() {
         keyword = ""
     }
 
+    /**
+     * 切换某个分组节点的展开状态。
+     */
     fun toggleExpanded(id: String) {
         expandedItems[id] = !(expandedItems[id] ?: true)
     }
 
+    /**
+     * 按侧栏语义选择一个节点。
+     *
+     * 默认只允许叶子节点进入选中态，分组节点保留给展开/折叠交互。
+     */
     fun <T> select(
         item: T,
         itemId: (T) -> String,
@@ -49,6 +69,9 @@ class AppSidebarState internal constructor(
         }
     }
 
+    /**
+     * 依据初始展开规则重建整棵树的展开态。
+     */
     fun <T> resetExpandedState(
         items: List<T>,
         itemId: (T) -> String,
@@ -64,6 +87,9 @@ class AppSidebarState internal constructor(
         )
     }
 
+    /**
+     * 为当前选中节点自动展开所有祖先节点。
+     */
     fun <T> revealSelection(
         items: List<T>,
         itemId: (T) -> String,
@@ -154,6 +180,9 @@ class AppSidebarState internal constructor(
     }
 }
 
+/**
+ * 记住一个可保存的侧栏状态实例。
+ */
 @Composable
 fun rememberAppSidebarState(
     initialSelectedId: String? = null,

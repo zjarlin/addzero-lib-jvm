@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
+import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -30,10 +31,28 @@ import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.getValueArgument
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+
+private data class IrCarrierMetadata(
+    val irClass: IrClass,
+    val primaryConstructor: org.jetbrains.kotlin.ir.declarations.IrConstructor,
+)
+
+private data class IrFlattenedFieldSpec(
+    val name: Name,
+    val type: IrType,
+)
+
+private data class IrSpreadArgsReference(
+    val functionFqName: String,
+    val parameterTypeClassIds: List<ClassId>,
+)
 
 @OptIn(
     DeprecatedForRemovalCompilerApi::class,
@@ -113,7 +132,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
 
         candidates.forEach { candidate ->
-            val match = resolveMatch(candidate, originals) ?: return@forEach
+            val match = resolveMatch(candidate, originals, pluginContext) ?: return@forEach
             candidate.body = createDelegatingBody(pluginContext, candidate, match)
         }
     }
@@ -134,9 +153,10 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     private fun resolveMatch(
         generated: IrSimpleFunction,
         originals: List<IrSimpleFunction>,
+        pluginContext: IrPluginContext,
     ): IrSpreadPackMatch? {
         val matches = originals.mapNotNull { original ->
-            resolveAgainstOriginal(generated, original)
+            resolveAgainstOriginal(generated, original, pluginContext)
         }
         if (matches.isEmpty()) {
             return null
@@ -147,6 +167,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     private fun resolveAgainstOriginal(
         generated: IrSimpleFunction,
         original: IrSimpleFunction,
+        pluginContext: IrPluginContext,
     ): IrSpreadPackMatch? {
         val originalName = original.name.asString()
         val generatedName = generated.name.asString()
@@ -164,7 +185,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
 
         val expansions = original.valueParameters.mapIndexedNotNull { index, parameter ->
-            createExpansion(original, index, parameter)
+            createExpansion(original, index, parameter, pluginContext)
         }
         if (expansions.isEmpty()) {
             return null
@@ -198,8 +219,62 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         owner: IrSimpleFunction,
         parameterIndex: Int,
         parameter: IrValueParameter,
+        pluginContext: IrPluginContext,
     ): IrSpreadPackExpansion? {
-        val annotation = parameter.getSpreadPackAnnotation() ?: return null
+        val spreadPackAnnotation = parameter.getSpreadPackAnnotation() ?: return null
+        val carrier = resolveCarrierMetadata(owner, parameter)
+        val spreadArgsAnnotation = parameter.getSpreadArgsOfAnnotation()
+        val selectorKind = spreadArgsAnnotation?.selectorKind()
+            ?: spreadPackAnnotation.selectorKind()
+        val excludedNames = spreadArgsAnnotation?.excludedNames()
+            ?: spreadPackAnnotation.excludedNames()
+        if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
+            invalidTarget(
+                owner,
+                "parameter ${parameter.name.asString()} must keep @SpreadPack at default values when @SpreadArgsOf is present",
+            )
+        }
+
+        val fields = if (spreadArgsAnnotation == null) {
+            buildCarrierFields(
+                owner = owner,
+                carrier = carrier,
+                selectorKind = selectorKind,
+                excludedNames = excludedNames,
+            )
+        } else {
+            val referencedOverload = resolveReferencedOverload(owner, spreadArgsAnnotation, pluginContext)
+            val overloadKey = overloadKey(referencedOverload)
+            val flattenedFields = flattenFunctionParameters(
+                owner = owner,
+                function = referencedOverload,
+                pluginContext = pluginContext,
+                visitedOverloads = linkedSetOf(overloadKey),
+            )
+            buildReferencedCarrierFields(
+                owner = owner,
+                carrier = carrier,
+                flattenedFields = flattenedFields,
+                selectorKind = selectorKind,
+                excludedNames = excludedNames,
+                referenceDescription = referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString(),
+            )
+        }
+
+        return IrSpreadPackExpansion(
+            parameterIndex = parameterIndex,
+            carrierClass = carrier.irClass,
+            constructor = carrier.primaryConstructor,
+            selectorKind = selectorKind,
+            excludedNames = excludedNames,
+            fields = fields,
+        )
+    }
+
+    private fun resolveCarrierMetadata(
+        owner: IrSimpleFunction,
+        parameter: IrValueParameter,
+    ): IrCarrierMetadata {
         val parameterType = parameter.type as? IrSimpleType
             ?: invalidTarget(
                 owner,
@@ -229,52 +304,366 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 owner,
                 "spread-pack carrier ${carrierClass.name.asString()} must declare a primary constructor",
             )
+        return IrCarrierMetadata(
+            irClass = carrierClass,
+            primaryConstructor = primaryConstructor,
+        )
+    }
 
-        val selectorKind = annotation.selectorKind()
-        val excludedNames = annotation.excludedNames()
-        val constructorParameterNames = primaryConstructor.valueParameters
-            .map { constructorParameter -> constructorParameter.name.asString() }
-            .toSet()
-        val unknownExcludedNames = excludedNames - constructorParameterNames
-        if (unknownExcludedNames.isNotEmpty()) {
-            invalidTarget(
-                owner,
-                "unknown spread-pack exclude names for ${carrierClass.name.asString()}: " +
-                    unknownExcludedNames.sorted().joinToString(),
-            )
-        }
-
-        val selectedParameters = primaryConstructor.valueParameters.filter { constructorParameter ->
+    private fun buildCarrierFields(
+        owner: IrSimpleFunction,
+        carrier: IrCarrierMetadata,
+        selectorKind: SelectorKind,
+        excludedNames: Set<String>,
+    ): List<IrSpreadPackField> {
+        val constructorParameters = carrier.primaryConstructor.valueParameters
+        validateExcludedNames(
+            owner = owner,
+            excludedNames = excludedNames,
+            availableNames = constructorParameters.map { constructorParameter -> constructorParameter.name.asString() },
+            contextLabel = carrier.irClass.name.asString(),
+        )
+        val selectedParameters = constructorParameters.filter { constructorParameter ->
             shouldIncludeField(constructorParameter, selectorKind) &&
                 constructorParameter.name.asString() !in excludedNames
         }
-        val selectedNames = selectedParameters
-            .map { constructorParameter -> constructorParameter.name.asString() }
-            .toSet()
-        primaryConstructor.valueParameters.forEach { constructorParameter ->
-            if (constructorParameter.name.asString() !in selectedNames && constructorParameter.defaultValue == null) {
+        validateCarrierOmissions(
+            owner = owner,
+            carrier = carrier,
+            selectedCarrierNames = selectedParameters.map { constructorParameter -> constructorParameter.name.asString() }.toSet(),
+        )
+        return selectedParameters.map { constructorParameter ->
+            IrSpreadPackField(
+                name = constructorParameter.name,
+                type = constructorParameter.type,
+                constructorIndex = carrier.primaryConstructor.valueParameters.indexOf(constructorParameter),
+            )
+        }
+    }
+
+    private fun buildReferencedCarrierFields(
+        owner: IrSimpleFunction,
+        carrier: IrCarrierMetadata,
+        flattenedFields: List<IrFlattenedFieldSpec>,
+        selectorKind: SelectorKind,
+        excludedNames: Set<String>,
+        referenceDescription: String,
+    ): List<IrSpreadPackField> {
+        val selectedFields = selectFlattenedFields(
+            owner = owner,
+            fields = flattenedFields,
+            selectorKind = selectorKind,
+            excludedNames = excludedNames,
+            contextLabel = referenceDescription,
+        )
+        val carrierParametersByName = carrier.primaryConstructor.valueParameters.associateBy { constructorParameter ->
+            constructorParameter.name.asString()
+        }
+        val selectedCarrierNames = linkedSetOf<String>()
+        return selectedFields.map { field ->
+            val fieldName = field.name.asString()
+            val carrierParameter = carrierParametersByName[fieldName]
+                ?: invalidTarget(
+                    owner,
+                    "spread-pack carrier ${carrier.irClass.name.asString()} is missing argsof field $fieldName from $referenceDescription",
+                )
+            if (!sameIrType(carrierParameter.type, field.type)) {
                 invalidTarget(
                     owner,
-                    "spread-pack carrier ${carrierClass.name.asString()} cannot omit required field " +
-                        constructorParameter.name.asString(),
+                    "spread-pack carrier ${carrier.irClass.name.asString()} field $fieldName type ${carrierParameter.type} " +
+                        "does not match $referenceDescription field type ${field.type}",
+                )
+            }
+            selectedCarrierNames += fieldName
+            IrSpreadPackField(
+                name = carrierParameter.name,
+                type = field.type,
+                constructorIndex = carrier.primaryConstructor.valueParameters.indexOf(carrierParameter),
+            )
+        }.also { fields ->
+            validateCarrierOmissions(
+                owner = owner,
+                carrier = carrier,
+                selectedCarrierNames = selectedCarrierNames,
+            )
+            validateUniqueFieldNames(
+                owner = owner,
+                names = fields.map { field -> field.name.asString() },
+                contextLabel = referenceDescription,
+            )
+        }
+    }
+
+    private fun flattenFunctionParameters(
+        owner: IrSimpleFunction,
+        function: IrSimpleFunction,
+        pluginContext: IrPluginContext,
+        visitedOverloads: Set<String>,
+    ): List<IrFlattenedFieldSpec> {
+        if (!isSupportedReferencedFunction(function)) {
+            invalidTarget(
+                owner,
+                "argsof target ${function.fqNameWhenAvailable?.asString() ?: function.name.asString()} must not declare receivers or context parameters",
+            )
+        }
+        return function.valueParameters.flatMap { referencedParameter ->
+            flattenValueParameter(
+                owner = owner,
+                parameter = referencedParameter,
+                pluginContext = pluginContext,
+                visitedOverloads = visitedOverloads,
+            )
+        }.also { fields ->
+            validateUniqueFieldNames(
+                owner = owner,
+                names = fields.map { field -> field.name.asString() },
+                contextLabel = function.fqNameWhenAvailable?.asString() ?: function.name.asString(),
+            )
+        }
+    }
+
+    private fun flattenValueParameter(
+        owner: IrSimpleFunction,
+        parameter: IrValueParameter,
+        pluginContext: IrPluginContext,
+        visitedOverloads: Set<String>,
+    ): List<IrFlattenedFieldSpec> {
+        val spreadPackAnnotation = parameter.getSpreadPackAnnotation()
+            ?: return listOf(
+                IrFlattenedFieldSpec(
+                    name = parameter.name,
+                    type = parameter.type,
+                ),
+            )
+        val carrier = resolveCarrierMetadata(owner, parameter)
+        val spreadArgsAnnotation = parameter.getSpreadArgsOfAnnotation()
+        val selectorKind = spreadArgsAnnotation?.selectorKind()
+            ?: spreadPackAnnotation.selectorKind()
+        val excludedNames = spreadArgsAnnotation?.excludedNames()
+            ?: spreadPackAnnotation.excludedNames()
+        if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
+            invalidTarget(
+                owner,
+                "nested spread-pack parameter ${parameter.name.asString()} must keep @SpreadPack at default values when @SpreadArgsOf is present",
+            )
+        }
+        if (spreadArgsAnnotation == null) {
+            return buildCarrierFields(
+                owner = owner,
+                carrier = carrier,
+                selectorKind = selectorKind,
+                excludedNames = excludedNames,
+            ).map { field ->
+                IrFlattenedFieldSpec(
+                    name = field.name,
+                    type = field.type,
                 )
             }
         }
 
-        return IrSpreadPackExpansion(
-            parameterIndex = parameterIndex,
-            carrierClass = carrierClass,
-            constructor = primaryConstructor,
+        val referencedOverload = resolveReferencedOverload(owner, spreadArgsAnnotation, pluginContext)
+        val overloadKey = overloadKey(referencedOverload)
+        if (overloadKey in visitedOverloads) {
+            invalidTarget(
+                owner,
+                "detected argsof overload cycle at ${referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString()}",
+            )
+        }
+        val flattenedFields = flattenFunctionParameters(
+            owner = owner,
+            function = referencedOverload,
+            pluginContext = pluginContext,
+            visitedOverloads = visitedOverloads + overloadKey,
+        )
+        return buildReferencedCarrierFields(
+            owner = owner,
+            carrier = carrier,
+            flattenedFields = flattenedFields,
             selectorKind = selectorKind,
             excludedNames = excludedNames,
-            fields = selectedParameters.map { constructorParameter ->
-                IrSpreadPackField(
-                    name = constructorParameter.name,
-                    type = constructorParameter.type,
-                    constructorIndex = primaryConstructor.valueParameters.indexOf(constructorParameter),
-                )
-            },
+            referenceDescription = referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString(),
+        ).map { field ->
+            IrFlattenedFieldSpec(
+                name = field.name,
+                type = field.type,
+            )
+        }
+    }
+
+    private fun selectFlattenedFields(
+        owner: IrSimpleFunction,
+        fields: List<IrFlattenedFieldSpec>,
+        selectorKind: SelectorKind,
+        excludedNames: Set<String>,
+        contextLabel: String,
+    ): List<IrFlattenedFieldSpec> {
+        validateExcludedNames(
+            owner = owner,
+            excludedNames = excludedNames,
+            availableNames = fields.map { field -> field.name.asString() },
+            contextLabel = contextLabel,
         )
+        return fields.filter { field ->
+            shouldIncludeField(field.type, selectorKind) &&
+                field.name.asString() !in excludedNames
+        }
+    }
+
+    private fun validateExcludedNames(
+        owner: IrSimpleFunction,
+        excludedNames: Set<String>,
+        availableNames: List<String>,
+        contextLabel: String,
+    ) {
+        val unknownExcludedNames = excludedNames - availableNames.toSet()
+        if (unknownExcludedNames.isNotEmpty()) {
+            invalidTarget(
+                owner,
+                "unknown spread-pack exclude names for $contextLabel: ${unknownExcludedNames.sorted().joinToString()}",
+            )
+        }
+    }
+
+    private fun validateCarrierOmissions(
+        owner: IrSimpleFunction,
+        carrier: IrCarrierMetadata,
+        selectedCarrierNames: Set<String>,
+    ) {
+        carrier.primaryConstructor.valueParameters.forEach { constructorParameter ->
+            if (constructorParameter.name.asString() !in selectedCarrierNames && constructorParameter.defaultValue == null) {
+                invalidTarget(
+                    owner,
+                    "spread-pack carrier ${carrier.irClass.name.asString()} cannot omit required field " +
+                        constructorParameter.name.asString(),
+                )
+            }
+        }
+    }
+
+    private fun validateUniqueFieldNames(
+        owner: IrSimpleFunction,
+        names: List<String>,
+        contextLabel: String,
+    ) {
+        val duplicates = names.groupingBy { it }.eachCount()
+            .filterValues { count -> count > 1 }
+            .keys
+            .sorted()
+        if (duplicates.isNotEmpty()) {
+            invalidTarget(
+                owner,
+                "duplicate flattened parameter names in $contextLabel: ${duplicates.joinToString()}",
+            )
+        }
+    }
+
+    private fun resolveReferencedOverload(
+        owner: IrSimpleFunction,
+        annotation: IrConstructorCall,
+        pluginContext: IrPluginContext,
+    ): IrSimpleFunction {
+        val reference = annotation.spreadArgsReference()
+        val overloads = resolveFunctionSymbolsByFqName(reference.functionFqName, pluginContext)
+            .filter(::isResolvableReferencedFunction)
+        if (overloads.isEmpty()) {
+            invalidTarget(
+                owner,
+                "unable to resolve argsof overload set ${reference.functionFqName}",
+            )
+        }
+        if (reference.parameterTypeClassIds.isEmpty()) {
+            if (overloads.size != 1) {
+                invalidTarget(
+                    owner,
+                    "argsof overload set ${reference.functionFqName} is ambiguous; specify SpreadOverload.parameterTypes",
+                )
+            }
+            return overloads.single()
+        }
+        val matches = overloads.filter { overload ->
+            overload.valueParameters.map { valueParameter ->
+                erasureClassId(valueParameter.type)
+                    ?: invalidTarget(
+                        owner,
+                        "argsof overload ${overload.fqNameWhenAvailable?.asString() ?: overload.name.asString()} has unsupported parameter type ${valueParameter.type}",
+                    )
+            } == reference.parameterTypeClassIds
+        }
+        if (matches.size != 1) {
+            invalidTarget(
+                owner,
+                "unable to select a unique argsof overload for ${reference.functionFqName} with parameterTypes=" +
+                    reference.parameterTypeClassIds.joinToString { classId -> classId.asString() },
+            )
+        }
+        return matches.single()
+    }
+
+    private fun resolveFunctionSymbolsByFqName(
+        functionFqName: String,
+        pluginContext: IrPluginContext,
+    ): List<IrSimpleFunction> {
+        val fqName = FqName(functionFqName)
+        val topLevelFunctions = pluginContext.referenceFunctions(
+            CallableId(fqName.parent(), fqName.shortName()),
+        ).map { symbol -> symbol.owner }
+        if (topLevelFunctions.isNotEmpty()) {
+            return topLevelFunctions
+        }
+
+        val pathSegments = fqName.pathSegments()
+        if (pathSegments.size < 2) {
+            return emptyList()
+        }
+        val functionName = pathSegments.last()
+        for (packageSize in pathSegments.size - 2 downTo 0) {
+            val packageFqName = FqName.fromSegments(pathSegments.take(packageSize).map { segment -> segment.asString() })
+            val classSegments = pathSegments
+                .subList(packageSize, pathSegments.lastIndex)
+                .map { segment -> segment.asString() }
+            if (classSegments.isEmpty()) {
+                continue
+            }
+            val classId = ClassId(
+                packageFqName,
+                FqName.fromSegments(classSegments),
+                false,
+            )
+            val classSymbol = pluginContext.referenceClass(classId) ?: continue
+            val memberFunctions = classSymbol.owner.declarations
+                .filterIsInstance<IrSimpleFunction>()
+                .filter { function -> function.name == functionName }
+            if (memberFunctions.isNotEmpty()) {
+                return memberFunctions
+            }
+        }
+        return emptyList()
+    }
+
+    private fun isResolvableReferencedFunction(
+        function: IrSimpleFunction,
+    ): Boolean {
+        return !isGeneratedByThisPlugin(function)
+    }
+
+    private fun isSupportedReferencedFunction(
+        function: IrSimpleFunction,
+    ): Boolean {
+        return function.extensionReceiverParameter == null &&
+            function.contextReceiverParametersCount == 0
+    }
+
+    private fun overloadKey(
+        function: IrSimpleFunction,
+    ): String {
+        return buildString {
+            append(function.fqNameWhenAvailable?.asString() ?: function.name.asString())
+            append("|")
+            function.valueParameters.forEach { valueParameter ->
+                append(jvmErasure(valueParameter.type))
+                append(";")
+            }
+        }
     }
 
     private fun buildExpectedParameterTypes(
@@ -341,10 +730,17 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         parameter: IrValueParameter,
         selectorKind: SelectorKind,
     ): Boolean {
+        return shouldIncludeField(parameter.type, selectorKind)
+    }
+
+    private fun shouldIncludeField(
+        type: org.jetbrains.kotlin.ir.types.IrType,
+        selectorKind: SelectorKind,
+    ): Boolean {
         return when (selectorKind) {
             SelectorKind.PROPS -> true
-            SelectorKind.ATTRS -> !isFunctionLike(parameter.type)
-            SelectorKind.CALLBACKS -> isFunctionLike(parameter.type)
+            SelectorKind.ATTRS -> !isFunctionLike(type)
+            SelectorKind.CALLBACKS -> isFunctionLike(type)
         }
     }
 
@@ -400,8 +796,15 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
     }
 
+    private fun IrValueParameter.getSpreadArgsOfAnnotation(): IrConstructorCall? {
+        return annotations.firstOrNull { annotation ->
+            (annotation.type.classifierOrNull?.owner as? IrClass)?.fqNameWhenAvailable ==
+                SpreadPackPluginKeys.spreadArgsOfAnnotation
+        }
+    }
+
     private fun IrConstructorCall.excludedNames(): Set<String> {
-        val rawArgument = getValueArgument(0) ?: return emptySet()
+        val rawArgument = getValueArgument(Name.identifier("exclude")) ?: return emptySet()
         return when (rawArgument) {
             is IrVararg -> rawArgument.elements.mapNotNull { element ->
                 (element as? IrConst)?.value as? String
@@ -413,12 +816,51 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun IrConstructorCall.selectorKind(): SelectorKind {
-        val rawArgument = getValueArgument(1) as? IrGetEnumValue ?: return SelectorKind.PROPS
+        val rawArgument = getValueArgument(Name.identifier("selector")) as? IrGetEnumValue
+            ?: return SelectorKind.PROPS
         return when (rawArgument.symbol.owner.name.asString()) {
             SelectorKind.ATTRS.name -> SelectorKind.ATTRS
             SelectorKind.CALLBACKS.name -> SelectorKind.CALLBACKS
             else -> SelectorKind.PROPS
         }
+    }
+
+    private fun IrConstructorCall.spreadArgsReference(): IrSpreadArgsReference {
+        val overloadAnnotation = getValueArgument(Name.identifier("overload")) as? IrConstructorCall
+            ?: error("SpreadArgsOf.overload must be an annotation value")
+        val overloadsAnnotation = overloadAnnotation.getValueArgument(Name.identifier("of")) as? IrConstructorCall
+            ?: error("SpreadOverload.of must be an annotation value")
+        val functionFqName = (overloadsAnnotation.getValueArgument(Name.identifier("functionFqName")) as? IrConst)
+            ?.value as? String
+            ?: error("SpreadOverloadsOf.functionFqName must be a string literal")
+        val parameterTypeClassIds = overloadAnnotation.classIdArguments(Name.identifier("parameterTypes"))
+        return IrSpreadArgsReference(
+            functionFqName = functionFqName,
+            parameterTypeClassIds = parameterTypeClassIds,
+        )
+    }
+
+    private fun IrConstructorCall.classIdArguments(
+        name: Name,
+    ): List<ClassId> {
+        val rawArgument = getValueArgument(name) ?: return emptyList()
+        return when (rawArgument) {
+            is IrVararg -> rawArgument.elements.mapNotNull { element ->
+                (element as? IrClassReference)?.classId()
+            }
+
+            is IrClassReference -> listOfNotNull(rawArgument.classId())
+            else -> emptyList()
+        }
+    }
+
+    private fun IrClassReference.classId(): ClassId? {
+        val irClass = classType.classifierOrNull?.owner as? IrClass ?: return null
+        return irClass.classId()
+    }
+
+    private fun IrConstructorCall.isDefaultSpreadPackConfiguration(): Boolean {
+        return excludedNames().isEmpty() && selectorKind() == SelectorKind.PROPS
     }
 
     private fun isGeneratedByThisPlugin(
@@ -482,6 +924,31 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 else -> false
             }
         }
+    }
+
+    private fun erasureClassId(
+        type: org.jetbrains.kotlin.ir.types.IrType,
+    ): ClassId? {
+        return (type as? IrSimpleType)
+            ?.classifierOrNull
+            ?.owner
+            ?.let { declaration -> declaration as? IrClass }
+            ?.classId()
+    }
+
+    private fun jvmErasure(
+        type: org.jetbrains.kotlin.ir.types.IrType,
+    ): String {
+        return erasureClassId(type)?.asString() ?: type.toString()
+    }
+
+    private fun IrClass.classId(): ClassId? {
+        val parentClass = parent as? IrClass
+        if (parentClass != null) {
+            return parentClass.classId()?.createNestedClassId(name)
+        }
+        val fqName = fqNameWhenAvailable ?: return null
+        return ClassId.topLevel(fqName)
     }
 
     private fun invalidTarget(

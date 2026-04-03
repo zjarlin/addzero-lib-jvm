@@ -1,9 +1,17 @@
 package site.addzero.component.table.original
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,8 +28,13 @@ import site.addzero.component.table.original.render.RenderTableScrollableContent
 import site.addzero.component.table.original.tools.rememberAddTableAutoWidth
 import site.addzero.core.ext.bean2map
 
+/**
+ * 底层自由拼装表格。
+ *
+ * 负责固定索引列、固定操作列、横向滚动内容区和上下插槽布局，
+ * 上层业务表格可以在这一层之上继续叠加搜索、分页和筛选能力。
+ */
 @Composable
-//@ComposeAssist
 inline fun <reified T, reified C> TableOriginal(
     data: List<T>,
     columns: List<C>,
@@ -34,112 +47,151 @@ inline fun <reified T, reified C> TableOriginal(
     noinline bottomSlot: (@Composable () -> Unit)? = null,
     noinline emptyContentSlot: (@Composable () -> Unit)? = null,
     noinline getCellContent: (@Composable (item: T, column: C) -> Unit)? = null,
-    // 行左侧插槽（如复选框）
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    noinline columnRightSlot: @Composable ((C) -> Unit)? = null
+    noinline columnRightSlot: @Composable ((C) -> Unit)? = null,
 ) {
-    // 设置默认值
-    val actualGetRowId = getRowId ?: {
-        val toMap = it?.bean2map()
-        toMap?.get("id") ?: it.hashCode()
+    val actualGetRowId = getRowId ?: { item ->
+        val mapped = item?.bean2map()
+        mapped?.get("id") ?: item.hashCode()
     }
     val actualGetColumnLabel = getColumnLabel ?: { column ->
         val columnKey = getColumnKey(column)
-        val comment = columnConfigs.find { it.key == columnKey }?.comment
-        val text =( comment?.ifBlank { columnKey })?:columnKey
+        val labelText = columnConfigs
+            .find { config -> config.key == columnKey }
+            ?.comment
+            ?.ifBlank { columnKey }
+            ?: columnKey
         Text(
-            text = text, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
+            text = labelText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleSmall,
         )
     }
     val actualTopSlot = topSlot ?: {}
     val actualBottomSlot = bottomSlot ?: {}
     val actualEmptyContentSlot = emptyContentSlot ?: {
         Box(
-            modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = "没有数据",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
     val actualGetCellContent = getCellContent ?: { item, column ->
-        val toMap = item?.bean2map()
-        val toString = toMap?.get(getColumnKey(column)).toString()
-        Text(text = toString)
+        val mapped = item?.bean2map()
+        val valueText = (mapped?.get(getColumnKey(column)) ?: "").toString()
+        Text(
+            text = valueText,
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
     val actualRowLeftSlot = rowLeftSlot ?: { _, _ -> }
 
-    val rememberScrollState = rememberScrollState()
+    val horizontalScrollState = rememberScrollState()
     val verticalScrollState = rememberLazyListState()
+    val tableStyle = rememberTableVisualStyle()
 
-    // 计算自适应列宽（可选）
-    val textStyleHeader = MaterialTheme.typography.titleSmall
-    val textStyleCell = MaterialTheme.typography.bodyMedium
     val autoWidths = rememberAddTableAutoWidth(
-        data = data, columns = columns, getColumnKey = getColumnKey, getCellText = { item, column ->
-            val m = item?.bean2map()
-            (m?.get(getColumnKey(column)) ?: "").toString()
-        }, layoutConfig = layoutConfig, headerTextStyle = textStyleHeader, cellTextStyle = textStyleCell
+        data = data,
+        columns = columns,
+        getColumnKey = getColumnKey,
+        getCellText = { item, column ->
+            val mapped = item?.bean2map()
+            (mapped?.get(getColumnKey(column)) ?: "").toString()
+        },
+        layoutConfig = layoutConfig,
+        headerTextStyle = MaterialTheme.typography.titleSmall,
+        cellTextStyle = MaterialTheme.typography.bodyMedium,
     )
 
     val mergedColumnConfigs = remember(columnConfigs, autoWidths) {
-        if (autoWidths.isEmpty()) columnConfigs else columnConfigs.map { cfg ->
-            val w = autoWidths[cfg.key]
-            if (w != null) cfg.copy(width = w) else cfg
+        if (autoWidths.isEmpty()) {
+            columnConfigs
+        } else {
+            columnConfigs.map { config ->
+                val autoWidth = autoWidths[config.key]
+                if (autoWidth != null) {
+                    config.copy(width = autoWidth)
+                } else {
+                    config
+                }
+            }
         }
     }
 
+    val showLeftSlot = rowLeftSlot != null
     val showFixedActionColumn = rowActionSlot != null
 
-    // 使用ViewModel渲染表格
-    Column(modifier = modifier) {
-        // 顶部插槽区域
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
         actualTopSlot()
 
-        // 主表格内容区域
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // 主内容滚动区域
-            RenderTableScrollableContent(
-                data = data,
-                columns = columns,
-                getColumnKey = getColumnKey,
-                getRowId = actualGetRowId,
-                horizontalScrollState = rememberScrollState,
-                lazyListState = verticalScrollState,
-                columnConfigs = mergedColumnConfigs,
-                layoutConfig = layoutConfig,
-                showActionColumn = showFixedActionColumn,
-                getColumnLabel = actualGetColumnLabel,
-                emptyContentSlot = actualEmptyContentSlot,
-                getCellContent = actualGetCellContent,
-                rowLeftSlot = actualRowLeftSlot,
-                columnRightSlot = columnRightSlot ?: {},
-            )
+        Surface(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
+            color = tableStyle.shellContainer,
+            border = BorderStroke(
+                width = 1.dp,
+                color = tableStyle.shellBorder,
+            ),
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                RenderTableScrollableContent(
+                    data = data,
+                    columns = columns,
+                    getColumnKey = getColumnKey,
+                    getRowId = actualGetRowId,
+                    horizontalScrollState = horizontalScrollState,
+                    lazyListState = verticalScrollState,
+                    columnConfigs = mergedColumnConfigs,
+                    layoutConfig = layoutConfig,
+                    showLeftSlot = showLeftSlot,
+                    showActionColumn = showFixedActionColumn,
+                    getColumnLabel = actualGetColumnLabel,
+                    emptyContentSlot = actualEmptyContentSlot,
+                    getCellContent = actualGetCellContent,
+                    rowLeftSlot = actualRowLeftSlot,
+                    columnRightSlot = columnRightSlot ?: {},
+                )
 
-            // 序号列固定遮罩 - 只需要滚动状态和数据
-            RenderFixedIndexColumn(
-                verticalScrollState = verticalScrollState,
-                data = data,
-                layoutConfig = layoutConfig,
-                modifier = Modifier.align(Alignment.CenterStart).zIndex(-1f) // 恢复为负数，确保不遮挡行内容
-            )
-
-            if (showFixedActionColumn) {
-                RenderFixedActionColumn(
-                    modifier = Modifier.align(Alignment.TopEnd).zIndex(1f),
+                RenderFixedIndexColumn(
                     verticalScrollState = verticalScrollState,
                     data = data,
                     layoutConfig = layoutConfig,
-                    rowActionSlot = rowActionSlot!!
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .zIndex(2f),
                 )
+
+                if (showFixedActionColumn) {
+                    RenderFixedActionColumn(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .zIndex(3f),
+                        verticalScrollState = verticalScrollState,
+                        data = data,
+                        layoutConfig = layoutConfig,
+                        rowActionSlot = rowActionSlot!!,
+                    )
+                }
             }
         }
 
-        // 底部插槽区域
         actualBottomSlot()
     }
 }

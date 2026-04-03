@@ -1,12 +1,12 @@
 package site.addzero.component.table.original.entity
 
 /**
- * 分页状态
+ * 分页状态。
  */
 data class StatePagination(
     var currentPage: Int = 1,
     var pageSize: Int = 10,
-    var totalItems: Int = 0
+    var totalItems: Int = 0,
 ) {
     val totalPages: Int get() = if (totalItems == 0) 1 else (totalItems + pageSize - 1) / pageSize
     val hasPreviousPage: Boolean get() = currentPage > 1

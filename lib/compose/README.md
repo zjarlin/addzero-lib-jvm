@@ -24,11 +24,13 @@
 ## 当前内容
 
 - `compose-native-component-glass`：原生风格玻璃态组件方向的实验模块
+- `app-sidebar`：当前推荐的通用侧栏与工作台骨架入口
 - `compose-native-component-button`：按钮、删除、加载、图标按钮等基础操作入口
 - `compose-native-component-form`：输入框、数字、日期、枚举、单选多选等表单组件
 - `compose-native-component-table` / `table-pro`：原始表格、分页、排序、筛选、批量操作
 - `compose-native-component-tree`：树、平铺树、命令树、树选择状态管理
 - `shadcn-compose-component`：shadcn 风格主题与常见桌面组件
+- `glass-components` / `liquid-glass`：当前主承载的玻璃态组件方向，优先复用这里的泛型语义 API
 
 ## 适合什么时候看
 
@@ -40,4 +42,6 @@
 ## 备注
 
 - 这一组当前更偏实验和积累，不是 `lib/` 下最稳定的入口
+- 侧栏方向优先使用 `app-sidebar`，旧式 `SidebarItem` 包装 API 进入兼容迁移阶段
+- 玻璃态方向优先看 `glass-components` 和 `liquid-glass`，`compose-native-component-glass` 主要保留兼容入口
 - 如果是 AI 协作场景，优先先看 `cmp-convention` 里的 `addzero-lib-compose.md`，再按场景进入对应参考文档

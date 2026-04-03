@@ -5,6 +5,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * 工作台骨架的稳定布局参数。
+ */
 interface ScaffoldConfig {
     val contentHeaderScrollable: Boolean
         get() = true
@@ -24,6 +27,9 @@ interface ScaffoldConfig {
         get() = PaddingValues(0.dp)
 }
 
+/**
+ * 创建一个工作台骨架配置实例。
+ */
 fun scaffoldConfig(
     contentHeaderScrollable: Boolean = true,
     defaultSidebarRatio: Float = 0.22f,

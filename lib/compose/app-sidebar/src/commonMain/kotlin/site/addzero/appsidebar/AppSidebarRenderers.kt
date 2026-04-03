@@ -7,6 +7,9 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 
+/**
+ * 侧栏渲染器 SPI。
+ */
 interface AppSidebarRenderer {
     @Composable
     fun Render(
@@ -14,6 +17,9 @@ interface AppSidebarRenderer {
     )
 }
 
+/**
+ * 从 Koin 解析并渲染当前侧栏实现。
+ */
 @Composable
 fun RenderAppSidebar(
     modifier: Modifier = Modifier,
@@ -22,6 +28,9 @@ fun RenderAppSidebar(
     renderer.Render(modifier)
 }
 
+/**
+ * 工作台骨架渲染器的壳层枚举。
+ */
 @Serializable
 enum class AppSidebarScaffoldShell {
     Workbench,
@@ -29,9 +38,7 @@ enum class AppSidebarScaffoldShell {
 }
 
 /**
- * @author zjarlin
- * @date 2026/03/28
- * @constructor 创建[AppSidebarScaffoldRenderer]
+ * 侧栏骨架渲染器 SPI。
  */
 interface AppSidebarScaffoldRenderer {
     val shell: AppSidebarScaffoldShell
@@ -42,6 +49,9 @@ interface AppSidebarScaffoldRenderer {
     )
 }
 
+/**
+ * 按壳层类型选择并渲染对应的工作台骨架。
+ */
 @Composable
 fun RenderAppSidebarScaffold(
     shell: AppSidebarScaffoldShell,
@@ -58,6 +68,9 @@ fun RenderAppSidebarScaffold(
     renderer.Render(modifier)
 }
 
+/**
+ * 通用工作台骨架渲染器 SPI。
+ */
 interface WorkbenchScaffoldRenderer {
     @Composable
     fun Render(
@@ -65,6 +78,9 @@ interface WorkbenchScaffoldRenderer {
     )
 }
 
+/**
+ * 从 Koin 解析并渲染通用工作台骨架。
+ */
 @Composable
 fun RenderWorkbenchScaffold(
     modifier: Modifier = Modifier,
@@ -73,6 +89,9 @@ fun RenderWorkbenchScaffold(
     renderer.Render(modifier)
 }
 
+/**
+ * 后台工作台骨架渲染器 SPI。
+ */
 interface AdminWorkbenchScaffoldRenderer {
     @Composable
     fun Render(
@@ -80,6 +99,9 @@ interface AdminWorkbenchScaffoldRenderer {
     )
 }
 
+/**
+ * 从 Koin 解析并渲染后台工作台骨架。
+ */
 @Composable
 fun RenderAdminWorkbenchScaffold(
     modifier: Modifier = Modifier,

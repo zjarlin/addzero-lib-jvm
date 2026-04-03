@@ -86,6 +86,9 @@ class TreeViewModel<T> {
     // 🚀 优化：添加配置验证
     private var isConfigured = false
 
+    /**
+     * 绑定树节点的基础语义提取函数。
+     */
     fun configure(
         getId: (T) -> Any,
         getLabel: (T) -> String,
@@ -224,6 +227,11 @@ class TreeViewModel<T> {
         selectedNodeId = nodeId
     }
 
+    /**
+     * 处理节点点击。
+     *
+     * 叶子节点会触发业务点击回调，分组节点只更新选中态。
+     */
     fun clickNode(node: T) {
         val nodeId = getId(node)
         val hasChildren = getChildren(node).isNotEmpty()
@@ -259,11 +267,17 @@ class TreeViewModel<T> {
         expandedIds = currentExpanded
     }
 
+    /**
+     * 展开整棵树的全部节点。
+     */
     fun expandAll() {
         val allIds = getAllNodeIds(items)
         expandedIds = allIds
     }
 
+    /**
+     * 收起整棵树的全部节点。
+     */
     fun collapseAll() {
         expandedIds = emptySet()
     }
@@ -279,6 +293,9 @@ class TreeViewModel<T> {
         }
     }
 
+    /**
+     * 在多选模式下切换指定节点的选中态。
+     */
     fun toggleItemSelection(nodeId: Any) {
         if (!multiSelectMode) return
 
@@ -293,18 +310,30 @@ class TreeViewModel<T> {
         return selectionManager.getNodeState(nodeId)
     }
 
+    /**
+     * 判断节点是否处于半选态。
+     */
     fun isNodeIndeterminate(nodeId: Any): Boolean {
         return selectionManager.isNodeIndeterminate(nodeId)
     }
 
+    /**
+     * 清空当前多选结果。
+     */
     fun clearAllSelections() {
         selectionManager.clearAllSelections()
     }
 
+    /**
+     * 选中当前树里的全部可选节点。
+     */
     fun selectAllNodes() {
         selectionManager.selectAll()
     }
 
+    /**
+     * 判断指定节点是否已被选中。
+     */
     fun isItemSelected(nodeId: Any): Boolean {
         return selectionManager.isNodeSelected(nodeId)
     }
@@ -343,6 +372,9 @@ class TreeViewModel<T> {
         searchQuery = query
     }
 
+    /**
+     * 触发一次树搜索，并自动展开命中的祖先节点。
+     */
     fun performSearch() {
         // 🚀 执行搜索时的额外逻辑
         // 当前过滤逻辑在 filteredItems 中自动执行
@@ -382,6 +414,9 @@ class TreeViewModel<T> {
         }
     }
 
+    /**
+     * 切换搜索栏显隐，并在关闭时清空关键字。
+     */
     fun toggleSearchBar() {
         showSearchBar = !showSearchBar
         if (!showSearchBar) {
@@ -389,6 +424,9 @@ class TreeViewModel<T> {
         }
     }
 
+    /**
+     * 直接设置搜索栏显隐状态。
+     */
     fun updateShowSearchBar(show: Boolean) {
         showSearchBar = show
         if (!show) {
@@ -415,10 +453,16 @@ class TreeViewModel<T> {
     }
 
 
+    /**
+     * 判断节点当前是否展开。
+     */
     fun isExpanded(nodeId: Any): Boolean {
         return nodeId in expandedIds
     }
 
+    /**
+     * 判断节点当前是否处于单选选中态。
+     */
     fun isSelected(nodeId: Any): Boolean {
         return selectedNodeId == nodeId
     }
@@ -431,5 +475,3 @@ class TreeViewModel<T> {
 fun <T> rememberTreeViewModel(): TreeViewModel<T> {
     return remember { TreeViewModel<T>() }
 }
-
-

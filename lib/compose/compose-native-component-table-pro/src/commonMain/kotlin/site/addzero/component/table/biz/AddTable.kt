@@ -1,7 +1,13 @@
 package site.addzero.component.table.biz
 
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import site.addzero.assist.AddFun.getIdExt
 import site.addzero.component.button.AddEditDeleteButton
 import site.addzero.component.search_bar.AddSearchBar
@@ -12,8 +18,13 @@ import site.addzero.component.table.original.entity.TableLayoutConfig
 import site.addzero.entity.low_table.EnumSortDirection
 import site.addzero.entity.low_table.StateSearch
 import site.addzero.entity.low_table.StateSort
-import kotlinx.coroutines.launch
 
+/**
+ * 成品业务表格入口。
+ *
+ * 这一层负责把搜索、分页、排序、筛选、多选和默认行操作收口成一个稳定入口，
+ * 调用方只需要提供数据、列定义和业务回调。
+ */
 @Composable
 inline fun <reified T, reified C> AddTable(
     data: List<T>,
@@ -27,242 +38,285 @@ inline fun <reified T, reified C> AddTable(
     noinline bottomSlot: (@Composable () -> Unit)? = null,
     noinline emptyContentSlot: (@Composable () -> Unit)? = null,
     noinline getCellContent: (@Composable (item: T, column: C) -> Unit)? = null,
-    // 行左侧插槽（如复选框）
     noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
     noinline columnRightSlot: @Composable ((C) -> Unit)? = null,
     noinline buttonSlot: @Composable () -> Unit = {},
-    // 新增的回调函数参数
-    noinline onSearch: ((String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit),
-    noinline onSaveClick: (() -> Unit),
-    noinline onImportClick: (() -> Unit),
-    noinline onExportClick: ((String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit),
-    noinline onBatchDelete: ((Set<Any>) -> Unit),
-    noinline onBatchExport: ((Set<Any>) -> Unit),
-    noinline onEditClick: ((Any) -> Unit),
-    noinline onDeleteClick: ((Any) -> Unit)
+    noinline onSearch: (String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit,
+    noinline onSaveClick: () -> Unit,
+    noinline onImportClick: () -> Unit,
+    noinline onExportClick: (String, Set<StateSearch>, Set<StateSort>, StatePagination) -> Unit,
+    noinline onBatchDelete: (Set<Any>) -> Unit,
+    noinline onBatchExport: (Set<Any>) -> Unit,
+    noinline onEditClick: (Any) -> Unit,
+    noinline onDeleteClick: (Any) -> Unit,
 ) {
-    // 状态定义
-    var keyword by remember { mutableStateOf("") }
-    var editModeFlag by remember { mutableStateOf(false) }
-    var selectedItemIds by remember { mutableStateOf(setOf<Any>()) }
-    var showPagination by remember { mutableStateOf(true) }
-    var pageState by remember { mutableStateOf(StatePagination()) }
-    var sortState by remember { mutableStateOf(setOf<StateSort>()) }
-    var showFieldAdvSearchDrawer by remember { mutableStateOf(false) }
-    var filterStateMap by remember { mutableStateOf(mapOf<String, StateSearch>()) }
-    var currentStateSearch by remember { mutableStateOf(StateSearch()) }
-    var currentClickColumn by remember { mutableStateOf(null as C?) }
-    val rememberCoroutineScope = rememberCoroutineScope()
-
-    // 计算属性
-    val currentPageIds by remember(data) {
-        derivedStateOf { data.map { it.hashCode() } }
-    }
-
-
-    val filterState by remember {
-        derivedStateOf { filterStateMap.values.toSet() }
-    }
-
-    val currentColumnKey by remember(currentClickColumn) {
+    val state = rememberAddTableState<C>()
+    val resolvedGetRowId: (T) -> Any = getRowId ?: { item -> item.getIdExt }
+    val currentColumnKey by remember(state.currentColumn, state.editingSearch, getColumnKey) {
         derivedStateOf {
-            if (currentClickColumn == null) "" else getColumnKey(currentClickColumn!!).ifBlank {
-                currentStateSearch.hashCode().toString()
+            state.currentColumn?.let(getColumnKey).orEmpty().ifBlank {
+                state.editingSearch.columnKey
             }
         }
     }
-
     val currentColumnConfig by remember(currentColumnKey, columnConfigs) {
-        derivedStateOf { columnConfigs.find { it.key == currentColumnKey } }
+        derivedStateOf {
+            columnConfigs.find { config -> config.key == currentColumnKey }
+        }
     }
-
     val currentColumnLabel by remember(currentColumnConfig) {
         derivedStateOf { currentColumnConfig?.comment }
     }
-
     val currentColumnKmpType by remember(currentColumnConfig) {
         derivedStateOf { currentColumnConfig?.kmpType }
     }
 
-    TableOriginal(
-        data = data,
-        columns = columns,
-        getColumnKey = getColumnKey,
-        getRowId = getRowId,
-        columnConfigs = columnConfigs,
-        layoutConfig = layoutConfig,
-        getColumnLabel = getColumnLabel,
-        topSlot = topSlot ?: {
-            AddSearchBar(keyword = keyword, onKeyWordChanged = { keyword = it }, onSearch = {
-                rememberCoroutineScope.launch {
-                    onSearch(keyword, filterState, sortState, pageState)
-                }
-            }, leftSloat = {
-                RenderButtons(
-                    editModeFlag = editModeFlag,
-                    onEditModeChange = { editModeFlag = !editModeFlag },
-                    onSaveClick = {
-                        onSaveClick()
-                    },
-                    onImportClick = {
-                        rememberCoroutineScope.launch {
-                            onImportClick()
-                        }
+    fun requestSearch(pagination: StatePagination = state.pagination) {
+        onSearch(
+            state.keyword,
+            state.filters,
+            state.sortState,
+            pagination,
+        )
+    }
 
+    val resolvedTopSlot = topSlot ?: {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (layoutConfig.showSearchBar) {
+                AddSearchBar(
+                    keyword = state.keyword,
+                    onKeyWordChanged = { nextKeyword ->
+                        state.keyword = nextKeyword
                     },
-                    onExportClick = {
-                        rememberCoroutineScope.launch {
-                            onExportClick(keyword, filterState, sortState, pageState)
-                        }
-
-
+                    onSearch = ::requestSearch,
+                    showRefreshButton = true,
+                    modifier = Modifier,
+                    leftSloat = {
+                        RenderButtons(
+                            editModeFlag = state.editModeEnabled,
+                            onEditModeChange = state::toggleEditMode,
+                            onSaveClick = onSaveClick,
+                            onImportClick = onImportClick,
+                            onExportClick = {
+                                onExportClick(
+                                    state.keyword,
+                                    state.filters,
+                                    state.sortState,
+                                    state.pagination,
+                                )
+                            },
+                            buttonSlot = buttonSlot,
+                        )
                     },
-                    buttonSlot = buttonSlot
                 )
-            })
-            RenderSelectContent(
-                editModeFlag = editModeFlag,
-                selectedItemIds = selectedItemIds,
-                onClearSelection = { selectedItemIds = emptySet() },
-                onBatchDelete = {
+            } else {
+                RenderButtons(
+                    editModeFlag = state.editModeEnabled,
+                    onEditModeChange = state::toggleEditMode,
+                    onSaveClick = onSaveClick,
+                    onImportClick = onImportClick,
+                    onExportClick = {
+                        onExportClick(
+                            state.keyword,
+                            state.filters,
+                            state.sortState,
+                            state.pagination,
+                        )
+                    },
+                    buttonSlot = buttonSlot,
+                )
+            }
 
-                    rememberCoroutineScope.launch {
+            if (layoutConfig.showBatchActions && layoutConfig.showRowSelection) {
+                RenderSelectContent(
+                    editModeFlag = state.editModeEnabled,
+                    selectedItemIds = state.selectedItemIds,
+                    onClearSelection = state::clearSelection,
+                    onBatchDelete = {
+                        onBatchDelete(state.selectedItemIds)
+                        state.clearSelection()
+                    },
+                    onBatchExport = {
+                        onBatchExport(state.selectedItemIds)
+                    },
+                )
+            }
+        }
+    }
 
-                        onBatchDelete(selectedItemIds)
-                    }
-                },
-                onBatchExport = {
-
-                    rememberCoroutineScope.launch {
-
-                        onBatchExport(selectedItemIds)
-                    }
-                })
-        },
-        bottomSlot = bottomSlot ?: {
-            RenderPagination(showPagination = showPagination, pageState = pageState, onPageSizeChange = {
-                pageState = pageState.copy(pageSize = it, currentPage = 1)
-            }, onGoFirstPage = {
-                pageState = pageState.copy(currentPage = 1)
-                rememberCoroutineScope.launch {
-                    onSearch(keyword, filterState, sortState, pageState)
+    val resolvedBottomSlot = bottomSlot ?: {
+        RenderPagination(
+            showPagination = layoutConfig.showPagination,
+            pageState = state.pagination,
+            onPageSizeChange = { nextPageSize ->
+                val nextPagination = state.pagination.copy(
+                    pageSize = nextPageSize,
+                    currentPage = 1,
+                )
+                state.pagination = nextPagination
+                requestSearch(nextPagination)
+            },
+            onGoFirstPage = {
+                val nextPagination = state.pagination.copy(currentPage = 1)
+                state.pagination = nextPagination
+                requestSearch(nextPagination)
+            },
+            onPreviousPage = {
+                if (!state.pagination.hasPreviousPage) {
+                    return@RenderPagination
                 }
-
-
-            }, onPreviousPage = {
-                if (pageState.hasPreviousPage) {
-                    pageState = pageState.copy(currentPage = pageState.currentPage - 1)
+                val nextPagination = state.pagination.copy(
+                    currentPage = state.pagination.currentPage - 1,
+                )
+                state.pagination = nextPagination
+                requestSearch(nextPagination)
+            },
+            onGoToPage = { nextPage ->
+                if (nextPage !in 1..state.pagination.totalPages) {
+                    return@RenderPagination
                 }
-            }, onGoToPage = {
-                if (it in 1..pageState.totalPages) {
-                    pageState = pageState.copy(currentPage = it)
+                val nextPagination = state.pagination.copy(currentPage = nextPage)
+                state.pagination = nextPagination
+                requestSearch(nextPagination)
+            },
+            onNextPage = {
+                if (!state.pagination.hasNextPage) {
+                    return@RenderPagination
                 }
-            }, onNextPage = {
-                if (pageState.hasNextPage) {
-                    pageState = pageState.copy(currentPage = pageState.currentPage + 1)
-                }
-            }, onGoLastPage = {
-                pageState = pageState.copy(currentPage = pageState.totalPages)
-                rememberCoroutineScope.launch {
+                val nextPagination = state.pagination.copy(
+                    currentPage = state.pagination.currentPage + 1,
+                )
+                state.pagination = nextPagination
+                requestSearch(nextPagination)
+            },
+            onGoLastPage = {
+                val nextPagination = state.pagination.copy(
+                    currentPage = state.pagination.totalPages,
+                )
+                state.pagination = nextPagination
+                requestSearch(nextPagination)
+            },
+        )
+    }
 
-                    onSearch(keyword, filterState, sortState, pageState)
-                }
-
-
-            })
-        },
-        emptyContentSlot = emptyContentSlot,
-        getCellContent = getCellContent,
-        rowLeftSlot = rowLeftSlot ?: { item, index ->
-            val itemId = getRowId?.invoke(item)?:item.getIdExt
-            val isSelected = selectedItemIds.contains(itemId)
+    val resolvedRowLeftSlot = rowLeftSlot ?: if (layoutConfig.showRowSelection) {
+        { item: T, _: Int ->
+            val itemId = resolvedGetRowId(item)
             RenderCheckbox(
                 item = item,
                 itemId = itemId,
-                isSelected = isSelected,
-                editModeFlag = editModeFlag,
+                isSelected = state.selectedItemIds.contains(itemId),
+                editModeFlag = state.editModeEnabled,
+                slotWidthDp = layoutConfig.leftSlotWidthDp.dp,
                 onSelectionChange = { checked ->
-                    val pageIds = listOf(itemId)
-                    selectedItemIds = if (checked) {
-                        selectedItemIds + pageIds
-                    } else {
-                        selectedItemIds.filter { it !in pageIds }.toSet()
-                    }
-                })
-        },
-        rowActionSlot = rowActionSlot ?: { item ->
-            AddEditDeleteButton(showDelete = true, showEdit = true, onEditClick = {
-                rememberCoroutineScope.launch {
-                    val any = getRowId?.invoke(item) ?: (item.getIdExt)
-                    onEditClick(any)
-                }
-            }, onDeleteClick = {
-                rememberCoroutineScope.launch {
-                    val any = getRowId?.invoke(item) ?: (item.getIdExt)
-                    onDeleteClick(any)
-                }
-            })
-        },
-        modifier = modifier,
-        columnRightSlot = columnRightSlot ?: { column ->
-            val columnKey = getColumnKey(column)
-            val sortDirection = sortState.find { it.columnKey == columnKey }?.direction ?: EnumSortDirection.NONE
+                    state.updateSelection(itemId = itemId, checked = checked)
+                },
+            )
+        }
+    } else {
+        null
+    }
 
+    val resolvedRowActionSlot = rowActionSlot ?: if (layoutConfig.showDefaultRowActions) {
+        { item: T ->
+            AddEditDeleteButton(
+                showDelete = true,
+                showEdit = true,
+                onEditClick = {
+                    onEditClick(resolvedGetRowId(item))
+                },
+                onDeleteClick = {
+                    onDeleteClick(resolvedGetRowId(item))
+                },
+            )
+        }
+    } else {
+        null
+    }
+
+    val resolvedColumnRightSlot = columnRightSlot ?: { column: C ->
+        val columnKey = getColumnKey(column)
+        val sortDirection = state.sortState
+            .find { sort -> sort.columnKey == columnKey }
+            ?.direction
+            ?: EnumSortDirection.NONE
+
+        if (layoutConfig.enableSorting) {
             RenderSortButton(
                 column = column,
                 getColumnKey = getColumnKey,
                 columnConfigs = columnConfigs,
                 sortDirection = sortDirection,
                 onClick = {
-                    // 查找当前是否已有该列的排序状态
-                    val existingSort = sortState.find { it.columnKey == columnKey }
+                    state.toggleSort(columnKey)
+                    requestSearch()
+                },
+            )
+        }
 
-                    // 根据当前排序状态决定下一个状态
-                    val newDirection = when (existingSort?.direction) {
-                        EnumSortDirection.ASC -> EnumSortDirection.DESC
-                        EnumSortDirection.DESC -> EnumSortDirection.NONE
-                        else -> EnumSortDirection.ASC // null或NONE时设为ASC
-                    }
-
-                    // 创建新的排序状态
-                    val newSortState = sortState.toMutableSet()
-
-                    // 移除旧的排序状态
-                    newSortState.removeAll { it.columnKey == columnKey }
-
-                    // 只有非NONE状态才添加
-                    if (newDirection != EnumSortDirection.NONE) {
-                        newSortState.add(StateSort(columnKey, newDirection))
-                    }
-
-                    // 更新排序状态
-                    sortState = newSortState
-                })
-
-            val hasFilter = filterStateMap.containsKey(columnKey)
+        if (layoutConfig.enableAdvancedSearch) {
             RenderFilterButton(
                 column = column,
                 getColumnKey = getColumnKey,
                 columnConfigs = columnConfigs,
-                hasFilter = hasFilter,
+                hasFilter = state.filterStateMap.containsKey(columnKey),
                 onClick = {
-                    currentClickColumn = column
-                    showFieldAdvSearchDrawer = !showFieldAdvSearchDrawer
-                })
-        })
+                    state.openAdvancedSearch(
+                        column = column,
+                        columnKey = columnKey,
+                        existingSearch = state.filterStateMap[columnKey],
+                    )
+                },
+            )
+        }
+    }
 
-    // 右侧的高级搜索面板
-    RenderAdvSearchDrawer(
-        showFieldAdvSearchDrawer = showFieldAdvSearchDrawer,
-        currentStateSearch = currentStateSearch,
-        currentColumnLabel = currentColumnLabel,
-        currentColumnKmpType = currentColumnKmpType,
-        onShowFieldAdvSearchDrawerChange = { showFieldAdvSearchDrawer = it },
-        onCurrentStateSearchChange = { currentStateSearch = it },
-        onFilterStateMapChange = { filterStateMap = it },
-        getCurrentColumnKey = { currentColumnKey },
-        filterStateMap = filterStateMap
+    TableOriginal(
+        data = data,
+        columns = columns,
+        getColumnKey = getColumnKey,
+        getRowId = resolvedGetRowId,
+        columnConfigs = columnConfigs,
+        layoutConfig = layoutConfig,
+        getColumnLabel = getColumnLabel,
+        topSlot = resolvedTopSlot,
+        bottomSlot = resolvedBottomSlot,
+        emptyContentSlot = emptyContentSlot,
+        getCellContent = getCellContent,
+        rowLeftSlot = resolvedRowLeftSlot,
+        rowActionSlot = resolvedRowActionSlot,
+        modifier = modifier,
+        columnRightSlot = resolvedColumnRightSlot,
     )
+
+    if (layoutConfig.enableAdvancedSearch) {
+        RenderAdvSearchDrawer(
+            showFieldAdvSearchDrawer = state.advancedSearchVisible,
+            currentStateSearch = state.editingSearch,
+            currentColumnLabel = currentColumnLabel,
+            currentColumnKmpType = currentColumnKmpType,
+            onShowFieldAdvSearchDrawerChange = { visible ->
+                if (visible) {
+                    state.advancedSearchVisible = true
+                } else {
+                    state.closeAdvancedSearch()
+                }
+            },
+            onCurrentStateSearchChange = { nextSearch ->
+                state.editingSearch = nextSearch.copy(
+                    columnKey = currentColumnKey,
+                )
+            },
+            onFilterStateMapChange = { nextFilterMap ->
+                state.filterStateMap = nextFilterMap
+                requestSearch()
+            },
+            getCurrentColumnKey = { currentColumnKey },
+            filterStateMap = state.filterStateMap,
+        )
+    }
 }

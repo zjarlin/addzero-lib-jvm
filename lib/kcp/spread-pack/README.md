@@ -41,4 +41,5 @@ foo()
 - `exclude` 只允许排除带默认值的主构造参数
 - `selector = ATTRS` 只展开非函数类型参数
 - `selector = CALLBACKS` 只展开函数类型参数
+- 如果展开后的签名与现有同名函数冲突，当前原型不保证自动改名生成稳定可调用的新 overload
 - 裸重载集合的 `argsof F` 语义暂不支持，当前用显式 carrier 类型来表达“已选定的那个 overload”

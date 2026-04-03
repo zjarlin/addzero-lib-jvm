@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddIconButton
-import site.addzero.component.search_bar.AddSearchBar
 import site.addzero.component.tree.selection.SelectionState
 
 @Composable
@@ -79,79 +76,6 @@ fun <T> AddTree(
                     nodeBadge = nodeBadge,
                     nodeTrailingContent = nodeTrailingContent,
                 )
-            }
-        }
-    }
-}
-
-interface TreeScope<T> {
-    val viewModel: TreeViewModel<T>
-
-    @Composable
-    fun TopSlot(content: @Composable () -> Unit)
-
-    @Composable
-    fun ControlsSlot(content: @Composable () -> Unit)
-
-    @Composable
-    fun BottomSlot(content: @Composable () -> Unit)
-
-    @Composable
-    fun SearchBar()
-
-    @Composable
-    fun ExpandCollapseControls()
-}
-
-private class TreeScopeImpl<T>(
-    override val viewModel: TreeViewModel<T>,
-) : TreeScope<T> {
-    @Composable
-    override fun TopSlot(content: @Composable () -> Unit) {
-        content()
-    }
-
-    @Composable
-    override fun ControlsSlot(content: @Composable () -> Unit) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Transparent,
-        ) {
-            content()
-        }
-    }
-
-    @Composable
-    override fun BottomSlot(content: @Composable () -> Unit) {
-        content()
-    }
-
-    @Composable
-    override fun SearchBar() {
-        if (viewModel.showSearchBar) {
-            AddSearchBar(
-                keyword = viewModel.searchQuery,
-                onKeyWordChanged = viewModel::updateSearchQuery,
-                onSearch = viewModel::performSearch,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                placeholder = "搜索树节点...",
-            )
-        }
-    }
-
-    @Composable
-    override fun ExpandCollapseControls() {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            TextButton(onClick = viewModel::expandAll) {
-                Text("展开全部")
-            }
-            TextButton(onClick = viewModel::collapseAll) {
-                Text("收起全部")
             }
         }
     }
@@ -262,24 +186,14 @@ private fun <T> TreeNodeContent(
             null
         },
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = metrics.rowMinHeight)
-                .padding(
-                    horizontal = metrics.rowHorizontalPadding,
-                    vertical = metrics.rowVerticalPadding,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = if (compactMode) {
-                Arrangement.Center
-            } else {
-                Arrangement.spacedBy(metrics.contentSpacing)
-            },
+        Box(
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (isSelected && !compactMode) {
                 Box(
                     modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = metrics.selectedIndicatorSpacing)
                         .width(metrics.selectedIndicatorWidth)
                         .height(metrics.selectedIndicatorHeight),
                 ) {
@@ -289,85 +203,110 @@ private fun <T> TreeNodeContent(
                         color = colors.rowSelectedIndicator,
                     ) {}
                 }
-                Spacer(modifier = Modifier.width(metrics.selectedIndicatorSpacing))
             }
 
-            if (viewModel.multiSelectMode && !compactMode) {
-                val selectionState = viewModel.getNodeSelectionState(nodeId)
-                TriStateCheckbox(
-                    state = when (selectionState) {
-                        SelectionState.SELECTED -> ToggleableState.On
-                        SelectionState.INDETERMINATE -> ToggleableState.Indeterminate
-                        SelectionState.UNSELECTED -> ToggleableState.Off
-                    },
-                    onClick = { viewModel.toggleItemSelection(nodeId) },
-                )
-            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = metrics.rowMinHeight)
+                    .padding(
+                        horizontal = metrics.rowHorizontalPadding,
+                        vertical = metrics.rowVerticalPadding,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = if (compactMode) {
+                    Arrangement.Center
+                } else {
+                    Arrangement.spacedBy(metrics.contentSpacing)
+                },
+            ) {
+                if (viewModel.multiSelectMode && !compactMode) {
+                    val selectionState = viewModel.getNodeSelectionState(nodeId)
+                    TriStateCheckbox(
+                        state = when (selectionState) {
+                            SelectionState.SELECTED -> ToggleableState.On
+                            SelectionState.INDETERMINATE -> ToggleableState.Indeterminate
+                            SelectionState.UNSELECTED -> ToggleableState.Off
+                        },
+                        onClick = { viewModel.toggleItemSelection(nodeId) },
+                    )
+                }
 
-            if (!compactMode) {
-                Box(
-                    modifier = Modifier.width(metrics.toggleSlotWidth),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (hasChildren) {
+                if (!compactMode) {
+                    Box(
+                        modifier = Modifier.width(metrics.toggleSlotWidth),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (hasChildren) {
+                            Icon(
+                                imageVector = if (isExpanded) {
+                                    Icons.Default.KeyboardArrowDown
+                                } else {
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight
+                                },
+                                contentDescription = if (isExpanded) "折叠" else "展开",
+                                modifier = Modifier.size(metrics.expandIconSize),
+                                tint = colors.secondaryContent,
+                            )
+                        }
+                    }
+                }
+
+                val icon = viewModel.getIconCached(node)
+                if (icon != null) {
+                    if (compactMode) {
+                        AddIconButton(
+                            text = viewModel.getLabelCached(node),
+                            imageVector = icon,
+                            modifier = Modifier.size(32.dp),
+                            tint = resolveNodeIconTint(
+                                node = node,
+                                viewModel = viewModel,
+                                hasChildren = hasChildren,
+                            ),
+                        ) {
+                            if (hasChildren) {
+                                onToggleExpanded()
+                            }
+                            onClick()
+                        }
+                    } else {
                         Icon(
-                            imageVector = if (isExpanded) {
-                                Icons.Default.KeyboardArrowDown
-                            } else {
-                                Icons.AutoMirrored.Filled.KeyboardArrowRight
-                            },
-                            contentDescription = if (isExpanded) "折叠" else "展开",
-                            modifier = Modifier.size(metrics.expandIconSize),
-                            tint = colors.secondaryContent,
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(metrics.iconSize),
+                            tint = resolveNodeIconTint(
+                                node = node,
+                                viewModel = viewModel,
+                                hasChildren = hasChildren,
+                            ),
                         )
                     }
                 }
-            }
 
-            val icon = viewModel.getIconCached(node)
-            if (icon != null) {
-                if (compactMode) {
-                    AddIconButton(
-                        text = viewModel.getLabelCached(node),
-                        imageVector = icon,
-                        modifier = Modifier.size(32.dp),
-                        tint = resolveNodeIconTint(
-                            node = node,
-                            viewModel = viewModel,
-                            hasChildren = hasChildren,
-                        ),
+                if (!compactMode) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
                     ) {
-                        if (hasChildren) {
-                            onToggleExpanded()
-                        }
-                        onClick()
-                    }
-                } else {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(metrics.iconSize),
-                        tint = resolveNodeIconTint(
-                            node = node,
-                            viewModel = viewModel,
-                            hasChildren = hasChildren,
-                        ),
-                    )
-                }
-            }
-
-            if (!compactMode) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
-                ) {
-                    if (selectableLabel) {
-                        SelectionContainer(
-                            modifier = Modifier.weight(1f),
-                        ) {
+                        if (selectableLabel) {
+                            SelectionContainer(
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(
+                                    text = viewModel.getLabelCached(node),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
+                                    color = if (isSelected) colors.contentSelected else colors.content,
+                                )
+                            }
+                        } else {
                             Text(
                                 text = viewModel.getLabelCached(node),
+                                modifier = Modifier.weight(1f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyLarge,
@@ -375,26 +314,16 @@ private fun <T> TreeNodeContent(
                                 color = if (isSelected) colors.contentSelected else colors.content,
                             )
                         }
-                    } else {
-                        Text(
-                            text = viewModel.getLabelCached(node),
-                            modifier = Modifier.weight(1f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
-                            color = if (isSelected) colors.contentSelected else colors.content,
-                        )
+                        nodeBadge(node)
                     }
-                    nodeBadge(node)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
+                        content = {
+                            nodeTrailingContent(node)
+                        },
+                    )
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
-                    content = {
-                        nodeTrailingContent(node)
-                    },
-                )
             }
         }
     }

@@ -1,5 +1,8 @@
 package site.addzero.media.playlist.player
 
+/**
+ * 外部播放器 UI 可消费的播放进度快照。
+ */
 data class PlaylistPlaybackProgress(
     val playbackKey: String? = null,
     val isPlaying: Boolean = false,

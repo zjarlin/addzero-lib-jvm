@@ -75,6 +75,77 @@ class SpreadPackCompilerIntegrationTest {
         )
     }
 
+    @Test
+    fun generates_argsof_overload_from_selected_referenced_overload() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/ArgsofTargets.kt" to argsofTargetsSource(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val targetsKt = result.loadClass("site.addzero.example.ArgsofTargetsKt")
+        assertEquals("wrapped:3:done", targetsKt.getMethod("invokeArgsof").invoke(null))
+
+        val methods = targetsKt.declaredMethods.toList()
+        assertTrue(
+            methods.any { method ->
+                method.name == "renderWrapper" &&
+                    method.parameterTypes.map(Class<*>::getName) == listOf(
+                        "java.lang.String",
+                        "int",
+                        "kotlin.jvm.functions.Function0",
+                    )
+            },
+            methods.joinToString("\n"),
+        )
+    }
+
+    @Test
+    fun flattens_nested_argsof_references() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/NestedArgsofTargets.kt" to nestedArgsofTargetsSource(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val targetsKt = result.loadClass("site.addzero.example.NestedArgsofTargetsKt")
+        assertEquals("nested:chain", targetsKt.getMethod("invokeNestedArgsof").invoke(null))
+    }
+
+    @Test
+    fun rejects_ambiguous_argsof_overload_set_without_parameter_types() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/AmbiguousArgsofTargets.kt" to ambiguousArgsofTargetsSource(),
+            ),
+        )
+
+        assertTrue(result.exitCode != 0, result.output)
+        assertTrue(
+            result.output.contains("is ambiguous; specify SpreadOverload.parameterTypes"),
+            result.output,
+        )
+    }
+
+    @Test
+    fun rejects_argsof_cycles() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/CyclicArgsofTargets.kt" to cyclicArgsofTargetsSource(),
+            ),
+        )
+
+        assertTrue(result.exitCode != 0, result.output)
+        assertTrue(
+            result.output.contains("detected argsof overload cycle"),
+            result.output,
+        )
+    }
+
     private fun compile(sources: Map<String, String>): CompilationResult {
         val workingDir = Files.createTempDirectory("spread-pack-it")
         val sourceDir = workingDir.resolve("src").createDirectories()
@@ -184,6 +255,202 @@ class SpreadPackCompilerIntegrationTest {
                 renderCallbacks(
                     onDone = { "callback" },
                 )
+        """.trimIndent()
+    }
+
+    private fun argsofTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadArgsOf
+            import site.addzero.kcp.spreadpack.SpreadOverload
+            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
+            import site.addzero.kcp.spreadpack.SpreadPack
+
+            data class BaseOptions(
+                val title: String = "",
+                val count: Int = 0,
+                val debug: Boolean = false,
+                val onDone: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderBase(@SpreadPack options: BaseOptions): String {
+                val done = options.onDone?.invoke() ?: "-"
+                return "${'$'}{options.title}:${'$'}{options.count}:${'$'}{options.debug}:${'$'}done"
+            }
+
+            fun renderBase(title: String): String = title
+
+            data class WrapperArgs(
+                val title: String = "",
+                val count: Int = 0,
+                val onDone: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderWrapper(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.renderBase"),
+                        parameterTypes = [BaseOptions::class],
+                    ),
+                    exclude = ["debug"],
+                )
+                args: WrapperArgs,
+            ): String {
+                val done = args.onDone?.invoke() ?: "-"
+                return "${'$'}{args.title}:${'$'}{args.count}:${'$'}done"
+            }
+
+            fun invokeArgsof(): String =
+                renderWrapper(
+                    title = "wrapped",
+                    count = 3,
+                    onDone = { "done" },
+                )
+        """.trimIndent()
+    }
+
+    private fun nestedArgsofTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadArgsOf
+            import site.addzero.kcp.spreadpack.SpreadOverload
+            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
+            import site.addzero.kcp.spreadpack.SpreadPack
+
+            data class LeafArgs(
+                val title: String = "",
+                val onDone: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun leaf(@SpreadPack args: LeafArgs): String =
+                args.onDone?.invoke() ?: args.title
+
+            data class MiddleArgs(
+                val title: String = "",
+                val onDone: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun middle(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.leaf"),
+                        parameterTypes = [LeafArgs::class],
+                    ),
+                )
+                args: MiddleArgs,
+            ): String = args.onDone?.invoke() ?: args.title
+
+            data class OuterArgs(
+                val title: String = "",
+                val onDone: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun outer(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.middle"),
+                        parameterTypes = [MiddleArgs::class],
+                    ),
+                )
+                args: OuterArgs,
+            ): String {
+                val done = args.onDone?.invoke() ?: "-"
+                return "${'$'}{args.title}:${'$'}done"
+            }
+
+            fun invokeNestedArgsof(): String =
+                outer(
+                    title = "nested",
+                    onDone = { "chain" },
+                )
+        """.trimIndent()
+    }
+
+    private fun ambiguousArgsofTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadArgsOf
+            import site.addzero.kcp.spreadpack.SpreadOverload
+            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
+            import site.addzero.kcp.spreadpack.SpreadPack
+
+            data class ChoiceArgs(
+                val title: String = "",
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderChoice(@SpreadPack args: ChoiceArgs): String = args.title
+
+            fun renderChoice(title: String): String = title
+
+            data class WrapperArgs(
+                val title: String = "",
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderWrapper(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.renderChoice"),
+                    ),
+                )
+                args: WrapperArgs,
+            ): String = args.title
+        """.trimIndent()
+    }
+
+    private fun cyclicArgsofTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadArgsOf
+            import site.addzero.kcp.spreadpack.SpreadOverload
+            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
+            import site.addzero.kcp.spreadpack.SpreadPack
+
+            data class LoopArgs(
+                val title: String = "",
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderA(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.renderB"),
+                        parameterTypes = [LoopArgs::class],
+                    ),
+                )
+                args: LoopArgs,
+            ): String = args.title
+
+            @GenerateSpreadPackOverloads
+            fun renderB(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.renderA"),
+                        parameterTypes = [LoopArgs::class],
+                    ),
+                )
+                args: LoopArgs,
+            ): String = args.title
         """.trimIndent()
     }
 

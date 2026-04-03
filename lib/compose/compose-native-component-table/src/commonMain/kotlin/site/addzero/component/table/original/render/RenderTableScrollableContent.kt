@@ -12,7 +12,7 @@ import site.addzero.component.table.original.entity.ColumnConfig
 import site.addzero.component.table.original.entity.TableLayoutConfig
 
 /**
- * 渲染可滚动内容区域 - 使用细粒度context
+ * 渲染可滚动内容区域。
  */
 @Composable
 fun <T, C> RenderTableScrollableContent(
@@ -24,41 +24,38 @@ fun <T, C> RenderTableScrollableContent(
     lazyListState: LazyListState,
     columnConfigs: List<ColumnConfig>,
     layoutConfig: TableLayoutConfig,
+    showLeftSlot: Boolean = false,
     showActionColumn: Boolean,
     getColumnLabel: @Composable (C) -> Unit,
     emptyContentSlot: @Composable () -> Unit,
     getCellContent: @Composable (item: T, column: C) -> Unit,
     rowLeftSlot: @Composable (item: T, index: Int) -> Unit,
-    columnRightSlot: @Composable ((C) -> Unit)
+    columnRightSlot: @Composable ((C) -> Unit),
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        // 表头行 - 只需要列配置和表头配置
         RenderTableHeaderRow(
             columns = columns,
             getColumnKey = getColumnKey,
             getColumnLabel = getColumnLabel,
-            horizontalScrollState = horizontalScrollState!!,
+            horizontalScrollState = horizontalScrollState,
             columnConfigs = columnConfigs,
             layoutConfig = layoutConfig,
+            showLeftSlot = showLeftSlot,
             showActionColumn = showActionColumn,
-            columnRightSlot = columnRightSlot
+            columnRightSlot = columnRightSlot,
         )
 
-        // 使用现有的LazyColumn数据渲染
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             if (data.isEmpty()) {
                 item { emptyContentSlot() }
             } else {
                 itemsIndexed(
                     items = data,
-                    key = { _, item ->
-                        getRowId(item)
-                    }
+                    key = { _, item -> getRowId(item) },
                 ) { index, item ->
-                    // 数据行 - 只需要行相关的数据
                     RenderTableBodyRow(
                         item = item,
                         index = index,
@@ -68,7 +65,9 @@ fun <T, C> RenderTableScrollableContent(
                         getCellContent = getCellContent,
                         horizontalScrollState = horizontalScrollState,
                         rowLeftSlot = rowLeftSlot,
-                        layoutConfig = layoutConfig
+                        layoutConfig = layoutConfig,
+                        showLeftSlot = showLeftSlot,
+                        showActionColumn = showActionColumn,
                     )
                 }
             }

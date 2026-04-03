@@ -5,6 +5,9 @@ import site.addzero.component.card.MellumCardType
 import site.addzero.component.table.pagination.AddTablePagination
 import site.addzero.component.table.original.entity.StatePagination
 
+/**
+ * 表格底部分页区包装。
+ */
 @Composable
 fun RenderPagination(
     showPagination: Boolean,
@@ -14,9 +17,11 @@ fun RenderPagination(
     onPreviousPage: () -> Unit,
     onGoToPage: (Int) -> Unit,
     onNextPage: () -> Unit,
-    onGoLastPage: () -> Unit
+    onGoLastPage: () -> Unit,
 ) {
-    if (!showPagination) return
+    if (!showPagination) {
+        return
+    }
 
     AddTablePagination(
         statePagination = pageState,

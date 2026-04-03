@@ -192,6 +192,9 @@ internal class PlaylistPlayerHost(
     }
 }
 
+/**
+ * 为子树提供一个受管控的播放器宿主。
+ */
 @Composable
 fun ProvidePlaylistPlayerHost(
     content: @Composable () -> Unit,

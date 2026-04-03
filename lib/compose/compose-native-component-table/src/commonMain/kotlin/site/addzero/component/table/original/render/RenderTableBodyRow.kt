@@ -4,18 +4,26 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import site.addzero.component.table.original.entity.ColumnConfig
 import site.addzero.component.table.original.entity.TableLayoutConfig
+import site.addzero.component.table.original.rememberTableVisualStyle
+import site.addzero.component.table.original.resolvedWidth
+import site.addzero.component.table.original.sortTableColumns
 
 /**
- * 渲染完整数据行 - 使用细粒度参数
+ * 渲染完整数据行。
  */
 @Composable
 fun <T, C> RenderTableBodyRow(
@@ -27,26 +35,24 @@ fun <T, C> RenderTableBodyRow(
     getCellContent: @Composable ((item: T, column: C) -> Unit),
     horizontalScrollState: ScrollState,
     rowLeftSlot: @Composable ((item: T, index: Int) -> Unit),
-    layoutConfig: TableLayoutConfig
+    layoutConfig: TableLayoutConfig,
+    showLeftSlot: Boolean = false,
+    showActionColumn: Boolean = false,
 ) {
+    val tableStyle = rememberTableVisualStyle()
+    val columnConfigDict = columnConfigs.associateBy { config -> config.key }
     val backgroundColor = if (index % 2 == 0) {
-        MaterialTheme.colorScheme.surface
+        tableStyle.rowEvenContainer
     } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        tableStyle.rowOddContainer
     }
-
-    val dividerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-    val columnConfigDict = columnConfigs.associateBy { it.key }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .border(
-                border = BorderStroke(1.dp, dividerColor),
-                shape = MaterialTheme.shapes.medium
-            ),
+            .border(BorderStroke(1.dp, tableStyle.rowBorder)),
         color = backgroundColor,
-        tonalElevation = 0.dp
+        tonalElevation = 0.dp,
     ) {
         Row(
             modifier = Modifier
@@ -54,31 +60,43 @@ fun <T, C> RenderTableBodyRow(
                 .height(layoutConfig.rowHeightDp.dp)
                 .horizontalScroll(horizontalScrollState)
                 .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // 行左侧插槽（如复选框）
-            rowLeftSlot(item, index)
-            // 数据列（按列配置宽度渲染）
-            columns.forEach { column ->
+            Spacer(
+                modifier = Modifier
+                    .width(layoutConfig.indexColumnWidthDp.dp)
+                    .fillMaxHeight(),
+            )
+
+            if (showLeftSlot) {
+                rowLeftSlot(item, index)
+            }
+
+            sortTableColumns(
+                columns = columns,
+                getColumnKey = getColumnKey,
+                columnConfigs = columnConfigs,
+            ).forEach { column ->
                 val columnKey = getColumnKey(column)
                 val columnConfig = columnConfigDict[columnKey]
                 Box(
                     modifier = Modifier
-                        .width((columnConfig?.width ?: layoutConfig.defaultColumnWidthDp).dp)
+                        .width(columnConfig.resolvedWidth(layoutConfig))
                         .fillMaxHeight()
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .padding(horizontal = tableStyle.cellHorizontalPadding),
+                    contentAlignment = Alignment.CenterStart,
                 ) {
                     getCellContent(item, column)
                 }
             }
 
-//            if (showActionColumn) {
-//                 右侧为固定操作列预留占位，避免数据列遮挡操作表头
-//                Spacer(modifier = Modifier.width(layoutConfig.actionColumnWidthDp.dp).fillMaxHeight())
-//            }
+            if (showActionColumn) {
+                Spacer(
+                    modifier = Modifier
+                        .width(layoutConfig.actionColumnWidthDp.dp)
+                        .fillMaxHeight(),
+                )
+            }
         }
     }
 }
-
-

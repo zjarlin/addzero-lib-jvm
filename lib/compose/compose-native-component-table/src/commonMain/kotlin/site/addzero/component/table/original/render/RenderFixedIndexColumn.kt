@@ -1,6 +1,14 @@
 package site.addzero.component.table.original.render
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -13,85 +21,86 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import site.addzero.component.card.AddCard
 import site.addzero.component.table.original.entity.TableLayoutConfig
+import site.addzero.component.table.original.rememberTableVisualStyle
 
 /**
- * 渲染固定序号列 - 使用细粒度参数
+ * 渲染固定序号列。
  */
 @Composable
 fun <T> RenderFixedIndexColumn(
     verticalScrollState: LazyListState,
     data: List<T>,
     layoutConfig: TableLayoutConfig,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-
-    // 监听滚动状态获取可见项信息
     val layoutInfo = verticalScrollState.layoutInfo
+    val tableStyle = rememberTableVisualStyle()
 
     Surface(
-        modifier = modifier.width(layoutConfig.indexColumnWidthDp.dp).fillMaxHeight().clipToBounds(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp, // 进一步增加海拔高度以提高可见性
-        shadowElevation = 4.dp
+        modifier = modifier
+            .width(layoutConfig.indexColumnWidthDp.dp)
+            .fillMaxHeight()
+            .clipToBounds(),
+        color = tableStyle.fixedColumnContainer,
+        border = BorderStroke(1.dp, tableStyle.fixedColumnBorder),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // 固定表头
-            AddCard(modifier = Modifier.height(layoutConfig.headerHeightDp.dp), padding = 0.dp) {
+            Surface(
+                modifier = Modifier.height(layoutConfig.headerHeightDp.dp),
+                color = tableStyle.headerContainer,
+                border = BorderStroke(1.dp, tableStyle.rowBorder),
+            ) {
                 Box(
-                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        "#",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        text = "#",
+                        style = MaterialTheme.typography.titleSmall,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary // 使用主题主色
+                        color = tableStyle.accentText,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
 
-            // 序号内容区域 - 根据主表格滚动位置动态渲染可见项
-            // Surface会自动处理文字颜色
             Surface(
-                modifier = Modifier.fillMaxSize().clipToBounds(), color = MaterialTheme.colorScheme.surface
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clipToBounds(),
+                color = tableStyle.fixedColumnContainer,
             ) {
-
-
                 if (data.isNotEmpty()) {
-                    // 只渲染可见的序号项，与主表格完全同步
-                    layoutInfo.visibleItemsInfo.forEachIndexed { _, itemInfo ->
+                    layoutInfo.visibleItemsInfo.forEach { itemInfo ->
                         val itemIndex = itemInfo.index
                         if (itemIndex < data.size) {
                             val itemOffset = with(density) { itemInfo.offset.toDp() }
                             Surface(
-                                modifier = Modifier.fillMaxWidth().height(layoutConfig.rowHeightDp.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(layoutConfig.rowHeightDp.dp)
                                     .offset(y = itemOffset),
-                                shape = MaterialTheme.shapes.medium,
+                                color = if (itemIndex % 2 == 0) {
+                                    tableStyle.rowEvenContainer
+                                } else {
+                                    tableStyle.rowOddContainer
+                                },
+                                border = BorderStroke(1.dp, tableStyle.rowBorder),
                             ) {
-//                                Box(
-//                                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-//                                ) {
-//                                    Text(
-//                                        "${itemIndex + 1}",
-//                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-//                                        textAlign = TextAlign.Center
-//                                    )
-
-
-                                Text(
-                                    text = "${itemIndex + 1}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    textAlign = TextAlign.Center
-                                )
-
-//                                }
-
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = "${itemIndex + 1}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = tableStyle.accentText,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
                             }
                         }
                     }

@@ -44,6 +44,9 @@ import site.addzero.appsidebar.spi.ScaffoldConfig
 import site.addzero.appsidebar.spi.scaffoldConfig
 import site.addzero.appsidebar.spi.sidebarResizeConfig
 
+/**
+ * 后台页面头部所需的标题信息。
+ */
 interface AdminWorkbenchPageConfig {
     val breadcrumb: List<String>
         get() = emptyList()
@@ -52,6 +55,9 @@ interface AdminWorkbenchPageConfig {
         get() = null
 }
 
+/**
+ * 后台工作台骨架配置。
+ */
 interface AdminWorkbenchConfig : ScaffoldConfig {
     val brandLabel: String
         get() = "Addzero Admin"
@@ -69,6 +75,9 @@ interface AdminWorkbenchConfig : ScaffoldConfig {
         get() = null
 }
 
+/**
+ * 后台工作台全局工具动作。
+ */
 interface AdminWorkbenchActions {
     val onGlobalSearchClick: (() -> Unit)?
         get() = null
@@ -84,6 +93,9 @@ interface AdminWorkbenchActions {
         get() = null
 }
 
+/**
+ * 后台工作台可定制插槽。
+ */
 interface AdminWorkbenchSlots {
     val brandContent: (@Composable RowScope.() -> Unit)?
         get() = null
@@ -99,6 +111,9 @@ interface AdminWorkbenchSlots {
         get() = null
 }
 
+/**
+ * 快速创建后台页面头部配置。
+ */
 fun adminWorkbenchPageConfig(
     pageTitle: String,
     breadcrumb: List<String> = emptyList(),
@@ -109,6 +124,9 @@ fun adminWorkbenchPageConfig(
     pageSubtitle = pageSubtitle,
 )
 
+/**
+ * 快速创建后台工作台骨架配置。
+ */
 fun adminWorkbenchConfig(
     brandLabel: String = "Addzero Admin",
     welcomeLabel: String = "欢迎进入后台工作台",
@@ -141,6 +159,9 @@ fun adminWorkbenchConfig(
     userLabel = userLabel,
 )
 
+/**
+ * 快速创建后台工作台的全局动作集合。
+ */
 fun adminWorkbenchActions(
     onGlobalSearchClick: (() -> Unit)? = null,
     onGithubClick: (() -> Unit)? = null,
@@ -157,6 +178,9 @@ fun adminWorkbenchActions(
     onUserClick = onUserClick,
 )
 
+/**
+ * 快速创建后台工作台插槽集合。
+ */
 fun adminWorkbenchSlots(
     brandContent: (@Composable RowScope.() -> Unit)? = null,
     pageActions: @Composable RowScope.() -> Unit = {},
@@ -173,6 +197,11 @@ fun adminWorkbenchSlots(
     userContent = userContent,
 )
 
+/**
+ * 后台管理工作台骨架。
+ *
+ * 统一封装顶部全局工具条、页面标题区、左侧栏、主内容区和可选详情区。
+ */
 @Composable
 fun AdminWorkbenchScaffold(
     sidebar: @Composable BoxScope.() -> Unit,
@@ -247,253 +276,6 @@ fun AdminWorkbenchScaffold(
     }
 }
 
-@Composable
-fun WorkbenchSearchButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    label: String = "搜索",
-) {
-    WorkbenchUtilityButton(
-        label = label,
-        modifier = modifier,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun WorkbenchLanguageButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    WorkbenchUtilityButton(
-        label = label,
-        modifier = modifier,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun WorkbenchGitHubButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    WorkbenchUtilityButton(
-        label = label,
-        modifier = modifier,
-        onClick = onClick,
-    )
-}
-
-@Composable
-fun WorkbenchThemeToggleButton(
-    isDarkTheme: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    darkLabel: String = "深色",
-    lightLabel: String = "浅色",
-) {
-    WorkbenchUtilityButton(
-        label = if (isDarkTheme) lightLabel else darkLabel,
-        modifier = modifier,
-        onClick = onClick,
-        highlighted = true,
-        leading = {
-            Icon(
-                imageVector = if (isDarkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
-                contentDescription = null,
-                tint = AdminWorkbenchTokens.highlightedTextPrimary,
-            )
-        },
-    )
-}
-
-@Composable
-fun WorkbenchNotificationButton(
-    count: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    label: String = "通知",
-) {
-    WorkbenchUtilityButton(
-        label = label,
-        modifier = modifier,
-        onClick = onClick,
-        badge = count.toNotificationBadge(),
-    )
-}
-
-@Composable
-fun WorkbenchUserButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    avatarInitials: String = label.toAvatarInitials(),
-) {
-    WorkbenchUtilityButton(
-        label = label,
-        modifier = modifier,
-        onClick = onClick,
-        leading = {
-            WorkbenchUserAvatar(
-                initials = avatarInitials,
-            )
-        },
-    )
-}
-
-@Composable
-private fun AdminWorkbenchGlobalBar(
-    config: AdminWorkbenchConfig,
-    actions: AdminWorkbenchActions,
-    slots: AdminWorkbenchSlots,
-    topBarHeight: Dp,
-    leadingInset: Dp,
-    trailingInset: Dp,
-    immersiveTopBar: Boolean,
-) {
-    val compactTopBar = topBarHeight <= 48.dp
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .height(topBarHeight)
-            .background(
-                AdminWorkbenchTokens.topBarBackground.copy(
-                    alpha = if (immersiveTopBar) 0.96f else 1f,
-                ),
-            )
-            .padding(
-                start = (if (compactTopBar) 14.dp else 18.dp) + leadingInset,
-                end = (if (compactTopBar) 14.dp else 18.dp) + trailingInset,
-            ),
-        horizontalArrangement = Arrangement.spacedBy(if (compactTopBar) 14.dp else 18.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(if (compactTopBar) 10.dp else 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val brandContent = slots.brandContent
-            if (brandContent != null) {
-                brandContent()
-            } else {
-                AdminWorkbenchBrand(
-                    label = config.brandLabel,
-                    compact = compactTopBar,
-                )
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = config.brandLabel,
-                        color = AdminWorkbenchTokens.topBarTextPrimary,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                    )
-                    if (config.welcomeLabel.isNotBlank()) {
-                        Text(
-                            text = config.welcomeLabel,
-                            color = AdminWorkbenchTokens.topBarTextSecondary,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
-            }
-        }
-
-        Row(
-        modifier = Modifier.widthIn(max = if (compactTopBar) 640.dp else 720.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-            val onGlobalSearchClick = actions.onGlobalSearchClick
-            val isDarkTheme = config.isDarkTheme
-            val onThemeToggle = actions.onThemeToggle
-            val githubLabel = config.githubLabel
-            val onGithubClick = actions.onGithubClick
-            val languageLabel = config.languageLabel
-            val onLanguageClick = actions.onLanguageClick
-            val notificationCount = config.notificationCount
-            val onNotificationsClick = actions.onNotificationsClick
-            val userContent = slots.userContent
-            val userLabel = config.userLabel
-            val onUserClick = actions.onUserClick
-
-            if (onGlobalSearchClick != null) {
-                WorkbenchSearchButton(
-                    onClick = onGlobalSearchClick,
-                )
-            }
-            if (isDarkTheme != null && onThemeToggle != null) {
-                WorkbenchThemeToggleButton(
-                    isDarkTheme = isDarkTheme,
-                    onClick = onThemeToggle,
-                )
-            }
-            if (!githubLabel.isNullOrBlank() && onGithubClick != null) {
-                WorkbenchGitHubButton(
-                    label = githubLabel,
-                    onClick = onGithubClick,
-                )
-            }
-            if (!languageLabel.isNullOrBlank() && onLanguageClick != null) {
-                WorkbenchLanguageButton(
-                    label = languageLabel,
-                    onClick = onLanguageClick,
-                )
-            }
-            if (notificationCount != null && onNotificationsClick != null) {
-                WorkbenchNotificationButton(
-                    count = notificationCount,
-                    onClick = onNotificationsClick,
-                )
-            }
-            if (userContent != null) {
-                userContent.invoke(this)
-            } else if (!userLabel.isNullOrBlank() && onUserClick != null) {
-                WorkbenchUserButton(
-                    label = userLabel,
-                    onClick = onUserClick,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdminWorkbenchBrand(
-    label: String,
-    modifier: Modifier = Modifier,
-    compact: Boolean = false,
-) {
-    val brandPrimaryDot = AdminWorkbenchTokens.brandPrimaryDot
-    val brandSecondaryDot = AdminWorkbenchTokens.brandSecondaryDot
-
-    Box(
-        modifier = modifier.size(if (compact) 24.dp else 28.dp)
-            .background(
-                color = AdminWorkbenchTokens.brandPlateBackground,
-                shape = RoundedCornerShape(if (compact) 8.dp else 9.dp),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(
-            modifier = Modifier.size(if (compact) 15.dp else 18.dp),
-        ) {
-            drawCircle(
-                color = brandPrimaryDot,
-                radius = size.minDimension * 0.20f,
-                center = center.copy(x = size.width * 0.36f),
-            )
-            drawCircle(
-                color = brandSecondaryDot,
-                radius = size.minDimension * 0.20f,
-                center = center.copy(x = size.width * 0.64f),
-            )
-        }
-    }
-}
 
 @Composable
 private fun RowScope.AdminWorkbenchContentHeader(
@@ -553,146 +335,6 @@ private fun AdminWorkbenchTitleBlock(
             )
         }
     }
-}
-
-@Composable
-private fun WorkbenchUtilityButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    badge: String? = null,
-    highlighted: Boolean = false,
-    leading: (@Composable () -> Unit)? = null,
-) {
-    val contentColor = if (highlighted) {
-        AdminWorkbenchTokens.highlightedTextPrimary
-    } else {
-        AdminWorkbenchTokens.textPrimary
-    }
-    Row(
-        modifier = modifier.utilityButtonFrame(
-            highlighted = highlighted,
-        ).clickable(
-            onClick = onClick,
-        ),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        leading?.invoke()
-        Text(
-            text = label,
-            color = contentColor,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-        if (badge != null) {
-            Box(
-                modifier = Modifier.utilityBadgeFrame(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = badge,
-                    color = contentColor,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun WorkbenchUserAvatar(
-    initials: String,
-    modifier: Modifier = Modifier,
-) {
-    val avatarHalo = AdminWorkbenchTokens.avatarHalo
-    val compactTopBar = LocalWorkbenchWindowFrame.current.topBarHeight <= 48.dp
-
-    Box(
-        modifier = modifier.size(if (compactTopBar) 20.dp else 24.dp).background(
-            color = AdminWorkbenchTokens.avatarBackground,
-            shape = CircleShape,
-        ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(
-            modifier = Modifier.size(if (compactTopBar) 20.dp else 24.dp),
-        ) {
-            drawCircle(
-                color = avatarHalo,
-                radius = size.minDimension / 2f,
-            )
-        }
-        Text(
-            text = initials,
-            color = AdminWorkbenchTokens.textPrimary,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-        )
-    }
-}
-
-/** 工具按钮底板：默认是后台工具条里的紧凑胶囊按钮，不抢主操作的风头。 */
-@Composable
-private fun Modifier.utilityButtonFrame(
-    highlighted: Boolean,
-): Modifier {
-    val compactTopBar = LocalWorkbenchWindowFrame.current.topBarHeight <= 48.dp
-    val background = if (highlighted) {
-        AdminWorkbenchTokens.highlightedBackground
-    } else {
-        AdminWorkbenchTokens.buttonBackground
-    }
-    val border = if (highlighted) {
-        AdminWorkbenchTokens.highlightedBorder
-    } else {
-        AdminWorkbenchTokens.buttonBorder
-    }
-    return background(
-        color = background,
-        shape = RoundedCornerShape(999.dp),
-    ).border(
-        width = 1.dp,
-        color = border,
-        shape = RoundedCornerShape(999.dp),
-    ).padding(
-        horizontal = if (compactTopBar) 10.dp else 12.dp,
-        vertical = if (compactTopBar) 6.dp else 8.dp,
-    )
-}
-
-/** 角标胶囊：用于通知数这类轻量全局状态，不把按钮撑成大块。 */
-@Composable
-private fun Modifier.utilityBadgeFrame(): Modifier {
-    return size(width = 24.dp, height = 18.dp)
-        .background(
-            color = AdminWorkbenchTokens.badgeBackground,
-            shape = CircleShape,
-        ).padding(horizontal = 4.dp, vertical = 2.dp)
-}
-
-private fun Int.toNotificationBadge(): String? {
-    return when {
-        this <= 0 -> null
-        this > 99 -> "99+"
-        else -> toString()
-    }
-}
-
-private fun String.toAvatarInitials(): String {
-    val source = substringBefore("@")
-        .split('.', '-', '_', ' ')
-        .filter(String::isNotBlank)
-    if (source.isEmpty()) {
-        return "U"
-    }
-    val initials = source
-        .take(2)
-        .joinToString(separator = "") { token ->
-            token.first().uppercase()
-    }
-    return initials.ifBlank { "U" }
 }
 
 @Immutable
@@ -864,7 +506,7 @@ private fun rememberAdminWorkbenchColors(
     }
 }
 
-private object AdminWorkbenchTokens {
+internal object AdminWorkbenchTokens {
     val topBarBackground: Color
         @Composable get() = LocalAdminWorkbenchColors.current.topBarBackground
     val topBarTextPrimary: Color

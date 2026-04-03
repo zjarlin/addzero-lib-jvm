@@ -45,6 +45,9 @@ import site.addzero.appsidebar.spi.scaffoldConfig
 import site.addzero.appsidebar.spi.sidebarResizeConfig
 import kotlin.math.roundToInt
 
+/**
+ * 可拖拽工作台侧栏的状态。
+ */
 @Stable
 class AppSidebarScaffoldState internal constructor(
     defaultSidebarRatio: Float,
@@ -54,6 +57,9 @@ class AppSidebarScaffoldState internal constructor(
 
     private var sidebarWidthPx by mutableFloatStateOf(Float.NaN)
 
+    /**
+     * 容器尺寸更新后，重新同步侧栏宽度和比例。
+     */
     fun onContainerMeasured(
         containerWidthPx: Float,
         minSidebarWidthPx: Float,
@@ -72,6 +78,9 @@ class AppSidebarScaffoldState internal constructor(
         sidebarRatio = (measuredSidebarWidthPx / containerWidthPx).coerceIn(0f, 1f)
     }
 
+    /**
+     * 根据拖拽增量更新侧栏宽度。
+     */
     fun dragSidebarBy(
         deltaPx: Float,
         containerWidthPx: Float,
@@ -87,6 +96,9 @@ class AppSidebarScaffoldState internal constructor(
         sidebarRatio = (nextWidth / containerWidthPx).coerceIn(0f, 1f)
     }
 
+    /**
+     * 按当前状态计算侧栏宽度。
+     */
     fun currentSidebarWidthPx(
         containerWidthPx: Float,
     ): Float {
@@ -105,6 +117,9 @@ class AppSidebarScaffoldState internal constructor(
     }
 }
 
+/**
+ * 记住侧栏骨架状态。
+ */
 @Composable
 fun rememberAppSidebarScaffoldState(
     defaultSidebarRatio: Float = 0.22f,
@@ -117,8 +132,14 @@ fun rememberAppSidebarScaffoldState(
     )
 }
 
+/**
+ * 兼容旧命名的工作台骨架状态。
+ */
 typealias WorkbenchScaffoldState = AppSidebarScaffoldState
 
+/**
+ * 记住工作台骨架状态。
+ */
 @Composable
 fun rememberWorkbenchScaffoldState(
     defaultSidebarRatio: Float = 0.22f,
@@ -126,6 +147,9 @@ fun rememberWorkbenchScaffoldState(
     defaultSidebarRatio = defaultSidebarRatio,
 )
 
+/**
+ * 工作台骨架的可插拔区域。
+ */
 interface WorkbenchScaffoldSlots {
     val contentHeader: (@Composable RowScope.() -> Unit)?
         get() = null
@@ -133,6 +157,9 @@ interface WorkbenchScaffoldSlots {
         get() = null
 }
 
+/**
+ * 工作台骨架的装饰项。
+ */
 interface WorkbenchScaffoldDecor {
     val sidebarContainerModifier: Modifier
         get() = Modifier
@@ -145,6 +172,9 @@ interface WorkbenchScaffoldDecor {
     val resizeConfig: SidebarResizeConfig
 }
 
+/**
+ * 创建工作台插槽配置。
+ */
 fun workbenchScaffoldSlots(
     contentHeader: (@Composable RowScope.() -> Unit)? = null,
     detail: (@Composable BoxScope.() -> Unit)? = null,
@@ -153,6 +183,9 @@ fun workbenchScaffoldSlots(
     detail = detail,
 )
 
+/**
+ * 创建工作台装饰配置。
+ */
 fun workbenchScaffoldDecor(
     sidebarContainerModifier: Modifier = Modifier,
     mainContainerModifier: Modifier = Modifier,
@@ -171,6 +204,9 @@ fun workbenchScaffoldDecor(
     resizeConfig = resizeConfig,
 )
 
+/**
+ * 兼容旧命名的侧栏工作台骨架。
+ */
 @Composable
 fun AppSidebarScaffold(
     sidebar: @Composable BoxScope.() -> Unit,
@@ -188,6 +224,11 @@ fun AppSidebarScaffold(
     )
 }
 
+/**
+ * 通用工作台骨架。
+ *
+ * 提供左侧栏、主内容区、内容头部和可选详情区的基础布局能力。
+ */
 @Composable
 fun WorkbenchScaffold(
     sidebar: @Composable BoxScope.() -> Unit,

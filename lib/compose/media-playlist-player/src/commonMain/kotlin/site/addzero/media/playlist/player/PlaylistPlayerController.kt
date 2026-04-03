@@ -4,60 +4,17 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.Composable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 private const val DEFAULT_UNAVAILABLE_MESSAGE = "当前歌曲无可用音源"
 
-data class PlaylistAudioSource(
-    val url: String? = null,
-    val headers: Map<String, String> = emptyMap(),
-    val unavailableMessage: String? = null,
-)
-
-enum class PlaylistPlayerStatus {
-    IDLE,
-    BUFFERING,
-    PLAYING,
-    PAUSED,
-    ENDED,
-    ERROR,
-}
-
-data class PlaylistPlayerSnapshot(
-    val currentPlaybackId: String? = null,
-    val title: String? = null,
-    val subtitle: String? = null,
-    val coverUrl: String? = null,
-    val status: PlaylistPlayerStatus = PlaylistPlayerStatus.IDLE,
-    val progress: Float = 0f,
-    val positionMs: Long = 0L,
-    val durationMs: Long = 0L,
-    val volume: Float = 1f,
-    val errorMessage: String? = null,
-)
-
-data class PlaylistPlaybackState<T>(
-    val selectedItem: T? = null,
-    val resolvedUrl: String? = null,
-    val headers: Map<String, String> = emptyMap(),
-    val isResolving: Boolean = false,
-    val resolveError: String? = null,
-    val emptyHint: String = "",
-)
-
-data class PlaylistItemActionState(
-    val playbackId: String,
-    val canPlay: Boolean,
-    val canUseAudioUrl: Boolean,
-    val isResolving: Boolean,
-    val isUnavailable: Boolean,
-    val unavailableMessage: String? = null,
-)
-
+/**
+ * 列表播放器的语义化控制器。
+ *
+ * 对外暴露播放、暂停、进度、切歌和音量控制，对内统一管理音源解析和歌词缓存。
+ */
 @Stable
 class PlaylistPlayerController<T> internal constructor(
     private val host: PlaylistPlayerHost,
@@ -149,6 +106,9 @@ class PlaylistPlayerController<T> internal constructor(
         }
     }
 
+    /**
+     * 播放指定条目。
+     */
     fun play(item: T) {
         val playbackId = itemKeyOf(item)
         resolveError = null
@@ -233,22 +193,37 @@ class PlaylistPlayerController<T> internal constructor(
         }
     }
 
+    /**
+     * 暂停当前播放。
+     */
     fun pause() {
         host.pause()
     }
 
+    /**
+     * 继续当前播放。
+     */
     fun resume() {
         host.resume()
     }
 
+    /**
+     * 从头重播当前条目。
+     */
     fun replay() {
         host.replay()
     }
 
+    /**
+     * 跳转到指定毫秒位置。
+     */
     fun seekTo(positionMs: Long) {
         host.seekTo(positionMs)
     }
 
+    /**
+     * 按进度百分比跳转。
+     */
     fun seekToProgress(progress: Float) {
         val durationMs = snapshot.durationMs
         if (durationMs <= 0L) {
@@ -257,10 +232,18 @@ class PlaylistPlayerController<T> internal constructor(
         seekTo((durationMs * progress.coerceIn(0f, 1f)).toLong())
     }
 
+    /**
+     * 调整播放器音量。
+     */
     fun setVolume(volume: Float) {
         host.setVolume(volume)
     }
 
+    /**
+     * 切到下一首。
+     *
+     * @return 是否成功切换
+     */
     fun playNext(): Boolean {
         val playbackId = currentPlaybackId ?: return false
         val currentIndex = items.indexOfFirst { itemKeyOf(it) == playbackId }
@@ -273,6 +256,11 @@ class PlaylistPlayerController<T> internal constructor(
         return true
     }
 
+    /**
+     * 切到上一首。
+     *
+     * @return 是否成功切换
+     */
     fun playPrevious(): Boolean {
         val playbackId = currentPlaybackId ?: return false
         val currentIndex = items.indexOfFirst { itemKeyOf(it) == playbackId }
@@ -468,62 +456,3 @@ class PlaylistPlayerController<T> internal constructor(
         return DEFAULT_UNAVAILABLE_MESSAGE
     }
 }
-
-@Composable
-fun <T> rememberPlaylistPlayerController(
-    items: List<T>,
-    itemKey: (T) -> String,
-    titleOf: (T) -> String,
-    subtitleOf: (T) -> String,
-    durationMsOf: (T) -> Long?,
-    coverUrlOf: (T) -> String?,
-    hasResolvableAudioOf: (T) -> Boolean = { true },
-    resolveAudioSource: suspend (T) -> PlaylistAudioSource,
-    resolveLyrics: (suspend (T) -> String?)? = null,
-    resolveErrorMessage: (Throwable) -> String = { it.message ?: "加载音频失败" },
-    resolveLyricsErrorMessage: (Throwable) -> String = { it.message ?: "加载歌词失败" },
-): PlaylistPlayerController<T> {
-    val host = rememberPlaylistPlayerHost()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val controller = remember(host) {
-        PlaylistPlayerController<T>(host)
-    }
-
-    controller.bind(
-        scope = scope,
-        items = items,
-        itemKey = itemKey,
-        titleOf = titleOf,
-        subtitleOf = subtitleOf,
-        durationMsOf = durationMsOf,
-        coverUrlOf = coverUrlOf,
-        hasResolvableAudioOf = hasResolvableAudioOf,
-        resolveAudioSource = resolveAudioSource,
-        resolveLyrics = resolveLyrics,
-        resolveErrorMessage = resolveErrorMessage,
-        resolveLyricsErrorMessage = resolveLyricsErrorMessage,
-    )
-
-    androidx.compose.runtime.LaunchedEffect(
-        controller.currentPlaybackId,
-        controller.snapshot.status,
-        resolveLyrics != null,
-    ) {
-        controller.ensureLyricsLoadedForCurrent()
-        controller.autoAdvanceIfNeeded()
-    }
-
-    return controller
-}
-
-internal data class PlaylistItemUiState(
-    val isCurrent: Boolean,
-    val isResolving: Boolean,
-    val isUnavailable: Boolean,
-    val isPlaying: Boolean,
-    val isBuffering: Boolean,
-    val isEnded: Boolean,
-    val unavailableMessage: String?,
-    val statusLabel: String?,
-    val buttonLabel: String,
-)
