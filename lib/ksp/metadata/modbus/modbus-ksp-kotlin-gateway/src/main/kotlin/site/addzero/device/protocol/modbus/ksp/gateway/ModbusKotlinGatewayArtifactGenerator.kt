@@ -13,5 +13,6 @@ class ModbusKotlinGatewayArtifactGenerator : ModbusArtifactGenerator {
         ModbusArtifactTemplates.renderGatewayArtifacts(
             transport = context.suite.transport,
             services = context.suite.services,
+            transportDefaults = context.suite.transportDefaults,
         )
 }

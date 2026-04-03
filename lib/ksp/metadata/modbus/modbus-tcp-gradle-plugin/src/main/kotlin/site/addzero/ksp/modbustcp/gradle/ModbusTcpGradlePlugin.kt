@@ -45,6 +45,45 @@ abstract class ModbusTcpExtension {
     /** STM32CubeMX `.mxproject` 路径；配置后会同步缓存的源文件和头文件路径。 */
     abstract val mxprojectPath: Property<String>
 
+    /** RTU 默认串口路径。 */
+    abstract val rtuPortPath: Property<String>
+
+    /** RTU 默认从站地址。 */
+    abstract val rtuUnitId: Property<Int>
+
+    /** RTU 默认波特率。 */
+    abstract val rtuBaudRate: Property<Int>
+
+    /** RTU 默认数据位。 */
+    abstract val rtuDataBits: Property<Int>
+
+    /** RTU 默认停止位。 */
+    abstract val rtuStopBits: Property<Int>
+
+    /** RTU 默认校验位。 */
+    abstract val rtuParity: Property<String>
+
+    /** RTU 默认超时毫秒。 */
+    abstract val rtuTimeoutMs: Property<Long>
+
+    /** RTU 默认重试次数。 */
+    abstract val rtuRetries: Property<Int>
+
+    /** TCP 默认主机地址。 */
+    abstract val tcpHost: Property<String>
+
+    /** TCP 默认端口。 */
+    abstract val tcpPort: Property<Int>
+
+    /** TCP 默认从站地址。 */
+    abstract val tcpUnitId: Property<Int>
+
+    /** TCP 默认超时毫秒。 */
+    abstract val tcpTimeoutMs: Property<Long>
+
+    /** TCP 默认重试次数。 */
+    abstract val tcpRetries: Property<Int>
+
     init {
         codegenModes.convention(listOf("server"))
         contractPackages.convention(emptyList())
@@ -56,6 +95,19 @@ abstract class ModbusTcpExtension {
         keilTargetName.convention("")
         keilGroupName.convention("Core/modbus/tcp")
         mxprojectPath.convention("")
+        rtuPortPath.convention("/dev/ttyUSB0")
+        rtuUnitId.convention(1)
+        rtuBaudRate.convention(9600)
+        rtuDataBits.convention(8)
+        rtuStopBits.convention(1)
+        rtuParity.convention("none")
+        rtuTimeoutMs.convention(1_000L)
+        rtuRetries.convention(2)
+        tcpHost.convention("127.0.0.1")
+        tcpPort.convention(502)
+        tcpUnitId.convention(1)
+        tcpTimeoutMs.convention(1_000L)
+        tcpRetries.convention(2)
     }
 }
 
@@ -104,6 +156,19 @@ class ModbusTcpGradlePlugin : AbstractPublishedKspConsumerPlugin() {
                 ?.let { put("addzero.modbus.keil.groupName", it) }
             modbus.mxprojectPath.orNull?.takeIf(String::isNotBlank)
                 ?.let { put("addzero.modbus.mxproject.path", it) }
+            put("addzero.modbus.rtu.default.portPath", modbus.rtuPortPath.get())
+            put("addzero.modbus.rtu.default.unitId", modbus.rtuUnitId.get().toString())
+            put("addzero.modbus.rtu.default.baudRate", modbus.rtuBaudRate.get().toString())
+            put("addzero.modbus.rtu.default.dataBits", modbus.rtuDataBits.get().toString())
+            put("addzero.modbus.rtu.default.stopBits", modbus.rtuStopBits.get().toString())
+            put("addzero.modbus.rtu.default.parity", modbus.rtuParity.get())
+            put("addzero.modbus.rtu.default.timeoutMs", modbus.rtuTimeoutMs.get().toString())
+            put("addzero.modbus.rtu.default.retries", modbus.rtuRetries.get().toString())
+            put("addzero.modbus.tcp.default.host", modbus.tcpHost.get())
+            put("addzero.modbus.tcp.default.port", modbus.tcpPort.get().toString())
+            put("addzero.modbus.tcp.default.unitId", modbus.tcpUnitId.get().toString())
+            put("addzero.modbus.tcp.default.timeoutMs", modbus.tcpTimeoutMs.get().toString())
+            put("addzero.modbus.tcp.default.retries", modbus.tcpRetries.get().toString())
         }
     }
 

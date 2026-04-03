@@ -6,6 +6,19 @@ object ModbusKspOptions {
     const val TRANSPORTS_OPTION: String = "addzero.modbus.transports"
     const val CONTRACT_PACKAGES_OPTION: String = "addzero.modbus.contractPackages"
     const val CONTRACT_PACKAGE_OPTION: String = "addzero.modbus.contractPackage"
+    const val RTU_PORT_PATH_OPTION: String = "addzero.modbus.rtu.default.portPath"
+    const val RTU_UNIT_ID_OPTION: String = "addzero.modbus.rtu.default.unitId"
+    const val RTU_BAUD_RATE_OPTION: String = "addzero.modbus.rtu.default.baudRate"
+    const val RTU_DATA_BITS_OPTION: String = "addzero.modbus.rtu.default.dataBits"
+    const val RTU_STOP_BITS_OPTION: String = "addzero.modbus.rtu.default.stopBits"
+    const val RTU_PARITY_OPTION: String = "addzero.modbus.rtu.default.parity"
+    const val RTU_TIMEOUT_MS_OPTION: String = "addzero.modbus.rtu.default.timeoutMs"
+    const val RTU_RETRIES_OPTION: String = "addzero.modbus.rtu.default.retries"
+    const val TCP_HOST_OPTION: String = "addzero.modbus.tcp.default.host"
+    const val TCP_PORT_OPTION: String = "addzero.modbus.tcp.default.port"
+    const val TCP_UNIT_ID_OPTION: String = "addzero.modbus.tcp.default.unitId"
+    const val TCP_TIMEOUT_MS_OPTION: String = "addzero.modbus.tcp.default.timeoutMs"
+    const val TCP_RETRIES_OPTION: String = "addzero.modbus.tcp.default.retries"
 }
 
 fun SymbolProcessorEnvironment.resolveContractPackages(): List<String> =
@@ -24,3 +37,40 @@ fun SymbolProcessorEnvironment.resolveEnabledTransports(defaultTransport: Modbus
         rawValue = options[ModbusKspOptions.TRANSPORTS_OPTION],
         defaultTransport = defaultTransport,
     )
+
+fun SymbolProcessorEnvironment.resolveTransportDefaults(): ModbusTransportDefaults =
+    ModbusTransportDefaults(
+        rtu =
+            ModbusRtuTransportDefaults(
+                portPath = options[ModbusKspOptions.RTU_PORT_PATH_OPTION].orEmpty().ifBlank { "/dev/ttyUSB0" },
+                unitId = options[ModbusKspOptions.RTU_UNIT_ID_OPTION].toIntOrDefault(1),
+                baudRate = options[ModbusKspOptions.RTU_BAUD_RATE_OPTION].toIntOrDefault(9600),
+                dataBits = options[ModbusKspOptions.RTU_DATA_BITS_OPTION].toIntOrDefault(8),
+                stopBits = options[ModbusKspOptions.RTU_STOP_BITS_OPTION].toIntOrDefault(1),
+                parity = options[ModbusKspOptions.RTU_PARITY_OPTION].orEmpty().ifBlank { "none" },
+                timeoutMs = options[ModbusKspOptions.RTU_TIMEOUT_MS_OPTION].toLongOrDefault(1_000),
+                retries = options[ModbusKspOptions.RTU_RETRIES_OPTION].toIntOrDefault(2),
+            ),
+        tcp =
+            ModbusTcpTransportDefaults(
+                host = options[ModbusKspOptions.TCP_HOST_OPTION].orEmpty().ifBlank { "127.0.0.1" },
+                port = options[ModbusKspOptions.TCP_PORT_OPTION].toIntOrDefault(502),
+                unitId = options[ModbusKspOptions.TCP_UNIT_ID_OPTION].toIntOrDefault(1),
+                timeoutMs = options[ModbusKspOptions.TCP_TIMEOUT_MS_OPTION].toLongOrDefault(1_000),
+                retries = options[ModbusKspOptions.TCP_RETRIES_OPTION].toIntOrDefault(2),
+            ),
+    )
+
+private fun String?.toIntOrDefault(defaultValue: Int): Int =
+    this
+        ?.trim()
+        ?.takeIf(String::isNotEmpty)
+        ?.toIntOrNull()
+        ?: defaultValue
+
+private fun String?.toLongOrDefault(defaultValue: Long): Long =
+    this
+        ?.trim()
+        ?.takeIf(String::isNotEmpty)
+        ?.toLongOrNull()
+        ?: defaultValue

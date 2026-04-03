@@ -7,7 +7,7 @@ dependencies {
     implementation(kotlin("scripting-jvm"))
     implementation(kotlin("scripting-jvm-host"))
     testImplementation(catalogLibs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())
-    testImplementation(libs.junit.junit.junit.jupiter)
+    testImplementation(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter").get())
 }
 
 description = "Kotlin script template utilities"

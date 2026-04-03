@@ -341,6 +341,31 @@ data class ModbusProtocolSuiteModel(
     val protocolId: String = "modbus",
     val transport: ModbusTransportKind,
     val services: List<ModbusServiceModel>,
+    val transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+)
+
+data class ModbusRtuTransportDefaults(
+    val portPath: String = "/dev/ttyUSB0",
+    val unitId: Int = 1,
+    val baudRate: Int = 9600,
+    val dataBits: Int = 8,
+    val stopBits: Int = 1,
+    val parity: String = "none",
+    val timeoutMs: Long = 1_000,
+    val retries: Int = 2,
+)
+
+data class ModbusTcpTransportDefaults(
+    val host: String = "127.0.0.1",
+    val port: Int = 502,
+    val unitId: Int = 1,
+    val timeoutMs: Long = 1_000,
+    val retries: Int = 2,
+)
+
+data class ModbusTransportDefaults(
+    val rtu: ModbusRtuTransportDefaults = ModbusRtuTransportDefaults(),
+    val tcp: ModbusTcpTransportDefaults = ModbusTcpTransportDefaults(),
 )
 
 enum class ModbusArtifactKind {

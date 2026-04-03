@@ -12,5 +12,6 @@ class ModbusMarkdownArtifactGenerator : ModbusArtifactGenerator {
     override fun render(context: ModbusArtifactRenderContext): List<GeneratedArtifact> =
         ModbusArtifactTemplates.renderMarkdownArtifacts(
             service = requireNotNull(context.service) { "Markdown generation requires a single service context." },
+            transportDefaults = context.suite.transportDefaults,
         )
 }

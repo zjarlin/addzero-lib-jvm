@@ -1,5 +1,7 @@
 package site.addzero.device.protocol.modbus.ksp.core
 
+import java.time.LocalDate
+
 /**
  * Modbus 产物模板集合。
  *
@@ -11,6 +13,7 @@ object ModbusArtifactTemplates {
     fun renderGatewayArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
     ): List<GeneratedArtifact> {
         if (services.isEmpty()) {
             return emptyList()
@@ -60,7 +63,7 @@ object ModbusArtifactTemplates {
                 services.forEach { service ->
                     append(renderRequestClasses(service))
                     appendLine()
-                    append(renderConfigProvider(service))
+                    append(renderConfigProvider(service, transportDefaults))
                     appendLine()
                     append(renderGateway(service))
                     appendLine()
@@ -83,9 +86,13 @@ object ModbusArtifactTemplates {
     fun renderServerArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
-    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services)
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults)
 
-    fun renderServiceContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> {
+    fun renderServiceContractArtifacts(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> {
         val outputPackage = "generated.modbus.${service.transport.transportId}"
         val cServiceName = service.cServiceName
         return listOf(
@@ -111,29 +118,42 @@ object ModbusArtifactTemplates {
                 packageName = outputPackage,
                 fileName = "${cServiceName}_bridge_impl",
                 extensionName = "c",
-                content = renderBridgeSampleSource(service),
+                content = renderBridgeSampleSource(service, transportDefaults),
             ),
         )
     }
 
-    fun renderMarkdownArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> {
+    fun renderMarkdownArtifacts(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> {
         val protocolFileBaseName = "${service.protocolDocBaseName()}.${service.transport.transportId}.protocol"
         return listOf(
             GeneratedArtifact(
                 packageName = "generated.modbus.protocols",
                 fileName = protocolFileBaseName,
                 extensionName = "md",
-                content = renderProtocolMarkdown(service),
+                content = renderProtocolMarkdown(service, transportDefaults),
+            ),
+            GeneratedArtifact(
+                packageName = "generated.modbus.${service.transport.transportId}",
+                fileName = "${service.cServiceName}_bridge_sample",
+                extensionName = "c",
+                content = renderBridgeReferenceSampleSource(service),
             ),
         )
     }
 
-    fun renderContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> =
-        renderServiceContractArtifacts(service) + renderMarkdownArtifacts(service)
+    fun renderContractArtifacts(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> =
+        renderServiceContractArtifacts(service, transportDefaults) + renderMarkdownArtifacts(service, transportDefaults)
 
     fun renderTransportContractArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
     ): List<GeneratedArtifact> {
         if (services.isEmpty()) {
             return emptyList()
@@ -199,7 +219,10 @@ object ModbusArtifactTemplates {
             appendLine("}")
         }
 
-    private fun renderProtocolMarkdown(service: ModbusServiceModel): String =
+    private fun renderProtocolMarkdown(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults,
+    ): String =
         buildString {
             appendLine("# ${service.interfaceSimpleName} 协议说明（${service.transport.displayName}）")
             appendLine()
@@ -224,6 +247,7 @@ object ModbusArtifactTemplates {
             appendLine("- 这份文档给上位机、固件和联调同事共用。")
             appendLine("- 联调时以上表 `address`、`quantity`、`function code`、标准码值为准。")
             appendLine("- 固件侧需要实现的入口是 `${service.cServiceName}_bridge_impl.c` 里的 `${service.cServiceName}_bridge_*` 函数。")
+            appendLine("- 如果 `${service.cServiceName}_bridge_impl.c` 已经存在，重新生成时不会覆盖；请对照 `${service.cServiceName}_bridge_sample.c` 查看最新模板。")
             appendLine("- 固件侧不要修改 `${service.cServiceName}_generated.c`、`${service.transport.dispatchFileName()}.c` 和 adapter。")
             appendLine("- `STRING_UTF8` 字段的 `Width` 表示寄存器个数，实际可写入字节数 = `Width * 2`。")
             appendLine()
@@ -235,6 +259,7 @@ object ModbusArtifactTemplates {
                             listOf("`${service.cServiceName}_generated.h/.c`", "DTO 结构体、地址常量、寄存器/线圈编解码。"),
                             listOf("`${service.cServiceName}_bridge.h`", "给固件同事看的 SPI 头文件；声明需要实现的 bridge 函数。"),
                             listOf("`${service.cServiceName}_bridge_impl.c`", "可编辑的板级业务实现模板；只改这里。"),
+                            listOf("`${service.cServiceName}_bridge_sample.c`", "只读桥接模板参考；当已有 impl 不覆盖时，用它对照最新 SPI 和注释；该文件不参与固件编译。"),
                             listOf("`${service.transport.dispatchFileName()}.h/.c`", "聚合 dispatch，负责按 address 路由到各个 service。"),
                         ),
                 ),
@@ -243,11 +268,11 @@ object ModbusArtifactTemplates {
             appendLine("## 仿真软件怎么填")
             appendLine()
             append(
-                renderMarkdownTable(
-                    headers = listOf("项目", "填写方式"),
-                    rows = renderSimulatorConnectionMarkdownRows(service.transport),
-                ),
-            )
+                    renderMarkdownTable(
+                        headers = listOf("项目", "填写方式"),
+                        rows = renderSimulatorConnectionMarkdownRows(service.transport, transportDefaults),
+                    ),
+                )
             appendLine()
             appendLine("- 常见主站软件可用 `Modbus Poll`、`QModMaster`、`ModbusClientX`。")
             appendLine("- 常见从站仿真软件可用 `Modbus Slave`、`diagslave`。")
@@ -260,7 +285,7 @@ object ModbusArtifactTemplates {
             append(
                 renderMarkdownTable(
                     headers = listOf("字段", "默认值"),
-                    rows = renderTransportDefaultsMarkdownRows(service.transport),
+                    rows = renderTransportDefaultsMarkdownRows(service.transport, transportDefaults),
                 ),
             )
             appendLine()
@@ -335,7 +360,7 @@ object ModbusArtifactTemplates {
                     ),
                 )
                 if (service.transport == ModbusTransportKind.RTU) {
-                    val frameExample = operation.rtuFrameExample()
+                    val frameExample = operation.rtuFrameExample(unitId = transportDefaults.rtu.unitId)
                     appendLine()
                     appendLine("### RTU 报文示例")
                     appendLine()
@@ -934,7 +959,10 @@ object ModbusArtifactTemplates {
             }
         }
 
-    private fun renderConfigProvider(service: ModbusServiceModel): String =
+    private fun renderConfigProvider(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults,
+    ): String =
         buildString {
             appendLine("/**")
             appendLine(" * ${escapeComment(service.summary)}")
@@ -946,10 +974,10 @@ object ModbusArtifactTemplates {
             appendLine(
                 when (service.transport) {
                     ModbusTransportKind.RTU ->
-                        "        ModbusRtuEndpointConfig(serviceId = serviceId, portPath = \"/dev/ttyUSB0\", unitId = 1, baudRate = 115200, dataBits = 8, stopBits = 1, parity = ModbusSerialParity.NONE, timeoutMs = 1_000, retries = 2)"
+                        "        ModbusRtuEndpointConfig(serviceId = serviceId, portPath = \"${escapeKotlinString(transportDefaults.rtu.portPath)}\", unitId = ${transportDefaults.rtu.unitId}, baudRate = ${transportDefaults.rtu.baudRate}, dataBits = ${transportDefaults.rtu.dataBits}, stopBits = ${transportDefaults.rtu.stopBits}, parity = ${transportDefaults.rtu.parity.renderParityEnumLiteral()}, timeoutMs = ${transportDefaults.rtu.timeoutMs}, retries = ${transportDefaults.rtu.retries})"
 
                     ModbusTransportKind.TCP ->
-                        "        ModbusTcpEndpointConfig(serviceId = serviceId, host = \"127.0.0.1\", port = 502, unitId = 1, timeoutMs = 1_000, retries = 2)"
+                        "        ModbusTcpEndpointConfig(serviceId = serviceId, host = \"${escapeKotlinString(transportDefaults.tcp.host)}\", port = ${transportDefaults.tcp.port}, unitId = ${transportDefaults.tcp.unitId}, timeoutMs = ${transportDefaults.tcp.timeoutMs}, retries = ${transportDefaults.tcp.retries})"
                 }
             )
             appendLine("}")
@@ -1214,6 +1242,29 @@ object ModbusArtifactTemplates {
             appendLine("#endif")
         }
 
+    private fun renderBridgeReferenceSampleSource(service: ModbusServiceModel): String {
+        val updatedDate = LocalDate.now().toString()
+        val bridgeSource = renderBridgeSampleSource(service, ModbusTransportDefaults()).trimStart()
+        return buildString {
+            appendLine("/*")
+            appendLine(" * 请勿手动修改此文件。")
+            appendLine(" *")
+            appendLine(" * 参考模板：${service.interfaceSimpleName} / ${service.transport.displayName}")
+            appendLine(" * 更新日期：$updatedDate")
+            appendLine(" *")
+            appendLine(" * 用途：")
+            appendLine(" * - 当 ${service.cServiceName}_bridge_impl.c 已经存在时，KSP 不会覆盖那个正式实现文件。")
+            appendLine(" * - 这份 sample 只用于对照最新 SPI、函数签名、参数说明和注释。")
+            appendLine(" * - 需要更新时，只把新增函数或注释片段复制到你自己的 ${service.cServiceName}_bridge_impl.c。")
+            appendLine(" *")
+            appendLine(" * 编译约定：")
+            appendLine(" * - 该文件输出到 Docs/generated/modbus/...，不参与固件编译。")
+            appendLine(" */")
+            appendLine()
+            append(bridgeSource)
+        }
+    }
+
     private fun renderBridgeHeader(service: ModbusServiceModel): String =
         buildString {
             val guard = "${service.cServiceName}_bridge_h".uppercase()
@@ -1343,10 +1394,30 @@ object ModbusArtifactTemplates {
             }
         }
 
-    private fun renderBridgeSampleSource(service: ModbusServiceModel): String =
+    private fun renderBridgeSampleSource(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults,
+    ): String =
         buildString {
             appendLine("#include \"${service.cServiceName}/${service.cServiceName}_bridge.h\"")
+            if (service.usesStringRegisters()) {
+                appendLine("#include <string.h>")
+            }
             appendLine()
+            if (service.usesStringRegisters()) {
+                appendLine("static void ${service.cServiceName}_bridge_copy_text(char *out_text, size_t out_capacity, const char *input) {")
+                appendLine("    if (out_text == NULL || out_capacity == 0u) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    if (input == NULL) {")
+                appendLine("        out_text[0] = '\\0';")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    strncpy(out_text, input, out_capacity - 1u);")
+                appendLine("    out_text[out_capacity - 1u] = '\\0';")
+                appendLine("}")
+                appendLine()
+            }
             appendLine("/*")
             appendLine(" * bridge implementation entry.")
             appendLine(" *")
@@ -1368,6 +1439,9 @@ object ModbusArtifactTemplates {
             appendLine(" * - 只改下面这些 ${service.cServiceName}_bridge_* 函数的函数体")
             appendLine(" * - 把真实硬件读写逻辑填进去")
             appendLine(" * - 不要改函数签名，不要改 *_generated.c / *_dispatch.c / adapter")
+            if (service.usesStringRegisters()) {
+                appendLine(" * - 字符串输出请直接调用 ${service.cServiceName}_bridge_copy_text(...)，不要手写多字符 char 赋值")
+            }
             appendLine(" */")
             appendLine()
             service.operations.forEach { operation ->
@@ -1388,7 +1462,10 @@ object ModbusArtifactTemplates {
                             appendLine("        return false;")
                         appendLine("    }")
                         operation.returnType.properties.forEach { property ->
-                            property.renderBridgeDefaultAssignmentLines("out_response->").forEach { line ->
+                            property.renderBridgeDefaultAssignmentLines(
+                                prefix = "out_response->",
+                                bridgeCopyHelperName = "${service.cServiceName}_bridge_copy_text",
+                            ).forEach { line ->
                                 appendLine("    $line")
                             }
                         }
@@ -1418,8 +1495,8 @@ object ModbusArtifactTemplates {
                         appendLine("        return false;")
                         appendLine("    }")
                         appendLine("    /* 返回值字符串：codec=${operation.returnType.codecName}，寄存器宽度=${operation.returnType.registerWidth}，最多 ${operation.returnType.stringByteCapacity()} 个字节，out_capacity 包含结尾 '\\0'。 */")
-                        appendLine("    /* 示例：snprintf(out_value, out_capacity, \"%s\", \"XXXXXXXX-XXXXX\"); */")
-                        appendLine("    out_value[0] = '\\0';")
+                        appendLine("    /* 示例：${service.cServiceName}_bridge_copy_text(out_value, out_capacity, \"XXXXXXXX-XXXXX\"); */")
+                        appendLine("    ${service.cServiceName}_bridge_copy_text(out_value, out_capacity, \"\");")
                         appendLine("    return true;")
                     }
 
@@ -2097,16 +2174,18 @@ object ModbusArtifactTemplates {
             else -> doc
         }
 
-    private fun ModbusPropertyModel.renderBridgeDefaultAssignmentLines(prefix: String): List<String> =
+    private fun ModbusPropertyModel.renderBridgeDefaultAssignmentLines(
+        prefix: String,
+        bridgeCopyHelperName: String,
+    ): List<String> =
         when (valueKind) {
             ModbusValueKind.STRING ->
                 listOf(
                     "/* ${name.toSnakeCase()} 字符串：codec=${field?.codecName.orEmpty()}，寄存器宽度=${field?.registerWidth ?: 0}，最多 ${stringByteCapacity()} 个字节，缓冲区容量 ${stringCharCapacity()}（含 '\\0'）。 */",
                     "/* 示例：",
-                    " * strncpy(${prefix}${name.toSnakeCase()}, \"XXXXXXXX-XXXXX\", ${stringByteCapacity()});",
-                    " * ${prefix}${name.toSnakeCase()}[${stringCharCapacity() - 1}] = '\\0';",
+                    " * ${bridgeCopyHelperName}(${prefix}${name.toSnakeCase()}, sizeof(${prefix}${name.toSnakeCase()}), \"XXXXXXXX-XXXXX\");",
                     " */",
-                    "${prefix}${name.toSnakeCase()}[${stringCharCapacity() - 1}] = '\\0';",
+                    "${bridgeCopyHelperName}(${prefix}${name.toSnakeCase()}, sizeof(${prefix}${name.toSnakeCase()}), \"\");",
                 )
             else -> listOf("${prefix}${name.toSnakeCase()} = 0;")
         }
@@ -2205,27 +2284,30 @@ object ModbusArtifactTemplates {
             else -> error("未知的 Modbus 功能码：$functionCodeName")
         }
 
-    private fun renderSimulatorConnectionMarkdownRows(transport: ModbusTransportKind): List<List<String>> =
+    private fun renderSimulatorConnectionMarkdownRows(
+        transport: ModbusTransportKind,
+        transportDefaults: ModbusTransportDefaults,
+    ): List<List<String>> =
         when (transport) {
             ModbusTransportKind.RTU ->
                 listOf(
                     listOf("连接模式", "选择 `RTU`。"),
-                    listOf("串口", "填写真实串口或仿真串口，默认示例是 `/dev/ttyUSB0`。"),
-                    listOf("从站地址", "默认 `1`；若现场改过 `Unit ID`，这里同步改成现场值。"),
-                    listOf("波特率", "默认 `115200`。"),
-                    listOf("数据位", "默认 `8`。"),
-                    listOf("停止位", "默认 `1`。"),
-                    listOf("校验", "默认 `none`。"),
-                    listOf("超时", "建议先填 `1000 ms`。"),
+                    listOf("串口", "填写真实串口或仿真串口，默认示例是 `${transportDefaults.rtu.portPath}`。"),
+                    listOf("从站地址", "默认 `${transportDefaults.rtu.unitId}`；若现场改过 `Unit ID`，这里同步改成现场值。"),
+                    listOf("波特率", "默认 `${transportDefaults.rtu.baudRate}`。"),
+                    listOf("数据位", "默认 `${transportDefaults.rtu.dataBits}`。"),
+                    listOf("停止位", "默认 `${transportDefaults.rtu.stopBits}`。"),
+                    listOf("校验", "默认 `${transportDefaults.rtu.parity}`。"),
+                    listOf("超时", "建议先填 `${transportDefaults.rtu.timeoutMs} ms`。"),
                 )
 
             ModbusTransportKind.TCP ->
                 listOf(
                     listOf("连接模式", "选择 `TCP`。"),
-                    listOf("主机地址", "默认 `127.0.0.1`，联调时改成设备 IP。"),
-                    listOf("端口", "默认 `502`。"),
-                    listOf("从站地址", "默认 `1`；若现场网关改过 `Unit ID`，这里同步改成现场值。"),
-                    listOf("超时", "建议先填 `1000 ms`。"),
+                    listOf("主机地址", "默认 `${transportDefaults.tcp.host}`，联调时改成设备 IP。"),
+                    listOf("端口", "默认 `${transportDefaults.tcp.port}`。"),
+                    listOf("从站地址", "默认 `${transportDefaults.tcp.unitId}`；若现场网关改过 `Unit ID`，这里同步改成现场值。"),
+                    listOf("超时", "建议先填 `${transportDefaults.tcp.timeoutMs} ms`。"),
                 )
         }
 
@@ -2525,27 +2607,30 @@ object ModbusArtifactTemplates {
                 ),
         )
 
-    private fun renderTransportDefaultsMarkdownRows(transport: ModbusTransportKind): List<List<String>> =
+    private fun renderTransportDefaultsMarkdownRows(
+        transport: ModbusTransportKind,
+        transportDefaults: ModbusTransportDefaults,
+    ): List<List<String>> =
         when (transport) {
             ModbusTransportKind.RTU ->
                 listOf(
-                    listOf("Port Path", "`/dev/ttyUSB0`"),
-                    listOf("Unit ID", "`1`"),
-                    listOf("Baud Rate", "`115200`"),
-                    listOf("Data Bits", "`8`"),
-                    listOf("Stop Bits", "`1`"),
-                    listOf("Parity", "`none`"),
-                    listOf("Timeout Ms", "`1000`"),
-                    listOf("Retries", "`2`"),
+                    listOf("Port Path", "`${transportDefaults.rtu.portPath}`"),
+                    listOf("Unit ID", "`${transportDefaults.rtu.unitId}`"),
+                    listOf("Baud Rate", "`${transportDefaults.rtu.baudRate}`"),
+                    listOf("Data Bits", "`${transportDefaults.rtu.dataBits}`"),
+                    listOf("Stop Bits", "`${transportDefaults.rtu.stopBits}`"),
+                    listOf("Parity", "`${transportDefaults.rtu.parity}`"),
+                    listOf("Timeout Ms", "`${transportDefaults.rtu.timeoutMs}`"),
+                    listOf("Retries", "`${transportDefaults.rtu.retries}`"),
                 )
 
             ModbusTransportKind.TCP ->
                 listOf(
-                    listOf("Host", "`127.0.0.1`"),
-                    listOf("Port", "`502`"),
-                    listOf("Unit ID", "`1`"),
-                    listOf("Timeout Ms", "`1000`"),
-                    listOf("Retries", "`2`"),
+                    listOf("Host", "`${transportDefaults.tcp.host}`"),
+                    listOf("Port", "`${transportDefaults.tcp.port}`"),
+                    listOf("Unit ID", "`${transportDefaults.tcp.unitId}`"),
+                    listOf("Timeout Ms", "`${transportDefaults.tcp.timeoutMs}`"),
+                    listOf("Retries", "`${transportDefaults.tcp.retries}`"),
                 )
         }
 
@@ -2675,9 +2760,22 @@ private fun GeneratedModbusTcpRequestConfig.toEndpointConfig(defaultConfig: Modb
             .replace("|", "\\|")
             .replace("\n", "<br>")
 
+    private fun escapeKotlinString(text: String): String =
+        text
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+
     private fun escapeComment(text: String): String = text.replace("*/", "* /")
 
     private fun escapeCComment(text: String): String = text.replace("*/", "* /")
+
+    private fun String.renderParityEnumLiteral(): String =
+        when (trim().uppercase()) {
+            "NONE" -> "ModbusSerialParity.NONE"
+            "EVEN" -> "ModbusSerialParity.EVEN"
+            "ODD" -> "ModbusSerialParity.ODD"
+            else -> "ModbusSerialParity.NONE"
+        }
 
     private fun ModbusServiceModel.protocolDocBaseName(): String =
         serviceId

@@ -38,9 +38,13 @@ class ModbusRtuSmokeGenerationTest {
         val adapterHeader = generatedResourceDir.resolve("modbus_rtu_agile_slave_adapter.h")
         val adapterSource = generatedResourceDir.resolve("modbus_rtu_agile_slave_adapter.c")
         val protocolMarkdown = generatedMarkdownDir.resolve("device.rtu.protocol.md")
+        val bridgeSampleSource = generatedResourceDir.resolve("device_bridge_sample.c")
         val flashProtocolMarkdown = generatedMarkdownDir.resolve("flash.rtu.protocol.md")
+        val flashBridgeSampleSource = generatedResourceDir.resolve("flash_bridge_sample.c")
         val externalProtocolMarkdown = externalMarkdownDir.resolve("device.rtu.protocol.md")
+        val externalBridgeSampleSource = externalMarkdownDir.resolve("device_bridge_sample.c")
         val externalFlashProtocolMarkdown = externalMarkdownDir.resolve("flash.rtu.protocol.md")
+        val externalFlashBridgeSampleSource = externalMarkdownDir.resolve("flash_bridge_sample.c")
         val externalGeneratedHeader = externalHeaderDir.resolve("device/device_generated.h")
         val externalBridgeHeader = externalHeaderDir.resolve("device/device_bridge.h")
         val externalFlashGeneratedHeader = externalHeaderDir.resolve("flash/flash_generated.h")
@@ -70,9 +74,13 @@ class ModbusRtuSmokeGenerationTest {
             adapterHeader,
             adapterSource,
             protocolMarkdown,
+            bridgeSampleSource,
             flashProtocolMarkdown,
+            flashBridgeSampleSource,
             externalProtocolMarkdown,
+            externalBridgeSampleSource,
             externalFlashProtocolMarkdown,
+            externalFlashBridgeSampleSource,
             externalGeneratedHeader,
             externalBridgeHeader,
             externalFlashGeneratedHeader,
@@ -152,11 +160,13 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(bridgeImplSource.readText().contains("在下面这些 device_bridge_* 函数体里接入 GPIO / ADC / 状态机 / Flash / 传感器驱动"))
         assertTrue(bridgeImplSource.readText().contains("不要修改函数签名"))
         assertTrue(bridgeImplSource.readText().contains("这个文件建议放在 Core/Src/modbus/<transport>/<service>，例如 Core/Src/modbus/rtu/device；也可以放在你通过 KSP 参数指定的业务目录"))
+        assertTrue(bridgeImplSource.readText().contains("#include <string.h>"))
+        assertTrue(bridgeImplSource.readText().contains("static void device_bridge_copy_text(char *out_text, size_t out_capacity, const char *input) {"))
         assertTrue(bridgeImplSource.readText().contains("device_name 字符串：codec=STRING_UTF8，寄存器宽度=16，最多 32 个字节，缓冲区容量 33（含 '\\0'）。"))
-        assertTrue(bridgeImplSource.readText().contains(" * strncpy(out_response->device_name, \"XXXXXXXX-XXXXX\", 32);"))
-        assertTrue(bridgeImplSource.readText().contains(" * out_response->device_name[32] = '\\0';"))
-        assertTrue(bridgeImplSource.readText().contains("out_response->device_name[32] = '\\0';"))
+        assertTrue(bridgeImplSource.readText().contains(" * device_bridge_copy_text(out_response->device_name, sizeof(out_response->device_name), \"XXXXXXXX-XXXXX\");"))
+        assertTrue(bridgeImplSource.readText().contains("device_bridge_copy_text(out_response->device_name, sizeof(out_response->device_name), \"\");"))
         assertFalse(bridgeImplSource.readText().contains("out_response->device_name[0] = '\\0';"))
+        assertFalse(bridgeImplSource.readText().contains("out_response->device_name[32] = '\\0';"))
 
         assertTrue(flashBridgeHeader.readText().contains("请勿手动修改此文件。"))
         assertTrue(flashBridgeHeader.readText().contains("参数："))
@@ -185,7 +195,11 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(protocolMarkdown.readText().contains("| `get-device-info` | `getDeviceInfo` | `READ_COILS` | `0x01` | 读取线圈 | `0` | `24` | `DeviceInfo24` | 读取 24 路输出通道状态。 |"))
         assertTrue(protocolMarkdown.readText().contains("## 联调说明"))
         assertTrue(protocolMarkdown.readText().contains("固件侧需要实现的入口是 `device_bridge_impl.c` 里的 `device_bridge_*` 函数。"))
+        assertTrue(protocolMarkdown.readText().contains("重新生成时不会覆盖"))
+        assertTrue(protocolMarkdown.readText().contains("`device_bridge_sample.c`"))
         assertTrue(protocolMarkdown.readText().contains("## 仿真软件怎么填"))
+        assertTrue(protocolMarkdown.readText().contains("| Baud Rate | `9600` |"))
+        assertTrue(protocolMarkdown.readText().contains("| 波特率 | 默认 `9600`。 |"))
         assertTrue(protocolMarkdown.readText().contains("### RTU 报文示例"))
         assertTrue(protocolMarkdown.readText().contains("### RTU 请求帧拆解"))
         assertTrue(protocolMarkdown.readText().contains("请求 payload 示例：`00 00 00 18`"))
@@ -196,6 +210,9 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(protocolMarkdown.readText().contains("| `get-device-runtime-info` | `getDeviceRuntimeInfo` | `READ_INPUT_REGISTERS` | `0x04` | 读取输入寄存器 | `100` | `20` | `DeviceRuntimeInfo` | 读取设备运行信息。 |"))
         assertTrue(protocolMarkdown.readText().contains("| `protocolVersion` | `Int` | `U16` | `0` | `0` | `1` | 协议版本。 |"))
         assertTrue(protocolMarkdown.readText().contains("| `deviceName` | `String` | `STRING_UTF8` | `4` | `0` | `16` | 设备名称。 |"))
+        assertTrue(bridgeSampleSource.readText().contains("请勿手动修改此文件。"))
+        assertTrue(bridgeSampleSource.readText().contains("更新日期："))
+        assertTrue(bridgeSampleSource.readText().contains("device_bridge_get_device_runtime_info"))
         assertTrue(flashProtocolMarkdown.readText().contains("| `reset-device` | `resetDevice` | `WRITE_SINGLE_COIL` | `0x05` | 写单个线圈 | `64` | `1` | `ModbusCommandResult` | 触发设备复位。 |"))
         assertTrue(flashProtocolMarkdown.readText().contains("| `firmware-start` | `firmwareStart` | `WRITE_MULTIPLE_REGISTERS` | `0x10` | 写多个寄存器 | `512` | `4` | `ModbusCommandResult` | 初始化一次烧录会话。 |"))
         assertTrue(flashProtocolMarkdown.readText().contains("| `totalBytes` | `Int` | `U32_BE` | `0` | `0` | `2` | 本次固件总字节数。 |"))
@@ -209,8 +226,12 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(flashProtocolMarkdown.readText().contains("| 项目 | 从站地址 | 功能码 | payload: 线圈地址 | payload: 线圈写入值 | CRC16 |"))
         assertTrue(flashProtocolMarkdown.readText().contains("| 示例 | `01` | `05` | `00 40` | `FF 00` | `8D EE` |"))
         assertTrue(flashProtocolMarkdown.readText().contains("CRC32: 由上位机自动计算并通过 firmwareStart 下发"))
+        assertTrue(flashBridgeSampleSource.readText().contains("请勿手动修改此文件。"))
+        assertTrue(flashBridgeSampleSource.readText().contains("flash_bridge_firmware_start"))
         assertTrue(externalProtocolMarkdown.readText().contains("## 联调说明"))
+        assertTrue(externalBridgeSampleSource.readText().contains("更新日期："))
         assertTrue(externalFlashProtocolMarkdown.readText().contains("## 工作流总览"))
+        assertTrue(externalFlashBridgeSampleSource.readText().contains("更新日期："))
 
         val addressLock = addressLockFile.readText()
         assertTrue(addressLock.contains("meta.transport=rtu"))

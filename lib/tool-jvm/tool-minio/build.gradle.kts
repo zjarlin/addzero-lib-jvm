@@ -8,6 +8,6 @@ dependencies {
     implementation(catalogLibs.findLibrary("cn-hutool-hutool-core").get())
     implementation(catalogLibs.findLibrary("org-slf4j-slf4j-api").get())
 
-    testImplementation(libs.junit.junit.junit.jupiter.api)
-    testRuntimeOnly(libs.junit.junit.junit.jupiter.engine)
+    testImplementation(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter-api").get())
+    testRuntimeOnly(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter-engine").get())
 }

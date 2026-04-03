@@ -25,52 +25,64 @@ object ModbusArtifactRenderer {
     fun renderGatewayArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
     ): List<GeneratedArtifact> =
         render(
             context =
                 ModbusArtifactRenderContext(
                     kind = ModbusArtifactKind.KOTLIN_GATEWAY,
-                    suite = ModbusProtocolSuiteModel(transport = transport, services = services),
+                    suite = ModbusProtocolSuiteModel(transport = transport, services = services, transportDefaults = transportDefaults),
                 ),
         )
 
     fun renderServerArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
-    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services)
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults)
 
-    fun renderServiceContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> =
+    fun renderServiceContractArtifacts(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> =
         render(
             context =
                 ModbusArtifactRenderContext(
                     kind = ModbusArtifactKind.C_SERVICE_CONTRACT,
-                    suite = ModbusProtocolSuiteModel(transport = service.transport, services = listOf(service)),
+                    suite = ModbusProtocolSuiteModel(transport = service.transport, services = listOf(service), transportDefaults = transportDefaults),
                     service = service,
                 ),
         )
 
-    fun renderMarkdownArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> =
+    fun renderMarkdownArtifacts(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> =
         render(
             context =
                 ModbusArtifactRenderContext(
                     kind = ModbusArtifactKind.MARKDOWN_PROTOCOL,
-                    suite = ModbusProtocolSuiteModel(transport = service.transport, services = listOf(service)),
+                    suite = ModbusProtocolSuiteModel(transport = service.transport, services = listOf(service), transportDefaults = transportDefaults),
                     service = service,
                 ),
         )
 
-    fun renderContractArtifacts(service: ModbusServiceModel): List<GeneratedArtifact> =
-        renderServiceContractArtifacts(service) + renderMarkdownArtifacts(service)
+    fun renderContractArtifacts(
+        service: ModbusServiceModel,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+    ): List<GeneratedArtifact> =
+        renderServiceContractArtifacts(service, transportDefaults) + renderMarkdownArtifacts(service, transportDefaults)
 
     fun renderTransportContractArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
+        transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
     ): List<GeneratedArtifact> =
         render(
             context =
                 ModbusArtifactRenderContext(
                     kind = ModbusArtifactKind.C_TRANSPORT_CONTRACT,
-                    suite = ModbusProtocolSuiteModel(transport = transport, services = services),
+                    suite = ModbusProtocolSuiteModel(transport = transport, services = services, transportDefaults = transportDefaults),
                 ),
         )
 

@@ -1,6 +1,6 @@
 # tool-stm32-bootloader
 
-基于 STM32 官方 ROM USART Bootloader 协议的 JVM 烧录库，纯 Kotlin 实现，不依赖外部 CLI。
+基于 STM32 官方 ROM USART Bootloader 与 ST-Link SWD 协议的 JVM 烧录库，纯 Kotlin 实现，不依赖外部 CLI。
 
 ## Maven 坐标
 
@@ -18,6 +18,8 @@
 - 可选通过 `DTR` / `RTS` 控制 `BOOT0` 和 `NRST`
 - 完整烧录流程封装：进入 Bootloader、擦除、写入、回读校验、启动应用
 - 提供阶段化进度回调，可直接绑定上位机进度条
+- 支持 ST-Link `SWD` 探测、目标电压读取、`NRST` 控制、系统复位
+- 支持当前已实测目标 `STM32F1xx HD (chipId=0x414)` 的 SWD 页擦除、写入、回读校验
 
 ## 快速使用
 
@@ -61,7 +63,7 @@ Stm32UartBootloader(config).use { bootloader ->
 ## 运行约束
 
 - 仅支持 JVM
-- 当前实现只覆盖 STM32 官方 `USART` Bootloader，不包含 `USB DFU`、`SWD/JTAG`
 - 目标芯片是否支持某个串口口线进入 System Memory，需要按 `AN2606` 查具体型号
 - 大多数 STM32 Bootloader 串口要求偶校验；`STM32WB0` 和 `STM32WL3x` 线按官方说明使用无校验
 - 如果尾块不是 4 字节对齐，库会默认补 `0xFF` 后再写入，这是 STM32 `Write Memory` 协议本身的要求
+- ST-Link SWD 当前优先覆盖 `STM32F1xx HD (chipId=0x414)`；其他芯片族需要继续补对应 Flash 规程

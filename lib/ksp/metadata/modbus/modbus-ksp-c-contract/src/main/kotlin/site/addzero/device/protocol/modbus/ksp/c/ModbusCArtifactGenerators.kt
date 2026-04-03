@@ -12,6 +12,7 @@ class ModbusCServiceContractArtifactGenerator : ModbusArtifactGenerator {
     override fun render(context: ModbusArtifactRenderContext): List<GeneratedArtifact> =
         ModbusArtifactTemplates.renderServiceContractArtifacts(
             service = requireNotNull(context.service) { "C service contract generation requires a single service context." },
+            transportDefaults = context.suite.transportDefaults,
         )
 }
 
@@ -22,5 +23,6 @@ class ModbusCTransportContractArtifactGenerator : ModbusArtifactGenerator {
         ModbusArtifactTemplates.renderTransportContractArtifacts(
             transport = context.suite.transport,
             services = context.suite.services,
+            transportDefaults = context.suite.transportDefaults,
         )
 }

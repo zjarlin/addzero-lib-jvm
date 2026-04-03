@@ -35,6 +35,8 @@ class ModbusExternalCArtifactWriter private constructor(
         val targetFile =
             when {
                 artifact.extensionName == "h" -> headerOutputDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.h")
+                artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_sample") ->
+                    markdownOutputDir.resolve(transportDirName).resolve("${artifact.fileName}.c")
                 artifact.extensionName == "c" && artifact.fileName.endsWith("_bridge_impl") -> resolveBridgeImplFile(artifact, transportDirName, groupDirName)
                 artifact.extensionName == "c" -> sourceOutputDir.resolve(transportDirName).resolve(groupDirName).resolve("${artifact.fileName}.c")
                 artifact.extensionName == "md" -> markdownOutputDir.resolve(transportDirName).resolve("${artifact.fileName}.md")
@@ -59,6 +61,7 @@ class ModbusExternalCArtifactWriter private constructor(
         }
         cleanupLegacyFlatArtifact(artifact, logger)
         cleanupLegacyMarkdownArtifact(artifact, logger)
+        cleanupLegacyBridgeReferenceMarkdown(artifact, logger)
         return targetFile
     }
 
@@ -132,6 +135,27 @@ class ModbusExternalCArtifactWriter private constructor(
         }
     }
 
+    private fun cleanupLegacyBridgeReferenceMarkdown(
+        artifact: GeneratedArtifact,
+        logger: KSPLogger,
+    ) {
+        if (artifact.extensionName != "c" || !artifact.fileName.endsWith("_bridge_sample")) {
+            return
+        }
+        val transportDirName = artifact.externalTransportDirectoryName()
+        val serviceName = artifact.fileName.removeSuffix("_bridge_sample")
+        val legacyCandidates =
+            listOf(
+                markdownOutputDir.resolve(transportDirName).resolve("${serviceName}.${transportDirName}.bridge-reference.md"),
+                markdownOutputDir.resolve(transportDirName).resolve("${serviceName.replace('_', '-')}.${transportDirName}.bridge-reference.md"),
+            )
+        legacyCandidates.forEach { legacyFile ->
+            if (legacyFile.exists() && legacyFile.delete()) {
+                logger.logging("Deleted legacy bridge reference markdown: ${legacyFile.absolutePath}")
+            }
+        }
+    }
+
     private fun resolveLegacyFlatBridgeImplFile(artifact: GeneratedArtifact): File {
         val configuredPath = File(bridgeImplTargetPath)
         val base =
@@ -176,6 +200,7 @@ class ModbusExternalCArtifactWriter private constructor(
     private fun GeneratedArtifact.externalGroupDirectoryName(): String =
         when {
             fileName.startsWith("modbus_") -> "transport"
+            fileName.endsWith("_bridge_sample") -> "sample"
             fileName.endsWith("_generated") -> fileName.removeSuffix("_generated")
             fileName.endsWith("_bridge") -> fileName.removeSuffix("_bridge")
             fileName.endsWith("_bridge_impl") -> fileName.removeSuffix("_bridge_impl")

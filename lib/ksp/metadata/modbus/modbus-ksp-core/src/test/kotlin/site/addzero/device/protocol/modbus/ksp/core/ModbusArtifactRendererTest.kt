@@ -22,10 +22,13 @@ class ModbusArtifactRendererTest {
                 sampleService(operations = sampleService().operations + sampleSetLedOperation())
             )
         val protocolDoc = artifacts.first { artifact -> artifact.fileName == "self-dev-board.rtu.protocol" && artifact.extensionName == "md" }
+        val bridgeSample = artifacts.first { artifact -> artifact.fileName == "self_dev_board_bridge_sample" && artifact.extensionName == "c" }
 
         assertTrue(protocolDoc.content.contains("| 项目 | 内容 |"))
         assertTrue(protocolDoc.content.contains("## 联调说明"))
         assertTrue(protocolDoc.content.contains("固件侧需要实现的入口是"))
+        assertTrue(protocolDoc.content.contains("已经存在，重新生成时不会覆盖"))
+        assertTrue(protocolDoc.content.contains("bridge_sample.c"))
         assertTrue(protocolDoc.content.contains("联调时以上表 `address`、`quantity`、`function code`、标准码值为准。"))
         assertTrue(protocolDoc.content.contains("`STRING_UTF8` 字段的 `Width` 表示寄存器个数"))
         assertTrue(protocolDoc.content.contains("## 仿真软件怎么填"))
@@ -35,6 +38,10 @@ class ModbusArtifactRendererTest {
         assertTrue(protocolDoc.content.contains("| 名称 | 类型 | 编码 | 寄存器偏移 | 位偏移 | 宽度 | 说明 |"))
         assertTrue(protocolDoc.content.contains("| `on` | `Boolean` | `BOOL_COIL` | `0` | `0` | `1` | LED 是否点亮。 |"))
         assertTrue(protocolDoc.content.contains("| `protocolVersion` | `Int` | `U16` | `0` | `0` | `1` | 协议版本。 |"))
+        assertTrue(bridgeSample.content.contains("请勿手动修改此文件。"))
+        assertTrue(bridgeSample.content.contains("更新日期："))
+        assertTrue(bridgeSample.content.contains("self_dev_board_bridge_impl.c"))
+        assertTrue(bridgeSample.content.contains("#include \"self_dev_board/self_dev_board_bridge.h\""))
     }
 
     @Test
@@ -136,6 +143,10 @@ class ModbusArtifactRendererTest {
             contractArtifacts
                 .first { artifact -> artifact.fileName == "device.rtu.protocol" && artifact.extensionName == "md" }
                 .content
+        val bridgeSample =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "device_bridge_sample" && artifact.extensionName == "c" }
+                .content
 
         assertTrue(gateway.contains("executor.readInputRegisters(resolvedConfig, 100, 20)"))
         assertTrue(gateway.contains("deviceName = ModbusCodecSupport.decodeString(ModbusCodec.STRING_UTF8, registers, 4, 16)"))
@@ -143,16 +154,20 @@ class ModbusArtifactRendererTest {
         assertTrue(generatedHeader.contains("/* 设备运行信息。 */"))
         assertTrue(generatedHeader.contains("char device_name[33];"))
         assertTrue(generatedSource.contains("device_generated_encode_string_registers(response.device_name, out_registers, 4, 16);"))
+        assertTrue(bridgeImpl.contains("#include <string.h>"))
+        assertTrue(bridgeImpl.contains("static void device_bridge_copy_text(char *out_text, size_t out_capacity, const char *input) {"))
         assertTrue(bridgeImpl.contains("device_name 字符串：codec=STRING_UTF8，寄存器宽度=16，最多 32 个字节，缓冲区容量 33（含 '\\0'）。"))
-        assertTrue(bridgeImpl.contains(" * strncpy(out_response->device_name, \"XXXXXXXX-XXXXX\", 32);"))
-        assertTrue(bridgeImpl.contains(" * out_response->device_name[32] = '\\0';"))
-        assertTrue(bridgeImpl.contains("out_response->device_name[32] = '\\0';"))
+        assertTrue(bridgeImpl.contains(" * device_bridge_copy_text(out_response->device_name, sizeof(out_response->device_name), \"XXXXXXXX-XXXXX\");"))
+        assertTrue(bridgeImpl.contains("device_bridge_copy_text(out_response->device_name, sizeof(out_response->device_name), \"\");"))
         assertFalse(bridgeImpl.contains("out_response->device_name[0] = '\\0';"))
-        assertFalse(bridgeImpl.contains("out_response->device_name[0] = 'abcdefg\\0';"))
+        assertFalse(bridgeImpl.contains("out_response->device_name[32] = '\\0';"))
         assertTrue(protocolDoc.contains("## 联调说明"))
         assertTrue(protocolDoc.contains("`device_bridge_impl.c`"))
+        assertTrue(protocolDoc.contains("`device_bridge_sample.c`"))
         assertFalse(protocolDoc.contains("这份文档由 Modbus contract KSP 自动生成。"))
         assertTrue(protocolDoc.contains("| `deviceName` | `String` | `STRING_UTF8` | `4` | `0` | `16` | 设备名称。 |"))
+        assertTrue(bridgeSample.contains("更新日期："))
+        assertTrue(bridgeSample.contains("device_bridge_copy_text(out_response->device_name, sizeof(out_response->device_name), \"\");"))
     }
 
     @Test
@@ -189,7 +204,8 @@ class ModbusArtifactRendererTest {
         assertTrue(generatedSource.contains("device_generated_encode_string_registers(value, out_registers, 0u, 16);"))
         assertTrue(bridgeHeader.contains("bool device_bridge_get_device_display_name(char *out_value, size_t out_capacity);"))
         assertTrue(bridgeImpl.contains("返回值字符串：codec=STRING_UTF8，寄存器宽度=16，最多 32 个字节，out_capacity 包含结尾 '\\0'。"))
-        assertTrue(bridgeImpl.contains("/* 示例：snprintf(out_value, out_capacity, \"%s\", \"XXXXXXXX-XXXXX\"); */"))
+        assertTrue(bridgeImpl.contains("/* 示例：device_bridge_copy_text(out_value, out_capacity, \"XXXXXXXX-XXXXX\"); */"))
+        assertTrue(bridgeImpl.contains("device_bridge_copy_text(out_value, out_capacity, \"\");"))
     }
 
     @Test

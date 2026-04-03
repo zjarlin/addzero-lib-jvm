@@ -21,6 +21,7 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusSymbolCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 import site.addzero.device.protocol.modbus.ksp.core.resolveContractPackages
 import site.addzero.device.protocol.modbus.ksp.core.resolveEnabledTransports
+import site.addzero.device.protocol.modbus.ksp.core.resolveTransportDefaults
 
 /**
  * Modbus TCP 代码生成入口。
@@ -41,6 +42,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
         val modes = ModbusCodegenMode.from(environment)
         val externalCArtifactWriter = ModbusExternalCArtifactWriter.from(environment)
         val addressLockFile = ModbusAddressLockFile.from(environment)
+        val transportDefaults = environment.resolveTransportDefaults()
         val contractPackages =
             environment
                 .resolveContractPackages()
@@ -86,7 +88,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                             logger = environment.logger,
                             codeGenerator = environment.codeGenerator,
                             dependencies = dependenciesFor(collectedService.originatingFiles, aggregating = false),
-                            artifacts = ModbusArtifactRenderer.renderContractArtifacts(resolvedService),
+                            artifacts = ModbusArtifactRenderer.renderContractArtifacts(resolvedService, transportDefaults),
                             externalCArtifactWriter = externalCArtifactWriter,
                         )
                     }
@@ -94,7 +96,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(transport, resolvedServices),
+                        artifacts = ModbusArtifactRenderer.renderTransportContractArtifacts(transport, resolvedServices, transportDefaults),
                         externalCArtifactWriter = externalCArtifactWriter,
                     )
                     ModbusProjectSyncRunner.syncIfNeeded(
@@ -109,7 +111,7 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(transport, resolvedServices),
+                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(transport, resolvedServices, transportDefaults),
                         externalCArtifactWriter = null,
                     )
                 }

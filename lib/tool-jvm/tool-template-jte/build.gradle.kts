@@ -9,7 +9,7 @@ dependencies {
 
     // 测试依赖
     testImplementation(catalogLibs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())
-    testImplementation(libs.junit.junit.junit.jupiter)
+    testImplementation(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter").get())
 }
 
 description = "JTE Template Engine utilities"
