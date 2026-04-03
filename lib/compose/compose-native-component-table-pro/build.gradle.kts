@@ -15,6 +15,7 @@ kotlin {
 //            implementation(project(":lib:tool-kmp:tool-json"))
             implementation("site.addzero:compose-props-annotations:2025.09.30")
 //            implementation(projects.lib.compose.addzerosearch)
+            api(project(":lib:compose:compose-crud-spi"))
             api(project(":lib:compose:compose-native-component-table"))
             implementation(project(":lib:compose:compose-native-component-button"))
             implementation(project(":lib:compose:compose-native-component-searchbar"))

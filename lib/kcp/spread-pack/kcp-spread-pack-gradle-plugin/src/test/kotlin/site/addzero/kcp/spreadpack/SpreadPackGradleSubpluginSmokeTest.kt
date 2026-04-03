@@ -18,12 +18,10 @@ class SpreadPackGradleSubpluginSmokeTest {
     @Test
     fun compiles_consumer_project_and_runs_generated_overload() {
         val javaHome = System.getProperty("java.home")
-        val gradlePluginClasspath = System.getProperty("spreadPack.gradlePluginClasspath")
-            ?: error("Missing spreadPack.gradlePluginClasspath system property")
         val localRepositoryDir = createLocalMavenRepository()
         val testProjectDir = Files.createTempDirectory("spread-pack-gradle-smoke")
         writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
-        writeFile(testProjectDir, "build.gradle.kts", buildFile(gradlePluginClasspath))
+        writeFile(testProjectDir, "build.gradle.kts", inlineConsumerBuildFile())
         writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
         writeFile(
             testProjectDir,
@@ -62,6 +60,7 @@ class SpreadPackGradleSubpluginSmokeTest {
 
         val result = GradleRunner.create()
             .withProjectDir(testProjectDir.toFile())
+            .withPluginClasspath()
             .withEnvironment(mapOf("JAVA_HOME" to javaHome))
             .withArguments(
                 "--stacktrace",
@@ -78,10 +77,50 @@ class SpreadPackGradleSubpluginSmokeTest {
         assertEquals("gradle:true:-", consumerKt.getDeclaredMethod("invokeGenerated").invoke(null))
     }
 
+    @Test
+    fun committed_example_project_builds_and_runs_with_plugin_id() {
+        val javaHome = System.getProperty("java.home")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("spread-pack-example-smoke")
+        copyCommittedExampleSources(testProjectDir)
+        copyCommittedBuildScript(testProjectDir)
+        writeFile(
+            testProjectDir,
+            "settings.gradle.kts",
+            committedExampleSettingsFile(localRepositoryDir),
+        )
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withPluginClasspath()
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                "clean",
+                "test",
+                "run",
+            )
+            .forwardOutput()
+            .build()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+        assertTrue(result.output.contains("form:demo:true:-|wrapper:hello:2:done"), result.output)
+
+        val classLoader = createClassLoader(testProjectDir)
+        val exampleKt = classLoader.loadClass("site.addzero.example.SpreadPackExampleKt")
+        assertEquals(
+            "form:demo:true:-|wrapper:hello:2:done",
+            exampleKt.getDeclaredMethod("invokeSpreadPackExample").invoke(null),
+        )
+    }
+
     private fun settingsFile(localRepositoryDir: Path): String {
         return """
             pluginManagement {
                 repositories {
+                    maven(url = uri(${localRepositoryDir.toString().quoteForKotlin()}))
                     gradlePluginPortal()
                     google()
                     mavenCentral()
@@ -98,6 +137,44 @@ class SpreadPackGradleSubpluginSmokeTest {
             }
 
             rootProject.name = "spread-pack-consumer"
+        """.trimIndent()
+    }
+
+    private fun committedExampleSettingsFile(localRepositoryDir: Path): String {
+        val repoRoot = System.getProperty("spreadPack.repoRoot")
+            ?.let(Paths::get)
+            ?: error("Missing spreadPack.repoRoot system property")
+        val libsToml = repoRoot
+            .resolve("checkouts/build-logic/gradle/libs.versions.toml")
+            .normalize()
+        require(Files.isRegularFile(libsToml)) {
+            "Missing version catalog: $libsToml"
+        }
+        return """
+            pluginManagement {
+                repositories {
+                    maven(url = uri(${localRepositoryDir.toString().quoteForKotlin()}))
+                    gradlePluginPortal()
+                    google()
+                    mavenCentral()
+                }
+            }
+
+            dependencyResolutionManagement {
+                repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+                repositories {
+                    maven(url = uri(${localRepositoryDir.toString().quoteForKotlin()}))
+                    google()
+                    mavenCentral()
+                }
+                versionCatalogs {
+                    create("libs") {
+                        from(files(${libsToml.toString().quoteForKotlin()}))
+                    }
+                }
+            }
+
+            rootProject.name = "example-spread-pack"
         """.trimIndent()
     }
 
@@ -185,26 +262,18 @@ class SpreadPackGradleSubpluginSmokeTest {
         )
     }
 
-    private fun buildFile(gradlePluginClasspath: String): String {
-        val classpathEntries = gradlePluginClasspath
-            .split(File.pathSeparator)
-            .filter(String::isNotBlank)
-            .joinToString(separator = ",\n                        ") { path ->
-                path.quoteForKotlin()
-            }
+    private fun inlineConsumerBuildFile(): String {
+        val kotlinVersion = System.getProperty("spreadPack.kotlinVersion")
+            ?: error("Missing spreadPack.kotlinVersion system property")
         return """
-            buildscript {
-                dependencies {
-                    classpath(
-                        files(
-                            $classpathEntries
-                        )
-                    )
-                }
+            plugins {
+                kotlin("jvm") version ${kotlinVersion.quoteForKotlin()}
+                id("site.addzero.kcp.spread-pack")
             }
 
-            apply<org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper>()
-            apply<site.addzero.kcp.spreadpack.SpreadPackGradleSubplugin>()
+            repositories {
+                mavenCentral()
+            }
         """.trimIndent()
     }
 
@@ -222,6 +291,55 @@ class SpreadPackGradleSubpluginSmokeTest {
         val file = projectDir.resolve(relativePath)
         file.parent.createDirectories()
         file.writeText(content)
+    }
+
+    private fun copyCommittedExampleSources(projectDir: Path) {
+        val repoRoot = System.getProperty("spreadPack.repoRoot")
+            ?.let(Paths::get)
+            ?: error("Missing spreadPack.repoRoot system property")
+        val exampleDir = repoRoot
+            .resolve("example/example-spread-pack")
+            .normalize()
+        require(Files.isDirectory(exampleDir)) {
+            "Missing committed example project: $exampleDir"
+        }
+        val sourceDir = exampleDir.resolve("src")
+        require(Files.isDirectory(sourceDir)) {
+            "Missing committed example sources: $sourceDir"
+        }
+        copyDirectory(sourceDir, projectDir.resolve("src"))
+    }
+
+    private fun copyCommittedBuildScript(projectDir: Path) {
+        val repoRoot = System.getProperty("spreadPack.repoRoot")
+            ?.let(Paths::get)
+            ?: error("Missing spreadPack.repoRoot system property")
+        val buildFile = repoRoot
+            .resolve("example/example-spread-pack/build.gradle.kts")
+            .normalize()
+        require(Files.isRegularFile(buildFile)) {
+            "Missing committed example build script: $buildFile"
+        }
+        Files.copy(
+            buildFile,
+            projectDir.resolve("build.gradle.kts"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+    }
+
+    private fun copyDirectory(sourceDir: Path, targetDir: Path) {
+        Files.walk(sourceDir).use { paths ->
+            paths.forEach { sourcePath ->
+                val relativePath = sourceDir.relativize(sourcePath)
+                val targetPath = targetDir.resolve(relativePath.toString())
+                if (Files.isDirectory(sourcePath)) {
+                    Files.createDirectories(targetPath)
+                } else {
+                    Files.createDirectories(targetPath.parent)
+                    Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
+                }
+            }
+        }
     }
 
     private fun createClassLoader(projectDir: Path): URLClassLoader {

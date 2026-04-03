@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fakeElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.analysis.checkers.extractClassFromArgument
 import org.jetbrains.kotlin.fir.analysis.checkers.extractClassesFromArgument
 import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
@@ -20,6 +21,7 @@ import org.jetbrains.kotlin.fir.declarations.extractEnumValueArgumentInfo
 import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameterCopy
 import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
+import org.jetbrains.kotlin.fir.declarations.getTargetType
 import org.jetbrains.kotlin.fir.declarations.getStringArgument
 import org.jetbrains.kotlin.fir.declarations.getStringArrayArgument
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
@@ -27,14 +29,20 @@ import org.jetbrains.kotlin.fir.declarations.origin
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBlock
+import org.jetbrains.kotlin.fir.expressions.FirCollectionLiteral
+import org.jetbrains.kotlin.fir.expressions.FirClassReferenceExpression
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
+import org.jetbrains.kotlin.fir.expressions.FirGetClassCall
 import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
 import org.jetbrains.kotlin.fir.expressions.FirNamedArgumentExpression
+import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
+import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.builder.buildFunctionCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildLiteralExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildThrowExpression
+import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.impl.buildSingleExpressionBlock
 import org.jetbrains.kotlin.fir.extensions.ExperimentalTopLevelDeclarationsGenerationApi
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
@@ -48,11 +56,15 @@ import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate.BuilderCont
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.plugin.copyFirFunctionWithResolvePhase
 import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.toResolvedBaseSymbol
+import org.jetbrains.kotlin.fir.resolve.providers.dependenciesSymbolProvider
+import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
@@ -79,9 +91,14 @@ private data class FirFlattenedFieldSpec(
     val resolvedType: ConeKotlinType,
 )
 
+private data class FirReferencedParameterType(
+    val classId: ClassId?,
+    val qualifierText: String?,
+)
+
 private data class FirSpreadArgsReference(
     val functionFqName: String,
-    val parameterTypeClassIds: List<ClassId>,
+    val parameterTypes: List<FirReferencedParameterType>,
 )
 
 @OptIn(
@@ -307,11 +324,8 @@ class SpreadPackFirExtension(
             .getAnnotationByClassId(SpreadPackPluginKeys.spreadArgsOfAnnotationClassId, session)
         val selectorKind = spreadArgsAnnotation?.selectorKind()
             ?: spreadPackAnnotation.selectorKind()
-        val excludedNames = spreadArgsAnnotation?.getStringArrayArgument(Name.identifier("exclude"), session)
-            ?.toSet()
-            ?: spreadPackAnnotation.getStringArrayArgument(Name.identifier("exclude"), session)
-                ?.toSet()
-                .orEmpty()
+        val excludedNames = spreadArgsAnnotation?.excludeNames()
+            ?: spreadPackAnnotation.excludeNames()
         if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
             illegalTarget(
                 owner,
@@ -369,7 +383,7 @@ class SpreadPackFirExtension(
             )
         }
         val carrierClassId = parameterType.lookupTag.classId
-        val carrierClass = session.getRegularClassSymbolByClassId(carrierClassId)?.fir as? FirRegularClass
+        val carrierClass = resolveRegularClassById(carrierClassId)
             ?: illegalTarget(
                 owner,
                 "unable to resolve spread-pack carrier ${carrierClassId.asString()}",
@@ -527,11 +541,8 @@ class SpreadPackFirExtension(
             .getAnnotationByClassId(SpreadPackPluginKeys.spreadArgsOfAnnotationClassId, session)
         val selectorKind = spreadArgsAnnotation?.selectorKind()
             ?: spreadPackAnnotation.selectorKind()
-        val excludedNames = spreadArgsAnnotation?.getStringArrayArgument(Name.identifier("exclude"), session)
-            ?.toSet()
-            ?: spreadPackAnnotation.getStringArrayArgument(Name.identifier("exclude"), session)
-                ?.toSet()
-                .orEmpty()
+        val excludedNames = spreadArgsAnnotation?.excludeNames()
+            ?: spreadPackAnnotation.excludeNames()
         if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
             illegalTarget(
                 owner,
@@ -660,7 +671,7 @@ class SpreadPackFirExtension(
                 "unable to resolve argsof overload set ${reference.functionFqName}",
             )
         }
-        if (reference.parameterTypeClassIds.isEmpty()) {
+        if (reference.parameterTypes.isEmpty()) {
             if (overloads.size != 1) {
                 illegalTarget(
                     owner,
@@ -670,20 +681,24 @@ class SpreadPackFirExtension(
             return overloads.single()
         }
         val matches = overloads.filter { overload ->
-            overload.fir.valueParameters.map { valueParameter ->
+            val overloadParameterTypes = overload.fir.valueParameters.map { valueParameter ->
                 erasureClassId(valueParameter.returnTypeRef.coneType)
                     ?: illegalTarget(
                         owner,
                         "argsof overload ${overload.callableId.asFqNameForDebugInfo()} has unsupported parameter type " +
                             valueParameter.returnTypeRef.coneType.renderForDebugging(),
                     )
-            } == reference.parameterTypeClassIds
+            }
+            overloadParameterTypes.size == reference.parameterTypes.size &&
+                overloadParameterTypes.zip(reference.parameterTypes).all { (actualClassId, expectedType) ->
+                    expectedType.matches(actualClassId)
+                }
         }
         if (matches.size != 1) {
             illegalTarget(
                 owner,
                 "unable to select a unique argsof overload for ${reference.functionFqName} with parameterTypes=" +
-                    reference.parameterTypeClassIds.joinToString { classId -> classId.asString() },
+                    reference.parameterTypes.joinToString { parameterType -> parameterType.renderForDiagnostics() },
             )
         }
         return matches.single()
@@ -693,10 +708,20 @@ class SpreadPackFirExtension(
         functionFqName: String,
     ): List<FirNamedFunctionSymbol> {
         val fqName = FqName(functionFqName)
-        val packageMatches = session.symbolProvider.getTopLevelFunctionSymbols(
-            fqName.parent(),
-            fqName.shortName(),
-        )
+        val packageMatches = buildList {
+            addAll(
+                session.firProvider.symbolProvider.getTopLevelFunctionSymbols(
+                    fqName.parent(),
+                    fqName.shortName(),
+                ),
+            )
+            addAll(
+                session.dependenciesSymbolProvider.getTopLevelFunctionSymbols(
+                    fqName.parent(),
+                    fqName.shortName(),
+                ),
+            )
+        }
         if (packageMatches.isNotEmpty()) {
             return packageMatches
         }
@@ -719,7 +744,7 @@ class SpreadPackFirExtension(
                 FqName.fromSegments(classSegments),
                 false,
             )
-            val classSymbol = session.getRegularClassSymbolByClassId(classId) ?: continue
+            val classSymbol = resolveRegularClassById(classId)?.symbol ?: continue
             val functions = classSymbol.fir.declarations
                 .filterIsInstance<FirNamedFunction>()
                 .filter { function -> function.name == functionName }
@@ -729,6 +754,13 @@ class SpreadPackFirExtension(
             }
         }
         return emptyList()
+    }
+
+    private fun resolveRegularClassById(
+        classId: ClassId,
+    ): FirRegularClass? {
+        return session.firProvider.getFirClassifierByFqName(classId) as? FirRegularClass
+            ?: (session.dependenciesSymbolProvider.getClassLikeSymbolByClassId(classId)?.fir as? FirRegularClass)
     }
 
     private fun isResolvableReferencedFunction(
@@ -751,19 +783,23 @@ class SpreadPackFirExtension(
         ) ?: error("SpreadArgsOf.overload must be an annotation value")
         val overloadsExpression = overloadExpression.findNestedCallArgument(
             Name.identifier("of"),
-        ) ?: error("SpreadOverload.of must be an annotation value")
+        ) ?: error("SpreadOverload.of must be an annotation value, but was ${overloadExpression.debugKind()}")
         val functionFqName = overloadsExpression.findNestedCallArgument(
             Name.identifier("functionFqName"),
         )?.stringLiteralValue()
-            ?: error("SpreadOverloadsOf.functionFqName must be a string literal")
-        val parameterTypeClassIds = overloadExpression.findNestedCallArgument(
+            ?: error(
+                "SpreadOverloadsOf.functionFqName must be a string literal, but was " +
+                    overloadsExpression.debugKind(),
+            )
+        val parameterTypesExpression = overloadExpression.findNestedCallArgument(
             Name.identifier("parameterTypes"),
-        )?.extractClassesFromArgument(session)
-            ?.map { classSymbol -> classSymbol.classId }
+        )
+        val parameterTypes = parameterTypesExpression
+            ?.extractParameterTypeReferences()
             .orEmpty()
         return FirSpreadArgsReference(
             functionFqName = functionFqName,
-            parameterTypeClassIds = parameterTypeClassIds,
+            parameterTypes = parameterTypes,
         )
     }
 
@@ -777,6 +813,15 @@ class SpreadPackFirExtension(
             )
 
             is FirFunctionCall -> {
+                val resolvedArgument = (argumentList as? FirResolvedArgumentList)
+                    ?.mapping
+                    ?.entries
+                    ?.firstOrNull { entry -> entry.value.name == name }
+                    ?.key
+                if (resolvedArgument != null) {
+                    return resolvedArgument
+                }
+                val arguments = argumentList.arguments
                 arguments.firstNotNullOfOrNull { argument ->
                     val namedArgument = argument as? FirNamedArgumentExpression
                     if (namedArgument?.name == name) {
@@ -800,8 +845,119 @@ class SpreadPackFirExtension(
         return (this as? FirLiteralExpression)?.value as? String
     }
 
+    private fun FirExpression.extractParameterTypeReferences(): List<FirReferencedParameterType> {
+        val directMatches = extractClassesFromArgument(session).map { classSymbol ->
+            FirReferencedParameterType(
+                classId = classSymbol.classId,
+                qualifierText = classSymbol.classId.asSingleFqName().asString(),
+            )
+        }
+        if (directMatches.isNotEmpty()) {
+            return directMatches
+        }
+        val collectionLiteral = this as? FirCollectionLiteral ?: return emptyList()
+        return collectionLiteral.argumentList.arguments.mapNotNull { argument ->
+            when (argument) {
+                is FirGetClassCall -> extractParameterTypeReferenceFromGetClassCall(argument)
+                else -> argument.extractClassFromArgument(session)?.classId?.let { classId ->
+                    FirReferencedParameterType(
+                        classId = classId,
+                        qualifierText = classId.asSingleFqName().asString(),
+                    )
+                } ?: argument.extractUnresolvedParameterTypeReference()
+            }
+        }
+    }
+
+    private fun FirExpression.debugKind(): String {
+        return this::class.qualifiedName ?: this::class.simpleName.orEmpty()
+    }
+
+    private fun extractParameterTypeReferenceFromGetClassCall(
+        expression: FirGetClassCall,
+    ): FirReferencedParameterType? {
+        return when (val target = expression.argument) {
+            is FirResolvedQualifier -> FirReferencedParameterType(
+                classId = target.symbol?.classId,
+                qualifierText = target.classId?.asSingleFqName()?.asString(),
+            )
+            is FirClassReferenceExpression -> {
+                val classId = (target.classTypeRef.coneType as? ConeClassLikeType)?.lookupTag?.classId
+                FirReferencedParameterType(
+                    classId = classId,
+                    qualifierText = classId?.asSingleFqName()?.asString(),
+                )
+            }
+            is FirPropertyAccessExpression -> FirReferencedParameterType(
+                classId = (target.calleeReference.toResolvedBaseSymbol() as? FirClassLikeSymbol<*>)?.classId,
+                qualifierText = target.asQualifierText(),
+            )
+            else -> target.extractUnresolvedParameterTypeReference()
+        }
+    }
+
+    private fun FirExpression.extractUnresolvedParameterTypeReference(): FirReferencedParameterType? {
+        return when (this) {
+            is FirResolvedQualifier -> FirReferencedParameterType(
+                classId = symbol?.classId,
+                qualifierText = classId?.asSingleFqName()?.asString(),
+            )
+            is FirClassReferenceExpression -> {
+                val classId = (classTypeRef.coneType as? ConeClassLikeType)?.lookupTag?.classId
+                FirReferencedParameterType(
+                    classId = classId,
+                    qualifierText = classId?.asSingleFqName()?.asString(),
+                )
+            }
+            is FirPropertyAccessExpression -> FirReferencedParameterType(
+                classId = (calleeReference.toResolvedBaseSymbol() as? FirClassLikeSymbol<*>)?.classId,
+                qualifierText = asQualifierText(),
+            )
+            else -> null
+        }
+    }
+
+    private fun FirPropertyAccessExpression.asQualifierText(): String? {
+        val receiverText = explicitReceiver?.asQualifierText()
+            ?: dispatchReceiver?.asQualifierText()
+            ?: extensionReceiver?.asQualifierText()
+        val simpleName = calleeReference.name.asString()
+        return listOfNotNull(receiverText, simpleName)
+            .joinToString(".")
+            .ifBlank { null }
+    }
+
+    private fun FirExpression.asQualifierText(): String? {
+        return when (this) {
+            is FirResolvedQualifier -> classId?.asSingleFqName()?.asString()
+            is FirClassReferenceExpression -> (classTypeRef.coneType as? ConeClassLikeType)
+                ?.lookupTag
+                ?.classId
+                ?.asSingleFqName()
+                ?.asString()
+            is FirPropertyAccessExpression -> asQualifierText()
+            else -> null
+        }
+    }
+
+    private fun FirReferencedParameterType.matches(
+        actualClassId: ClassId,
+    ): Boolean {
+        if (classId != null) {
+            return classId == actualClassId
+        }
+        val qualifierText = qualifierText ?: return false
+        return qualifierText == actualClassId.asSingleFqName().asString() ||
+            qualifierText == actualClassId.relativeClassName.asString() ||
+            qualifierText.substringAfterLast('.') == actualClassId.shortClassName.asString()
+    }
+
+    private fun FirReferencedParameterType.renderForDiagnostics(): String {
+        return classId?.asString() ?: qualifierText ?: "<unresolved>"
+    }
+
     private fun FirAnnotation.isDefaultSpreadPackConfiguration(): Boolean {
-        val hasExclude = getStringArrayArgument(Name.identifier("exclude"), session).orEmpty().isNotEmpty()
+        val hasExclude = excludeNames().isNotEmpty()
         return !hasExclude && selectorKind() == SelectorKind.PROPS
     }
 
@@ -834,7 +990,7 @@ class SpreadPackFirExtension(
             name = candidate.generatedName
 
             val ownerClassSymbol = candidate.original.callableId.classId?.let(session::getRegularClassSymbolByClassId)
-            val ownerKind = (ownerClassSymbol?.fir as? FirRegularClass)?.classKind
+            val ownerKind = ownerClassSymbol?.fir?.classKind
             val generatedModality = when {
                 ownerKind == ClassKind.INTERFACE -> Modality.OPEN
                 original.status.modality == Modality.ABSTRACT || original.status.modality == Modality.OPEN -> Modality.OPEN
@@ -1037,6 +1193,31 @@ class SpreadPackFirExtension(
             SelectorKind.ATTRS.name -> SelectorKind.ATTRS
             SelectorKind.CALLBACKS.name -> SelectorKind.CALLBACKS
             else -> SelectorKind.PROPS
+        }
+    }
+
+    private fun FirAnnotation.excludeNames(): Set<String> {
+        val directMatches = getStringArrayArgument(Name.identifier("exclude"), session)
+            ?.toSet()
+            .orEmpty()
+        if (directMatches.isNotEmpty()) {
+            return directMatches
+        }
+        return findArgumentByName(
+            Name.identifier("exclude"),
+            returnFirstWhenNotFound = false,
+        )?.extractStringArrayLiteralValues()
+            ?.toSet()
+            .orEmpty()
+    }
+
+    private fun FirExpression.extractStringArrayLiteralValues(): List<String> {
+        return when (this) {
+            is FirCollectionLiteral -> argumentList.arguments.mapNotNull { argument ->
+                (argument as? FirLiteralExpression)?.value as? String
+            }
+            is FirLiteralExpression -> listOfNotNull(value as? String)
+            else -> emptyList()
         }
     }
 

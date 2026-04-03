@@ -6,4 +6,6 @@ package site.addzero.kcp.spreadpack
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-annotation class GeneratedSpreadPackOverload
+annotation class GeneratedSpreadPackOverload(
+    val sourceFunctionFqName: String,
+)

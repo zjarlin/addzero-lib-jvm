@@ -33,6 +33,7 @@ tasks.processResources {
 val generatedCoordinatesDir = layout.buildDirectory.dir("generated/spreadPack/resources")
 val groupId = project.group.toString()
 val pluginVersion = project.version.toString()
+val kotlinVersion = libs.findVersion("kotlin").get().requiredVersion
 
 val generateSpreadPackPluginCoordinates = tasks.register<WriteProperties>(
     "generateSpreadPackPluginCoordinates",
@@ -69,7 +70,7 @@ tasks.test {
     systemProperty("spreadPack.repoRoot", repoRootDir.absolutePath)
     systemProperty("spreadPack.pluginGroup", groupId)
     systemProperty("spreadPack.pluginVersion", pluginVersion)
+    systemProperty("spreadPack.kotlinVersion", kotlinVersion)
     systemProperty("spreadPack.compilerPluginBuildDir", compilerPluginBuildDir.get().asFile.absolutePath)
     systemProperty("spreadPack.annotationsBuildDir", annotationsBuildDir.get().asFile.absolutePath)
-    systemProperty("spreadPack.gradlePluginClasspath", sourceSets.main.get().runtimeClasspath.asPath)
 }

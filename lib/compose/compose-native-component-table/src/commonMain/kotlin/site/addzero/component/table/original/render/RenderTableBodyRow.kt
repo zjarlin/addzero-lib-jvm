@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import site.addzero.component.table.original.entity.ColumnConfig
 import site.addzero.component.table.original.entity.TableLayoutConfig
 import site.addzero.component.table.original.rememberTableVisualStyle

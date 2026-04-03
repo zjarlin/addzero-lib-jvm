@@ -15,9 +15,7 @@ import androidx.compose.ui.zIndex
  * 行选择复选框插槽。
  */
 @Composable
-fun <T> RenderCheckbox(
-    item: T,
-    itemId: Any,
+fun RenderCheckbox(
     isSelected: Boolean,
     editModeFlag: Boolean,
     slotWidthDp: Dp = 80.dp,

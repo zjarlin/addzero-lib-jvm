@@ -1,38 +1,20 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 plugins {
-    id("site.addzero.buildlogic.kmp.cmp-app")
-    id("site.addzero.buildlogic.kmp.kmp-koin")
-    id("site.addzero.buildlogic.kmp.kmp-json")
+  id("site.addzero.buildlogic.kmp.cmp-lib")
 }
 
 val libs = versionCatalogs.named("libs")
-val desktopMainClass = "site.addzero.kcloud.MainKt"
 
 kotlin {
-    dependencies {
-        implementation(project(":lib:compose:workbench-shell"))
-                implementation(project(":apps:kcloud:shared"))
-                implementation(project(":apps:kcloud:plugins:mcu-console"))
-                implementation(project(":apps:kcloud:plugins:system:rbac"))
-                implementation(project(":apps:kcloud:plugins:vibepocket"))
-                implementation(libs.findLibrary("site-addzero-compose-native-component-searchbar").get())
-                implementation(libs.findLibrary("site-addzero-compose-native-component-tree").get())
-            
-    implementation(project(":lib:compose:compose-eventbus"))
-}
-    sourceSets {
+  sourceSets {
+    commonMain.dependencies {
+      implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-core").get())
+      api(project(":lib:compose:compose-native-component-table-core"))
+      api(project(":lib:tool-kmp:tool-model"))
     }
-}
 
-kotlin.jvm().mainRun {
-    mainClass.set(desktopMainClass)
-}
-
-compose.desktop {
-    application {
-        mainClass = desktopMainClass
+    commonTest.dependencies {
+      implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-test").get())
+      implementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())
     }
+  }
 }

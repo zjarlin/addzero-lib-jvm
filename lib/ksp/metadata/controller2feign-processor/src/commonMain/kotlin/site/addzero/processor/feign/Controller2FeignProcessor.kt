@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
+import site.addzero.controller2feign.processor.context.Settings
 
 class Controller2FeignProcessor(
     private val codeGenerator: CodeGenerator,
@@ -12,11 +13,15 @@ class Controller2FeignProcessor(
 ) : SymbolProcessor {
 
     private val collectedControllers = mutableListOf<ControllerMeta>()
-    private val outputPackage = options["feignOutputPackage"] ?: "site.addzero.generated.feign"
-    private val outputDir = options["feignOutputDir"]
-    private val enabled = options["feignEnabled"]?.toBoolean() ?: true
+    private val outputPackage: String
+        get() = Settings.feignOutputPackage
+    private val outputDir: String?
+        get() = Settings.feignOutputDir.takeIf { it.isNotBlank() }
+    private val enabled: Boolean
+        get() = Settings.feignEnabled
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        Settings.fromOptions(options)
         if (!enabled) {
             logger.info("[Controller2Feign] Processor disabled via feignEnabled=false")
             return emptyList()
@@ -53,6 +58,7 @@ class Controller2FeignProcessor(
     }
 
     override fun finish() {
+        Settings.fromOptions(options)
         if (collectedControllers.isEmpty()) return
 
         val generator = FeignCodeGenerator(codeGenerator, logger, outputPackage, outputDir)

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
@@ -35,22 +34,22 @@ import site.addzero.core.ext.bean2map
  * 上层业务表格可以在这一层之上继续叠加搜索、分页和筛选能力。
  */
 @Composable
-inline fun <reified T, reified C> TableOriginal(
+fun <T, C> TableOriginal(
     data: List<T>,
     columns: List<C>,
-    noinline getColumnKey: (C) -> String,
-    noinline getRowId: ((T) -> Any)? = null,
+    getColumnKey: (C) -> String,
+    getRowId: ((T) -> Any)? = null,
     columnConfigs: List<ColumnConfig>,
     layoutConfig: TableLayoutConfig = TableLayoutConfig(),
-    noinline getColumnLabel: (@Composable (C) -> Unit)? = null,
-    noinline topSlot: (@Composable () -> Unit)? = null,
-    noinline bottomSlot: (@Composable () -> Unit)? = null,
-    noinline emptyContentSlot: (@Composable () -> Unit)? = null,
-    noinline getCellContent: (@Composable (item: T, column: C) -> Unit)? = null,
-    noinline rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
-    noinline rowActionSlot: (@Composable (item: T) -> Unit)? = null,
+    getColumnLabel: (@Composable (C) -> Unit)? = null,
+    topSlot: (@Composable () -> Unit)? = null,
+    bottomSlot: (@Composable () -> Unit)? = null,
+    emptyContentSlot: (@Composable () -> Unit)? = null,
+    getCellContent: (@Composable (item: T, column: C) -> Unit)? = null,
+    rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
+    rowActionSlot: (@Composable (item: T) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    noinline columnRightSlot: @Composable ((C) -> Unit)? = null,
+    columnRightSlot: @Composable ((C) -> Unit)? = null,
 ) {
     val actualGetRowId = getRowId ?: { item ->
         val mapped = item?.bean2map()

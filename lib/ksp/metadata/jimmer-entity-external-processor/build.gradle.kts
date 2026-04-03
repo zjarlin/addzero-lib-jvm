@@ -1,7 +1,34 @@
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
+    alias(libs.plugins.site.addzero.gradle.plugin.processor.buddy)
 }
 val libs = versionCatalogs.named("libs")
+val defaultSharedSourceDir = rootDir.resolve("shared/src/commonMain/kotlin").absolutePath.replace('\\', '/')
+val defaultIsoPackageName = "site.addzero.generated.isomorphic"
+
+processorBuddy {
+    packageName.set("site.addzero.jimmer.entity.external.processor.context")
+    mustMap.set(
+        linkedMapOf(
+            "isomorphicPkg" to defaultIsoPackageName,
+            "isomorphicGenDir" to "$defaultSharedSourceDir/${defaultIsoPackageName.replace(".", "/")}",
+            "sharedSourceDir" to defaultSharedSourceDir,
+            "sharedComposeSourceDir" to defaultSharedSourceDir,
+            "backendServerSourceDir" to "",
+            "isomorphicPackageName" to defaultIsoPackageName,
+            "isomorphicClassSuffix" to "Iso",
+            "isomorphicSerializableEnabled" to "true",
+            "entity2Iso.enabled" to "true",
+            "entity2Form.enabled" to "true",
+            "entity2Mcp.enabled" to "true",
+            "formPackageName" to "site.addzero.generated.forms",
+            "enumOutputPackage" to "site.addzero.generated.enums",
+            "apiClientPackageName" to "site.addzero.generated.api",
+            "iso2DataProviderPackage" to "site.addzero.generated.forms.dataprovider",
+            "mcpPackageName" to "site.addzero.generated.mcp",
+        )
+    )
+}
 
 kotlin {
     sourceSets {

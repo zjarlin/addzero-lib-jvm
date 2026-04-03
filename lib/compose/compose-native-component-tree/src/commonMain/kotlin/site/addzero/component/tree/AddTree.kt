@@ -3,6 +3,8 @@ package site.addzero.component.tree
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +23,11 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import site.addzero.component.button.AddIconButton
 import site.addzero.component.tree.selection.SelectionState
+import site.addzero.compose.applecorner.appleRounded
 
 @Composable
 fun <T> AddTree(
@@ -44,13 +47,13 @@ fun <T> AddTree(
     modifier: Modifier = Modifier,
     compactMode: Boolean = false,
     selectableLabel: Boolean = false,
-    metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
+    metrics: AddTreeMetrics = AddTreeDefaults.AppleRoundedMetrics,
     colors: AddTreeColors? = null,
     nodeBadge: @Composable (T) -> Unit = {},
     nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
     content: @Composable TreeScope<T>.() -> Unit = {},
 ) {
-    val resolvedColors = colors ?: AddTreeDefaults.g2Colors()
+    val resolvedColors = colors ?: AddTreeDefaults.appleRoundedColors()
     val treeScope = remember(viewModel) { TreeScopeImpl(viewModel) }
 
     Column(modifier = modifier) {
@@ -153,6 +156,8 @@ private fun <T> TreeNodeContent(
     onClick: () -> Unit,
 ) {
     val nodeId = viewModel.getId(node)
+    val interactionSource = remember(nodeId) { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
     val rowModifier = Modifier
         .fillMaxWidth()
         .padding(
@@ -163,7 +168,10 @@ private fun <T> TreeNodeContent(
             if (compactMode) {
                 current
             } else {
-                current.clickable {
+                current.clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                ) {
                     if (hasChildren) {
                         onToggleExpanded()
                     }
@@ -172,19 +180,33 @@ private fun <T> TreeNodeContent(
             }
         }
 
-    Surface(
-        modifier = rowModifier,
-        shape = metrics.rowShape,
-        color = if (isSelected) {
-            colors.rowSelectedContainer
-        } else {
-            colors.rowContainer
-        },
-        border = if (isSelected) {
-            BorderStroke(metrics.selectedBorderWidth, colors.rowSelectedBorder)
-        } else {
-            null
-        },
+    val rowContainerColor = when {
+        isHovered -> colors.rowHoveredContainer
+        isSelected -> colors.rowSelectedContainer
+        else -> colors.rowContainer
+    }
+    val contentColor = when {
+        isHovered -> colors.contentHovered
+        isSelected -> colors.contentSelected
+        else -> colors.content
+    }
+    val secondaryContentColor = if (isHovered) {
+        colors.secondaryContentHovered
+    } else {
+        colors.secondaryContent
+    }
+
+    Box(
+        modifier = rowModifier
+            .appleRounded(
+                shape = metrics.rowShape,
+                containerColor = rowContainerColor,
+                border = if (isSelected) {
+                    BorderStroke(metrics.selectedBorderWidth, colors.rowSelectedBorder)
+                } else {
+                    null
+                },
+            ),
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -195,14 +217,12 @@ private fun <T> TreeNodeContent(
                         .align(Alignment.CenterStart)
                         .padding(start = metrics.selectedIndicatorSpacing)
                         .width(metrics.selectedIndicatorWidth)
-                        .height(metrics.selectedIndicatorHeight),
-                ) {
-                    Surface(
-                        modifier = Modifier.matchParentSize(),
-                        shape = metrics.badgeShape,
-                        color = colors.rowSelectedIndicator,
-                    ) {}
-                }
+                        .height(metrics.selectedIndicatorHeight)
+                        .appleRounded(
+                            shape = metrics.badgeShape,
+                            containerColor = colors.rowSelectedIndicator,
+                        ),
+                )
             }
 
             Row(
@@ -246,7 +266,7 @@ private fun <T> TreeNodeContent(
                                 },
                                 contentDescription = if (isExpanded) "折叠" else "展开",
                                 modifier = Modifier.size(metrics.expandIconSize),
-                                tint = colors.secondaryContent,
+                                tint = secondaryContentColor,
                             )
                         }
                     }
@@ -263,6 +283,8 @@ private fun <T> TreeNodeContent(
                                 node = node,
                                 viewModel = viewModel,
                                 hasChildren = hasChildren,
+                                isHovered = isHovered,
+                                colors = colors,
                             ),
                         ) {
                             if (hasChildren) {
@@ -279,6 +301,8 @@ private fun <T> TreeNodeContent(
                                 node = node,
                                 viewModel = viewModel,
                                 hasChildren = hasChildren,
+                                isHovered = isHovered,
+                                colors = colors,
                             ),
                         )
                     }
@@ -288,7 +312,7 @@ private fun <T> TreeNodeContent(
                     Row(
                         modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
+                        horizontalArrangement = Arrangement.Start,
                     ) {
                         if (selectableLabel) {
                             SelectionContainer(
@@ -300,7 +324,7 @@ private fun <T> TreeNodeContent(
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
-                                    color = if (isSelected) colors.contentSelected else colors.content,
+                                    color = contentColor,
                                 )
                             }
                         } else {
@@ -311,7 +335,7 @@ private fun <T> TreeNodeContent(
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
-                                color = if (isSelected) colors.contentSelected else colors.content,
+                                color = contentColor,
                             )
                         }
                         nodeBadge(node)
@@ -334,7 +358,12 @@ private fun <T> resolveNodeIconTint(
     node: T,
     viewModel: TreeViewModel<T>,
     hasChildren: Boolean,
+    isHovered: Boolean,
+    colors: AddTreeColors,
 ): Color {
+    if (isHovered) {
+        return colors.contentHovered
+    }
     val configuredType = viewModel.getNodeType(node)
     val nodeType = if (configuredType.isBlank()) {
         getDefaultNodeType(
@@ -373,7 +402,7 @@ fun <T> AddTree(
     onNodeClick: (T) -> Unit = {},
     onNodeContextMenu: (T) -> Unit = {},
     onSelectionChange: (List<T>) -> Unit = {},
-    metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
+    metrics: AddTreeMetrics = AddTreeDefaults.AppleRoundedMetrics,
     colors: AddTreeColors? = null,
     nodeBadge: @Composable (T) -> Unit = {},
     nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},

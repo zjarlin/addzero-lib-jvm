@@ -16,6 +16,7 @@ import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorOptions
+import site.addzero.jimmer.entity.external.processor.context.Settings
 import site.addzero.lsi.processor.ProcessorSpi
 import site.addzero.tool.coll.topoSort
 import java.util.ServiceLoader
@@ -142,11 +143,14 @@ internal object JimmerEntityExternalProcessorSupport {
 
 class JimmerEntityExternalProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+        Settings.fromOptions(environment.options)
         val logger = environment.logger
 
         return object : SymbolProcessor {
             private val collectedEntitiesByQualifiedName = linkedMapOf<String, JimmerEntityMeta>()
             private var noProcessorLogged = false
+            private val processorOptions: Map<String, String>
+                get() = Settings.toOptions()
             private val processorsById: LinkedHashMap<String, ProcessorSpi<JimmerEntityProcessContext, Unit>> by lazy {
                 val processors = loadProcessors(javaClass.classLoader)
                 if (processors.isEmpty()) {
@@ -156,7 +160,7 @@ class JimmerEntityExternalProcessorProvider : SymbolProcessorProvider {
 
                 val enabledProcessors = JimmerEntityExternalProcessorSupport.filterEnabledProcessors(
                     processors = processors,
-                    options = environment.options
+                    options = processorOptions
                 )
                 if (enabledProcessors.isEmpty()) {
                     logger.warn("外部实体子处理器全部被禁用，当前不会执行任何生成逻辑")
@@ -180,7 +184,7 @@ class JimmerEntityExternalProcessorProvider : SymbolProcessorProvider {
                 if (result.entities.isNotEmpty() && sortedLayers.isNotEmpty()) {
                     val roundContext = JimmerEntityProcessContext(
                         logger = logger,
-                        options = environment.options,
+                        options = processorOptions,
                         entitiesByQualifiedName = result.entitiesByQualifiedName
                     )
                     JimmerEntityExternalProcessorSupport.executeRound(
@@ -204,7 +208,7 @@ class JimmerEntityExternalProcessorProvider : SymbolProcessorProvider {
                 logger.warn("加载到 ${processorsById.size} 个启用的外部实体处理器，按 ${sortedLayers.size} 层执行（onFinish 同层并发）...")
                 val context = JimmerEntityProcessContext(
                     logger = logger,
-                    options = environment.options,
+                    options = processorOptions,
                     entitiesByQualifiedName = collectedEntitiesByQualifiedName
                 )
                 JimmerEntityExternalProcessorSupport.executeFinish(

@@ -5,9 +5,11 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
+import site.addzero.springktor.processor.context.Settings
 
 class SpringKtorProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+        Settings.fromOptions(environment.options)
         return object : SymbolProcessor {
             private val topLevelRoutes = linkedSetOf<TopLevelRouteMeta>()
             private val controllerRoutes = linkedSetOf<ControllerRouteMeta>()
@@ -37,8 +39,8 @@ class SpringKtorProcessorProvider : SymbolProcessorProvider {
                     return
                 }
 
-                val generatedPackage = environment.options["springKtor.generatedPackage"]
-                    ?.takeIf { it.isNotBlank() }
+                val generatedPackage = Settings.springKtorGeneratedPackage
+                    .takeIf { it.isNotBlank() }
                     ?: defaultGeneratedPackage(model)
 
                 SpringKtorGenerator(

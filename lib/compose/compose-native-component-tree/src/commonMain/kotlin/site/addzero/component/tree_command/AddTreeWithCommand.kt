@@ -69,7 +69,7 @@ fun <T> AddTreeWithCommand(
     onItemsChanged: (List<T>) -> Unit = {},
     autoEnableMultiSelect: Boolean = false,
     multiSelectClickToToggle: Boolean = false,
-    metrics: AddTreeMetrics = AddTreeDefaults.G2Metrics,
+    metrics: AddTreeMetrics = AddTreeDefaults.AppleRoundedMetrics,
     colors: AddTreeColors? = null,
     nodeBadge: @Composable (T) -> Unit = {},
     nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
@@ -232,4 +232,3 @@ private fun SelectedItemsBar(
         }
     }
 }
-

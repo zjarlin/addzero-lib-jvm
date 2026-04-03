@@ -10,6 +10,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import site.addzero.ioc.annotation.Bean
 import site.addzero.ioc.container.ContainerGenerator
+import site.addzero.ioc.processor.context.Settings
 import site.addzero.ioc.strategy.BeanInfo
 import site.addzero.ioc.strategy.InitType
 import site.addzero.util.lsi.clazz.LsiClass
@@ -31,6 +32,10 @@ class IocProcessorProvider : SymbolProcessorProvider {
     )
 
     override fun create(environment: SymbolProcessorEnvironment) = object : SymbolProcessor {
+        init {
+            Settings.fromOptions(environment.options)
+        }
+
         private val beans = linkedSetOf<BeanInfo>()
         private val classComponents = linkedMapOf<String, LsiClass>()
 
@@ -39,8 +44,10 @@ class IocProcessorProvider : SymbolProcessorProvider {
          *   ioc.module  — generated package name (auto-derived from first bean if absent)
          *   ioc.role    — "app" generates Ioc object + SPI; "lib" (default) generates SPI only
          */
-        private val modulePackage: String? = environment.options["ioc.module"]
-        private val isApp: Boolean = environment.options["ioc.role"] == "app"
+        private val modulePackage: String?
+            get() = Settings.iocModule.takeIf { it.isNotBlank() }
+        private val isApp: Boolean
+            get() = Settings.iocRole == "app"
 
         private fun extractBeanAnnotation(annotated: KSAnnotated): BeanAnnotationData {
             val beanAnnotation = annotated.annotations.firstOrNull {

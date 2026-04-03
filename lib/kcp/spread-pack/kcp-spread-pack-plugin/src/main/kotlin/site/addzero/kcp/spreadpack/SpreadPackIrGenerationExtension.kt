@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
@@ -24,7 +25,10 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrThrow
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
@@ -64,15 +68,22 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
     ) {
-        processTopLevelPackages(moduleFragment, pluginContext)
+        val generatedMarkerConstructor = pluginContext.referenceClass(
+            SpreadPackPluginKeys.generatedSpreadPackOverloadAnnotationClassId,
+        )?.owner
+            ?.declarations
+            ?.filterIsInstance<IrConstructor>()
+            ?.singleOrNull()
         moduleFragment.files.forEach { file ->
-            processClasses(file, pluginContext)
+            processClasses(file, pluginContext, generatedMarkerConstructor?.symbol)
         }
+        processTopLevelPackages(moduleFragment, pluginContext, generatedMarkerConstructor?.symbol)
     }
 
     private fun processTopLevelPackages(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
+        generatedMarkerConstructor: IrConstructorSymbol? = null,
     ) {
         moduleFragment.files
             .groupBy { file -> file.packageFqName }
@@ -88,6 +99,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     functions = functions,
                     processWholeClass = false,
                     pluginContext = pluginContext,
+                    generatedMarkerConstructor = generatedMarkerConstructor,
                 )
             }
     }
@@ -95,6 +107,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     private fun processClasses(
         declaration: IrElement,
         pluginContext: IrPluginContext,
+        generatedMarkerConstructor: IrConstructorSymbol?,
     ) {
         declaration.acceptChildrenVoid(object : IrVisitorVoid() {
             override fun visitElement(element: IrElement) {
@@ -106,6 +119,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     functions = declaration.declarations.filterIsInstance<IrSimpleFunction>(),
                     processWholeClass = declaration.hasAnnotation(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation),
                     pluginContext = pluginContext,
+                    generatedMarkerConstructor = generatedMarkerConstructor,
                 )
                 declaration.acceptChildrenVoid(this)
             }
@@ -116,6 +130,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         functions: List<IrSimpleFunction>,
         processWholeClass: Boolean,
         pluginContext: IrPluginContext,
+        generatedMarkerConstructor: IrConstructorSymbol?,
     ) {
         val originals = functions.filter { function ->
             isAnnotatedOriginal(function, processWholeClass)
@@ -133,6 +148,9 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
 
         candidates.forEach { candidate ->
             val match = resolveMatch(candidate, originals, pluginContext) ?: return@forEach
+            generatedMarkerConstructor?.let { constructor ->
+                annotateGeneratedOverload(candidate, match.original, pluginContext, constructor)
+            }
             candidate.body = createDelegatingBody(pluginContext, candidate, match)
         }
     }
@@ -753,6 +771,37 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             ?.asString()
             ?: return false
         return fqName.startsWith("kotlin.Function") || fqName.startsWith("kotlin.reflect.KFunction")
+    }
+
+    private fun annotateGeneratedOverload(
+        generated: IrSimpleFunction,
+        original: IrSimpleFunction,
+        pluginContext: IrPluginContext,
+        constructor: IrConstructorSymbol,
+    ) {
+        if (generated.hasAnnotation(SpreadPackPluginKeys.generatedSpreadPackOverloadAnnotation)) {
+            return
+        }
+        val sourceFunctionFqName = original.fqNameWhenAvailable?.asString() ?: return
+        val annotation = IrConstructorCallImpl(
+            generated.startOffset,
+            generated.endOffset,
+            constructor.owner.returnType,
+            constructor,
+            typeArgumentsCount = 0,
+            constructorTypeArgumentsCount = 0,
+        ).apply {
+            putValueArgument(
+                0,
+                IrConstImpl.string(
+                    generated.startOffset,
+                    generated.endOffset,
+                    pluginContext.irBuiltIns.stringType,
+                    sourceFunctionFqName,
+                ),
+            )
+        }
+        generated.annotations += annotation
     }
 
     private fun isSupportedOriginalFunction(

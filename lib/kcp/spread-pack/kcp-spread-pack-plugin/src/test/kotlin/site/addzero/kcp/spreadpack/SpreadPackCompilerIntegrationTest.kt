@@ -1,5 +1,11 @@
 package site.addzero.kcp.spreadpack
 
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Type
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -88,7 +94,8 @@ class SpreadPackCompilerIntegrationTest {
         val targetsKt = result.loadClass("site.addzero.example.ArgsofTargetsKt")
         assertEquals("wrapped:3:done", targetsKt.getMethod("invokeArgsof").invoke(null))
 
-        val methods = targetsKt.declaredMethods.toList()
+        val generatedCallablesKt = result.loadClass("site.addzero.example.__GENERATED__CALLABLES__Kt")
+        val methods = generatedCallablesKt.declaredMethods.toList()
         assertTrue(
             methods.any { method ->
                 method.name == "renderWrapper" &&
@@ -143,6 +150,111 @@ class SpreadPackCompilerIntegrationTest {
         assertTrue(
             result.output.contains("detected argsof overload cycle"),
             result.output,
+        )
+    }
+
+    @Test
+    fun applies_argsof_selector_and_exclude_to_flattened_fields() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/SelectorArgsofTargets.kt" to selectorArgsofTargetsSource(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val targetsKt = result.loadClass("site.addzero.example.SelectorArgsofTargetsKt")
+        assertEquals("attrs:4", targetsKt.getMethod("invokeAttrArgsof").invoke(null))
+        assertEquals("done", targetsKt.getMethod("invokeCallbackArgsof").invoke(null))
+
+        val generatedCallablesKt = result.loadClass("site.addzero.example.__GENERATED__CALLABLES__Kt")
+        val methods = generatedCallablesKt.declaredMethods.toList()
+        assertTrue(
+            methods.any { method ->
+                method.name == "renderAttrWrapper" &&
+                    method.parameterTypes.map(Class<*>::getName) == listOf(
+                        "java.lang.String",
+                        "int",
+                    )
+            },
+            methods.joinToString("\n"),
+        )
+        assertTrue(
+            methods.any { method ->
+                method.name == "renderCallbackWrapper" &&
+                    method.parameterTypes.map(Class<*>::getName) == listOf(
+                        "kotlin.jvm.functions.Function0",
+                    )
+            },
+            methods.joinToString("\n"),
+        )
+    }
+
+    @Test
+    fun resolves_argsof_member_function_overload_sets() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/MemberArgsofTargets.kt" to memberArgsofTargetsSource(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val targetsKt = result.loadClass("site.addzero.example.MemberArgsofTargetsKt")
+        assertEquals("member:5:done", targetsKt.getMethod("invokeMemberArgsof").invoke(null))
+    }
+
+    @Test
+    fun marks_generated_overloads_with_source_metadata() {
+        val memberResult = compile(
+            mapOf(
+                "site/addzero/example/SpreadPackTargets.kt" to spreadPackTargetsSource(),
+            ),
+        )
+        assertEquals(0, memberResult.exitCode, memberResult.output)
+
+        val rendererClass = memberResult.loadClass("site.addzero.example.Renderer")
+        val memberGeneratedMethod = rendererClass.declaredMethods.single { method ->
+            method.name == "render" &&
+                method.parameterTypes.map(Class<*>::getName) == listOf(
+                    "java.lang.String",
+                    "int",
+                    "kotlin.jvm.functions.Function0",
+                    "boolean",
+                )
+        }
+        assertEquals(
+            "site.addzero.example.Renderer.render",
+            memberResult.generatedOverloadSourceFunctionFqName(
+                className = "site.addzero.example.Renderer",
+                methodName = memberGeneratedMethod.name,
+                methodDescriptor = Type.getMethodDescriptor(memberGeneratedMethod),
+            ),
+        )
+
+        val topLevelResult = compile(
+            mapOf(
+                "site/addzero/example/ArgsofTargets.kt" to argsofTargetsSource(),
+            ),
+        )
+        assertEquals(0, topLevelResult.exitCode, topLevelResult.output)
+
+        val generatedCallablesKt = topLevelResult.loadClass("site.addzero.example.__GENERATED__CALLABLES__Kt")
+        val topLevelGeneratedMethod = generatedCallablesKt.declaredMethods.single { method ->
+            method.name == "renderWrapper" &&
+                method.parameterTypes.map(Class<*>::getName) == listOf(
+                    "java.lang.String",
+                    "int",
+                    "kotlin.jvm.functions.Function0",
+                )
+        }
+        assertEquals(
+            "site.addzero.example.renderWrapper",
+            topLevelResult.generatedOverloadSourceFunctionFqName(
+                className = "site.addzero.example.__GENERATED__CALLABLES__Kt",
+                methodName = topLevelGeneratedMethod.name,
+                methodDescriptor = Type.getMethodDescriptor(topLevelGeneratedMethod),
+            ),
         )
     }
 
@@ -454,6 +566,140 @@ class SpreadPackCompilerIntegrationTest {
         """.trimIndent()
     }
 
+    private fun selectorArgsofTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadArgsOf
+            import site.addzero.kcp.spreadpack.SpreadOverload
+            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
+            import site.addzero.kcp.spreadpack.SpreadPack
+            import site.addzero.kcp.spreadpack.SpreadPackSelector
+
+            data class SourceArgs(
+                val title: String = "",
+                val count: Int = 0,
+                val debug: Boolean = false,
+                val onDone: (() -> String)? = null,
+                val onCancel: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderSource(@SpreadPack args: SourceArgs): String {
+                val done = args.onDone?.invoke() ?: "-"
+                val cancel = args.onCancel?.invoke() ?: "-"
+                return "${'$'}{args.title}:${'$'}{args.count}:${'$'}{args.debug}:${'$'}done:${'$'}cancel"
+            }
+
+            data class AttrWrapperArgs(
+                val title: String = "",
+                val count: Int = 0,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderAttrWrapper(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.renderSource"),
+                        parameterTypes = [SourceArgs::class],
+                    ),
+                    selector = SpreadPackSelector.ATTRS,
+                    exclude = ["debug"],
+                )
+                args: AttrWrapperArgs,
+            ): String = "${'$'}{args.title}:${'$'}{args.count}"
+
+            data class CallbackWrapperArgs(
+                val onDone: (() -> String)? = null,
+            )
+
+            @GenerateSpreadPackOverloads
+            fun renderCallbackWrapper(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.renderSource"),
+                        parameterTypes = [SourceArgs::class],
+                    ),
+                    selector = SpreadPackSelector.CALLBACKS,
+                    exclude = ["onCancel"],
+                )
+                args: CallbackWrapperArgs,
+            ): String = args.onDone?.invoke() ?: "-"
+
+            fun invokeAttrArgsof(): String =
+                renderAttrWrapper(
+                    title = "attrs",
+                    count = 4,
+                )
+
+            fun invokeCallbackArgsof(): String =
+                renderCallbackWrapper(
+                    onDone = { "done" },
+                )
+        """.trimIndent()
+    }
+
+    private fun memberArgsofTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadArgsOf
+            import site.addzero.kcp.spreadpack.SpreadOverload
+            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
+            import site.addzero.kcp.spreadpack.SpreadPack
+
+            data class MemberBaseArgs(
+                val title: String = "",
+                val count: Int = 0,
+                val debug: Boolean = false,
+                val onDone: (() -> String)? = null,
+            )
+
+            data class MemberWrapperArgs(
+                val title: String = "",
+                val count: Int = 0,
+                val onDone: (() -> String)? = null,
+            )
+
+            class MemberRenderer {
+                @GenerateSpreadPackOverloads
+                fun renderBase(@SpreadPack args: MemberBaseArgs): String {
+                    val done = args.onDone?.invoke() ?: "-"
+                    return "${'$'}{args.title}:${'$'}{args.count}:${'$'}{args.debug}:${'$'}done"
+                }
+
+                fun renderBase(title: String): String = title
+            }
+
+            @GenerateSpreadPackOverloads
+            fun renderWrapper(
+                @SpreadPack
+                @SpreadArgsOf(
+                    overload = SpreadOverload(
+                        of = SpreadOverloadsOf("site.addzero.example.MemberRenderer.renderBase"),
+                        parameterTypes = [MemberBaseArgs::class],
+                    ),
+                    exclude = ["debug"],
+                )
+                args: MemberWrapperArgs,
+            ): String {
+                val done = args.onDone?.invoke() ?: "-"
+                return "${'$'}{args.title}:${'$'}{args.count}:${'$'}done"
+            }
+
+            fun invokeMemberArgsof(): String =
+                renderWrapper(
+                    title = "member",
+                    count = 5,
+                    onDone = { "done" },
+                )
+        """.trimIndent()
+    }
+
     private data class CompilationResult(
         val exitCode: Int,
         val output: String,
@@ -470,6 +716,51 @@ class SpreadPackCompilerIntegrationTest {
             }.toTypedArray()
             val classLoader = URLClassLoader(urls, javaClass.classLoader)
             return classLoader.loadClass(name)
+        }
+
+        fun generatedOverloadSourceFunctionFqName(
+            className: String,
+            methodName: String,
+            methodDescriptor: String,
+        ): String? {
+            val classBytes = Files.readAllBytes(classesDir.resolve(className.replace('.', '/') + ".class"))
+            var sourceFunctionFqName: String? = null
+            ClassReader(classBytes).accept(
+                object : ClassVisitor(Opcodes.ASM9) {
+                    override fun visitMethod(
+                        access: Int,
+                        name: String,
+                        descriptor: String,
+                        signature: String?,
+                        exceptions: Array<out String>?,
+                    ): MethodVisitor? {
+                        if (name != methodName || descriptor != methodDescriptor) {
+                            return null
+                        }
+                        return object : MethodVisitor(Opcodes.ASM9) {
+                            override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+                                if (descriptor != GENERATED_SPREAD_PACK_OVERLOAD_DESCRIPTOR) {
+                                    return null
+                                }
+                                return object : AnnotationVisitor(Opcodes.ASM9) {
+                                    override fun visit(name: String, value: Any) {
+                                        if (name == "sourceFunctionFqName") {
+                                            sourceFunctionFqName = value as String
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES,
+            )
+            return sourceFunctionFqName
+        }
+
+        private companion object {
+            const val GENERATED_SPREAD_PACK_OVERLOAD_DESCRIPTOR =
+                "Lsite/addzero/kcp/spreadpack/GeneratedSpreadPackOverload;"
         }
     }
 }

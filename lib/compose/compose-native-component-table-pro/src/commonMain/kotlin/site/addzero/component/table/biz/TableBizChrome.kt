@@ -136,8 +136,8 @@ internal fun TableHeaderActionIcon(
 internal fun TableSelectionSummary(
     selectedCount: Int,
     onClearSelection: () -> Unit,
-    onBatchDelete: () -> Unit,
-    onBatchExport: () -> Unit,
+    onBatchDelete: (() -> Unit)?,
+    onBatchExport: (() -> Unit)?,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -198,17 +198,21 @@ internal fun TableSelectionSummary(
                 ) {
                     Text("清空")
                 }
-                OutlinedButton(
-                    onClick = onBatchExport,
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text("导出选中")
+                onBatchExport?.let { action ->
+                    OutlinedButton(
+                        onClick = action,
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text("导出选中")
+                    }
                 }
-                FilledTonalButton(
-                    onClick = onBatchDelete,
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text("批量删除")
+                onBatchDelete?.let { action ->
+                    FilledTonalButton(
+                        onClick = action,
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text("批量删除")
+                    }
                 }
             }
         }

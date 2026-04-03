@@ -8,6 +8,7 @@ import com.google.devtools.ksp.symbol.Nullability
 import com.google.devtools.ksp.validate
 import site.addzero.lsi.ksp.type.getCompleteTypeString
 import site.addzero.lsi.ksp.type.getSimplifiedTypeString
+import site.addzero.composeprops.processor.context.Settings
 
 private const val propsXd = "var"
 
@@ -24,8 +25,8 @@ class ComposeAttrsProcessor(
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        // 从KSP选项中获取后缀配置，默认为"State"
-        val suffix = options["COMPOSE_ATTRS_SUFFIX"] ?: "State"
+        Settings.fromOptions(options)
+        val suffix = Settings.COMPOSEATTRSSUFFIX
 
         // 1. 查找所有带有@ComposeAssist注解的函数
         val assistAnnotatedFunctions = resolver

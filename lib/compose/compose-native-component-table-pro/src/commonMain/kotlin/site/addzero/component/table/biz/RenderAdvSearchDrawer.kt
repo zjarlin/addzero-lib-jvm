@@ -16,6 +16,12 @@ import site.addzero.entity.low_table.EnumLogicOperator
 import site.addzero.entity.low_table.EnumSearchOperator
 import site.addzero.entity.low_table.StateSearch
 
+/**
+ * 渲染列级高级搜索抽屉。
+ *
+ * 该组件只负责展示当前条件和采集用户输入，
+ * 具体的保存、清除和状态落盘由外层 `CrudTableState` 与 `AddTableChromeState` 协同处理。
+ */
 @Composable
 fun RenderAdvSearchDrawer(
     showFieldAdvSearchDrawer: Boolean,
@@ -24,23 +30,14 @@ fun RenderAdvSearchDrawer(
     currentColumnKmpType: String?,
     onShowFieldAdvSearchDrawerChange: (Boolean) -> Unit,
     onCurrentStateSearchChange: (StateSearch) -> Unit,
-    onFilterStateMapChange: (Map<String, StateSearch>) -> Unit,
-    getCurrentColumnKey: () -> String,
-    filterStateMap: Map<String, StateSearch>
+    onConfirm: () -> Unit,
+    onClear: () -> Unit,
 ) {
-//    if (!showFieldAdvSearchDrawer) {
-//        return
-//    }
-
     AddDrawer(
         visible = showFieldAdvSearchDrawer,
         title = "高级搜索",
         onClose = { onShowFieldAdvSearchDrawerChange(false) },
-        onSubmit = {
-            val newFilterStateMap = filterStateMap + mapOf(getCurrentColumnKey() to currentStateSearch)
-            onFilterStateMapChange(newFilterStateMap)
-            onShowFieldAdvSearchDrawerChange(false)
-        },
+        onSubmit = onConfirm,
     ) {
         Column {
             AddSelect(
@@ -85,10 +82,7 @@ fun RenderAdvSearchDrawer(
             AddIconButton(
                 text = "清除条件", imageVector = Icons.Default.Close,
                 onClick = {
-                    val newFilterStateMap = filterStateMap.toMutableMap().apply {
-                        remove(getCurrentColumnKey())
-                    }
-                    onFilterStateMapChange(newFilterStateMap)
+                    onClear()
                 },
             )
         }
