@@ -70,7 +70,7 @@ enum class CollectionType(
          */
         fun findBySimpleName(simpleName: String): List<CollectionType> = bySimpleName[simpleName.lowercase()].orEmpty()
 
-        val allJavaFqNames: Set<String> get() = entries.mapNotNull { it.javaFqName }.toSet()
-        val allKotlinFqNames: Set<String> get() = entries.mapNotNull { it.kotlinFqName }.toSet()
+        val allJavaFqNames get() = entries.mapNotNull { it.javaFqName }.toSet()
+        val allKotlinFqNames get() = entries.mapNotNull { it.kotlinFqName }.toSet()
     }
 }

@@ -13,11 +13,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object AppleRoundedDefaults {
-    val XSmall: Dp = 12.dp
-    val Small: Dp = 14.dp
-    val Medium: Dp = 18.dp
-    val Large: Dp = 22.dp
-    val Pill: Dp = 999.dp
+    val XSmall = 12.dp
+    val Small = 14.dp
+    val Medium = 18.dp
+    val Large = 22.dp
+    val Pill = 999.dp
 }
 
 @Stable

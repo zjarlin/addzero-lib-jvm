@@ -34,7 +34,7 @@ data class SheetDocument(
     val sheets: List<SheetPage> = emptyList(),
     val presences: List<SheetPresence> = emptyList(),
 ) {
-    val resolvedActiveSheetId: String?
+    val resolvedActiveSheetId
         get() = activeSheetId ?: sheets.firstOrNull()?.sheetId
 
     fun activeSheet(): SheetPage? {

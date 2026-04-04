@@ -76,14 +76,14 @@ object GlassTheme {
 
     // ── 文字颜色 ────────────────────────────────────────────
     /** 主要文字 — 纯白 */
-    val TextPrimary: Color = Color(0xFF162033)
+    val TextPrimary = Color(0xFF162033)
 
     /** 次要文字 — 80% 白 */
-    val TextSecondary: Color = Color(0xFF3E4C67)
+    val TextSecondary = Color(0xFF3E4C67)
 
     /** 三级文字 — 60% 白 */
-    val TextTertiary: Color = Color(0xFF66758F)
+    val TextTertiary = Color(0xFF66758F)
 
     /** 禁用态文字 — 40% 白 */
-    val TextDisabled: Color = Color(0xFF94A3B8)
+    val TextDisabled = Color(0xFF94A3B8)
 }

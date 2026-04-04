@@ -13,33 +13,33 @@ import androidx.compose.ui.graphics.Color
 object GlassColors {
 
     /** 玻璃表面色 — 等同于 [GlassTheme.GlassSurface] */
-    val Surface: Color get() = GlassTheme.GlassSurface
+    val Surface get() = GlassTheme.GlassSurface
 
     /** 玻璃边框色 — 等同于 [GlassTheme.GlassBorder] */
-    val Border: Color get() = GlassTheme.GlassBorder
+    val Border get() = GlassTheme.GlassBorder
 
     /** 玻璃阴影色 — 等同于 [GlassTheme.GlassShadow] */
-    val Shadow: Color get() = GlassTheme.GlassShadow
+    val Shadow get() = GlassTheme.GlassShadow
 
     // ── 霓虹色彩 ──
 
     /** 霓虹青色 — 等同于 [GlassTheme.NeonCyan] */
-    val NeonCyan: Color get() = GlassTheme.NeonCyan
+    val NeonCyan get() = GlassTheme.NeonCyan
 
     /** 霓虹紫色 — 等同于 [GlassTheme.NeonPurple] */
-    val NeonPurple: Color get() = GlassTheme.NeonPurple
+    val NeonPurple get() = GlassTheme.NeonPurple
 
     /** 霓虹品红 — 等同于 [GlassTheme.NeonMagenta] */
-    val NeonMagenta: Color get() = GlassTheme.NeonMagenta
+    val NeonMagenta get() = GlassTheme.NeonMagenta
 
     /** 霓虹粉色 — 等同于 [GlassTheme.NeonPink] */
-    val NeonPink: Color get() = GlassTheme.NeonPink
+    val NeonPink get() = GlassTheme.NeonPink
 
     // ── 背景色 ──
 
     /** 深色背景 — 等同于 [GlassTheme.DarkBackground] */
-    val DarkBackground: Color get() = GlassTheme.DarkBackground
+    val DarkBackground get() = GlassTheme.DarkBackground
 
     /** 深色表面 — 等同于 [GlassTheme.DarkSurface] */
-    val DarkSurface: Color get() = GlassTheme.DarkSurface
+    val DarkSurface get() = GlassTheme.DarkSurface
 }

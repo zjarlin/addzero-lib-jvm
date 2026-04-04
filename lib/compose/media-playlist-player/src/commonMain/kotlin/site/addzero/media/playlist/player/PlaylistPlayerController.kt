@@ -45,22 +45,22 @@ class PlaylistPlayerController<T> internal constructor(
     private var resolveRequestToken by mutableStateOf(0)
     private var completionHandledPlaybackId by mutableStateOf<String?>(null)
 
-    val snapshot: PlaylistPlayerSnapshot
+    val snapshot
         get() = host.snapshot
 
     val currentItem: T?
         get() = currentPlaybackId?.let(::findItemByKey)
 
-    val currentPlaybackId: String?
+    val currentPlaybackId
         get() = snapshot.currentPlaybackId
 
-    internal val currentLyrics: ParsedPlaylistLyrics?
+    internal val currentLyrics
         get() = currentPlaybackId?.let(lyricsCache::get)
 
-    internal val currentResolvedUrl: String?
+    internal val currentResolvedUrl
         get() = host.currentResolvedUrl
 
-    internal val currentHeaders: Map<String, String>
+    internal val currentHeaders
         get() = host.currentHeaders
 
     internal fun bind(

@@ -32,7 +32,7 @@ class KspLsiField(
         ksPropertyDeclaration.type.resolve().declaration.simpleName.asString()
     }
 
-    override val comment: String? by lazy {
+    override val comment by lazy {
         ksPropertyDeclaration.docString
     }
 
@@ -42,27 +42,27 @@ class KspLsiField(
             .toList()
     }
 
-    override val isStatic: Boolean by lazy {
+    override val isStatic by lazy {
         // Kotlin属性通常不是静态的，除非在companion object中
         val parent = ksPropertyDeclaration.parentDeclaration
         parent is KSClassDeclaration && parent.classKind == ClassKind.OBJECT
     }
 
-    override val isConstant: Boolean by lazy {
+    override val isConstant by lazy {
         ksPropertyDeclaration.modifiers.contains(Modifier.CONST)
     }
-  override val isEnum: Boolean
-    get() = ksPropertyDeclaration.isEnum()
+  override val isEnum
+      get() = ksPropertyDeclaration.isEnum()
 
-  override val isVar: Boolean by lazy {
+  override val isVar by lazy {
         ksPropertyDeclaration.isMutable
     }
 
-    override val isLateInit: Boolean by lazy {
+    override val isLateInit by lazy {
         ksPropertyDeclaration.modifiers.contains(Modifier.LATEINIT)
     }
 
-    override val isCollectionType: Boolean by lazy {
+    override val isCollectionType by lazy {
         val resolvedType = ksPropertyDeclaration.type.resolve()
         val qualifiedName = resolvedType.declaration.qualifiedName?.asString() ?: ""
         qualifiedName.startsWith("kotlin.collections.") || qualifiedName.startsWith("java.util.") &&
@@ -76,7 +76,7 @@ class KspLsiField(
         null
     }
 
-    override val columnName: String? by lazy {
+    override val columnName by lazy {
         // 检查常见的数据库列名注解
         annotations.firstNotNullOfOrNull { annotation ->
             when (annotation.qualifiedName) {
@@ -104,7 +104,7 @@ class KspLsiField(
         } else null
     }
 
-    override val isNestedObject: Boolean by lazy {
+    override val isNestedObject by lazy {
         val resolvedType = ksPropertyDeclaration.type.resolve()
         val declaration = resolvedType.declaration
         declaration is KSClassDeclaration &&
@@ -113,7 +113,7 @@ class KspLsiField(
                 !isPrimitiveOrString()
     }
 
-    override val children: List<LsiField> by lazy {
+    override val children by lazy {
         if (isNestedObject) {
             fieldTypeClass?.fields ?: emptyList()
         } else {
@@ -122,7 +122,7 @@ class KspLsiField(
     }
 
     // 可空性判断：基于 Kotlin 类型系统和 KSP 类型解析
-    override val isNullable: Boolean by lazy {
+    override val isNullable by lazy {
         val resolvedType = ksPropertyDeclaration.type.resolve()
         // 基于类型可空性标记
         val typeNullability = resolvedType.isMarkedNullable

@@ -60,17 +60,17 @@ fun ShadcnTheme(
     }
 }
 
-val MaterialTheme.colors: ShadcnColors
+val MaterialTheme.colors
     @Composable
     @ReadOnlyComposable
     get() = LocalShadcnColors.current
 
-val MaterialTheme.radius: ShadcnRadius
+val MaterialTheme.radius
     @Composable
     @ReadOnlyComposable
     get() = LocalShadcnRadius.current
 
-val MaterialTheme.shadow: ShadcnShadows
+val MaterialTheme.shadow
     @Composable
     @ReadOnlyComposable
     get() = LocalShadcnCardShadow.current

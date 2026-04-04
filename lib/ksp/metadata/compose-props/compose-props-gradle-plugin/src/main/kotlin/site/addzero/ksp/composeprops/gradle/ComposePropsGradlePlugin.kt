@@ -17,15 +17,15 @@ abstract class ComposePropsExtension {
 }
 
 class ComposePropsGradlePlugin : AbstractPublishedKspConsumerPlugin() {
-    override val pluginId: String = PLUGIN_ID
-    override val coordinatesResourcePath: String = COORDINATES_RESOURCE_PATH
-    override val processorArtifact: PublishedProcessorArtifact =
+    override val pluginId = PLUGIN_ID
+    override val coordinatesResourcePath = COORDINATES_RESOURCE_PATH
+    override val processorArtifact =
         PublishedProcessorArtifact(
             artifactKind = PublishedKspArtifactKind.KMP,
             localProjectPath = ":lib:ksp:metadata:compose-props:compose-props-processor",
             artifactId = PROCESSOR_ARTIFACT_ID,
         )
-    override val companionDependencies: List<PublishedCompanionDependency> =
+    override val companionDependencies =
         listOf(
             PublishedCompanionDependency(
                 scope = PublishedDependencyScope.IMPLEMENTATION,
@@ -45,10 +45,10 @@ class ComposePropsGradlePlugin : AbstractPublishedKspConsumerPlugin() {
     }
 
     companion object {
-        const val PLUGIN_ID: String = "site.addzero.ksp.compose-props"
-        const val EXTENSION_NAME: String = "composeProps"
-        const val PROCESSOR_ARTIFACT_ID: String = "compose-props-processor"
-        const val COORDINATES_RESOURCE_PATH: String =
+        const val PLUGIN_ID = "site.addzero.ksp.compose-props"
+        const val EXTENSION_NAME = "composeProps"
+        const val PROCESSOR_ARTIFACT_ID = "compose-props-processor"
+        const val COORDINATES_RESOURCE_PATH =
             "site/addzero/ksp/compose-props/gradle-plugin.properties"
     }
 }

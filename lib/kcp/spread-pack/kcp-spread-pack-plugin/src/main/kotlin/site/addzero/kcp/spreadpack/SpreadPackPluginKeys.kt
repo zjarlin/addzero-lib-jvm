@@ -5,8 +5,8 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 internal object SpreadPackPluginKeys {
-    const val compilerPluginId: String = "site.addzero.kcp.spread-pack"
-    const val stubErrorMessage: String = "Spread pack stub body should be lowered in IR"
+    const val compilerPluginId = "site.addzero.kcp.spread-pack"
+    const val stubErrorMessage = "Spread pack stub body should be lowered in IR"
 
     val generateSpreadPackOverloadsAnnotation = FqName(
         "site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads",

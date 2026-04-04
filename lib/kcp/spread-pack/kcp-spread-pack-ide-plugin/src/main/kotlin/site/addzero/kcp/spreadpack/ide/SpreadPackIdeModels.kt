@@ -93,13 +93,13 @@ internal data class IdeFunctionModel(
     val isOperator: Boolean,
     val isInfix: Boolean,
 ) {
-    val isTopLevel: Boolean
+    val isTopLevel
         get() = ownerClassFqName == null
 
-    val hasSpreadPackParameters: Boolean
+    val hasSpreadPackParameters
         get() = parameters.any { parameter -> parameter.spreadPack != null }
 
-    val receiverTypeText: String?
+    val receiverTypeText
         get() = ownerClassFqName?.let { fqName ->
             if (ownerTypeParameters.isEmpty()) {
                 fqName
@@ -111,7 +111,7 @@ internal data class IdeFunctionModel(
             }
         }
 
-    val allTypeParameters: List<IdeTypeParameter>
+    val allTypeParameters
         get() = ownerTypeParameters + typeParameters
 }
 

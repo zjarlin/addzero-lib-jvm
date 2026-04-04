@@ -25,7 +25,7 @@ private val Red400 = Color(0xFFF87171)
 private val Red300 = Color(0xFFFCA5A5)
 private val Amber400 = Color(0xFFFBBF24)
 
-val DefaultMaterialDarkColorScheme: ColorScheme = darkColorScheme(
+val DefaultMaterialDarkColorScheme = darkColorScheme(
     primary = Sky400,
     onPrimary = Slate950,
     primaryContainer = Sky700,
@@ -56,7 +56,7 @@ val DefaultMaterialDarkColorScheme: ColorScheme = darkColorScheme(
     scrim = Color.Black.copy(alpha = 0.72f),
 )
 
-val DefaultMaterialLightColorScheme: ColorScheme = lightColorScheme(
+val DefaultMaterialLightColorScheme = lightColorScheme(
     primary = Sky600,
     onPrimary = Color.White,
     primaryContainer = Color(0xFFD9F1FD),

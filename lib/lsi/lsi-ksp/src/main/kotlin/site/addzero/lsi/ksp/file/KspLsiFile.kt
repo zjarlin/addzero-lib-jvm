@@ -10,8 +10,8 @@ import site.addzero.lsi.ksp.clazz.KspLsiClass
 import site.addzero.lsi.ksp.clazz.toLsiClass
 
 class KspLsiFile(internal val resolver: Resolver, private val kspFile: KSFile) : LsiFile {
-  override val name: String
-    get() = kspFile.fileName
+  override val name
+      get() = kspFile.fileName
   override val filePath: String?
     get() = kspFile.filePath
   override val packageName: String?
@@ -27,7 +27,7 @@ class KspLsiFile(internal val resolver: Resolver, private val kspFile: KSFile) :
     return toLsiClass
   }
 
-  override val comment: String? by lazy {
+  override val comment by lazy {
     kspFile.getAllClassDeclarations().firstOrNull()?.docString
   }
   override val annotations: List<LsiAnnotation>

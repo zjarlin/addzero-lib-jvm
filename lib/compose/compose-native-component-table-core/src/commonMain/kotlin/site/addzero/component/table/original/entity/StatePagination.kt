@@ -8,9 +8,9 @@ data class StatePagination(
     var pageSize: Int = 10,
     var totalItems: Int = 0,
 ) {
-    val totalPages: Int get() = if (totalItems == 0) 1 else (totalItems + pageSize - 1) / pageSize
-    val hasPreviousPage: Boolean get() = currentPage > 1
-    val hasNextPage: Boolean get() = currentPage < totalPages
-    val startItem: Int get() = (currentPage - 1) * pageSize + 1
-    val endItem: Int get() = minOf(currentPage * pageSize, totalItems)
+    val totalPages get() = if (totalItems == 0) 1 else (totalItems + pageSize - 1) / pageSize
+    val hasPreviousPage get() = currentPage > 1
+    val hasNextPage get() = currentPage < totalPages
+    val startItem get() = (currentPage - 1) * pageSize + 1
+    val endItem get() = minOf(currentPage * pageSize, totalItems)
 }

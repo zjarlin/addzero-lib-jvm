@@ -151,7 +151,7 @@ class AppSidebarState internal constructor(
     }
 
     internal companion object {
-        val Saver: Saver<AppSidebarState, Any> = listSaver(
+        val Saver = listSaver(
             save = { state ->
                 listOf(
                     state.selectedId,

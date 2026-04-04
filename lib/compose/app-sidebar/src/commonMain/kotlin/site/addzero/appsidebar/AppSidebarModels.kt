@@ -12,9 +12,9 @@ import kotlinx.serialization.Serializable
 interface AppSidebarConfig {
     val supportText: String?
         get() = null
-    val searchEnabled: Boolean
+    val searchEnabled
         get() = true
-    val searchPlaceholder: String
+    val searchPlaceholder
         get() = "搜索菜单"
 }
 

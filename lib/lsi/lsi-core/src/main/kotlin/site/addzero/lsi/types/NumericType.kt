@@ -20,9 +20,9 @@ enum class NumericType(
     BIG_DECIMAL("BigDecimal", "java.math.BigDecimal", NumericCategory.BIG_NUMBER, "0.00"),
     BIG_INTEGER("BigInteger", "java.math.BigInteger", NumericCategory.BIG_NUMBER, "0");
 
-    val isInteger: Boolean get() = category == NumericCategory.INTEGER
-    val isFloatingPoint: Boolean get() = category == NumericCategory.FLOATING_POINT
-    val isBigNumber: Boolean get() = category == NumericCategory.BIG_NUMBER
+    val isInteger get() = category == NumericCategory.INTEGER
+    val isFloatingPoint get() = category == NumericCategory.FLOATING_POINT
+    val isBigNumber get() = category == NumericCategory.BIG_NUMBER
 
     companion object {
         private val byKotlinName = entries.associateBy { it.kotlinName.lowercase() }
@@ -39,9 +39,9 @@ enum class NumericType(
 
         fun allInCategory(category: NumericCategory): List<NumericType> = byCategory[category].orEmpty()
 
-        val allIntegerTypes: List<NumericType> get() = allInCategory(NumericCategory.INTEGER)
-        val allFloatingPointTypes: List<NumericType> get() = allInCategory(NumericCategory.FLOATING_POINT)
-        val allBigNumberTypes: List<NumericType> get() = allInCategory(NumericCategory.BIG_NUMBER)
+        val allIntegerTypes get() = allInCategory(NumericCategory.INTEGER)
+        val allFloatingPointTypes get() = allInCategory(NumericCategory.FLOATING_POINT)
+        val allBigNumberTypes get() = allInCategory(NumericCategory.BIG_NUMBER)
     }
 }
 

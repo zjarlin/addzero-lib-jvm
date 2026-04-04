@@ -6,7 +6,7 @@ package site.addzero.workbenchshell.spi.screen
  * `@Route`、数据库 SysMenu、远程配置等都应该实现成 source，再在壳层统一融合。
  */
 interface ScreenSource {
-    val priority: Int
+    val priority
         get() = 0
 
     fun listScreens(): List<Screen>

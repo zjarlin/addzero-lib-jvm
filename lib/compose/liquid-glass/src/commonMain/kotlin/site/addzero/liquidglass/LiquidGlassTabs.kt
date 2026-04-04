@@ -40,7 +40,7 @@ data class LiquidGlassTabsColors(
 )
 
 object LiquidGlassTabsDefaults {
-    val trackSpec: LiquidGlassSpec
+    val trackSpec
         @Composable
         get() = LiquidGlassDefaults.card.copy(
             frost = 16.dp,
@@ -53,7 +53,7 @@ object LiquidGlassTabsDefaults {
             borderColor = Color.White.copy(alpha = 0.08f),
         )
 
-    val thumbSpec: LiquidGlassSpec
+    val thumbSpec
         @Composable
         get() = LiquidGlassDefaults.primaryButton.copy(
             frost = 18.dp,
@@ -66,7 +66,7 @@ object LiquidGlassTabsDefaults {
             borderColor = Color.White.copy(alpha = 0.14f),
         )
 
-    val colors: LiquidGlassTabsColors
+    val colors
         @Composable
         get() = LiquidGlassTabsColors(
             selectedContentColor = MaterialTheme.colorScheme.primary,
@@ -74,7 +74,7 @@ object LiquidGlassTabsDefaults {
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
         )
 
-    val labelTextStyle: TextStyle
+    val labelTextStyle
         @Composable
         get() = MaterialTheme.typography.titleSmall.copy(
             fontWeight = FontWeight.SemiBold,

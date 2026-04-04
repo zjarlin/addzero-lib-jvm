@@ -40,13 +40,13 @@ class TreeViewModel<T> {
     private val selectionManager = TreeSelectionManager<T>(CascadingSelectionStrategy())
 
     // 📋 选中的项目 - 通过选择管理器获取
-    val selectedItems: State<Set<Any>> = selectionManager.selectedLeafNodes
+    val selectedItems = selectionManager.selectedLeafNodes
 
     // 🎯 完整的选中项目（包含推导的父节点）
-    val completeSelectedItems: State<Set<Any>> = selectionManager.completeSelectedNodes
+    val completeSelectedItems = selectionManager.completeSelectedNodes
 
     // 🎯 间接选中的父节点
-    val indirectSelectedItems: State<Set<Any>> = selectionManager.indirectSelectedNodes
+    val indirectSelectedItems = selectionManager.indirectSelectedNodes
 
     // 🔍 搜索状态
     var searchQuery by mutableStateOf("")

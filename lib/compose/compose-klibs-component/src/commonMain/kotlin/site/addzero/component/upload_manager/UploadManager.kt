@@ -36,14 +36,14 @@ data class UploadTask(
     val errorMessage: String? = null,                 // 错误信息
 ) {
     // 计算上传速度等辅助属性可以在这里添加
-    val isActive: Boolean
+    val isActive
         get() = status in listOf(
             UploadTaskStatus.PENDING,
             UploadTaskStatus.UPLOADING,
             UploadTaskStatus.QUERYING
         )
-    val isCompleted: Boolean get() = status == UploadTaskStatus.COMPLETED
-    val isFailed: Boolean get() = status == UploadTaskStatus.FAILED
+    val isCompleted get() = status == UploadTaskStatus.COMPLETED
+    val isFailed get() = status == UploadTaskStatus.FAILED
 }
 
 /**
@@ -56,15 +56,15 @@ class UploadManager {
     val tasks: Map<String, UploadTask> = _tasks
 
     // 活跃任务列表（正在进行的任务）
-    val activeTasks: List<UploadTask>
+    val activeTasks
         get() = _tasks.values.filter { it.isActive }
 
     // 已完成任务列表
-    val completedTasks: List<UploadTask>
+    val completedTasks
         get() = _tasks.values.filter { it.isCompleted }
 
     // 失败任务列表
-    val failedTasks: List<UploadTask>
+    val failedTasks
         get() = _tasks.values.filter { it.isFailed }
 
     // 协程作用域

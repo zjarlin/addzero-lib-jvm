@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 @OptIn(ExperimentalCompilerApi::class)
 class SpreadPackCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
-    override val supportsK2: Boolean = true
-    override val pluginId: String = SpreadPackPluginKeys.compilerPluginId
+    override val supportsK2 = true
+    override val pluginId = SpreadPackPluginKeys.compilerPluginId
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         FirExtensionRegistrarAdapter.registerExtension(SpreadPackFirRegistrar())

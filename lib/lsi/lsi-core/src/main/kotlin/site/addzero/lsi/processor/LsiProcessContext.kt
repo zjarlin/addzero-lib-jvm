@@ -11,12 +11,12 @@ data class LsiProcessContext(
     val environment: LsiEnvironment,
     val classes: Set<LsiClass>
 ) {
-    val logger: LsiLogger
+    val logger
         get() = requireNotNull(environment.logger) { "LsiEnvironment.logger 不能为空" }
 
-    val options: Map<String, String>
+    val options
         get() = environment.options.orEmpty()
 
-    val entities: Set<LsiClass>
+    val entities
         get() = classes
 }

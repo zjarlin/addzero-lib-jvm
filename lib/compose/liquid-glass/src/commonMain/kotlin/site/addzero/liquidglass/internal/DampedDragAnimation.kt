@@ -41,28 +41,28 @@ internal class DampedDragAnimation(
     private val mutatorMutex = MutatorMutex()
     private val velocityTracker = VelocityTracker()
 
-    val value: Float
+    val value
         get() = valueAnimation.value
 
-    val progress: Float
+    val progress
         get() = (value - valueRange.start) / (valueRange.endInclusive - valueRange.start)
 
-    val targetValue: Float
+    val targetValue
         get() = valueAnimation.targetValue
 
-    val pressProgress: Float
+    val pressProgress
         get() = pressProgressAnimation.value
 
-    val scaleX: Float
+    val scaleX
         get() = scaleXAnimation.value
 
-    val scaleY: Float
+    val scaleY
         get() = scaleYAnimation.value
 
-    val velocity: Float
+    val velocity
         get() = velocityAnimation.value
 
-    val modifier: Modifier = Modifier.pointerInput(Unit) {
+    val modifier = Modifier.pointerInput(Unit) {
         inspectDragGestures(
             onDragStart = { down ->
                 onDragStarted(down.position)

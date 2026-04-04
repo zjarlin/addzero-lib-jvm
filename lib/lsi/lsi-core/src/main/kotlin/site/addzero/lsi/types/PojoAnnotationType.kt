@@ -41,12 +41,12 @@ enum class PojoAnnotationType(
         fun allInCategory(category: PojoAnnotationCategory): List<PojoAnnotationType> =
             byCategory[category].orEmpty()
 
-        val allEntityAnnotations: List<PojoAnnotationType> get() = allInCategory(PojoAnnotationCategory.ENTITY)
-        val allTableAnnotations: List<PojoAnnotationType> get() = allInCategory(PojoAnnotationCategory.TABLE)
-        val allLombokAnnotations: List<PojoAnnotationType> get() = allInCategory(PojoAnnotationCategory.LOMBOK)
+        val allEntityAnnotations get() = allInCategory(PojoAnnotationCategory.ENTITY)
+        val allTableAnnotations get() = allInCategory(PojoAnnotationCategory.TABLE)
+        val allLombokAnnotations get() = allInCategory(PojoAnnotationCategory.LOMBOK)
 
-        val allFqNames: Set<String> get() = byFqName.keys
-        val allShortNames: Set<String> get() = byShortName.keys
+        val allFqNames get() = byFqName.keys
+        val allShortNames get() = byShortName.keys
     }
 }
 

@@ -17,7 +17,7 @@ interface UseHook {
 
     val render: @Composable () -> Unit
 
-    val onDispose: () -> Unit
+    val onDispose
         get() = {}
 
     /**

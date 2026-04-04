@@ -14,10 +14,10 @@ fun SonnerHost(
     SnackbarHost(hostState, modifier = modifier) { data ->
         when (val v = data.visuals) {
             is SonnerVisualsImpl -> {
-                val onDismiss: (() -> Unit)? = if (v.withDismissAction) {
+                val onDismiss = if (v.withDismissAction) {
                     { data.dismiss() }
                 } else null
-                val onActionClick: (() -> Unit)? = if (v.actionLabel != null) {
+                val onActionClick = if (v.actionLabel != null) {
                     { data.performAction() }
                 } else null
 

@@ -22,12 +22,13 @@ enum class ColumnAnnotationType(
         fun findByFqName(fqName: String): ColumnAnnotationType? = byFqName[fqName]
         fun findByShortName(shortName: String): List<ColumnAnnotationType> = byShortName[shortName].orEmpty()
 
-        val allFqNames: Set<String> get() = byFqName.keys
+        val allFqNames get() = byFqName.keys
 
         /**
          * 获取注解与其列名属性名的映射
          */
-        val fqNameToAttributeMap: Map<String, String> get() =
+        val fqNameToAttributeMap
+            get() =
             entries.associate { it.fqName to it.nameAttribute }
     }
 }

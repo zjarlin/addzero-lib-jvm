@@ -59,13 +59,13 @@ interface AdminWorkbenchPageConfig {
  * 后台工作台骨架配置。
  */
 interface AdminWorkbenchConfig : ScaffoldConfig {
-    val brandLabel: String
+    val brandLabel
         get() = "Addzero Admin"
-    val welcomeLabel: String
+    val welcomeLabel
         get() = "欢迎进入后台工作台"
     val isDarkTheme: Boolean?
         get() = null
-    val sidebarVisible: Boolean
+    val sidebarVisible
         get() = true
     val onSidebarToggle: (() -> Unit)?
         get() = null
@@ -79,7 +79,7 @@ interface AdminWorkbenchSlots {
         get() = null
     val pageActions: @Composable RowScope.() -> Unit
         get() = {}
-    val showContentHeader: Boolean
+    val showContentHeader
         get() = true
     val titleContent: (@Composable ColumnScope.() -> Unit)?
         get() = null
@@ -313,7 +313,7 @@ private data class DefaultAdminWorkbenchConfig(
     override val sidebarVisible: Boolean,
     override val onSidebarToggle: (() -> Unit)?,
 ) : AdminWorkbenchConfig {
-    override val contentHeaderScrollable: Boolean
+    override val contentHeaderScrollable
         get() = false
 }
 
@@ -449,52 +449,52 @@ private fun rememberAdminWorkbenchColors(
 }
 
 internal object AdminWorkbenchTokens {
-    val topBarBackground: Color
+    val topBarBackground
         @Composable get() = LocalAdminWorkbenchColors.current.topBarBackground
-    val topBarTextPrimary: Color
+    val topBarTextPrimary
         @Composable get() = LocalAdminWorkbenchColors.current.topBarTextPrimary
-    val topBarTextSecondary: Color
+    val topBarTextSecondary
         @Composable get() = LocalAdminWorkbenchColors.current.topBarTextSecondary
-    val pageBackground: Color
+    val pageBackground
         @Composable get() = LocalAdminWorkbenchColors.current.pageBackground
-    val sidebarBackground: Color
+    val sidebarBackground
         @Composable get() = LocalAdminWorkbenchColors.current.sidebarBackground
-    val headerBackground: Color
+    val headerBackground
         @Composable get() = LocalAdminWorkbenchColors.current.headerBackground
-    val detailBackground: Color
+    val detailBackground
         @Composable get() = LocalAdminWorkbenchColors.current.detailBackground
-    val dividerColor: Color
+    val dividerColor
         @Composable get() = LocalAdminWorkbenchColors.current.dividerColor
-    val resizeThumbColor: Color
+    val resizeThumbColor
         @Composable get() = LocalAdminWorkbenchColors.current.resizeThumbColor
-    val resizeThumbBorder: Color
+    val resizeThumbBorder
         @Composable get() = LocalAdminWorkbenchColors.current.resizeThumbBorder
-    val buttonBackground: Color
+    val buttonBackground
         @Composable get() = LocalAdminWorkbenchColors.current.buttonBackground
-    val buttonBorder: Color
+    val buttonBorder
         @Composable get() = LocalAdminWorkbenchColors.current.buttonBorder
-    val highlightedBackground: Color
+    val highlightedBackground
         @Composable get() = LocalAdminWorkbenchColors.current.highlightedBackground
-    val highlightedBorder: Color
+    val highlightedBorder
         @Composable get() = LocalAdminWorkbenchColors.current.highlightedBorder
-    val highlightedTextPrimary: Color
+    val highlightedTextPrimary
         @Composable get() = LocalAdminWorkbenchColors.current.highlightedTextPrimary
-    val badgeBackground: Color
+    val badgeBackground
         @Composable get() = LocalAdminWorkbenchColors.current.badgeBackground
-    val avatarBackground: Color
+    val avatarBackground
         @Composable get() = LocalAdminWorkbenchColors.current.avatarBackground
-    val avatarHalo: Color
+    val avatarHalo
         @Composable get() = LocalAdminWorkbenchColors.current.avatarHalo
-    val textPrimary: Color
+    val textPrimary
         @Composable get() = LocalAdminWorkbenchColors.current.textPrimary
-    val headerTextPrimary: Color
+    val headerTextPrimary
         @Composable get() = LocalAdminWorkbenchColors.current.headerTextPrimary
-    val headerTextMuted: Color
+    val headerTextMuted
         @Composable get() = LocalAdminWorkbenchColors.current.headerTextMuted
-    val brandPlateBackground: Color
+    val brandPlateBackground
         @Composable get() = LocalAdminWorkbenchColors.current.brandPlateBackground
-    val brandPrimaryDot: Color
+    val brandPrimaryDot
         @Composable get() = LocalAdminWorkbenchColors.current.brandPrimaryDot
-    val brandSecondaryDot: Color
+    val brandSecondaryDot
         @Composable get() = LocalAdminWorkbenchColors.current.brandSecondaryDot
 }

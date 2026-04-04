@@ -148,7 +148,7 @@ private class FakeCrudTableDataSource(
     private val queryHandler: suspend (CrudTableQuery) -> PageResult<RowItem>,
     private val deleteHandler: suspend (Set<String>) -> Int = { 0 },
 ) : CrudTableDataSource<RowItem, String> {
-    override val supportsDelete: Boolean = true
+    override val supportsDelete = true
 
     override suspend fun query(query: CrudTableQuery): PageResult<RowItem> {
         return queryHandler(query)

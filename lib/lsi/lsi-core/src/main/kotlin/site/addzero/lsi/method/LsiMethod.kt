@@ -83,7 +83,7 @@ interface LsiParameter {
     /**
      * 判断参数是否有默认值
      */
-    val hasDefault: Boolean
+    val hasDefault
         get() = false
 }
 

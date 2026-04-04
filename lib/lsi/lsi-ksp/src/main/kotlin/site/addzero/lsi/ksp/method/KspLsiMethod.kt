@@ -26,11 +26,11 @@ class KspLsiMethod(
         }
     }
 
-    override val returnTypeName: String? by lazy {
+    override val returnTypeName by lazy {
         ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.asString()
     }
 
-    override val comment: String? by lazy {
+    override val comment by lazy {
         ksFunctionDeclaration.docString
     }
 
@@ -40,13 +40,13 @@ class KspLsiMethod(
             .toList()
     }
 
-    override val isStatic: Boolean by lazy {
+    override val isStatic by lazy {
         // Kotlin函数通常不是静态的，除非在companion object中
         val parent = ksFunctionDeclaration.parentDeclaration
         parent is KSClassDeclaration && parent.classKind == ClassKind.OBJECT
     }
 
-    override val isAbstract: Boolean by lazy {
+    override val isAbstract by lazy {
         ksFunctionDeclaration.modifiers.contains(Modifier.ABSTRACT)
     }
 
@@ -68,7 +68,7 @@ class KspLsiParameter(
     private val ksValueParameter: KSValueParameter
 ) : LsiParameter {
 
-    override val name: String? by lazy {
+    override val name by lazy {
         ksValueParameter.name?.asString()
     }
 
@@ -86,7 +86,7 @@ class KspLsiParameter(
             .toList()
     }
 
-    override val hasDefault: Boolean by lazy {
+    override val hasDefault by lazy {
         ksValueParameter.hasDefault
     }
 }

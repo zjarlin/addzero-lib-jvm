@@ -15,7 +15,7 @@ import site.addzero.lsi.clazz.LsiClass
  *
  * @return 文件名，例如 "UserService"
  */
-val LsiFile.nameWithoutExtension: String
+val LsiFile.nameWithoutExtension
     get() = name.substringBeforeLast('.')
 
 
@@ -25,19 +25,19 @@ val LsiFile.nameWithoutExtension: String
  *
  * @return 扩展名，例如 "kt", "java"
  */
-val LsiFile.extension: String
+val LsiFile.extension
     get() = name.substringAfterLast('.', "")
 
 /**
  * 判断是否为 Java 文件
  */
-val LsiFile.isJavaFile: Boolean
+val LsiFile.isJavaFile
     get() = extension == "java"
 
 /**
  * 判断是否为 Kotlin 文件
  */
-val LsiFile.isKotlinFile: Boolean
+val LsiFile.isKotlinFile
     get() = extension == "kt"
 
 /**
@@ -45,7 +45,7 @@ val LsiFile.isKotlinFile: Boolean
  *
  * @return 目录路径，例如 "/path/to/project/src/main/kotlin/com/example"
  */
-val LsiFile.directoryPath: String?
+val LsiFile.directoryPath
     get() = filePath?.substringBeforeLast('/')
 
 /**
@@ -87,7 +87,7 @@ fun LsiFile.hasClass(className: String): Boolean {
  *
  * @return true 表示包含多个类，false 表示只有一个或没有类
  */
-val LsiFile.hasMultipleClasses: Boolean
+val LsiFile.hasMultipleClasses
     get() = classes.size > 1
 
 /**
@@ -95,7 +95,7 @@ val LsiFile.hasMultipleClasses: Boolean
  *
  * @return true 表示没有类，false 表示有类
  */
-val LsiFile.isEmpty: Boolean
+val LsiFile.isEmpty
     get() = classes.isEmpty()
 
 /**
@@ -122,7 +122,7 @@ val LsiFile.mainClass: LsiClass?
  *
  * @return POJO 类列表
  */
-val LsiFile.pojoClasses: List<LsiClass>
+val LsiFile.pojoClasses
     get() = classes.filter { it.isPojo }
 
 /**
@@ -130,7 +130,7 @@ val LsiFile.pojoClasses: List<LsiClass>
  *
  * @return true 表示包含 POJO 类，false 表示不包含
  */
-val LsiFile.hasPojoClass: Boolean
+val LsiFile.hasPojoClass
     get() = classes.any { it.isPojo }
 
 // ==================== 包名操作 ====================
@@ -142,7 +142,7 @@ val LsiFile.hasPojoClass: Boolean
  *
  * @return 父包名，如果是顶层包则返回空字符串
  */
-val LsiFile.parentPackageName: String
+val LsiFile.parentPackageName
     get() = packageName?.substringBeforeLast('.', "") ?: ""
 
 /**
@@ -152,7 +152,7 @@ val LsiFile.parentPackageName: String
  *
  * @return 包名的最后部分
  */
-val LsiFile.packageSimpleName: String
+val LsiFile.packageSimpleName
     get() = packageName?.substringAfterLast('.', "") ?: ""
 
 /**
@@ -238,7 +238,7 @@ val LsiFile.isTestFile: Boolean
  *
  * @return true 表示文件中所有类都是接口
  */
-val LsiFile.isInterfaceFile: Boolean
+val LsiFile.isInterfaceFile
     get() = classes.isNotEmpty() && classes.all { it.isInterface }
 
 /**
@@ -246,7 +246,7 @@ val LsiFile.isInterfaceFile: Boolean
  *
  * @return true 表示文件中所有类都是枚举
  */
-val LsiFile.isEnumFile: Boolean
+val LsiFile.isEnumFile
     get() = classes.isNotEmpty() && classes.all { it.isEnum }
 
 // ==================== 统计信息 ====================
@@ -254,25 +254,25 @@ val LsiFile.isEnumFile: Boolean
 /**
  * 统计文件中的类数量
  */
-val LsiFile.classCount: Int
+val LsiFile.classCount
     get() = classes.size
 
 /**
  * 统计文件中的接口数量
  */
-val LsiFile.interfaceCount: Int
+val LsiFile.interfaceCount
     get() = classes.count { it.isInterface }
 
 /**
  * 统计文件中的枚举数量
  */
-val LsiFile.enumCount: Int
+val LsiFile.enumCount
     get() = classes.count { it.isEnum }
 
 /**
  * 统计文件中的 POJO 类数量
  */
-val LsiFile.pojoCount: Int
+val LsiFile.pojoCount
     get() = classes.count { it.isPojo }
 
 // ==================== 字符串表示 ====================

@@ -27,7 +27,7 @@ class CrudTableController<T, ID : Any> internal constructor() {
     private lateinit var stateHolder: CrudTableState<ID>
     private lateinit var dataSource: CrudTableDataSource<T, ID>
     private var rowIdOf: (T) -> ID = { error("CrudTableController 尚未绑定 rowIdOf") }
-    private var keepSelectionAcrossRefresh: Boolean = false
+    private var keepSelectionAcrossRefresh = false
     private var resolveQueryErrorMessage: (Throwable) -> String = { it.message ?: "加载表格失败" }
     private var resolveDeleteErrorMessage: (Throwable) -> String = { it.message ?: "删除数据失败" }
     private var onPageLoaded: (PageResult<T>) -> Unit = {}
@@ -53,13 +53,13 @@ class CrudTableController<T, ID : Any> internal constructor() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    val supportsDelete: Boolean
+    val supportsDelete
         get() = ::dataSource.isInitialized && dataSource.supportsDelete
 
     val state: CrudTableState<ID>
         get() = stateHolder
 
-    val currentQuery: CrudTableQuery
+    val currentQuery
         get() = stateHolder.currentQuery
 
     internal fun bind(

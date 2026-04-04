@@ -7,7 +7,7 @@ class KspLsiAnnotation(
   private val ksAnnotation: KSAnnotation,
 ) : LsiAnnotation {
 
-  override val qualifiedName: String? by lazy {
+  override val qualifiedName by lazy {
     ksAnnotation.annotationType.resolve().declaration.qualifiedName?.asString()
   }
 
@@ -15,7 +15,7 @@ class KspLsiAnnotation(
     ksAnnotation.annotationType.resolve().declaration.simpleName.asString()
   }
 
-  override val attributes: Map<String, Any?> by lazy {
+  override val attributes by lazy {
     ksAnnotation.arguments.associate { argument ->
       val argument1 = argument
       (argument1.name?.asString() ?: "") to argument1.value

@@ -43,16 +43,16 @@ class SheetController internal constructor() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    val canUndo: Boolean
+    val canUndo
         get() = historyPast.isNotEmpty()
 
-    val canRedo: Boolean
+    val canRedo
         get() = historyFuture.isNotEmpty()
 
-    val state: SheetState
+    val state
         get() = stateHolder
 
-    val activeSheet: SheetPage?
+    val activeSheet
         get() = document?.sheetById(
             stateHolder.activeSheetId ?: document?.resolvedActiveSheetId.orEmpty(),
         )

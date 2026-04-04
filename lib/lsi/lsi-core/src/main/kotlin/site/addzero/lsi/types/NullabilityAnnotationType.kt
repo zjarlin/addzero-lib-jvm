@@ -31,14 +31,18 @@ enum class NullabilityAnnotationType(
         fun allOfNullability(nullability: Nullability): List<NullabilityAnnotationType> =
             byNullability[nullability].orEmpty()
 
-        val allNullableAnnotations: List<NullabilityAnnotationType> get() =
+        val allNullableAnnotations
+            get() =
             allOfNullability(Nullability.NULLABLE)
-        val allNonNullAnnotations: List<NullabilityAnnotationType> get() =
+        val allNonNullAnnotations
+            get() =
             allOfNullability(Nullability.NON_NULL)
 
-        val allNullableSimpleNames: Set<String> get() =
+        val allNullableSimpleNames
+            get() =
             allNullableAnnotations.map { it.simpleName }.toSet()
-        val allNonNullSimpleNames: Set<String> get() =
+        val allNonNullSimpleNames
+            get() =
             allNonNullAnnotations.map { it.simpleName }.toSet()
     }
 }

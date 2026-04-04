@@ -76,10 +76,10 @@ interface LsiClass {
     val fileName: String?
         get() =null
 
-    val isObject: Boolean
+    val isObject
         get() =false
 
-    val isCompanionObject: Boolean
+    val isCompanionObject
         get() =false
 //    todo  end  目前ksp only,之后在其它解析中找"鸭子"
 }

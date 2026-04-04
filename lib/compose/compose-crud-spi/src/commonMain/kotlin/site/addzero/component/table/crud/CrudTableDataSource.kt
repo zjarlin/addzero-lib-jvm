@@ -8,7 +8,7 @@ import site.addzero.entity.PageResult
  * `query` 是必选能力；删除能力默认关闭，由控制器按需探测。
  */
 interface CrudTableDataSource<T, ID : Any> {
-    val supportsDelete: Boolean
+    val supportsDelete
         get() = false
 
     suspend fun query(query: CrudTableQuery): PageResult<T>

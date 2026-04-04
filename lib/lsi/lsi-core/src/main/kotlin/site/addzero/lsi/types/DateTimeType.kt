@@ -21,9 +21,9 @@ enum class DateTimeType(
     ZONED_DATETIME("java.time.ZonedDateTime", DateTimeCategory.DATETIME),
     OFFSET_DATETIME("java.time.OffsetDateTime", DateTimeCategory.DATETIME);
 
-    val isDate: Boolean get() = category == DateTimeCategory.DATE
-    val isTime: Boolean get() = category == DateTimeCategory.TIME
-    val isDateTime: Boolean get() = category == DateTimeCategory.DATETIME
+    val isDate get() = category == DateTimeCategory.DATE
+    val isTime get() = category == DateTimeCategory.TIME
+    val isDateTime get() = category == DateTimeCategory.DATETIME
 
     /**
      * 获取该类型的默认值
@@ -48,11 +48,11 @@ enum class DateTimeType(
 
         fun allInCategory(category: DateTimeCategory): List<DateTimeType> = byCategory[category].orEmpty()
 
-        val allDateTypes: List<DateTimeType> get() = allInCategory(DateTimeCategory.DATE)
-        val allTimeTypes: List<DateTimeType> get() = allInCategory(DateTimeCategory.TIME)
-        val allDateTimeTypes: List<DateTimeType> get() = allInCategory(DateTimeCategory.DATETIME)
+        val allDateTypes get() = allInCategory(DateTimeCategory.DATE)
+        val allTimeTypes get() = allInCategory(DateTimeCategory.TIME)
+        val allDateTimeTypes get() = allInCategory(DateTimeCategory.DATETIME)
 
-        val allFqNames: Set<String> get() = byFqName.keys
+        val allFqNames get() = byFqName.keys
     }
 }
 

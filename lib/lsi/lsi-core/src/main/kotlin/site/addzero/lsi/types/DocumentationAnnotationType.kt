@@ -23,12 +23,13 @@ enum class DocumentationAnnotationType(
         fun findByFqName(fqName: String): DocumentationAnnotationType? = byFqName[fqName]
         fun findByShortName(shortName: String): List<DocumentationAnnotationType> = byShortName[shortName].orEmpty()
 
-        val allFqNames: Set<String> get() = byFqName.keys
+        val allFqNames get() = byFqName.keys
 
         /**
          * 获取注解与其描述属性名的映射
          */
-        val fqNameToAttributeMap: Map<String, String> get() =
+        val fqNameToAttributeMap
+            get() =
             entries.associate { it.fqName to it.descriptionAttribute }
     }
 }

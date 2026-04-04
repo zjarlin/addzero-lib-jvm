@@ -9,13 +9,13 @@ import site.addzero.workbenchshell.spi.header.HeaderRender
 import site.addzero.workbenchshell.spi.sidebar.SidebarRender
 
 interface ScaffoldingSpi {
-    val pageTitle: String
+    val pageTitle
         get() = "Workbench"
 
-    val brandLabel: String
+    val brandLabel
         get() = "Addzero Workbench"
 
-    val welcomeLabel: String
+    val welcomeLabel
         get() = ""
 
     // [左翼] 页面左侧整条导航带，像建筑的左翼走廊。

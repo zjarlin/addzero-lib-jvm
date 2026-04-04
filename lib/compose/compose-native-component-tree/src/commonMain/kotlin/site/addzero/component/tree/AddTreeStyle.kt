@@ -68,8 +68,8 @@ data class AddTreeColors(
  * `AddTree` 的默认样式入口。
  */
 object AddTreeDefaults {
-  val AppleRoundedMetrics: AddTreeMetrics = AddTreeMetrics()
-  val CompactAppleRoundedMetrics: AddTreeMetrics = AddTreeMetrics(
+  val AppleRoundedMetrics = AddTreeMetrics()
+  val CompactAppleRoundedMetrics = AddTreeMetrics(
     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
     rowShape = appleRoundedShape(AppleRoundedDefaults.Medium),
     rowMinHeight = 40.dp,
@@ -115,15 +115,15 @@ object AddTreeDefaults {
     message = "Use AppleRoundedMetrics. Here 'G2' referred to Apple-style rounded corners.",
     replaceWith = ReplaceWith("AppleRoundedMetrics"),
   )
-  val G2Metrics: AddTreeMetrics
-    get() = AppleRoundedMetrics
+  val G2Metrics
+      get() = AppleRoundedMetrics
 
   @Deprecated(
     message = "Use CompactAppleRoundedMetrics. Here 'G2' referred to Apple-style rounded corners.",
     replaceWith = ReplaceWith("CompactAppleRoundedMetrics"),
   )
-  val CompactG2Metrics: AddTreeMetrics
-    get() = CompactAppleRoundedMetrics
+  val CompactG2Metrics
+      get() = CompactAppleRoundedMetrics
 
   @Deprecated(
     message = "Use appleRoundedColors(). Here 'G2' referred to Apple-style rounded corners.",

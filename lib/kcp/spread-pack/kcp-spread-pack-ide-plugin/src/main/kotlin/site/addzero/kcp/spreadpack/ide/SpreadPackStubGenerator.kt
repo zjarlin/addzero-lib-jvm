@@ -349,7 +349,7 @@ internal class SpreadPackStubGenerator(
     private fun KaSession.createCarrierFieldModel(
         parameter: KtParameter,
     ): IdeCarrierFieldModel? {
-        val parameterSymbol: KaVariableSymbol = parameter.symbol
+        val parameterSymbol = parameter.symbol
         return IdeCarrierFieldModel(
             name = parameterSymbol.name.asString(),
             type = toIdeType(parameterSymbol.returnType, emptyMap()),

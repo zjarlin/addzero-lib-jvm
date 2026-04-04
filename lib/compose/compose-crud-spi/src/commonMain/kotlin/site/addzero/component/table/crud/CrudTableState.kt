@@ -44,7 +44,7 @@ class CrudTableState<ID : Any> internal constructor(
     var selectedRowIds by mutableStateOf(selectedRowIds)
         private set
 
-    val currentQuery: CrudTableQuery
+    val currentQuery
         get() = CrudTableQuery(
             keyword = keyword,
             filters = filters,

@@ -12,7 +12,7 @@ data class SheetCellAddress(
         require(columnIndex >= 0) { "columnIndex 不能小于 0" }
     }
 
-    val a1Notation: String
+    val a1Notation
         get() = "${sheetColumnName(columnIndex)}${rowIndex + 1}"
 
     companion object {

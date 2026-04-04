@@ -26,7 +26,7 @@ interface TreeNode<T> {
     /**
      * 是否为叶子节点
      */
-    val leafFlag: Boolean
+    val leafFlag
         get() = children.isEmpty()
 
 }

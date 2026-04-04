@@ -69,7 +69,7 @@ class SpreadPackGradleSubplugin : KotlinCompilerPluginSupportPlugin {
         }
     }
 
-    private val coordinates: Coordinates by lazy {
+    private val coordinates by lazy {
         val properties = Properties()
         javaClass.classLoader
             .getResourceAsStream(PROPERTIES_RESOURCE)
@@ -87,10 +87,10 @@ class SpreadPackGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     )
 
     companion object {
-        const val GRADLE_PLUGIN_ID: String = "site.addzero.kcp.spread-pack"
-        const val COMPILER_PLUGIN_ID: String = "site.addzero.kcp.spread-pack"
-        const val COMPILER_ARTIFACT_ID: String = "kcp-spread-pack-plugin"
-        const val ANNOTATIONS_ARTIFACT_ID: String = "kcp-spread-pack-annotations"
+        const val GRADLE_PLUGIN_ID = "site.addzero.kcp.spread-pack"
+        const val COMPILER_PLUGIN_ID = "site.addzero.kcp.spread-pack"
+        const val COMPILER_ARTIFACT_ID = "kcp-spread-pack-plugin"
+        const val ANNOTATIONS_ARTIFACT_ID = "kcp-spread-pack-annotations"
 
         private const val ANNOTATIONS_MARKER = "site.addzero.kcp.spread-pack.annotations-added"
         private const val PROPERTIES_RESOURCE =

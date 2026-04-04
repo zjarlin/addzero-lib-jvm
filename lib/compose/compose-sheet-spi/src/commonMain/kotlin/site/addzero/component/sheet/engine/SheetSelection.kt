@@ -17,13 +17,13 @@ data class SheetRange(
     val start: SheetCellAddress,
     val end: SheetCellAddress,
 ) {
-    val normalizedStart: SheetCellAddress
+    val normalizedStart
         get() = SheetCellAddress(
             rowIndex = minOf(start.rowIndex, end.rowIndex),
             columnIndex = minOf(start.columnIndex, end.columnIndex),
         )
 
-    val normalizedEnd: SheetCellAddress
+    val normalizedEnd
         get() = SheetCellAddress(
             rowIndex = maxOf(start.rowIndex, end.rowIndex),
             columnIndex = maxOf(start.columnIndex, end.columnIndex),
@@ -36,7 +36,7 @@ data class SheetRange(
             address.columnIndex in normalizedStart.columnIndex..normalizedEnd.columnIndex
     }
 
-    val isSingleCell: Boolean
+    val isSingleCell
         get() = normalizedStart == normalizedEnd
 
     companion object {
@@ -57,20 +57,20 @@ data class SheetSelection(
     val anchor: SheetCellAddress? = null,
     val focus: SheetCellAddress? = null,
 ) {
-    val activeRange: SheetRange?
+    val activeRange
         get() = if (anchor != null && focus != null) {
             SheetRange(anchor, focus)
         } else {
             null
         }
 
-    val primaryCell: SheetCellAddress?
+    val primaryCell
         get() = activeRange?.normalizedStart
 
-    val primaryRowIndex: Int?
+    val primaryRowIndex
         get() = primaryCell?.rowIndex
 
-    val primaryColumnIndex: Int?
+    val primaryColumnIndex
         get() = primaryCell?.columnIndex
 
     companion object {

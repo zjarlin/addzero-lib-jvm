@@ -17,14 +17,14 @@ class KspLsiClass(
   internal val ksClassDeclaration: KSClassDeclaration,
 ) : LsiClass {
 
-  override val simpleName: String? by lazy {
+  override val simpleName by lazy {
     try {
       ksClassDeclaration.simpleName.asString()
     } catch (e: Exception) {
       null
     }
   }
-  override val qualifiedName: String? by lazy {
+  override val qualifiedName by lazy {
     try {
       ksClassDeclaration.qualifiedName?.asString()
     } catch (e: Exception) {
@@ -33,7 +33,7 @@ class KspLsiClass(
     }
   }
 
-  override val comment: String? by lazy {
+  override val comment by lazy {
     ksClassDeclaration.docString
   }
 
@@ -59,21 +59,21 @@ class KspLsiClass(
     }
   }
 
-  override val isInterface: Boolean by lazy {
+  override val isInterface by lazy {
     ksClassDeclaration.classKind == ClassKind.INTERFACE
   }
 
-  override val isEnum: Boolean by lazy {
+  override val isEnum by lazy {
     ksClassDeclaration.classKind == ClassKind.ENUM_CLASS
   }
 
-  override val isCollectionType: Boolean by lazy {
+  override val isCollectionType by lazy {
     val name = qualifiedName ?: ""
     name.startsWith("kotlin.collections.") || name.startsWith("java.util.") &&
       (name.contains("List") || name.contains("Set") || name.contains("Collection") || name.contains("Map"))
   }
 
-  override val isPojo: Boolean by lazy {
+  override val isPojo by lazy {
     val isDataClass = ksClassDeclaration.modifiers.contains(Modifier.DATA)
     checkIsPojo(
       isInterface = isInterface,
@@ -115,15 +115,15 @@ class KspLsiClass(
       .toList()
   }
 
-  override val fileName: String? by lazy {
+  override val fileName by lazy {
     ksClassDeclaration.containingFile?.fileName?.removeSuffix(".kt")
   }
 
-  override val isObject: Boolean by lazy {
+  override val isObject by lazy {
     ksClassDeclaration.classKind == ClassKind.OBJECT
   }
 
-  override val isCompanionObject: Boolean by lazy {
+  override val isCompanionObject by lazy {
     ksClassDeclaration.isCompanionObject
   }
 }

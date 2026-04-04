@@ -9,21 +9,21 @@ import androidx.compose.ui.unit.dp
  * 工作台骨架的稳定布局参数。
  */
 interface ScaffoldConfig {
-    val contentHeaderScrollable: Boolean
+    val contentHeaderScrollable
         get() = true
-    val defaultSidebarRatio: Float
+    val defaultSidebarRatio
         get() = 0.22f
-    val minSidebarWidth: Dp
+    val minSidebarWidth
         get() = 248.dp
-    val maxSidebarWidth: Dp
+    val maxSidebarWidth
         get() = 360.dp
-    val detailWidth: Dp
+    val detailWidth
         get() = 320.dp
-    val outerPadding: PaddingValues
+    val outerPadding
         get() = PaddingValues(0.dp)
-    val contentPadding: PaddingValues
+    val contentPadding
         get() = PaddingValues(0.dp)
-    val detailPadding: PaddingValues
+    val detailPadding
         get() = PaddingValues(0.dp)
 }
 

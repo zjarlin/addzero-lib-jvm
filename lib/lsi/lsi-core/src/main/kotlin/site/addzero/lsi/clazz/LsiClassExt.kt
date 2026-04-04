@@ -161,12 +161,12 @@ fun LsiClass.hasProperty(simpleName: String): Boolean {
   }
 }
 
-val LsiClass.hasNoArgConstructor: Boolean
-  get() = methods.any { method ->
+val LsiClass.hasNoArgConstructor
+    get() = methods.any { method ->
     method.name == "<init>" && (method.parameters.isEmpty() || method.parameters.all { param ->
       param.hasDefault
     })
   }
 
-val LsiClass.packageName: String?
-  get() = qualifiedName?.substringBeforeLast('.', "")?.takeIf { it.isNotEmpty() }
+val LsiClass.packageName
+    get() = qualifiedName?.substringBeforeLast('.', "")?.takeIf { it.isNotEmpty() }

@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.sp
  * 定义了应用的基础文字样式，包括字体族、字重、字号、行高和字间距等属性
  * 使用 Material Design 的默认字体系统和标准样式规范
  */
-val DefaultTypography: Typography = Typography(
+val DefaultTypography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,

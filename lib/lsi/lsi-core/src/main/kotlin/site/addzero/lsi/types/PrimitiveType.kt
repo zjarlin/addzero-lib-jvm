@@ -33,8 +33,8 @@ enum class PrimitiveType(
 
         fun isPrimitive(name: String): Boolean = findByName(name) != null
 
-        val allKotlinNames: Set<String> get() = entries.map { it.kotlinName }.toSet()
-        val allJavaNames: Set<String> get() = entries.map { it.javaName }.toSet()
-        val allWrapperFqNames: Set<String> get() = entries.map { it.javaWrapperFqName }.toSet()
+        val allKotlinNames get() = entries.map { it.kotlinName }.toSet()
+        val allJavaNames get() = entries.map { it.javaName }.toSet()
+        val allWrapperFqNames get() = entries.map { it.javaWrapperFqName }.toSet()
     }
 }

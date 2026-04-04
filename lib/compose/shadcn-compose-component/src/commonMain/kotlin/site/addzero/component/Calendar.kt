@@ -358,7 +358,7 @@ fun Calendar(
                             val isPressed = interactionSource.collectIsPressedAsState().value
                             val cellBgStyle = colors.dateCellBgStyle
                             val cellTextStyle = colors.dateCellTextStyle
-                            val backgroundColor: Color = animateColorAsState(
+                            val backgroundColor = animateColorAsState(
                                 targetValue = when {
                                     isSelected -> cellBgStyle.selectedDate
                                     isClickable && isPressed -> cellBgStyle.onPressed

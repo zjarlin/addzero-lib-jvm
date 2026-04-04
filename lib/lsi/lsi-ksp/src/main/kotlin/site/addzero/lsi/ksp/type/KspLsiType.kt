@@ -18,7 +18,7 @@ class KspLsiType(
     ksType.declaration.simpleName.asString()
   }
 
-  override val qualifiedName: String? by lazy {
+  override val qualifiedName by lazy {
     ksType.declaration.qualifiedName?.asString()
   }
 
@@ -32,14 +32,14 @@ class KspLsiType(
       .toList()
   }
 
-  override val isCollectionType: Boolean by lazy {
+  override val isCollectionType by lazy {
     val qualifiedName = this.qualifiedName ?: ""
     qualifiedName.startsWith("kotlin.collections.") || qualifiedName.startsWith("java.util.") &&
       (qualifiedName.contains("List") || qualifiedName.contains("Set") ||
         qualifiedName.contains("Collection") || qualifiedName.contains("Map"))
   }
 
-  override val isNullable: Boolean by lazy {
+  override val isNullable by lazy {
     ksType.isMarkedNullable
   }
 
@@ -51,7 +51,7 @@ class KspLsiType(
     }
   }
 
-  override val isPrimitive: Boolean by lazy {
+  override val isPrimitive by lazy {
     return@lazy ksType.isPrimitive()
   }
 
@@ -64,7 +64,7 @@ class KspLsiType(
     } else null
   }
 
-  override val isArray: Boolean by lazy {
+  override val isArray by lazy {
     val qualifiedName = this.qualifiedName ?: ""
     qualifiedName.startsWith("kotlin.Array") ||
       qualifiedName.endsWith("Array") ||

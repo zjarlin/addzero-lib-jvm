@@ -9,7 +9,7 @@ plugins {
 }
 
 val libs = versionCatalogs.named("libs")
-val kotlinVersionForComposeLib: String = libs.findVersion("kotlin").get().requiredVersion
+val kotlinVersionForComposeLib = libs.findVersion("kotlin").get().requiredVersion
 
 configurations.configureEach {
     resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersionForComposeLib")

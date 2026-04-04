@@ -125,9 +125,9 @@ private data class DeviceFontData(
 ) {
     private var cachedBytes: ByteArray? = null
 
-    val normalizedStyle: String = style.lowercase()
+    val normalizedStyle = style.lowercase()
 
-    val identity: String =
+    val identity =
         postscriptName.ifBlank {
             buildString {
                 append(family.ifBlank { "device-font" })

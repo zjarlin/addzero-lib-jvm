@@ -31,13 +31,13 @@ internal class InteractiveHighlight(
 
     private var startPosition = Offset.Zero
 
-    val pressProgress: Float
+    val pressProgress
         get() = pressProgressAnimation.value
 
-    val offset: Offset
+    val offset
         get() = positionAnimation.value - startPosition
 
-    val modifier: Modifier = Modifier.drawWithContent {
+    val modifier = Modifier.drawWithContent {
         val progress = pressProgressAnimation.value
         if (progress > 0f) {
             val resolvedPosition = position(size, positionAnimation.value)
@@ -65,7 +65,7 @@ internal class InteractiveHighlight(
         drawContent()
     }
 
-    val gestureModifier: Modifier = Modifier.pointerInput(animationScope) {
+    val gestureModifier = Modifier.pointerInput(animationScope) {
         inspectDragGestures(
             onDragStart = { down ->
                 startPosition = down.position
