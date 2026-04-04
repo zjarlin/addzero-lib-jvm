@@ -1262,6 +1262,9 @@ class SpreadPackFirExtension(
             Name.identifier("functionFqName"),
             returnFirstWhenNotFound = false,
         )?.stringLiteralValue()?.takeIf { functionFqName -> functionFqName.isNotBlank() }
+            ?: findValueArgumentExpression()
+                ?.stringLiteralValue()
+                ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
         val directParameterTypes = findArgumentByName(
             Name.identifier("parameterTypes"),
             returnFirstWhenNotFound = false,
@@ -1273,7 +1276,7 @@ class SpreadPackFirExtension(
             )
         }
         if (directParameterTypes.isNotEmpty()) {
-            error("spread-pack functionFqName must not be blank when parameterTypes are specified")
+            error("spread-pack target function must not be blank when parameterTypes are specified")
         }
         val overloadExpression = findArgumentByName(
             Name.identifier("overload"),
@@ -1299,6 +1302,34 @@ class SpreadPackFirExtension(
             functionFqName = functionFqName,
             parameterTypes = parameterTypes,
         )
+    }
+
+    private fun FirAnnotation.findValueArgumentExpression(): FirExpression? {
+        val annotationCall = this as? FirAnnotationCall ?: return null
+        val resolvedArgument = (annotationCall.argumentList as? FirResolvedArgumentList)
+            ?.mapping
+            ?.entries
+            ?.firstOrNull { (_, parameter) -> parameter.name.asString() == "value" }
+            ?.key
+        if (resolvedArgument != null) {
+            return resolvedArgument
+        }
+        val arguments = annotationCall.argumentList.arguments
+        if (arguments.isEmpty()) {
+            return null
+        }
+        val firstArgument = arguments.first()
+        return when (firstArgument) {
+            is FirNamedArgumentExpression -> {
+                if (firstArgument.name.asString() == "value") {
+                    firstArgument.expression
+                } else {
+                    null
+                }
+            }
+
+            else -> firstArgument
+        }
     }
 
     private fun FirExpression.findNestedCallArgument(

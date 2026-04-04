@@ -25,8 +25,12 @@
 
 - `compose-native-component-glass`：原生风格玻璃态组件方向的实验模块
 - `app-sidebar`：当前推荐的通用侧栏与工作台骨架入口
+- `compose-workbench-design`：工作台级按钮等设计原语
+- `compose-workbench-shell`：工作台场景切换、树侧栏、内容容器与顶栏动作接口
 - `compose-native-component-button`：按钮、删除、加载、图标按钮等基础操作入口
 - `compose-native-component-form`：输入框、数字、日期、枚举、单选多选等表单组件
+- `compose-native-component-autocomplet`：旧模块名保留，承载自动补全输入组件与迁入的 `site.addzero.autocomplete` API
+- `compose-native-component-knowledgegraph`：知识图谱、节点筛选、力导向布局、JVM 抽屉代码查看
 - `compose-native-component-table` / `table-pro`：原始表格、分页、排序、筛选、批量操作
 - `compose-native-component-tree`：树、平铺树、命令树、树选择状态管理
 - `shadcn-compose-component`：shadcn 风格主题与常见桌面组件

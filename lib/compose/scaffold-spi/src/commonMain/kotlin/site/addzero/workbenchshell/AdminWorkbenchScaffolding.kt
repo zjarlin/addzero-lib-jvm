@@ -15,10 +15,9 @@ import site.addzero.workbenchshell.spi.scaffolding.ScaffoldingSpi
 @Composable
 fun RenderAdminScaffolding(
     scaffolding: ScaffoldingSpi,
-    darkTheme: Boolean,
-    onThemeToggle: () -> Unit,
     modifier: Modifier = Modifier,
     sidebarVisible: Boolean = true,
+    onSidebarToggle: (() -> Unit)? = null,
     defaultSidebarRatio: Float = 0.22f,
     minSidebarWidth: Dp = 248.dp,
     maxSidebarWidth: Dp = 360.dp,
@@ -46,7 +45,8 @@ fun RenderAdminScaffolding(
             maxSidebarWidth = if (sidebarVisible) maxSidebarWidth else 0.dp,
             contentPadding = contentPadding,
             detailPadding = detailPadding,
-            isDarkTheme = darkTheme,
+            sidebarVisible = sidebarVisible,
+            onSidebarToggle = onSidebarToggle,
         ),
         slots = adminWorkbenchSlots(
             brandContent = {
@@ -59,13 +59,10 @@ fun RenderAdminScaffolding(
                 }
             },
             showContentHeader = false,
-            userContent = {
+            topBarActions = {
                 // [驾驶舱右手边] 顶栏最右边的全局动作区。
                 with(scaffolding) {
-                    RenderUserActions(
-                        darkTheme = darkTheme,
-                        onThemeToggle = onThemeToggle,
-                    )
+                    RenderTopBarActions()
                 }
             },
         ),

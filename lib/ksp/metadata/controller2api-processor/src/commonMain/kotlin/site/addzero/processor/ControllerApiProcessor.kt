@@ -52,7 +52,7 @@ class ControllerApiProcessor(
         collectedControllers.forEach { metadata ->
             generateKtorfitInterfaceFromMetadata(metadata)
         }
-        generateApiProvider(collectedControllers)
+        generateApiAggregator(collectedControllers)
         collectedControllers.clear()
         collectedSourceKeys.clear()
     }
@@ -622,16 +622,17 @@ class ControllerApiProcessor(
     }
 
     /**
-     * 生成聚合后的 ApiProvider。
+     * 生成聚合后的 API 对象。
      */
-    private fun generateApiProvider(metadataList: List<ControllerMetadata>) {
+    private fun generateApiAggregator(metadataList: List<ControllerMetadata>) {
+        val aggregatorStyle = parseApiAggregatorStyle(Settings.apiClientAggregatorStyle)
         val generatedApis = metadataList
             .map(::toGeneratedApiDescriptor)
             .distinctBy { it.apiClassName }
             .sortedBy { it.propertyName }
 
         if (generatedApis.isEmpty()) {
-            logger.info("没有生成任何 Ktorfit 接口，跳过 ApiProvider 生成")
+            logger.info("没有生成任何 Ktorfit 接口，跳过 ${Settings.apiClientAggregatorObjectName} 生成")
             return
         }
 
@@ -640,32 +641,53 @@ class ControllerApiProcessor(
             if (!outputDirFile.exists()) {
                 outputDirFile.mkdirs()
             }
-            val outputFile = File(outputDirFile, "ApiProvider.kt")
-            outputFile.writeText(renderApiProviderCode(Settings.apiClientPackageName, generatedApis))
-            logger.info("Generated ApiProvider: ${outputFile.absolutePath}")
+            val outputFile = File(outputDirFile, "${Settings.apiClientAggregatorObjectName}.kt")
+            outputFile.writeText(
+                renderApiAggregatorCode(
+                    packageName = Settings.apiClientPackageName,
+                    aggregatorObjectName = Settings.apiClientAggregatorObjectName,
+                    aggregatorStyle = aggregatorStyle,
+                    generatedApis = generatedApis,
+                )
+            )
+            logger.info("Generated ${Settings.apiClientAggregatorObjectName}: ${outputFile.absolutePath}")
         } catch (e: Exception) {
-            logger.error("Failed to generate ApiProvider via file IO: ${e.message}")
-            fallbackApiProviderToCodeGenerator(generatedApis)
+            logger.error("Failed to generate ${Settings.apiClientAggregatorObjectName} via file IO: ${e.message}")
+            fallbackApiAggregatorToCodeGenerator(
+                generatedApis = generatedApis,
+                aggregatorStyle = aggregatorStyle,
+            )
         }
     }
 
     /**
-     * 回退方案：将 ApiProvider 生成到 build 目录。
+     * 回退方案：将 API 聚合对象生成到 build 目录。
      */
-    private fun fallbackApiProviderToCodeGenerator(generatedApis: List<GeneratedApiDescriptor>) {
+    private fun fallbackApiAggregatorToCodeGenerator(
+        generatedApis: List<GeneratedApiDescriptor>,
+        aggregatorStyle: ApiAggregatorStyle,
+    ) {
         try {
             codeGenerator.createNewFile(
                 dependencies = Dependencies(false),
                 packageName = Settings.apiClientPackageName,
-                fileName = "ApiProvider",
+                fileName = Settings.apiClientAggregatorObjectName,
             ).use { outputStream ->
                 outputStream.write(
-                    renderApiProviderCode(Settings.apiClientPackageName, generatedApis).toByteArray()
+                    renderApiAggregatorCode(
+                        packageName = Settings.apiClientPackageName,
+                        aggregatorObjectName = Settings.apiClientAggregatorObjectName,
+                        aggregatorStyle = aggregatorStyle,
+                        generatedApis = generatedApis,
+                    ).toByteArray()
                 )
             }
-            logger.info("Fallback: Generated ApiProvider to build directory: ${Settings.apiClientPackageName}.ApiProvider")
+            logger.info(
+                "Fallback: Generated ${Settings.apiClientAggregatorObjectName} to build directory: " +
+                    "${Settings.apiClientPackageName}.${Settings.apiClientAggregatorObjectName}"
+            )
         } catch (e: Exception) {
-            logger.error("Fallback ApiProvider generation also failed: ${e.message}")
+            logger.error("Fallback ${Settings.apiClientAggregatorObjectName} generation also failed: ${e.message}")
         }
     }
 
@@ -979,6 +1001,11 @@ internal data class GeneratedApiDescriptor(
     val propertyName: String
 )
 
+internal enum class ApiAggregatorStyle {
+    KOIN,
+    SINGLETON,
+}
+
 internal fun toGeneratedApiDescriptor(metadata: ControllerMetadata): GeneratedApiDescriptor {
     val apiClassName = metadata.generatedApiClassName
         ?: metadata.originalClassName.replace("Controller", "Api")
@@ -988,8 +1015,10 @@ internal fun toGeneratedApiDescriptor(metadata: ControllerMetadata): GeneratedAp
     )
 }
 
-internal fun renderApiProviderCode(
+internal fun renderApiAggregatorCode(
     packageName: String,
+    aggregatorObjectName: String,
+    aggregatorStyle: ApiAggregatorStyle,
     generatedApis: List<GeneratedApiDescriptor>
 ): String {
     val serviceProperties = generatedApis.joinToString("\n\n") { api ->
@@ -998,36 +1027,60 @@ internal fun renderApiProviderCode(
         |     * ${api.apiClassName} 服务实例
         |     */
         |    val ${api.propertyName}: ${api.apiClassName}
-        |        get() = requireKtorfit().create<${api.apiClassName}>()
+        |        get() = ktorfit().create${api.apiClassName}()
+        """.trimMargin()
+    }
+
+    val imports = buildString {
+        appendLine("import de.jensklingenberg.ktorfit.Ktorfit")
+        if (aggregatorStyle == ApiAggregatorStyle.KOIN) {
+            appendLine("import org.koin.mp.KoinPlatform")
+        }
+        appendLine("import $packageName.*")
+    }.trimEnd()
+
+    val wiringCode = when (aggregatorStyle) {
+        ApiAggregatorStyle.KOIN -> """
+            |    private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()
+        """.trimMargin()
+        ApiAggregatorStyle.SINGLETON -> """
+            |    private var currentKtorfit: Ktorfit? = null
+            |
+            |    fun configure(ktorfit: Ktorfit) {
+            |        currentKtorfit = ktorfit
+            |    }
+            |
+            |    private fun ktorfit(): Ktorfit {
+            |        return currentKtorfit
+            |            ?: error("$aggregatorObjectName 尚未配置 Ktorfit，请先调用 $aggregatorObjectName.configure(ktorfit)")
+            |    }
         """.trimMargin()
     }
 
     return """
         |package $packageName
         |
-        |import de.jensklingenberg.ktorfit.Ktorfit
-        |import $packageName.*
+        |$imports
         |
         |/**
         | * 聚合后的 Ktorfit 服务提供者
         | *
         | * 仅聚合 controller2api 生成的接口，不扫描手写接口。
         | */
-        |object ApiProvider {
-        |    private var currentKtorfit: Ktorfit? = null
-        |
-        |    fun configure(ktorfit: Ktorfit) {
-        |        currentKtorfit = ktorfit
-        |    }
-        |
-        |    private fun requireKtorfit(): Ktorfit {
-        |        return currentKtorfit
-        |            ?: error("ApiProvider 尚未配置 Ktorfit，请先调用 ApiProvider.configure(ktorfit)")
-        |    }
+        |object $aggregatorObjectName {
+        |$wiringCode
         |
         |$serviceProperties
         |}
     """.trimMargin()
+}
+
+internal fun parseApiAggregatorStyle(raw: String?): ApiAggregatorStyle {
+    return when (raw?.trim()?.lowercase()) {
+        null, "", "koin" -> ApiAggregatorStyle.KOIN
+        "singleton" -> ApiAggregatorStyle.SINGLETON
+        else -> ApiAggregatorStyle.KOIN
+    }
 }
 
 private fun KSFunctionDeclaration.signatureKey(): String {

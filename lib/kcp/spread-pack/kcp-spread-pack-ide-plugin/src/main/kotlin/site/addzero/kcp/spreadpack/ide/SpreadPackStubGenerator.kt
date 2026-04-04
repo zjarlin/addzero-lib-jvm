@@ -1004,6 +1004,8 @@ internal class SpreadPackStubGenerator(
     private fun KaAnnotation.spreadArgsReference(): IdeSpreadArgsReference? {
         val directFunctionFqName = stringArgument("functionFqName")?.takeIf { functionFqName ->
             functionFqName.isNotBlank()
+        } ?: stringArgument("value")?.takeIf { functionFqName ->
+            functionFqName.isNotBlank()
         }
         val directParameterTypes = classLiteralArrayArgument("parameterTypes")
         if (directFunctionFqName != null) {
@@ -1013,7 +1015,7 @@ internal class SpreadPackStubGenerator(
             )
         }
         if (directParameterTypes.isNotEmpty()) {
-            error("spread-pack functionFqName must not be blank when parameterTypes are specified")
+            error("spread-pack target function must not be blank when parameterTypes are specified")
         }
         val overloadAnnotation = nestedAnnotationArgument("overload") ?: return null
         val overloadsAnnotation = overloadAnnotation.nestedAnnotationArgument("of") ?: return null

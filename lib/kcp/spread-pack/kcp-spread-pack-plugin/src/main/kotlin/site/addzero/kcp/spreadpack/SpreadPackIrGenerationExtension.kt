@@ -1052,17 +1052,21 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun IrConstructorCall.spreadArgsReference(): IrSpreadArgsReference {
-        val directFunctionFqName = (getValueArgument(Name.identifier("functionFqName")) as? IrConst)
-            ?.value as? String
+        val directFunctionFqName = ((getValueArgument(Name.identifier("functionFqName")) as? IrConst)
+            ?.value as? String)
+            ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
+            ?: ((getValueArgument(Name.identifier("value")) as? IrConst)
+                ?.value as? String)
+                ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
         val directParameterTypeClassIds = classIdArguments(Name.identifier("parameterTypes"))
-        if (!directFunctionFqName.isNullOrBlank()) {
+        if (directFunctionFqName != null) {
             return IrSpreadArgsReference(
                 functionFqName = directFunctionFqName,
                 parameterTypeClassIds = directParameterTypeClassIds,
             )
         }
         if (directParameterTypeClassIds.isNotEmpty()) {
-            error("spread-pack functionFqName must not be blank when parameterTypes are specified")
+            error("spread-pack target function must not be blank when parameterTypes are specified")
         }
         val overloadAnnotation = getValueArgument(Name.identifier("overload")) as? IrConstructorCall
             ?: error("SpreadArgsOf.overload must be an annotation value")

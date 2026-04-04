@@ -436,7 +436,7 @@ class SpreadPackCompilerIntegrationTest {
             fun renderWrapper(
                 @SpreadPack
                 @SpreadArgsOf(
-                    functionFqName = "site.addzero.example.renderBase",
+                    "site.addzero.example.renderBase",
                     parameterTypes = [BaseOptions::class],
                     exclude = ["debug"],
                 )
@@ -744,7 +744,7 @@ class SpreadPackCompilerIntegrationTest {
             ): String = "${'$'}title:${'$'}count:${'$'}debug"
 
             @SpreadPackCarrierOf(
-                functionFqName = "site.addzero.example.renderBase",
+                "site.addzero.example.renderBase",
                 exclude = ["debug"],
             )
             class RenderAliasArgs

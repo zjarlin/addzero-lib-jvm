@@ -77,9 +77,6 @@ val sidebarStyle = rememberShadcnAppSidebarStyleConfig(
 )
 
 AdminWorkbenchScaffold(
-    breadcrumb = listOf("系统管理", "用户中心"),
-    pageTitle = "成员管理",
-    pageSubtitle = "把页面动作和全局工具动作收进统一后台骨架。",
     sidebar = {
         AppSidebar(
             title = "Admin",
@@ -94,25 +91,46 @@ AdminWorkbenchScaffold(
             icon = AdminNode::icon,
         )
     },
-    pageActions = {
-        FilterChip()
-        PrimaryActionButton()
-    },
     content = {
         MemberTable()
     },
-    detail = {
-        MemberInspector()
-    },
-    onGlobalSearchClick = onGlobalSearchClick,
-    languageLabel = currentLanguageLabel,
-    onLanguageClick = onLanguageClick,
-    isDarkTheme = isDarkTheme,
-    onThemeToggle = onThemeToggle,
-    notificationCount = notificationCount,
-    onNotificationsClick = onNotificationsClick,
-    userLabel = currentUserLabel,
-    onUserClick = onUserClick,
+    page = adminWorkbenchPageConfig(
+        breadcrumb = listOf("系统管理", "用户中心"),
+        pageTitle = "成员管理",
+        pageSubtitle = "把页面动作和全局工具动作收进统一后台骨架。",
+    ),
+    config = adminWorkbenchConfig(
+        isDarkTheme = isDarkTheme,
+        sidebarVisible = sidebarVisible,
+        onSidebarToggle = onSidebarToggle,
+    ),
+    slots = adminWorkbenchSlots(
+        pageActions = {
+            FilterChip()
+            PrimaryActionButton()
+        },
+        detail = {
+            MemberInspector()
+        },
+        topBarActions = {
+            WorkbenchLanguageButton(
+                label = currentLanguageLabel,
+                onClick = onLanguageClick,
+            )
+            WorkbenchThemeToggleButton(
+                isDarkTheme = isDarkTheme,
+                onClick = onThemeToggle,
+            )
+            WorkbenchNotificationButton(
+                count = notificationCount,
+                onClick = onNotificationsClick,
+            )
+            WorkbenchUserButton(
+                label = currentUserLabel,
+                onClick = onUserClick,
+            )
+        },
+    ),
 )
 ```
 
@@ -131,8 +149,9 @@ AdminWorkbenchScaffold(
 - 搜索状态字段统一命名为 `keyword`
 - `AppSidebarScaffold` / `WorkbenchScaffold` 默认都是无缝布局
 - `WorkbenchScaffold` 适合“侧栏 + 顶部工具栏 + 主内容 + 右侧详情栏”
-- `AdminWorkbenchScaffold` 是后台管理版高阶封装，默认头部固定为“面包屑 / 标题 / 副标题 + 页面动作 + 全局工具动作”
-- 后台工具动作默认顺序固定为“搜索 / 语言 / 主题 / 通知 / 用户”，未提供的参数不会渲染
+- `AdminWorkbenchScaffold` 是后台管理版高阶封装，默认头部固定为“面包屑 / 标题 / 副标题 + 页面动作 + 顶栏动作插槽”
+- 只要给 `adminWorkbenchConfig` 传 `onSidebarToggle`，顶栏左侧就会自动出现内置的“隐藏菜单 / 显示菜单”按钮
+- 顶栏动作完全由应用层通过 `topBarActions` 组合，库只提供 `Workbench*Button` 这类可复用按钮外观
 - `WorkbenchScaffold` 会按宽度自适应：宽窗口三栏，窄一些自动折叠成双栏
 - `rememberAppSidebarState` / `rememberWorkbenchScaffoldState` 都基于 Compose `rememberSaveable`
 - 左侧栏默认支持拖拽调宽，同时保留默认比例

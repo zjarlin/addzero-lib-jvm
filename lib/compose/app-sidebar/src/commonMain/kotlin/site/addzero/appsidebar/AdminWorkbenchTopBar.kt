@@ -2,8 +2,6 @@ package site.addzero.appsidebar
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.Icon
@@ -27,6 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import site.addzero.workbench.design.button.WorkbenchButtonSize
+import site.addzero.workbench.design.button.WorkbenchButtonVariant
+import site.addzero.workbench.design.button.WorkbenchPillButton
 
 /**
  * 后台工作台的全局搜索按钮。
@@ -96,7 +98,6 @@ fun WorkbenchThemeToggleButton(
             Icon(
                 imageVector = if (isDarkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
                 contentDescription = null,
-                tint = AdminWorkbenchTokens.highlightedTextPrimary,
             )
         },
     )
@@ -143,12 +144,35 @@ fun WorkbenchUserButton(
 }
 
 /**
+ * 后台工作台的侧栏显隐按钮。
+ */
+@Composable
+fun WorkbenchSidebarToggleButton(
+    sidebarVisible: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    visibleLabel: String = "隐藏菜单",
+    hiddenLabel: String = "显示菜单",
+) {
+    WorkbenchUtilityButton(
+        label = if (sidebarVisible) visibleLabel else hiddenLabel,
+        modifier = modifier,
+        onClick = onClick,
+        leading = {
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = null,
+            )
+        },
+    )
+}
+
+/**
  * 后台工作台的全局顶部工具条。
  */
 @Composable
 internal fun AdminWorkbenchGlobalBar(
     config: AdminWorkbenchConfig,
-    actions: AdminWorkbenchActions,
     slots: AdminWorkbenchSlots,
     topBarHeight: Dp,
     leadingInset: Dp,
@@ -176,6 +200,12 @@ internal fun AdminWorkbenchGlobalBar(
             horizontalArrangement = Arrangement.spacedBy(if (compactTopBar) 10.dp else 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            config.onSidebarToggle?.let { onSidebarToggle ->
+                WorkbenchSidebarToggleButton(
+                    sidebarVisible = config.sidebarVisible,
+                    onClick = onSidebarToggle,
+                )
+            }
             val brandContent = slots.brandContent
             if (brandContent != null) {
                 brandContent()
@@ -209,55 +239,9 @@ internal fun AdminWorkbenchGlobalBar(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val onGlobalSearchClick = actions.onGlobalSearchClick
-            val isDarkTheme = config.isDarkTheme
-            val onThemeToggle = actions.onThemeToggle
-            val githubLabel = config.githubLabel
-            val onGithubClick = actions.onGithubClick
-            val languageLabel = config.languageLabel
-            val onLanguageClick = actions.onLanguageClick
-            val notificationCount = config.notificationCount
-            val onNotificationsClick = actions.onNotificationsClick
-            val userContent = slots.userContent
-            val userLabel = config.userLabel
-            val onUserClick = actions.onUserClick
-
-            if (onGlobalSearchClick != null) {
-                WorkbenchSearchButton(
-                    onClick = onGlobalSearchClick,
-                )
-            }
-            if (isDarkTheme != null && onThemeToggle != null) {
-                WorkbenchThemeToggleButton(
-                    isDarkTheme = isDarkTheme,
-                    onClick = onThemeToggle,
-                )
-            }
-            if (!githubLabel.isNullOrBlank() && onGithubClick != null) {
-                WorkbenchGitHubButton(
-                    label = githubLabel,
-                    onClick = onGithubClick,
-                )
-            }
-            if (!languageLabel.isNullOrBlank() && onLanguageClick != null) {
-                WorkbenchLanguageButton(
-                    label = languageLabel,
-                    onClick = onLanguageClick,
-                )
-            }
-            if (notificationCount != null && onNotificationsClick != null) {
-                WorkbenchNotificationButton(
-                    count = notificationCount,
-                    onClick = onNotificationsClick,
-                )
-            }
-            if (userContent != null) {
-                userContent.invoke(this)
-            } else if (!userLabel.isNullOrBlank() && onUserClick != null) {
-                WorkbenchUserButton(
-                    label = userLabel,
-                    onClick = onUserClick,
-                )
+            val topBarActions = slots.topBarActions
+            if (topBarActions != null) {
+                topBarActions.invoke(this)
             }
         }
     }
@@ -306,41 +290,42 @@ private fun WorkbenchUtilityButton(
     highlighted: Boolean = false,
     leading: (@Composable () -> Unit)? = null,
 ) {
-    val contentColor = if (highlighted) {
-        AdminWorkbenchTokens.highlightedTextPrimary
-    } else {
-        AdminWorkbenchTokens.textPrimary
-    }
-    Row(
-        modifier = modifier.utilityButtonFrame(
-            highlighted = highlighted,
-        ).clickable(
-            onClick = onClick,
-        ),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        leading?.invoke()
-        Text(
-            text = label,
-            color = contentColor,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-        )
-        if (badge != null) {
-            Box(
-                modifier = Modifier.utilityBadgeFrame(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = badge,
-                    color = contentColor,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                )
+    val compactTopBar = LocalWorkbenchWindowFrame.current.topBarHeight <= 48.dp
+    WorkbenchPillButton(
+        onClick = onClick,
+        modifier = modifier,
+        variant = if (highlighted) {
+            WorkbenchButtonVariant.Secondary
+        } else {
+            WorkbenchButtonVariant.Outline
+        },
+        size = if (compactTopBar) {
+            WorkbenchButtonSize.Sm
+        } else {
+            WorkbenchButtonSize.Default
+        },
+        content = {
+            leading?.invoke()
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+            )
+            if (badge != null) {
+                Box(
+                    modifier = Modifier.utilityBadgeFrame(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = badge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    )
+                }
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable
@@ -373,35 +358,6 @@ private fun WorkbenchUserAvatar(
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
         )
     }
-}
-
-/** 工具按钮底板：默认是后台工具条里的紧凑胶囊按钮，不抢主操作的风头。 */
-@Composable
-private fun Modifier.utilityButtonFrame(
-    highlighted: Boolean,
-): Modifier {
-    val compactTopBar = LocalWorkbenchWindowFrame.current.topBarHeight <= 48.dp
-    val background = if (highlighted) {
-        AdminWorkbenchTokens.highlightedBackground
-    } else {
-        AdminWorkbenchTokens.buttonBackground
-    }
-    val border = if (highlighted) {
-        AdminWorkbenchTokens.highlightedBorder
-    } else {
-        AdminWorkbenchTokens.buttonBorder
-    }
-    return background(
-        color = background,
-        shape = RoundedCornerShape(999.dp),
-    ).border(
-        width = 1.dp,
-        color = border,
-        shape = RoundedCornerShape(999.dp),
-    ).padding(
-        horizontal = if (compactTopBar) 10.dp else 12.dp,
-        vertical = if (compactTopBar) 6.dp else 8.dp,
-    )
 }
 
 /** 角标胶囊：用于通知数这类轻量全局状态，不把按钮撑成大块。 */

@@ -5,9 +5,7 @@ import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
 import site.addzero.kcp.spreadpack.SpreadPack
 import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
 
-@SpreadPackCarrierOf(
-    functionFqName = "site.addzero.example.vendor.Text",
-)
+@SpreadPackCarrierOf("site.addzero.example.vendor.Text")
 class TextProps
 
 @GenerateSpreadPackOverloads

@@ -11,6 +11,8 @@ processorBuddy {
     mustMap.set(
         mapOf(
             "apiClientPackageName" to defaultApiClientPackageName,
+            "apiClientAggregatorObjectName" to "Apis",
+            "apiClientAggregatorStyle" to "koin",
             "apiClientOutputDir" to defaultSharedComposeDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
                 .absolutePath.replace('\\', '/'),

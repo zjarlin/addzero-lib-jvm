@@ -159,13 +159,13 @@ class Controller2Iso2DataProviderProcessor(
         val mappingEntries = controllerInfos.joinToString(",\n") { info ->
             val isoClassName = info.isoQualifiedName.substringAfterLast(".")
             val apiMethodName = info.entityClassName.replaceFirstChar { it.lowercase() }
-            "        ${isoClassName}::class to ApiProvider.${apiMethodName}Api::tree"
+            "        ${isoClassName}::class to ${Settings.apiClientAggregatorObjectName}.${apiMethodName}Api::tree"
         }
 
         val code = """
             |package $packageName
             |
-            |import ${Settings.apiClientPackageName}.ApiProvider
+            |import ${Settings.apiClientPackageName}.${Settings.apiClientAggregatorObjectName}
             |$imports
             |
             |

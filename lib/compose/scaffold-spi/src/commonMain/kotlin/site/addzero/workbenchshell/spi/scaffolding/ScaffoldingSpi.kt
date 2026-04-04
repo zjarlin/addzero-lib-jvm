@@ -46,12 +46,9 @@ interface ScaffoldingSpi {
     @Composable
     fun RowScope.RenderBrand() {}
 
-    // [驾驶舱右手边] 顶栏最右侧的操作带，像驾驶位右手边按钮区，通常放主题、AI、个人菜单。
+    // [驾驶舱右手边] 顶栏最右侧的操作带，像驾驶位右手边按钮区，通常放全局顶栏动作。
     @Composable
-    fun RowScope.RenderUserActions(
-        darkTheme: Boolean,
-        onThemeToggle: () -> Unit,
-    ) {}
+    fun RowScope.RenderTopBarActions() {}
 
     // [浮层位] 悬在主页面上方的一层，像舞台上方吊着的幕布，通常放弹窗、助手面板、全局覆盖层。
     @Composable

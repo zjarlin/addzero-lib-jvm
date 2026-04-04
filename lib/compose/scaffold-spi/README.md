@@ -24,8 +24,8 @@ class MyScaffolding : ScaffoldingSpi
 
 RenderAdminScaffolding(
     scaffolding = koinInject(),
-    darkTheme = false,
-    onThemeToggle = {},
+    sidebarVisible = true,
+    onSidebarToggle = { /* toggle sidebar */ },
 )
 ```
 

@@ -60,31 +60,37 @@ TextProps[text,color,maxLines,softWrap,onTextLayout]=(hello,blue,2,false,callbac
 当前这个 example 的重点不是手写 `data class` carrier，而是：
 
 - 先定义一个模拟第三方库的扁平函数 `vendor.Text(...)`
-- 再用空 class `TextProps` 通过 `@SpreadPackCarrierOf(functionFqName = "...Text")` 直接借它的完整参数表
+- 再用空 class `TextProps` 通过 `@SpreadPackCarrierOf("...Text")` 直接借它的完整参数表
 - 再让 `MyText(@SpreadPack props: TextProps)` 吃整张参数表
 
-这个脚本会先做三件事：
-
-- 发布 `annotations`
-- 发布 compiler plugin
-- 发布 Gradle subplugin 到 `mavenLocal`
-
-然后再用独立 example 工程运行：
+这个脚本会：
 
 - `ADDZERO_USE_INCLUDED_BUILD=false`
-- `-p example/example-spread-pack`
+- 先检查 `mavenLocal` 里是否已经有 spread-pack 的三个产物
+- 再进入 `example/example-spread-pack` 执行 `clean test run`
 
-如果你只想准备本地依赖，不立刻运行：
-
-```bash
-./scripts/run-example-spread-pack.sh prepare
-```
-
-如果你已经准备好本地依赖，也可以手动执行：
+如果你只想检查本地依赖是否齐全：
 
 ```bash
-ADDZERO_USE_INCLUDED_BUILD=false ./gradlew -p example/example-spread-pack clean test run --no-configuration-cache --no-daemon -Dkotlin.compiler.execution.strategy=in-process
+./scripts/run-example-spread-pack.sh check
 ```
+
+如果你只想跑测试：
+
+```bash
+./scripts/run-example-spread-pack.sh test
+```
+
+如果脚本提示缺少 `mavenLocal` 产物，再手动发布：
+
+```bash
+./gradlew --configure-on-demand \
+  :lib:kcp:spread-pack:kcp-spread-pack-annotations:publishToMavenLocal \
+  :lib:kcp:spread-pack:kcp-spread-pack-plugin:publishToMavenLocal \
+  :lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin:publishToMavenLocal
+```
+
+如果这条 publish 路径报 `checkouts/build-logic` checkout conflict，先清理那个 checkout 里的本地改动。
 
 ## 最短用法
 
@@ -147,7 +153,7 @@ data class WrapperArgs(
 fun renderWrapper(
     @SpreadPack
     @SpreadArgsOf(
-        functionFqName = "site.addzero.example.renderBase",
+        "site.addzero.example.renderBase",
         parameterTypes = [BaseArgs::class],
         exclude = ["debug"],
     )
@@ -174,7 +180,7 @@ import site.addzero.kcp.spreadpack.SpreadPack
 import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
 
 @SpreadPackCarrierOf(
-    functionFqName = "site.addzero.example.renderBase",
+    "site.addzero.example.renderBase",
     parameterTypes = [BaseArgs::class],
     exclude = ["debug", "onDone"],
 )
@@ -247,7 +253,7 @@ data class TitleTextArgs(
 fun TitleText(
     @SpreadPack
     @SpreadArgsOf(
-        functionFqName = "site.addzero.demo.BaseText",
+        "site.addzero.demo.BaseText",
         parameterTypes = [BaseTextArgs::class],
         exclude = ["overflow"],
     )
@@ -267,7 +273,7 @@ fun TitleText(
 
 ```kotlin
 @SpreadPackCarrierOf(
-    functionFqName = "androidx.compose.material3.Text",
+    "androidx.compose.material3.Text",
     parameterTypes = [
         // 按你选中的 Text overload 顺序填写对应参数类型
         // 这里只展示写法，不展开完整 Material3 Text 参数列表
@@ -336,10 +342,12 @@ IDE companion plugin 已经有可打包原型，作用是让 IDE 看懂这两类
 
 ```kotlin
 @SpreadArgsOf(
-    functionFqName = "site.addzero.example.renderBase",
+    "site.addzero.example.renderBase",
     parameterTypes = [BaseArgs::class],
 )
 ```
+
+如果你更喜欢显式命名，也仍然可以继续写 `functionFqName = "..."`。
 
 只是下面这套显式建模的语法糖：
 

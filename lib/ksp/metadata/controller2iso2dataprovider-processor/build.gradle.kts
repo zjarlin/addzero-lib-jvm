@@ -11,6 +11,7 @@ processorBuddy {
             "sharedComposeSourceDir" to "",
             "iso2DataProviderPackage" to "site.addzero.generated.forms.dataprovider",
             "apiClientPackageName" to "site.addzero.generated.api",
+            "apiClientAggregatorObjectName" to "Apis",
             "isomorphicPackageName" to "site.addzero.generated.isomorphic",
         )
     )

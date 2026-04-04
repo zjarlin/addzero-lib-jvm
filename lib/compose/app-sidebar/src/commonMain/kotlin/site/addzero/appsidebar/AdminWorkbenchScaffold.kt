@@ -63,33 +63,11 @@ interface AdminWorkbenchConfig : ScaffoldConfig {
         get() = "Addzero Admin"
     val welcomeLabel: String
         get() = "欢迎进入后台工作台"
-    val githubLabel: String?
-        get() = null
-    val languageLabel: String?
-        get() = null
     val isDarkTheme: Boolean?
         get() = null
-    val notificationCount: Int?
-        get() = null
-    val userLabel: String?
-        get() = null
-}
-
-/**
- * 后台工作台全局工具动作。
- */
-interface AdminWorkbenchActions {
-    val onGlobalSearchClick: (() -> Unit)?
-        get() = null
-    val onGithubClick: (() -> Unit)?
-        get() = null
-    val onLanguageClick: (() -> Unit)?
-        get() = null
-    val onThemeToggle: (() -> Unit)?
-        get() = null
-    val onNotificationsClick: (() -> Unit)?
-        get() = null
-    val onUserClick: (() -> Unit)?
+    val sidebarVisible: Boolean
+        get() = true
+    val onSidebarToggle: (() -> Unit)?
         get() = null
 }
 
@@ -107,7 +85,7 @@ interface AdminWorkbenchSlots {
         get() = null
     val detail: (@Composable BoxScope.() -> Unit)?
         get() = null
-    val userContent: (@Composable RowScope.() -> Unit)?
+    val topBarActions: (@Composable RowScope.() -> Unit)?
         get() = null
 }
 
@@ -137,11 +115,9 @@ fun adminWorkbenchConfig(
     outerPadding: PaddingValues = PaddingValues(0.dp),
     contentPadding: PaddingValues = PaddingValues(0.dp),
     detailPadding: PaddingValues = PaddingValues(0.dp),
-    githubLabel: String? = null,
-    languageLabel: String? = null,
     isDarkTheme: Boolean? = null,
-    notificationCount: Int? = null,
-    userLabel: String? = null,
+    sidebarVisible: Boolean = true,
+    onSidebarToggle: (() -> Unit)? = null,
 ): AdminWorkbenchConfig = DefaultAdminWorkbenchConfig(
     brandLabel = brandLabel,
     welcomeLabel = welcomeLabel,
@@ -152,30 +128,9 @@ fun adminWorkbenchConfig(
     outerPadding = outerPadding,
     contentPadding = contentPadding,
     detailPadding = detailPadding,
-    githubLabel = githubLabel,
-    languageLabel = languageLabel,
     isDarkTheme = isDarkTheme,
-    notificationCount = notificationCount,
-    userLabel = userLabel,
-)
-
-/**
- * 快速创建后台工作台的全局动作集合。
- */
-fun adminWorkbenchActions(
-    onGlobalSearchClick: (() -> Unit)? = null,
-    onGithubClick: (() -> Unit)? = null,
-    onLanguageClick: (() -> Unit)? = null,
-    onThemeToggle: (() -> Unit)? = null,
-    onNotificationsClick: (() -> Unit)? = null,
-    onUserClick: (() -> Unit)? = null,
-): AdminWorkbenchActions = DefaultAdminWorkbenchActions(
-    onGlobalSearchClick = onGlobalSearchClick,
-    onGithubClick = onGithubClick,
-    onLanguageClick = onLanguageClick,
-    onThemeToggle = onThemeToggle,
-    onNotificationsClick = onNotificationsClick,
-    onUserClick = onUserClick,
+    sidebarVisible = sidebarVisible,
+    onSidebarToggle = onSidebarToggle,
 )
 
 /**
@@ -187,14 +142,14 @@ fun adminWorkbenchSlots(
     showContentHeader: Boolean = true,
     titleContent: (@Composable ColumnScope.() -> Unit)? = null,
     detail: (@Composable BoxScope.() -> Unit)? = null,
-    userContent: (@Composable RowScope.() -> Unit)? = null,
+    topBarActions: (@Composable RowScope.() -> Unit)? = null,
 ): AdminWorkbenchSlots = DefaultAdminWorkbenchSlots(
     brandContent = brandContent,
     pageActions = pageActions,
     showContentHeader = showContentHeader,
     titleContent = titleContent,
     detail = detail,
-    userContent = userContent,
+    topBarActions = topBarActions,
 )
 
 /**
@@ -210,7 +165,6 @@ fun AdminWorkbenchScaffold(
     modifier: Modifier = Modifier,
     state: WorkbenchScaffoldState? = null,
     config: AdminWorkbenchConfig = adminWorkbenchConfig(),
-    actions: AdminWorkbenchActions = adminWorkbenchActions(),
     slots: AdminWorkbenchSlots = adminWorkbenchSlots(),
 ) {
     val scaffoldState = state ?: rememberWorkbenchScaffoldState(config.defaultSidebarRatio)
@@ -231,7 +185,6 @@ fun AdminWorkbenchScaffold(
             ) {
                 AdminWorkbenchGlobalBar(
                     config = config,
-                    actions = actions,
                     slots = slots,
                     topBarHeight = windowFrame.topBarHeight,
                     leadingInset = windowFrame.leadingInset,
@@ -356,24 +309,13 @@ private data class DefaultAdminWorkbenchConfig(
     override val outerPadding: PaddingValues,
     override val contentPadding: PaddingValues,
     override val detailPadding: PaddingValues,
-    override val githubLabel: String?,
-    override val languageLabel: String?,
     override val isDarkTheme: Boolean?,
-    override val notificationCount: Int?,
-    override val userLabel: String?,
+    override val sidebarVisible: Boolean,
+    override val onSidebarToggle: (() -> Unit)?,
 ) : AdminWorkbenchConfig {
     override val contentHeaderScrollable: Boolean
         get() = false
 }
-
-private data class DefaultAdminWorkbenchActions(
-    override val onGlobalSearchClick: (() -> Unit)?,
-    override val onGithubClick: (() -> Unit)?,
-    override val onLanguageClick: (() -> Unit)?,
-    override val onThemeToggle: (() -> Unit)?,
-    override val onNotificationsClick: (() -> Unit)?,
-    override val onUserClick: (() -> Unit)?,
-) : AdminWorkbenchActions
 
 private data class DefaultAdminWorkbenchSlots(
     override val brandContent: (@Composable RowScope.() -> Unit)?,
@@ -381,7 +323,7 @@ private data class DefaultAdminWorkbenchSlots(
     override val showContentHeader: Boolean,
     override val titleContent: (@Composable ColumnScope.() -> Unit)?,
     override val detail: (@Composable BoxScope.() -> Unit)?,
-    override val userContent: (@Composable RowScope.() -> Unit)?,
+    override val topBarActions: (@Composable RowScope.() -> Unit)?,
 ) : AdminWorkbenchSlots
 
 @Immutable

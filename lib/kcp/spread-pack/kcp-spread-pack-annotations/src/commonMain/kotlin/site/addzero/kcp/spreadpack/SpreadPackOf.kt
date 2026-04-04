@@ -5,6 +5,7 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.BINARY)
 annotation class SpreadPackOf(
+    val value: String = "",
     val functionFqName: String = "",
     val parameterTypes: Array<KClass<*>> = [],
     val exclude: Array<String> = [],
