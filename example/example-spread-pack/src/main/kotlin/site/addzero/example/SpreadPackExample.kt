@@ -1,88 +1,52 @@
 package site.addzero.example
 
+import site.addzero.example.vendor.Text
 import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
-import site.addzero.kcp.spreadpack.SpreadArgsOf
 import site.addzero.kcp.spreadpack.SpreadPack
 import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
-import site.addzero.kcp.spreadpack.SpreadPackSelector
-
-data class FormOptions(
-    val name: String,
-    val enabled: Boolean,
-    val onDone: (() -> String)? = null,
-)
-
-@GenerateSpreadPackOverloads
-fun submitForm(
-    @SpreadPack(selector = SpreadPackSelector.ATTRS)
-    options: FormOptions,
-): String {
-    val done = options.onDone?.invoke() ?: "-"
-    return "form:${options.name}:${options.enabled}:$done"
-}
-
-data class BaseOptions(
-    val title: String = "",
-    val count: Int = 0,
-    val debug: Boolean = false,
-    val onDone: (() -> String)? = null,
-)
-
-fun renderBase(
-    @SpreadPack
-    options: BaseOptions,
-): String {
-    val done = options.onDone?.invoke() ?: "-"
-    return "base:${options.title}:${options.count}:${options.debug}:$done"
-}
-
-fun renderBase(title: String): String = "shadow:$title"
-
-data class WrapperArgs(
-    val title: String,
-    val count: Int,
-    val onDone: (() -> String)?,
-)
-
-@GenerateSpreadPackOverloads
-fun renderWrapper(
-    @SpreadPack
-    @SpreadArgsOf(
-        functionFqName = "site.addzero.example.renderBase",
-        parameterTypes = [BaseOptions::class],
-        exclude = ["debug"],
-    )
-    args: WrapperArgs,
-): String {
-    val done = args.onDone?.invoke() ?: "-"
-    return "wrapper:${args.title}:${args.count}:$done"
-}
 
 @SpreadPackCarrierOf(
-    functionFqName = "site.addzero.example.renderBase",
-    parameterTypes = [BaseOptions::class],
-    exclude = ["debug", "onDone"],
+    functionFqName = "site.addzero.example.vendor.Text",
 )
-class RenderAliasArgs
+class TextProps
 
 @GenerateSpreadPackOverloads
-fun renderAlias(
+fun printTextProps(
     @SpreadPack
-    args: RenderAliasArgs,
-): String = "alias:${args.title}:${args.count}:true"
+    props: TextProps,
+): String {
+    return "TextProps[text,color,maxLines,softWrap,onTextLayout]=" +
+        "(${props.text},${props.color},${props.maxLines},${props.softWrap},callback)"
+}
+
+@GenerateSpreadPackOverloads
+fun MyText(
+    @SpreadPack
+    props: TextProps,
+): String {
+    return Text(
+        text = "[MyText] ${props.text}",
+        color = props.color,
+        maxLines = props.maxLines,
+        softWrap = props.softWrap,
+        onTextLayout = props.onTextLayout,
+    )
+}
 
 fun invokeSpreadPackExample(): String {
-    val formResult = submitForm(
-        name = "demo",
-        enabled = true,
+    val printedProps = printTextProps(
+        text = "hello",
+        color = "blue",
+        maxLines = 2,
+        softWrap = false,
+        onTextLayout = { _ -> "layout" },
     )
-    val wrapperResult = renderWrapper(
-        title = "hello",
-        count = 2,
-        onDone = { "done" },
+    val wrappedText = MyText(
+        text = "world",
+        color = "red",
+        maxLines = 3,
+        softWrap = true,
+        onTextLayout = { _ -> "wrapped-layout" },
     )
-    val aliasResult = renderAlias(
-        count = 3,
-    )
-    return "$formResult|$wrapperResult|$aliasResult"
+    return "$printedProps|$wrappedText"
 }

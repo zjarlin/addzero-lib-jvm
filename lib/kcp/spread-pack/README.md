@@ -45,16 +45,45 @@ plugins {
 
 - `example/example-spread-pack`
 
-直接运行：
+推荐直接用仓库脚本：
 
 ```bash
-./gradlew -p example/example-spread-pack clean test run --no-configuration-cache --no-daemon -Dkotlin.compiler.execution.strategy=in-process
+./scripts/run-example-spread-pack.sh run
 ```
 
 当前输出：
 
 ```text
-form:demo:true:-|wrapper:hello:2:done|alias::3:true
+TextProps[text,color,maxLines,softWrap,onTextLayout]=(hello,blue,2,false,callback)|Text(text=[MyText] world,color=red,maxLines=3,softWrap=true,layout=wrapped-layout)
+```
+
+当前这个 example 的重点不是手写 `data class` carrier，而是：
+
+- 先定义一个模拟第三方库的扁平函数 `vendor.Text(...)`
+- 再用空 class `TextProps` 通过 `@SpreadPackCarrierOf(functionFqName = "...Text")` 直接借它的完整参数表
+- 再让 `MyText(@SpreadPack props: TextProps)` 吃整张参数表
+
+这个脚本会先做三件事：
+
+- 发布 `annotations`
+- 发布 compiler plugin
+- 发布 Gradle subplugin 到 `mavenLocal`
+
+然后再用独立 example 工程运行：
+
+- `ADDZERO_USE_INCLUDED_BUILD=false`
+- `-p example/example-spread-pack`
+
+如果你只想准备本地依赖，不立刻运行：
+
+```bash
+./scripts/run-example-spread-pack.sh prepare
+```
+
+如果你已经准备好本地依赖，也可以手动执行：
+
+```bash
+ADDZERO_USE_INCLUDED_BUILD=false ./gradlew -p example/example-spread-pack clean test run --no-configuration-cache --no-daemon -Dkotlin.compiler.execution.strategy=in-process
 ```
 
 ## 最短用法
@@ -366,7 +395,7 @@ IDE companion plugin 已经有可打包原型，作用是让 IDE 看懂这两类
 示例工程：
 
 ```bash
-./gradlew -p example/example-spread-pack clean test run --no-configuration-cache --no-daemon -Dkotlin.compiler.execution.strategy=in-process
+./scripts/run-example-spread-pack.sh run
 ```
 
 IDE plugin 打包：

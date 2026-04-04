@@ -2,7 +2,7 @@ pluginManagement {
     val useIncludedBuild =
         System.getenv("ADDZERO_USE_INCLUDED_BUILD")
             ?.toBooleanStrictOrNull()
-            ?: true
+            ?: false
 
     fun readRepoVersion(): String {
         val gradlePropertiesFile = file("../../gradle.properties")
@@ -40,7 +40,7 @@ pluginManagement {
 val useIncludedBuild =
     System.getenv("ADDZERO_USE_INCLUDED_BUILD")
         ?.toBooleanStrictOrNull()
-        ?: true
+        ?: false
 
 if (useIncludedBuild) {
     includeBuild("../../") {

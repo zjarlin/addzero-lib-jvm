@@ -8,7 +8,8 @@ class SpreadPackExampleTest {
     @Test
     fun generated_overloads_compile_and_run() {
         assertEquals(
-            "form:demo:true:-|wrapper:hello:2:done|alias::3:true",
+            "TextProps[text,color,maxLines,softWrap,onTextLayout]=(hello,blue,2,false,callback)|" +
+                "Text(text=[MyText] world,color=red,maxLines=3,softWrap=true,layout=wrapped-layout)",
             invokeSpreadPackExample(),
         )
     }

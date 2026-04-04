@@ -1,16 +1,18 @@
-//pluginManagement {
-//  repositories {
-//    mavenLocal()
-//    gradlePluginPortal()
-//    mavenCentral()
-//    google()
-//  }
-//  plugins {
-//    id("site.addzero.kcp.i18n") version "2026.10329.10127"
-//    id("site.addzero.kcp.multireceiver") version "2026.10329.10127"
-//    id("site.addzero.kcp.transform-overload") version "2026.10329.10127"
-//  }
-//}
+pluginManagement {
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+    mavenCentral()
+    google()
+  }
+  plugins {
+    id("site.addzero.kcp.all-object-jvm-static") version "+"
+    id("site.addzero.kcp.i18n") version "+"
+    id("site.addzero.kcp.multireceiver") version "+"
+    id("site.addzero.kcp.transform-overload") version "+"
+    id("site.addzero.kcp.spread-pack") version "+"
+  }
+}
 
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -33,8 +35,8 @@ includeBuild(activeBuildLogicDir) {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-04T09:45:45.258169
-// Loaded: 32, Excluded: 0, Total: 32
+// Generated at: 2026-04-04T10:15:17.312724
+// Loaded: 28, Excluded: 0, Total: 28
 include(":example:example-all-object-jvm-static")
 include(":example:example-all-object-jvm-static:java-app")
 include(":example:example-all-object-jvm-static:kotlin-lib")
@@ -43,8 +45,6 @@ include(":example:example-multireceiver")
 include(":example:example-sheet-workbench")
 include(":example:example-spread-pack")
 include(":example:example-transform-overload")
-include(":lib:compose:compose-crud-spi")
-include(":lib:compose:compose-native-component-table-core")
 include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")
 include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
 include(":lib:kcp:kcp-i18n")
@@ -65,8 +65,6 @@ include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
 include(":lib:ksp:metadata:multireceiver-processor")
-include(":lib:tool-kmp:tool-enum")
-include(":lib:tool-kmp:tool-model")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
@@ -75,4 +73,7 @@ include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
 include(":lib:kcp:spread-pack:kcp-spread-pack-ide-plugin")
 include(":lib:tool-kmp:tool-enum")
 include(":lib:tool-kmp:tool-model")
+include(":lib:compose:app-sidebar")
+include(":lib:compose:app-sidebar-shadcn-adapter")
 include(":lib:compose:compose-sheet-spi")
+include(":lib:compose:shadcn-compose-component")

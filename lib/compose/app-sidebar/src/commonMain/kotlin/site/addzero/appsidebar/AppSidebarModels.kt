@@ -7,20 +7,9 @@ import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
 /**
- * 侧栏的稳定视觉变体。
- */
-@Serializable
-enum class AppSidebarStyle {
-    Default,
-    FlushWorkbench,
-}
-
-/**
  * 侧栏的基础行为配置。
  */
 interface AppSidebarConfig {
-    val style: AppSidebarStyle
-        get() = AppSidebarStyle.Default
     val supportText: String?
         get() = null
     val searchEnabled: Boolean
@@ -63,12 +52,10 @@ interface AppSidebarSlots<T> {
  * 创建侧栏配置。
  */
 fun appSidebarConfig(
-    style: AppSidebarStyle = AppSidebarStyle.Default,
     supportText: String? = null,
     searchEnabled: Boolean = true,
     searchPlaceholder: String = "搜索菜单",
 ): AppSidebarConfig = DefaultAppSidebarConfig(
-    style = style,
     supportText = supportText,
     searchEnabled = searchEnabled,
     searchPlaceholder = searchPlaceholder,
@@ -111,7 +98,6 @@ fun <T> appSidebarSlots(
 @Immutable
 @Serializable
 private data class DefaultAppSidebarConfig(
-    override val style: AppSidebarStyle,
     override val supportText: String?,
     override val searchEnabled: Boolean,
     override val searchPlaceholder: String,

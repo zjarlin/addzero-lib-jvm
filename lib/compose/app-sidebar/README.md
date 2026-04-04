@@ -1,6 +1,6 @@
 # app-sidebar
 
-低心智负担的 Compose Multiplatform 应用侧边栏组件库，默认内建树结构、搜索、插槽和暗色专业风格。侧边栏 API 直接接业务节点，不再要求额外定义 `SidebarItem` 包装实体。
+低心智负担的 Compose Multiplatform 应用侧边栏组件库，核心只负责树结构、搜索、插槽和选中态，不再内建固定皮肤。样式统一走外部 `AppSidebarStyleConfig` SPI。
 
 - Maven coordinate: `site.addzero:app-sidebar`
 - Local module path: `lib/compose/app-sidebar`
@@ -12,14 +12,22 @@
 - 保留输入顺序
 - 头部 / 底部插槽
 - 行级 `leading` / `label` / `trailing` 插槽
-- 默认暗色专业风格
+- 无头结构 + 外部样式 SPI
 - `commonMain` 可复用
 
 ## Usage
 
+先引入默认 adapter：
+
+```kotlin
+implementation("site.addzero:app-sidebar")
+implementation("site.addzero:app-sidebar-shadcn-adapter")
+```
+
 ```kotlin
 val sidebarState = rememberAppSidebarState(initialSelectedId = "dashboard")
 val sections: List<ProjectSection> = loadProjectSections()
+val sidebarStyle = rememberShadcnAppSidebarStyleConfig()
 
 WorkbenchScaffold(
     defaultSidebarRatio = 0.22f,
@@ -32,13 +40,14 @@ WorkbenchScaffold(
             items = sections,
             itemId = ProjectSection::id,
             label = ProjectSection::name,
+            style = sidebarStyle,
             children = ProjectSection::children,
             state = sidebarState,
-            config = AppSidebarConfig(
+            config = appSidebarConfig(
                 supportText = "一个拿来就能用的通用应用侧栏。",
             ),
             icon = ProjectSection::icon,
-            slots = AppSidebarSlots(
+            slots = appSidebarSlots(
                 trailing = { section, _, _ ->
                     section.badge?.let { badge ->
                         Text(badge)
@@ -63,6 +72,9 @@ WorkbenchScaffold(
 
 ```kotlin
 val adminNodes: List<AdminNode> = loadAdminTree()
+val sidebarStyle = rememberShadcnAppSidebarStyleConfig(
+    variant = ShadcnAppSidebarVariant.FlushWorkbench,
+)
 
 AdminWorkbenchScaffold(
     breadcrumb = listOf("系统管理", "用户中心"),
@@ -74,8 +86,9 @@ AdminWorkbenchScaffold(
             items = adminNodes,
             itemId = AdminNode::id,
             label = AdminNode::title,
+            style = sidebarStyle,
             children = AdminNode::children,
-            config = AppSidebarConfig(
+            config = appSidebarConfig(
                 supportText = "后台工作台",
             ),
             icon = AdminNode::icon,
@@ -110,7 +123,8 @@ AdminWorkbenchScaffold(
 
 ## Notes
 
-- 默认视觉参数已经写死成更适合商用的暗色桌面风格
+- 核心模块不再内建视觉真相，应用层应显式传入样式 adapter
+- 推荐直接使用 `site.addzero:app-sidebar-shadcn-adapter`
 - 可序列化参数统一收进 `AppSidebarConfig`
 - 事件统一收进 `AppSidebarEvents`
 - 插槽统一收进 `AppSidebarSlots`
