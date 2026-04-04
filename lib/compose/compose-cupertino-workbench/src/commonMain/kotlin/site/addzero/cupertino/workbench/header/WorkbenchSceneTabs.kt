@@ -4,6 +4,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
@@ -32,7 +33,9 @@ fun <T> WorkbenchSceneTabs(
 ) {
   val metrics = currentWorkbenchMetrics()
   Row(
-    modifier = modifier.horizontalScroll(rememberScrollState()),
+    modifier = modifier
+      .horizontalScroll(rememberScrollState())
+      .heightIn(min = 36.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
@@ -51,16 +54,23 @@ fun <T> WorkbenchSceneTabs(
           WorkbenchButtonSize.Default
         },
       ) {
-        Icon(
-          imageVector = itemIcon(item),
-          contentDescription = null,
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-          text = itemLabel(item),
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-        )
+        Row(
+          modifier = Modifier.heightIn(min = 20.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Icon(
+            imageVector = itemIcon(item),
+            contentDescription = null,
+          )
+          Text(
+            text = itemLabel(item),
+            style = MaterialTheme.typography.labelLarge.copy(
+              lineHeight = MaterialTheme.typography.labelLarge.fontSize,
+            ),
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+          )
+        }
       }
     }
   }

@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.extractClassesFromArgument
 import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
+import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
@@ -98,6 +99,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.text
 import org.jetbrains.kotlin.types.ConstantValueKind
 
 private data class FirCarrierMetadata(
@@ -224,7 +226,7 @@ class SpreadPackFirExtension(
     }
 
     override fun hasPackage(packageFqName: FqName): Boolean {
-        return getTopLevelCallableIds().any { callableId -> callableId.packageName == packageFqName } ||
+        return collectTopLevelOriginals().any { symbol -> symbol.callableId.packageName == packageFqName } ||
             getTopLevelClassIds().any { classId -> classId.packageFqName == packageFqName }
     }
 
@@ -236,8 +238,7 @@ class SpreadPackFirExtension(
     }
 
     override fun getTopLevelClassIds(): Set<ClassId> {
-        return findTopLevelGeneratedCarrierRequests()
-            .mapTo(linkedSetOf()) { request -> request.classId }
+        return findTopLevelGeneratedCarrierClassIds().toCollection(linkedSetOf())
     }
 
     override fun generateTopLevelClassLikeDeclaration(classId: ClassId): FirClassLikeSymbol<*>? {
@@ -275,6 +276,19 @@ class SpreadPackFirExtension(
 
     private fun findTopLevelGeneratedCarrierRequests(): List<FirGeneratedCarrierRequest> {
         return buildGeneratedCarrierRequests(collectTopLevelOriginals())
+    }
+
+    private fun findTopLevelGeneratedCarrierClassIds(): List<ClassId> {
+        return collectTopLevelOriginals().flatMap { original ->
+            original.fir.valueParameters.mapNotNull { parameter ->
+                val annotation = parameter.getSpreadPackOfAnnotation() ?: return@mapNotNull null
+                generatedCarrierClassId(
+                    owner = original,
+                    parameter = parameter,
+                    annotation = annotation,
+                )
+            }
+        }
     }
 
     private fun findMemberGeneratedCarrierRequests(
@@ -322,15 +336,26 @@ class SpreadPackFirExtension(
     }
 
     private fun collectTopLevelOriginals(): List<FirNamedFunctionSymbol> {
-        return session.predicateBasedProvider
-            .getSymbolsByPredicate(targetFunctionPredicate)
-            .mapNotNull { symbol -> symbol as? FirNamedFunctionSymbol }
+        val originals = session.firProvider.symbolProvider.symbolNamesProvider.getPackageNames()
+            .orEmpty()
+            .asSequence()
+            .map(::FqName)
+            .flatMap { packageFqName ->
+                session.firProvider.getFirFilesByPackage(packageFqName).asSequence()
+            }
+            .flatMap(FirFile::declarations)
+            .filterIsInstance<FirNamedFunction>()
+            .map(FirNamedFunction::symbol)
             .filter { symbol ->
                 symbol.fir.origin.fromSource &&
                     symbol.callableId.classId == null &&
-                    isSupportedOriginalFunction(symbol)
+                    isSupportedOriginalFunction(symbol) &&
+                    hasAnnotation(symbol.fir, SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotationClassId)
             }
+            .distinctBy { symbol -> symbol.callableId.toString() }
             .sortedBy { symbol -> symbol.callableId.toString() }
+            .toList()
+        return originals
     }
 
     private fun buildGeneratedCarrierRequests(
@@ -585,12 +610,11 @@ class SpreadPackFirExtension(
         parameter: FirValueParameter,
         annotation: FirAnnotation,
     ): ClassId {
-        val explicitName = annotation.getStringArgument(Name.identifier("generatedClassName"), session)
-            ?.takeIf { name -> name.isNotBlank() }
+        val explicitName = annotation.stringArgumentOrNull("generatedClassName")
         val classIdFromType = (parameter.returnTypeRef.coneType as? ConeClassLikeType)
             ?.lookupTag
             ?.classId
-            ?.takeUnless { classId -> classId.isLocal }
+            ?.takeIf(::isUsableGeneratedCarrierClassId)
         val classId = when {
             explicitName != null -> {
                 val shortName = Name.identifier(explicitName)
@@ -599,12 +623,12 @@ class SpreadPackFirExtension(
                     ?: ClassId.topLevel(owner.callableId.packageName.child(shortName))
             }
             classIdFromType != null -> classIdFromType
-            else -> illegalTarget(
-                owner,
-                "parameter ${parameter.name.asString()} annotated with @SpreadPackOf must use a resolvable class type " +
-                    "or specify generatedClassName",
-            )
-        }
+            else -> inferGeneratedCarrierClassIdFromSourceTypeReference(owner, parameter)
+        } ?: illegalTarget(
+            owner,
+            "parameter ${parameter.name.asString()} annotated with @SpreadPackOf must use a resolvable class type, " +
+                "an unresolved simple class name, or specify generatedClassName",
+        )
         if (classId.isLocal) {
             illegalTarget(
                 owner,
@@ -612,6 +636,47 @@ class SpreadPackFirExtension(
             )
         }
         return classId
+    }
+
+    private fun inferGeneratedCarrierClassIdFromSourceTypeReference(
+        owner: FirNamedFunctionSymbol,
+        parameter: FirValueParameter,
+    ): ClassId? {
+        val rawTypeText = parameter.returnTypeRef.source?.text
+            ?.toString()
+            ?.substringBefore("<")
+            ?.removeSuffix("?")
+            ?.trim()
+            ?.takeIf { typeText -> typeText.isNotBlank() }
+            ?: return null
+        if (!isSimpleGeneratedCarrierTypeName(rawTypeText)) {
+            return null
+        }
+        val shortName = Name.identifier(rawTypeText)
+        return owner.callableId.classId
+            ?.createNestedClassId(shortName)
+            ?: ClassId.topLevel(owner.callableId.packageName.child(shortName))
+    }
+
+    private fun isSimpleGeneratedCarrierTypeName(
+        typeText: String,
+    ): Boolean {
+        if ('.' in typeText) {
+            return false
+        }
+        return typeText.firstOrNull()?.let { firstChar ->
+            (firstChar == '_' || firstChar.isLetter()) &&
+                typeText.drop(1).all { char -> char == '_' || char.isLetterOrDigit() }
+        } == true
+    }
+
+    private fun isUsableGeneratedCarrierClassId(
+        classId: ClassId,
+    ): Boolean {
+        if (classId.isLocal) {
+            return false
+        }
+        return classId.shortClassName.asString() != "<error>"
     }
 
     private fun createGeneratedCarrierClass(
@@ -1259,9 +1324,7 @@ class SpreadPackFirExtension(
     }
 
     private fun FirAnnotation.spreadArgsReference(): FirSpreadArgsReference {
-        val directFunctionFqName = findValueArgumentExpression()
-            ?.stringLiteralValue()
-            ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
+        val directFunctionFqName = stringArgumentOrNull("value")
         val directParameterTypes = findArgumentByName(
             Name.identifier("parameterTypes"),
             returnFirstWhenNotFound = false,
@@ -1305,6 +1368,24 @@ class SpreadPackFirExtension(
 
     private fun FirExpression.stringLiteralValue(): String? {
         return (this as? FirLiteralExpression)?.value as? String
+    }
+
+    private fun FirAnnotation.stringArgumentOrNull(
+        argumentName: String,
+    ): String? {
+        val name = Name.identifier(argumentName)
+        val directValue = getStringArgument(name, session)
+            ?.takeIf { value -> value.isNotBlank() }
+        if (directValue != null) {
+            return directValue
+        }
+        val rawArgument = when (argumentName) {
+            "value" -> findValueArgumentExpression()
+            else -> findArgumentByName(name, returnFirstWhenNotFound = false)
+        }
+        return rawArgument
+            ?.stringLiteralValue()
+            ?.takeIf { value -> value.isNotBlank() }
     }
 
     private fun FirExpression.extractParameterTypeReferences(): List<FirReferencedParameterType> {
@@ -1652,11 +1733,35 @@ class SpreadPackFirExtension(
         declaration: FirDeclaration,
         classId: ClassId,
     ): Boolean {
-        return declaration.annotations.getAnnotationByClassId(classId, session) != null
+        return declaration.annotations.getAnnotationByClassId(classId, session) != null ||
+            declaration.annotations.any { annotation -> annotation.matchesAnnotationClassId(classId) }
     }
 
     private fun FirValueParameter.getSpreadPackOfAnnotation(): FirAnnotation? {
         return annotations.getAnnotationByClassId(SpreadPackPluginKeys.spreadPackOfAnnotationClassId, session)
+            ?: annotations.firstOrNull { annotation ->
+                annotation.matchesAnnotationClassId(SpreadPackPluginKeys.spreadPackOfAnnotationClassId)
+            }
+    }
+
+    private fun FirAnnotation.matchesAnnotationClassId(
+        classId: ClassId,
+    ): Boolean {
+        val sourceText = source?.text?.toString()?.trim().orEmpty()
+        if (sourceText.isEmpty()) {
+            return false
+        }
+        val rawName = sourceText
+            .removePrefix("@")
+            .substringBefore("(")
+            .substringAfter(":", missingDelimiterValue = sourceText.removePrefix("@").substringBefore("("))
+            .trim()
+        if (rawName.isEmpty()) {
+            return false
+        }
+        val fqName = classId.asSingleFqName().asString()
+        val shortName = classId.shortClassName.asString()
+        return rawName == fqName || rawName == shortName || rawName.substringAfterLast('.') == shortName
     }
 
     private fun FirAnnotation.selectorKind(): SelectorKind {

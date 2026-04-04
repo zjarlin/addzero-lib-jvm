@@ -238,6 +238,45 @@ class SpreadPackCompilerIntegrationTest {
     }
 
     @Test
+    fun generates_spread_pack_of_carrier_from_unresolved_parameter_type_name() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/SpreadPackOfTargets.kt" to spreadPackOfTargetsSource(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val targetsKt = result.loadClass("site.addzero.example.SpreadPackOfTargetsKt")
+        assertEquals(
+            "TextProps(text=hello,color=blue,maxLines=2,softWrap=false)|" +
+                "Text(text=[MyText] world,color=red,maxLines=3,softWrap=true,layout=wrapped-layout)",
+            targetsKt.getMethod("invokeSpreadPackOf").invoke(null),
+        )
+
+        val generatedCarrierClass = result.loadClass("site.addzero.example.TextProps")
+        assertTrue(
+            generatedCarrierClass.declaredMethods.any { method -> method.name == "getText" },
+            generatedCarrierClass.declaredMethods.joinToString("\n"),
+        )
+
+        val generatedCallablesKt = result.loadClass("site.addzero.example.__GENERATED__CALLABLES__Kt")
+        val methods = generatedCallablesKt.declaredMethods.toList()
+        assertTrue(
+            methods.any { method ->
+                method.name == "MyText" &&
+                    method.parameterTypes.map(Class<*>::getName) == listOf(
+                        "java.lang.String",
+                        "java.lang.String",
+                        "int",
+                        "boolean",
+                    )
+            },
+            methods.joinToString("\n"),
+        )
+    }
+
+    @Test
     fun marks_generated_overloads_with_source_metadata() {
         val memberResult = compile(
             mapOf(
@@ -732,6 +771,70 @@ class SpreadPackCompilerIntegrationTest {
             )
 
             fun invokeGeneratedCarrier(): String = renderAlias(count = 3)
+        """.trimIndent()
+    }
+
+    private fun spreadPackOfTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadPackOf
+
+            fun Text(
+                text: String,
+                color: String,
+                maxLines: Int,
+                softWrap: Boolean,
+                onTextLayout: (String) -> String,
+            ): String {
+                val layout = onTextLayout(text)
+                return "Text(text=${'$'}text,color=${'$'}color,maxLines=${'$'}maxLines,softWrap=${'$'}softWrap,layout=${'$'}layout)"
+            }
+
+            @GenerateSpreadPackOverloads
+            fun printTextProps(
+                @SpreadPackOf(
+                    "site.addzero.example.Text",
+                    exclude = ["onTextLayout"],
+                )
+                props: TextProps,
+            ): String {
+                return "TextProps(text=${'$'}{props.text},color=${'$'}{props.color},maxLines=${'$'}{props.maxLines},softWrap=${'$'}{props.softWrap})"
+            }
+
+            @GenerateSpreadPackOverloads
+            fun MyText(
+                @SpreadPackOf(
+                    "site.addzero.example.Text",
+                    exclude = ["onTextLayout"],
+                )
+                props: TextProps,
+            ): String {
+                return Text(
+                    text = "[MyText] ${'$'}{props.text}",
+                    color = props.color,
+                    maxLines = props.maxLines,
+                    softWrap = props.softWrap,
+                    onTextLayout = { _ -> "wrapped-layout" },
+                )
+            }
+
+            fun invokeSpreadPackOf(): String {
+                val printed = printTextProps(
+                    text = "hello",
+                    color = "blue",
+                    maxLines = 2,
+                    softWrap = false,
+                )
+                val wrapped = MyText(
+                    text = "world",
+                    color = "red",
+                    maxLines = 3,
+                    softWrap = true,
+                )
+                return "${'$'}printed|${'$'}wrapped"
+            }
         """.trimIndent()
     }
 

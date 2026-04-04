@@ -106,12 +106,19 @@ class SpreadPackGradleSubpluginSmokeTest {
             .build()
 
         assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
-        assertTrue(result.output.contains("form:demo:true:-|wrapper:hello:2:done"), result.output)
+        assertTrue(
+            result.output.contains(
+                "TextProps[text,color,maxLines,softWrap,onTextLayout]=(hello,blue,2,false,callback-fixed)|" +
+                    "Text(text=[MyText] world,color=red,maxLines=3,softWrap=true,layout=wrapped-layout)",
+            ),
+            result.output,
+        )
 
         val classLoader = createClassLoader(testProjectDir)
         val exampleKt = classLoader.loadClass("site.addzero.example.SpreadPackExampleKt")
         assertEquals(
-            "form:demo:true:-|wrapper:hello:2:done",
+            "TextProps[text,color,maxLines,softWrap,onTextLayout]=(hello,blue,2,false,callback-fixed)|" +
+                "Text(text=[MyText] world,color=red,maxLines=3,softWrap=true,layout=wrapped-layout)",
             exampleKt.getDeclaredMethod("invokeSpreadPackExample").invoke(null),
         )
     }
