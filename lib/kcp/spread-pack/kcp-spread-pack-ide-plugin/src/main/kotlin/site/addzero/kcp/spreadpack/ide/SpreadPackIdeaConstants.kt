@@ -9,10 +9,6 @@ internal object SpreadPackIdeaConstants {
         "site.addzero.kcp.spreadpack.SpreadPackCarrierOf"
     const val spreadArgsOfAnnotation =
         "site.addzero.kcp.spreadpack.SpreadArgsOf"
-    const val spreadOverloadAnnotation =
-        "site.addzero.kcp.spreadpack.SpreadOverload"
-    const val spreadOverloadsOfAnnotation =
-        "site.addzero.kcp.spreadpack.SpreadOverloadsOf"
 
     const val stubFileName = "SpreadPackStubs.kt"
     const val stubErrorMessage = "Spread pack IDE stub only"

@@ -1158,7 +1158,7 @@ class SpreadPackFirExtension(
         if (reference.parameterTypes.isEmpty()) {
             if (overloads.size != 1) {
                 target.invalid(
-                    "argsof overload set ${reference.functionFqName} is ambiguous; specify SpreadOverload.parameterTypes",
+                    "argsof overload set ${reference.functionFqName} is ambiguous; specify parameterTypes",
                 )
             }
             return overloads.single()
@@ -1258,49 +1258,19 @@ class SpreadPackFirExtension(
     }
 
     private fun FirAnnotation.spreadArgsReference(): FirSpreadArgsReference {
-        val directFunctionFqName = findArgumentByName(
-            Name.identifier("functionFqName"),
-            returnFirstWhenNotFound = false,
-        )?.stringLiteralValue()?.takeIf { functionFqName -> functionFqName.isNotBlank() }
-            ?: findValueArgumentExpression()
-                ?.stringLiteralValue()
-                ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
+        val directFunctionFqName = findValueArgumentExpression()
+            ?.stringLiteralValue()
+            ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
         val directParameterTypes = findArgumentByName(
             Name.identifier("parameterTypes"),
             returnFirstWhenNotFound = false,
         )?.extractParameterTypeReferences().orEmpty()
-        if (directFunctionFqName != null) {
-            return FirSpreadArgsReference(
-                functionFqName = directFunctionFqName,
-                parameterTypes = directParameterTypes,
-            )
+        if (directFunctionFqName == null) {
+            error("spread-pack target function must not be blank")
         }
-        if (directParameterTypes.isNotEmpty()) {
-            error("spread-pack target function must not be blank when parameterTypes are specified")
-        }
-        val overloadExpression = findArgumentByName(
-            Name.identifier("overload"),
-            returnFirstWhenNotFound = false,
-        ) ?: error("SpreadArgsOf.overload must be an annotation value")
-        val overloadsExpression = overloadExpression.findNestedCallArgument(
-            Name.identifier("of"),
-        ) ?: error("SpreadOverload.of must be an annotation value, but was ${overloadExpression.debugKind()}")
-        val functionFqName = overloadsExpression.findNestedCallArgument(
-            Name.identifier("functionFqName"),
-        )?.stringLiteralValue()
-            ?: error(
-                "SpreadOverloadsOf.functionFqName must be a string literal, but was " +
-                    overloadsExpression.debugKind(),
-            )
-        val parameterTypesExpression = overloadExpression.findNestedCallArgument(
-            Name.identifier("parameterTypes"),
-        )
-        val parameterTypes = parameterTypesExpression
-            ?.extractParameterTypeReferences()
-            .orEmpty()
         return FirSpreadArgsReference(
-            functionFqName = functionFqName,
-            parameterTypes = parameterTypes,
+            functionFqName = directFunctionFqName,
+            parameterTypes = directParameterTypes,
         )
     }
 
@@ -1332,44 +1302,6 @@ class SpreadPackFirExtension(
         }
     }
 
-    private fun FirExpression.findNestedCallArgument(
-        name: Name,
-    ): FirExpression? {
-        return when (this) {
-            is FirAnnotation -> findArgumentByName(
-                name,
-                returnFirstWhenNotFound = false,
-            )
-
-            is FirFunctionCall -> {
-                val resolvedArgument = (argumentList as? FirResolvedArgumentList)
-                    ?.mapping
-                    ?.entries
-                    ?.firstOrNull { entry -> entry.value.name == name }
-                    ?.key
-                if (resolvedArgument != null) {
-                    return resolvedArgument
-                }
-                val arguments = argumentList.arguments
-                arguments.firstNotNullOfOrNull { argument ->
-                    val namedArgument = argument as? FirNamedArgumentExpression
-                    if (namedArgument?.name == name) {
-                        namedArgument.expression
-                    } else {
-                        null
-                    }
-                } ?: if (arguments.size == 1) {
-                    val argument = arguments.single()
-                    (argument as? FirNamedArgumentExpression)?.expression ?: argument
-                } else {
-                    null
-                }
-            }
-
-            else -> null
-        }
-    }
-
     private fun FirExpression.stringLiteralValue(): String? {
         return (this as? FirLiteralExpression)?.value as? String
     }
@@ -1396,10 +1328,6 @@ class SpreadPackFirExtension(
                 } ?: argument.extractUnresolvedParameterTypeReference()
             }
         }
-    }
-
-    private fun FirExpression.debugKind(): String {
-        return this::class.qualifiedName ?: this::class.simpleName.orEmpty()
     }
 
     private fun extractParameterTypeReferenceFromGetClassCall(

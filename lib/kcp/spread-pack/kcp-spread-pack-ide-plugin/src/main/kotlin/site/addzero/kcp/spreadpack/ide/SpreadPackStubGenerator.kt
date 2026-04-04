@@ -376,7 +376,7 @@ internal class SpreadPackStubGenerator(
             classShortName = classSymbol.requireClassId().shortClassName.asString(),
             reference = annotation.spreadArgsReference()
                 ?: throw InvalidSpreadPackTargetException(
-                    "Invalid @SpreadPackCarrierOf target $classId: must specify functionFqName or overload",
+                    "Invalid @SpreadPackCarrierOf target $classId: must specify target function",
                 ),
             selectorKind = annotation.selectorKind(),
             excludedNames = annotation.stringArrayArgument("exclude").toSet(),
@@ -783,7 +783,7 @@ internal class SpreadPackStubGenerator(
             if (overloads.size != 1) {
                 invalidTarget(
                     owner,
-                    "argsof overload set ${reference.functionFqName} is ambiguous; specify SpreadOverload.parameterTypes",
+                    "argsof overload set ${reference.functionFqName} is ambiguous; specify parameterTypes",
                 )
             }
             return overloads.single()
@@ -987,11 +987,6 @@ internal class SpreadPackStubGenerator(
         }
     }
 
-    private fun KaAnnotation.nestedAnnotationArgument(name: String): KaAnnotation? {
-        val value = argumentValue(name) as? KaAnnotationValue.NestedAnnotationValue ?: return null
-        return value.annotation
-    }
-
     private fun KaAnnotation.classLiteralArrayArgument(name: String): List<IdeReferencedParameterType> {
         val value = argumentValue(name) as? KaAnnotationValue.ArrayValue ?: return emptyList()
         return value.values.mapNotNull { element ->
@@ -1002,27 +997,16 @@ internal class SpreadPackStubGenerator(
     }
 
     private fun KaAnnotation.spreadArgsReference(): IdeSpreadArgsReference? {
-        val directFunctionFqName = stringArgument("functionFqName")?.takeIf { functionFqName ->
-            functionFqName.isNotBlank()
-        } ?: stringArgument("value")?.takeIf { functionFqName ->
+        val directFunctionFqName = stringArgument("value")?.takeIf { functionFqName ->
             functionFqName.isNotBlank()
         }
         val directParameterTypes = classLiteralArrayArgument("parameterTypes")
-        if (directFunctionFqName != null) {
-            return IdeSpreadArgsReference(
-                functionFqName = directFunctionFqName,
-                parameterTypes = directParameterTypes,
-            )
+        if (directFunctionFqName == null) {
+            error("spread-pack target function must not be blank")
         }
-        if (directParameterTypes.isNotEmpty()) {
-            error("spread-pack target function must not be blank when parameterTypes are specified")
-        }
-        val overloadAnnotation = nestedAnnotationArgument("overload") ?: return null
-        val overloadsAnnotation = overloadAnnotation.nestedAnnotationArgument("of") ?: return null
-        val functionFqName = overloadsAnnotation.stringArgument("functionFqName") ?: return null
         return IdeSpreadArgsReference(
-            functionFqName = functionFqName,
-            parameterTypes = overloadAnnotation.classLiteralArrayArgument("parameterTypes"),
+            functionFqName = directFunctionFqName,
+            parameterTypes = directParameterTypes,
         )
     }
 

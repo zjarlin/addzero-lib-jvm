@@ -6,12 +6,8 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.BINARY)
 annotation class SpreadPackOf(
     val value: String = "",
-    val functionFqName: String = "",
     val parameterTypes: Array<KClass<*>> = [],
     val exclude: Array<String> = [],
     val selector: SpreadPackSelector = SpreadPackSelector.PROPS,
     val generatedClassName: String = "",
-    val overload: SpreadOverload = SpreadOverload(
-        of = SpreadOverloadsOf(""),
-    ),
 )

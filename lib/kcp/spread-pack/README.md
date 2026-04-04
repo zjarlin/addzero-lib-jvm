@@ -5,7 +5,7 @@
 - 把一个整体参数 carrier 展开成普通命名参数
 - 把 `argsof F` 拆成“引用哪个函数参数表”与“如何裁剪这张参数表”
 
-它不提供新语法。当前推荐公开用法是短写法注解，不是裸 `argsof F`。
+它不提供新语法。当前唯一公开用法是短写法注解，不是裸 `argsof F`。
 
 ## 模块
 
@@ -336,9 +336,9 @@ IDE companion plugin 已经有可打包原型，作用是让 IDE 看懂这两类
 
 `parameterTypes = [BaseArgs::class]` 这种 `KClass` 字面量在 `commonMain` 可以写，Android/iOS 共享代码都能编译。这里用到的是编译期类型字面量，不要求你在 commonMain 做 JVM 反射。
 
-## 短写法和显式写法的关系
+## 注解写法
 
-现在推荐的短写法：
+现在只保留这一套写法：
 
 ```kotlin
 @SpreadArgsOf(
@@ -347,26 +347,8 @@ IDE companion plugin 已经有可打包原型，作用是让 IDE 看懂这两类
 )
 ```
 
-如果你更喜欢显式命名，也仍然可以继续写 `functionFqName = "..."`。
-
-只是下面这套显式建模的语法糖：
-
-```kotlin
-@SpreadArgsOf(
-    overload = SpreadOverload(
-        of = SpreadOverloadsOf("site.addzero.example.renderBase"),
-        parameterTypes = [BaseArgs::class],
-    ),
-)
-```
-
-内部语义没变，仍然是：
-
-- `SpreadOverloadsOf` 表示 overload set
-- `SpreadOverload` 表示 definite overload
-- `SpreadArgsOf` / `SpreadPackCarrierOf` 表示从这组参数里拉平字段
-
-也就是说，复杂场景下你仍然可以退回显式写法；只是日常用法不必先写那层样板。
+第一参数就是目标函数 FQCN。
+如果目标函数有重载，再用 `parameterTypes = [...]` 选中 definite overload。
 
 ## 当前覆盖范围
 

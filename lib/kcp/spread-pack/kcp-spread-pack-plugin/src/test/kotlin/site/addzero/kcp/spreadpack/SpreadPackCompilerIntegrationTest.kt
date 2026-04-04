@@ -133,7 +133,7 @@ class SpreadPackCompilerIntegrationTest {
 
         assertTrue(result.exitCode != 0, result.output)
         assertTrue(
-            result.output.contains("is ambiguous; specify SpreadOverload.parameterTypes"),
+            result.output.contains("is ambiguous; specify parameterTypes"),
             result.output,
         )
     }
@@ -461,8 +461,6 @@ class SpreadPackCompilerIntegrationTest {
 
             import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
             import site.addzero.kcp.spreadpack.SpreadArgsOf
-            import site.addzero.kcp.spreadpack.SpreadOverload
-            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
             import site.addzero.kcp.spreadpack.SpreadPack
 
             data class LeafArgs(
@@ -483,10 +481,8 @@ class SpreadPackCompilerIntegrationTest {
             fun middle(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.leaf"),
-                        parameterTypes = [LeafArgs::class],
-                    ),
+                    "site.addzero.example.leaf",
+                    parameterTypes = [LeafArgs::class],
                 )
                 args: MiddleArgs,
             ): String = args.onDone?.invoke() ?: args.title
@@ -500,10 +496,8 @@ class SpreadPackCompilerIntegrationTest {
             fun outer(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.middle"),
-                        parameterTypes = [MiddleArgs::class],
-                    ),
+                    "site.addzero.example.middle",
+                    parameterTypes = [MiddleArgs::class],
                 )
                 args: OuterArgs,
             ): String {
@@ -525,8 +519,6 @@ class SpreadPackCompilerIntegrationTest {
 
             import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
             import site.addzero.kcp.spreadpack.SpreadArgsOf
-            import site.addzero.kcp.spreadpack.SpreadOverload
-            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
             import site.addzero.kcp.spreadpack.SpreadPack
 
             data class ChoiceArgs(
@@ -545,11 +537,7 @@ class SpreadPackCompilerIntegrationTest {
             @GenerateSpreadPackOverloads
             fun renderWrapper(
                 @SpreadPack
-                @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.renderChoice"),
-                    ),
-                )
+                @SpreadArgsOf("site.addzero.example.renderChoice")
                 args: WrapperArgs,
             ): String = args.title
         """.trimIndent()
@@ -561,8 +549,6 @@ class SpreadPackCompilerIntegrationTest {
 
             import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
             import site.addzero.kcp.spreadpack.SpreadArgsOf
-            import site.addzero.kcp.spreadpack.SpreadOverload
-            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
             import site.addzero.kcp.spreadpack.SpreadPack
 
             data class LoopArgs(
@@ -573,10 +559,8 @@ class SpreadPackCompilerIntegrationTest {
             fun renderA(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.renderB"),
-                        parameterTypes = [LoopArgs::class],
-                    ),
+                    "site.addzero.example.renderB",
+                    parameterTypes = [LoopArgs::class],
                 )
                 args: LoopArgs,
             ): String = args.title
@@ -585,10 +569,8 @@ class SpreadPackCompilerIntegrationTest {
             fun renderB(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.renderA"),
-                        parameterTypes = [LoopArgs::class],
-                    ),
+                    "site.addzero.example.renderA",
+                    parameterTypes = [LoopArgs::class],
                 )
                 args: LoopArgs,
             ): String = args.title
@@ -601,8 +583,6 @@ class SpreadPackCompilerIntegrationTest {
 
             import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
             import site.addzero.kcp.spreadpack.SpreadArgsOf
-            import site.addzero.kcp.spreadpack.SpreadOverload
-            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
             import site.addzero.kcp.spreadpack.SpreadPack
             import site.addzero.kcp.spreadpack.SpreadPackSelector
 
@@ -630,10 +610,8 @@ class SpreadPackCompilerIntegrationTest {
             fun renderAttrWrapper(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.renderSource"),
-                        parameterTypes = [SourceArgs::class],
-                    ),
+                    "site.addzero.example.renderSource",
+                    parameterTypes = [SourceArgs::class],
                     selector = SpreadPackSelector.ATTRS,
                     exclude = ["debug"],
                 )
@@ -648,10 +626,8 @@ class SpreadPackCompilerIntegrationTest {
             fun renderCallbackWrapper(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.renderSource"),
-                        parameterTypes = [SourceArgs::class],
-                    ),
+                    "site.addzero.example.renderSource",
+                    parameterTypes = [SourceArgs::class],
                     selector = SpreadPackSelector.CALLBACKS,
                     exclude = ["onCancel"],
                 )
@@ -677,8 +653,6 @@ class SpreadPackCompilerIntegrationTest {
 
             import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
             import site.addzero.kcp.spreadpack.SpreadArgsOf
-            import site.addzero.kcp.spreadpack.SpreadOverload
-            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
             import site.addzero.kcp.spreadpack.SpreadPack
 
             data class MemberBaseArgs(
@@ -708,10 +682,8 @@ class SpreadPackCompilerIntegrationTest {
             fun renderWrapper(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.MemberRenderer.renderBase"),
-                        parameterTypes = [MemberBaseArgs::class],
-                    ),
+                    "site.addzero.example.MemberRenderer.renderBase",
+                    parameterTypes = [MemberBaseArgs::class],
                     exclude = ["debug"],
                 )
                 args: MemberWrapperArgs,

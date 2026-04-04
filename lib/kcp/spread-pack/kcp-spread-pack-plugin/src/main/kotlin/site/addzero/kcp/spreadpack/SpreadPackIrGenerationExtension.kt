@@ -728,7 +728,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             if (overloads.size != 1) {
                 invalidTarget(
                     owner,
-                    "argsof overload set ${reference.functionFqName} is ambiguous; specify SpreadOverload.parameterTypes",
+                    "argsof overload set ${reference.functionFqName} is ambiguous; specify parameterTypes",
                 )
             }
             return overloads.single()
@@ -1052,33 +1052,16 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun IrConstructorCall.spreadArgsReference(): IrSpreadArgsReference {
-        val directFunctionFqName = ((getValueArgument(Name.identifier("functionFqName")) as? IrConst)
+        val directFunctionFqName = ((getValueArgument(Name.identifier("value")) as? IrConst)
             ?.value as? String)
             ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
-            ?: ((getValueArgument(Name.identifier("value")) as? IrConst)
-                ?.value as? String)
-                ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
         val directParameterTypeClassIds = classIdArguments(Name.identifier("parameterTypes"))
-        if (directFunctionFqName != null) {
-            return IrSpreadArgsReference(
-                functionFqName = directFunctionFqName,
-                parameterTypeClassIds = directParameterTypeClassIds,
-            )
+        if (directFunctionFqName == null) {
+            error("spread-pack target function must not be blank")
         }
-        if (directParameterTypeClassIds.isNotEmpty()) {
-            error("spread-pack target function must not be blank when parameterTypes are specified")
-        }
-        val overloadAnnotation = getValueArgument(Name.identifier("overload")) as? IrConstructorCall
-            ?: error("SpreadArgsOf.overload must be an annotation value")
-        val overloadsAnnotation = overloadAnnotation.getValueArgument(Name.identifier("of")) as? IrConstructorCall
-            ?: error("SpreadOverload.of must be an annotation value")
-        val functionFqName = (overloadsAnnotation.getValueArgument(Name.identifier("functionFqName")) as? IrConst)
-            ?.value as? String
-            ?: error("SpreadOverloadsOf.functionFqName must be a string literal")
-        val parameterTypeClassIds = overloadAnnotation.classIdArguments(Name.identifier("parameterTypes"))
         return IrSpreadArgsReference(
-            functionFqName = functionFqName,
-            parameterTypeClassIds = parameterTypeClassIds,
+            functionFqName = directFunctionFqName,
+            parameterTypeClassIds = directParameterTypeClassIds,
         )
     }
 
