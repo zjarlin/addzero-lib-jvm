@@ -61,7 +61,15 @@ val compilerPluginBuildDir = project(compilerPluginProjectPath).layout.buildDire
 val annotationsBuildDir = project(annotationsProjectPath).layout.buildDirectory
 
 tasks.test {
-    dependsOn("$compilerPluginProjectPath:jar", "$annotationsProjectPath:jvmJar")
+    dependsOn(
+        "$compilerPluginProjectPath:jar",
+        "$annotationsProjectPath:jvmJar",
+        "$annotationsProjectPath:allMetadataJar",
+        "$annotationsProjectPath:generateMetadataFileForJvmPublication",
+        "$annotationsProjectPath:generatePomFileForJvmPublication",
+        "$annotationsProjectPath:generateMetadataFileForKotlinMultiplatformPublication",
+        "$annotationsProjectPath:generatePomFileForKotlinMultiplatformPublication",
+    )
     javaLauncher.set(
         javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(17))

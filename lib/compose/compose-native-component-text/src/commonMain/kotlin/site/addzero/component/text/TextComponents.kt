@@ -11,19 +11,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * H1 标题组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun H1(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -31,23 +24,16 @@ fun H1(
         color = color,
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * H2 标题组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun H2(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -55,23 +41,16 @@ fun H2(
         color = color,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * H3 标题组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun H3(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -79,23 +58,16 @@ fun H3(
         color = color,
         fontSize = 18.sp,
         fontWeight = FontWeight.SemiBold,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * H4 标题组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun H4(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -103,23 +75,16 @@ fun H4(
         color = color,
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * BodyLarge 文本组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun BodyLarge(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -127,23 +92,16 @@ fun BodyLarge(
         color = color,
         fontSize = 16.sp,
         fontWeight = FontWeight.Normal,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * BodyMedium 文本组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun BodyMedium(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -151,23 +109,16 @@ fun BodyMedium(
         color = color,
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * BodySmall 文本组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun BodySmall(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -175,23 +126,16 @@ fun BodySmall(
         color = color,
         fontSize = 12.sp,
         fontWeight = FontWeight.Normal,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
-/**
- * Caption 辅助文本组件
- * @param text 文本内容
- * @param modifier 修饰符
- * @param color 文字颜色
- * @param textAlign 文本对齐方式
- */
 @Composable
 fun Caption(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -199,7 +143,7 @@ fun Caption(
         color = color,
         fontSize = 12.sp,
         fontWeight = FontWeight.Normal,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
@@ -211,6 +155,6 @@ fun BlueText(title: String) {
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(vertical = 8.dp),
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
     )
 }

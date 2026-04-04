@@ -116,6 +116,204 @@ class SpreadPackGradleSubpluginSmokeTest {
         )
     }
 
+    @Test
+    fun compiles_kmp_common_main_metadata_with_annotated_carrier_properties() {
+        val javaHome = System.getProperty("java.home")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("spread-pack-kmp-metadata")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(testProjectDir, "build.gradle.kts", multiplatformConsumerBuildFile())
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/commonMain/kotlin/site/addzero/example/SpreadPackCommonMain.kt",
+            """
+                package site.addzero.example
+
+                import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+                import site.addzero.kcp.spreadpack.SpreadPack
+                import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
+
+                fun renderBase(
+                    title: String = "untitled",
+                    count: Int = 0,
+                    debug: Boolean = false,
+                ): String = "${'$'}title:${'$'}count:${'$'}debug"
+
+                @SpreadPackCarrierOf(
+                    "site.addzero.example.renderBase",
+                    exclude = ["debug"],
+                )
+                class RenderAliasArgs
+
+                @GenerateSpreadPackOverloads
+                fun renderAlias(
+                    @SpreadPack
+                    args: RenderAliasArgs,
+                ): String = renderBase(
+                    title = args.title,
+                    count = args.count,
+                    debug = true,
+                )
+            """.trimIndent(),
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withPluginClasspath()
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                "compileCommonMainKotlinMetadata",
+            )
+            .forwardOutput()
+            .build()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+    }
+
+    @Test
+    fun compiles_kmp_common_main_metadata_with_compose_text_carrier() {
+        val javaHome = System.getProperty("java.home")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("spread-pack-compose-text")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(testProjectDir, "build.gradle.kts", composeCarrierConsumerBuildFile())
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/commonMain/kotlin/site/addzero/example/SpreadPackComposeText.kt",
+            """
+                package site.addzero.example
+
+                import androidx.compose.foundation.text.TextAutoSize
+                import androidx.compose.ui.Modifier
+                import androidx.compose.ui.graphics.Color
+                import androidx.compose.ui.text.TextLayoutResult
+                import androidx.compose.ui.text.TextStyle
+                import androidx.compose.ui.text.font.FontFamily
+                import androidx.compose.ui.text.font.FontStyle
+                import androidx.compose.ui.text.font.FontWeight
+                import androidx.compose.ui.text.style.TextAlign
+                import androidx.compose.ui.text.style.TextDecoration
+                import androidx.compose.ui.text.style.TextOverflow
+                import androidx.compose.ui.unit.TextUnit
+                import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+                import site.addzero.kcp.spreadpack.SpreadPack
+                import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
+
+                @SpreadPackCarrierOf(
+                    value = "androidx.compose.material3.Text",
+                    parameterTypes = [
+                        String::class,
+                        Modifier::class,
+                        Color::class,
+                        TextAutoSize::class,
+                        TextUnit::class,
+                        FontStyle::class,
+                        FontWeight::class,
+                        FontFamily::class,
+                        TextUnit::class,
+                        TextDecoration::class,
+                        TextAlign::class,
+                        TextUnit::class,
+                        TextOverflow::class,
+                        Boolean::class,
+                        Int::class,
+                        Int::class,
+                        Function1::class,
+                        TextStyle::class,
+                    ],
+                    exclude = [
+                        "autoSize",
+                        "fontSize",
+                        "fontStyle",
+                        "fontWeight",
+                        "fontFamily",
+                        "letterSpacing",
+                        "textDecoration",
+                        "lineHeight",
+                        "overflow",
+                        "softWrap",
+                        "maxLines",
+                        "minLines",
+                        "onTextLayout",
+                        "style",
+                    ],
+                )
+                class M3TextArgs
+
+                @GenerateSpreadPackOverloads
+                fun renderAlias(
+                    @SpreadPack
+                    args: M3TextArgs,
+                ): String = "${'$'}{args.text}:${'$'}{args.modifier}:${'$'}{args.color}:${'$'}{args.textAlign}"
+            """.trimIndent(),
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withPluginClasspath()
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                "compileCommonMainKotlinMetadata",
+            )
+            .forwardOutput()
+            .build()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+    }
+
+    @Test
+    fun compiles_kmp_common_main_metadata_with_local_named_default_values() {
+        val javaHome = System.getProperty("java.home")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("spread-pack-local-defaults")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(testProjectDir, "build.gradle.kts", multiplatformConsumerBuildFile())
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/commonMain/kotlin/site/addzero/example/SpreadPackLocalDefaults.kt",
+            """
+                package site.addzero.example
+
+                import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+                import site.addzero.kcp.spreadpack.SpreadPack
+
+                val DefaultLabel = "default"
+
+                data class RenderArgs(
+                    val title: String,
+                    val label: String = DefaultLabel,
+                )
+
+                @GenerateSpreadPackOverloads
+                fun render(
+                    @SpreadPack
+                    args: RenderArgs,
+                ): String = "${'$'}{args.title}:${'$'}{args.label}"
+            """.trimIndent(),
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withPluginClasspath()
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                "compileCommonMainKotlinMetadata",
+            )
+            .forwardOutput()
+            .build()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+    }
+
     private fun settingsFile(localRepositoryDir: Path): String {
         return """
             pluginManagement {
@@ -197,12 +395,11 @@ class SpreadPackGradleSubpluginSmokeTest {
             version = pluginVersion,
             jarFile = findPrimaryJar(compilerPluginBuildDir, "kcp-spread-pack-plugin"),
         )
-        installModule(
+        installKotlinMultiplatformAnnotationsModule(
             repositoryDir = repositoryDir,
             groupId = pluginGroup,
-            artifactId = "kcp-spread-pack-annotations",
             version = pluginVersion,
-            jarFile = findPrimaryJar(annotationsBuildDir, "kcp-spread-pack-annotations"),
+            annotationsBuildDir = annotationsBuildDir,
         )
         return repositoryDir
     }
@@ -262,6 +459,57 @@ class SpreadPackGradleSubpluginSmokeTest {
         )
     }
 
+    private fun installKotlinMultiplatformAnnotationsModule(
+        repositoryDir: Path,
+        groupId: String,
+        version: String,
+        annotationsBuildDir: Path,
+    ) {
+        val metadataPublicationDir = annotationsBuildDir.resolve("publications/kotlinMultiplatform")
+        val metadataModuleDir = repositoryDir
+            .resolve(groupId.replace('.', '/'))
+            .resolve("kcp-spread-pack-annotations")
+            .resolve(version)
+            .createDirectories()
+        Files.copy(
+            metadataPublicationDir.resolve("module.json"),
+            metadataModuleDir.resolve("kcp-spread-pack-annotations-$version.module"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+        Files.copy(
+            metadataPublicationDir.resolve("pom-default.xml"),
+            metadataModuleDir.resolve("kcp-spread-pack-annotations-$version.pom"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+        Files.copy(
+            annotationsBuildDir.resolve("libs/kcp-spread-pack-annotations-metadata-$version.jar"),
+            metadataModuleDir.resolve("kcp-spread-pack-annotations-$version.jar"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+
+        val jvmPublicationDir = annotationsBuildDir.resolve("publications/jvm")
+        val jvmModuleDir = repositoryDir
+            .resolve(groupId.replace('.', '/'))
+            .resolve("kcp-spread-pack-annotations-jvm")
+            .resolve(version)
+            .createDirectories()
+        Files.copy(
+            jvmPublicationDir.resolve("module.json"),
+            jvmModuleDir.resolve("kcp-spread-pack-annotations-jvm-$version.module"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+        Files.copy(
+            jvmPublicationDir.resolve("pom-default.xml"),
+            jvmModuleDir.resolve("kcp-spread-pack-annotations-jvm-$version.pom"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+        Files.copy(
+            annotationsBuildDir.resolve("libs/kcp-spread-pack-annotations-jvm-$version.jar"),
+            jvmModuleDir.resolve("kcp-spread-pack-annotations-jvm-$version.jar"),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+    }
+
     private fun inlineConsumerBuildFile(): String {
         val kotlinVersion = System.getProperty("spreadPack.kotlinVersion")
             ?: error("Missing spreadPack.kotlinVersion system property")
@@ -273,6 +521,51 @@ class SpreadPackGradleSubpluginSmokeTest {
 
             repositories {
                 mavenCentral()
+            }
+        """.trimIndent()
+    }
+
+    private fun multiplatformConsumerBuildFile(): String {
+        val kotlinVersion = System.getProperty("spreadPack.kotlinVersion")
+            ?: error("Missing spreadPack.kotlinVersion system property")
+        return """
+            plugins {
+                kotlin("multiplatform") version ${kotlinVersion.quoteForKotlin()}
+                id("site.addzero.kcp.spread-pack")
+            }
+
+            kotlin {
+                jvm()
+                @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+                wasmJs {
+                    browser()
+                }
+            }
+        """.trimIndent()
+    }
+
+    private fun composeCarrierConsumerBuildFile(): String {
+        val kotlinVersion = System.getProperty("spreadPack.kotlinVersion")
+            ?: error("Missing spreadPack.kotlinVersion system property")
+        return """
+            plugins {
+                kotlin("multiplatform") version ${kotlinVersion.quoteForKotlin()}
+                id("site.addzero.kcp.spread-pack")
+            }
+
+            kotlin {
+                jvm()
+                @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+                wasmJs {
+                    browser()
+                }
+                sourceSets {
+                    commonMain {
+                        dependencies {
+                            implementation("org.jetbrains.compose.material3:material3:1.9.0")
+                        }
+                    }
+                }
             }
         """.trimIndent()
     }

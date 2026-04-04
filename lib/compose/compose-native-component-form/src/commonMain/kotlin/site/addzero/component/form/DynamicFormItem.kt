@@ -26,18 +26,26 @@ fun DynamicFormItem(
 //        // 整数类型
         kmpType.containsAnyIgnoreCase("Long", "Integer", "Int", "Short") -> {
             _root_ide_package_.site.addzero.component.form.number.AddIntegerField(
-                value = value.toString(),
-                onValueChange = onValueChange,
-                label = title ?: "",
+                args = _root_ide_package_.site.addzero.component.form.number.FilteredNumberFieldArgs(
+                    value = value.toString(),
+                    onValueChange = { newValue ->
+                        onValueChange(newValue)
+                    },
+                    label = title ?: "",
+                ),
             )
         }
 //
 //        // 浮点数类型
         kmpType.containsAnyIgnoreCase("Float", "Double", "BigDecimal") -> {
             _root_ide_package_.site.addzero.component.form.number.AddDecimalField(
-                value = value.toString(),
-                onValueChange = onValueChange,
-                label = title ?: "",
+                args = _root_ide_package_.site.addzero.component.form.number.FilteredNumberFieldArgs(
+                    value = value.toString(),
+                    onValueChange = { newValue ->
+                        onValueChange(newValue)
+                    },
+                    label = title ?: "",
+                ),
             )
         }
 //
@@ -86,4 +94,3 @@ fun DynamicFormItem(
         }
     }
 }
-

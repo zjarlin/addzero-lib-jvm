@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyBackingField
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.origin
+import org.jetbrains.kotlin.fir.declarations.validate
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBlock
@@ -501,7 +502,7 @@ class SpreadPackFirExtension(
                 returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
                 name = field.name
                 symbol = FirValueParameterSymbol()
-                defaultValue = field.defaultValue
+                defaultValue = generatedDefaultValueOrNull(field.defaultValue)
                 containingDeclarationSymbol = constructorSymbol
             }
         }
@@ -571,7 +572,7 @@ class SpreadPackFirExtension(
                     returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
                     name = field.name
                     symbol = FirValueParameterSymbol()
-                    defaultValue = field.defaultValue
+                    defaultValue = generatedDefaultValueOrNull(field.defaultValue)
                     containingDeclarationSymbol = constructorSymbol
                 },
                 resolvedType = field.resolvedType,
@@ -655,7 +656,7 @@ class SpreadPackFirExtension(
                 returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
                 name = field.name
                 symbol = FirValueParameterSymbol()
-                defaultValue = field.defaultValue
+                defaultValue = generatedDefaultValueOrNull(field.defaultValue)
                 containingDeclarationSymbol = constructorSymbol
             }
         }
@@ -1023,7 +1024,7 @@ class SpreadPackFirExtension(
                 FirFlattenedFieldSpec(
                     name = parameter.name,
                     resolvedType = parameter.returnTypeRef.coneType,
-                    defaultValue = parameter.defaultValue,
+                    defaultValue = generatedDefaultValueOrNull(parameter.defaultValue),
                 ),
             )
         val carrier = resolveCarrierMetadata(target, parameter)
@@ -1048,7 +1049,7 @@ class SpreadPackFirExtension(
                 FirFlattenedFieldSpec(
                     name = field.parameter.name,
                     resolvedType = field.resolvedType,
-                    defaultValue = field.parameter.defaultValue,
+                    defaultValue = generatedDefaultValueOrNull(field.parameter.defaultValue),
                 )
             }
         }
@@ -1076,7 +1077,7 @@ class SpreadPackFirExtension(
                 FirFlattenedFieldSpec(
                     name = field.parameter.name,
                     resolvedType = field.resolvedType,
-                    defaultValue = field.parameter.defaultValue,
+                    defaultValue = generatedDefaultValueOrNull(field.parameter.defaultValue),
                 )
             }
         }
@@ -1493,6 +1494,7 @@ class SpreadPackFirExtension(
                         containingDeclarationSymbol = this@copyFirFunctionWithResolvePhase.symbol
                         origin = SpreadPackGeneratedDeclarationKey.origin
                         resolvePhase = FirResolvePhase.BODY_RESOLVE
+                        defaultValue = generatedDefaultValueOrNull(field.parameter.defaultValue)
                     }
                 }
             }
@@ -1632,6 +1634,18 @@ class SpreadPackFirExtension(
             }
         }
         return buildSingleExpressionBlock(throwExpression)
+    }
+
+    private fun generatedDefaultValueOrNull(
+        expression: FirExpression?,
+    ): FirExpression? {
+        expression ?: return null
+        return try {
+            expression.validate()
+            expression
+        } catch (_: IllegalArgumentException) {
+            null
+        }
     }
 
     private fun hasAnnotation(

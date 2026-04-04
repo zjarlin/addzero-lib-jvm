@@ -4,7 +4,6 @@ import org.gradle.api.Project
 import org.gradle.api.logging.Logging
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import java.util.Properties
@@ -18,9 +17,6 @@ class SpreadPackGradleSubplugin : KotlinCompilerPluginSupportPlugin {
     }
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
-        if (kotlinCompilation.target.platformType != KotlinPlatformType.jvm) {
-            return false
-        }
         val project = kotlinCompilation.target.project
         if (shouldDisableCompilerPluginForIdeSync(project)) {
             logger.info(

@@ -3,34 +3,31 @@ package site.addzero.component.form.text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
-import site.addzero.core.validation.RegexEnum
+import site.addzero.regex.RegexEnum
+import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+import site.addzero.kcp.spreadpack.SpreadPack
 
-/**
- * 用户名输入字段组件
- * 基于 AddTextField 实现，提供用户名格式验证
- */
+@GenerateSpreadPackOverloads
 @Composable
 fun AddUsernameField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    isRequired: Boolean = false,
-    enabled: Boolean = true,
-    placeholder: String = "请输入用户名",
-    supportingText: String? = null,
-    maxLength: Int = 50,
-    onValidate: ((Boolean) -> Unit)? = null
+    @SpreadPack
+    args: RegexValidatedTextFieldArgs,
 ) {
-    _root_ide_package_.site.addzero.component.form.text.AddTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = label,
-        isRequired = isRequired,
-        disable = !enabled,
-        placeholder = placeholder,
-        maxLength = maxLength,
+    addRegexValidatedTextFieldBase(
+        value = args.value,
+        onValueChange = args.onValueChange,
+        label = args.label,
+        isRequired = args.isRequired,
+        enabled = args.enabled,
+        placeholder = args.placeholder.ifBlank { "请输入用户名" },
+        supportingText = args.supportingText,
+        maxLength = args.maxLength ?: 50,
+        onValidate = args.onValidate,
+        modifier = args.modifier,
+        onErrMsgChange = args.onErrMsgChange,
+        errorMessages = args.errorMessages,
+        remoteValidationConfig = args.remoteValidationConfig,
         regexEnum = RegexEnum.USERNAME,
         leadingIcon = Icons.Default.Person,
-        onValidate = onValidate
     )
 }

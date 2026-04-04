@@ -41,6 +41,13 @@ extensions.configure<site.addzero.gradle.GitDependencysExtension>("implementatio
 }
 
 dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+  }
   versionCatalogs {
     create("libs") {
       from(files("${activeBuildLogicDir.path}/gradle/libs.versions.toml"))
@@ -49,8 +56,8 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-04T14:55:41.719768
-// Loaded: 56, Excluded: 0, Total: 56
+// Generated at: 2026-04-04T16:10:51.895581
+// Loaded: 59, Excluded: 0, Total: 59
 include(":example:example-all-object-jvm-static")
 include(":example:example-all-object-jvm-static:java-app")
 include(":example:example-all-object-jvm-static:kotlin-lib")
@@ -60,8 +67,10 @@ include(":example:example-sheet-workbench")
 include(":example:example-spread-pack")
 include(":example:example-transform-overload")
 include(":lib:compose:app-sidebar")
+include(":lib:compose:app-sidebar-cupertino-adapter")
 include(":lib:compose:app-sidebar-shadcn-adapter")
 include(":lib:compose:compose-apple-corner")
+include(":lib:compose:compose-cupertino-workbench")
 include(":lib:compose:compose-crud-spi")
 include(":lib:compose:compose-eventbus")
 include(":lib:compose:compose-icon-map")
@@ -98,6 +107,7 @@ include(":lib:compose:scaffold-spi")
 include(":lib:compose:shadcn-compose-component")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
+include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
 include(":lib:ksp:metadata:compose-props:compose-props-annotations")
 include(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin")
 include(":lib:ksp:metadata:compose-props:compose-props-processor")
@@ -106,6 +116,8 @@ include(":lib:lsi:lsi-core")
 include(":lib:lsi:lsi-ksp")
 include(":lib:tool-kmp:tool-enum")
 include(":lib:tool-kmp:tool-model")
+include(":lib:tool-kmp:tool-regex")
+include(":lib:tool-kmp:tool-str")
 include(":lib:tool-kmp:tool-tree")
 // <<< Gradle Module Sleep: End Of Block <<<
 
@@ -115,10 +127,14 @@ include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
 include(":lib:kcp:spread-pack:kcp-spread-pack-ide-plugin")
 include(":lib:tool-kmp:tool-enum")
 include(":lib:tool-kmp:tool-model")
+include(":lib:tool-kmp:tool-regex")
+include(":lib:tool-kmp:tool-str")
 include(":lib:tool-kmp:tool-tree")
 include(":lib:compose:app-sidebar")
+include(":lib:compose:app-sidebar-cupertino-adapter")
 include(":lib:compose:app-sidebar-shadcn-adapter")
 include(":lib:compose:compose-apple-corner")
+include(":lib:compose:compose-cupertino-workbench")
 include(":lib:compose:compose-native-component-high-level")
 include(":lib:compose:compose-native-component-button")
 include(":lib:compose:compose-native-component-searchbar")
