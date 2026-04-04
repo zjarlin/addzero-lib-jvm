@@ -5,6 +5,8 @@ internal object SpreadPackIdeaConstants {
         "site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads"
     const val spreadPackAnnotation =
         "site.addzero.kcp.spreadpack.SpreadPack"
+    const val spreadPackCarrierOfAnnotation =
+        "site.addzero.kcp.spreadpack.SpreadPackCarrierOf"
     const val spreadArgsOfAnnotation =
         "site.addzero.kcp.spreadpack.SpreadArgsOf"
     const val spreadOverloadAnnotation =

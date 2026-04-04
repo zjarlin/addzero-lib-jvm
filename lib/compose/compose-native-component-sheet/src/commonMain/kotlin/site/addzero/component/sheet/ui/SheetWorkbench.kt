@@ -18,9 +18,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.rememberScrollState
@@ -41,9 +45,11 @@ fun SheetWorkbench(
     metrics: SheetGridMetrics = SheetGridMetrics(),
     toolbarSlot: @Composable RowScope.(SheetController) -> Unit = {},
 ) {
+    val clipboardManager = LocalClipboardManager.current
     val document = controller.document
     val activeSheet = controller.activeSheet
     val selectedCell = controller.state.selection.primaryCell
+    var clipboardMessage by remember { mutableStateOf<String?>(null) }
     val selectionLabel = remember(
         controller.state.selection,
         activeSheet,
@@ -157,6 +163,29 @@ fun SheetWorkbench(
             SheetSelectionActionBar(
                 controller = controller,
                 selectionLabel = selectionLabel,
+                clipboardMessage = clipboardMessage,
+                onCopySelection = {
+                    val copiedText = controller.selectedRangeAsPlainText()
+                    if (copiedText == null) {
+                        clipboardMessage = "当前没有可复制的选区"
+                        return@SheetSelectionActionBar
+                    }
+                    clipboardManager.setText(AnnotatedString(copiedText))
+                    clipboardMessage = "已复制选区 $selectionLabel"
+                },
+                onPasteClipboard = {
+                    val clipboardText = clipboardManager.getText()
+                    if (clipboardText == null) {
+                        clipboardMessage = "剪贴板里没有可粘贴的文本"
+                        return@SheetSelectionActionBar
+                    }
+                    val pastedRange = controller.pastePlainText(clipboardText.text)
+                    clipboardMessage = if (pastedRange == null) {
+                        "剪贴板内容为空，未执行粘贴"
+                    } else {
+                        "已粘贴到 ${buildSelectionLabel(SheetSelectionMode.RANGE, pastedRange)}"
+                    }
+                },
             )
 
             SheetFormulaBar(
@@ -226,6 +255,9 @@ fun SheetWorkbench(
 private fun SheetSelectionActionBar(
     controller: SheetController,
     selectionLabel: String,
+    clipboardMessage: String?,
+    onCopySelection: () -> Unit,
+    onPasteClipboard: () -> Unit,
 ) {
     val hasSelection = controller.state.selection.activeRange != null
     if (!hasSelection) {
@@ -243,17 +275,40 @@ private fun SheetSelectionActionBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "当前选择：$selectionLabel",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = "当前选择：$selectionLabel",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                clipboardMessage?.let { message ->
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
 
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                OutlinedButton(
+                    onClick = onCopySelection,
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text("复制")
+                }
+                OutlinedButton(
+                    onClick = onPasteClipboard,
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text("粘贴")
+                }
                 OutlinedButton(
                     onClick = {
                         controller.fillDownSelection()

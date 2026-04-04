@@ -18,12 +18,18 @@ import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.constructors
 import org.jetbrains.kotlin.fir.declarations.extractEnumValueArgumentInfo
+import org.jetbrains.kotlin.fir.declarations.builder.buildPrimaryConstructor
+import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
+import org.jetbrains.kotlin.fir.declarations.builder.buildRegularClass
+import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameter
 import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameterCopy
 import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
 import org.jetbrains.kotlin.fir.declarations.getTargetType
 import org.jetbrains.kotlin.fir.declarations.getStringArgument
 import org.jetbrains.kotlin.fir.declarations.getStringArrayArgument
+import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyBackingField
+import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.declarations.origin
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
@@ -41,6 +47,7 @@ import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.builder.buildFunctionCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildLiteralExpression
+import org.jetbrains.kotlin.fir.expressions.builder.buildPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildThrowExpression
 import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.impl.buildSingleExpressionBlock
@@ -48,6 +55,7 @@ import org.jetbrains.kotlin.fir.extensions.ExperimentalTopLevelDeclarationsGener
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationPredicateRegistrar
 import org.jetbrains.kotlin.fir.extensions.MemberGenerationContext
+import org.jetbrains.kotlin.fir.extensions.NestedClassGenerationContext
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate.BuilderContext.annotated
 import org.jetbrains.kotlin.fir.extensions.predicate.DeclarationPredicate.Companion.create
@@ -55,17 +63,23 @@ import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate
 import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate.BuilderContext.annotated as lookupAnnotated
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.plugin.copyFirFunctionWithResolvePhase
+import org.jetbrains.kotlin.fir.plugin.createMemberProperty
 import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.builder.buildPropertyFromParameterResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedBaseSymbol
 import org.jetbrains.kotlin.fir.resolve.providers.dependenciesSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
 import org.jetbrains.kotlin.fir.toEffectiveVisibility
@@ -74,10 +88,15 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.isNullableString
 import org.jetbrains.kotlin.fir.types.renderForDebugging
+import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
+import org.jetbrains.kotlin.fir.types.ConeTypeProjection
+import org.jetbrains.kotlin.fir.types.toLookupTag
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.ConstantValueKind
 
 private data class FirCarrierMetadata(
@@ -86,9 +105,16 @@ private data class FirCarrierMetadata(
     val primaryConstructor: FirConstructor,
 )
 
+private data class FirAnnotatedCarrierRequest(
+    val regularClass: FirRegularClass,
+    val classId: ClassId,
+    val fields: List<FirFlattenedFieldSpec>,
+)
+
 private data class FirFlattenedFieldSpec(
     val name: Name,
     val resolvedType: ConeKotlinType,
+    val defaultValue: FirExpression?,
 )
 
 private data class FirReferencedParameterType(
@@ -99,6 +125,17 @@ private data class FirReferencedParameterType(
 private data class FirSpreadArgsReference(
     val functionFqName: String,
     val parameterTypes: List<FirReferencedParameterType>,
+)
+
+private data class FirValidationTarget(
+    val messagePrefix: String,
+)
+
+private data class FirGeneratedCarrierRequest(
+    val owner: FirNamedFunctionSymbol,
+    val parameter: FirValueParameter,
+    val classId: ClassId,
+    val fields: List<FirFlattenedFieldSpec>,
 )
 
 @OptIn(
@@ -114,12 +151,16 @@ class SpreadPackFirExtension(
         annotated(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation)
     }
 
+    private val carrierClassPredicate = DeclarationPredicate.create {
+        annotated(SpreadPackPluginKeys.spreadPackCarrierOfAnnotation)
+    }
+
     private val targetFunctionPredicate = LookupPredicate.create {
         lookupAnnotated(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation)
     }
 
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
-        register(targetClassPredicate, targetFunctionPredicate)
+        register(targetClassPredicate, carrierClassPredicate, targetFunctionPredicate)
     }
 
     override fun getCallableNamesForClass(
@@ -129,8 +170,17 @@ class SpreadPackFirExtension(
         if (!classSymbol.fir.origin.fromSource) {
             return emptySet()
         }
-        return findMemberCandidates(classSymbol, context)
-            .mapTo(linkedSetOf()) { candidate -> candidate.generatedName }
+        return linkedSetOf<Name>().apply {
+            addAll(
+                findMemberCandidates(classSymbol, context)
+                    .map { candidate -> candidate.generatedName },
+            )
+            val carrierRequest = findAnnotatedCarrierRequest(classSymbol)
+            if (carrierRequest != null) {
+                add(SpecialNames.INIT)
+                addAll(carrierRequest.fields.map { field -> field.name })
+            }
+        }
     }
 
     override fun generateFunctions(
@@ -151,8 +201,30 @@ class SpreadPackFirExtension(
         }
     }
 
+    override fun getNestedClassifiersNames(
+        classSymbol: FirClassSymbol<*>,
+        context: NestedClassGenerationContext,
+    ): Set<Name> {
+        if (!classSymbol.fir.origin.fromSource) {
+            return emptySet()
+        }
+        return findMemberGeneratedCarrierRequests(classSymbol)
+            .mapTo(linkedSetOf()) { request -> request.classId.shortClassName }
+    }
+
+    override fun generateNestedClassLikeDeclaration(
+        owner: FirClassSymbol<*>,
+        name: Name,
+        context: NestedClassGenerationContext,
+    ): FirClassLikeSymbol<*>? {
+        return findMemberGeneratedCarrierRequests(owner)
+            .firstOrNull { request -> request.classId.shortClassName == name }
+            ?.let(::createGeneratedCarrierClass)
+    }
+
     override fun hasPackage(packageFqName: FqName): Boolean {
-        return getTopLevelCallableIds().any { callableId -> callableId.packageName == packageFqName }
+        return getTopLevelCallableIds().any { callableId -> callableId.packageName == packageFqName } ||
+            getTopLevelClassIds().any { classId -> classId.packageFqName == packageFqName }
     }
 
     override fun getTopLevelCallableIds(): Set<CallableId> {
@@ -160,6 +232,17 @@ class SpreadPackFirExtension(
             .mapTo(linkedSetOf()) { candidate ->
                 candidate.original.callableId.copy(candidate.generatedName)
             }
+    }
+
+    override fun getTopLevelClassIds(): Set<ClassId> {
+        return findTopLevelGeneratedCarrierRequests()
+            .mapTo(linkedSetOf()) { request -> request.classId }
+    }
+
+    override fun generateTopLevelClassLikeDeclaration(classId: ClassId): FirClassLikeSymbol<*>? {
+        return findTopLevelGeneratedCarrierRequests()
+            .firstOrNull { request -> request.classId == classId }
+            ?.let(::createGeneratedCarrierClass)
     }
 
     private fun findMemberCandidates(
@@ -185,8 +268,30 @@ class SpreadPackFirExtension(
                     name = function.callableId.callableName,
                     parameterTypes = function.fir.valueParameters.map { parameter -> parameter.returnTypeRef.coneType },
                 )
-            }
+        }
         return buildCandidates(originals, existingJvmKeys)
+    }
+
+    private fun findTopLevelGeneratedCarrierRequests(): List<FirGeneratedCarrierRequest> {
+        return buildGeneratedCarrierRequests(collectTopLevelOriginals())
+    }
+
+    private fun findMemberGeneratedCarrierRequests(
+        owner: FirClassSymbol<*>,
+    ): List<FirGeneratedCarrierRequest> {
+        val regularClass = owner.fir as? FirRegularClass ?: return emptyList()
+        val processWholeClass = session.predicateBasedProvider.matches(targetClassPredicate, owner)
+        val originals = regularClass.declarations
+            .filterIsInstance<FirNamedFunction>()
+            .map { function -> function.symbol }
+            .filter { symbol ->
+                symbol.fir.origin.fromSource &&
+                    isSupportedOriginalFunction(symbol) &&
+                    (processWholeClass ||
+                        hasAnnotation(symbol.fir, SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotationClassId))
+            }
+            .sortedBy { symbol -> symbol.callableId.toString() }
+        return buildGeneratedCarrierRequests(originals)
     }
 
     private fun collectMemberOriginals(
@@ -225,6 +330,386 @@ class SpreadPackFirExtension(
                     isSupportedOriginalFunction(symbol)
             }
             .sortedBy { symbol -> symbol.callableId.toString() }
+    }
+
+    private fun buildGeneratedCarrierRequests(
+        originals: List<FirNamedFunctionSymbol>,
+    ): List<FirGeneratedCarrierRequest> {
+        val requests = originals.flatMap { original ->
+            original.fir.valueParameters.mapNotNull { parameter ->
+                val annotation = parameter.getSpreadPackOfAnnotation() ?: return@mapNotNull null
+                buildGeneratedCarrierRequest(
+                    owner = original,
+                    parameter = parameter,
+                    annotation = annotation,
+                )
+            }
+        }
+        validateGeneratedCarrierConflicts(requests)
+        return requests
+    }
+
+    private fun validateGeneratedCarrierConflicts(
+        requests: List<FirGeneratedCarrierRequest>,
+    ) {
+        val requestsByClassId = requests.groupBy { request -> request.classId }
+        requestsByClassId.forEach { (classId, classRequests) ->
+            if (classRequests.size <= 1) {
+                return@forEach
+            }
+            val signatures = classRequests.map { request ->
+                request.fields.joinToString(separator = "|") { field ->
+                    "${field.name.asString()}:${jvmErasure(field.resolvedType)}:${field.defaultValue != null}"
+                }
+            }.toSet()
+            if (signatures.size > 1) {
+                error(
+                    "Conflicting generated spread-pack carrier definitions for ${classId.asString()}: " +
+                        classRequests.joinToString { request -> request.owner.callableId.asFqNameForDebugInfo().asString() },
+                )
+            }
+        }
+    }
+
+    override fun generateProperties(
+        callableId: CallableId,
+        context: MemberGenerationContext?,
+    ): List<org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol> {
+        val memberContext = context ?: return emptyList()
+        val request = findAnnotatedCarrierRequest(memberContext.owner) ?: return emptyList()
+        val field = request.fields.firstOrNull { candidate -> candidate.name == callableId.callableName }
+            ?: return emptyList()
+        return listOf(buildAnnotatedCarrierProperty(request, field).symbol)
+    }
+
+    override fun generateConstructors(
+        context: MemberGenerationContext,
+    ): List<FirConstructorSymbol> {
+        val request = findAnnotatedCarrierRequest(context.owner) ?: return emptyList()
+        return listOf(buildAnnotatedCarrierConstructor(request).symbol)
+    }
+
+    private fun findAnnotatedCarrierRequest(
+        owner: FirClassSymbol<*>,
+    ): FirAnnotatedCarrierRequest? {
+        val regularClass = owner.fir as? FirRegularClass ?: return null
+        return buildAnnotatedCarrierRequest(regularClass)
+    }
+
+    private fun buildAnnotatedCarrierRequest(
+        regularClass: FirRegularClass,
+    ): FirAnnotatedCarrierRequest? {
+        val annotation = regularClass.annotations.getAnnotationByClassId(
+            SpreadPackPluginKeys.spreadPackCarrierOfAnnotationClassId,
+            session,
+        ) ?: return null
+        val target = carrierTarget(regularClass)
+        val classId = regularClass.symbol.classId
+        if (classId.isLocal) {
+            target.invalid("annotated spread-pack carrier must not be local: ${classId.asString()}")
+        }
+        if (regularClass.classKind != ClassKind.CLASS) {
+            target.invalid("spread-pack carrier ${classId.asString()} must be a class")
+        }
+        if (regularClass.typeParameters.isNotEmpty()) {
+            target.invalid("generic spread-pack carriers are not supported in v1: ${classId.asString()}")
+        }
+        val sourceConstructorsWithParameters = regularClass.declarations
+            .filterIsInstance<FirConstructor>()
+            .filter { constructor -> constructor.origin.fromSource }
+            .filter { constructor -> constructor.valueParameters.isNotEmpty() }
+        if (sourceConstructorsWithParameters.isNotEmpty()) {
+            target.invalid("annotated spread-pack carrier ${classId.asString()} must not declare constructor parameters")
+        }
+        val referencedOverload = resolveReferencedOverload(target, annotation)
+        val overloadKey = overloadKey(referencedOverload)
+        val flattenedFields = flattenFunctionParameters(
+            target = target,
+            function = referencedOverload,
+            visitedOverloads = linkedSetOf(overloadKey),
+        )
+        val selectedFields = selectFlattenedFields(
+            target = target,
+            fields = flattenedFields,
+            selectorKind = annotation.selectorKind(),
+            excludedNames = annotation.excludeNames(),
+            contextLabel = referencedOverload.callableId.asFqNameForDebugInfo().asString(),
+        )
+        val existingProperties = regularClass.declarations
+            .filterIsInstance<org.jetbrains.kotlin.fir.declarations.FirProperty>()
+            .filter { property -> property.origin.fromSource }
+            .map { property -> property.name.asString() }
+            .toSet()
+        val conflictingProperties = selectedFields
+            .map { field -> field.name.asString() }
+            .filter(existingProperties::contains)
+        if (conflictingProperties.isNotEmpty()) {
+            target.invalid(
+                "annotated spread-pack carrier ${classId.asString()} already declares properties " +
+                    conflictingProperties.distinct().sorted().joinToString(),
+            )
+        }
+        return FirAnnotatedCarrierRequest(
+            regularClass = regularClass,
+            classId = classId,
+            fields = selectedFields,
+        )
+    }
+
+    private fun buildAnnotatedCarrierConstructor(
+        request: FirAnnotatedCarrierRequest,
+    ): FirConstructor {
+        val constructorSymbol = FirConstructorSymbol(request.classId)
+        val generatedSource = request.regularClass.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+        val classTypeRef = buildResolvedTypeRef {
+            this.source = generatedSource
+            coneType = ConeClassLikeTypeImpl(
+                request.classId.toLookupTag(),
+                ConeTypeProjection.EMPTY_ARRAY,
+                isMarkedNullable = false,
+            )
+        }
+        val constructorParameters = buildAnnotatedCarrierConstructorParameters(
+            request = request,
+            constructorSymbol = constructorSymbol,
+            generatedSource = generatedSource,
+        )
+        return buildPrimaryConstructor {
+            this.source = generatedSource
+            this.moduleData = request.regularClass.moduleData
+            origin = SpreadPackGeneratedDeclarationKey.origin
+            resolvePhase = FirResolvePhase.BODY_RESOLVE
+            status = request.regularClass.status
+            isLocal = false
+            returnTypeRef = classTypeRef
+            symbol = constructorSymbol
+            valueParameters.addAll(constructorParameters)
+        }
+    }
+
+    private fun buildAnnotatedCarrierConstructorParameters(
+        request: FirAnnotatedCarrierRequest,
+        constructorSymbol: FirConstructorSymbol,
+        generatedSource: org.jetbrains.kotlin.KtSourceElement?,
+    ): List<FirValueParameter> {
+        return request.fields.map { field ->
+            buildValueParameter {
+                this.source = generatedSource
+                this.moduleData = request.regularClass.moduleData
+                origin = SpreadPackGeneratedDeclarationKey.origin
+                resolvePhase = FirResolvePhase.BODY_RESOLVE
+                returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
+                name = field.name
+                symbol = FirValueParameterSymbol()
+                defaultValue = field.defaultValue
+                containingDeclarationSymbol = constructorSymbol
+            }
+        }
+    }
+
+    private fun buildAnnotatedCarrierProperty(
+        request: FirAnnotatedCarrierRequest,
+        field: FirFlattenedFieldSpec,
+    ): org.jetbrains.kotlin.fir.declarations.FirProperty {
+        return createMemberProperty(
+            owner = request.regularClass.symbol,
+            key = SpreadPackGeneratedDeclarationKey,
+            name = field.name,
+            returnType = field.resolvedType,
+            isVal = false,
+            hasBackingField = true,
+        )
+    }
+
+    private fun buildGeneratedCarrierRequest(
+        owner: FirNamedFunctionSymbol,
+        parameter: FirValueParameter,
+        annotation: FirAnnotation,
+    ): FirGeneratedCarrierRequest {
+        val target = functionTarget(owner)
+        if (parameter.annotations.getAnnotationByClassId(SpreadPackPluginKeys.spreadPackAnnotationClassId, session) != null) {
+            target.invalid("parameter ${parameter.name.asString()} cannot combine @SpreadPackOf with @SpreadPack")
+        }
+        if (parameter.annotations.getAnnotationByClassId(SpreadPackPluginKeys.spreadArgsOfAnnotationClassId, session) != null) {
+            target.invalid("parameter ${parameter.name.asString()} cannot combine @SpreadPackOf with @SpreadArgsOf")
+        }
+        val generatedClassId = generatedCarrierClassId(owner, parameter, annotation)
+        val referencedOverload = resolveReferencedOverload(target, annotation)
+        val overloadKey = overloadKey(referencedOverload)
+        val flattenedFields = flattenFunctionParameters(
+            target = target,
+            function = referencedOverload,
+            visitedOverloads = linkedSetOf(overloadKey),
+        )
+        val selectedFields = selectFlattenedFields(
+            target = target,
+            fields = flattenedFields,
+            selectorKind = annotation.selectorKind(),
+            excludedNames = annotation.excludeNames(),
+            contextLabel = referencedOverload.callableId.asFqNameForDebugInfo().asString(),
+        )
+        return FirGeneratedCarrierRequest(
+            owner = owner,
+            parameter = parameter,
+            classId = generatedClassId,
+            fields = selectedFields,
+        )
+    }
+
+    private fun buildGeneratedCarrierFields(
+        request: FirGeneratedCarrierRequest,
+    ): List<FirSpreadPackField> {
+        val constructorSymbol = FirConstructorSymbol(request.classId)
+        val moduleData = request.owner.fir.moduleData
+        return request.fields.map { field ->
+            FirSpreadPackField(
+                parameter = buildValueParameter {
+                    source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+                    this.moduleData = moduleData
+                    origin = SpreadPackGeneratedDeclarationKey.origin
+                    resolvePhase = FirResolvePhase.BODY_RESOLVE
+                    returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
+                    name = field.name
+                    symbol = FirValueParameterSymbol()
+                    defaultValue = field.defaultValue
+                    containingDeclarationSymbol = constructorSymbol
+                },
+                resolvedType = field.resolvedType,
+            )
+        }
+    }
+
+    private fun generatedCarrierClassId(
+        owner: FirNamedFunctionSymbol,
+        parameter: FirValueParameter,
+        annotation: FirAnnotation,
+    ): ClassId {
+        val explicitName = annotation.getStringArgument(Name.identifier("generatedClassName"), session)
+            ?.takeIf { name -> name.isNotBlank() }
+        val classIdFromType = (parameter.returnTypeRef.coneType as? ConeClassLikeType)
+            ?.lookupTag
+            ?.classId
+            ?.takeUnless { classId -> classId.isLocal }
+        val classId = when {
+            explicitName != null -> {
+                val shortName = Name.identifier(explicitName)
+                owner.callableId.classId
+                    ?.createNestedClassId(shortName)
+                    ?: ClassId.topLevel(owner.callableId.packageName.child(shortName))
+            }
+            classIdFromType != null -> classIdFromType
+            else -> illegalTarget(
+                owner,
+                "parameter ${parameter.name.asString()} annotated with @SpreadPackOf must use a resolvable class type " +
+                    "or specify generatedClassName",
+            )
+        }
+        if (classId.isLocal) {
+            illegalTarget(
+                owner,
+                "generated spread-pack carrier for ${parameter.name.asString()} must not be local: ${classId.asString()}",
+            )
+        }
+        return classId
+    }
+
+    private fun createGeneratedCarrierClass(
+        request: FirGeneratedCarrierRequest,
+    ): FirRegularClassSymbol {
+        val ownerClassSymbol = request.owner.callableId.classId?.let(session::getRegularClassSymbolByClassId)
+        val visibility = request.owner.fir.status.visibility.takeUnless { candidate ->
+            candidate == Visibilities.Unknown
+        } ?: Visibilities.Public
+        val effectiveVisibility = ownerClassSymbol?.let { classSymbol ->
+            visibility.toEffectiveVisibility(classSymbol, false, false)
+        } ?: when (visibility) {
+            Visibilities.Public -> EffectiveVisibility.Public
+            Visibilities.Internal -> EffectiveVisibility.Internal
+            else -> EffectiveVisibility.Public
+        }
+        val status = FirResolvedDeclarationStatusImpl(
+            visibility = visibility,
+            modality = Modality.FINAL,
+            effectiveVisibility = effectiveVisibility,
+        ).apply {
+            isExpect = request.owner.fir.status.isExpect
+            isActual = request.owner.fir.status.isActual
+        }
+        val classSymbol = FirRegularClassSymbol(request.classId)
+        val constructorSymbol = FirConstructorSymbol(request.classId)
+        val moduleData = request.owner.fir.moduleData
+        val classTypeRef = buildResolvedTypeRef {
+            source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+            coneType = ConeClassLikeTypeImpl(
+                request.classId.toLookupTag(),
+                ConeTypeProjection.EMPTY_ARRAY,
+                isMarkedNullable = false,
+            )
+        }
+        val constructorParameters = request.fields.map { field ->
+            buildValueParameter {
+                source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+                this.moduleData = moduleData
+                origin = SpreadPackGeneratedDeclarationKey.origin
+                resolvePhase = FirResolvePhase.BODY_RESOLVE
+                returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
+                name = field.name
+                symbol = FirValueParameterSymbol()
+                defaultValue = field.defaultValue
+                containingDeclarationSymbol = constructorSymbol
+            }
+        }
+        val constructor = buildPrimaryConstructor {
+            source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+            this.moduleData = moduleData
+            origin = SpreadPackGeneratedDeclarationKey.origin
+            resolvePhase = FirResolvePhase.BODY_RESOLVE
+            this.status = status
+            isLocal = false
+            returnTypeRef = classTypeRef
+            symbol = constructorSymbol
+            valueParameters.addAll(constructorParameters)
+        }
+        val properties = constructorParameters.map { parameter ->
+            val propertySymbol = FirRegularPropertySymbol(
+                CallableId(request.classId.packageFqName, request.classId.relativeClassName, parameter.name),
+            )
+            buildProperty {
+                val propertySource = parameter.source
+                source = propertySource
+                this.moduleData = moduleData
+                origin = SpreadPackGeneratedDeclarationKey.origin
+                resolvePhase = FirResolvePhase.BODY_RESOLVE
+                returnTypeRef = parameter.returnTypeRef
+                name = parameter.name
+                initializer = buildPropertyAccessExpression {
+                    source = propertySource
+                    calleeReference = buildPropertyFromParameterResolvedNamedReference {
+                        source = propertySource
+                        name = parameter.name
+                        resolvedSymbol = parameter.symbol
+                    }
+                }
+                isVar = false
+                symbol = propertySymbol
+                this.status = status
+                isLocal = false
+            }
+        }
+        val generatedClass = buildRegularClass {
+            source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+            this.moduleData = moduleData
+            origin = SpreadPackGeneratedDeclarationKey.origin
+            resolvePhase = FirResolvePhase.BODY_RESOLVE
+            this.status = status
+            scopeProvider = session.kotlinScopeProvider
+            classKind = ClassKind.CLASS
+            name = request.classId.shortClassName
+            symbol = classSymbol
+            declarations += constructor
+            declarations += properties
+        }
+        return generatedClass.symbol
     }
 
     private fun buildCandidates(
@@ -316,40 +801,55 @@ class SpreadPackFirExtension(
         parameterIndex: Int,
         parameter: FirValueParameter,
     ): FirSpreadPackExpansion? {
+        val target = functionTarget(owner)
+        val spreadPackOfAnnotation = parameter.getSpreadPackOfAnnotation()
         val spreadPackAnnotation = parameter.annotations
             .getAnnotationByClassId(SpreadPackPluginKeys.spreadPackAnnotationClassId, session)
-            ?: return null
-        val carrier = resolveCarrierMetadata(owner, parameter)
+        if (spreadPackAnnotation == null && spreadPackOfAnnotation == null) {
+            return null
+        }
+        if (spreadPackOfAnnotation != null) {
+            val generatedCarrier = buildGeneratedCarrierRequest(owner, parameter, spreadPackOfAnnotation)
+            return FirSpreadPackExpansion(
+                parameterIndex = parameterIndex,
+                carrierClassId = generatedCarrier.classId,
+                selectorKind = SelectorKind.PROPS,
+                excludedNames = emptySet(),
+                fields = buildGeneratedCarrierFields(generatedCarrier),
+            )
+        }
+        val carrier = resolveCarrierMetadata(target, parameter)
+        val baseSpreadPackAnnotation = spreadPackAnnotation
+            ?: error("spread-pack annotation missing for ${parameter.name.asString()}")
         val spreadArgsAnnotation = parameter.annotations
             .getAnnotationByClassId(SpreadPackPluginKeys.spreadArgsOfAnnotationClassId, session)
         val selectorKind = spreadArgsAnnotation?.selectorKind()
-            ?: spreadPackAnnotation.selectorKind()
+            ?: baseSpreadPackAnnotation.selectorKind()
         val excludedNames = spreadArgsAnnotation?.excludeNames()
-            ?: spreadPackAnnotation.excludeNames()
-        if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
-            illegalTarget(
-                owner,
+            ?: baseSpreadPackAnnotation.excludeNames()
+        if (spreadArgsAnnotation != null && !baseSpreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
+            target.invalid(
                 "parameter ${parameter.name.asString()} must keep @SpreadPack at default values when @SpreadArgsOf is present",
             )
         }
 
         val fields = if (spreadArgsAnnotation == null) {
             buildCarrierFields(
-                owner = owner,
+                target = target,
                 carrier = carrier,
                 selectorKind = selectorKind,
                 excludedNames = excludedNames,
             )
         } else {
-            val referencedOverload = resolveReferencedOverload(owner, spreadArgsAnnotation)
+            val referencedOverload = resolveReferencedOverload(target, spreadArgsAnnotation)
             val overloadKey = overloadKey(referencedOverload)
             val flattenedFields = flattenFunctionParameters(
-                owner = owner,
+                target = target,
                 function = referencedOverload,
                 visitedOverloads = linkedSetOf(overloadKey),
             )
             buildReferencedCarrierFields(
-                owner = owner,
+                target = target,
                 carrier = carrier,
                 flattenedFields = flattenedFields,
                 selectorKind = selectorKind,
@@ -368,45 +868,37 @@ class SpreadPackFirExtension(
     }
 
     private fun resolveCarrierMetadata(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         parameter: FirValueParameter,
     ): FirCarrierMetadata {
         val parameterType = parameter.returnTypeRef.coneType as? ConeClassLikeType
-            ?: illegalTarget(
-                owner,
+            ?: target.invalid(
                 "spread-pack parameter ${parameter.name.asString()} must reference a regular class with a primary constructor",
             )
         if (parameterType.typeArguments.isNotEmpty()) {
-            illegalTarget(
-                owner,
-                "generic spread-pack carriers are not supported in v1: ${parameter.name.asString()}",
-            )
+            target.invalid("generic spread-pack carriers are not supported in v1: ${parameter.name.asString()}")
         }
         val carrierClassId = parameterType.lookupTag.classId
         val carrierClass = resolveRegularClassById(carrierClassId)
-            ?: illegalTarget(
-                owner,
-                "unable to resolve spread-pack carrier ${carrierClassId.asString()}",
-            )
+            ?: target.invalid("unable to resolve spread-pack carrier ${carrierClassId.asString()}")
         if (carrierClass.classKind != ClassKind.CLASS) {
-            illegalTarget(
-                owner,
-                "spread-pack carrier ${carrierClassId.asString()} must be a class",
-            )
+            target.invalid("spread-pack carrier ${carrierClassId.asString()} must be a class")
         }
         if (carrierClass.typeParameters.isNotEmpty()) {
-            illegalTarget(
-                owner,
-                "generic spread-pack carriers are not supported in v1: ${carrierClassId.asString()}",
+            target.invalid("generic spread-pack carriers are not supported in v1: ${carrierClassId.asString()}")
+        }
+        val annotatedCarrier = buildAnnotatedCarrierRequest(carrierClass)
+        if (annotatedCarrier != null) {
+            return FirCarrierMetadata(
+                classId = carrierClassId,
+                regularClass = carrierClass,
+                primaryConstructor = buildAnnotatedCarrierConstructor(annotatedCarrier),
             )
         }
         val primaryConstructor = carrierClass.declarations
             .filterIsInstance<FirConstructor>()
             .firstOrNull { constructor -> constructor.isPrimary }
-            ?: illegalTarget(
-                owner,
-                "spread-pack carrier ${carrierClassId.asString()} must declare a primary constructor",
-            )
+            ?: target.invalid("spread-pack carrier ${carrierClassId.asString()} must declare a primary constructor")
         return FirCarrierMetadata(
             classId = carrierClassId,
             regularClass = carrierClass,
@@ -415,14 +907,14 @@ class SpreadPackFirExtension(
     }
 
     private fun buildCarrierFields(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         carrier: FirCarrierMetadata,
         selectorKind: SelectorKind,
         excludedNames: Set<String>,
     ): List<FirSpreadPackField> {
         val constructorParameters = carrier.primaryConstructor.valueParameters
         validateExcludedNames(
-            owner = owner,
+            target = target,
             excludedNames = excludedNames,
             availableNames = constructorParameters.map { constructorParameter -> constructorParameter.name.asString() },
             contextLabel = carrier.classId.shortClassName.asString(),
@@ -432,7 +924,7 @@ class SpreadPackFirExtension(
                 constructorParameter.name.asString() !in excludedNames
         }
         validateCarrierOmissions(
-            owner = owner,
+            target = target,
             carrier = carrier,
             selectedCarrierNames = selectedParameters.map { constructorParameter -> constructorParameter.name.asString() }.toSet(),
         )
@@ -445,7 +937,7 @@ class SpreadPackFirExtension(
     }
 
     private fun buildReferencedCarrierFields(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         carrier: FirCarrierMetadata,
         flattenedFields: List<FirFlattenedFieldSpec>,
         selectorKind: SelectorKind,
@@ -453,7 +945,7 @@ class SpreadPackFirExtension(
         referenceDescription: String,
     ): List<FirSpreadPackField> {
         val selectedFields = selectFlattenedFields(
-            owner = owner,
+            target = target,
             fields = flattenedFields,
             selectorKind = selectorKind,
             excludedNames = excludedNames,
@@ -466,13 +958,11 @@ class SpreadPackFirExtension(
         return selectedFields.map { field ->
             val fieldName = field.name.asString()
             val carrierParameter = carrierParametersByName[fieldName]
-                ?: illegalTarget(
-                    owner,
+                ?: target.invalid(
                     "spread-pack carrier ${carrier.classId.shortClassName.asString()} is missing argsof field $fieldName from $referenceDescription",
                 )
             if (!sameConeType(carrierParameter.returnTypeRef.coneType, field.resolvedType)) {
-                illegalTarget(
-                    owner,
+                target.invalid(
                     "spread-pack carrier ${carrier.classId.shortClassName.asString()} field $fieldName " +
                         "type ${carrierParameter.returnTypeRef.coneType.renderForDebugging()} does not match " +
                         "$referenceDescription field type ${field.resolvedType.renderForDebugging()}",
@@ -485,12 +975,12 @@ class SpreadPackFirExtension(
             )
         }.also { fields ->
             validateCarrierOmissions(
-                owner = owner,
+                target = target,
                 carrier = carrier,
                 selectedCarrierNames = selectedCarrierNames,
             )
             validateUniqueFieldNames(
-                owner = owner,
+                target = target,
                 names = fields.map { field -> field.parameter.name.asString() },
                 contextLabel = referenceDescription,
             )
@@ -498,25 +988,24 @@ class SpreadPackFirExtension(
     }
 
     private fun flattenFunctionParameters(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         function: FirNamedFunctionSymbol,
         visitedOverloads: Set<String>,
     ): List<FirFlattenedFieldSpec> {
         if (!isSupportedReferencedFunction(function)) {
-            illegalTarget(
-                owner,
+            target.invalid(
                 "argsof target ${function.callableId.asFqNameForDebugInfo()} must not declare receivers or context parameters",
             )
         }
         return function.fir.valueParameters.flatMap { referencedParameter ->
             flattenValueParameter(
-                owner = owner,
+                target = target,
                 parameter = referencedParameter,
                 visitedOverloads = visitedOverloads,
             )
         }.also { fields ->
             validateUniqueFieldNames(
-                owner = owner,
+                target = target,
                 names = fields.map { field -> field.name.asString() },
                 contextLabel = function.callableId.asFqNameForDebugInfo().asString(),
             )
@@ -524,7 +1013,7 @@ class SpreadPackFirExtension(
     }
 
     private fun flattenValueParameter(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         parameter: FirValueParameter,
         visitedOverloads: Set<String>,
     ): List<FirFlattenedFieldSpec> {
@@ -534,9 +1023,10 @@ class SpreadPackFirExtension(
                 FirFlattenedFieldSpec(
                     name = parameter.name,
                     resolvedType = parameter.returnTypeRef.coneType,
+                    defaultValue = parameter.defaultValue,
                 ),
             )
-        val carrier = resolveCarrierMetadata(owner, parameter)
+        val carrier = resolveCarrierMetadata(target, parameter)
         val spreadArgsAnnotation = parameter.annotations
             .getAnnotationByClassId(SpreadPackPluginKeys.spreadArgsOfAnnotationClassId, session)
         val selectorKind = spreadArgsAnnotation?.selectorKind()
@@ -544,14 +1034,13 @@ class SpreadPackFirExtension(
         val excludedNames = spreadArgsAnnotation?.excludeNames()
             ?: spreadPackAnnotation.excludeNames()
         if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
-            illegalTarget(
-                owner,
+            target.invalid(
                 "nested spread-pack parameter ${parameter.name.asString()} must keep @SpreadPack at default values when @SpreadArgsOf is present",
             )
         }
         if (spreadArgsAnnotation == null) {
             return buildCarrierFields(
-                owner = owner,
+                target = target,
                 carrier = carrier,
                 selectorKind = selectorKind,
                 excludedNames = excludedNames,
@@ -559,47 +1048,48 @@ class SpreadPackFirExtension(
                 FirFlattenedFieldSpec(
                     name = field.parameter.name,
                     resolvedType = field.resolvedType,
+                    defaultValue = field.parameter.defaultValue,
                 )
             }
         }
 
-        val referencedOverload = resolveReferencedOverload(owner, spreadArgsAnnotation)
+        val referencedOverload = resolveReferencedOverload(target, spreadArgsAnnotation)
         val overloadKey = overloadKey(referencedOverload)
         if (overloadKey in visitedOverloads) {
-            illegalTarget(
-                owner,
+            target.invalid(
                 "detected argsof overload cycle at ${referencedOverload.callableId.asFqNameForDebugInfo()}",
             )
         }
         val flattenedFields = flattenFunctionParameters(
-            owner = owner,
+            target = target,
             function = referencedOverload,
             visitedOverloads = visitedOverloads + overloadKey,
         )
         return buildReferencedCarrierFields(
-            owner = owner,
+            target = target,
             carrier = carrier,
             flattenedFields = flattenedFields,
             selectorKind = selectorKind,
             excludedNames = excludedNames,
             referenceDescription = referencedOverload.callableId.asFqNameForDebugInfo().asString(),
         ).map { field ->
-            FirFlattenedFieldSpec(
-                name = field.parameter.name,
-                resolvedType = field.resolvedType,
-            )
+                FirFlattenedFieldSpec(
+                    name = field.parameter.name,
+                    resolvedType = field.resolvedType,
+                    defaultValue = field.parameter.defaultValue,
+                )
+            }
         }
-    }
 
     private fun selectFlattenedFields(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         fields: List<FirFlattenedFieldSpec>,
         selectorKind: SelectorKind,
         excludedNames: Set<String>,
         contextLabel: String,
     ): List<FirFlattenedFieldSpec> {
         validateExcludedNames(
-            owner = owner,
+            target = target,
             excludedNames = excludedNames,
             availableNames = fields.map { field -> field.name.asString() },
             contextLabel = contextLabel,
@@ -611,29 +1101,27 @@ class SpreadPackFirExtension(
     }
 
     private fun validateExcludedNames(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         excludedNames: Set<String>,
         availableNames: List<String>,
         contextLabel: String,
     ) {
         val unknownExcludedNames = excludedNames - availableNames.toSet()
         if (unknownExcludedNames.isNotEmpty()) {
-            illegalTarget(
-                owner,
+            target.invalid(
                 "unknown spread-pack exclude names for $contextLabel: ${unknownExcludedNames.sorted().joinToString()}",
             )
         }
     }
 
     private fun validateCarrierOmissions(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         carrier: FirCarrierMetadata,
         selectedCarrierNames: Set<String>,
     ) {
         carrier.primaryConstructor.valueParameters.forEach { constructorParameter ->
             if (constructorParameter.name.asString() !in selectedCarrierNames && constructorParameter.defaultValue == null) {
-                illegalTarget(
-                    owner,
+                target.invalid(
                     "spread-pack carrier ${carrier.classId.shortClassName.asString()} cannot omit required field " +
                         constructorParameter.name.asString(),
                 )
@@ -642,7 +1130,7 @@ class SpreadPackFirExtension(
     }
 
     private fun validateUniqueFieldNames(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         names: List<String>,
         contextLabel: String,
     ) {
@@ -651,30 +1139,25 @@ class SpreadPackFirExtension(
             .keys
             .sorted()
         if (duplicates.isNotEmpty()) {
-            illegalTarget(
-                owner,
+            target.invalid(
                 "duplicate flattened parameter names in $contextLabel: ${duplicates.joinToString()}",
             )
         }
     }
 
     private fun resolveReferencedOverload(
-        owner: FirNamedFunctionSymbol,
+        target: FirValidationTarget,
         annotation: FirAnnotation,
     ): FirNamedFunctionSymbol {
         val reference = annotation.spreadArgsReference()
         val overloads = resolveFunctionSymbolsByFqName(reference.functionFqName)
             .filter(::isResolvableReferencedFunction)
         if (overloads.isEmpty()) {
-            illegalTarget(
-                owner,
-                "unable to resolve argsof overload set ${reference.functionFqName}",
-            )
+            target.invalid("unable to resolve argsof overload set ${reference.functionFqName}")
         }
         if (reference.parameterTypes.isEmpty()) {
             if (overloads.size != 1) {
-                illegalTarget(
-                    owner,
+                target.invalid(
                     "argsof overload set ${reference.functionFqName} is ambiguous; specify SpreadOverload.parameterTypes",
                 )
             }
@@ -683,8 +1166,7 @@ class SpreadPackFirExtension(
         val matches = overloads.filter { overload ->
             val overloadParameterTypes = overload.fir.valueParameters.map { valueParameter ->
                 erasureClassId(valueParameter.returnTypeRef.coneType)
-                    ?: illegalTarget(
-                        owner,
+                    ?: target.invalid(
                         "argsof overload ${overload.callableId.asFqNameForDebugInfo()} has unsupported parameter type " +
                             valueParameter.returnTypeRef.coneType.renderForDebugging(),
                     )
@@ -695,8 +1177,7 @@ class SpreadPackFirExtension(
                 }
         }
         if (matches.size != 1) {
-            illegalTarget(
-                owner,
+            target.invalid(
                 "unable to select a unique argsof overload for ${reference.functionFqName} with parameterTypes=" +
                     reference.parameterTypes.joinToString { parameterType -> parameterType.renderForDiagnostics() },
             )
@@ -777,6 +1258,23 @@ class SpreadPackFirExtension(
     }
 
     private fun FirAnnotation.spreadArgsReference(): FirSpreadArgsReference {
+        val directFunctionFqName = findArgumentByName(
+            Name.identifier("functionFqName"),
+            returnFirstWhenNotFound = false,
+        )?.stringLiteralValue()?.takeIf { functionFqName -> functionFqName.isNotBlank() }
+        val directParameterTypes = findArgumentByName(
+            Name.identifier("parameterTypes"),
+            returnFirstWhenNotFound = false,
+        )?.extractParameterTypeReferences().orEmpty()
+        if (directFunctionFqName != null) {
+            return FirSpreadArgsReference(
+                functionFqName = directFunctionFqName,
+                parameterTypes = directParameterTypes,
+            )
+        }
+        if (directParameterTypes.isNotEmpty()) {
+            error("spread-pack functionFqName must not be blank when parameterTypes are specified")
+        }
         val overloadExpression = findArgumentByName(
             Name.identifier("overload"),
             returnFirstWhenNotFound = false,
@@ -1184,6 +1682,10 @@ class SpreadPackFirExtension(
         return declaration.annotations.getAnnotationByClassId(classId, session) != null
     }
 
+    private fun FirValueParameter.getSpreadPackOfAnnotation(): FirAnnotation? {
+        return annotations.getAnnotationByClassId(SpreadPackPluginKeys.spreadPackOfAnnotationClassId, session)
+    }
+
     private fun FirAnnotation.selectorKind(): SelectorKind {
         val enumName = findArgumentByName(
             Name.identifier("selector"),
@@ -1248,9 +1750,30 @@ class SpreadPackFirExtension(
         symbol: FirNamedFunctionSymbol,
         reason: String,
     ): Nothing {
-        throw IllegalStateException(
-            "Invalid @GenerateSpreadPackOverloads target ${symbol.callableId.asFqNameForDebugInfo()}: $reason",
+        return functionTarget(symbol).invalid(reason)
+    }
+
+    private fun functionTarget(
+        symbol: FirNamedFunctionSymbol,
+    ): FirValidationTarget {
+        return FirValidationTarget(
+            "Invalid @GenerateSpreadPackOverloads target ${symbol.callableId.asFqNameForDebugInfo()}",
         )
+    }
+
+    private fun carrierTarget(
+        regularClass: FirRegularClass,
+    ): FirValidationTarget {
+        val classId = regularClass.symbol.classId
+        return FirValidationTarget(
+            "Invalid @SpreadPackCarrierOf target ${classId.asString()}",
+        )
+    }
+
+    private fun FirValidationTarget.invalid(
+        reason: String,
+    ): Nothing {
+        throw IllegalStateException("$messagePrefix: $reason")
     }
 
     private fun String.toPascalCase(): String {

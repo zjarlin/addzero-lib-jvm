@@ -99,6 +99,63 @@ class SheetReducerTest {
         )
         assertNull(sheet.cell(SheetCellAddress(1, 2)))
     }
+
+    @Test
+    fun pasteCellsClearsEmptyTargetsAndExpandsSheetBounds() {
+        val before = SheetDocument(
+            documentId = "paste-demo",
+            activeSheetId = "sheet-1",
+            sheets = listOf(
+                SheetPage(
+                    sheetId = "sheet-1",
+                    title = "Sheet1",
+                    rowCount = 2,
+                    columnCount = 2,
+                    cells = mapOf(
+                        SheetCellAddress(0, 0) to SheetCellValue.infer("A1"),
+                    ),
+                ),
+            ),
+        )
+
+        val after = SheetReducer.apply(
+            document = before,
+            operation = PasteCells(
+                sheetId = "sheet-1",
+                startAddress = SheetCellAddress(2, 2),
+                patches = listOf(
+                    SheetPasteCellPatch(
+                        rowOffset = 0,
+                        columnOffset = 0,
+                        value = SheetCellValue.infer("C3"),
+                    ),
+                    SheetPasteCellPatch(
+                        rowOffset = 0,
+                        columnOffset = 1,
+                        value = null,
+                    ),
+                    SheetPasteCellPatch(
+                        rowOffset = 1,
+                        columnOffset = 1,
+                        value = SheetCellValue.infer("D4"),
+                    ),
+                ),
+            ),
+        )
+
+        val sheet = after.activeSheet()!!
+        assertEquals(4, sheet.rowCount)
+        assertEquals(4, sheet.columnCount)
+        assertEquals(
+            SheetCellValue.infer("C3"),
+            sheet.cell(SheetCellAddress(2, 2)),
+        )
+        assertNull(sheet.cell(SheetCellAddress(2, 3)))
+        assertEquals(
+            SheetCellValue.infer("D4"),
+            sheet.cell(SheetCellAddress(3, 3)),
+        )
+    }
 }
 
 private fun sampleDocument(): SheetDocument {

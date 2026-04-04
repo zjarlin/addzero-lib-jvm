@@ -2,9 +2,8 @@ package site.addzero.example
 
 import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
 import site.addzero.kcp.spreadpack.SpreadArgsOf
-import site.addzero.kcp.spreadpack.SpreadOverload
-import site.addzero.kcp.spreadpack.SpreadOverloadsOf
 import site.addzero.kcp.spreadpack.SpreadPack
+import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
 import site.addzero.kcp.spreadpack.SpreadPackSelector
 
 data class FormOptions(
@@ -49,10 +48,8 @@ data class WrapperArgs(
 fun renderWrapper(
     @SpreadPack
     @SpreadArgsOf(
-        overload = SpreadOverload(
-            of = SpreadOverloadsOf("site.addzero.example.renderBase"),
-            parameterTypes = [BaseOptions::class],
-        ),
+        functionFqName = "site.addzero.example.renderBase",
+        parameterTypes = [BaseOptions::class],
         exclude = ["debug"],
     )
     args: WrapperArgs,
@@ -60,6 +57,19 @@ fun renderWrapper(
     val done = args.onDone?.invoke() ?: "-"
     return "wrapper:${args.title}:${args.count}:$done"
 }
+
+@SpreadPackCarrierOf(
+    functionFqName = "site.addzero.example.renderBase",
+    parameterTypes = [BaseOptions::class],
+    exclude = ["debug", "onDone"],
+)
+class RenderAliasArgs
+
+@GenerateSpreadPackOverloads
+fun renderAlias(
+    @SpreadPack
+    args: RenderAliasArgs,
+): String = "alias:${args.title}:${args.count}:true"
 
 fun invokeSpreadPackExample(): String {
     val formResult = submitForm(
@@ -71,5 +81,8 @@ fun invokeSpreadPackExample(): String {
         count = 2,
         onDone = { "done" },
     )
-    return "$formResult|$wrapperResult"
+    val aliasResult = renderAlias(
+        count = 3,
+    )
+    return "$formResult|$wrapperResult|$aliasResult"
 }

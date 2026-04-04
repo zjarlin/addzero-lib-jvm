@@ -205,6 +205,39 @@ class SpreadPackCompilerIntegrationTest {
     }
 
     @Test
+    fun generates_annotated_empty_carrier_from_referenced_function() {
+        val result = compile(
+            mapOf(
+                "site/addzero/example/GeneratedCarrierTargets.kt" to generatedCarrierTargetsSource(),
+            ),
+        )
+
+        assertEquals(0, result.exitCode, result.output)
+
+        val targetsKt = result.loadClass("site.addzero.example.GeneratedCarrierTargetsKt")
+        assertEquals("untitled:3:true", targetsKt.getMethod("invokeGeneratedCarrier").invoke(null))
+
+        val generatedCarrierClass = result.loadClass("site.addzero.example.RenderAliasArgs")
+        assertTrue(
+            generatedCarrierClass.declaredMethods.any { method -> method.name == "getTitle" },
+            generatedCarrierClass.declaredMethods.joinToString("\n"),
+        )
+
+        val generatedCallablesKt = result.loadClass("site.addzero.example.__GENERATED__CALLABLES__Kt")
+        val methods = generatedCallablesKt.declaredMethods.toList()
+        assertTrue(
+            methods.any { method ->
+                method.name == "renderAlias" &&
+                    method.parameterTypes.map(Class<*>::getName) == listOf(
+                        "java.lang.String",
+                        "int",
+                    )
+            },
+            methods.joinToString("\n"),
+        )
+    }
+
+    @Test
     fun marks_generated_overloads_with_source_metadata() {
         val memberResult = compile(
             mapOf(
@@ -376,8 +409,6 @@ class SpreadPackCompilerIntegrationTest {
 
             import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
             import site.addzero.kcp.spreadpack.SpreadArgsOf
-            import site.addzero.kcp.spreadpack.SpreadOverload
-            import site.addzero.kcp.spreadpack.SpreadOverloadsOf
             import site.addzero.kcp.spreadpack.SpreadPack
 
             data class BaseOptions(
@@ -405,10 +436,8 @@ class SpreadPackCompilerIntegrationTest {
             fun renderWrapper(
                 @SpreadPack
                 @SpreadArgsOf(
-                    overload = SpreadOverload(
-                        of = SpreadOverloadsOf("site.addzero.example.renderBase"),
-                        parameterTypes = [BaseOptions::class],
-                    ),
+                    functionFqName = "site.addzero.example.renderBase",
+                    parameterTypes = [BaseOptions::class],
                     exclude = ["debug"],
                 )
                 args: WrapperArgs,
@@ -697,6 +726,40 @@ class SpreadPackCompilerIntegrationTest {
                     count = 5,
                     onDone = { "done" },
                 )
+        """.trimIndent()
+    }
+
+    private fun generatedCarrierTargetsSource(): String {
+        return """
+            package site.addzero.example
+
+            import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+            import site.addzero.kcp.spreadpack.SpreadPack
+            import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
+
+            fun renderBase(
+                title: String = "untitled",
+                count: Int = 0,
+                debug: Boolean = false,
+            ): String = "${'$'}title:${'$'}count:${'$'}debug"
+
+            @SpreadPackCarrierOf(
+                functionFqName = "site.addzero.example.renderBase",
+                exclude = ["debug"],
+            )
+            class RenderAliasArgs
+
+            @GenerateSpreadPackOverloads
+            fun renderAlias(
+                @SpreadPack
+                args: RenderAliasArgs,
+            ): String = renderBase(
+                title = args.title,
+                count = args.count,
+                debug = true,
+            )
+
+            fun invokeGeneratedCarrier(): String = renderAlias(count = 3)
         """.trimIndent()
     }
 

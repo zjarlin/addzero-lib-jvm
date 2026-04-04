@@ -91,7 +91,6 @@ object PublishedKspPluginSpecs {
             defaultValues = mapOf(
                 "enumOutputPackage" to "site.addzero.generated.enum",
             ),
-            verifyExtensionDefaults = true,
         ),
         PublishedKspPluginSpec(
             implementationClass = "site.addzero.ksp.genreified.gradle.GenReifiedGradlePlugin",

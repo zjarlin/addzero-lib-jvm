@@ -9,12 +9,15 @@ import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.builders.irSetField
+import org.jetbrains.kotlin.ir.builders.irTemporary
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
@@ -46,11 +49,18 @@ import org.jetbrains.kotlin.name.Name
 private data class IrCarrierMetadata(
     val irClass: IrClass,
     val primaryConstructor: org.jetbrains.kotlin.ir.declarations.IrConstructor,
+    val generatedProperties: List<IrProperty> = emptyList(),
 )
 
 private data class IrFlattenedFieldSpec(
     val name: Name,
     val type: IrType,
+)
+
+private data class IrCarrierDeclaredField(
+    val name: Name,
+    val type: IrType,
+    val constructorIndex: Int,
 )
 
 private data class IrSpreadArgsReference(
@@ -115,6 +125,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             }
 
             override fun visitClass(declaration: IrClass) {
+                lowerAnnotatedCarrierClass(declaration, pluginContext)
                 processFunctionContainer(
                     functions = declaration.declarations.filterIsInstance<IrSimpleFunction>(),
                     processWholeClass = declaration.hasAnnotation(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation),
@@ -155,6 +166,52 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
     }
 
+    private fun lowerAnnotatedCarrierClass(
+        declaration: IrClass,
+        pluginContext: IrPluginContext,
+    ) {
+        if (declaration.getSpreadPackCarrierOfAnnotation() == null) {
+            return
+        }
+        val generatedPrimaryConstructor = declaration.declarations
+            .filterIsInstance<IrConstructor>()
+            .firstOrNull { constructor ->
+                constructor.isPrimary && constructor.isGeneratedBySpreadPackPlugin()
+            } ?: return
+        val generatedProperties = declaration.declarations
+            .filterIsInstance<IrProperty>()
+            .filter { property -> property.isGeneratedBySpreadPackPlugin() }
+        if (generatedProperties.isEmpty()) {
+            return
+        }
+        val parametersByName = generatedPrimaryConstructor.valueParameters.associateBy { parameter ->
+            parameter.name.asString()
+        }
+        val existingStatements = (generatedPrimaryConstructor.body as? IrBlockBody)
+            ?.statements
+            .orEmpty()
+            .toList()
+        generatedPrimaryConstructor.body = DeclarationIrBuilder(pluginContext, generatedPrimaryConstructor.symbol).irBlockBody {
+            existingStatements.forEach { statement ->
+                +statement
+            }
+            val thisReceiver = declaration.thisReceiver ?: return@irBlockBody
+            generatedProperties.forEach { property ->
+                val backingField = property.backingField ?: return@forEach
+                val parameter = parametersByName[property.name.asString()]
+                    ?: invalidCarrierTarget(
+                        declaration,
+                        "missing constructor parameter for generated property ${property.name.asString()}",
+                    )
+                +irSetField(
+                    receiver = irGet(thisReceiver),
+                    field = backingField,
+                    value = irGet(parameter),
+                )
+            }
+        }
+    }
+
     private fun isAnnotatedOriginal(
         function: IrSimpleFunction,
         processWholeClass: Boolean,
@@ -165,7 +222,9 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         if (!processWholeClass && !function.hasAnnotation(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation)) {
             return false
         }
-        return function.valueParameters.any { parameter -> parameter.getSpreadPackAnnotation() != null }
+        return function.valueParameters.any { parameter ->
+            parameter.getSpreadPackAnnotation() != null || parameter.getSpreadPackOfAnnotation() != null
+        }
     }
 
     private fun resolveMatch(
@@ -239,14 +298,47 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         parameter: IrValueParameter,
         pluginContext: IrPluginContext,
     ): IrSpreadPackExpansion? {
-        val spreadPackAnnotation = parameter.getSpreadPackAnnotation() ?: return null
+        val spreadPackOfAnnotation = parameter.getSpreadPackOfAnnotation()
+        val spreadPackAnnotation = parameter.getSpreadPackAnnotation()
+        if (spreadPackAnnotation == null && spreadPackOfAnnotation == null) {
+            return null
+        }
         val carrier = resolveCarrierMetadata(owner, parameter)
+        if (spreadPackOfAnnotation != null) {
+            if (spreadPackAnnotation != null) {
+                invalidTarget(
+                    owner,
+                    "parameter ${parameter.name.asString()} cannot combine @SpreadPackOf with @SpreadPack",
+                )
+            }
+            if (parameter.getSpreadArgsOfAnnotation() != null) {
+                invalidTarget(
+                    owner,
+                    "parameter ${parameter.name.asString()} cannot combine @SpreadPackOf with @SpreadArgsOf",
+                )
+            }
+            return IrSpreadPackExpansion(
+                parameterIndex = parameterIndex,
+                carrierClass = carrier.irClass,
+                constructor = carrier.primaryConstructor,
+                selectorKind = SelectorKind.PROPS,
+                excludedNames = emptySet(),
+                fields = buildCarrierFields(
+                    owner = owner,
+                    carrier = carrier,
+                    selectorKind = SelectorKind.PROPS,
+                    excludedNames = emptySet(),
+                ),
+            )
+        }
+        val baseSpreadPackAnnotation = spreadPackAnnotation
+            ?: error("spread-pack annotation missing for ${parameter.name.asString()}")
         val spreadArgsAnnotation = parameter.getSpreadArgsOfAnnotation()
         val selectorKind = spreadArgsAnnotation?.selectorKind()
-            ?: spreadPackAnnotation.selectorKind()
+            ?: baseSpreadPackAnnotation.selectorKind()
         val excludedNames = spreadArgsAnnotation?.excludedNames()
-            ?: spreadPackAnnotation.excludedNames()
-        if (spreadArgsAnnotation != null && !spreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
+            ?: baseSpreadPackAnnotation.excludedNames()
+        if (spreadArgsAnnotation != null && !baseSpreadPackAnnotation.isDefaultSpreadPackConfiguration()) {
             invalidTarget(
                 owner,
                 "parameter ${parameter.name.asString()} must keep @SpreadPack at default values when @SpreadArgsOf is present",
@@ -315,6 +407,23 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 "generic spread-pack carriers are not supported in v1: ${carrierClass.name.asString()}",
             )
         }
+        if (carrierClass.getSpreadPackCarrierOfAnnotation() != null) {
+            val generatedProperties = carrierClass.declarations
+                .filterIsInstance<IrProperty>()
+                .filter { property -> property.isGeneratedBySpreadPackPlugin() }
+            val noArgConstructor = carrierClass.declarations
+                .filterIsInstance<org.jetbrains.kotlin.ir.declarations.IrConstructor>()
+                .firstOrNull { constructor -> constructor.valueParameters.isEmpty() }
+                ?: invalidTarget(
+                    owner,
+                    "annotated spread-pack carrier ${carrierClass.name.asString()} must expose a no-arg constructor",
+                )
+            return IrCarrierMetadata(
+                irClass = carrierClass,
+                primaryConstructor = noArgConstructor,
+                generatedProperties = generatedProperties,
+            )
+        }
         val primaryConstructor = carrierClass.declarations
             .filterIsInstance<org.jetbrains.kotlin.ir.declarations.IrConstructor>()
             .firstOrNull { constructor -> constructor.isPrimary }
@@ -334,27 +443,27 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         selectorKind: SelectorKind,
         excludedNames: Set<String>,
     ): List<IrSpreadPackField> {
-        val constructorParameters = carrier.primaryConstructor.valueParameters
+        val declaredFields = carrierDeclaredFields(carrier)
         validateExcludedNames(
             owner = owner,
             excludedNames = excludedNames,
-            availableNames = constructorParameters.map { constructorParameter -> constructorParameter.name.asString() },
+            availableNames = declaredFields.map { declaredField -> declaredField.name.asString() },
             contextLabel = carrier.irClass.name.asString(),
         )
-        val selectedParameters = constructorParameters.filter { constructorParameter ->
-            shouldIncludeField(constructorParameter, selectorKind) &&
-                constructorParameter.name.asString() !in excludedNames
+        val selectedFields = declaredFields.filter { declaredField ->
+            shouldIncludeField(declaredField.type, selectorKind) &&
+                declaredField.name.asString() !in excludedNames
         }
         validateCarrierOmissions(
             owner = owner,
             carrier = carrier,
-            selectedCarrierNames = selectedParameters.map { constructorParameter -> constructorParameter.name.asString() }.toSet(),
+            selectedCarrierNames = selectedFields.map { declaredField -> declaredField.name.asString() }.toSet(),
         )
-        return selectedParameters.map { constructorParameter ->
+        return selectedFields.map { declaredField ->
             IrSpreadPackField(
-                name = constructorParameter.name,
-                type = constructorParameter.type,
-                constructorIndex = carrier.primaryConstructor.valueParameters.indexOf(constructorParameter),
+                name = declaredField.name,
+                type = declaredField.type,
+                constructorIndex = declaredField.constructorIndex,
             )
         }
     }
@@ -374,29 +483,29 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             excludedNames = excludedNames,
             contextLabel = referenceDescription,
         )
-        val carrierParametersByName = carrier.primaryConstructor.valueParameters.associateBy { constructorParameter ->
-            constructorParameter.name.asString()
+        val carrierFieldsByName = carrierDeclaredFields(carrier).associateBy { declaredField ->
+            declaredField.name.asString()
         }
         val selectedCarrierNames = linkedSetOf<String>()
         return selectedFields.map { field ->
             val fieldName = field.name.asString()
-            val carrierParameter = carrierParametersByName[fieldName]
+            val carrierField = carrierFieldsByName[fieldName]
                 ?: invalidTarget(
                     owner,
                     "spread-pack carrier ${carrier.irClass.name.asString()} is missing argsof field $fieldName from $referenceDescription",
                 )
-            if (!sameIrType(carrierParameter.type, field.type)) {
+            if (!sameIrType(carrierField.type, field.type)) {
                 invalidTarget(
                     owner,
-                    "spread-pack carrier ${carrier.irClass.name.asString()} field $fieldName type ${carrierParameter.type} " +
+                    "spread-pack carrier ${carrier.irClass.name.asString()} field $fieldName type ${carrierField.type} " +
                         "does not match $referenceDescription field type ${field.type}",
                 )
             }
             selectedCarrierNames += fieldName
             IrSpreadPackField(
-                name = carrierParameter.name,
+                name = carrierField.name,
                 type = field.type,
-                constructorIndex = carrier.primaryConstructor.valueParameters.indexOf(carrierParameter),
+                constructorIndex = carrierField.constructorIndex,
             )
         }.also { fields ->
             validateCarrierOmissions(
@@ -547,6 +656,9 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         carrier: IrCarrierMetadata,
         selectedCarrierNames: Set<String>,
     ) {
+        if (carrier.generatedProperties.isNotEmpty()) {
+            return
+        }
         carrier.primaryConstructor.valueParameters.forEach { constructorParameter ->
             if (constructorParameter.name.asString() !in selectedCarrierNames && constructorParameter.defaultValue == null) {
                 invalidTarget(
@@ -571,6 +683,29 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             invalidTarget(
                 owner,
                 "duplicate flattened parameter names in $contextLabel: ${duplicates.joinToString()}",
+            )
+        }
+    }
+
+    private fun carrierDeclaredFields(
+        carrier: IrCarrierMetadata,
+    ): List<IrCarrierDeclaredField> {
+        if (carrier.generatedProperties.isNotEmpty()) {
+            return carrier.generatedProperties.map { property ->
+                val fieldType = property.backingField?.type ?: property.getter?.returnType
+                    ?: error("Generated spread-pack carrier property ${property.name.asString()} is missing a readable type")
+                IrCarrierDeclaredField(
+                    name = property.name,
+                    type = fieldType,
+                    constructorIndex = -1,
+                )
+            }
+        }
+        return carrier.primaryConstructor.valueParameters.mapIndexed { index, parameter ->
+            IrCarrierDeclaredField(
+                name = parameter.name,
+                type = parameter.type,
+                constructorIndex = index,
             )
         }
     }
@@ -725,15 +860,43 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     return@forEachIndexed
                 }
 
+                if (expansion.fields.all { field -> field.constructorIndex >= 0 }) {
+                    val constructorCall = irCall(expansion.constructor.symbol)
+                    expansion.fields.forEach { field ->
+                        constructorCall.putValueArgument(
+                            field.constructorIndex,
+                            irGet(generated.valueParameters[generatedParameterCursor]),
+                        )
+                        generatedParameterCursor += 1
+                    }
+                    call.putValueArgument(index, constructorCall)
+                    return@forEachIndexed
+                }
+
                 val constructorCall = irCall(expansion.constructor.symbol)
+                val carrierTemp = irTemporary(constructorCall)
+                val generatedProperties = expansion.carrierClass.declarations
+                    .filterIsInstance<IrProperty>()
+                    .filter { property -> property.isGeneratedBySpreadPackPlugin() }
+                    .associateBy { property -> property.name.asString() }
                 expansion.fields.forEach { field ->
-                    constructorCall.putValueArgument(
-                        field.constructorIndex,
-                        irGet(generated.valueParameters[generatedParameterCursor]),
-                    )
+                    val property = generatedProperties[field.name.asString()]
+                        ?: invalidTarget(
+                            match.original,
+                            "annotated spread-pack carrier ${expansion.carrierClass.name.asString()} is missing generated property ${field.name.asString()}",
+                        )
+                    val setter = property.setter
+                        ?: invalidTarget(
+                            match.original,
+                            "annotated spread-pack carrier ${expansion.carrierClass.name.asString()} property ${field.name.asString()} is missing setter",
+                        )
+                    +irCall(setter.symbol).apply {
+                        dispatchReceiver = irGet(carrierTemp)
+                        putValueArgument(0, irGet(generated.valueParameters[generatedParameterCursor]))
+                    }
                     generatedParameterCursor += 1
                 }
-                call.putValueArgument(index, constructorCall)
+                call.putValueArgument(index, irGet(carrierTemp))
             }
         }
 
@@ -845,10 +1008,24 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
     }
 
+    private fun IrValueParameter.getSpreadPackOfAnnotation(): IrConstructorCall? {
+        return annotations.firstOrNull { annotation ->
+            (annotation.type.classifierOrNull?.owner as? IrClass)?.fqNameWhenAvailable ==
+                SpreadPackPluginKeys.spreadPackOfAnnotation
+        }
+    }
+
     private fun IrValueParameter.getSpreadArgsOfAnnotation(): IrConstructorCall? {
         return annotations.firstOrNull { annotation ->
             (annotation.type.classifierOrNull?.owner as? IrClass)?.fqNameWhenAvailable ==
                 SpreadPackPluginKeys.spreadArgsOfAnnotation
+        }
+    }
+
+    private fun IrClass.getSpreadPackCarrierOfAnnotation(): IrConstructorCall? {
+        return annotations.firstOrNull { annotation ->
+            (annotation.type.classifierOrNull?.owner as? IrClass)?.fqNameWhenAvailable ==
+                SpreadPackPluginKeys.spreadPackCarrierOfAnnotation
         }
     }
 
@@ -875,6 +1052,18 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun IrConstructorCall.spreadArgsReference(): IrSpreadArgsReference {
+        val directFunctionFqName = (getValueArgument(Name.identifier("functionFqName")) as? IrConst)
+            ?.value as? String
+        val directParameterTypeClassIds = classIdArguments(Name.identifier("parameterTypes"))
+        if (!directFunctionFqName.isNullOrBlank()) {
+            return IrSpreadArgsReference(
+                functionFqName = directFunctionFqName,
+                parameterTypeClassIds = directParameterTypeClassIds,
+            )
+        }
+        if (directParameterTypeClassIds.isNotEmpty()) {
+            error("spread-pack functionFqName must not be blank when parameterTypes are specified")
+        }
         val overloadAnnotation = getValueArgument(Name.identifier("overload")) as? IrConstructorCall
             ?: error("SpreadArgsOf.overload must be an annotation value")
         val overloadsAnnotation = overloadAnnotation.getValueArgument(Name.identifier("of")) as? IrConstructorCall
@@ -939,6 +1128,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         return annotations.any { annotation ->
             (annotation.type.classifierOrNull?.owner as? IrClass)?.fqNameWhenAvailable == annotationFqName
         }
+    }
+
+    private fun IrDeclaration.isGeneratedBySpreadPackPlugin(): Boolean {
+        val declarationOrigin = origin
+        return declarationOrigin is IrDeclarationOrigin.GeneratedByPlugin &&
+            declarationOrigin.pluginKey == SpreadPackGeneratedDeclarationKey
     }
 
     private fun sameIrType(
@@ -1006,6 +1201,14 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     ): Nothing {
         val fqName = function.fqNameWhenAvailable?.asString() ?: function.name.asString()
         throw IllegalStateException("Invalid @GenerateSpreadPackOverloads target $fqName: $reason")
+    }
+
+    private fun invalidCarrierTarget(
+        irClass: IrClass,
+        reason: String,
+    ): Nothing {
+        val fqName = irClass.fqNameWhenAvailable?.asString() ?: irClass.name.asString()
+        throw IllegalStateException("Invalid @SpreadPackCarrierOf target $fqName: $reason")
     }
 
     private fun String.toPascalCase(): String {

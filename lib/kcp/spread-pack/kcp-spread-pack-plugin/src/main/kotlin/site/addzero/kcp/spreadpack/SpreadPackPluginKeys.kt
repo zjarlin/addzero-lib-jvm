@@ -20,6 +20,18 @@ internal object SpreadPackPluginKeys {
     val spreadPackAnnotationClassId = ClassId.topLevel(
         spreadPackAnnotation,
     )
+    val spreadPackOfAnnotation = FqName(
+        "site.addzero.kcp.spreadpack.SpreadPackOf",
+    )
+    val spreadPackOfAnnotationClassId = ClassId.topLevel(
+        spreadPackOfAnnotation,
+    )
+    val spreadPackCarrierOfAnnotation = FqName(
+        "site.addzero.kcp.spreadpack.SpreadPackCarrierOf",
+    )
+    val spreadPackCarrierOfAnnotationClassId = ClassId.topLevel(
+        spreadPackCarrierOfAnnotation,
+    )
     val spreadArgsOfAnnotation = FqName(
         "site.addzero.kcp.spreadpack.SpreadArgsOf",
     )

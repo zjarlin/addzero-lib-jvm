@@ -83,13 +83,23 @@ class SheetState internal constructor(
     }
 }
 
+fun createSheetState(
+    activeSheetId: String? = null,
+    viewport: SheetViewport = SheetViewport(),
+): SheetState {
+    return SheetState(
+        activeSheetId = activeSheetId,
+        viewport = viewport,
+    )
+}
+
 @Composable
 fun rememberSheetState(
     activeSheetId: String? = null,
     viewport: SheetViewport = SheetViewport(),
 ): SheetState {
     return remember(activeSheetId, viewport) {
-        SheetState(
+        createSheetState(
             activeSheetId = activeSheetId,
             viewport = viewport,
         )

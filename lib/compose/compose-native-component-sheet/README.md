@@ -23,4 +23,9 @@ Compose Multiplatform 在线表格 UI 壳。
 
 - 单击选中单元格，再次单击进入编辑
 - 拖拽单元格可直接框选连续区域
-- 选区支持向下填充、向右填充、插删行列
+- 选区支持复制、粘贴纯文本/TSV、向下填充、向右填充、插删行列
+
+## 独立启动预览
+
+- 运行桌面预览：
+  `./gradlew :lib:compose:compose-native-component-sheet:previewSheetWorkbench`

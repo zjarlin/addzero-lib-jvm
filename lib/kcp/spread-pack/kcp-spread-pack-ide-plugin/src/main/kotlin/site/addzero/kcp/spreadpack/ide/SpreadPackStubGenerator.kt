@@ -43,6 +43,7 @@ internal class SpreadPackStubGenerator(
         val topLevelScopes = linkedMapOf<String, MutableList<IdeFunctionModel>>()
         val memberScopes = mutableListOf<MemberTargetScope>()
         val functionsByCallableFqName = linkedMapOf<String, MutableList<IdeFunctionModel>>()
+        val annotatedCarrierSeeds = linkedMapOf<String, IdeAnnotatedCarrierSeed>()
 
         collectKotlinFiles().forEach { ktFile ->
             analyze(ktFile) {
@@ -51,34 +52,68 @@ internal class SpreadPackStubGenerator(
                     topLevelScopes = topLevelScopes,
                     memberScopes = memberScopes,
                     functionsByCallableFqName = functionsByCallableFqName,
+                    annotatedCarrierSeeds = annotatedCarrierSeeds,
                 )
             }
         }
 
+        val generatedCarrierStubs = buildList {
+            annotatedCarrierSeeds.values.forEach { seed ->
+                try {
+                    add(resolveAnnotatedCarrierStub(seed, functionsByCallableFqName))
+                } catch (error: InvalidSpreadPackTargetException) {
+                    logger.warn(error.message)
+                }
+            }
+        }
+        val carrierFieldsByClassId = generatedCarrierStubs.associate { stub ->
+            stub.classId to stub.fields
+        }
+        val resolvedFunctionsByCallableFqName = functionsByCallableFqName.mapValues { (_, originals) ->
+            originals.map { function ->
+                function.withResolvedCarrierFields(carrierFieldsByClassId)
+            }
+        }
+        val resolvedTopLevelScopes = topLevelScopes.mapValues { (_, originals) ->
+            originals.map { function ->
+                function.withResolvedCarrierFields(carrierFieldsByClassId)
+            }
+        }
+        val resolvedMemberScopes = memberScopes.map { scope ->
+            scope.copy(
+                originals = scope.originals.map { function ->
+                    function.withResolvedCarrierFields(carrierFieldsByClassId)
+                },
+            )
+        }
+
         val generatedFunctions = buildList {
-            topLevelScopes.values.forEach { originals ->
+            resolvedTopLevelScopes.values.forEach { originals ->
                 addAll(
                     buildCandidates(
                         originals = originals,
                         existingJvmKeys = originals.mapTo(linkedSetOf()) { function ->
                             jvmSignatureKey(function.name, function.parameters.map { parameter -> parameter.type })
                         },
-                        functionsByCallableFqName = functionsByCallableFqName,
+                        functionsByCallableFqName = resolvedFunctionsByCallableFqName,
                     ),
                 )
             }
-            memberScopes.forEach { scope ->
+            resolvedMemberScopes.forEach { scope ->
                 addAll(
                     buildCandidates(
                         originals = scope.originals,
                         existingJvmKeys = scope.existingJvmKeys,
-                        functionsByCallableFqName = functionsByCallableFqName,
+                        functionsByCallableFqName = resolvedFunctionsByCallableFqName,
                     ),
                 )
             }
         }
 
-        return renderGeneratedFiles(generatedFunctions)
+        return SpreadPackStubRenderer.renderGeneratedFiles(
+            candidates = generatedFunctions,
+            carrierStubs = generatedCarrierStubs,
+        )
     }
 
     private fun collectKotlinFiles(): List<KtFile> {
@@ -98,6 +133,7 @@ internal class SpreadPackStubGenerator(
         topLevelScopes: MutableMap<String, MutableList<IdeFunctionModel>>,
         memberScopes: MutableList<MemberTargetScope>,
         functionsByCallableFqName: MutableMap<String, MutableList<IdeFunctionModel>>,
+        annotatedCarrierSeeds: MutableMap<String, IdeAnnotatedCarrierSeed>,
     ) {
         file.declarations.forEach { declaration ->
             when (declaration) {
@@ -121,6 +157,7 @@ internal class SpreadPackStubGenerator(
                     klass = declaration,
                     memberScopes = memberScopes,
                     functionsByCallableFqName = functionsByCallableFqName,
+                    annotatedCarrierSeeds = annotatedCarrierSeeds,
                 )
             }
         }
@@ -130,6 +167,7 @@ internal class SpreadPackStubGenerator(
         klass: KtClassOrObject,
         memberScopes: MutableList<MemberTargetScope>,
         functionsByCallableFqName: MutableMap<String, MutableList<IdeFunctionModel>>,
+        annotatedCarrierSeeds: MutableMap<String, IdeAnnotatedCarrierSeed>,
     ) {
         val classSymbol = klass.symbol as? KaNamedClassSymbol ?: return
         if (classSymbol.isInner) {
@@ -139,6 +177,11 @@ internal class SpreadPackStubGenerator(
             )
             return
         }
+        collectAnnotatedCarrierSeed(
+            klass = klass,
+            classSymbol = classSymbol,
+            annotatedCarrierSeeds = annotatedCarrierSeeds,
+        )
 
         val processWholeClass = hasAnnotation(
             classSymbol,
@@ -174,6 +217,7 @@ internal class SpreadPackStubGenerator(
                     klass = declaration,
                     memberScopes = memberScopes,
                     functionsByCallableFqName = functionsByCallableFqName,
+                    annotatedCarrierSeeds = annotatedCarrierSeeds,
                 )
             }
         }
@@ -263,6 +307,24 @@ internal class SpreadPackStubGenerator(
         if (carrierClass.isInterface() || carrierClass.isEnum() || carrierClass.isAnnotation()) {
             return null
         }
+        val carrierAnnotation = findAnnotation(
+            carrierClassSymbol,
+            SpreadPackIdeaConstants.spreadPackCarrierOfAnnotation,
+        )
+        if (carrierAnnotation != null) {
+            val spreadPackSelector = spreadPackAnnotation.selectorKind()
+            val spreadPackExclude = spreadPackAnnotation.stringArrayArgument("exclude").toSet()
+            val spreadArgsOfAnnotation = findAnnotation(symbol, SpreadPackIdeaConstants.spreadArgsOfAnnotation)
+            return IdeSpreadPackParameterModel(
+                carrierClassId = carrierClassSymbol.requireClassId().asSingleFqName().asString(),
+                carrierClassShortName = carrierClassSymbol.requireClassId().shortClassName.asString(),
+                carrierFields = emptyList(),
+                selectorKind = spreadArgsOfAnnotation?.selectorKind() ?: spreadPackSelector,
+                excludedNames = spreadArgsOfAnnotation?.stringArrayArgument("exclude")?.toSet() ?: spreadPackExclude,
+                reference = spreadArgsOfAnnotation?.spreadArgsReference(),
+                spreadPackAtDefault = spreadPackSelector == SelectorKind.PROPS && spreadPackExclude.isEmpty(),
+            )
+        }
         val primaryConstructor = carrierClass.primaryConstructor
             ?: return null
         val carrierFields = primaryConstructor.valueParameters.mapNotNull { constructorParameter ->
@@ -292,6 +354,63 @@ internal class SpreadPackStubGenerator(
             name = parameterSymbol.name.asString(),
             type = toIdeType(parameterSymbol.returnType, emptyMap()),
             hasDefaultValue = parameter.hasDefaultValue(),
+        )
+    }
+
+    private fun KaSession.collectAnnotatedCarrierSeed(
+        klass: KtClassOrObject,
+        classSymbol: KaNamedClassSymbol,
+        annotatedCarrierSeeds: MutableMap<String, IdeAnnotatedCarrierSeed>,
+    ) {
+        if (klass !is KtClass) {
+            return
+        }
+        val annotation = findAnnotation(
+            classSymbol,
+            SpreadPackIdeaConstants.spreadPackCarrierOfAnnotation,
+        ) ?: return
+        val classId = classSymbol.requireClassId().asSingleFqName().asString()
+        annotatedCarrierSeeds[classId] = IdeAnnotatedCarrierSeed(
+            packageName = classSymbol.requireClassId().packageFqName.asString(),
+            classId = classId,
+            classShortName = classSymbol.requireClassId().shortClassName.asString(),
+            reference = annotation.spreadArgsReference()
+                ?: throw InvalidSpreadPackTargetException(
+                    "Invalid @SpreadPackCarrierOf target $classId: must specify functionFqName or overload",
+                ),
+            selectorKind = annotation.selectorKind(),
+            excludedNames = annotation.stringArrayArgument("exclude").toSet(),
+        )
+    }
+
+    private fun resolveAnnotatedCarrierStub(
+        seed: IdeAnnotatedCarrierSeed,
+        functionsByCallableFqName: Map<String, List<IdeFunctionModel>>,
+    ): IdeGeneratedCarrierStub {
+        val validationOwner = seed.validationOwner()
+        val referencedOverload = resolveReferencedOverload(
+            owner = validationOwner,
+            reference = seed.reference,
+            functionsByCallableFqName = functionsByCallableFqName,
+        )
+        val overloadKey = overloadKey(referencedOverload)
+        val flattenedFields = flattenFunctionParameters(
+            owner = validationOwner,
+            function = referencedOverload,
+            functionsByCallableFqName = functionsByCallableFqName,
+            visitedOverloads = linkedSetOf(overloadKey),
+        )
+        return IdeGeneratedCarrierStub(
+            packageName = seed.packageName,
+            classId = seed.classId,
+            classShortName = seed.classShortName,
+            fields = selectFlattenedFields(
+                owner = validationOwner,
+                fields = flattenedFields,
+                selectorKind = seed.selectorKind,
+                excludedNames = seed.excludedNames,
+                contextLabel = referencedOverload.callableFqName,
+            ),
         )
     }
 
@@ -883,6 +1002,19 @@ internal class SpreadPackStubGenerator(
     }
 
     private fun KaAnnotation.spreadArgsReference(): IdeSpreadArgsReference? {
+        val directFunctionFqName = stringArgument("functionFqName")?.takeIf { functionFqName ->
+            functionFqName.isNotBlank()
+        }
+        val directParameterTypes = classLiteralArrayArgument("parameterTypes")
+        if (directFunctionFqName != null) {
+            return IdeSpreadArgsReference(
+                functionFqName = directFunctionFqName,
+                parameterTypes = directParameterTypes,
+            )
+        }
+        if (directParameterTypes.isNotEmpty()) {
+            error("spread-pack functionFqName must not be blank when parameterTypes are specified")
+        }
         val overloadAnnotation = nestedAnnotationArgument("overload") ?: return null
         val overloadsAnnotation = overloadAnnotation.nestedAnnotationArgument("of") ?: return null
         val functionFqName = overloadsAnnotation.stringArgument("functionFqName") ?: return null
@@ -916,103 +1048,6 @@ internal class SpreadPackStubGenerator(
                 append(parameter.type.jvmErasure())
                 append(";")
             }
-        }
-    }
-
-    private fun renderGeneratedFiles(
-        candidates: List<IdeGeneratedOverloadCandidate>,
-    ): List<IdeGeneratedFile> {
-        if (candidates.isEmpty()) {
-            return emptyList()
-        }
-        return candidates.groupBy { candidate -> candidate.original.packageName }
-            .map { (packageName, packageCandidates) ->
-                val relativePath = buildString {
-                    if (packageName.isNotBlank()) {
-                        append(packageName.replace('.', '/'))
-                        append("/")
-                    }
-                    append(SpreadPackIdeaConstants.stubFileName)
-                }
-                IdeGeneratedFile(
-                    relativePath = relativePath,
-                    packageName = packageName,
-                    topLevelCallableNames = packageCandidates.mapTo(linkedSetOf()) { candidate -> candidate.generatedName },
-                    topLevelClassifierNames = emptySet(),
-                    content = buildString {
-                        appendLine("@file:Suppress(\"unused\")")
-                        if (packageName.isNotBlank()) {
-                            appendLine("package $packageName")
-                            appendLine()
-                        }
-                        packageCandidates
-                            .sortedWith(compareBy({ it.original.name }, { it.generatedName }))
-                            .forEachIndexed { index, candidate ->
-                                if (index > 0) {
-                                    appendLine()
-                                }
-                                append(renderFunction(candidate))
-                                appendLine()
-                            }
-                    },
-                )
-            }
-    }
-
-    private fun renderFunction(
-        candidate: IdeGeneratedOverloadCandidate,
-    ): String {
-        val function = candidate.original
-        return buildString {
-            val modifiers = buildList {
-                function.visibilityKeyword?.let(::add)
-                if (function.isSuspend) {
-                    add("suspend")
-                }
-                if (function.isOperator) {
-                    add("operator")
-                }
-                if (function.isInfix) {
-                    add("infix")
-                }
-            }
-            if (modifiers.isNotEmpty()) {
-                append(modifiers.joinToString(separator = " "))
-                append(" ")
-            }
-            append("fun ")
-            if (function.allTypeParameters.isNotEmpty()) {
-                append(
-                    function.allTypeParameters.joinToString(
-                        prefix = "<",
-                        postfix = "> ",
-                    ) { typeParameter -> typeParameter.declarationText },
-                )
-            }
-            function.receiverTypeText?.let { receiverType ->
-                append(receiverType)
-                append(".")
-            }
-            append(candidate.generatedName)
-            append("(")
-            append(
-                candidate.generatedParameters.joinToString(separator = ", ") { parameter ->
-                    val pieces = mutableListOf<String>()
-                    if (parameter.isVararg) {
-                        pieces += "vararg"
-                    }
-                    pieces += "${parameter.name}: ${parameter.type.renderTypeText()}"
-                    if (parameter.hasDefaultValue) {
-                        pieces += "= kotlin.TODO()"
-                    }
-                    pieces.joinToString(separator = " ")
-                },
-            )
-            append("): ")
-            append(function.returnType.renderTypeText())
-            append(" = kotlin.error(\"")
-            append(SpreadPackIdeaConstants.stubErrorMessage)
-            append("\")")
         }
     }
 
@@ -1075,9 +1110,54 @@ internal class SpreadPackStubGenerator(
         return (this as? IdeClassTypeModel)?.classId
     }
 
+    private fun IdeFunctionModel.withResolvedCarrierFields(
+        carrierFieldsByClassId: Map<String, List<IdeCarrierFieldModel>>,
+    ): IdeFunctionModel {
+        return copy(
+            parameters = parameters.map { parameter ->
+                val spreadPack = parameter.spreadPack ?: return@map parameter
+                val resolvedFields = carrierFieldsByClassId[spreadPack.carrierClassId] ?: spreadPack.carrierFields
+                parameter.copy(
+                    spreadPack = spreadPack.copy(
+                        carrierFields = resolvedFields,
+                    ),
+                )
+            },
+        )
+    }
+
+    private fun IdeAnnotatedCarrierSeed.validationOwner(): IdeFunctionModel {
+        return IdeFunctionModel(
+            callableFqName = classId,
+            packageName = packageName,
+            ownerClassFqName = null,
+            ownerTypeParameters = emptyList(),
+            name = classShortName,
+            typeParameters = emptyList(),
+            parameters = emptyList(),
+            returnType = IdeOpaqueTypeModel(
+                renderedText = classId,
+                erasureKey = classId,
+            ),
+            visibilityKeyword = null,
+            isSuspend = false,
+            isOperator = false,
+            isInfix = false,
+        )
+    }
+
     private data class MemberTargetScope(
         val originals: List<IdeFunctionModel>,
         val existingJvmKeys: Set<String>,
+    )
+
+    private data class IdeAnnotatedCarrierSeed(
+        val packageName: String,
+        val classId: String,
+        val classShortName: String,
+        val reference: IdeSpreadArgsReference,
+        val selectorKind: SelectorKind,
+        val excludedNames: Set<String>,
     )
 
     private class InvalidSpreadPackTargetException(

@@ -17,6 +17,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
         }
         jvmMain.dependencies {
 //            implementation(libs.findLibrary("com-squareup-kotlinpoet").get())

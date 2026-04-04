@@ -168,6 +168,33 @@ object SheetReducer {
                 page.copy(cells = nextCells)
             }
 
+            is PasteCells -> updateSheet(document, operation.sheetId) { page ->
+                val nextCells = page.cells.toMutableMap()
+                var maxRowIndex = page.rowCount - 1
+                var maxColumnIndex = page.columnCount - 1
+
+                operation.patches.forEach { patch ->
+                    val targetAddress = SheetCellAddress(
+                        rowIndex = operation.startAddress.rowIndex + patch.rowOffset,
+                        columnIndex = operation.startAddress.columnIndex + patch.columnOffset,
+                    )
+                    maxRowIndex = maxOf(maxRowIndex, targetAddress.rowIndex)
+                    maxColumnIndex = maxOf(maxColumnIndex, targetAddress.columnIndex)
+
+                    if (patch.value == null || patch.value.kind == SheetCellValueKind.EMPTY) {
+                        nextCells.remove(targetAddress)
+                    } else {
+                        nextCells[targetAddress] = patch.value
+                    }
+                }
+
+                page.copy(
+                    rowCount = maxOf(1, maxRowIndex + 1),
+                    columnCount = maxOf(1, maxColumnIndex + 1),
+                    cells = nextCells,
+                )
+            }
+
             is RenameSheet -> updateSheet(document, operation.sheetId) { page ->
                 page.copy(title = operation.title)
             }

@@ -27,6 +27,9 @@ controller.selectRange(
 controller.startEditing(SheetCellAddress(rowIndex = 0, columnIndex = 0))
 controller.updateEditingInput("设备编号")
 controller.commitEditing()
+
+controller.pastePlainText("设备编号\t启用\nA-001\ttrue")
+val exported = controller.selectedRangeAsPlainText()
 ```
 
 ## 边界
@@ -34,3 +37,9 @@ controller.commitEditing()
 - 这个模块只提供 sheet engine 骨架，不内置公式求值器
 - 多人协同的 OT / CRDT、presence 广播、权限与审计由上层数据源接入
 - 如果只是服务端分页 CRUD 列表，请继续用 `compose-crud-spi`
+- 纯文本复制/粘贴默认按 `TSV/换行` 处理，适合表格与剪贴板互通
+
+## 独立启动验证
+
+- 运行纯引擎场景：
+  `./gradlew :lib:compose:compose-sheet-spi:runSheetEngineScenario`

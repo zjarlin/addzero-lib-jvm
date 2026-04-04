@@ -129,6 +129,13 @@ internal data class IdeGeneratedOverloadCandidate(
     val expansions: List<IdeSpreadPackExpansion>,
 )
 
+internal data class IdeGeneratedCarrierStub(
+    val packageName: String,
+    val classId: String,
+    val classShortName: String,
+    val fields: List<IdeCarrierFieldModel>,
+)
+
 internal data class IdeGeneratedFile(
     val relativePath: String,
     val packageName: String,

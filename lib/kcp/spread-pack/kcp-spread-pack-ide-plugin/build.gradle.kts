@@ -5,9 +5,15 @@ plugins {
 }
 
 group = "site.addzero"
+val libs = versionCatalogs.named("libs")
 
 dependencies {
     implementation(project(":lib:kcp:spread-pack:kcp-spread-pack-annotations"))
+    testImplementation(libs.findLibrary("junit-junit").get())
+}
+
+tasks.test {
+    useJUnit()
 }
 
 tasks.named<RunIdeTask>("runIde") {

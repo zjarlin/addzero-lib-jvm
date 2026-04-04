@@ -8,7 +8,7 @@ class SpreadPackExampleTest {
     @Test
     fun generated_overloads_compile_and_run() {
         assertEquals(
-            "form:demo:true:-|wrapper:hello:2:done",
+            "form:demo:true:-|wrapper:hello:2:done|alias::3:true",
             invokeSpreadPackExample(),
         )
     }

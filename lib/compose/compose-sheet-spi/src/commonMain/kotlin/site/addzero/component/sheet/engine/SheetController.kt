@@ -237,6 +237,73 @@ class SheetController internal constructor() {
         )
     }
 
+    fun selectedRangeAsPlainText(): String? {
+        val sheet = activeSheet ?: return null
+        val range = stateHolder.selection.activeRange
+            ?: stateHolder.editingCell?.let(SheetRange::single)
+            ?: return null
+        val normalizedStart = range.normalizedStart
+        val normalizedEnd = range.normalizedEnd
+
+        return buildString {
+            for (rowIndex in normalizedStart.rowIndex..normalizedEnd.rowIndex) {
+                if (rowIndex > normalizedStart.rowIndex) {
+                    append('\n')
+                }
+                for (columnIndex in normalizedStart.columnIndex..normalizedEnd.columnIndex) {
+                    if (columnIndex > normalizedStart.columnIndex) {
+                        append('\t')
+                    }
+                    append(
+                        sheet.cell(
+                            SheetCellAddress(
+                                rowIndex = rowIndex,
+                                columnIndex = columnIndex,
+                            ),
+                        )?.raw.orEmpty(),
+                    )
+                }
+            }
+        }
+    }
+
+    fun pastePlainText(rawText: String): SheetRange? {
+        val sheet = activeSheet ?: return null
+        val parsedClipboard = parsePlainTextClipboard(rawText) ?: return null
+        val startAddress = stateHolder.editingCell
+            ?: stateHolder.selection.primaryCell
+            ?: SheetCellAddress(rowIndex = 0, columnIndex = 0)
+        val targetRange = SheetRange(
+            start = startAddress,
+            end = SheetCellAddress(
+                rowIndex = startAddress.rowIndex + parsedClipboard.rowCount - 1,
+                columnIndex = startAddress.columnIndex + parsedClipboard.columnCount - 1,
+            ),
+        )
+
+        stateHolder.stopEditing()
+        applyOperations(
+            operations = listOf(
+                PasteCells(
+                    sheetId = sheet.sheetId,
+                    startAddress = startAddress,
+                    patches = parsedClipboard.patches,
+                ),
+            ),
+            afterSuccess = {
+                stateHolder.selectRange(
+                    range = targetRange,
+                    mode = if (targetRange.isSingleCell) {
+                        SheetSelectionMode.CELL
+                    } else {
+                        SheetSelectionMode.RANGE
+                    },
+                )
+            },
+        )
+        return targetRange
+    }
+
     fun insertRowsAboveSelection(count: Int = 1) {
         if (count <= 0) {
             return
@@ -444,6 +511,24 @@ class SheetController internal constructor() {
     }
 }
 
+fun createSheetController(
+    scope: CoroutineScope,
+    dataSource: SheetDataSource,
+    state: SheetState = createSheetState(),
+    resolveLoadErrorMessage: (Throwable) -> String = { it.message ?: "加载表格失败" },
+    resolveSaveErrorMessage: (Throwable) -> String = { it.message ?: "保存表格失败" },
+): SheetController {
+    return SheetController().also { controller ->
+        controller.bind(
+            scope = scope,
+            state = state,
+            dataSource = dataSource,
+            resolveLoadErrorMessage = resolveLoadErrorMessage,
+            resolveSaveErrorMessage = resolveSaveErrorMessage,
+        )
+    }
+}
+
 @Composable
 fun rememberSheetController(
     dataSource: SheetDataSource,
@@ -456,7 +541,13 @@ fun rememberSheetController(
 ): SheetController {
     val scope = rememberCoroutineScope()
     val controller = remember {
-        SheetController()
+        createSheetController(
+            scope = scope,
+            dataSource = dataSource,
+            state = state,
+            resolveLoadErrorMessage = resolveLoadErrorMessage,
+            resolveSaveErrorMessage = resolveSaveErrorMessage,
+        )
     }
 
     controller.bind(
@@ -479,4 +570,76 @@ fun rememberSheetController(
     }
 
     return controller
+}
+
+private data class ParsedPlainTextClipboard(
+    val rowCount: Int,
+    val columnCount: Int,
+    val patches: List<SheetPasteCellPatch>,
+)
+
+private fun parsePlainTextClipboard(rawText: String): ParsedPlainTextClipboard? {
+    val normalized = rawText
+        .replace("\r\n", "\n")
+        .replace('\r', '\n')
+        .trimEnd('\n')
+    val lines = splitPreservingDelimiters(
+        input = if (rawText.isEmpty()) "" else normalized,
+        delimiter = '\n',
+    )
+    if (lines.isEmpty()) {
+        return null
+    }
+
+    var maxColumnCount = 0
+    val patches = buildList {
+        lines.forEachIndexed { rowOffset, line ->
+            val cells = splitPreservingDelimiters(
+                input = line,
+                delimiter = '\t',
+            )
+            maxColumnCount = maxOf(maxColumnCount, cells.size)
+            cells.forEachIndexed { columnOffset, cellRaw ->
+                add(
+                    SheetPasteCellPatch(
+                        rowOffset = rowOffset,
+                        columnOffset = columnOffset,
+                        value = cellRaw.takeUnless(String::isEmpty)?.let(SheetCellValue::infer),
+                    ),
+                )
+            }
+        }
+    }
+
+    if (maxColumnCount == 0) {
+        return null
+    }
+
+    return ParsedPlainTextClipboard(
+        rowCount = lines.size,
+        columnCount = maxColumnCount,
+        patches = patches,
+    )
+}
+
+private fun splitPreservingDelimiters(
+    input: String,
+    delimiter: Char,
+): List<String> {
+    if (input.isEmpty()) {
+        return listOf("")
+    }
+
+    val result = mutableListOf<String>()
+    val current = StringBuilder()
+    input.forEach { char ->
+        if (char == delimiter) {
+            result += current.toString()
+            current.clear()
+        } else {
+            current.append(char)
+        }
+    }
+    result += current.toString()
+    return result
 }

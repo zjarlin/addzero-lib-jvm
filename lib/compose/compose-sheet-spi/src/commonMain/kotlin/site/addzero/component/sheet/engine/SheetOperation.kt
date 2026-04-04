@@ -9,6 +9,12 @@ sealed interface SheetOperation {
     val sheetId: String
 }
 
+data class SheetPasteCellPatch(
+    val rowOffset: Int,
+    val columnOffset: Int,
+    val value: SheetCellValue?,
+)
+
 data class PutCellValue(
     override val sheetId: String,
     val address: SheetCellAddress,
@@ -52,6 +58,12 @@ data class FillDownRange(
 data class FillRightRange(
     override val sheetId: String,
     val range: SheetRange,
+) : SheetOperation
+
+data class PasteCells(
+    override val sheetId: String,
+    val startAddress: SheetCellAddress,
+    val patches: List<SheetPasteCellPatch>,
 ) : SheetOperation
 
 data class RenameSheet(

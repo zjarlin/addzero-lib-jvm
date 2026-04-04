@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
     application
-    id("site.addzero.kcp.i18n")
+    id("site.addzero.kcp.i18n") version "+"
 }
 
 i18n {
