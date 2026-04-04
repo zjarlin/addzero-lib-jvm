@@ -17,50 +17,23 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun GeneratedComposable() {
     Box(
-        modifier = Modifier.offset(8.dp, 8.dp).size(1562.dp, 2148.dp)
+        modifier = Modifier.offset(-36.dp, -50.dp).size(884.dp, 638.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(Color(0xFFFFFFFF))
             .padding(20.dp),
     ) {
-        Box(
-            modifier = Modifier.offset(20.dp, 20.dp).size(1522.dp, 2108.dp)
+        Row(
+            modifier = Modifier.offset(131.dp, 261.dp).size(388.dp, 147.dp)
                 .clip(RoundedCornerShape(22.dp))
                 .background(Color(0xFFFFFFFF))
                 .padding(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(text = "Text", modifier = Modifier.offset(268.dp, 58.dp))
-            Text(text = "Text", modifier = Modifier.offset(674.dp, 162.dp))
-            Spacer(modifier = Modifier.offset(72.dp, 171.dp).size(300.dp, 70.dp))
-            Row(
-                modifier = Modifier.offset(434.dp, 248.dp).size(293.dp, 252.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color(0xFFFFFFFF))
-                    .padding(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-            }
-            Column(
-                modifier = Modifier.offset(730.dp, 478.dp).size(220.dp, 160.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color(0xFFFFFFFF))
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(text = "Text", modifier = Modifier)
-                Box(modifier = Modifier.size(96.dp, 96.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xFFE9EEF6)))
-            }
-            Row(
-                modifier = Modifier.offset(90.dp, 552.dp).size(411.dp, 333.dp)
-                    .clip(RoundedCornerShape(22.dp))
-                    .background(Color(0xFFFFFFFF))
-                    .padding(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Button(onClick = { }, modifier = Modifier) {
-                    Text("Button")
-                }
-                IconPlaceholder(modifier = Modifier)
-            }
+            IconPlaceholder(modifier = Modifier)
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(text = "Text", modifier = Modifier)
+            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.size(100.dp, 24.dp))
         }
     }
 }
