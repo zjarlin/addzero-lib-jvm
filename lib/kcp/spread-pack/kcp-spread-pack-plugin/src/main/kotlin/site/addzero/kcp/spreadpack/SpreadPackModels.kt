@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -40,6 +41,7 @@ internal data class IrSpreadPackField(
     val name: Name,
     val type: IrType,
     val constructorIndex: Int,
+    val defaultValue: IrExpressionBody?,
 )
 
 internal data class IrSpreadPackExpansion(

@@ -275,6 +275,99 @@ class SpreadPackGradleSubpluginSmokeTest {
     }
 
     @Test
+    fun compiles_kmp_jvm_with_compose_text_carrier() {
+        val javaHome = System.getProperty("java.home")
+        val localRepositoryDir = createLocalMavenRepository()
+        val testProjectDir = Files.createTempDirectory("spread-pack-compose-text-jvm")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile(localRepositoryDir))
+        writeFile(testProjectDir, "build.gradle.kts", composeCarrierConsumerBuildFile())
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "src/commonMain/kotlin/site/addzero/example/SpreadPackComposeTextJvm.kt",
+            """
+                package site.addzero.example
+
+                import androidx.compose.foundation.text.TextAutoSize
+                import androidx.compose.ui.Modifier
+                import androidx.compose.ui.graphics.Color
+                import androidx.compose.ui.text.TextStyle
+                import androidx.compose.ui.text.font.FontFamily
+                import androidx.compose.ui.text.font.FontStyle
+                import androidx.compose.ui.text.font.FontWeight
+                import androidx.compose.ui.text.style.TextAlign
+                import androidx.compose.ui.text.style.TextDecoration
+                import androidx.compose.ui.text.style.TextOverflow
+                import androidx.compose.ui.unit.TextUnit
+                import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
+                import site.addzero.kcp.spreadpack.SpreadPack
+                import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
+
+                @SpreadPackCarrierOf(
+                    value = "androidx.compose.material3.Text",
+                    parameterTypes = [
+                        String::class,
+                        Modifier::class,
+                        Color::class,
+                        TextAutoSize::class,
+                        TextUnit::class,
+                        FontStyle::class,
+                        FontWeight::class,
+                        FontFamily::class,
+                        TextUnit::class,
+                        TextDecoration::class,
+                        TextAlign::class,
+                        TextUnit::class,
+                        TextOverflow::class,
+                        Boolean::class,
+                        Int::class,
+                        Int::class,
+                        Function1::class,
+                        TextStyle::class,
+                    ],
+                    exclude = [
+                        "autoSize",
+                        "fontSize",
+                        "fontStyle",
+                        "fontWeight",
+                        "fontFamily",
+                        "letterSpacing",
+                        "textDecoration",
+                        "lineHeight",
+                        "overflow",
+                        "softWrap",
+                        "maxLines",
+                        "minLines",
+                        "onTextLayout",
+                        "style",
+                    ],
+                )
+                class M3TextArgs
+
+                @GenerateSpreadPackOverloads
+                fun renderAlias(
+                    @SpreadPack
+                    args: M3TextArgs,
+                ): String = "${'$'}{args.text}:${'$'}{args.modifier}:${'$'}{args.color}:${'$'}{args.textAlign}"
+            """.trimIndent(),
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withPluginClasspath()
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                "compileKotlinJvm",
+            )
+            .forwardOutput()
+            .build()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+    }
+
+    @Test
     fun compiles_kmp_common_main_metadata_with_local_named_default_values() {
         val javaHome = System.getProperty("java.home")
         val localRepositoryDir = createLocalMavenRepository()
@@ -400,7 +493,11 @@ class SpreadPackGradleSubpluginSmokeTest {
             groupId = pluginGroup,
             artifactId = "kcp-spread-pack-plugin",
             version = pluginVersion,
-            jarFile = findPrimaryJar(compilerPluginBuildDir, "kcp-spread-pack-plugin"),
+            jarFile = findPrimaryJar(
+                buildDir = compilerPluginBuildDir,
+                artifactPrefix = "kcp-spread-pack-plugin",
+                version = pluginVersion,
+            ),
         )
         installKotlinMultiplatformAnnotationsModule(
             repositoryDir = repositoryDir,
@@ -411,8 +508,12 @@ class SpreadPackGradleSubpluginSmokeTest {
         return repositoryDir
     }
 
-    private fun findPrimaryJar(buildDir: Path, artifactPrefix: String): Path {
+    private fun findPrimaryJar(buildDir: Path, artifactPrefix: String, version: String): Path {
         val libsDir = buildDir.resolve("libs")
+        val versionedJar = libsDir.resolve("$artifactPrefix-$version.jar")
+        if (Files.isRegularFile(versionedJar)) {
+            return versionedJar
+        }
         Files.list(libsDir).use { files ->
             val candidates = mutableListOf<Path>()
             files
@@ -426,8 +527,10 @@ class SpreadPackGradleSubpluginSmokeTest {
                 }
                 .forEach { path -> candidates.add(path) }
             return candidates
-                .sortedWith(compareBy<Path> { path -> path.fileName.toString().length }
-                    .thenBy { path -> path.fileName.toString() })
+                .sortedWith(
+                    compareByDescending<Path> { path -> Files.getLastModifiedTime(path).toMillis() }
+                        .thenByDescending { path -> path.fileName.toString().length },
+                )
                 .firstOrNull()
                 ?: throw IllegalStateException("Missing primary jar for $artifactPrefix under $libsDir")
         }

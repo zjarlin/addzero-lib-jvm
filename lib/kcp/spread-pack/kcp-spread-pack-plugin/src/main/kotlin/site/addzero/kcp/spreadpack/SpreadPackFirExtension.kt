@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirFile
+import org.jetbrains.kotlin.fir.declarations.FirClass
+import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
@@ -47,10 +49,13 @@ import org.jetbrains.kotlin.fir.expressions.FirNamedArgumentExpression
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.buildResolvedArgumentList
+import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotation
+import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationArgumentMapping
 import org.jetbrains.kotlin.fir.expressions.builder.buildFunctionCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildLiteralExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.builder.buildThrowExpression
+import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
 import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.expressions.impl.buildSingleExpressionBlock
 import org.jetbrains.kotlin.fir.extensions.ExperimentalTopLevelDeclarationsGenerationApi
@@ -65,7 +70,10 @@ import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate
 import org.jetbrains.kotlin.fir.extensions.predicate.LookupPredicate.BuilderContext.annotated as lookupAnnotated
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.plugin.copyFirFunctionWithResolvePhase
+import org.jetbrains.kotlin.fir.plugin.createConstructor
 import org.jetbrains.kotlin.fir.plugin.createMemberProperty
+import org.jetbrains.kotlin.fir.plugin.createTopLevelClass
+import org.jetbrains.kotlin.fir.packageFqName
 import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.builder.buildPropertyFromParameterResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.toResolvedBaseSymbol
@@ -73,9 +81,17 @@ import org.jetbrains.kotlin.fir.resolve.providers.dependenciesSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.resolve.providers.getRegularClassSymbolByClassId
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.SupertypeSupplier
+import org.jetbrains.kotlin.fir.resolve.TypeResolutionConfiguration
 import org.jetbrains.kotlin.fir.resolve.toRegularClassSymbol
+import org.jetbrains.kotlin.fir.resolve.typeResolver
+import org.jetbrains.kotlin.fir.scopes.createImportingScopes
+import org.jetbrains.kotlin.fir.scopes.FirScope
+import org.jetbrains.kotlin.fir.scopes.impl.FirMemberTypeParameterScope
 import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirConstructorSymbol
@@ -86,8 +102,15 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.toFirResolvedTypeRef
 import org.jetbrains.kotlin.fir.toEffectiveVisibility
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
+import org.jetbrains.kotlin.fir.types.ConeErrorType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.ConeKotlinTypeProjectionIn
+import org.jetbrains.kotlin.fir.types.ConeKotlinTypeProjectionOut
+import org.jetbrains.kotlin.fir.types.ConeStarProjection
+import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneType
+import org.jetbrains.kotlin.fir.types.constructClassLikeType
 import org.jetbrains.kotlin.fir.types.isNullableString
 import org.jetbrains.kotlin.fir.types.renderForDebugging
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -99,8 +122,10 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.text
 import org.jetbrains.kotlin.types.ConstantValueKind
+import org.jetbrains.kotlin.fir.declarations.FirPropertyBodyResolveState
 
 private data class FirCarrierMetadata(
     val classId: ClassId,
@@ -150,6 +175,8 @@ class SpreadPackFirExtension(
     session: FirSession,
 ) : FirDeclarationGenerationExtension(session) {
 
+    private val typeResolutionScopeSession = ScopeSession()
+
     private val targetClassPredicate = DeclarationPredicate.create {
         annotated(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation)
     }
@@ -170,6 +197,13 @@ class SpreadPackFirExtension(
         classSymbol: FirClassSymbol<*>,
         context: MemberGenerationContext,
     ): Set<Name> {
+        val generatedCarrierRequest = findGeneratedCarrierRequest(classSymbol)
+        if (generatedCarrierRequest != null) {
+            return linkedSetOf<Name>().apply {
+                add(SpecialNames.INIT)
+                addAll(generatedCarrierRequest.fields.map { field -> field.name })
+            }
+        }
         if (!classSymbol.fir.origin.fromSource) {
             return emptySet()
         }
@@ -268,7 +302,7 @@ class SpreadPackFirExtension(
             .mapTo(linkedSetOf()) { function ->
                 jvmSignatureKey(
                     name = function.callableId.callableName,
-                    parameterTypes = function.fir.valueParameters.map { parameter -> parameter.returnTypeRef.coneType },
+                    parameterTypes = function.fir.valueParameters.map { parameter -> parameterTypeKey(parameter.returnTypeRef) },
                 )
         }
         return buildCandidates(originals, existingJvmKeys)
@@ -402,17 +436,44 @@ class SpreadPackFirExtension(
         context: MemberGenerationContext?,
     ): List<org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol> {
         val memberContext = context ?: return emptyList()
-        val request = findAnnotatedCarrierRequest(memberContext.owner) ?: return emptyList()
-        val field = request.fields.firstOrNull { candidate -> candidate.name == callableId.callableName }
+        val annotatedRequest = findAnnotatedCarrierRequest(memberContext.owner)
+        if (annotatedRequest != null) {
+            val field = annotatedRequest.fields.firstOrNull { candidate -> candidate.name == callableId.callableName }
+                ?: return emptyList()
+            return listOf(buildAnnotatedCarrierProperty(annotatedRequest, field).symbol)
+        }
+        val generatedRequest = findGeneratedCarrierRequest(memberContext.owner) ?: return emptyList()
+        val field = generatedRequest.fields.firstOrNull { candidate -> candidate.name == callableId.callableName }
             ?: return emptyList()
-        return listOf(buildAnnotatedCarrierProperty(request, field).symbol)
+        return listOf(buildGeneratedCarrierProperty(memberContext.owner, field).symbol)
     }
 
     override fun generateConstructors(
         context: MemberGenerationContext,
     ): List<FirConstructorSymbol> {
-        val request = findAnnotatedCarrierRequest(context.owner) ?: return emptyList()
-        return listOf(buildAnnotatedCarrierConstructor(request).symbol)
+        val annotatedRequest = findAnnotatedCarrierRequest(context.owner)
+        if (annotatedRequest != null) {
+            return listOf(buildAnnotatedCarrierConstructor(annotatedRequest).symbol)
+        }
+        val generatedRequest = findGeneratedCarrierRequest(context.owner) ?: return emptyList()
+        val constructor = createConstructor(
+            owner = context.owner,
+            key = SpreadPackGeneratedDeclarationKey,
+            isPrimary = true,
+            generateDelegatedNoArgConstructorCall = true,
+        ) {
+            generatedRequest.fields.forEach { field ->
+                valueParameter(
+                    name = field.name,
+                    type = field.resolvedType,
+                    hasDefaultValue = field.defaultValue != null,
+                )
+            }
+        }
+        constructor.valueParameters.zip(generatedRequest.fields).forEach { (parameter, field) ->
+            parameter.replaceDefaultValue(generatedDefaultValueOrNull(field.defaultValue))
+        }
+        return listOf(constructor.symbol)
     }
 
     private fun findAnnotatedCarrierRequest(
@@ -420,6 +481,19 @@ class SpreadPackFirExtension(
     ): FirAnnotatedCarrierRequest? {
         val regularClass = owner.fir as? FirRegularClass ?: return null
         return buildAnnotatedCarrierRequest(regularClass)
+    }
+
+    private fun findGeneratedCarrierRequest(
+        owner: FirClassSymbol<*>,
+    ): FirGeneratedCarrierRequest? {
+        val ownerClassId = (owner as? FirRegularClassSymbol)?.classId ?: return null
+        findTopLevelGeneratedCarrierRequests()
+            .firstOrNull { request -> request.classId == ownerClassId }
+            ?.let { request -> return request }
+        val outerClassId = ownerClassId.outerClassId ?: return null
+        val outerClassSymbol = session.getRegularClassSymbolByClassId(outerClassId) ?: return null
+        return findMemberGeneratedCarrierRequests(outerClassSymbol)
+            .firstOrNull { request -> request.classId == ownerClassId }
     }
 
     private fun buildAnnotatedCarrierRequest(
@@ -547,6 +621,20 @@ class SpreadPackFirExtension(
         )
     }
 
+    private fun buildGeneratedCarrierProperty(
+        owner: FirClassSymbol<*>,
+        field: FirFlattenedFieldSpec,
+    ): org.jetbrains.kotlin.fir.declarations.FirProperty {
+        return createMemberProperty(
+            owner = owner,
+            key = SpreadPackGeneratedDeclarationKey,
+            name = field.name,
+            returnType = field.resolvedType,
+            isVal = false,
+            hasBackingField = true,
+        )
+    }
+
     private fun buildGeneratedCarrierRequest(
         owner: FirNamedFunctionSymbol,
         parameter: FirValueParameter,
@@ -611,7 +699,9 @@ class SpreadPackFirExtension(
         annotation: FirAnnotation,
     ): ClassId {
         val explicitName = annotation.stringArgumentOrNull("generatedClassName")
-        val classIdFromType = (parameter.returnTypeRef.coneType as? ConeClassLikeType)
+        val classIdFromType = (parameter.returnTypeRef as? FirResolvedTypeRef)
+            ?.coneType
+            ?.let { coneType -> coneType as? ConeClassLikeType }
             ?.lookupTag
             ?.classId
             ?.takeIf(::isUsableGeneratedCarrierClassId)
@@ -701,80 +791,20 @@ class SpreadPackFirExtension(
             isExpect = request.owner.fir.status.isExpect
             isActual = request.owner.fir.status.isActual
         }
-        val classSymbol = FirRegularClassSymbol(request.classId)
-        val constructorSymbol = FirConstructorSymbol(request.classId)
-        val moduleData = request.owner.fir.moduleData
-        val classTypeRef = buildResolvedTypeRef {
+        val generatedClass = createTopLevelClass(
+            classId = request.classId,
+            key = SpreadPackGeneratedDeclarationKey,
+            classKind = ClassKind.CLASS,
+        ) {
             source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
-            coneType = ConeClassLikeTypeImpl(
-                request.classId.toLookupTag(),
-                ConeTypeProjection.EMPTY_ARRAY,
-                isMarkedNullable = false,
-            )
-        }
-        val constructorParameters = request.fields.map { field ->
-            buildValueParameter {
-                source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
-                this.moduleData = moduleData
-                origin = SpreadPackGeneratedDeclarationKey.origin
-                resolvePhase = FirResolvePhase.BODY_RESOLVE
-                returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
-                name = field.name
-                symbol = FirValueParameterSymbol()
-                defaultValue = generatedDefaultValueOrNull(field.defaultValue)
-                containingDeclarationSymbol = constructorSymbol
+            this.visibility = visibility
+            this.modality = Modality.FINAL
+            status {
+                isExpect = request.owner.fir.status.isExpect
+                isActual = request.owner.fir.status.isActual
             }
         }
-        val constructor = buildPrimaryConstructor {
-            source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
-            this.moduleData = moduleData
-            origin = SpreadPackGeneratedDeclarationKey.origin
-            resolvePhase = FirResolvePhase.BODY_RESOLVE
-            this.status = status
-            isLocal = false
-            returnTypeRef = classTypeRef
-            symbol = constructorSymbol
-            valueParameters.addAll(constructorParameters)
-        }
-        val properties = constructorParameters.map { parameter ->
-            val propertySymbol = FirRegularPropertySymbol(
-                CallableId(request.classId.packageFqName, request.classId.relativeClassName, parameter.name),
-            )
-            buildProperty {
-                val propertySource = parameter.source
-                source = propertySource
-                this.moduleData = moduleData
-                origin = SpreadPackGeneratedDeclarationKey.origin
-                resolvePhase = FirResolvePhase.BODY_RESOLVE
-                returnTypeRef = parameter.returnTypeRef
-                name = parameter.name
-                initializer = buildPropertyAccessExpression {
-                    source = propertySource
-                    calleeReference = buildPropertyFromParameterResolvedNamedReference {
-                        source = propertySource
-                        name = parameter.name
-                        resolvedSymbol = parameter.symbol
-                    }
-                }
-                isVar = false
-                symbol = propertySymbol
-                this.status = status
-                isLocal = false
-            }
-        }
-        val generatedClass = buildRegularClass {
-            source = request.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
-            this.moduleData = moduleData
-            origin = SpreadPackGeneratedDeclarationKey.origin
-            resolvePhase = FirResolvePhase.BODY_RESOLVE
-            this.status = status
-            scopeProvider = session.kotlinScopeProvider
-            classKind = ClassKind.CLASS
-            name = request.classId.shortClassName
-            symbol = classSymbol
-            declarations += constructor
-            declarations += properties
-        }
+        generatedClass.replaceStatus(status)
         return generatedClass.symbol
     }
 
@@ -790,7 +820,7 @@ class SpreadPackFirExtension(
             val rawCandidate = buildCandidate(original) ?: continue
             val sameNameKey = jvmSignatureKey(
                 name = rawCandidate.generatedName,
-                parameterTypes = rawCandidate.generatedParameterTypes,
+                parameterTypes = rawCandidate.generatedParameterTypes.map(::jvmErasure),
             )
             if (sameNameKey in occupiedJvmKeys) {
                 val renamed = rawCandidate.copy(
@@ -798,7 +828,7 @@ class SpreadPackFirExtension(
                 )
                 val renamedKey = jvmSignatureKey(
                     name = renamed.generatedName,
-                    parameterTypes = renamed.generatedParameterTypes,
+                    parameterTypes = renamed.generatedParameterTypes.map(::jvmErasure),
                 )
                 if (renamedKey in occupiedJvmKeys) {
                     error(
@@ -839,7 +869,12 @@ class SpreadPackFirExtension(
                         "duplicate expanded parameter name ${parameter.name.asString()}",
                     )
                 }
-                generatedParameterTypes += parameter.returnTypeRef.coneType
+                generatedParameterTypes += resolveRequiredType(
+                    target = functionTarget(original),
+                    typeRef = parameter.returnTypeRef,
+                    owner = original,
+                    contextLabel = "parameter ${parameter.name.asString()} of ${original.callableId.asFqNameForDebugInfo()}",
+                )
             } else {
                 expansion.fields.forEach { field ->
                     val fieldName = field.parameter.name.asString()
@@ -937,7 +972,12 @@ class SpreadPackFirExtension(
         target: FirValidationTarget,
         parameter: FirValueParameter,
     ): FirCarrierMetadata {
-        val parameterType = parameter.returnTypeRef.coneType as? ConeClassLikeType
+        val parameterType = resolveRequiredType(
+            target = target,
+            typeRef = parameter.returnTypeRef,
+            owner = parameter.containingDeclarationSymbol as? FirCallableSymbol<*>,
+            contextLabel = "spread-pack parameter ${parameter.name.asString()}",
+        ) as? ConeClassLikeType
             ?: target.invalid(
                 "spread-pack parameter ${parameter.name.asString()} must reference a regular class with a primary constructor",
             )
@@ -979,25 +1019,33 @@ class SpreadPackFirExtension(
         excludedNames: Set<String>,
     ): List<FirSpreadPackField> {
         val constructorParameters = carrier.primaryConstructor.valueParameters
+        val resolvedConstructorParameters = constructorParameters.map { constructorParameter ->
+            constructorParameter to resolveRequiredType(
+                target = target,
+                typeRef = constructorParameter.returnTypeRef,
+                owner = carrier.primaryConstructor.symbol,
+                contextLabel = "spread-pack carrier ${carrier.classId.asString()} field ${constructorParameter.name.asString()}",
+            )
+        }
         validateExcludedNames(
             target = target,
             excludedNames = excludedNames,
             availableNames = constructorParameters.map { constructorParameter -> constructorParameter.name.asString() },
             contextLabel = carrier.classId.shortClassName.asString(),
         )
-        val selectedParameters = constructorParameters.filter { constructorParameter ->
-            shouldIncludeField(constructorParameter, selectorKind) &&
+        val selectedParameters = resolvedConstructorParameters.filter { (constructorParameter, resolvedType) ->
+            shouldIncludeField(resolvedType, selectorKind) &&
                 constructorParameter.name.asString() !in excludedNames
         }
         validateCarrierOmissions(
             target = target,
             carrier = carrier,
-            selectedCarrierNames = selectedParameters.map { constructorParameter -> constructorParameter.name.asString() }.toSet(),
+            selectedCarrierNames = selectedParameters.map { (constructorParameter, _) -> constructorParameter.name.asString() }.toSet(),
         )
-        return selectedParameters.map { constructorParameter ->
+        return selectedParameters.map { (constructorParameter, resolvedType) ->
             FirSpreadPackField(
                 parameter = constructorParameter,
-                resolvedType = constructorParameter.returnTypeRef.coneType,
+                resolvedType = resolvedType,
             )
         }
     }
@@ -1027,10 +1075,16 @@ class SpreadPackFirExtension(
                 ?: target.invalid(
                     "spread-pack carrier ${carrier.classId.shortClassName.asString()} is missing argsof field $fieldName from $referenceDescription",
                 )
-            if (!sameConeType(carrierParameter.returnTypeRef.coneType, field.resolvedType)) {
+            val carrierParameterType = resolveRequiredType(
+                target = target,
+                typeRef = carrierParameter.returnTypeRef,
+                owner = carrier.primaryConstructor.symbol,
+                contextLabel = "spread-pack carrier ${carrier.classId.asString()} field $fieldName",
+            )
+            if (!sameConeType(carrierParameterType, field.resolvedType)) {
                 target.invalid(
                     "spread-pack carrier ${carrier.classId.shortClassName.asString()} field $fieldName " +
-                        "type ${carrierParameter.returnTypeRef.coneType.renderForDebugging()} does not match " +
+                        "type ${carrierParameterType.renderForDebugging()} does not match " +
                         "$referenceDescription field type ${field.resolvedType.renderForDebugging()}",
                 )
             }
@@ -1066,6 +1120,7 @@ class SpreadPackFirExtension(
         return function.fir.valueParameters.flatMap { referencedParameter ->
             flattenValueParameter(
                 target = target,
+                owner = function,
                 parameter = referencedParameter,
                 visitedOverloads = visitedOverloads,
             )
@@ -1080,6 +1135,7 @@ class SpreadPackFirExtension(
 
     private fun flattenValueParameter(
         target: FirValidationTarget,
+        owner: FirCallableSymbol<*>,
         parameter: FirValueParameter,
         visitedOverloads: Set<String>,
     ): List<FirFlattenedFieldSpec> {
@@ -1088,7 +1144,12 @@ class SpreadPackFirExtension(
             ?: return listOf(
                 FirFlattenedFieldSpec(
                     name = parameter.name,
-                    resolvedType = parameter.returnTypeRef.coneType,
+                    resolvedType = resolveRequiredType(
+                        target = target,
+                        typeRef = parameter.returnTypeRef,
+                        owner = owner,
+                        contextLabel = "parameter ${parameter.name.asString()}",
+                    ),
                     defaultValue = generatedDefaultValueOrNull(parameter.defaultValue),
                 ),
             )
@@ -1231,10 +1292,17 @@ class SpreadPackFirExtension(
         }
         val matches = overloads.filter { overload ->
             val overloadParameterTypes = overload.fir.valueParameters.map { valueParameter ->
-                erasureClassId(valueParameter.returnTypeRef.coneType)
+                erasureClassId(
+                    resolveRequiredType(
+                        target = target,
+                        typeRef = valueParameter.returnTypeRef,
+                        owner = overload,
+                        contextLabel = "argsof overload ${overload.callableId.asFqNameForDebugInfo()} parameter ${valueParameter.name.asString()}",
+                    ),
+                )
                     ?: target.invalid(
                         "argsof overload ${overload.callableId.asFqNameForDebugInfo()} has unsupported parameter type " +
-                            valueParameter.returnTypeRef.coneType.renderForDebugging(),
+                            renderTypeRefForDiagnostics(valueParameter.returnTypeRef),
                     )
             }
             overloadParameterTypes.size == reference.parameterTypes.size &&
@@ -1507,8 +1575,29 @@ class SpreadPackFirExtension(
             append(function.callableId.asFqNameForDebugInfo())
             append("|")
             function.fir.valueParameters.forEach { valueParameter ->
-                append(jvmErasure(valueParameter.returnTypeRef.coneType))
+                append(parameterTypeKey(valueParameter.returnTypeRef))
                 append(";")
+            }
+        }
+    }
+
+    private fun createGeneratedOverloadAnnotation(
+        sourceFunctionFqName: String,
+    ): FirAnnotation {
+        val annotationType = SpreadPackPluginKeys.generatedSpreadPackOverloadAnnotationClassId.constructClassLikeType(
+            emptyArray(),
+            false,
+        )
+        val argument = buildLiteralExpression(
+            source = null,
+            kind = ConstantValueKind.String,
+            value = sourceFunctionFqName,
+            setType = true,
+        )
+        return buildAnnotation {
+            annotationTypeRef = annotationType.toFirResolvedTypeRef()
+            argumentMapping = buildAnnotationArgumentMapping {
+                mapping[Name.identifier("sourceFunctionFqName")] = argument
             }
         }
     }
@@ -1526,6 +1615,9 @@ class SpreadPackFirExtension(
         ) {
             source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
             annotations.clear()
+            annotations += createGeneratedOverloadAnnotation(
+                candidate.original.callableId.asFqNameForDebugInfo().asString(),
+            )
             name = candidate.generatedName
 
             val ownerClassSymbol = candidate.original.callableId.classId?.let(session::getRegularClassSymbolByClassId)
@@ -1575,7 +1667,7 @@ class SpreadPackFirExtension(
                         containingDeclarationSymbol = this@copyFirFunctionWithResolvePhase.symbol
                         origin = SpreadPackGeneratedDeclarationKey.origin
                         resolvePhase = FirResolvePhase.BODY_RESOLVE
-                        defaultValue = generatedDefaultValueOrNull(field.parameter.defaultValue)
+                        defaultValue = null
                     }
                 }
             }
@@ -1597,7 +1689,7 @@ class SpreadPackFirExtension(
             ?.forEach { function ->
                 keys += jvmSignatureKey(
                     name = function.name,
-                    parameterTypes = function.valueParameters.map { parameter -> parameter.returnTypeRef.coneType },
+                    parameterTypes = function.valueParameters.map { parameter -> parameterTypeKey(parameter.returnTypeRef) },
                 )
             }
         val declaredScope = context.declaredScope ?: return keys
@@ -1605,7 +1697,7 @@ class SpreadPackFirExtension(
             declaredScope.processFunctionsByName(callableName) { function ->
                 keys += jvmSignatureKey(
                     name = function.callableId.callableName,
-                    parameterTypes = function.fir.valueParameters.map { parameter -> parameter.returnTypeRef.coneType },
+                    parameterTypes = function.fir.valueParameters.map { parameter -> parameterTypeKey(parameter.returnTypeRef) },
                 )
             }
         }
@@ -1614,16 +1706,422 @@ class SpreadPackFirExtension(
 
     private fun jvmSignatureKey(
         name: Name,
-        parameterTypes: List<ConeKotlinType>,
+        parameterTypes: List<String>,
     ): String {
         return buildString {
             append(name.asString())
             append("|")
             parameterTypes.forEach { type ->
-                append(jvmErasure(type))
+                append(type)
                 append(";")
             }
         }
+    }
+
+    private fun parameterTypeKey(
+        typeRef: FirTypeRef,
+    ): String {
+        val resolvedType = (typeRef as? FirResolvedTypeRef)?.coneType
+        if (resolvedType != null) {
+            return jvmErasure(resolvedType)
+        }
+        return typeRef.source?.text
+            ?.toString()
+            ?.substringBefore("<")
+            ?.substringBefore("?")
+            ?.trim()
+            ?.takeIf { typeText -> typeText.isNotBlank() }
+            ?: "<unresolved>"
+    }
+
+    private fun resolveRequiredType(
+        target: FirValidationTarget,
+        typeRef: FirTypeRef,
+        owner: FirCallableSymbol<*>?,
+        contextLabel: String,
+    ): ConeKotlinType {
+        return resolveTypeOrNull(typeRef, owner)
+            ?: target.invalid(
+                "unable to resolve type for $contextLabel: ${renderTypeRefForDiagnostics(typeRef)}",
+            )
+    }
+
+    private fun resolveTypeOrNull(
+        typeRef: FirTypeRef,
+        owner: FirCallableSymbol<*>?,
+    ): ConeKotlinType? {
+        (typeRef as? FirResolvedTypeRef)?.coneType?.let { resolvedType ->
+            if (resolvedType !is ConeErrorType) {
+                return resolvedType
+            }
+        }
+        val callableOwner = owner ?: return null
+        val file = session.firProvider.getFirCallableContainerFile(callableOwner) ?: return null
+        val containingClasses = collectContainingClasses(callableOwner)
+        val scopes = buildTypeResolutionScopes(
+            file = file,
+            containingClasses = containingClasses,
+            owner = callableOwner,
+        )
+        try {
+            val result = session.typeResolver.resolveType(
+                typeRef = typeRef,
+                configuration = TypeResolutionConfiguration(
+                    scopes = scopes.asReversed(),
+                    containingClassDeclarations = containingClasses,
+                    useSiteFile = file,
+                    topContainer = null,
+                ),
+                areBareTypesAllowed = false,
+                isOperandOfIsOperator = false,
+                resolveDeprecations = false,
+                supertypeSupplier = SupertypeSupplier.Default,
+            )
+            return result.type.takeUnless { resolvedType -> resolvedType is ConeErrorType }
+        } catch (_: Throwable) {
+            return parseTypeFromSourceText(typeRef.source?.text?.toString(), file)
+        }
+    }
+
+    private fun collectContainingClasses(
+        owner: FirCallableSymbol<*>,
+    ): List<FirClass> {
+        val containingClasses = ArrayDeque<FirClass>()
+        var current = session.firProvider.getContainingClass(owner)
+        while (current != null) {
+            (current.fir as? FirClass)?.let(containingClasses::addFirst)
+            current = session.firProvider.getContainingClass(current)
+        }
+        return containingClasses.toList()
+    }
+
+    private fun buildTypeResolutionScopes(
+        file: FirFile,
+        containingClasses: List<FirClass>,
+        owner: FirCallableSymbol<*>,
+    ): List<FirScope> {
+        return buildList {
+            addAll(createImportingScopes(file, session, typeResolutionScopeSession))
+            containingClasses.forEach { containingClass ->
+                session.kotlinScopeProvider
+                    .getNestedClassifierScope(containingClass, session, typeResolutionScopeSession)
+                    ?.let { nestedClassifierScope -> add(nestedClassifierScope) }
+                (containingClass as? FirMemberDeclaration)
+                    ?.takeIf { memberDeclaration -> memberDeclaration.typeParameters.isNotEmpty() }
+                    ?.let { memberDeclaration -> add(FirMemberTypeParameterScope(memberDeclaration)) }
+            }
+            (owner.fir as? FirMemberDeclaration)
+                ?.takeIf { memberDeclaration -> memberDeclaration.typeParameters.isNotEmpty() }
+                ?.let { memberDeclaration -> add(FirMemberTypeParameterScope(memberDeclaration)) }
+        }
+    }
+
+    private fun renderTypeRefForDiagnostics(
+        typeRef: FirTypeRef,
+    ): String {
+        return (typeRef as? FirResolvedTypeRef)?.coneType?.renderForDebugging()
+            ?: typeRef.source?.text?.toString()?.trim().takeUnless { typeText -> typeText.isNullOrEmpty() }
+            ?: "<unresolved>"
+    }
+
+    private fun parseTypeFromSourceText(
+        rawTypeText: String?,
+        file: FirFile,
+    ): ConeKotlinType? {
+        val typeText = rawTypeText?.trim()?.takeIf { text -> text.isNotEmpty() } ?: return null
+        return parseTypeText(typeText, file)
+    }
+
+    private fun parseTypeText(
+        rawTypeText: String,
+        file: FirFile,
+    ): ConeKotlinType? {
+        var typeText = rawTypeText.trim()
+        if (typeText.isEmpty()) {
+            return null
+        }
+        val isMarkedNullable = typeText.endsWith("?")
+        if (isMarkedNullable) {
+            typeText = typeText.dropLast(1).trim()
+        }
+        while (isWrappedByMatchingParentheses(typeText)) {
+            typeText = typeText.substring(1, typeText.length - 1).trim()
+        }
+        val arrowIndex = findTopLevelArrow(typeText)
+        if (arrowIndex >= 0) {
+            val parameterListText = typeText.substring(0, arrowIndex).trim()
+            val returnTypeText = typeText.substring(arrowIndex + 2).trim()
+            if (!isWrappedByMatchingParentheses(parameterListText)) {
+                return null
+            }
+            val parameterTexts = splitTopLevel(
+                parameterListText.substring(1, parameterListText.length - 1),
+                ',',
+            )
+            val parameterTypes = parameterTexts
+                .map(String::trim)
+                .filter(String::isNotEmpty)
+                .mapNotNull { parameterText ->
+                    parseTypeText(
+                        parameterText.substringAfter(':', parameterText).trim(),
+                        file,
+                    )
+                }
+            if (parameterTypes.size != parameterTexts.count { parameterText -> parameterText.isNotBlank() }) {
+                return null
+            }
+            val returnType = parseTypeText(returnTypeText, file) ?: return null
+            return ConeClassLikeTypeImpl(
+                StandardClassIds.FunctionN(parameterTypes.size).toLookupTag(),
+                (parameterTypes + returnType).toTypedArray(),
+                isMarkedNullable = isMarkedNullable,
+            )
+        }
+        val genericStart = findTopLevelCharacter(typeText, '<')
+        val baseTypeName: String
+        val typeArguments: Array<ConeTypeProjection>
+        if (genericStart >= 0) {
+            if (!typeText.endsWith(">")) {
+                return null
+            }
+            baseTypeName = typeText.substring(0, genericStart).trim()
+            val argumentTexts = splitTopLevel(
+                typeText.substring(genericStart + 1, typeText.length - 1),
+                ',',
+            )
+            typeArguments = argumentTexts.mapNotNull { argumentText ->
+                parseTypeArgument(argumentText.trim(), file)
+            }.toTypedArray()
+            if (typeArguments.size != argumentTexts.size) {
+                return null
+            }
+        } else {
+            baseTypeName = typeText
+            typeArguments = ConeTypeProjection.EMPTY_ARRAY
+        }
+        val classId = resolveClassIdFromTypeName(baseTypeName, file) ?: return null
+        return ConeClassLikeTypeImpl(
+            classId.toLookupTag(),
+            typeArguments,
+            isMarkedNullable = isMarkedNullable,
+        )
+    }
+
+    private fun parseTypeArgument(
+        argumentText: String,
+        file: FirFile,
+    ): ConeTypeProjection? {
+        return when {
+            argumentText == "*" -> ConeStarProjection
+            argumentText.startsWith("out ") -> parseTypeText(argumentText.removePrefix("out ").trim(), file)
+                ?.let(::ConeKotlinTypeProjectionOut)
+            argumentText.startsWith("in ") -> parseTypeText(argumentText.removePrefix("in ").trim(), file)
+                ?.let(::ConeKotlinTypeProjectionIn)
+            else -> parseTypeText(argumentText, file)
+        }
+    }
+
+    private fun resolveClassIdFromTypeName(
+        typeName: String,
+        file: FirFile,
+    ): ClassId? {
+        resolveDefaultClassId(typeName)?.let { classId -> return classId }
+        if ('.' in typeName) {
+            resolveQualifiedLikeClassId(typeName)?.let { classId -> return classId }
+        }
+        file.imports.forEach { import ->
+            val importedFqName = import.importedFqName ?: return@forEach
+            if (import.aliasName?.asString() == typeName) {
+                resolveQualifiedLikeClassId(importedFqName.asString())?.let { classId -> return classId }
+            }
+            if (!import.isAllUnder && import.aliasName == null && importedFqName.shortName().asString() == typeName) {
+                resolveQualifiedLikeClassId(importedFqName.asString())?.let { classId -> return classId }
+            }
+        }
+        file.imports.forEach { import ->
+            val importedFqName = import.importedFqName ?: return@forEach
+            if (!import.isAllUnder) {
+                return@forEach
+            }
+            val candidate = ClassId(
+                importedFqName,
+                FqName.fromSegments(typeName.split('.')),
+                false,
+            )
+            if (hasClassLikeSymbol(candidate)) {
+                return candidate
+            }
+        }
+        val samePackageCandidate = ClassId(
+            file.packageFqName,
+            FqName.fromSegments(typeName.split('.')),
+            false,
+        )
+        if (hasClassLikeSymbol(samePackageCandidate)) {
+            return samePackageCandidate
+        }
+        StandardClassIds.builtInsPackagesWithDefaultNamedImport.forEach { packageFqName ->
+            val candidate = ClassId(
+                packageFqName,
+                FqName.fromSegments(typeName.split('.')),
+                false,
+            )
+            if (hasClassLikeSymbol(candidate)) {
+                return candidate
+            }
+        }
+        return null
+    }
+
+    private fun resolveDefaultClassId(
+        typeName: String,
+    ): ClassId? {
+        return when (typeName) {
+            "Any" -> StandardClassIds.Any
+            "Nothing" -> StandardClassIds.Nothing
+            "Unit" -> StandardClassIds.Unit
+            "String" -> StandardClassIds.String
+            "CharSequence" -> StandardClassIds.CharSequence
+            "Throwable" -> StandardClassIds.Throwable
+            "Boolean" -> StandardClassIds.Boolean
+            "Char" -> StandardClassIds.Char
+            "Byte" -> StandardClassIds.Byte
+            "Short" -> StandardClassIds.Short
+            "Int" -> StandardClassIds.Int
+            "Long" -> StandardClassIds.Long
+            "Float" -> StandardClassIds.Float
+            "Double" -> StandardClassIds.Double
+            "UByte" -> StandardClassIds.UByte
+            "UShort" -> StandardClassIds.UShort
+            "UInt" -> StandardClassIds.UInt
+            "ULong" -> StandardClassIds.ULong
+            "Array" -> StandardClassIds.Array
+            "List" -> StandardClassIds.List
+            "MutableList" -> StandardClassIds.MutableList
+            "Set" -> StandardClassIds.Set
+            "MutableSet" -> StandardClassIds.MutableSet
+            "Map" -> StandardClassIds.Map
+            "MutableMap" -> StandardClassIds.MutableMap
+            "Iterable" -> StandardClassIds.Iterable
+            "MutableIterable" -> StandardClassIds.MutableIterable
+            "Collection" -> StandardClassIds.Collection
+            "MutableCollection" -> StandardClassIds.MutableCollection
+            else -> null
+        }
+    }
+
+    private fun resolveQualifiedLikeClassId(
+        typeName: String,
+    ): ClassId? {
+        val segments = typeName.split('.').filter(String::isNotBlank)
+        if (segments.size < 2) {
+            return null
+        }
+        for (packageSegmentCount in segments.size - 1 downTo 1) {
+            val candidate = ClassId(
+                FqName.fromSegments(segments.take(packageSegmentCount)),
+                FqName.fromSegments(segments.drop(packageSegmentCount)),
+                false,
+            )
+            if (hasClassLikeSymbol(candidate)) {
+                return candidate
+            }
+        }
+        return null
+    }
+
+    private fun hasClassLikeSymbol(
+        classId: ClassId,
+    ): Boolean {
+        return session.symbolProvider.getClassLikeSymbolByClassId(classId) != null ||
+            session.dependenciesSymbolProvider.getClassLikeSymbolByClassId(classId) != null
+    }
+
+    private fun isWrappedByMatchingParentheses(
+        text: String,
+    ): Boolean {
+        if (text.length < 2 || text.first() != '(' || text.last() != ')') {
+            return false
+        }
+        var depth = 0
+        text.forEachIndexed { index, char ->
+            when (char) {
+                '(' -> depth += 1
+                ')' -> {
+                    depth -= 1
+                    if (depth == 0 && index != text.lastIndex) {
+                        return false
+                    }
+                }
+            }
+        }
+        return depth == 0
+    }
+
+    private fun findTopLevelArrow(
+        text: String,
+    ): Int {
+        var angleDepth = 0
+        var parenDepth = 0
+        text.indices.forEach { index ->
+            when (text[index]) {
+                '<' -> angleDepth += 1
+                '>' -> angleDepth = (angleDepth - 1).coerceAtLeast(0)
+                '(' -> parenDepth += 1
+                ')' -> parenDepth = (parenDepth - 1).coerceAtLeast(0)
+                '-' -> {
+                    if (angleDepth == 0 && parenDepth == 0 && index + 1 < text.length && text[index + 1] == '>') {
+                        return index
+                    }
+                }
+            }
+        }
+        return -1
+    }
+
+    private fun findTopLevelCharacter(
+        text: String,
+        target: Char,
+    ): Int {
+        var angleDepth = 0
+        var parenDepth = 0
+        text.indices.forEach { index ->
+            when (text[index]) {
+                '<' -> angleDepth += 1
+                '>' -> angleDepth = (angleDepth - 1).coerceAtLeast(0)
+                '(' -> parenDepth += 1
+                ')' -> parenDepth = (parenDepth - 1).coerceAtLeast(0)
+                target -> if (angleDepth == 0 && parenDepth == 0) return index
+            }
+        }
+        return -1
+    }
+
+    private fun splitTopLevel(
+        text: String,
+        separator: Char,
+    ): List<String> {
+        if (text.isBlank()) {
+            return emptyList()
+        }
+        val result = mutableListOf<String>()
+        var angleDepth = 0
+        var parenDepth = 0
+        var segmentStart = 0
+        text.forEachIndexed { index, char ->
+            when (char) {
+                '<' -> angleDepth += 1
+                '>' -> angleDepth = (angleDepth - 1).coerceAtLeast(0)
+                '(' -> parenDepth += 1
+                ')' -> parenDepth = (parenDepth - 1).coerceAtLeast(0)
+                separator -> if (angleDepth == 0 && parenDepth == 0) {
+                    result += text.substring(segmentStart, index)
+                    segmentStart = index + 1
+                }
+            }
+        }
+        result += text.substring(segmentStart)
+        return result
     }
 
     private fun buildRenamedFunctionName(
@@ -1639,13 +2137,6 @@ class SpreadPackFirExtension(
             expansion.carrierClassId.shortClassName.asString().toPascalCase() + selectorSuffix + "Pack"
         }
         return Name.identifier("${original.callableId.callableName.asString()}Via$suffix")
-    }
-
-    private fun shouldIncludeField(
-        parameter: FirValueParameter,
-        selectorKind: SelectorKind,
-    ): Boolean {
-        return shouldIncludeField(parameter.returnTypeRef.coneType, selectorKind)
     }
 
     private fun shouldIncludeField(
@@ -1721,6 +2212,9 @@ class SpreadPackFirExtension(
         expression: FirExpression?,
     ): FirExpression? {
         expression ?: return null
+        if (expression is FirExpressionStub) {
+            return null
+        }
         return try {
             expression.validate()
             expression

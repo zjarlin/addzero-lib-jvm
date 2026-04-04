@@ -24,7 +24,9 @@ import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrThrow
 import org.jetbrains.kotlin.ir.expressions.IrVararg
@@ -37,6 +39,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.getValueArgument
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
@@ -55,12 +58,14 @@ private data class IrCarrierMetadata(
 private data class IrFlattenedFieldSpec(
     val name: Name,
     val type: IrType,
+    val defaultValue: IrExpressionBody?,
 )
 
 private data class IrCarrierDeclaredField(
     val name: Name,
     val type: IrType,
     val constructorIndex: Int,
+    val defaultValue: IrExpressionBody?,
 )
 
 private data class IrSpreadArgsReference(
@@ -146,10 +151,6 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         val originals = functions.filter { function ->
             isAnnotatedOriginal(function, processWholeClass)
         }
-        if (originals.isEmpty()) {
-            return
-        }
-
         val candidates = functions.filter { function ->
             isGeneratedByThisPlugin(function) || hasStubBody(function)
         }
@@ -158,10 +159,13 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
 
         candidates.forEach { candidate ->
-            val match = resolveMatch(candidate, originals, pluginContext) ?: return@forEach
+            val match = resolveMatch(candidate, originals, pluginContext)
+                ?: resolveMatchFromGeneratedAnnotation(candidate, pluginContext)
+                ?: return@forEach
             generatedMarkerConstructor?.let { constructor ->
                 annotateGeneratedOverload(candidate, match.original, pluginContext, constructor)
             }
+            rewriteGeneratedParameterDefaults(candidate, match)
             candidate.body = createDelegatingBody(pluginContext, candidate, match)
         }
     }
@@ -170,9 +174,6 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         declaration: IrClass,
         pluginContext: IrPluginContext,
     ) {
-        if (declaration.getSpreadPackCarrierOfAnnotation() == null) {
-            return
-        }
         val generatedPrimaryConstructor = declaration.declarations
             .filterIsInstance<IrConstructor>()
             .firstOrNull { constructor ->
@@ -241,6 +242,22 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         return matches.first()
     }
 
+    private fun resolveMatchFromGeneratedAnnotation(
+        generated: IrSimpleFunction,
+        pluginContext: IrPluginContext,
+    ): IrSpreadPackMatch? {
+        val annotation = generated.getGeneratedSpreadPackOverloadAnnotation() ?: return null
+        val sourceFunctionFqName = annotation.generatedSpreadPackSourceFunctionFqName() ?: return null
+        val originals = resolveFunctionSymbolsByFqName(sourceFunctionFqName, pluginContext)
+            .filter(::isSupportedOriginalFunction)
+        if (originals.isEmpty()) {
+            return null
+        }
+        return originals.firstNotNullOfOrNull { original ->
+            resolveAgainstOriginal(generated, original, pluginContext)
+        }
+    }
+
     private fun resolveAgainstOriginal(
         generated: IrSimpleFunction,
         original: IrSimpleFunction,
@@ -248,9 +265,6 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     ): IrSpreadPackMatch? {
         val originalName = original.name.asString()
         val generatedName = generated.name.asString()
-        if (generatedName != originalName && !generatedName.startsWith("${originalName}Via")) {
-            return null
-        }
         if (original.extensionReceiverParameter != null || generated.extensionReceiverParameter != null) {
             return null
         }
@@ -282,7 +296,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
 
         val expectedRenamed = buildRenamedFunctionName(original.name, expansions)
-        if (generated.name != original.name && generated.name != expectedRenamed) {
+        if (!matchesGeneratedName(generatedName, originalName, expectedRenamed.asString())) {
             return null
         }
 
@@ -328,6 +342,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     carrier = carrier,
                     selectorKind = SelectorKind.PROPS,
                     excludedNames = emptySet(),
+                    pluginContext = pluginContext,
                 ),
             )
         }
@@ -351,6 +366,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 carrier = carrier,
                 selectorKind = selectorKind,
                 excludedNames = excludedNames,
+                pluginContext = pluginContext,
             )
         } else {
             val referencedOverload = resolveReferencedOverload(owner, spreadArgsAnnotation, pluginContext)
@@ -368,6 +384,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 selectorKind = selectorKind,
                 excludedNames = excludedNames,
                 referenceDescription = referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString(),
+                pluginContext = pluginContext,
             )
         }
 
@@ -442,8 +459,9 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         carrier: IrCarrierMetadata,
         selectorKind: SelectorKind,
         excludedNames: Set<String>,
+        pluginContext: IrPluginContext,
     ): List<IrSpreadPackField> {
-        val declaredFields = carrierDeclaredFields(carrier)
+        val declaredFields = carrierDeclaredFields(owner, carrier, pluginContext)
         validateExcludedNames(
             owner = owner,
             excludedNames = excludedNames,
@@ -464,6 +482,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 name = declaredField.name,
                 type = declaredField.type,
                 constructorIndex = declaredField.constructorIndex,
+                defaultValue = declaredField.defaultValue,
             )
         }
     }
@@ -475,6 +494,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         selectorKind: SelectorKind,
         excludedNames: Set<String>,
         referenceDescription: String,
+        pluginContext: IrPluginContext,
     ): List<IrSpreadPackField> {
         val selectedFields = selectFlattenedFields(
             owner = owner,
@@ -483,7 +503,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             excludedNames = excludedNames,
             contextLabel = referenceDescription,
         )
-        val carrierFieldsByName = carrierDeclaredFields(carrier).associateBy { declaredField ->
+        val carrierFieldsByName = carrierDeclaredFields(owner, carrier, pluginContext).associateBy { declaredField ->
             declaredField.name.asString()
         }
         val selectedCarrierNames = linkedSetOf<String>()
@@ -506,6 +526,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 name = carrierField.name,
                 type = field.type,
                 constructorIndex = carrierField.constructorIndex,
+                defaultValue = carrierField.defaultValue ?: field.defaultValue,
             )
         }.also { fields ->
             validateCarrierOmissions(
@@ -560,6 +581,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 IrFlattenedFieldSpec(
                     name = parameter.name,
                     type = parameter.type,
+                    defaultValue = parameter.defaultValue,
                 ),
             )
         val carrier = resolveCarrierMetadata(owner, parameter)
@@ -580,10 +602,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 carrier = carrier,
                 selectorKind = selectorKind,
                 excludedNames = excludedNames,
+                pluginContext = pluginContext,
             ).map { field ->
                 IrFlattenedFieldSpec(
                     name = field.name,
                     type = field.type,
+                    defaultValue = field.defaultValue,
                 )
             }
         }
@@ -609,10 +633,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             selectorKind = selectorKind,
             excludedNames = excludedNames,
             referenceDescription = referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString(),
+            pluginContext = pluginContext,
         ).map { field ->
             IrFlattenedFieldSpec(
                 name = field.name,
                 type = field.type,
+                defaultValue = field.defaultValue,
             )
         }
     }
@@ -688,9 +714,63 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun carrierDeclaredFields(
+        owner: IrSimpleFunction,
         carrier: IrCarrierMetadata,
+        pluginContext: IrPluginContext,
     ): List<IrCarrierDeclaredField> {
         if (carrier.generatedProperties.isNotEmpty()) {
+            val carrierAnnotation = carrier.irClass.getSpreadPackCarrierOfAnnotation()
+            if (carrierAnnotation != null) {
+                val referencedOverload = resolveReferencedOverload(owner, carrierAnnotation, pluginContext)
+                val overloadKey = overloadKey(referencedOverload)
+                val flattenedFields = flattenFunctionParameters(
+                    owner = owner,
+                    function = referencedOverload,
+                    pluginContext = pluginContext,
+                    visitedOverloads = linkedSetOf(overloadKey),
+                )
+                val selectedFields = selectFlattenedFields(
+                    owner = owner,
+                    fields = flattenedFields,
+                    selectorKind = carrierAnnotation.selectorKind(),
+                    excludedNames = carrierAnnotation.excludedNames(),
+                    contextLabel = referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString(),
+                )
+                val generatedPropertiesByName = carrier.generatedProperties.associateBy { property ->
+                    property.name.asString()
+                }
+                return selectedFields.map { field ->
+                    val property = generatedPropertiesByName[field.name.asString()]
+                        ?: invalidTarget(
+                            owner,
+                            "annotated spread-pack carrier ${carrier.irClass.name.asString()} is missing generated property ${field.name.asString()}",
+                        )
+                    val fieldType = property.backingField?.type ?: property.getter?.returnType
+                        ?: error("Generated spread-pack carrier property ${property.name.asString()} is missing a readable type")
+                    if (!sameIrType(fieldType, field.type)) {
+                        invalidTarget(
+                            owner,
+                            "annotated spread-pack carrier ${carrier.irClass.name.asString()} field ${field.name.asString()} " +
+                                "type $fieldType does not match source field type ${field.type}",
+                        )
+                    }
+                    IrCarrierDeclaredField(
+                        name = property.name,
+                        type = fieldType,
+                        constructorIndex = -1,
+                        defaultValue = field.defaultValue,
+                    )
+                }
+            }
+            val generatedPrimaryConstructor = carrier.irClass.declarations
+                .filterIsInstance<IrConstructor>()
+                .firstOrNull { constructor ->
+                    constructor.isPrimary && constructor.isGeneratedBySpreadPackPlugin()
+                }
+            val generatedDefaultsByName = generatedPrimaryConstructor
+                ?.valueParameters
+                ?.associateBy({ parameter -> parameter.name.asString() }, { parameter -> parameter.defaultValue })
+                .orEmpty()
             return carrier.generatedProperties.map { property ->
                 val fieldType = property.backingField?.type ?: property.getter?.returnType
                     ?: error("Generated spread-pack carrier property ${property.name.asString()} is missing a readable type")
@@ -698,6 +778,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     name = property.name,
                     type = fieldType,
                     constructorIndex = -1,
+                    defaultValue = generatedDefaultsByName[property.name.asString()]?.deepCopyWithSymbols(),
                 )
             }
         }
@@ -706,6 +787,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 name = parameter.name,
                 type = parameter.type,
                 constructorIndex = index,
+                defaultValue = parameter.defaultValue,
             )
         }
     }
@@ -817,6 +899,62 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 append(";")
             }
         }
+    }
+
+    private fun matchesGeneratedName(
+        generatedName: String,
+        originalName: String,
+        expectedRenamedName: String,
+    ): Boolean {
+        if (generatedName == originalName || generatedName == expectedRenamedName) {
+            return true
+        }
+        val sourceLevelName = generatedName.substringBefore('-')
+        return sourceLevelName == originalName || sourceLevelName == expectedRenamedName
+    }
+
+    private fun rewriteGeneratedParameterDefaults(
+        generated: IrSimpleFunction,
+        match: IrSpreadPackMatch,
+    ) {
+        val expansionsByIndex = match.expansions.associateBy { expansion -> expansion.parameterIndex }
+        var generatedParameterCursor = 0
+        match.original.valueParameters.forEachIndexed { index, _ ->
+            val expansion = expansionsByIndex[index]
+            if (expansion == null) {
+                generatedParameterCursor += 1
+                return@forEachIndexed
+            }
+            expansion.fields.forEach { field ->
+                val generatedParameter = generated.valueParameters[generatedParameterCursor]
+                if (field.defaultValue != null) {
+                    generatedParameter.defaultValue = field.defaultValue.deepCopyWithSymbols(generated)
+                } else if (generatedParameter.defaultValue.hasInvalidDefaultValue()) {
+                    generatedParameter.defaultValue = null
+                }
+                generatedParameterCursor += 1
+            }
+        }
+    }
+
+    private fun IrExpressionBody?.hasInvalidDefaultValue(): Boolean {
+        val body = this ?: return false
+        if (body.expression is IrErrorExpression) {
+            return true
+        }
+        var hasInvalidExpression = false
+        body.acceptChildrenVoid(object : IrVisitorVoid() {
+            override fun visitElement(element: IrElement) {
+                if (element is IrErrorExpression) {
+                    hasInvalidExpression = true
+                    return
+                }
+                if (!hasInvalidExpression) {
+                    element.acceptChildrenVoid(this)
+                }
+            }
+        })
+        return hasInvalidExpression
     }
 
     private fun buildExpectedParameterTypes(
@@ -1029,6 +1167,13 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
     }
 
+    private fun IrSimpleFunction.getGeneratedSpreadPackOverloadAnnotation(): IrConstructorCall? {
+        return annotations.firstOrNull { annotation ->
+            (annotation.type.classifierOrNull?.owner as? IrClass)?.fqNameWhenAvailable ==
+                SpreadPackPluginKeys.generatedSpreadPackOverloadAnnotation
+        }
+    }
+
     private fun IrConstructorCall.excludedNames(): Set<String> {
         val rawArgument = getValueArgument(Name.identifier("exclude")) ?: return emptySet()
         return when (rawArgument) {
@@ -1063,6 +1208,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             functionFqName = directFunctionFqName,
             parameterTypeClassIds = directParameterTypeClassIds,
         )
+    }
+
+    private fun IrConstructorCall.generatedSpreadPackSourceFunctionFqName(): String? {
+        return ((getValueArgument(Name.identifier("sourceFunctionFqName")) as? IrConst)
+            ?.value as? String)
+            ?.takeIf { functionFqName -> functionFqName.isNotBlank() }
     }
 
     private fun IrConstructorCall.classIdArguments(
