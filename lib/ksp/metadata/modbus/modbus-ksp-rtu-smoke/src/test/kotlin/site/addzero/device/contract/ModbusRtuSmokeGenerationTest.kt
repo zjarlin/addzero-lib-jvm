@@ -12,6 +12,7 @@ class ModbusRtuSmokeGenerationTest {
     private val keilUvprojxFile = File(requireNotNull(System.getProperty("modbus.smoke.keilUvprojxPath")))
     private val mxprojectFile = File(requireNotNull(System.getProperty("modbus.smoke.mxprojectPath")))
     private val addressLockFile = File(requireNotNull(System.getProperty("modbus.smoke.addressLockPath")))
+    private val springRouteOutputDir = File(requireNotNull(System.getProperty("modbus.smoke.springRouteOutputDir")))
     private val generatedKotlinDir = projectDir.resolve("build/generated/ksp/main/kotlin")
     private val generatedResourceDir = projectDir.resolve("build/generated/ksp/main/resources/generated/modbus/rtu")
     private val generatedMarkdownDir = projectDir.resolve("build/generated/ksp/main/resources/generated/modbus/protocols")
@@ -41,6 +42,10 @@ class ModbusRtuSmokeGenerationTest {
         val bridgeSampleSource = generatedResourceDir.resolve("device_bridge_sample.c")
         val flashProtocolMarkdown = generatedMarkdownDir.resolve("flash.rtu.protocol.md")
         val flashBridgeSampleSource = generatedResourceDir.resolve("flash_bridge_sample.c")
+        val generatedSpringRouteSource =
+            springRouteOutputDir.resolve(
+                "site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtuSpringRoutesSource.kt",
+            )
         val externalProtocolMarkdown = externalMarkdownDir.resolve("device.rtu.protocol.md")
         val externalBridgeSampleSource = externalMarkdownDir.resolve("device_bridge_sample.c")
         val externalFlashProtocolMarkdown = externalMarkdownDir.resolve("flash.rtu.protocol.md")
@@ -77,6 +82,7 @@ class ModbusRtuSmokeGenerationTest {
             bridgeSampleSource,
             flashProtocolMarkdown,
             flashBridgeSampleSource,
+            generatedSpringRouteSource,
             externalProtocolMarkdown,
             externalBridgeSampleSource,
             externalFlashProtocolMarkdown,
@@ -102,6 +108,13 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(gatewayKt.readText().contains("executor.readCoils(resolvedConfig, 0, 24)"))
         assertTrue(gatewayKt.readText().contains("executor.readInputRegisters(resolvedConfig, 100, 20)"))
         assertTrue(gatewayKt.readText().contains("class DeviceApiGeneratedRtuGateway"))
+        assertTrue(gatewayKt.readText().contains("private val configuredDefaultConfig: ModbusRtuEndpointConfig"))
+        assertTrue(gatewayKt.readText().contains("fun defaultConfig(): ModbusRtuEndpointConfig = configuredDefaultConfig"))
+        assertFalse(gatewayKt.readText().contains("class DeviceApiGeneratedRtuConfigProvider"))
+        assertFalse(gatewayKt.readText().contains("fun modbusRtuConfigRegistry("))
+        assertFalse(gatewayKt.readText().contains("fun Route.registerGeneratedModbusRtuRoutes()"))
+        assertTrue(gatewayKt.readText().contains("fun deviceApi("))
+        assertTrue(gatewayKt.readText().contains("): site.addzero.device.contract.DeviceApi = gateway"))
         assertTrue(gatewayKt.readText().contains("suspend fun getDeviceRuntimeInfo("))
         assertTrue(gatewayKt.readText().contains("suspend fun resetDevice("))
         assertTrue(gatewayKt.readText().contains("suspend fun firmwareStart("))
@@ -232,6 +245,12 @@ class ModbusRtuSmokeGenerationTest {
         assertTrue(externalBridgeSampleSource.readText().contains("更新日期："))
         assertTrue(externalFlashProtocolMarkdown.readText().contains("## 工作流总览"))
         assertTrue(externalFlashBridgeSampleSource.readText().contains("更新日期："))
+        assertTrue(generatedSpringRouteSource.readText().contains("@file:site.addzero.springktor.runtime.RequestMapping(\"/api/modbus/rtu\")"))
+        assertTrue(generatedSpringRouteSource.readText().contains("import org.koin.mp.KoinPlatform"))
+        assertTrue(generatedSpringRouteSource.readText().contains("@PostMapping(\"/device/get-device-info\")"))
+        assertTrue(generatedSpringRouteSource.readText().contains("val gateway = KoinPlatform.getKoin().get<DeviceApiGeneratedRtuGateway>()"))
+        assertTrue(generatedSpringRouteSource.readText().contains("return gateway.getDeviceInfo(config = config)"))
+        assertTrue(generatedSpringRouteSource.readText().contains("@PostMapping(\"/flash/flash-firmware\")"))
 
         val addressLock = addressLockFile.readText()
         assertTrue(addressLock.contains("meta.transport=rtu"))

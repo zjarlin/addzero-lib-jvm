@@ -75,6 +75,7 @@ class PublishedKspPluginSmokeTest {
                         keilTargetName.set("test1")
                         keilGroupName.set("Core/modbus/rtu")
                         mxprojectPath.set(".mxproject")
+                        springRouteOutputDir.set("/tmp/generated-spring-routes")
                     }
                 """.trimIndent(),
             ),
@@ -93,6 +94,7 @@ class PublishedKspPluginSmokeTest {
             "addzero.modbus.keil.targetName=test1",
             "addzero.modbus.keil.groupName=Core/modbus/rtu",
             "addzero.modbus.mxproject.path=.mxproject",
+            "addzero.modbus.spring.route.outputDir=/tmp/generated-spring-routes",
         )
     }
 

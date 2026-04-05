@@ -15,6 +15,7 @@ Modbus 运行时骨架模块。
 
 - `driver/modbus/rtu`
   - `ModbusRtuEndpointConfig`
+  - `DefaultModbusRtuEndpointConfig`
   - `ModbusRtuExecutor`
   - `ModbusRtuConfigRegistry`
   - `ModbusRuntimeKoinModule`
@@ -55,6 +56,8 @@ class YourKoinApplication
 - `driver/modbus/rtu` 已经接入真实 JVM RTU 执行器：
   - `j2mod`
   - `jSerialComm`
+- `ModbusRtuEndpointConfig` 现在是接口；
+  应用根入口通常只需要向 Koin 提供一份全局默认实现，例如 `DefaultModbusRtuEndpointConfig`。
 - `driver/modbus/tcp` 已提供 JVM TCP 执行器。
 - `ModbusTcpConfigRegistry` 建议由应用根入口按明确 provider 显式提供，不再依赖 DSL `getAll()` 聚合。
 
@@ -64,13 +67,22 @@ class YourKoinApplication
 @Module
 class DeviceGatewayKoinModule {
     @Single
+    fun rtuEndpointConfig(): ModbusRtuEndpointConfig = DefaultModbusRtuEndpointConfig(
+        portPath = "/dev/ttyUSB0",
+        unitId = 1,
+        baudRate = 9600,
+        timeoutMs = 1000,
+        retries = 2,
+    )
+
+    @Single
     fun tcpConfigRegistry(
         deviceProvider: DeviceGeneratedTcpConfigProvider,
     ): ModbusTcpConfigRegistry = ModbusTcpConfigRegistry(listOf(deviceProvider))
 }
 ```
 
-然后在生成出来的 gateway 里，会通过配置注册表取默认端点配置，并调用执行器真正完成：
+然后在生成出来的 gateway 里，会读取这份默认端点配置，必要时叠加请求级覆盖项，并调用执行器真正完成：
 
 - `read_input_registers`
 - `read_holding_registers`

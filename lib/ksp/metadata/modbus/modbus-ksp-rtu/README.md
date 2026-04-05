@@ -18,6 +18,7 @@ plugins {
 modbusRtu {
     codegenModes.set(listOf("gateway"))
     contractPackages.set(listOf("site.addzero.device.contract"))
+    springRouteOutputDir.set(layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath)
 }
 ```
 
@@ -66,6 +67,27 @@ ksp {
 
 - `build/generated/ksp/main/kotlin/site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtu.kt`
 
+### 生成 Spring2Ktor 风格的路由源码
+
+当你希望让 `spring2ktor-server` 再接手生成最终的 Ktor `Route` 注册代码时，可以额外指定 Spring 路由源码输出根目录：
+
+```kotlin
+modbusRtu {
+    codegenModes.set(listOf("gateway"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+    springRouteOutputDir.set(layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath)
+}
+```
+
+这时会额外输出：
+
+- `<springRouteOutputDir>/site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtuSpringRoutesSource.kt`
+
+注意：
+
+- 这份源码是给 `spring2ktor-server` 继续处理的 Spring 风格顶层 handler。
+- 配置了 `springRouteOutputDir` 之后，`GeneratedModbusRtu.kt` 不再内嵌直接的 `Route.registerGeneratedModbusRtuRoutes()`。
+
 ### 一次同时生成 gateway 与契约产物
 
 ```kotlin
@@ -87,11 +109,13 @@ ksp {
 ## 生成内容
 
 - `GeneratedModbusRtuKoinModule`
-- `registerGeneratedModbusRtuRoutes()`
 - 每个契约接口对应一个 `GeneratedRtuGateway`
+- 每个契约接口同时生成一个 Koin 接口绑定，例如 `fun deviceApi(gateway: DeviceApiGeneratedRtuGateway): DeviceApi = gateway`
 - 每个操作对应一个请求 DTO
+- 可选的 `GeneratedModbusRtuSpringRoutesSource.kt`
 
 ## 使用提醒
 
 - 契约接口本身应该放在业务模块里，不要再单独造一个 `device-contract-api` 公共壳模块。
 - 处理器只扫描你通过 `addzero.modbus.contractPackages` 指定的包列表。
+- RTU 默认配置现在建议由业务自己通过 Koin 提供一份 `ModbusRtuEndpointConfig` 实现。

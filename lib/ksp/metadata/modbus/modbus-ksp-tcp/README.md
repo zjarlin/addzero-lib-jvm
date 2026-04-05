@@ -18,6 +18,7 @@ plugins {
 modbusTcp {
     codegenModes.set(listOf("server"))
     contractPackages.set(listOf("site.addzero.device.contract"))
+    springRouteOutputDir.set(layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath)
 }
 ```
 
@@ -66,6 +67,24 @@ ksp {
 
 - `build/generated/ksp/main/kotlin/site/addzero/esp32_host_computer/generated/modbus/tcp/GeneratedModbusTcp.kt`
 
+### 生成 Spring2Ktor 风格的路由源码
+
+如果你希望把最终的 Ktor 路由注册交给 `spring2ktor-server`，可以额外指定 Spring 路由源码输出根目录：
+
+```kotlin
+modbusTcp {
+    codegenModes.set(listOf("server"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+    springRouteOutputDir.set(layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath)
+}
+```
+
+这时会额外输出：
+
+- `<springRouteOutputDir>/site/addzero/esp32_host_computer/generated/modbus/tcp/GeneratedModbusTcpSpringRoutesSource.kt`
+
+配置了 `springRouteOutputDir` 之后，`GeneratedModbusTcp.kt` 不再内嵌直接的 `Route.registerGeneratedModbusTcpRoutes()`。
+
 ### 一次同时生成服务端与契约产物
 
 ```kotlin
@@ -87,9 +106,10 @@ ksp {
 ## 生成内容
 
 - `GeneratedModbusTcpKoinModule`
-- `registerGeneratedModbusTcpRoutes()`
 - 每个契约接口对应一个 `GeneratedTcpGateway`
+- 每个契约接口同时生成一个 Koin 接口绑定，允许业务直接按原接口类型注入
 - 每个操作对应一个请求 DTO
+- 可选的 `GeneratedModbusTcpSpringRoutesSource.kt`
 
 ## 使用提醒
 

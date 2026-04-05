@@ -14,31 +14,36 @@ object ModbusArtifactTemplates {
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+        serverRouteMode: ModbusServerRouteMode = ModbusServerRouteMode.DIRECT_KTOR,
     ): List<GeneratedArtifact> {
         if (services.isEmpty()) {
             return emptyList()
         }
         val hasFirmwareWorkflow = services.any { service -> service.workflows.isNotEmpty() }
+        val includeDirectKtorRoutes = serverRouteMode == ModbusServerRouteMode.DIRECT_KTOR
 
         val fileContent =
             buildString {
                 appendLine("package ${transport.generatedPackage}")
                 appendLine()
-                appendLine("import io.ktor.server.request.receive")
-                appendLine("import io.ktor.server.response.respond")
-                appendLine("import io.ktor.server.routing.Route")
-                appendLine("import io.ktor.server.routing.post")
+                if (includeDirectKtorRoutes) {
+                    appendLine("import io.ktor.server.request.receive")
+                    appendLine("import io.ktor.server.response.respond")
+                    appendLine("import io.ktor.server.routing.Route")
+                    appendLine("import io.ktor.server.routing.post")
+                }
                 appendLine("import kotlinx.serialization.Serializable")
                 appendLine("import org.koin.core.annotation.Module")
                 appendLine("import org.koin.core.annotation.Single")
-                appendLine("import org.koin.mp.KoinPlatform")
+                if (includeDirectKtorRoutes) {
+                    appendLine("import org.koin.mp.KoinPlatform")
+                }
                 if (hasFirmwareWorkflow) {
                     appendLine("import java.util.zip.CRC32")
                 }
                 when (transport) {
                     ModbusTransportKind.RTU -> {
-                        appendLine("import site.addzero.device.driver.modbus.rtu.ModbusRtuConfigProvider")
-                        appendLine("import site.addzero.device.driver.modbus.rtu.ModbusRtuConfigRegistry")
+                        appendLine("import site.addzero.device.driver.modbus.rtu.DefaultModbusRtuEndpointConfig")
                         appendLine("import site.addzero.device.driver.modbus.rtu.ModbusRtuEndpointConfig")
                         appendLine("import site.addzero.device.driver.modbus.rtu.ModbusRtuExecutor")
                         appendLine("import site.addzero.device.driver.modbus.rtu.ModbusSerialParity")
@@ -63,14 +68,18 @@ object ModbusArtifactTemplates {
                 services.forEach { service ->
                     append(renderRequestClasses(service))
                     appendLine()
-                    append(renderConfigProvider(service, transportDefaults))
-                    appendLine()
+                    if (transport != ModbusTransportKind.RTU) {
+                        append(renderConfigProvider(service, transportDefaults))
+                        appendLine()
+                    }
                     append(renderGateway(service))
                     appendLine()
                 }
                 append(renderModule(transport, services))
-                appendLine()
-                append(renderRouteRegistrar(transport, services))
+                if (includeDirectKtorRoutes) {
+                    appendLine()
+                    append(renderRouteRegistrar(transport, services))
+                }
             }
 
         return listOf(
@@ -87,7 +96,65 @@ object ModbusArtifactTemplates {
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
-    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults)
+        serverRouteMode: ModbusServerRouteMode = ModbusServerRouteMode.DIRECT_KTOR,
+    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults, serverRouteMode)
+
+    fun renderSpringRouteSourceArtifacts(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+    ): List<GeneratedArtifact> {
+        if (services.isEmpty()) {
+            return emptyList()
+        }
+
+        val basePaths = services.map(ModbusServiceModel::basePath).distinct()
+        val commonBasePath = basePaths.singleOrNull()?.let { "$it/${transport.transportId}" }
+        val fileContent =
+            buildString {
+                commonBasePath?.let { basePath ->
+                    appendLine("@file:site.addzero.springktor.runtime.RequestMapping(\"${escapeKotlinString(basePath)}\")")
+                    appendLine()
+                }
+                appendLine("package ${transport.generatedPackage}")
+                appendLine()
+                appendLine("import org.koin.mp.KoinPlatform")
+                appendLine("import org.springframework.web.bind.annotation.PostMapping")
+                appendLine("import org.springframework.web.bind.annotation.RequestBody")
+                appendLine()
+                appendLine("/**")
+                appendLine(" * ${transport.displayName} 自动生成的 Spring2Ktor 路由源码。")
+                appendLine(" *")
+                appendLine(" * 这里故意保持为顶层薄适配函数，")
+                appendLine(" * 直接从 Koin 取生成 gateway，避免再额外生成一层 controller bean 装配。")
+                appendLine(" */")
+                services.forEachIndexed { serviceIndex, service ->
+                    if (serviceIndex > 0) {
+                        appendLine()
+                    }
+                    service.operations.forEach { operation ->
+                        append(renderSpringRouteFunction(transport, service, operation, commonBasePath))
+                        appendLine()
+                        appendLine()
+                    }
+                    service.workflows.forEachIndexed { workflowIndex, workflow ->
+                        append(renderSpringRouteFunction(transport, service, workflow, commonBasePath))
+                        if (workflowIndex != service.workflows.lastIndex) {
+                            appendLine()
+                            appendLine()
+                        }
+                    }
+                }
+            }
+
+        return listOf(
+            GeneratedArtifact(
+                packageName = transport.generatedPackage,
+                fileName = "GeneratedModbus${transport.transportId.replaceFirstChar(Char::uppercase)}SpringRoutesSource",
+                extensionName = "kt",
+                content = fileContent.trimEnd() + "\n",
+            )
+        )
+    }
 
     fun renderKtorfitClientArtifacts(
         transport: ModbusTransportKind,
@@ -1022,7 +1089,7 @@ object ModbusArtifactTemplates {
             appendLine(
                 when (service.transport) {
                     ModbusTransportKind.RTU ->
-                        "        ModbusRtuEndpointConfig(serviceId = serviceId, portPath = \"${escapeKotlinString(transportDefaults.rtu.portPath)}\", unitId = ${transportDefaults.rtu.unitId}, baudRate = ${transportDefaults.rtu.baudRate}, dataBits = ${transportDefaults.rtu.dataBits}, stopBits = ${transportDefaults.rtu.stopBits}, parity = ${transportDefaults.rtu.parity.renderParityEnumLiteral()}, timeoutMs = ${transportDefaults.rtu.timeoutMs}, retries = ${transportDefaults.rtu.retries})"
+                        "        DefaultModbusRtuEndpointConfig(portPath = \"${escapeKotlinString(transportDefaults.rtu.portPath)}\", unitId = ${transportDefaults.rtu.unitId}, baudRate = ${transportDefaults.rtu.baudRate}, dataBits = ${transportDefaults.rtu.dataBits}, stopBits = ${transportDefaults.rtu.stopBits}, parity = ${transportDefaults.rtu.parity.renderParityEnumLiteral()}, timeoutMs = ${transportDefaults.rtu.timeoutMs}, retries = ${transportDefaults.rtu.retries})"
 
                     ModbusTransportKind.TCP ->
                         "        ModbusTcpEndpointConfig(serviceId = serviceId, host = \"${escapeKotlinString(transportDefaults.tcp.host)}\", port = ${transportDefaults.tcp.port}, unitId = ${transportDefaults.tcp.unitId}, timeoutMs = ${transportDefaults.tcp.timeoutMs}, retries = ${transportDefaults.tcp.retries})"
@@ -1038,13 +1105,27 @@ object ModbusArtifactTemplates {
             appendLine(" *")
             appendLine(" * 该 gateway 由 KSP 自动生成，负责把高阶 Kotlin 接口翻译成 ${service.transport.displayName} 调用。")
             appendLine(" */")
-            appendLine(
-                "class ${service.gatewayClassName}(" +
-                    "private val configRegistry: ${service.transport.configRegistrySimpleName()}, " +
-                    "private val executor: ${service.transport.executorSimpleName()}" +
-                    ") : ${service.interfaceQualifiedName} {"
-            )
-            appendLine("    fun defaultConfig(): ${service.transport.endpointConfigSimpleName()} = configRegistry.require(\"${service.serviceId}\")")
+            when (service.transport) {
+                ModbusTransportKind.RTU -> {
+                    appendLine(
+                        "class ${service.gatewayClassName}(" +
+                            "private val configuredDefaultConfig: ${service.transport.endpointConfigSimpleName()}, " +
+                            "private val executor: ${service.transport.executorSimpleName()}" +
+                            ") : ${service.interfaceQualifiedName} {",
+                    )
+                    appendLine("    fun defaultConfig(): ${service.transport.endpointConfigSimpleName()} = configuredDefaultConfig")
+                }
+
+                ModbusTransportKind.TCP -> {
+                    appendLine(
+                        "class ${service.gatewayClassName}(" +
+                            "private val configRegistry: ${service.transport.configRegistrySimpleName()}, " +
+                            "private val executor: ${service.transport.executorSimpleName()}" +
+                            ") : ${service.interfaceQualifiedName} {",
+                    )
+                    appendLine("    fun defaultConfig(): ${service.transport.endpointConfigSimpleName()} = configRegistry.require(\"${service.serviceId}\")")
+                }
+            }
             appendLine()
             appendLine("    private fun resolveConfig(config: ${service.transport.endpointConfigSimpleName()}?): ${service.transport.endpointConfigSimpleName()} =")
             appendLine("        config ?: defaultConfig()")
@@ -1187,40 +1268,71 @@ object ModbusArtifactTemplates {
             appendLine("/**")
             appendLine(" * ${transport.displayName} 自动生成的 Koin 模块。")
             appendLine(" *")
-            appendLine(" * 统一收口生成出来的默认配置提供器、配置注册表与网关。")
+            when (transport) {
+                ModbusTransportKind.RTU ->
+                    appendLine(" * 统一收口生成出来的网关；默认 RTU 配置由业务自己通过 Koin 提供。")
+
+                ModbusTransportKind.TCP ->
+                    appendLine(" * 统一收口生成出来的默认配置提供器、配置注册表与网关。")
+            }
             appendLine(" */")
             appendLine("@Module")
             appendLine("class ${transport.generatedKoinModuleClassName()} {")
-            services.forEach { service ->
-                appendLine("    @Single")
-                appendLine(
-                    "    fun ${service.configProviderClassName.asProviderMethodName()}(): ${service.configProviderClassName} = " +
-                        "${service.configProviderClassName}()",
-                )
-                appendLine()
-            }
-            appendLine("    @Single")
-            appendLine("    fun ${transport.configRegistrySimpleName().asProviderMethodName()}(")
-            services.forEachIndexed { index, service ->
-                append("        ${service.configProviderClassName.asConstructorParameterName()}: ${service.configProviderClassName}")
-                appendLine(if (index == services.lastIndex) "" else ",")
-            }
-            appendLine("    ): ${transport.configRegistrySimpleName()} =")
-            appendLine(
-                "        ${transport.configRegistrySimpleName()}(" +
-                    "listOf(" +
-                    services.joinToString(", ") { service -> service.configProviderClassName.asConstructorParameterName() } +
-                    ")" +
-                    ")",
-            )
-            appendLine()
-            services.forEach { service ->
-                appendLine("    @Single")
-                appendLine("    fun ${service.gatewayClassName.asProviderMethodName()}(")
-                appendLine("        configRegistry: ${transport.configRegistrySimpleName()},")
-                appendLine("        executor: ${transport.executorSimpleName()},")
-                appendLine("    ): ${service.gatewayClassName} = ${service.gatewayClassName}(configRegistry, executor)")
-                appendLine()
+            when (transport) {
+                ModbusTransportKind.RTU -> {
+                    services.forEach { service ->
+                        appendLine("    @Single")
+                        appendLine("    fun ${service.gatewayClassName.asProviderMethodName()}(")
+                        appendLine("        defaultConfig: ${transport.endpointConfigSimpleName()},")
+                        appendLine("        executor: ${transport.executorSimpleName()},")
+                        appendLine("    ): ${service.gatewayClassName} = ${service.gatewayClassName}(defaultConfig, executor)")
+                        appendLine()
+                        appendLine("    @Single")
+                        appendLine("    fun ${service.interfaceSimpleName.asProviderMethodName()}(")
+                        appendLine("        gateway: ${service.gatewayClassName},")
+                        appendLine("    ): ${service.interfaceQualifiedName} = gateway")
+                        appendLine()
+                    }
+                }
+
+                ModbusTransportKind.TCP -> {
+                    services.forEach { service ->
+                        appendLine("    @Single")
+                        appendLine(
+                            "    fun ${service.configProviderClassName.asProviderMethodName()}(): ${service.configProviderClassName} = " +
+                                "${service.configProviderClassName}()",
+                        )
+                        appendLine()
+                    }
+                    appendLine("    @Single")
+                    appendLine("    fun ${transport.configRegistrySimpleName().asProviderMethodName()}(")
+                    services.forEachIndexed { index, service ->
+                        append("        ${service.configProviderClassName.asConstructorParameterName()}: ${service.configProviderClassName}")
+                        appendLine(if (index == services.lastIndex) "" else ",")
+                    }
+                    appendLine("    ): ${transport.configRegistrySimpleName()} =")
+                    appendLine(
+                        "        ${transport.configRegistrySimpleName()}(" +
+                            "listOf(" +
+                            services.joinToString(", ") { service -> service.configProviderClassName.asConstructorParameterName() } +
+                            ")" +
+                            ")",
+                    )
+                    appendLine()
+                    services.forEach { service ->
+                        appendLine("    @Single")
+                        appendLine("    fun ${service.gatewayClassName.asProviderMethodName()}(")
+                        appendLine("        configRegistry: ${transport.configRegistrySimpleName()},")
+                        appendLine("        executor: ${transport.executorSimpleName()},")
+                        appendLine("    ): ${service.gatewayClassName} = ${service.gatewayClassName}(configRegistry, executor)")
+                        appendLine()
+                        appendLine("    @Single")
+                        appendLine("    fun ${service.interfaceSimpleName.asProviderMethodName()}(")
+                        appendLine("        gateway: ${service.gatewayClassName},")
+                        appendLine("    ): ${service.interfaceQualifiedName} = gateway")
+                        appendLine()
+                    }
+                }
             }
             appendLine("}")
         }
@@ -1251,6 +1363,50 @@ object ModbusArtifactTemplates {
                     appendLine("    }")
                 }
             }
+            appendLine("}")
+        }
+
+    private fun renderSpringRouteFunction(
+        transport: ModbusTransportKind,
+        service: ModbusServiceModel,
+        operation: ModbusOperationModel,
+        commonBasePath: String?,
+    ): String =
+        buildString {
+            appendLine("/**")
+            appendLine(" * ${escapeComment(operation.doc.summary)}")
+            appendLine(" *")
+            appendLine(" * 这里直接从 Koin 解析 gateway，避免再额外生成 controller bean 装配。")
+            appendLine(" */")
+            appendLine("@PostMapping(\"${escapeKotlinString(service.springRoutePath(operation.operationId, commonBasePath))}\")")
+            appendLine("suspend fun ${service.springRouteFunctionName(transport, operation.methodName)}(")
+            appendLine("    @RequestBody request: ${operation.requestClassName},")
+            appendLine("): ${operation.returnType.renderKotlinType()} {")
+            appendLine("    val gateway = KoinPlatform.getKoin().get<${service.gatewayClassName}>()")
+            appendLine("    val config = request.toEndpointConfig(gateway.defaultConfig())")
+            appendLine("    return gateway.${operation.methodName}(config = config${operation.renderGatewayArguments(valuePrefix = "request.")})")
+            appendLine("}")
+        }
+
+    private fun renderSpringRouteFunction(
+        transport: ModbusTransportKind,
+        service: ModbusServiceModel,
+        workflow: ModbusWorkflowModel,
+        commonBasePath: String?,
+    ): String =
+        buildString {
+            appendLine("/**")
+            appendLine(" * ${escapeComment(workflow.doc.summary)}")
+            appendLine(" *")
+            appendLine(" * 这里直接从 Koin 解析 gateway，避免再额外生成 controller bean 装配。")
+            appendLine(" */")
+            appendLine("@PostMapping(\"${escapeKotlinString(service.springRoutePath(workflow.workflowId, commonBasePath))}\")")
+            appendLine("suspend fun ${service.springRouteFunctionName(transport, workflow.methodName)}(")
+            appendLine("    @RequestBody request: ${workflow.requestClassName},")
+            appendLine("): ${workflow.returnType.renderKotlinType()} {")
+            appendLine("    val gateway = KoinPlatform.getKoin().get<${service.gatewayClassName}>()")
+            appendLine("    val config = request.toEndpointConfig(gateway.defaultConfig())")
+            appendLine("    return gateway.${workflow.methodName}(config = config, ${workflow.bytesParameterName} = request.${workflow.bytesParameterName})")
             appendLine("}")
         }
 
@@ -2793,11 +2949,32 @@ object ModbusArtifactTemplates {
         operationId: String,
     ): String = "${basePath}/${transport.transportId}/${serviceId}/$operationId"
 
+    private fun ModbusServiceModel.springRoutePath(
+        operationId: String,
+        commonBasePath: String?,
+    ): String =
+        if (commonBasePath == null) {
+            httpRoutePath(operationId)
+        } else {
+            "/$serviceId/$operationId"
+        }
+
+    private fun ModbusServiceModel.springRouteFunctionName(
+        transport: ModbusTransportKind,
+        methodName: String,
+    ): String = buildString {
+        append("generated")
+        append(transport.transportId.replaceFirstChar(Char::uppercase))
+        append(interfaceSimpleName.replaceFirstChar(Char::uppercase))
+        append(methodName.replaceFirstChar(Char::uppercase))
+        append("Route")
+    }
+
     private fun renderTransportRequestSupport(transport: ModbusTransportKind): String =
         when (transport) {
             ModbusTransportKind.RTU ->
                 """
-private interface GeneratedModbusRtuRequestConfig {
+internal interface GeneratedModbusRtuRequestConfig {
     val portPath: String?
     val unitId: Int?
     val baudRate: Int?
@@ -2808,8 +2985,8 @@ private interface GeneratedModbusRtuRequestConfig {
     val retries: Int?
 }
 
-private fun GeneratedModbusRtuRequestConfig.toEndpointConfig(defaultConfig: ModbusRtuEndpointConfig): ModbusRtuEndpointConfig =
-    defaultConfig.copy(
+internal fun GeneratedModbusRtuRequestConfig.toEndpointConfig(defaultConfig: ModbusRtuEndpointConfig): ModbusRtuEndpointConfig =
+    DefaultModbusRtuEndpointConfig(
         portPath = portPath ?: defaultConfig.portPath,
         unitId = unitId ?: defaultConfig.unitId,
         baudRate = baudRate ?: defaultConfig.baudRate,
@@ -2823,7 +3000,7 @@ private fun GeneratedModbusRtuRequestConfig.toEndpointConfig(defaultConfig: Modb
 
             ModbusTransportKind.TCP ->
                 """
-private interface GeneratedModbusTcpRequestConfig {
+internal interface GeneratedModbusTcpRequestConfig {
     val host: String?
     val port: Int?
     val unitId: Int?
@@ -2831,7 +3008,7 @@ private interface GeneratedModbusTcpRequestConfig {
     val retries: Int?
 }
 
-private fun GeneratedModbusTcpRequestConfig.toEndpointConfig(defaultConfig: ModbusTcpEndpointConfig): ModbusTcpEndpointConfig =
+internal fun GeneratedModbusTcpRequestConfig.toEndpointConfig(defaultConfig: ModbusTcpEndpointConfig): ModbusTcpEndpointConfig =
     defaultConfig.copy(
         host = host ?: defaultConfig.host,
         port = port ?: defaultConfig.port,

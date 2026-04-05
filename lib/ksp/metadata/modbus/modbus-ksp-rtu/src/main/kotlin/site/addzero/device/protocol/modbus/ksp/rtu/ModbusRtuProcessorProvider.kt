@@ -18,12 +18,14 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusCodegenMode
 import site.addzero.device.protocol.modbus.ksp.core.ModbusExternalCArtifactWriter
 import site.addzero.device.protocol.modbus.ksp.core.ModbusModelValidator
 import site.addzero.device.protocol.modbus.ksp.core.ModbusProjectSyncRunner
+import site.addzero.device.protocol.modbus.ksp.core.ModbusServerRouteMode
 import site.addzero.device.protocol.modbus.ksp.core.ModbusSymbolCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 import site.addzero.device.protocol.modbus.ksp.core.resolveContractPackages
 import site.addzero.device.protocol.modbus.ksp.core.resolveEnabledTransports
 import site.addzero.device.protocol.modbus.ksp.core.resolveApiClientOutputDir
 import site.addzero.device.protocol.modbus.ksp.core.resolveApiClientPackageName
+import site.addzero.device.protocol.modbus.ksp.core.resolveSpringRouteOutputDir
 import site.addzero.device.protocol.modbus.ksp.core.resolveTransportDefaults
 
 /**
@@ -46,6 +48,7 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
         val externalCArtifactWriter = ModbusExternalCArtifactWriter.from(environment)
         val addressLockFile = ModbusAddressLockFile.from(environment)
         val transportDefaults = environment.resolveTransportDefaults()
+        val springRouteOutputDir = environment.resolveSpringRouteOutputDir()
         val contractPackages =
             environment
                 .resolveContractPackages()
@@ -110,13 +113,32 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
                 }
 
                 if (ModbusCodegenMode.SERVER in modes) {
+                    val serverRouteMode =
+                        if (springRouteOutputDir == null) {
+                            ModbusServerRouteMode.DIRECT_KTOR
+                        } else {
+                            ModbusServerRouteMode.SPRING_SOURCE
+                        }
                     writeArtifacts(
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,
                         dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
-                        artifacts = ModbusArtifactRenderer.renderServerArtifacts(transport, resolvedServices, transportDefaults),
+                        artifacts =
+                            ModbusArtifactRenderer.renderServerArtifacts(
+                                transport = transport,
+                                services = resolvedServices,
+                                transportDefaults = transportDefaults,
+                                serverRouteMode = serverRouteMode,
+                            ),
                         externalCArtifactWriter = null,
                     )
+                    if (springRouteOutputDir != null) {
+                        writeExternalKotlinArtifacts(
+                            logger = environment.logger,
+                            outputDir = File(springRouteOutputDir),
+                            artifacts = ModbusArtifactRenderer.renderSpringRouteSourceArtifacts(transport, resolvedServices),
+                        )
+                    }
                 }
 
                 val apiClientPackageName = environment.resolveApiClientPackageName()

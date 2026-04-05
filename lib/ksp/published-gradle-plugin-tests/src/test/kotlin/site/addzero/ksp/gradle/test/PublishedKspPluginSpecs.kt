@@ -161,6 +161,7 @@ object PublishedKspPluginSpecs {
                 "keilTargetName" to "",
                 "keilGroupName" to "Core/modbus/rtu",
                 "mxprojectPath" to "",
+                "springRouteOutputDir" to "",
             ),
         ),
         PublishedKspPluginSpec(
@@ -179,6 +180,7 @@ object PublishedKspPluginSpecs {
                 "keilTargetName" to "",
                 "keilGroupName" to "Core/modbus/tcp",
                 "mxprojectPath" to "",
+                "springRouteOutputDir" to "",
             ),
         ),
         PublishedKspPluginSpec(

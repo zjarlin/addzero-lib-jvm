@@ -54,10 +54,41 @@ class ModbusArtifactRendererTest {
 
         assertTrue(content.contains("post(\"/api/modbus/rtu/self-dev-board/read-info\")"))
         assertTrue(content.contains("class SelfDevBoardApiGeneratedRtuGateway"))
+        assertTrue(content.contains("private val configuredDefaultConfig: ModbusRtuEndpointConfig"))
+        assertTrue(content.contains("fun defaultConfig(): ModbusRtuEndpointConfig = configuredDefaultConfig"))
         assertTrue(content.contains("@Module"))
         assertTrue(content.contains("class GeneratedModbusRtuKoinModule"))
-        assertTrue(content.contains("fun modbusRtuConfigRegistry("))
+        assertTrue(content.contains("fun selfDevBoardApiGeneratedRtuGateway("))
+        assertTrue(content.contains("fun selfDevBoardApi("))
+        assertTrue(content.contains("): site.addzero.device.api.internal.SelfDevBoardApi = gateway"))
+        assertFalse(content.contains("fun modbusRtuConfigRegistry("))
         assertTrue(content.contains("该 gateway 由 KSP 自动生成"))
+    }
+
+    @Test
+    fun renderSpringRouteSourceArtifactsEmitTopLevelSpringHandlers() {
+        val gatewayContent =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(
+                    transport = ModbusTransportKind.RTU,
+                    services = listOf(sampleService()),
+                    serverRouteMode = ModbusServerRouteMode.SPRING_SOURCE,
+                ).single()
+                .content
+        val springSource =
+            ModbusArtifactRenderer
+                .renderSpringRouteSourceArtifacts(
+                    transport = ModbusTransportKind.RTU,
+                    services = listOf(sampleService()),
+                ).single()
+                .content
+
+        assertFalse(gatewayContent.contains("fun Route.registerGeneratedModbusRtuRoutes()"))
+        assertTrue(springSource.contains("@file:site.addzero.springktor.runtime.RequestMapping(\"/api/modbus/rtu\")"))
+        assertTrue(springSource.contains("import org.koin.mp.KoinPlatform"))
+        assertTrue(springSource.contains("@PostMapping(\"/self-dev-board/read-info\")"))
+        assertTrue(springSource.contains("val gateway = KoinPlatform.getKoin().get<SelfDevBoardApiGeneratedRtuGateway>()"))
+        assertTrue(springSource.contains("return gateway.readInfo(config = config)"))
     }
 
     @Test
