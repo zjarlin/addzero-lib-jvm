@@ -56,9 +56,12 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-04T22:31:27.940807
-// Loaded: 16, Excluded: 0, Total: 16
+// Generated at: 2026-04-05T09:40:06.520110
+// Loaded: 19, Excluded: 0, Total: 19
 include(":example:example-kcp-i18n")
+include(":lib:compose:app-sidebar")
+include(":lib:compose:compose-workbench-design")
+include(":lib:compose:shadcn-compose-component")
 include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")
 include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
 include(":lib:kcp:kcp-i18n")

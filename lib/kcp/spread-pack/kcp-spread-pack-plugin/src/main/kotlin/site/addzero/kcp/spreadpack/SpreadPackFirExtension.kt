@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.declarations.constructors
 import org.jetbrains.kotlin.fir.declarations.extractEnumValueArgumentInfo
-import org.jetbrains.kotlin.fir.declarations.builder.buildPrimaryConstructor
 import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
 import org.jetbrains.kotlin.fir.declarations.builder.buildRegularClass
 import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameter
@@ -112,7 +111,6 @@ import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.constructClassLikeType
 import org.jetbrains.kotlin.fir.types.isNullableString
 import org.jetbrains.kotlin.fir.types.renderForDebugging
-import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.ConeTypeProjection
 import org.jetbrains.kotlin.fir.types.toLookupTag
@@ -562,52 +560,24 @@ class SpreadPackFirExtension(
     private fun buildAnnotatedCarrierConstructor(
         request: FirAnnotatedCarrierRequest,
     ): FirConstructor {
-        val constructorSymbol = FirConstructorSymbol(request.classId)
-        val generatedSource = request.regularClass.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
-        val classTypeRef = buildResolvedTypeRef {
-            this.source = generatedSource
-            coneType = ConeClassLikeTypeImpl(
-                request.classId.toLookupTag(),
-                ConeTypeProjection.EMPTY_ARRAY,
-                isMarkedNullable = false,
-            )
-        }
-        val constructorParameters = buildAnnotatedCarrierConstructorParameters(
-            request = request,
-            constructorSymbol = constructorSymbol,
-            generatedSource = generatedSource,
-        )
-        return buildPrimaryConstructor {
-            this.source = generatedSource
-            this.moduleData = request.regularClass.moduleData
-            origin = SpreadPackGeneratedDeclarationKey.origin
-            resolvePhase = FirResolvePhase.BODY_RESOLVE
-            status = request.regularClass.status
-            isLocal = false
-            returnTypeRef = classTypeRef
-            symbol = constructorSymbol
-            valueParameters.addAll(constructorParameters)
-        }
-    }
-
-    private fun buildAnnotatedCarrierConstructorParameters(
-        request: FirAnnotatedCarrierRequest,
-        constructorSymbol: FirConstructorSymbol,
-        generatedSource: org.jetbrains.kotlin.KtSourceElement?,
-    ): List<FirValueParameter> {
-        return request.fields.map { field ->
-            buildValueParameter {
-                this.source = generatedSource
-                this.moduleData = request.regularClass.moduleData
-                origin = SpreadPackGeneratedDeclarationKey.origin
-                resolvePhase = FirResolvePhase.BODY_RESOLVE
-                returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
-                name = field.name
-                symbol = FirValueParameterSymbol()
-                defaultValue = generatedDefaultValueOrNull(field.defaultValue)
-                containingDeclarationSymbol = constructorSymbol
+        val constructor = createConstructor(
+            owner = request.regularClass.symbol,
+            key = SpreadPackGeneratedDeclarationKey,
+            isPrimary = false,
+            generateDelegatedNoArgConstructorCall = true,
+        ) {
+            request.fields.forEach { field ->
+                valueParameter(
+                    name = field.name,
+                    type = field.resolvedType,
+                    hasDefaultValue = field.defaultValue != null,
+                )
             }
         }
+        constructor.valueParameters.zip(request.fields).forEach { (parameter, field) ->
+            parameter.replaceDefaultValue(generatedDefaultValueOrNull(field.defaultValue))
+        }
+        return constructor
     }
 
     private fun buildAnnotatedCarrierProperty(

@@ -185,7 +185,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         val generatedPrimaryConstructor = declaration.declarations
             .filterIsInstance<IrConstructor>()
             .firstOrNull { constructor ->
-                constructor.isPrimary && constructor.isGeneratedBySpreadPackPlugin()
+                constructor.isGeneratedBySpreadPackPlugin()
             } ?: return
         val generatedProperties = declaration.declarations
             .filterIsInstance<IrProperty>()
@@ -436,16 +436,16 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             val generatedProperties = carrierClass.declarations
                 .filterIsInstance<IrProperty>()
                 .filter { property -> property.isGeneratedBySpreadPackPlugin() }
-            val noArgConstructor = carrierClass.declarations
+            val generatedConstructor = carrierClass.declarations
                 .filterIsInstance<org.jetbrains.kotlin.ir.declarations.IrConstructor>()
-                .firstOrNull { constructor -> constructor.valueParameters.isEmpty() }
+                .firstOrNull { constructor -> constructor.isGeneratedBySpreadPackPlugin() }
                 ?: invalidTarget(
                     owner,
-                    "annotated spread-pack carrier ${carrierClass.name.asString()} must expose a no-arg constructor",
+                    "annotated spread-pack carrier ${carrierClass.name.asString()} is missing generated constructor",
                 )
             return IrCarrierMetadata(
                 irClass = carrierClass,
-                primaryConstructor = noArgConstructor,
+                primaryConstructor = generatedConstructor,
                 generatedProperties = generatedProperties,
             )
         }
@@ -744,6 +744,20 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     excludedNames = carrierAnnotation.excludedNames(),
                     contextLabel = referencedOverload.fqNameWhenAvailable?.asString() ?: referencedOverload.name.asString(),
                 )
+                val generatedConstructor = carrier.irClass.declarations
+                    .filterIsInstance<IrConstructor>()
+                    .firstOrNull { constructor ->
+                        constructor.isGeneratedBySpreadPackPlugin()
+                    }
+                    ?: invalidTarget(
+                        owner,
+                        "annotated spread-pack carrier ${carrier.irClass.name.asString()} is missing generated constructor",
+                    )
+                val constructorParameterIndexByName = generatedConstructor.valueParameters
+                    .mapIndexed { index, parameter -> parameter.name.asString() to index }
+                    .toMap()
+                val generatedDefaultsByName = generatedConstructor.valueParameters
+                    .associateBy({ parameter -> parameter.name.asString() }, { parameter -> parameter.defaultValue })
                 val generatedPropertiesByName = carrier.generatedProperties.associateBy { property ->
                     property.name.asString()
                 }
@@ -765,8 +779,13 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     IrCarrierDeclaredField(
                         name = property.name,
                         type = fieldType,
-                        constructorIndex = -1,
-                        defaultValue = field.defaultValue,
+                        constructorIndex = constructorParameterIndexByName[field.name.asString()]
+                            ?: invalidTarget(
+                                owner,
+                                "annotated spread-pack carrier ${carrier.irClass.name.asString()} is missing constructor parameter ${field.name.asString()}",
+                            ),
+                        defaultValue = generatedDefaultsByName[field.name.asString()]?.deepCopyWithSymbols()
+                            ?: field.defaultValue,
                     )
                 }
             }
@@ -1055,11 +1074,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             }
         }
 
-        if (generated.returnType.isUnit()) {
-            +originalCall
-        } else {
-            +irReturn(originalCall)
-        }
+        +irReturn(originalCall)
     }
 
     private fun shouldIncludeField(
