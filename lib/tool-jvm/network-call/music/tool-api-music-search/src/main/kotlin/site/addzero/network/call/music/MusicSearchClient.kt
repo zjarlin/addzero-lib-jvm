@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
  * @param baseUrl API 基础 URL，默认使用公开的网易云音乐 API
  */
 object MusicSearchUtil {
-  private const val baseUrl: String = "https://music.163.com/api"
+  private const val baseUrl = "https://music.163.com/api"
 
   private val client = OkHttpClient.Builder()
     .connectTimeout(10, TimeUnit.SECONDS)

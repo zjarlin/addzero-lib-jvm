@@ -200,17 +200,17 @@ object MavenDependencyParser {
         val isUpdated: Boolean,
         val coordinate: MavenDependencyCoordinate?
     ) {
-        val oldVersion: String?
+        val oldVersion
             get() = coordinate?.version
         
-        val newVersion: String?
+        val newVersion
             get() = if (isUpdated) {
                 parseDependency(updated)?.version
             } else {
                 null
             }
         
-        val summary: String
+        val summary
             get() = if (coordinate != null) {
                 "${coordinate.groupId}:${coordinate.artifactId} " +
                 if (isUpdated) {

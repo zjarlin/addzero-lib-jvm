@@ -33,7 +33,7 @@ internal data class RouteRecord(
     val sceneOrder: Int,
     val defaultInScene: Boolean,
 ) {
-    val uniqueId: String
+    val uniqueId
         get() = qualifiedName.ifBlank { routePath }
 }
 

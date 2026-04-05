@@ -73,7 +73,7 @@ internal class JSerialCommDriver(
     override val systemPortName: String
         get() = serialPort.systemPortName
 
-    override val isOpen: Boolean
+    override val isOpen
         get() = serialPort.isOpen
 
     init {

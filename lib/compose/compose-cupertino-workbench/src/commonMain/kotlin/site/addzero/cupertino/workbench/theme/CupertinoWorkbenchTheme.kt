@@ -28,18 +28,18 @@ typealias WorkbenchTypography = Typography
 typealias WorkbenchShapes = Shapes
 
 object WorkbenchTheme {
-  val colorScheme: WorkbenchColorScheme
-    @Composable
+  val colorScheme
+      @Composable
     @ReadOnlyComposable
     get() = androidx.compose.material3.MaterialTheme.colorScheme
 
-  val typography: WorkbenchTypography
-    @Composable
+  val typography
+      @Composable
     @ReadOnlyComposable
     get() = androidx.compose.material3.MaterialTheme.typography
 
-  val shapes: WorkbenchShapes
-    @Composable
+  val shapes
+      @Composable
     @ReadOnlyComposable
     get() = androidx.compose.material3.MaterialTheme.shapes
 }

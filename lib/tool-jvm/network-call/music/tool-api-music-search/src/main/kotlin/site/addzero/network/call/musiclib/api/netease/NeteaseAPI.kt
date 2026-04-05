@@ -24,8 +24,8 @@ class NeteaseAPI(
 
     private var isVipCache: Boolean? = null
 
-    override val name: String = "网易云音乐"
-    override val source: String = "netease"
+    override val name = "网易云音乐"
+    override val source = "netease"
 
     companion object {
         const val REFERER = "http://music.163.com/"

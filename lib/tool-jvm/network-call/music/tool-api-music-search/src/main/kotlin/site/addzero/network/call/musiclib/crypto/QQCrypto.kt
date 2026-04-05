@@ -91,7 +91,7 @@ object QQCrypto {
      * QQ掩码类
      */
     private class QQMask(val matrix58: ByteArray, val superA: Byte, val superB: Byte) {
-        private val matrix128: ByteArray = generateMask128From58()
+        private val matrix128 = generateMask128From58()
 
         companion object {
             fun from128(matrix128: ByteArray): QQMask {

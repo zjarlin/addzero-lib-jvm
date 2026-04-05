@@ -137,6 +137,9 @@ if (file("lib/compose/compose-workbench-design").isDirectory) {
 if (file("lib/compose/compose-workbench-shell").isDirectory) {
   include(":lib:compose:compose-workbench-shell")
 }
+if (file("lib/compose/compose-workbench-immersive-desktop").isDirectory) {
+  include(":lib:compose:compose-workbench-immersive-desktop")
+}
 include(":lib:compose:compose-apple-corner")
 include(":lib:compose:compose-crud-spi")
 include(":lib:compose:compose-cupertino-workbench")

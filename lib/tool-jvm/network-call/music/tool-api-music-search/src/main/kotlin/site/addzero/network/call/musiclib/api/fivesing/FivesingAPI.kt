@@ -21,8 +21,8 @@ class FivesingAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "5sing"
-    override val source: String = "fivesing"
+    override val name = "5sing"
+    override val source = "fivesing"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

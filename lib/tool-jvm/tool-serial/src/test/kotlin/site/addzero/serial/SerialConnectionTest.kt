@@ -94,8 +94,8 @@ private class FakeSerialDriver(
      */
     val written = ByteArrayOutputStream()
 
-    override val systemPortName: String = "FAKE"
-    override val isOpen: Boolean = true
+    override val systemPortName = "FAKE"
+    override val isOpen = true
 
     override fun read(buffer: ByteArray): Int {
         val chunk = queue.removeFirstOrNull() ?: return 0

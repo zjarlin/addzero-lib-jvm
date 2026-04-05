@@ -14,7 +14,7 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
  * - 不把整个 XML 交给通用 pretty-printer，避免把 uVision 工程文件改坏
  */
 class KeilUvprojxSyncTool : ModbusProjectSyncTool {
-    override val toolId: String = "keil-uvprojx"
+    override val toolId = "keil-uvprojx"
 
     override fun isEnabled(context: ModbusProjectSyncContext): Boolean =
         context.environment.options[UVPROJX_PATH_OPTION]?.isNotBlank() == true

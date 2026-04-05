@@ -21,8 +21,8 @@ class BilibiliAPI(
 
     private var isVipCache: Boolean? = null
 
-    override val name: String = "哔哩哔哩"
-    override val source: String = "bilibili"
+    override val name = "哔哩哔哩"
+    override val source = "bilibili"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

@@ -7,7 +7,7 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactRenderContext
 import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactTemplates
 
 class ModbusCServiceContractArtifactGenerator : ModbusArtifactGenerator {
-    override val kind: ModbusArtifactKind = ModbusArtifactKind.C_SERVICE_CONTRACT
+    override val kind = ModbusArtifactKind.C_SERVICE_CONTRACT
 
     override fun render(context: ModbusArtifactRenderContext): List<GeneratedArtifact> =
         ModbusArtifactTemplates.renderServiceContractArtifacts(
@@ -17,7 +17,7 @@ class ModbusCServiceContractArtifactGenerator : ModbusArtifactGenerator {
 }
 
 class ModbusCTransportContractArtifactGenerator : ModbusArtifactGenerator {
-    override val kind: ModbusArtifactKind = ModbusArtifactKind.C_TRANSPORT_CONTRACT
+    override val kind = ModbusArtifactKind.C_TRANSPORT_CONTRACT
 
     override fun render(context: ModbusArtifactRenderContext): List<GeneratedArtifact> =
         ModbusArtifactTemplates.renderTransportContractArtifacts(

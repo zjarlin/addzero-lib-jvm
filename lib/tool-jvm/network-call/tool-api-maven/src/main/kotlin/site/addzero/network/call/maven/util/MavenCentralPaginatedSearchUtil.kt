@@ -98,8 +98,8 @@ object MavenCentralPaginatedSearchUtil {
         private val core: String? = null,
         private val sortBy: String = "timestamp desc"
     ) {
-        private var currentStart: Int = 0
-        private var totalResults: Long = 0L
+        private var currentStart = 0
+        private var totalResults = 0L
         private var hasLoadedFirstPage = false
 
         /**
@@ -249,10 +249,10 @@ data class PaginatedSearchResult(
     val currentPage: Int,
     val totalPages: Long
 ) {
-    val hasMore: Boolean
+    val hasMore
         get() = start + artifacts.size < totalResults
 
-    val hasPrevious: Boolean
+    val hasPrevious
         get() = start > 0
 
     companion object {

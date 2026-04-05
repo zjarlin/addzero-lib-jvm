@@ -298,7 +298,7 @@ data class TencentSearchResult(
   val items: List<TencentVideoItem>,
   val error: String? = null
 ) {
-  val isSuccess: Boolean get() = error == null && items.isNotEmpty()
+  val isSuccess get() = error == null && items.isNotEmpty()
 }
 
 /**

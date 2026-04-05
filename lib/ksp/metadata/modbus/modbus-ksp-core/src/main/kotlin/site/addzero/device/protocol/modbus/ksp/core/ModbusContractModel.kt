@@ -130,7 +130,7 @@ data class ModbusDocModel(
     val descriptionLines: List<String> = emptyList(),
     val parameterDocs: Map<String, String> = emptyMap(),
 ) {
-    val fullText: String =
+    val fullText =
         buildString {
             if (summary.isNotBlank()) {
                 append(summary)
@@ -241,9 +241,9 @@ data class ModbusOperationModel(
     val returnType: ModbusReturnTypeModel,
     val doc: ModbusDocModel,
 ) {
-    val isReadOperation: Boolean = functionCodeName.startsWith("READ_")
+    val isReadOperation = functionCodeName.startsWith("READ_")
 
-    val usesCoilBits: Boolean =
+    val usesCoilBits =
         functionCodeName in
             setOf(
                 "READ_COILS",
@@ -252,7 +252,7 @@ data class ModbusOperationModel(
                 "WRITE_MULTIPLE_COILS",
             )
 
-    val addressSpace: ModbusAddressSpace =
+    val addressSpace =
         when (functionCodeName) {
             "READ_COILS" -> ModbusAddressSpace.COIL_READ
             "READ_DISCRETE_INPUTS" -> ModbusAddressSpace.DISCRETE_INPUT
@@ -265,7 +265,7 @@ data class ModbusOperationModel(
             else -> error("未知的 Modbus 功能码：$functionCodeName")
         }
 
-    val registerSpan: Int =
+    val registerSpan =
         when (functionCodeName) {
             "WRITE_SINGLE_COIL",
             "WRITE_SINGLE_REGISTER" -> 1
@@ -307,10 +307,10 @@ data class ModbusServiceModel(
     val operations: List<ModbusOperationModel>,
     val workflows: List<ModbusWorkflowModel> = emptyList(),
 ) {
-    val gatewayClassName: String = "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}Gateway"
-    val configProviderClassName: String =
+    val gatewayClassName = "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}Gateway"
+    val configProviderClassName =
         "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}ConfigProvider"
-    val cServiceName: String = serviceId.replace(Regex("[^A-Za-z0-9]+"), "_").trim('_').ifBlank { interfaceSimpleName.lowercase() }
+    val cServiceName = serviceId.replace(Regex("[^A-Za-z0-9]+"), "_").trim('_').ifBlank { interfaceSimpleName.lowercase() }
 }
 
 /**

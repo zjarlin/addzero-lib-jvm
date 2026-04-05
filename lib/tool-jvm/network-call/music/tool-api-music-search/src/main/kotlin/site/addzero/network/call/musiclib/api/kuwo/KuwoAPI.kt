@@ -20,8 +20,8 @@ class KuwoAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "酷我音乐"
-    override val source: String = "kuwo"
+    override val name = "酷我音乐"
+    override val source = "kuwo"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

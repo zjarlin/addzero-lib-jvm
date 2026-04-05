@@ -34,7 +34,7 @@ class ModbusTcpClient(
             config.useRtuOverTcp,
         )
 
-    val isConnected: Boolean
+    val isConnected
         get() = master.isConnected
 
     /**

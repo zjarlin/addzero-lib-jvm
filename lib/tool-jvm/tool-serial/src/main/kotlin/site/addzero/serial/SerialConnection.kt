@@ -40,13 +40,13 @@ class SerialConnection internal constructor(
      * 这个值一般会和 [SerialPortConfig.portName] 接近，
      * 但仍以驱动最终打开的端口信息为准。
      */
-    val systemPortName: String
+    val systemPortName
         get() = driver.systemPortName
 
     /**
      * 当前连接是否仍处于打开状态。
      */
-    val isOpen: Boolean
+    val isOpen
         get() = driver.isOpen
 
     /**

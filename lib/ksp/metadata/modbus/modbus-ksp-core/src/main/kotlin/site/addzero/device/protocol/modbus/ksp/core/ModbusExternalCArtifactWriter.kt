@@ -21,9 +21,9 @@ class ModbusExternalCArtifactWriter private constructor(
     private val bridgeImplTargetPath: String,
     private val markdownOutputPath: String,
 ) {
-    private val headerOutputDir: File = firmwareProjectDir.resolve("Core/Inc/generated/modbus")
-    private val sourceOutputDir: File = firmwareProjectDir.resolve("Core/Src/generated/modbus")
-    private val markdownOutputDir: File =
+    private val headerOutputDir = firmwareProjectDir.resolve("Core/Inc/generated/modbus")
+    private val sourceOutputDir = firmwareProjectDir.resolve("Core/Src/generated/modbus")
+    private val markdownOutputDir =
         firmwareProjectDir.resolve(markdownOutputPath)
 
     fun writeIfSupported(

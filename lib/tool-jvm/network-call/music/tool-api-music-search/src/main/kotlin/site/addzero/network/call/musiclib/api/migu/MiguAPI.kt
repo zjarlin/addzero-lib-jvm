@@ -20,8 +20,8 @@ class MiguAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "咪咕音乐"
-    override val source: String = "migu"
+    override val name = "咪咕音乐"
+    override val source = "migu"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X)"

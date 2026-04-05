@@ -54,18 +54,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object MaterialTheme {
-  val colorScheme: androidx.compose.material3.ColorScheme
-    @Composable
+  val colorScheme
+      @Composable
     @ReadOnlyComposable
     get() = M3MaterialTheme.colorScheme
 
-  val typography: Typography
-    @Composable
+  val typography
+      @Composable
     @ReadOnlyComposable
     get() = M3MaterialTheme.typography
 
-  val shapes: Shapes
-    @Composable
+  val shapes
+      @Composable
     @ReadOnlyComposable
     get() = M3MaterialTheme.shapes
 }

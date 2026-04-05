@@ -165,7 +165,7 @@ private class FakeRtuSession : ModbusRtuSession {
     var multiCoilWrite: Triple<Int, Int, List<Boolean>>? = null
     var singleRegisterWrite: Triple<Int, Int, Int>? = null
     var multiRegisterWrite: Triple<Int, Int, List<Int>>? = null
-    var closed: Boolean = false
+    var closed = false
 
     fun setCoils(address: Int, values: List<Boolean>) {
         values.forEachIndexed { index, value ->

@@ -115,10 +115,10 @@ object GradleDependencyParser {
         val isUpdated: Boolean,
         val coordinate: DependencyCoordinate?
     ) {
-        val oldVersion: String?
+        val oldVersion
             get() = coordinate?.version
         
-        val newVersion: String?
+        val newVersion
             get() = if (isUpdated) {
                 parseDependency(updated)?.version
             } else {

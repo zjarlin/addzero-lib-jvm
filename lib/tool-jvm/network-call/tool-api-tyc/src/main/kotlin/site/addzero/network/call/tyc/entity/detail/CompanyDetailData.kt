@@ -245,11 +245,11 @@ data class CompanyDetailData(
         return s
     }
 
-    val typeName: String?
+    val typeName
         get() = parseType(type)
 
 
-    val companyTypeName: String?
+    val companyTypeName
         get() = parseCompanyType(companyType)
 
     fun parseCompanyType(companyType: Int?): String? {

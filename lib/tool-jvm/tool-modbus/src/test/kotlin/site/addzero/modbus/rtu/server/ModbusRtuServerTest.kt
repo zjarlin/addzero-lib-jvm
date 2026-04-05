@@ -78,8 +78,8 @@ private class FakeRtuSlaveBinding : ModbusRtuSlaveBinding {
      * 相当于 fake 从站内部的寄存器仓库。
      */
     val images = linkedMapOf<Int, SimpleProcessImage>()
-    var opened: Boolean = false
-    var closed: Boolean = false
+    var opened = false
+    var closed = false
 
     override fun addProcessImage(unitId: Int, image: SimpleProcessImage) {
         images[unitId] = image

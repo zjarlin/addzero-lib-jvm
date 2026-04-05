@@ -20,8 +20,8 @@ class JooxAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "Joox"
-    override val source: String = "joox"
+    override val name = "Joox"
+    override val source = "joox"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

@@ -34,7 +34,7 @@ class ModbusTcpServer(
     @Volatile
     private var slave: ModbusSlave? = null
 
-    val isRunning: Boolean
+    val isRunning
         get() = slave != null
 
     /**

@@ -272,7 +272,7 @@ private class FakeBootloaderTransport(
 ) : Stm32BootloaderTransport {
     val writes = mutableListOf<ByteArray>()
     val signalEvents = mutableListOf<SignalEvent>()
-    var clearBuffersCalled: Boolean = false
+    var clearBuffersCalled = false
 
     override fun write(bytes: ByteArray) {
         writes += bytes.copyOf()

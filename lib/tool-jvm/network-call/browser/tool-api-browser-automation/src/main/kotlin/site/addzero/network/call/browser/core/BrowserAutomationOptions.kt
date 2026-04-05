@@ -26,5 +26,5 @@ data class BrowserAutomationOptions(
   val cdpUrl: String? = null,
 ) {
   /** debug=true 时强制非无头，确保 Playwright Inspector 和浏览器窗口可见 */
-  val effectiveHeadless: Boolean get() = if (debug) false else headless
+  val effectiveHeadless get() = if (debug) false else headless
 }

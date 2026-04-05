@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 
 interface WorkbenchTopBarActionContributor {
-  val order: Int
+  val order
     get() = 0
 
   @Composable

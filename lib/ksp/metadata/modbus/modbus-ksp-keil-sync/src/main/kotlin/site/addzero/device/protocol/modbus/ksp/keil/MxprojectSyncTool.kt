@@ -13,7 +13,7 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
  * - 让 CubeMX / MDK 重新打开工程时仍能看到 generated/modbus 与 modbus/<transport> 目录
  */
 class MxprojectSyncTool : ModbusProjectSyncTool {
-    override val toolId: String = "stm32cubemx-mxproject"
+    override val toolId = "stm32cubemx-mxproject"
 
     override fun isEnabled(context: ModbusProjectSyncContext): Boolean =
         resolveMxprojectFile(context).isFile

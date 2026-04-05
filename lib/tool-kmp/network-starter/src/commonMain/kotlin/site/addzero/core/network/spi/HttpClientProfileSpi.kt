@@ -2,9 +2,9 @@ package site.addzero.core.network.spi
 
 interface HttpClientProfileSpi {
   val baseUrl: String
-  val default: Boolean
+  val default
     get() = false
-  val enableCurlLogging: Boolean
+  val enableCurlLogging
     get() = true
   val headers: Map<String, String>
     get() = emptyMap()

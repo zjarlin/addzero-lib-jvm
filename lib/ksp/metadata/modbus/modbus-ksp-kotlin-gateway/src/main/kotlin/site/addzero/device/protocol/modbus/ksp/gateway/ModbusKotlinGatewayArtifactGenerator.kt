@@ -7,7 +7,7 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactRenderContext
 import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactTemplates
 
 class ModbusKotlinGatewayArtifactGenerator : ModbusArtifactGenerator {
-    override val kind: ModbusArtifactKind = ModbusArtifactKind.KOTLIN_GATEWAY
+    override val kind = ModbusArtifactKind.KOTLIN_GATEWAY
 
     override fun render(context: ModbusArtifactRenderContext): List<GeneratedArtifact> =
         ModbusArtifactTemplates.renderGatewayArtifacts(

@@ -23,8 +23,8 @@ class QQAPI(
 
     private var isVipCache: Boolean? = null
 
-    override val name: String = "QQ音乐"
-    override val source: String = "qq"
+    override val name = "QQ音乐"
+    override val source = "qq"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1"

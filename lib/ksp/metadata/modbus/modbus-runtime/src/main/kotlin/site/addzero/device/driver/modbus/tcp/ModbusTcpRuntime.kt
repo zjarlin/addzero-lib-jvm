@@ -25,7 +25,7 @@ interface ModbusTcpConfigProvider {
 class ModbusTcpConfigRegistry(
     providers: List<ModbusTcpConfigProvider>,
 ) {
-    private val configs: Map<String, ModbusTcpEndpointConfig> =
+    private val configs =
         providers.associate { provider -> provider.serviceId to provider.defaultConfig() }
 
     fun require(serviceId: String): ModbusTcpEndpointConfig =

@@ -20,8 +20,8 @@ class JamendoAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "Jamendo"
-    override val source: String = "jamendo"
+    override val name = "Jamendo"
+    override val source = "jamendo"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

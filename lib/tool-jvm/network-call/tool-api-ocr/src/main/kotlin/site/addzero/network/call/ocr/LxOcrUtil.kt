@@ -32,7 +32,7 @@ object LxOcrUtil {
         val body = response?.body()
         // 解析返回的 JSON 数据
         val ocrOutVO: OcrOutVO = JSON.parseObject(body, OcrOutVO::class.java)
-        val rawOut: List<List<Any>> = ocrOutVO.data?.raw_out ?: emptyList()
+        val rawOut = ocrOutVO.data?.raw_out ?: emptyList()
         // 提取第二列的文本信息
         val collect: List<String> = rawOut.map { e -> e[1] as String }.filter { it.isNotBlank() }
         val collectJoined: String = collect.filter { it.isNotBlank() }

@@ -22,8 +22,8 @@ class SodaAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "汽水音乐"
-    override val source: String = "soda"
+    override val name = "汽水音乐"
+    override val source = "soda"
 
     companion object {
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

@@ -21,8 +21,8 @@ class QianqianAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "千千音乐"
-    override val source: String = "qianqian"
+    override val name = "千千音乐"
+    override val source = "qianqian"
 
     companion object {
         const val APP_ID = "16073360"

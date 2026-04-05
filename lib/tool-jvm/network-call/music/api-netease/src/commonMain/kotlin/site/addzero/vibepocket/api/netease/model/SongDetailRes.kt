@@ -20,7 +20,7 @@ data class NeteaseSearchSong(
 ) {
     val artistNames get() = artists.joinToString(", ") { it.name }
     /** 封面图 URL（优先取专辑封面） */
-    val coverUrl: String? get() = album?.picUrl
+    val coverUrl get() = album?.picUrl
     /** 提取匹配的歌词文本（去掉 HTML 高亮标签，合并为一行） */
     val matchedLyricText: String?
         get() = lyrics?.joinToString(" ") { it.replace(Regex("<[^>]+>"), "") }

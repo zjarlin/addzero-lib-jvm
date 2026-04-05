@@ -7,9 +7,9 @@ package site.addzero.tool.coll
  * @constructor 创建[TopologicalSpi]
  */
 interface TopologicalSpi {
-  val key: String
+  val key
     get() = this::class.simpleName!!
-  val order: Int
+  val order
     get() = Int.MAX_VALUE
   val dependsOn: String?
     get() = null

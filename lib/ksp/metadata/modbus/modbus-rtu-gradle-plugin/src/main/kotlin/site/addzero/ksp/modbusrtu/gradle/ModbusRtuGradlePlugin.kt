@@ -116,8 +116,8 @@ abstract class ModbusRtuExtension {
 }
 
 class ModbusRtuGradlePlugin : AbstractPublishedKspConsumerPlugin() {
-    override val pluginId: String = PLUGIN_ID
-    override val coordinatesResourcePath: String = COORDINATES_RESOURCE_PATH
+    override val pluginId = PLUGIN_ID
+    override val coordinatesResourcePath = COORDINATES_RESOURCE_PATH
     override val processorArtifact: PublishedProcessorArtifact =
         PublishedProcessorArtifact(
             artifactKind = PublishedKspArtifactKind.JVM,
@@ -179,10 +179,10 @@ class ModbusRtuGradlePlugin : AbstractPublishedKspConsumerPlugin() {
     }
 
     companion object {
-        const val PLUGIN_ID: String = "site.addzero.ksp.modbus-rtu"
-        const val EXTENSION_NAME: String = "modbusRtu"
-        const val PROCESSOR_ARTIFACT_ID: String = "modbus-ksp-rtu"
-        const val COORDINATES_RESOURCE_PATH: String =
+        const val PLUGIN_ID = "site.addzero.ksp.modbus-rtu"
+        const val EXTENSION_NAME = "modbusRtu"
+        const val PROCESSOR_ARTIFACT_ID = "modbus-ksp-rtu"
+        const val COORDINATES_RESOURCE_PATH =
             "site/addzero/ksp/modbus-rtu/gradle-plugin.properties"
     }
 }

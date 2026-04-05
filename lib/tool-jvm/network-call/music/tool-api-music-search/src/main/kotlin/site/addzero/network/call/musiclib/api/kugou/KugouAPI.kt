@@ -20,8 +20,8 @@ class KugouAPI(
     private val client: HttpClient = HttpClientManager.client,
 ) : CookieMusicProvider {
 
-    override val name: String = "酷狗音乐"
-    override val source: String = "kugou"
+    override val name = "酷狗音乐"
+    override val source = "kugou"
 
     companion object {
         const val MOBILE_USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15"

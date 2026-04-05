@@ -52,7 +52,7 @@ class ModbusRtuServer private constructor(
         marker: Boolean = true,
     ) : this(config, slaveFactory)
 
-    val isRunning: Boolean
+    val isRunning
         get() = slave != null
 
     /**
