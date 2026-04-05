@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import io.github.robinpcrd.cupertino.ExperimentalCupertinoApi
 import io.github.robinpcrd.cupertino.adaptive.AdaptiveTheme
 import io.github.robinpcrd.cupertino.adaptive.CupertinoThemeSpec
+import io.github.robinpcrd.cupertino.adaptive.ExperimentalAdaptiveApi
 import io.github.robinpcrd.cupertino.adaptive.MaterialThemeSpec
 import io.github.robinpcrd.cupertino.adaptive.Theme
 import io.github.robinpcrd.cupertino.theme.Shapes as CupertinoShapes
@@ -43,7 +44,7 @@ object WorkbenchTheme {
     get() = androidx.compose.material3.MaterialTheme.shapes
 }
 
-@OptIn(ExperimentalCupertinoApi::class)
+@OptIn(ExperimentalCupertinoApi::class, ExperimentalAdaptiveApi::class)
 @Composable
 fun CupertinoWorkbenchTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),

@@ -219,6 +219,7 @@ private fun <T> PlaylistPlayerLayout(
     showLyrics: Boolean,
     playerPane: @Composable () -> Unit,
 ) {
+    @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     val currentItem = controller.currentItem

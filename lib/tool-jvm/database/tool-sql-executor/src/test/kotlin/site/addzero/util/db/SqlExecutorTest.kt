@@ -210,6 +210,60 @@ class SqlExecutorTest {
             println("✅ H2 自定义函数测试通过!")
         }
     }
+
+    @Test
+    fun `test prepared query and update`() {
+        SqlExecutor("jdbc:h2:mem:test-params", "sa", "").use { executor ->
+            executor.execute(
+                """
+                CREATE TABLE config_values (
+                    config_key VARCHAR(255) PRIMARY KEY,
+                    config_value VARCHAR(255) NOT NULL
+                )
+                """.trimIndent(),
+            )
+
+            executor.executeUpdate(
+                "INSERT INTO config_values (config_key, config_value) VALUES (?, ?)",
+                params = listOf("server.host", "127.0.0.1"),
+            )
+
+            val rows = executor.queryForList(
+                "SELECT config_key, config_value FROM config_values WHERE config_key = ?",
+                params = listOf("server.host"),
+            )
+
+            assertEquals(1, rows.size)
+            assertEquals("127.0.0.1", rows.first()["CONFIG_VALUE"])
+        }
+    }
+
+    @Test
+    fun `test transaction rollback`() {
+        SqlExecutor("jdbc:h2:mem:test-tx", "sa", "").use { executor ->
+            executor.execute(
+                """
+                CREATE TABLE tx_demo (
+                    id INT PRIMARY KEY,
+                    label VARCHAR(255) NOT NULL
+                )
+                """.trimIndent(),
+            )
+
+            assertThrows<IllegalStateException> {
+                executor.withTransaction {
+                    executor.executeUpdate(
+                        "INSERT INTO tx_demo (id, label) VALUES (?, ?)",
+                        params = listOf(1, "before-rollback"),
+                    )
+                    error("rollback")
+                }
+            }
+
+            val rows = executor.queryForList("SELECT id, label FROM tx_demo")
+            assertTrue(rows.isEmpty())
+        }
+    }
 }
 
 /**

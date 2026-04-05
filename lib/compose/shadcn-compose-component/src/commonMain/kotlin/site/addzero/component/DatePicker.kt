@@ -44,11 +44,11 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
+import kotlinx.datetime.todayIn
+import kotlin.time.Clock
 import site.addzero.themes.radius
 import site.addzero.themes.colors
 import kotlin.math.roundToInt
-import kotlinx.datetime.Clock
-import kotlinx.datetime.todayIn
 
 /**
  * 一个受 Shadcn UI 启发的 Jetpack Compose 日期选择器组件。
@@ -87,7 +87,7 @@ fun DatePicker(
     val formatter = LocalDate.Format {
         monthName(MonthNames.ENGLISH_FULL)
         char(' ')
-        dayOfMonth()
+        day()
         chars(", ")
         year()
     }

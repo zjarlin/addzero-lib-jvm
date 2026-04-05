@@ -50,16 +50,15 @@ import androidx.compose.ui.window.Dialog
 import site.addzero.themes.ShadcnColors
 import site.addzero.themes.radius
 import site.addzero.themes.colors
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.YearMonth
-import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.todayIn
-import kotlinx.datetime.DateTimeUnit
 import kotlin.math.roundToInt
+import kotlin.time.Clock
 
 // 日期格式化的辅助函数（简化方法）
 private fun DayOfWeek.getShortName(): String {
@@ -152,9 +151,9 @@ fun Calendar(
     selectedDate: LocalDate? = null,
     onDateSelected: (LocalDate) -> Unit,
     initialMonth: YearMonth = run {
-      val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-      YearMonth(today.year, today.month)
-  },
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        YearMonth(today.year, today.month)
+    },
     dateSelectionMode: DateSelectionMode = DateSelectionMode.All,
     colors: CalendarStyle = CalendarDefaults.colors()
 ) {
@@ -262,7 +261,7 @@ fun Calendar(
                     val newMonth = if (currentMonth.month == Month.DECEMBER) {
                         YearMonth(currentMonth.year + 1, Month.JANUARY)
                     } else {
-                        YearMonth(currentMonth.year, Month(currentMonth.month.ordinal + 1))
+                        YearMonth(currentMonth.year, Month(currentMonth.month.ordinal + 2))
                     }
                     currentMonth = newMonth
                 }) {
@@ -336,10 +335,10 @@ fun Calendar(
                                 else -> {
                                     val dayOfMonth = cellIndex - leadingEmptyDays - daysInMonth + 1
                                     val nextMonth = if (currentMonth.month == Month.DECEMBER) {
-                        YearMonth(currentMonth.year + 1, Month.JANUARY)
-                    } else {
-                        YearMonth(currentMonth.year, Month(currentMonth.month.ordinal + 1))
-                    }
+                                        YearMonth(currentMonth.year + 1, Month.JANUARY)
+                                    } else {
+                                        YearMonth(currentMonth.year, Month(currentMonth.month.ordinal + 2))
+                                    }
                                     Pair(LocalDate(nextMonth.year, nextMonth.month, dayOfMonth), false)
                                 }
                             }
@@ -419,7 +418,7 @@ fun Calendar(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = date.dayOfMonth.toString(),
+                                    text = date.day.toString(),
                                     style = TextStyle(
                                         color = textColor,
                                         fontSize = 14.sp,
@@ -567,8 +566,8 @@ private fun YearPickerDialog(
                 .padding(8.dp)
                 .height(300.dp)
         ) {
-            val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
-            val years = remember { (1970..currentYear + 5).toList() }
+            val systemYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
+            val years = remember { (1970..systemYear + 5).toList() }
             val listState = rememberLazyListState()
 
             // 初始组合时滚动到当前年份

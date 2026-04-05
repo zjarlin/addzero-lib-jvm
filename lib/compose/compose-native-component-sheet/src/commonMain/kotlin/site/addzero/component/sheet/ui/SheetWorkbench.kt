@@ -45,6 +45,7 @@ fun SheetWorkbench(
     metrics: SheetGridMetrics = SheetGridMetrics(),
     toolbarSlot: @Composable RowScope.(SheetController) -> Unit = {},
 ) {
+    @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
     val document = controller.document
     val activeSheet = controller.activeSheet

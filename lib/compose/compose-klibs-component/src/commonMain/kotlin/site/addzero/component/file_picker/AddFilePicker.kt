@@ -30,11 +30,9 @@ import kotlin.time.ExperimentalTime
 var USE_MOCK_FILE_UPLOAD = true
 
 /**
- * 模拟文件上传响应类
+ * 模拟文件上传进度快照。
  */
-
-@Deprecated("用真实的")
-data class MockFileUploadResponse(
+internal data class MockUploadProgressSnapshot(
     val fileUrl: String,
     val progress: Float
 )
@@ -60,9 +58,9 @@ suspend fun mockUploadFile(content: MultiPartFormDataContent): String {
 }
 
 /**
- * 模拟查询文件上传进度API
+ * 模拟查询文件上传进度 API。
  */
-suspend fun mockQueryProgress(redisKey: String): MockFileUploadResponse {
+internal suspend fun mockQueryProgress(redisKey: String): MockUploadProgressSnapshot {
     // 根据redisKey的hash值生成一个递增的进度
     val hashCode = redisKey.hashCode().absoluteValue
     val currentTimeMillis = Clock.System.now().toEpochMilliseconds()
@@ -81,7 +79,7 @@ suspend fun mockQueryProgress(redisKey: String): MockFileUploadResponse {
         ""
     }
 
-    return MockFileUploadResponse(fileUrl, progress)
+    return MockUploadProgressSnapshot(fileUrl, progress)
 }
 
 @Composable
@@ -206,4 +204,3 @@ fun formatFileSize(size: Long?): String = when {
     size < 1024 * 1024 * 1024 -> "${size / (1024 * 1024)} MB"
     else -> "${size / (1024 * 1024 * 1024)} GB"
 }
-

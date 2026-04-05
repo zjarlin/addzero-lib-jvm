@@ -69,7 +69,7 @@ fun UploadManagerUI(
         }
 
         // 标签页
-        TabRow(selectedTabIndex = selectedTab) {
+        SecondaryTabRow(selectedTabIndex = selectedTab) {
             tabs.forEachIndexed { index, title ->
                 val count = when (index) {
                     0 -> uploadManager.activeTasks.size

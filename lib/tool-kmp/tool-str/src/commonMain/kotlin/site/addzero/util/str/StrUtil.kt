@@ -20,9 +20,10 @@ fun isAllBlank(vararg strs: CharSequence?): Boolean {
  * @return 清理后的字符串
  */
 fun String?.cleanBlank(): String {
-  if (this.isNullOrEmpty()) return ""
+  val value = this ?: return ""
+  if (value.isEmpty()) return ""
 
-  return this!!.trim().replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
+  return value.trim().replace(Regex("\\s+"), " ") // 将连续的空白字符替换为单个空格
     .filter { it.isDefined() } // 移除不可见字符
 }
 
@@ -101,7 +102,7 @@ fun CharSequence?.isNotBlank(): Boolean {
 fun String.getPathFromRight(n: Int): String {
   val parts = this.split(".").filter { it.isNotEmpty() }
 
-  if (parts!!.size < n) {
+  if (parts.size < n) {
     return this // 输入字符串中的路径部分不足n个，返回整个输入字符串
   }
 
@@ -109,10 +110,11 @@ fun String.getPathFromRight(n: Int): String {
 }
 
 fun String?.lowerCase(): String {
-  if (this.isNullOrEmpty()) {
+  val value = this ?: return ""
+  if (value.isEmpty()) {
     return ""
   }
-  return this!!.lowercase()
+  return value.lowercase()
 }
 
 /**
@@ -220,10 +222,11 @@ infix fun String.ignoreCaseLike(other: String): Boolean {
  * 扩展函数：检查是否包含中文
  */
 fun CharSequence?.containsChinese(): Boolean {
-  if (this.isNullOrEmpty()) {
+  val value = this ?: return false
+  if (value.isEmpty()) {
     return false
   }
-  val containsMatchIn = Regex("[\\u4e00-\\u9fa5]").containsMatchIn(this!!)
+  val containsMatchIn = Regex("[\\u4e00-\\u9fa5]").containsMatchIn(value)
   return containsMatchIn
 }
 
@@ -549,12 +552,13 @@ fun length(str: String?): Int {
  * @return 如果包含任意一个测试字符序列则返回true，否则返回false
  */
 fun CharSequence?.containsAny(vararg testStrs: CharSequence): Boolean {
-  if (this.isNullOrEmpty() || testStrs.isEmpty()) {
+  val value = this ?: return false
+  if (value.isEmpty() || testStrs.isEmpty()) {
     return false
   }
 
   for (testStr in testStrs) {
-    if (this!!.contains(testStr)) {
+    if (value.contains(testStr)) {
       return true
     }
   }

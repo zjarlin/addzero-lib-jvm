@@ -130,6 +130,7 @@ fun <T, C> TableOriginal(
 
     val showLeftSlot = rowLeftSlot != null
     val showFixedActionColumn = rowActionSlot != null
+    val actualRowActionSlot = rowActionSlot
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -177,7 +178,7 @@ fun <T, C> TableOriginal(
                         .zIndex(2f),
                 )
 
-                if (showFixedActionColumn) {
+                if (actualRowActionSlot != null) {
                     RenderFixedActionColumn(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -185,7 +186,7 @@ fun <T, C> TableOriginal(
                         verticalScrollState = verticalScrollState,
                         data = data,
                         layoutConfig = layoutConfig,
-                        rowActionSlot = rowActionSlot!!,
+                        rowActionSlot = actualRowActionSlot,
                     )
                 }
             }

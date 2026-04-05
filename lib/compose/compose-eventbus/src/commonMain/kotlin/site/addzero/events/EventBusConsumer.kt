@@ -2,41 +2,25 @@ package site.addzero.events
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import site.addzero.ioc.annotation.Bean
-import site.addzero.component.toast.ToastManager
-import site.addzero.core.network.AddHttpClient
-import site.addzero.entity.Res
-import site.addzero.viewmodel.LoginViewModel
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
-import org.koin.compose.viewmodel.koinViewModel
+import site.addzero.component.toast.ToastManager
 
 /**
- * HttpResponse事件总线消费
+ * HttpResponse 事件总线消费
  */
 @Composable
-@Bean
 fun EventBusConsumer() {
-    val loginViewModel = koinViewModel<LoginViewModel>()
-
     LaunchedEffect(Unit) {
         EventBus.consumer<HttpResponse> {
-            if (this.status.value == 500) {
-                show("系统异常")
-//                show(this.bodyAsText())
-            }
-            val bodyAsText = this.bodyAsText()
-            // TODO: ProblemDetail重构,弃用Res
-            val body = this.body<Res<Any>>()
-            val message = body.message
-            val code = body.code
-            val status = HttpStatusCode(code, message)
-            when (status) {
+            val feedback = resolveHttpFeedback(this)
+            val message = feedback.message
+            when (feedback.status) {
                 OK -> {
                     if (message.isNotBlank()) {
                         ToastManager.info(message)
@@ -44,39 +28,61 @@ fun EventBusConsumer() {
                 }
 
                 Unauthorized -> {
-//                    LoginScreen()
-//                    LoginUtil.viewModel= LoginViewModel()
-                    loginViewModel.currentToken = null
-                    AddHttpClient.setToken(null)
-
                     show(message)
-                    // 401 未登录/Token失效，跳转登录页
-//                    NavgationViewModel.navigate(RouteKeys.LOGIN_SCREEN)
                 }
 
                 Forbidden -> {
-                    // 403 无权限，可弹出提示
                     ToastManager.error("无权限访问")
                 }
 
                 BadRequest -> {
-                    //业务异常警告
                     show(message)
                 }
-                // 处理自定义状态码
+
                 HttpStatusCode(499, "Need More Info") -> {
-                    // 比如弹窗、跳转、发事件等
                     ToastManager.info("请补充资料后再操作")
-                    // 你也可以 navigate 到某个补充资料页面
-                    // navigate(RouteKeys.COMPLETE_PROFILE)
                 }
-                // 你可以继续扩展更多状态码
-                else -> { /* 其他全局处理 */
+
+                else -> {
                     show(message)
                 }
             }
         }
     }
+}
+
+private data class HttpFeedback(
+    val status: HttpStatusCode,
+    val message: String,
+)
+
+private suspend fun resolveHttpFeedback(response: HttpResponse): HttpFeedback {
+    val bodyText = runCatching {
+        response.bodyAsText()
+    }.getOrDefault("")
+    val statusCode = extractStatusCode(bodyText) ?: response.status.value
+    val message = extractMessage(bodyText).ifBlank {
+        response.status.description.ifBlank {
+            "请求失败"
+        }
+    }
+    return HttpFeedback(
+        status = HttpStatusCode.fromValue(statusCode),
+        message = message,
+    )
+}
+
+private fun extractStatusCode(bodyText: String): Int? {
+    val matched = STATUS_CODE_REGEX.find(bodyText)?.groupValues?.getOrNull(1)
+    return matched?.toIntOrNull()
+}
+
+private fun extractMessage(bodyText: String): String {
+    val matched = MESSAGE_REGEX.find(bodyText)?.groupValues?.getOrNull(1).orEmpty()
+    return matched
+        .replace("\\\\n", "\n")
+        .replace("\\\\\"", "\"")
+        .trim()
 }
 
 private suspend fun show(message: String) {
@@ -85,3 +91,5 @@ private suspend fun show(message: String) {
     }
 }
 
+private val STATUS_CODE_REGEX = Regex("\"(?:code|status)\"\\s*:\\s*(\\d+)")
+private val MESSAGE_REGEX = Regex("\"(?:message|detail|title)\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"")

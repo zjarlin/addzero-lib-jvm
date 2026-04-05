@@ -2,17 +2,16 @@ package site.addzero.entity
 
 import site.addzero.enums.ErrorEnum
 
-
 @Deprecated(
     message = "Res is deprecated, use ProblemDetail instead",
     replaceWith = ReplaceWith("ProblemDetail", "site.addzero.entity.ProblemDetail")
 )
-
 data class Res<T>(
     val code: Int = 200,
     val message: String = "请求成功",
     val data: T? = null
 ) {
+    @Suppress("DEPRECATION")
     companion object {
         // 成功响应
         fun <T> success(data: T?) = Res(data = data)
@@ -27,4 +26,6 @@ data class Res<T>(
         fun forbidden(message: String) = Res<Nothing>(403, message)
     }
 }
+
+@Suppress("DEPRECATION")
 fun ErrorEnum.fail() = Res.fail(this)

@@ -1,12 +1,17 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+
 plugins {
     id("site.addzero.buildlogic.kmp.cmp-lib")
 }
 
-kotlin {
-    sourceSets.all {
-        languageSettings.enableLanguageFeature("ContextParameters")
+tasks.withType<KotlinCompilationTask<*>>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
-   val libs = versionCatalogs.named("libs")
+}
+
+kotlin {
+    val libs = versionCatalogs.named("libs")
 
     sourceSets {
         commonMain.dependencies {
