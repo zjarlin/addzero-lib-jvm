@@ -56,9 +56,19 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-05T16:05:47.267080
-// Loaded: 37, Excluded: 1, Total: 38
-// Excluded (build infrastructure): :checkouts:build-logic
+// Generated at: 2026-04-05T16:37:55.020205
+// Loaded: 49, Excluded: 0, Total: 49
+include(":lib:compose:app-sidebar")
+include(":lib:compose:app-sidebar-cupertino-adapter")
+include(":lib:compose:compose-apple-corner")
+include(":lib:compose:compose-cupertino-workbench")
+include(":lib:compose:compose-native-component-button")
+include(":lib:compose:compose-native-component-high-level")
+include(":lib:compose:compose-native-component-searchbar")
+include(":lib:compose:compose-native-component-tree")
+include(":lib:compose:compose-workbench-design")
+include(":lib:compose:scaffold-spi")
+include(":lib:compose:shadcn-compose-component")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
 include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
@@ -96,6 +106,7 @@ include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-jvm:tool-serial")
 include(":lib:tool-kmp:network-starter")
 include(":lib:tool-kmp:tool-coll")
+include(":lib:tool-kmp:tool-tree")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")

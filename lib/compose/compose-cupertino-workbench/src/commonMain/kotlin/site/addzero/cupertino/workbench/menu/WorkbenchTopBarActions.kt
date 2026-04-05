@@ -14,10 +14,8 @@ interface WorkbenchTopBarActionContributor {
   fun RowScope.Render()
 }
 
-typealias CupertinoWorkbenchTopBarActionContributor = WorkbenchTopBarActionContributor
-
 @Composable
-fun RowScope.WorkbenchTopBarActionsHost(
+fun WorkbenchTopBarActionsHost(
   contributors: List<WorkbenchTopBarActionContributor>,
 ) {
   Row(
