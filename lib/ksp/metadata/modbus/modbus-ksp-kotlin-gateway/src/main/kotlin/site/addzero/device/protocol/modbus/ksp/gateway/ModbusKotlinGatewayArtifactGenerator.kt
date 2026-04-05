@@ -14,5 +14,6 @@ class ModbusKotlinGatewayArtifactGenerator : ModbusArtifactGenerator {
             transport = context.suite.transport,
             services = context.suite.services,
             transportDefaults = context.suite.transportDefaults,
+            serverRouteMode = context.serverRouteMode,
         )
 }

@@ -45,6 +45,9 @@ abstract class ModbusRtuExtension {
     /** STM32CubeMX `.mxproject` 路径；配置后会同步缓存的源文件和头文件路径。 */
     abstract val mxprojectPath: Property<String>
 
+    /** Spring2Ktor 风格路由源码输出根目录；配置后不再生成直接的 Ktor Route 扩展。 */
+    abstract val springRouteOutputDir: Property<String>
+
     /** RTU 默认串口路径。 */
     abstract val rtuPortPath: Property<String>
 
@@ -95,6 +98,7 @@ abstract class ModbusRtuExtension {
         keilTargetName.convention("")
         keilGroupName.convention("Core/modbus/rtu")
         mxprojectPath.convention("")
+        springRouteOutputDir.convention("")
         rtuPortPath.convention("/dev/ttyUSB0")
         rtuUnitId.convention(1)
         rtuBaudRate.convention(9600)
@@ -156,6 +160,8 @@ class ModbusRtuGradlePlugin : AbstractPublishedKspConsumerPlugin() {
                 ?.let { put("addzero.modbus.keil.groupName", it) }
             modbus.mxprojectPath.orNull?.takeIf(String::isNotBlank)
                 ?.let { put("addzero.modbus.mxproject.path", it) }
+            modbus.springRouteOutputDir.orNull?.takeIf(String::isNotBlank)
+                ?.let { put("addzero.modbus.spring.route.outputDir", it) }
             put("addzero.modbus.rtu.default.portPath", modbus.rtuPortPath.get())
             put("addzero.modbus.rtu.default.unitId", modbus.rtuUnitId.get().toString())
             put("addzero.modbus.rtu.default.baudRate", modbus.rtuBaudRate.get().toString())

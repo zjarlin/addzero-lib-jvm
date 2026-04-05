@@ -375,8 +375,14 @@ enum class ModbusArtifactKind {
     MARKDOWN_PROTOCOL,
 }
 
+enum class ModbusServerRouteMode {
+    DIRECT_KTOR,
+    SPRING_SOURCE,
+}
+
 data class ModbusArtifactRenderContext(
     val kind: ModbusArtifactKind,
     val suite: ModbusProtocolSuiteModel,
     val service: ModbusServiceModel? = null,
+    val serverRouteMode: ModbusServerRouteMode = ModbusServerRouteMode.DIRECT_KTOR,
 )

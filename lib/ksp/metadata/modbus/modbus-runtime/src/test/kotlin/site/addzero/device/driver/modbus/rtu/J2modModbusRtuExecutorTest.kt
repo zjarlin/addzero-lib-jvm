@@ -24,8 +24,7 @@ class J2modModbusRtuExecutorTest {
         }
 
         val result = executor.readCoils(
-            ModbusRtuEndpointConfig(
-                serviceId = "demo",
+            DefaultModbusRtuEndpointConfig(
                 portPath = "/dev/ttyUSB9",
                 unitId = 7,
                 baudRate = 115200,
@@ -54,8 +53,7 @@ class J2modModbusRtuExecutorTest {
 
         val error = assertFailsWith<IllegalStateException> {
             executor.writeSingleRegister(
-                ModbusRtuEndpointConfig(
-                    serviceId = "svc-a",
+                DefaultModbusRtuEndpointConfig(
                     portPath = "COM7",
                     unitId = 1,
                     baudRate = 9600,
@@ -67,8 +65,8 @@ class J2modModbusRtuExecutorTest {
             )
         }
 
-        assertEquals(true, error.message?.contains("service=svc-a"))
         assertEquals(true, error.message?.contains("port=COM7"))
+        assertEquals(false, error.message?.contains("service="))
     }
 }
 

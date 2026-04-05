@@ -72,7 +72,7 @@ class J2modModbusRtuExecutor internal constructor(
             block(client)
         } catch (throwable: Throwable) {
             throw IllegalStateException(
-                "Modbus RTU 通信失败：service=${config.serviceId} port=${config.portPath} unit=${config.unitId}",
+                "Modbus RTU 通信失败：port=${config.portPath} unit=${config.unitId}",
                 throwable,
             )
         } finally {

@@ -29,13 +29,17 @@ val activeBuildLogicDir = when {
   sharedKlibBuildLogicDir.resolve("src/main/kotlin").isDirectory -> sharedKlibBuildLogicDir
   else -> localBuildLogicDir
 }
+val hasActiveBuildLogicDir = activeBuildLogicDir.resolve("src/main/kotlin").isDirectory
+val activeBuildLogicCatalogFile = activeBuildLogicDir.resolve("gradle/libs.versions.toml")
 
-includeBuild(activeBuildLogicDir) {
-  name = "addzero-lib-jvm-build-logic"
+if (hasActiveBuildLogicDir) {
+  includeBuild(activeBuildLogicDir) {
+    name = "addzero-lib-jvm-build-logic"
+  }
 }
 
 extensions.configure<site.addzero.gradle.GitDependencysExtension>("implementationRemoteGit") {
-  if (activeBuildLogicDir.resolve("src/main/kotlin").isDirectory) {
+  if (hasActiveBuildLogicDir) {
     enableZlibs.set(false)
   }
 }
@@ -48,9 +52,11 @@ dependencyResolutionManagement {
     google()
     gradlePluginPortal()
   }
-  versionCatalogs {
-    create("libs") {
-      from(files("${activeBuildLogicDir.path}/gradle/libs.versions.toml"))
+  if (activeBuildLogicCatalogFile.isFile) {
+    versionCatalogs {
+      create("libs") {
+        from(files(activeBuildLogicCatalogFile))
+      }
     }
   }
 }

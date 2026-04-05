@@ -26,12 +26,14 @@ object ModbusArtifactRenderer {
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
+        serverRouteMode: ModbusServerRouteMode = ModbusServerRouteMode.DIRECT_KTOR,
     ): List<GeneratedArtifact> =
         render(
             context =
                 ModbusArtifactRenderContext(
                     kind = ModbusArtifactKind.KOTLIN_GATEWAY,
                     suite = ModbusProtocolSuiteModel(transport = transport, services = services, transportDefaults = transportDefaults),
+                    serverRouteMode = serverRouteMode,
                 ),
         )
 
@@ -39,7 +41,17 @@ object ModbusArtifactRenderer {
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
-    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults)
+        serverRouteMode: ModbusServerRouteMode = ModbusServerRouteMode.DIRECT_KTOR,
+    ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults, serverRouteMode)
+
+    fun renderSpringRouteSourceArtifacts(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+    ): List<GeneratedArtifact> =
+        ModbusArtifactTemplates.renderSpringRouteSourceArtifacts(
+            transport = transport,
+            services = services,
+        )
 
     fun renderKtorfitClientArtifacts(
         transport: ModbusTransportKind,

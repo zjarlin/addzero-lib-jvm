@@ -8,6 +8,7 @@ object ModbusKspOptions {
     const val CONTRACT_PACKAGE_OPTION: String = "addzero.modbus.contractPackage"
     const val API_CLIENT_PACKAGE_OPTION: String = "addzero.modbus.apiClientPackageName"
     const val API_CLIENT_OUTPUT_DIR_OPTION: String = "addzero.modbus.apiClientOutputDir"
+    const val SPRING_ROUTE_OUTPUT_DIR_OPTION: String = "addzero.modbus.spring.route.outputDir"
     const val RTU_PORT_PATH_OPTION: String = "addzero.modbus.rtu.default.portPath"
     const val RTU_UNIT_ID_OPTION: String = "addzero.modbus.rtu.default.unitId"
     const val RTU_BAUD_RATE_OPTION: String = "addzero.modbus.rtu.default.baudRate"
@@ -41,6 +42,11 @@ fun SymbolProcessorEnvironment.resolveApiClientPackageName(): String? =
 
 fun SymbolProcessorEnvironment.resolveApiClientOutputDir(): String? =
     options[ModbusKspOptions.API_CLIENT_OUTPUT_DIR_OPTION]
+        ?.trim()
+        ?.takeIf(String::isNotBlank)
+
+fun SymbolProcessorEnvironment.resolveSpringRouteOutputDir(): String? =
+    options[ModbusKspOptions.SPRING_ROUTE_OUTPUT_DIR_OPTION]
         ?.trim()
         ?.takeIf(String::isNotBlank)
 

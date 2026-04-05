@@ -1,26 +1,32 @@
 package site.addzero.device.driver.modbus.rtu
 
 /**
- * 单个 Modbus RTU 终端的默认连接参数。
+ * Modbus RTU 终端连接参数抽象。
  *
- * @property serviceId 运行时内部使用的服务标识，通常由 KSP 生成网关引用
- * @property portPath 串口设备路径，例如 `/dev/ttyUSB0`
- * @property unitId Modbus 从站地址
- * @property baudRate 串口波特率
- * @property dataBits 数据位，默认 8 位
- * @property stopBits 停止位，目前按 1 或 2 位映射到底层串口参数
- * @property parity 串口奇偶校验位
- * @property timeoutMs 单次请求超时时间，单位毫秒
- * @property retries 失败后的额外重试次数，不包含首次请求
+ * 业务应用通常只需要向 Koin 提供一个全局默认实现；
+ * 生成网关和 Spring 路由源码会基于这份默认值再叠加请求级覆盖项。
  */
-data class ModbusRtuEndpointConfig(
-    val serviceId: String,
-    val portPath: String,
-    val unitId: Int,
-    val baudRate: Int,
-    val dataBits: Int = 8,
-    val stopBits: Int = 1,
-    val parity: ModbusSerialParity = ModbusSerialParity.NONE,
-    val timeoutMs: Long,
-    val retries: Int,
-)
+interface ModbusRtuEndpointConfig {
+    val portPath: String
+    val unitId: Int
+    val baudRate: Int
+    val dataBits: Int
+    val stopBits: Int
+    val parity: ModbusSerialParity
+    val timeoutMs: Long
+    val retries: Int
+}
+
+/**
+ * 默认的不可变 RTU 配置实现。
+ */
+data class DefaultModbusRtuEndpointConfig(
+    override val portPath: String,
+    override val unitId: Int,
+    override val baudRate: Int,
+    override val dataBits: Int = 8,
+    override val stopBits: Int = 1,
+    override val parity: ModbusSerialParity = ModbusSerialParity.NONE,
+    override val timeoutMs: Long,
+    override val retries: Int,
+) : ModbusRtuEndpointConfig

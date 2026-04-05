@@ -1,16 +1,19 @@
 package site.addzero.device.driver.modbus.rtu
 
 /**
- * 按 `serviceId` 汇总默认 RTU 配置的查询表。
+ * 单默认值 RTU 配置的兼容包装器。
  *
- * 运行时只做快速查找，不承担动态刷新、热更新或多层配置合并职责。
+ * 旧版本会按 `serviceId` 聚合多份配置；
+ * 现在运行时只接受一份全局默认配置，这里保留兼容入口，避免外部装配点立刻失效。
  */
 class ModbusRtuConfigRegistry(
-    providers: List<ModbusRtuConfigProvider>,
+    private val provider: ModbusRtuConfigProvider,
 ) {
-    private val configs: Map<String, ModbusRtuEndpointConfig> =
-        providers.associate { provider -> provider.serviceId to provider.defaultConfig() }
+    constructor(providers: List<ModbusRtuConfigProvider>) : this(
+        provider =
+            providers.singleOrNull()
+                ?: error("Modbus RTU 运行时只允许一份全局默认配置，请只注册一个 ModbusRtuConfigProvider。"),
+    )
 
-    fun require(serviceId: String): ModbusRtuEndpointConfig =
-        configs[serviceId] ?: error("未找到 Modbus RTU 配置：$serviceId")
+    fun defaultConfig(): ModbusRtuEndpointConfig = provider.defaultConfig()
 }
