@@ -56,22 +56,34 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-05T12:04:08.805376
-// Loaded: 14, Excluded: 0, Total: 14
+// Generated at: 2026-04-05T14:32:31.810714
+// Loaded: 26, Excluded: 0, Total: 26
 include(":lib:compose:app-sidebar")
 include(":lib:compose:compose-workbench-design")
 include(":lib:compose:shadcn-compose-component")
-include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
-include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
-include(":lib:tool-jvm:database:ddlgenerator-core")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-mysql")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-postgresql")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlite")
-include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlserver")
-include(":lib:tool-jvm:database:tool-database-model")
-include(":lib:tool-jvm:database:tool-sql")
-include(":lib:tool-jvm:database:tool-sql-executor")
-include(":lib:tool-jvm:database:tool-sql-injection")
+include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
+include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
+include(":lib:tool-jvm:network-call:browser:ws-automation")
+include(":lib:tool-jvm:network-call:chat:api-models-chat")
+include(":lib:tool-jvm:network-call:music:api-music-spi")
+include(":lib:tool-jvm:network-call:music:api-netease")
+include(":lib:tool-jvm:network-call:music:api-netease-semantic-impl")
+include(":lib:tool-jvm:network-call:music:tool-api-music-search")
+include(":lib:tool-jvm:network-call:music:tool-api-suno")
+include(":lib:tool-jvm:network-call:music:tool-music-design")
+include(":lib:tool-jvm:network-call:tool-api-maven")
+include(":lib:tool-jvm:network-call:tool-api-ocr")
+include(":lib:tool-jvm:network-call:tool-api-payment")
+include(":lib:tool-jvm:network-call:tool-api-soft-download")
+include(":lib:tool-jvm:network-call:tool-api-temp-mail")
+include(":lib:tool-jvm:network-call:tool-api-translate")
+include(":lib:tool-jvm:network-call:tool-api-tyc")
+include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
+include(":lib:tool-jvm:network-call:tool-api-video-parse")
+include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
+include(":lib:tool-jvm:network-call:tool-api-weather")
+include(":lib:tool-kmp:network-starter")
+include(":lib:tool-kmp:tool-coll")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")

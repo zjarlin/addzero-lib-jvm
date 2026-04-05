@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.Single
-import site.addzero.core.network.HttpResponseEventHandlerSpi
+import site.addzero.core.network.spi.HttpResponseEventHandlerSpi
 
 @Single(createdAtStart = true)
 class EventBusHttpResponseHandler : HttpResponseEventHandlerSpi {

@@ -2,20 +2,17 @@ package site.addzero.kcloud.api.netease
 
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Module
-import org.koin.core.annotation.Single
-import site.addzero.core.network.ApiClientSpi
-
-@Single
-class NeteaseApiClient : ApiClientSpi {
-    override val baseUrl = "https://music.163.com/api/"
-}
+import site.addzero.core.network.HttpClientFactory
 
 @Module
 class NeteaseApiBindings {
     @Factory
     fun provideNeteaseApi(
-        client: MusicSearchClient,
+        httpClientFactory: HttpClientFactory,
     ): NeteaseApi {
-        return client.musicApi
+        return buildNeteaseApi(
+            baseUrl = MusicSearchClient.API_BASE_URL,
+            httpClient = httpClientFactory.get(MusicSearchClient.CLIENT_PROFILE),
+        )
     }
 }

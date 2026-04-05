@@ -2,7 +2,7 @@ package site.addzero.kcloud.api.netease
 
 import io.ktor.client.HttpClient
 import org.koin.core.annotation.Single
-import site.addzero.core.network.ApiClients
+import site.addzero.core.network.HttpClientFactory
 
 internal expect fun buildNeteaseApi(
     baseUrl: String,
@@ -11,27 +11,27 @@ internal expect fun buildNeteaseApi(
 
 /**
  * 网易云音乐 API 客户端。
- *
- * - endpoint 由 network-starter 的 `ApiClientSpi` 提供
- * - token / headers / SSE / WebSocket 开关统一走 `ApiClients`
  */
 @Single
 class MusicSearchClient(
-    private val apiClients: ApiClients,
+    private val httpClientFactory: HttpClientFactory,
 ) {
     companion object {
         const val CLIENT_PROFILE = "netease-music"
-        const val API_ENDPOINT = "netease-music-api"
+        const val API_BASE_URL = "https://music.163.com/api/"
     }
 
     var mytoken: String? = null
         set(value) {
             field = value
-            apiClients.setBearerToken(API_ENDPOINT, value)
+            httpClientFactory.setBearerToken(CLIENT_PROFILE, value)
         }
 
     val musicApi: NeteaseApi
-        get() = apiClients.create(API_ENDPOINT, ::buildNeteaseApi)
+        get() = buildNeteaseApi(
+            baseUrl = API_BASE_URL,
+            httpClient = httpClientFactory.get(CLIENT_PROFILE),
+        )
 
     init {
         mytoken = null

@@ -1,5 +1,6 @@
 package site.addzero.core.network
 
+import de.jensklingenberg.ktorfit.Ktorfit
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
@@ -7,424 +8,185 @@ import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.sse.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import org.koin.core.annotation.Configuration
+import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 import org.koin.mp.KoinPlatform
 import site.addzero.core.network.json.json
+import site.addzero.core.network.spi.HttpClientProfileSpi
 import site.addzero.ktor2curl.CurlLogger
 import site.addzero.ktor2curl.KtorToCurl
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.TimeMark
-import kotlin.time.TimeSource
-
-const val DEFAULT_HTTP_CLIENT_PROFILE = "default"
-
-data class HttpClientRequestContribution(
-    val headers: Map<String, String> = emptyMap(),
-    val bearerToken: String? = null,
-) {
-    fun isEmpty(): Boolean {
-        return headers.isEmpty() && bearerToken.isNullOrBlank()
-    }
-}
-
-data class HttpClientFeaturePolicy(
-    val enableSse: Boolean? = null,
-    val enableWebSocket: Boolean? = null,
-) {
-    fun merge(other: HttpClientFeaturePolicy): HttpClientFeaturePolicy {
-        return HttpClientFeaturePolicy(
-            enableSse = other.enableSse ?: enableSse,
-            enableWebSocket = other.enableWebSocket ?: enableWebSocket,
-        )
-    }
-
-    fun resolve(): HttpClientFeatures {
-        return HttpClientFeatures(
-            enableSse = enableSse ?: false,
-            enableWebSocket = enableWebSocket ?: false,
-        )
-    }
-}
-
-data class HttpClientFeatures(
-    val enableSse: Boolean = false,
-    val enableWebSocket: Boolean = false,
-)
-
-interface HttpClientProfileSpi {
-    val profile: String
-        get() = DEFAULT_HTTP_CLIENT_PROFILE
-
-    val order: Int
-        get() = 0
-
-    val enableCurlLogging: Boolean
-        get() = true
-
-    fun requestContribution(): HttpClientRequestContribution {
-        return HttpClientRequestContribution()
-    }
-
-    fun featurePolicy(): HttpClientFeaturePolicy {
-        return HttpClientFeaturePolicy()
-    }
-
-    fun configure(config: HttpClientConfig<*>) = Unit
-}
-
-private data class HttpClientRuntimeSettings(
-    val requestContribution: HttpClientRequestContribution = HttpClientRequestContribution(),
-    val featurePolicy: HttpClientFeaturePolicy = HttpClientFeaturePolicy(),
-) {
-    fun isEmpty(): Boolean {
-        return requestContribution.isEmpty() &&
-            featurePolicy == HttpClientFeaturePolicy()
-    }
-}
-
-@Single
-class HttpClientFactory {
-    private data class CacheKey(
-        val profile: String,
-        val features: HttpClientFeatures,
-    )
-
-    private val curlLogDeduplicator = CurlLogDeduplicator(
-        window = 5.seconds,
-    )
-    private val settingsByProfile = mutableMapOf<String, HttpClientRuntimeSettings>()
-    private val clients = linkedMapOf<CacheKey, HttpClient>()
-
-    fun get(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        overrides: HttpClientFeaturePolicy = HttpClientFeaturePolicy(),
-    ): HttpClient {
-        val normalizedProfile = profile.normalizeHttpClientProfile()
-        val contributors = collectProfiles(normalizedProfile)
-        val resolvedFeatures = contributors.fold(HttpClientFeaturePolicy()) { acc, contributor ->
-            acc.merge(contributor.featurePolicy())
-        }.merge(snapshotSettings(normalizedProfile).featurePolicy)
-            .merge(overrides)
-            .resolve()
-        val key = CacheKey(
-            profile = normalizedProfile,
-            features = resolvedFeatures,
-        )
-        return synchronized(this) {
-            clients[key] ?: buildClient(
-                profile = normalizedProfile,
-                contributors = contributors,
-                features = resolvedFeatures,
-            ).also { created ->
-                clients[key] = created
-            }
-        }
-    }
-
-    fun putHeader(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        name: String,
-        value: String?,
-    ) {
-        val normalizedValue = value?.trim()?.ifBlank { null }
-        updateRuntimeSettings(profile) { settings ->
-            val headers = settings.requestContribution.headers.toMutableMap()
-            if (normalizedValue == null) {
-                headers.remove(name)
-            } else {
-                headers[name] = normalizedValue
-            }
-            settings.copy(
-                requestContribution = settings.requestContribution.copy(
-                    headers = headers.toMap(),
-                ),
-            )
-        }
-    }
-
-    fun removeHeader(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        name: String,
-    ) {
-        putHeader(profile = profile, name = name, value = null)
-    }
-
-    fun clearHeaders(profile: String = DEFAULT_HTTP_CLIENT_PROFILE) {
-        updateRuntimeSettings(profile) { settings ->
-            settings.copy(
-                requestContribution = settings.requestContribution.copy(
-                    headers = emptyMap(),
-                ),
-            )
-        }
-    }
-
-    fun setBearerToken(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        token: String?,
-    ) {
-        updateRuntimeSettings(profile) { settings ->
-            settings.copy(
-                requestContribution = settings.requestContribution.copy(
-                    bearerToken = token?.trim()?.ifBlank { null },
-                ),
-            )
-        }
-    }
-
-    fun setFeaturePolicy(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        featurePolicy: HttpClientFeaturePolicy,
-    ) {
-        updateFeaturePolicy(profile) {
-            featurePolicy
-        }
-    }
-
-    fun setSseEnabled(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        enabled: Boolean?,
-    ) {
-        updateFeaturePolicy(profile) { featurePolicy ->
-            featurePolicy.copy(enableSse = enabled)
-        }
-    }
-
-    fun setWebSocketEnabled(
-        profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
-        enabled: Boolean?,
-    ) {
-        updateFeaturePolicy(profile) { featurePolicy ->
-            featurePolicy.copy(enableWebSocket = enabled)
-        }
-    }
-
-    fun clear(profile: String = DEFAULT_HTTP_CLIENT_PROFILE) {
-        val normalizedProfile = profile.normalizeHttpClientProfile()
-        val previousFeaturePolicy = snapshotSettings(normalizedProfile).featurePolicy
-        synchronized(this) {
-            settingsByProfile.remove(normalizedProfile)
-        }
-        if (previousFeaturePolicy != HttpClientFeaturePolicy()) {
-            invalidate(normalizedProfile)
-        }
-    }
-
-    private fun buildClient(
-        profile: String,
-        contributors: List<HttpClientProfileSpi>,
-        features: HttpClientFeatures,
-    ): HttpClient {
-        return HttpClient(httpClientEngineFactory) {
-            configClient(
-                curlLogDeduplicator = curlLogDeduplicator,
-                enableCurlLogging = contributors.all(HttpClientProfileSpi::enableCurlLogging),
-            ).invoke(this)
-            if (features.enableSse) {
-                install(SSE) {
-                    showCommentEvents()
-                    showRetryEvents()
-                }
-            }
-            if (features.enableWebSocket) {
-                install(WebSockets)
-            }
-            defaultRequest {
-                headers.applyProfileContributions(
-                    contributors = contributors,
-                    runtimeContribution = snapshotSettings(profile).requestContribution,
-                )
-            }
-            contributors.forEach { contributor ->
-                contributor.configure(this)
-            }
-        }
-    }
-
-    private fun invalidate(profile: String) {
-        val removed = synchronized(this) {
-            val keys = clients.keys.filter { key -> key.profile == profile }
-            keys.mapNotNull(clients::remove)
-        }
-        removed.forEach(HttpClient::close)
-    }
-
-    private fun collectProfiles(profile: String): List<HttpClientProfileSpi> {
-        return KoinPlatform.getKoin().getAll<HttpClientProfileSpi>()
-            .filter { contributor -> contributor.profile.normalizeHttpClientProfile() == profile }
-            .sortedBy(HttpClientProfileSpi::order)
-    }
-
-    private fun snapshotSettings(profile: String): HttpClientRuntimeSettings {
-        return synchronized(this) {
-            settingsByProfile[profile] ?: HttpClientRuntimeSettings()
-        }
-    }
-
-    private fun updateRuntimeSettings(
-        profile: String,
-        transform: (HttpClientRuntimeSettings) -> HttpClientRuntimeSettings,
-    ): HttpClientRuntimeSettings {
-        val normalizedProfile = profile.normalizeHttpClientProfile()
-        return synchronized(this) {
-            val updated = transform(settingsByProfile[normalizedProfile] ?: HttpClientRuntimeSettings())
-            if (updated.isEmpty()) {
-                settingsByProfile.remove(normalizedProfile)
-                HttpClientRuntimeSettings()
-            } else {
-                settingsByProfile[normalizedProfile] = updated
-                updated
-            }
-        }
-    }
-
-    private fun updateFeaturePolicy(
-        profile: String,
-        transform: (HttpClientFeaturePolicy) -> HttpClientFeaturePolicy,
-    ) {
-        val normalizedProfile = profile.normalizeHttpClientProfile()
-        val previousFeaturePolicy = snapshotSettings(normalizedProfile).featurePolicy
-        val updatedFeaturePolicy = updateRuntimeSettings(normalizedProfile) { settings ->
-            settings.copy(featurePolicy = transform(settings.featurePolicy))
-        }.featurePolicy
-        if (previousFeaturePolicy != updatedFeaturePolicy) {
-            invalidate(normalizedProfile)
-        }
-    }
-}
-
-internal fun String.normalizeHttpClientProfile(): String {
-    return trim().ifBlank { DEFAULT_HTTP_CLIENT_PROFILE }
-}
-
-private fun HeadersBuilder.applyProfileContributions(
-    contributors: List<HttpClientProfileSpi>,
-    runtimeContribution: HttpClientRequestContribution,
-) {
-    contributors.forEach { contributor ->
-        applyContribution(contributor.requestContribution())
-    }
-    applyContribution(runtimeContribution)
-}
-
-private fun HeadersBuilder.applyContribution(
-    contribution: HttpClientRequestContribution,
-) {
-    contribution.headers.forEach { (name, value) ->
-        remove(name)
-        append(name, value)
-    }
-    contribution.bearerToken?.trim()?.ifBlank { null }?.let { token ->
-        remove(HttpHeaders.Authorization)
-        append(HttpHeaders.Authorization, "Bearer $token")
-    }
-}
 
 internal expect val httpClientEngineFactory: HttpClientEngineFactory<*>
 
-private fun configClient(
-    curlLogDeduplicator: CurlLogDeduplicator,
-    enableCurlLogging: Boolean,
-): HttpClientConfig<*>.() -> Unit = {
-    configTimeout()
-    install(createClientPlugin("HttpResponseInterceptor") {
-        onResponse { response ->
-            val error = response.status.value != HttpStatusCode.OK.value
-            if (error) {
-                val body = runCatching {
-                    response.bodyAsText()
-                }.getOrNull()
-                println("异常body: $body")
-                dispatchHttpResponseEvent(response)
-            }
-        }
-    })
+/**
+ * curl日志
+ */
+private fun HttpClientConfig<*>.configCurl() {
+
+  install(KtorToCurl) {
+    converter = object : CurlLogger {
+      override fun log(curl: String) {
+        println(curl)
+      }
+    }
+  }
+}
+
+/**
+ * 日志
+ */
+private fun HttpClientConfig<*>.configLog() {
+  install(Logging) {
+    logger = Logger.DEFAULT
+    level = LogLevel.ALL
+  }
+}
+
+/**
+ * json配置
+ */
+private fun HttpClientConfig<*>.configJson() {
+  install(ContentNegotiation) {
+    json(json)
+  }
+}
+
+
+/**
+ * 配置超时时间 - 针对ai接口的长时间响应
+ */
+private fun HttpClientConfig<*>.configtimeout() {
+  install(HttpTimeout) {
+    // 请求超时时间 - 5分钟，适合ai接口的长时间处理
+    requestTimeoutMillis = 5.minutes.inWholeSeconds
+    // 连接超时时间 - 30秒
+    connectTimeoutMillis = 30_000
+    // socket超时时间 - 5分钟
+    socketTimeoutMillis = 5.minutes.inWholeMilliseconds
+
+  }
+}
+
+private fun HttpClientConfig<*>.configHeadersWithStream() {
+  defaultRequest {
+    // 添加基础请求头
+    headers {
+      append(HttpHeaders.Accept, "text/event-stream")
+      append(HttpHeaders.ContentType, "application/json")
+    }
+  }
+}
+
+
+private fun HttpClientConfig<*>.configHeadersWithJson() {
+  defaultRequest {
+    // 添加基础请求头
+    headers {
+      append(HttpHeaders.Accept, "application/json")
+      append(HttpHeaders.ContentType, "application/json")
+    }
+  }
+}
+
+
+/**
+ * 响应拦截器
+ */
+private fun HttpClientConfig<*>.configResPonse() {
+  install(createClientPlugin("HttpResponseInterceptor") {
+    onResponse { response ->
+      val error = response.status.value != HttpStatusCode.OK.value
+      if (error) {
+        val orNull = runCatching {
+          // 在协程作用域内执行挂起操作
+          response.bodyAsText()
+        }.getOrNull()
+        println("异常body: $orNull")
+//          GlobalEventDispatcher.handler(response)
+      }
+    }
+  })
+
+}
+
+private fun HttpClientConfig<*>.configToken(mytoken: String?) {
+  defaultRequest {
+    headers {
+      mytoken?.let {
+        append(HttpHeaders.Authorization, it)
+      }
+    }
+  }
+}
+
+fun HttpClient.setToken(token: String?): HttpClient {
+  this
+  return this.config {
+    configToken(token)
+  }
+}
+
+fun HttpClient.enableSSE(): HttpClient {
+  return this.config {
+    install(SSE) {
+      showCommentEvents()
+      showRetryEvents()
+    }
+  }
+}
+
+
+fun HttpClientProfileSpi.toHttpClient(): HttpClient {
+  val spi = this
+  val httpClient = HttpClient(httpClientEngineFactory)
+  val config = httpClient.config {
+    defaultRequest {
+      url(spi.baseUrl)
+    }
+    configToken(spi.token)
+    configCurl()
+    configHeadersWithJson()
     configLog()
     configJson()
-    if (enableCurlLogging) {
-        configCurl(curlLogDeduplicator)
-    }
-}
-
-private fun HttpClientConfig<*>.configCurl(
-    curlLogDeduplicator: CurlLogDeduplicator,
-) {
     install(KtorToCurl) {
-        converter = object : CurlLogger {
-            override fun log(curl: String) {
-                if (curlLogDeduplicator.shouldLog(curl)) {
-                    println(curl)
-                }
-            }
+      converter = object : CurlLogger {
+        override fun log(curl: String) {
+          if (spi.enableCurlLogging) {
+            println(curl)
+          }
         }
+      }
     }
+
+  }
+  return config
 }
 
-private class CurlLogDeduplicator(
-    private val window: kotlin.time.Duration,
-    private val maxEntries: Int = 128,
-) {
-    private val recentMarks = linkedMapOf<String, TimeMark>()
+@Module
+@Configuration
+class HttpClientModule {
 
-    fun shouldLog(curl: String): Boolean {
-        return synchronized(this) {
-            pruneExpired()
-            val lastSeen = recentMarks[curl]
-            if (lastSeen != null && lastSeen.elapsedNow() < window) {
-                false
-            } else {
-                recentMarks.remove(curl)
-                recentMarks[curl] = TimeSource.Monotonic.markNow()
-                trimToMaxEntries()
-                true
-            }
-        }
-    }
+  @Single
+  fun httpClient(httpClientProfileSpi: HttpClientProfileSpi): HttpClient {
+    return httpClientProfileSpi.toHttpClient()
+  }
 
-    private fun pruneExpired() {
-        val iterator = recentMarks.entries.iterator()
-        while (iterator.hasNext()) {
-            if (iterator.next().value.elapsedNow() >= window) {
-                iterator.remove()
-            }
-        }
-    }
-
-    private fun trimToMaxEntries() {
-        while (recentMarks.size > maxEntries) {
-            val iterator = recentMarks.entries.iterator()
-            if (!iterator.hasNext()) {
-                return
-            }
-            iterator.next()
-            iterator.remove()
-        }
-    }
+  @Single
+  fun ktorfit(httpclient: HttpClient): Ktorfit {
+    val ktorfit = Ktorfit.Builder().httpClient(httpclient).build()
+    return ktorfit
+  }
 }
 
-private fun HttpClientConfig<*>.configLog() {
-    install(Logging) {
-        logger = Logger.DEFAULT
-        level = LogLevel.NONE
-    }
-}
+val apiClient = KoinPlatform.getKoin().get<HttpClient>()
+val ktorfit = KoinPlatform.getKoin().get<Ktorfit>()
 
-private fun HttpClientConfig<*>.configJson() {
-    install(ContentNegotiation) {
-        json(json)
-    }
-}
 
-private fun HttpClientConfig<*>.configTimeout() {
-    install(HttpTimeout) {
-        requestTimeoutMillis = 5.minutes.inWholeMilliseconds
-        connectTimeoutMillis = 30_000
-        socketTimeoutMillis = 5.minutes.inWholeMilliseconds
-    }
-}
+
+
+

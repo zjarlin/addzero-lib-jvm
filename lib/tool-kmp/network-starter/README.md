@@ -4,11 +4,10 @@ Ktor `HttpClient` shared factory for KMP projects.
 
 ## What It Provides
 
-- Public Koin beans: `HttpClientFactory`, `ApiClients`
-- Reusable named `HttpClient` profiles
-- Multiple API endpoints with different `baseUrl`, optionally sharing one client profile
-- Runtime header/token/feature switches
-- Koin SPI for client presets, endpoint definitions, and response event handlers
+- Public factory: `HttpClientFactory`
+- Public SPI: `site.addzero.core.network.spi.HttpClientProfileSpi`
+- Public SPI: `site.addzero.core.network.spi.HttpResponseEventHandlerSpi`
+- Runtime header, token, SSE, and WebSocket switches by client profile
 
 ## Add Dependency
 
@@ -20,11 +19,21 @@ dependencies {
 
 ## Basic Usage
 
-```kotlin
-import site.addzero.core.network.ApiClients
+业务模块自己注册 API bean，不再额外包一层 endpoint registry。
 
-val apiClients = ApiClients.shared()
-val client = apiClients.httpClient("my-api")
+```kotlin
+@Module
+class DemoApiModule {
+    @Factory
+    fun provideDemoApi(
+        httpClientFactory: HttpClientFactory,
+    ): DemoApi {
+        return buildDemoApi(
+            baseUrl = "https://api.example.com/v1/",
+            httpClient = httpClientFactory.get("demo-api"),
+        )
+    }
+}
 ```
 
 ## Client Profile SPI
@@ -34,51 +43,22 @@ Use `HttpClientProfileSpi` when one module wants to contribute default headers, 
 ```kotlin
 @Single
 class DemoClientProfile : HttpClientProfileSpi {
-    override val profile: String = "demo-client"
-
-    override fun requestContribution(): HttpClientRequestContribution {
-        return HttpClientRequestContribution(
-            headers = mapOf("X-Client" to "demo"),
-        )
-    }
-}
-```
-
-## Endpoint SPI
-
-Use `ApiEndpointSpi` when one module wants to publish one or more `baseUrl` entries. Multiple endpoints can point to the same `clientProfile`.
-
-```kotlin
-@Single
-class DemoApiEndpoint : ApiEndpointSpi {
-    override val endpointId: String = "demo-api"
-    override val baseUrl: String = "https://api.example.com/v1"
-    override val clientProfile: String = "demo-client"
-}
-
-@Single
-class DemoUploadEndpoint : ApiEndpointSpi {
-    override val endpointId: String = "demo-upload"
-    override val baseUrl: String = "https://upload.example.com"
-    override val clientProfile: String = "demo-client"
+    override val profile: String = "demo-api"
+    override val headers: Map<String, String> = mapOf(
+        "X-Client" to "demo",
+    )
 }
 ```
 
 ## Runtime Configuration
 
-Runtime switches are applied by endpoint id. Endpoints that share the same `clientProfile` will share headers, token, and feature toggles.
+运行时开关直接作用在 client profile。
 
 ```kotlin
-val apiClients = ApiClients.shared()
-
-apiClients.putHeader("demo-api", "X-App-Id", "demo")
-apiClients.setBearerToken("demo-api", "token-value")
-apiClients.setSseEnabled("demo-api", true)
-apiClients.setWebSocketEnabled("demo-api", false)
-
-val api = apiClients.create("demo-api") { baseUrl, httpClient ->
-    DemoApiFactory.create(baseUrl, httpClient)
-}
+httpClientFactory.putHeader("demo-api", "X-App-Id", "demo")
+httpClientFactory.setBearerToken("demo-api", "token-value")
+httpClientFactory.setSseEnabled("demo-api", true)
+httpClientFactory.setWebSocketEnabled("demo-api", false)
 ```
 
 ## Response Event SPI
@@ -98,4 +78,4 @@ class DemoResponseHandler : HttpResponseEventHandlerSpi {
 
 - Platform code only selects the engine. Client construction happens inside the starter.
 - If a client profile's SSE or WebSocket switch changes, that cached `HttpClient` is recreated automatically.
-- `ApiClients` only maps `endpointId -> baseUrl + clientProfile`; it does not duplicate `HttpClient` caches.
+- Base URL ownership stays in the business module that provides the API bean.
