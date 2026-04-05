@@ -4,11 +4,12 @@ plugins {
 }
 val libs = versionCatalogs.named("libs")
 
-//tasks.withType<org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile<*>>().configureEach {
-//  if (name == "compileKotlinWasmJs") {
-//    incremental = false
-//  }
-//}
+configurations.matching {
+  it.name == "kotlinCompilerPluginClasspathWasmJsMain" ||
+    it.name == "kotlinCompilerPluginClasspathWasmJsTest"
+}.configureEach {
+  exclude(group = "io.insert-koin", module = "koin-compiler-plugin")
+}
 
 kotlin {
   sourceSets {
