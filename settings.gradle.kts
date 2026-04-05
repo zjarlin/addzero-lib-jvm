@@ -62,8 +62,8 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-05T16:37:55.020205
-// Loaded: 49, Excluded: 0, Total: 49
+// Generated at: 2026-04-05T21:45:55.527168
+// Loaded: 53, Excluded: 0, Total: 53
 include(":lib:compose:app-sidebar")
 include(":lib:compose:app-sidebar-cupertino-adapter")
 include(":lib:compose:compose-apple-corner")
@@ -76,6 +76,7 @@ include(":lib:compose:compose-workbench-design")
 include(":lib:compose:scaffold-spi")
 include(":lib:compose:shadcn-compose-component")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+include(":lib:ksp:metadata:controller2feign-processor")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
 include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
 include(":lib:ksp:metadata:modbus:modbus-ksp-core")
@@ -88,6 +89,9 @@ include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
 include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
 include(":lib:ksp:metadata:modbus:modbus-runtime")
 include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
+include(":lib:tool-jvm:database:tool-sql")
+include(":lib:tool-jvm:database:tool-sql-executor")
+include(":lib:tool-jvm:database:tool-sql-injection")
 include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
 include(":lib:tool-jvm:network-call:browser:ws-automation")
 include(":lib:tool-jvm:network-call:chat:api-models-chat")
@@ -115,62 +119,62 @@ include(":lib:tool-kmp:tool-coll")
 include(":lib:tool-kmp:tool-tree")
 // <<< Gradle Module Sleep: End Of Block <<<
 
-include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
-include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
-include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
+//include(":lib:kcp:spread-pack:kcp-spread-pack-annotations") // excluded by Gradle Buddy
+//include(":lib:kcp:spread-pack:kcp-spread-pack-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin") // excluded by Gradle Buddy
 if (file("lib/kcp/spread-pack/kcp-spread-pack-ide-plugin").isDirectory) {
-  include(":lib:kcp:spread-pack:kcp-spread-pack-ide-plugin")
+//  include(":lib:kcp:spread-pack:kcp-spread-pack-ide-plugin") // excluded by Gradle Buddy
 }
-include(":lib:tool-kmp:tool-enum")
+//include(":lib:tool-kmp:tool-enum") // excluded by Gradle Buddy
 include(":lib:tool-kmp:network-starter")
-include(":lib:tool-kmp:tool-koin")
-include(":lib:tool-kmp:tool-model")
-include(":lib:tool-kmp:tool-regex")
-include(":lib:tool-kmp:tool-str")
+//include(":lib:tool-kmp:tool-koin") // excluded by Gradle Buddy
+//include(":lib:tool-kmp:tool-model") // excluded by Gradle Buddy
+//include(":lib:tool-kmp:tool-regex") // excluded by Gradle Buddy
+//include(":lib:tool-kmp:tool-str") // excluded by Gradle Buddy
 include(":lib:tool-kmp:tool-tree")
 include(":lib:compose:app-sidebar")
 include(":lib:compose:app-sidebar-cupertino-adapter")
-include(":lib:compose:app-sidebar-shadcn-adapter")
+//include(":lib:compose:app-sidebar-shadcn-adapter") // excluded by Gradle Buddy
 if (file("lib/compose/compose-workbench-design").isDirectory) {
   include(":lib:compose:compose-workbench-design")
 }
 if (file("lib/compose/compose-workbench-shell").isDirectory) {
-  include(":lib:compose:compose-workbench-shell")
+//  include(":lib:compose:compose-workbench-shell") // excluded by Gradle Buddy
 }
 if (file("lib/compose/compose-workbench-immersive-desktop").isDirectory) {
-  include(":lib:compose:compose-workbench-immersive-desktop")
+//  include(":lib:compose:compose-workbench-immersive-desktop") // excluded by Gradle Buddy
 }
 include(":lib:compose:compose-apple-corner")
-include(":lib:compose:compose-crud-spi")
+//include(":lib:compose:compose-crud-spi") // excluded by Gradle Buddy
 include(":lib:compose:compose-cupertino-workbench")
-include(":lib:compose:compose-eventbus")
-include(":lib:compose:compose-icon-map")
-include(":lib:compose:compose-klibs-component")
-include(":lib:compose:compose-model-component")
+//include(":lib:compose:compose-eventbus") // excluded by Gradle Buddy
+//include(":lib:compose:compose-icon-map") // excluded by Gradle Buddy
+//include(":lib:compose:compose-klibs-component") // excluded by Gradle Buddy
+//include(":lib:compose:compose-model-component") // excluded by Gradle Buddy
 include(":lib:compose:compose-native-component-high-level")
-include(":lib:compose:compose-native-component-assist")
-include(":lib:compose:compose-native-component-autocomplet")
+//include(":lib:compose:compose-native-component-assist") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-autocomplet") // excluded by Gradle Buddy
 include(":lib:compose:compose-native-component-button")
-include(":lib:compose:compose-native-component-card")
-include(":lib:compose:compose-native-component-chat")
-include(":lib:compose:compose-native-component-ext")
-include(":lib:compose:compose-native-component-form")
-include(":lib:compose:compose-native-component-glass")
-include(":lib:compose:compose-native-component-hook")
+//include(":lib:compose:compose-native-component-card") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-chat") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-ext") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-form") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-glass") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-hook") // excluded by Gradle Buddy
 include(":lib:compose:compose-native-component-searchbar")
-include(":lib:compose:compose-native-component-select")
-include(":lib:compose:compose-native-component-sheet")
-include(":lib:compose:compose-native-component-table-core")
-include(":lib:compose:compose-native-component-table")
-include(":lib:compose:compose-native-component-table-pro")
-include(":lib:compose:compose-native-component-text")
-include(":lib:compose:compose-native-component-toast")
+//include(":lib:compose:compose-native-component-select") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-sheet") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-table-core") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-table") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-table-pro") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-text") // excluded by Gradle Buddy
+//include(":lib:compose:compose-native-component-toast") // excluded by Gradle Buddy
 include(":lib:compose:compose-native-component-tree")
-include(":lib:compose:compose-native-component-knowledgegraph")
+//include(":lib:compose:compose-native-component-knowledgegraph") // excluded by Gradle Buddy
 include(":lib:compose:scaffold-spi")
-include(":lib:compose:compose-sheet-spi")
-include(":lib:compose:compose-zh-fonts")
-include(":lib:compose:glass-components")
-include(":lib:compose:liquid-glass")
-include(":lib:compose:media-playlist-player")
+//include(":lib:compose:compose-sheet-spi") // excluded by Gradle Buddy
+//include(":lib:compose:compose-zh-fonts") // excluded by Gradle Buddy
+//include(":lib:compose:glass-components") // excluded by Gradle Buddy
+//include(":lib:compose:liquid-glass") // excluded by Gradle Buddy
+//include(":lib:compose:media-playlist-player") // excluded by Gradle Buddy
 include(":lib:compose:shadcn-compose-component")
