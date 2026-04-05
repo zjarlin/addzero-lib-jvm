@@ -73,6 +73,8 @@ private data class IrSpreadArgsReference(
     val parameterTypeClassIds: List<ClassId>,
 )
 
+private val composableAnnotationFqName = FqName("androidx.compose.runtime.Composable")
+
 @OptIn(
     DeprecatedForRemovalCompilerApi::class,
     UnsafeDuringIrConstructionAPI::class,
@@ -162,6 +164,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             val match = resolveMatch(candidate, originals, pluginContext)
                 ?: resolveMatchFromGeneratedAnnotation(candidate, pluginContext)
                 ?: return@forEach
+            if (candidate.startOffset < 0) {
+                candidate.startOffset = match.original.startOffset
+            }
+            if (candidate.endOffset < 0) {
+                candidate.endOffset = match.original.endOffset
+            }
             generatedMarkerConstructor?.let { constructor ->
                 annotateGeneratedOverload(candidate, match.original, pluginContext, constructor)
             }
@@ -917,6 +925,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         generated: IrSimpleFunction,
         match: IrSpreadPackMatch,
     ) {
+        if (match.original.hasAnnotation(composableAnnotationFqName)) {
+            generated.valueParameters.forEach { parameter ->
+                parameter.defaultValue = null
+            }
+            return
+        }
         val expansionsByIndex = match.expansions.associateBy { expansion -> expansion.parameterIndex }
         var generatedParameterCursor = 0
         match.original.valueParameters.forEachIndexed { index, _ ->
@@ -927,11 +941,14 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             }
             expansion.fields.forEach { field ->
                 val generatedParameter = generated.valueParameters[generatedParameterCursor]
-                if (field.defaultValue != null) {
-                    generatedParameter.defaultValue = field.defaultValue.deepCopyWithSymbols(generated)
-                } else if (generatedParameter.defaultValue.hasInvalidDefaultValue()) {
-                    generatedParameter.defaultValue = null
+                val validFieldDefaultValue = field.defaultValue?.takeUnless { defaultValue ->
+                    defaultValue.hasInvalidDefaultValue()
                 }
+                val validGeneratedDefaultValue = generatedParameter.defaultValue?.takeUnless { defaultValue ->
+                    defaultValue.hasInvalidDefaultValue()
+                }
+                generatedParameter.defaultValue = validFieldDefaultValue?.deepCopyWithSymbols(generated)
+                    ?: validGeneratedDefaultValue
                 generatedParameterCursor += 1
             }
         }

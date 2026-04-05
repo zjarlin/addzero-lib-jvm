@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -172,7 +171,7 @@ fun WorkbenchSidebarToggleButton(
  */
 @Composable
 internal fun AdminWorkbenchGlobalBar(
-    config: AdminWorkbenchConfig,
+    config: AdminWorkbenchConfigSpi,
     slots: AdminWorkbenchSlots,
     topBarHeight: Dp,
     leadingInset: Dp,

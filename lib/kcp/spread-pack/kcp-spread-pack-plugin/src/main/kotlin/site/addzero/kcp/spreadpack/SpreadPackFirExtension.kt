@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.fir.declarations.builder.buildPrimaryConstructor
 import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
 import org.jetbrains.kotlin.fir.declarations.builder.buildRegularClass
 import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameter
-import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameterCopy
 import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
 import org.jetbrains.kotlin.fir.declarations.getTargetType
@@ -164,6 +163,10 @@ private data class FirGeneratedCarrierRequest(
     val parameter: FirValueParameter,
     val classId: ClassId,
     val fields: List<FirFlattenedFieldSpec>,
+)
+
+private val composableAnnotationClassId = ClassId.topLevel(
+    FqName("androidx.compose.runtime.Composable"),
 )
 
 @OptIn(
@@ -1606,6 +1609,9 @@ class SpreadPackFirExtension(
         candidate: FirSpreadPackCandidate,
     ): FirNamedFunctionSymbol {
         val original = candidate.original.fir
+        val isComposableFunction = original.annotations.any { annotation ->
+            annotation.matchesAnnotationClassId(composableAnnotationClassId)
+        }
         val expansionsByIndex = candidate.expansions.associateBy { expansion -> expansion.parameterIndex }
         val generated = copyFirFunctionWithResolvePhase(
             original = original,
@@ -1615,6 +1621,9 @@ class SpreadPackFirExtension(
         ) {
             source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
             annotations.clear()
+            annotations += original.annotations.filterNot { annotation ->
+                annotation.matchesAnnotationClassId(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotationClassId)
+            }
             annotations += createGeneratedOverloadAnnotation(
                 candidate.original.callableId.asFqNameForDebugInfo().asString(),
             )
@@ -1661,18 +1670,31 @@ class SpreadPackFirExtension(
                     return@forEachIndexed
                 }
                 expansion.fields.forEach { field ->
-                    updatedParameters += buildValueParameterCopy(field.parameter) {
-                        returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
-                        symbol = FirValueParameterSymbol()
-                        containingDeclarationSymbol = this@copyFirFunctionWithResolvePhase.symbol
+                    updatedParameters += buildValueParameter {
+                        source = field.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+                            ?: original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+                        moduleData = original.moduleData
                         origin = SpreadPackGeneratedDeclarationKey.origin
                         resolvePhase = FirResolvePhase.BODY_RESOLVE
-                        defaultValue = null
+                        returnTypeRef = field.resolvedType.toFirResolvedTypeRef()
+                        name = field.parameter.name
+                        symbol = FirValueParameterSymbol()
+                        defaultValue = generatedDefaultValueOrNull(field.parameter.defaultValue)
+                        containingDeclarationSymbol = this@copyFirFunctionWithResolvePhase.symbol
+                        annotations += field.parameter.annotations
+                        isCrossinline = field.parameter.isCrossinline
+                        isNoinline = field.parameter.isNoinline
+                        isVararg = field.parameter.isVararg
                     }
                 }
             }
             valueParameters.clear()
             valueParameters += updatedParameters
+            if (isComposableFunction) {
+                valueParameters.forEach { parameter ->
+                    parameter.replaceDefaultValue(null)
+                }
+            }
             body = createStubBody()
         }
         return generated.symbol

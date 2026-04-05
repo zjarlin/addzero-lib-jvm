@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import org.koin.compose.koinInject
 import site.addzero.appsidebar.WorkbenchScaffold
 import site.addzero.appsidebar.rememberWorkbenchScaffoldState
-import site.addzero.appsidebar.spi.ScaffoldConfig
+import site.addzero.appsidebar.spi.ScaffoldConfigSpi
 import site.addzero.appsidebar.workbenchScaffoldSlots
 import site.addzero.workbenchshell.spi.content.ContentRender
 import site.addzero.workbenchshell.spi.header.HeaderRender
@@ -22,14 +22,14 @@ import site.addzero.workbenchshell.spi.sidebar.SidebarRender
 
 @Composable
 fun RenderWorkbenchScaffold(
-    modifier: Modifier = Modifier,
-    scaffoldConfig: ScaffoldConfig,
-    detail: (@Composable BoxScope.() -> Unit)? = null,
-    sidebarRender: SidebarRender = koinInject(),
-    headerRenderer: HeaderRender = koinInject(),
-    contentRenderer: ContentRender = koinInject(),
+  modifier: Modifier = Modifier,
+  scaffoldConfigSpi: ScaffoldConfigSpi,
+  detail: (@Composable BoxScope.() -> Unit)? = null,
+  sidebarRender: SidebarRender = koinInject(),
+  headerRenderer: HeaderRender = koinInject(),
+  contentRenderer: ContentRender = koinInject(),
 ) {
-    val state = rememberWorkbenchScaffoldState(scaffoldConfig.defaultSidebarRatio)
+    val state = rememberWorkbenchScaffoldState(scaffoldConfigSpi.defaultSidebarRatio)
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -41,7 +41,7 @@ fun RenderWorkbenchScaffold(
             WorkbenchScaffold(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
-                config = scaffoldConfig,
+                config = scaffoldConfigSpi,
                 slots = workbenchScaffoldSlots(
                     contentHeader = {
                         headerRenderer.Render(

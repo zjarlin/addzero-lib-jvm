@@ -305,7 +305,14 @@ fun MyText(
 - 你可以在自己的 wrapper 里固定掉一部分字段
 - 上层 API 只暴露你想保留的字段
 
-实际业务里，更推荐先包一层本地 `BaseText`，因为 Compose 原生 `Text` overload 很多，长期维护更稳。
+当前在 `@Composable` 场景有一个明确边界：
+
+- 生成 overload 可以直接展开 `Text` 这类原生参数表
+- 但生成出来的 composable overload 目前按“显式参数模式”处理
+- 也就是调用时需要把保留下来的字段显式传全
+- 不再继续传播 Compose 默认值，避免 Kotlin/Compose backend 在生成 `$default` 包装时崩掉
+
+实际业务里，更推荐先包一层本地 `BaseText`，因为 Compose 原生 `Text` overload 很多，长期维护更稳；如果你只想验证“能不能直接借原生 `Text` 字段并展开”，现在已经可以。
 
 ## IDE 支持
 
@@ -371,6 +378,7 @@ IDE companion plugin 已经有可打包原型，作用是让 IDE 看懂这两类
 - 所以现在只能用注解承载这套语义
 - 泛型 carrier：暂不支持
 - receiver / context parameter 目标函数：暂不支持
+- `@Composable` 生成 overload 的默认值继承：暂不支持；当前只保证显式参数展开可编译
 - `@SpreadPackOf` 还保留着，但当前不建议作为主公开入口；优先用 `@SpreadPackCarrierOf`
 - IDE plugin 目前重点是“让 IDE 看懂派生 overload / carrier 字段”，不是完整重做编译器诊断
 

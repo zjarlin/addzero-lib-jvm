@@ -1,11 +1,7 @@
 package site.addzero.appsidebar
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,16 +11,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
@@ -40,8 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
-import site.addzero.appsidebar.spi.ScaffoldConfig
-import site.addzero.appsidebar.spi.scaffoldConfig
+import site.addzero.appsidebar.spi.ScaffoldConfigSpi
 import site.addzero.appsidebar.spi.sidebarResizeConfig
 
 /**
@@ -58,7 +44,7 @@ interface AdminWorkbenchPageConfig {
 /**
  * 后台工作台骨架配置。
  */
-interface AdminWorkbenchConfig : ScaffoldConfig {
+interface AdminWorkbenchConfigSpi : ScaffoldConfigSpi {
     val brandLabel
         get() = "Addzero Admin"
     val welcomeLabel
@@ -118,7 +104,7 @@ fun adminWorkbenchConfig(
     isDarkTheme: Boolean? = null,
     sidebarVisible: Boolean = true,
     onSidebarToggle: (() -> Unit)? = null,
-): AdminWorkbenchConfig = DefaultAdminWorkbenchConfig(
+): AdminWorkbenchConfigSpi = DefaultAdminWorkbenchConfigSpi(
     brandLabel = brandLabel,
     welcomeLabel = welcomeLabel,
     defaultSidebarRatio = defaultSidebarRatio,
@@ -159,13 +145,13 @@ fun adminWorkbenchSlots(
  */
 @Composable
 fun AdminWorkbenchScaffold(
-    sidebar: @Composable BoxScope.() -> Unit,
-    content: @Composable BoxScope.() -> Unit,
-    page: AdminWorkbenchPageConfig,
-    modifier: Modifier = Modifier,
-    state: WorkbenchScaffoldState? = null,
-    config: AdminWorkbenchConfig = adminWorkbenchConfig(),
-    slots: AdminWorkbenchSlots = adminWorkbenchSlots(),
+  sidebar: @Composable BoxScope.() -> Unit,
+  content: @Composable BoxScope.() -> Unit,
+  page: AdminWorkbenchPageConfig,
+  modifier: Modifier = Modifier,
+  state: WorkbenchScaffoldState? = null,
+  config: AdminWorkbenchConfigSpi = adminWorkbenchConfig(),
+  slots: AdminWorkbenchSlots = adminWorkbenchSlots(),
 ) {
     val scaffoldState = state ?: rememberWorkbenchScaffoldState(config.defaultSidebarRatio)
     val windowFrame = LocalWorkbenchWindowFrame.current
@@ -299,7 +285,7 @@ private data class DefaultAdminWorkbenchPageConfig(
 ) : AdminWorkbenchPageConfig
 
 @Immutable
-private data class DefaultAdminWorkbenchConfig(
+private data class DefaultAdminWorkbenchConfigSpi(
     override val brandLabel: String,
     override val welcomeLabel: String,
     override val defaultSidebarRatio: Float,
@@ -312,7 +298,7 @@ private data class DefaultAdminWorkbenchConfig(
     override val isDarkTheme: Boolean?,
     override val sidebarVisible: Boolean,
     override val onSidebarToggle: (() -> Unit)?,
-) : AdminWorkbenchConfig {
+) : AdminWorkbenchConfigSpi {
     override val contentHeaderScrollable
         get() = false
 }

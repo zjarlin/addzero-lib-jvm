@@ -6,6 +6,8 @@ object ModbusKspOptions {
     const val TRANSPORTS_OPTION: String = "addzero.modbus.transports"
     const val CONTRACT_PACKAGES_OPTION: String = "addzero.modbus.contractPackages"
     const val CONTRACT_PACKAGE_OPTION: String = "addzero.modbus.contractPackage"
+    const val API_CLIENT_PACKAGE_OPTION: String = "addzero.modbus.apiClientPackageName"
+    const val API_CLIENT_OUTPUT_DIR_OPTION: String = "addzero.modbus.apiClientOutputDir"
     const val RTU_PORT_PATH_OPTION: String = "addzero.modbus.rtu.default.portPath"
     const val RTU_UNIT_ID_OPTION: String = "addzero.modbus.rtu.default.unitId"
     const val RTU_BAUD_RATE_OPTION: String = "addzero.modbus.rtu.default.baudRate"
@@ -31,6 +33,16 @@ fun SymbolProcessorEnvironment.resolveContractPackages(): List<String> =
             .map(String::trim)
             .filter(String::isNotBlank)
     }.distinct()
+
+fun SymbolProcessorEnvironment.resolveApiClientPackageName(): String? =
+    options[ModbusKspOptions.API_CLIENT_PACKAGE_OPTION]
+        ?.trim()
+        ?.takeIf(String::isNotBlank)
+
+fun SymbolProcessorEnvironment.resolveApiClientOutputDir(): String? =
+    options[ModbusKspOptions.API_CLIENT_OUTPUT_DIR_OPTION]
+        ?.trim()
+        ?.takeIf(String::isNotBlank)
 
 fun SymbolProcessorEnvironment.resolveEnabledTransports(defaultTransport: ModbusTransportKind): Set<ModbusTransportKind> =
     ModbusTransportKind.resolveConfiguredOrDefault(

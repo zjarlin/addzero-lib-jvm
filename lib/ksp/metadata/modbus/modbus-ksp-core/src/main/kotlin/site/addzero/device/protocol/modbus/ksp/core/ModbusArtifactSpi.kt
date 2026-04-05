@@ -41,6 +41,17 @@ object ModbusArtifactRenderer {
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
     ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults)
 
+    fun renderKtorfitClientArtifacts(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+        packageName: String,
+    ): List<GeneratedArtifact> =
+        ModbusArtifactTemplates.renderKtorfitClientArtifacts(
+            transport = transport,
+            services = services,
+            packageName = packageName,
+        )
+
     fun renderServiceContractArtifacts(
         service: ModbusServiceModel,
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),

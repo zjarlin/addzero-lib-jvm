@@ -62,7 +62,7 @@ class DirectTextProps
 
 @Composable
 @GenerateSpreadPackOverloads
-private fun DirectTextAlias(
+fun DirectTextAlias(
     @SpreadPack
     props: DirectTextProps,
 ) {
@@ -74,32 +74,16 @@ private fun DirectTextAlias(
     )
 }
 
-private fun directTextProps(
-    text: String,
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
-    textAlign: TextAlign? = null,
-): DirectTextProps {
-    val props = DirectTextProps()
-    props.text = text
-    props.modifier = modifier
-    props.color = color
-    props.textAlign = textAlign
-    return props
-}
-
 @Composable
 private fun compileSpreadPackCallSites() {
     H1(text = "标题")
     Caption(text = "说明", textAlign = TextAlign.Center)
     BlueText(text = "强调标题")
     DirectTextAlias(
-        props = directTextProps(
-            text = "直接借原生 Text 字段",
-            modifier = Modifier,
-            color = Color.Unspecified,
-            textAlign = null,
-        ),
+        text = "直接借原生 Text 字段并展开",
+        modifier = Modifier,
+        color = Color.Unspecified,
+        textAlign = null,
     )
 }
 

@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 /**
  * 工作台骨架的稳定布局参数。
  */
-interface ScaffoldConfig {
+interface ScaffoldConfigSpi {
     val contentHeaderScrollable
         get() = true
     val defaultSidebarRatio
@@ -39,7 +39,7 @@ fun scaffoldConfig(
     outerPadding: PaddingValues = PaddingValues(0.dp),
     contentPadding: PaddingValues = PaddingValues(0.dp),
     detailPadding: PaddingValues = PaddingValues(0.dp),
-): ScaffoldConfig = DefaultScaffoldConfig(
+): ScaffoldConfigSpi = DefaultScaffoldConfigSpi(
     contentHeaderScrollable = contentHeaderScrollable,
     defaultSidebarRatio = defaultSidebarRatio,
     minSidebarWidth = minSidebarWidth,
@@ -51,7 +51,7 @@ fun scaffoldConfig(
 )
 
 @Immutable
-private data class DefaultScaffoldConfig(
+private data class DefaultScaffoldConfigSpi(
     override val contentHeaderScrollable: Boolean,
     override val defaultSidebarRatio: Float,
     override val minSidebarWidth: Dp,
@@ -60,4 +60,4 @@ private data class DefaultScaffoldConfig(
     override val outerPadding: PaddingValues,
     override val contentPadding: PaddingValues,
     override val detailPadding: PaddingValues,
-) : ScaffoldConfig
+) : ScaffoldConfigSpi

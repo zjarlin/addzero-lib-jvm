@@ -89,6 +89,54 @@ object ModbusArtifactTemplates {
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
     ): List<GeneratedArtifact> = renderGatewayArtifacts(transport, services, transportDefaults)
 
+    fun renderKtorfitClientArtifacts(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+        packageName: String,
+    ): List<GeneratedArtifact> {
+        if (services.isEmpty()) {
+            return emptyList()
+        }
+
+        val fileContent =
+            buildString {
+                appendLine("package $packageName")
+                appendLine()
+                appendLine("import de.jensklingenberg.ktorfit.Ktorfit")
+                appendLine("import de.jensklingenberg.ktorfit.http.Body")
+                appendLine("import de.jensklingenberg.ktorfit.http.POST")
+                appendLine("import kotlinx.serialization.Serializable")
+                appendLine("import org.koin.mp.KoinPlatform")
+                when (transport) {
+                    ModbusTransportKind.RTU -> {
+                        appendLine("import site.addzero.device.driver.modbus.rtu.ModbusSerialParity")
+                    }
+
+                    ModbusTransportKind.TCP -> Unit
+                }
+                appendLine()
+                append(renderTransportRequestSupport(transport))
+                appendLine()
+                appendLine()
+                services.forEach { service ->
+                    append(renderRequestClasses(service))
+                    appendLine()
+                    append(renderKtorfitClientInterface(service))
+                    appendLine()
+                }
+                append(renderKtorfitClientApisObject(transport, services))
+            }
+
+        return listOf(
+            GeneratedArtifact(
+                packageName = packageName,
+                fileName = "GeneratedModbus${transport.transportId.replaceFirstChar(Char::uppercase)}KtorfitClient",
+                extensionName = "kt",
+                content = fileContent,
+            )
+        )
+    }
+
     fun renderServiceContractArtifacts(
         service: ModbusServiceModel,
         transportDefaults: ModbusTransportDefaults = ModbusTransportDefaults(),
@@ -1052,6 +1100,51 @@ object ModbusArtifactTemplates {
             service.workflows.forEach { workflow ->
                 append(renderWorkflowGatewayMethods(service, workflow))
                 appendLine()
+            }
+            appendLine("}")
+        }
+
+    private fun renderKtorfitClientInterface(service: ModbusServiceModel): String =
+        buildString {
+            appendLine("/**")
+            appendLine(" * ${escapeComment(service.summary)}")
+            appendLine(" *")
+            appendLine(" * 该 Ktorfit client 由 Modbus KSP 自动生成，请勿手写。")
+            appendLine(" */")
+            appendLine("interface ${service.ktorfitApiInterfaceName()} {")
+            service.operations.forEach { operation ->
+                appendLine("    /** ${escapeComment(operation.doc.summary)} */")
+                appendLine("    @POST(\"${service.httpRoutePath(operation.operationId)}\")")
+                appendLine("    suspend fun ${operation.methodName}(")
+                appendLine("        @Body request: ${operation.requestClassName},")
+                appendLine("    ): ${operation.returnType.renderKotlinType()}")
+                appendLine()
+            }
+            service.workflows.forEach { workflow ->
+                appendLine("    /** ${escapeComment(workflow.doc.summary)} */")
+                appendLine("    @POST(\"${service.httpRoutePath(workflow.workflowId)}\")")
+                appendLine("    suspend fun ${workflow.methodName}(")
+                appendLine("        @Body request: ${workflow.requestClassName},")
+                appendLine("    ): ${workflow.returnType.renderKotlinType()}")
+                appendLine()
+            }
+            appendLine("}")
+        }
+
+    private fun renderKtorfitClientApisObject(
+        transport: ModbusTransportKind,
+        services: List<ModbusServiceModel>,
+    ): String =
+        buildString {
+            appendLine("/**")
+            appendLine(" * Modbus Ktorfit client 聚合入口。")
+            appendLine(" */")
+            appendLine("object GeneratedModbus${transport.transportId.replaceFirstChar(Char::uppercase)}Apis {")
+            appendLine("    private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()")
+            services.forEach { service ->
+                appendLine()
+                appendLine("    val ${service.ktorfitApiPropertyName()}")
+                appendLine("        get() = ktorfit().create${service.ktorfitApiInterfaceName()}()")
             }
             appendLine("}")
         }
@@ -2687,6 +2780,18 @@ object ModbusArtifactTemplates {
     override val retries: Int? = null,
                 """.trimIndent()
         }
+
+    private fun ModbusServiceModel.ktorfitApiInterfaceName(): String =
+        interfaceSimpleName + transport.transportId.replaceFirstChar(Char::uppercase) + "Api"
+
+    private fun ModbusServiceModel.ktorfitApiPropertyName(): String =
+        interfaceSimpleName.replaceFirstChar(Char::lowercase) +
+            transport.transportId.replaceFirstChar(Char::uppercase) +
+            "Api"
+
+    private fun ModbusServiceModel.httpRoutePath(
+        operationId: String,
+    ): String = "${basePath}/${transport.transportId}/${serviceId}/$operationId"
 
     private fun renderTransportRequestSupport(transport: ModbusTransportKind): String =
         when (transport) {

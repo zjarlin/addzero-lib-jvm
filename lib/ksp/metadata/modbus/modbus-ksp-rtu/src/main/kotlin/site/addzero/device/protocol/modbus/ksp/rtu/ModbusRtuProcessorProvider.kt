@@ -9,6 +9,7 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSFile
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
+import java.io.File
 import site.addzero.device.protocol.modbus.ksp.core.CollectedModbusService
 import site.addzero.device.protocol.modbus.ksp.core.ModbusAddressLockFile
 import site.addzero.device.protocol.modbus.ksp.core.ModbusAddressPlanner
@@ -21,6 +22,8 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusSymbolCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 import site.addzero.device.protocol.modbus.ksp.core.resolveContractPackages
 import site.addzero.device.protocol.modbus.ksp.core.resolveEnabledTransports
+import site.addzero.device.protocol.modbus.ksp.core.resolveApiClientOutputDir
+import site.addzero.device.protocol.modbus.ksp.core.resolveApiClientPackageName
 import site.addzero.device.protocol.modbus.ksp.core.resolveTransportDefaults
 
 /**
@@ -115,6 +118,20 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
                         externalCArtifactWriter = null,
                     )
                 }
+
+                val apiClientPackageName = environment.resolveApiClientPackageName()
+                val apiClientOutputDir = environment.resolveApiClientOutputDir()
+                if (apiClientPackageName != null && apiClientOutputDir != null) {
+                    writeExternalKotlinArtifacts(
+                        logger = environment.logger,
+                        outputDir = File(apiClientOutputDir),
+                        artifacts = ModbusArtifactRenderer.renderKtorfitClientArtifacts(
+                            transport = transport,
+                            services = resolvedServices,
+                            packageName = apiClientPackageName,
+                        ),
+                    )
+                }
             }
         }
     }
@@ -152,5 +169,26 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
             externalCArtifactWriter?.writeIfSupported(artifact, logger)?.let(externalFiles::add)
         }
         return externalFiles
+    }
+
+    private fun writeExternalKotlinArtifacts(
+        logger: com.google.devtools.ksp.processing.KSPLogger,
+        outputDir: File,
+        artifacts: List<site.addzero.device.protocol.modbus.ksp.core.GeneratedArtifact>,
+    ) {
+        artifacts.forEach { artifact ->
+            val packageDir =
+                artifact.packageName
+                    ?.takeIf(String::isNotBlank)
+                    ?.replace('.', File.separatorChar)
+                    ?: ""
+            val targetDir = if (packageDir.isBlank()) outputDir else outputDir.resolve(packageDir)
+            if (!targetDir.exists()) {
+                targetDir.mkdirs()
+            }
+            val targetFile = targetDir.resolve("${artifact.fileName}.${artifact.extensionName}")
+            targetFile.writeText(artifact.content, Charsets.UTF_8)
+            logger.info("Generated external Modbus client artifact: ${targetFile.absolutePath}")
+        }
     }
 }

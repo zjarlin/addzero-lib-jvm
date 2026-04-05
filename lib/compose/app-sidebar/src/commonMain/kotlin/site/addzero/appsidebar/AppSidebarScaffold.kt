@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import site.addzero.appsidebar.spi.ScaffoldConfig
+import site.addzero.appsidebar.spi.ScaffoldConfigSpi
 import site.addzero.appsidebar.spi.SidebarResizeConfig
 import site.addzero.appsidebar.spi.scaffoldConfig
 import site.addzero.appsidebar.spi.sidebarResizeConfig
@@ -213,7 +213,7 @@ fun AppSidebarScaffold(
     content: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier,
     state: AppSidebarScaffoldState? = null,
-    config: ScaffoldConfig = scaffoldConfig(),
+    config: ScaffoldConfigSpi = scaffoldConfig(),
 ) {
     WorkbenchScaffold(
         sidebar = sidebar,
@@ -235,7 +235,7 @@ fun WorkbenchScaffold(
     content: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier,
     state: AppSidebarScaffoldState? = null,
-    config: ScaffoldConfig = scaffoldConfig(),
+    config: ScaffoldConfigSpi = scaffoldConfig(),
     slots: WorkbenchScaffoldSlots = workbenchScaffoldSlots(),
     decor: WorkbenchScaffoldDecor = workbenchScaffoldDecor(),
 ) {
