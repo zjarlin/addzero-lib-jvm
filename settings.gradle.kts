@@ -56,12 +56,22 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-05T14:32:31.810714
-// Loaded: 26, Excluded: 0, Total: 26
-include(":lib:compose:app-sidebar")
-include(":lib:compose:compose-workbench-design")
-include(":lib:compose:shadcn-compose-component")
+// Generated at: 2026-04-05T16:05:47.267080
+// Loaded: 37, Excluded: 1, Total: 38
+// Excluded (build infrastructure): :checkouts:build-logic
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
+include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
+include(":lib:ksp:metadata:modbus:modbus-ksp-core")
+include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync")
+include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
+include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
 include(":lib:tool-jvm:network-call:browser:ws-automation")
 include(":lib:tool-jvm:network-call:chat:api-models-chat")
@@ -82,6 +92,8 @@ include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
 include(":lib:tool-jvm:network-call:tool-api-video-parse")
 include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
 include(":lib:tool-jvm:network-call:tool-api-weather")
+include(":lib:tool-jvm:tool-modbus")
+include(":lib:tool-jvm:tool-serial")
 include(":lib:tool-kmp:network-starter")
 include(":lib:tool-kmp:tool-coll")
 // <<< Gradle Module Sleep: End Of Block <<<

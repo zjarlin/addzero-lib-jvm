@@ -17,6 +17,7 @@ import org.koin.core.annotation.Single
 import org.koin.mp.KoinPlatform
 import site.addzero.core.network.json.json
 import site.addzero.core.network.spi.HttpClientProfileSpi
+import site.addzero.core.network.token.TokenManager
 import site.addzero.ktor2curl.CurlLogger
 import site.addzero.ktor2curl.KtorToCurl
 import kotlin.time.Duration.Companion.minutes
@@ -114,10 +115,10 @@ private fun HttpClientConfig<*>.configResPonse() {
 
 }
 
-private fun HttpClientConfig<*>.configToken(mytoken: String?) {
+private fun HttpClientConfig<*>.configToken(token: String?) {
   defaultRequest {
     headers {
-      mytoken?.let {
+      token ?: KoinPlatform.getKoin().get<TokenManager>().getToken()?.let {
         append(HttpHeaders.Authorization, it)
       }
     }
@@ -125,7 +126,6 @@ private fun HttpClientConfig<*>.configToken(mytoken: String?) {
 }
 
 fun HttpClient.setToken(token: String?): HttpClient {
-  this
   return this.config {
     configToken(token)
   }
@@ -140,7 +140,6 @@ fun HttpClient.enableSSE(): HttpClient {
   }
 }
 
-
 fun HttpClientProfileSpi.toHttpClient(): HttpClient {
   val spi = this
   val httpClient = HttpClient(httpClientEngineFactory)
@@ -148,7 +147,6 @@ fun HttpClientProfileSpi.toHttpClient(): HttpClient {
     defaultRequest {
       url(spi.baseUrl)
     }
-    configToken(spi.token)
     configCurl()
     configHeadersWithJson()
     configLog()
@@ -162,7 +160,7 @@ fun HttpClientProfileSpi.toHttpClient(): HttpClient {
         }
       }
     }
-
+    configToken(token)
   }
   return config
 }
