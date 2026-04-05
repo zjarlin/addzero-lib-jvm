@@ -22,29 +22,35 @@ fun DynamicFormItem(
     title: String?,
     kmpType: String,
 ) {
+    val textValue = value?.toString().orEmpty()
+
     when {
 //        // 整数类型
         kmpType.containsAnyIgnoreCase("Long", "Integer", "Int", "Short") -> {
-            _root_ide_package_.site.addzero.component.form.number.AddIntegerField(
-                args = _root_ide_package_.site.addzero.component.form.number.FilteredNumberFieldArgs(
-                    value = value.toString(),
-                    onValueChange = { newValue ->
+            site.addzero.component.form.number.AddIntegerField(
+                args = site.addzero.component.form.number.FilteredNumberFieldProps(
+                    value = textValue,
+                    onValueChange = { newValue: String ->
                         onValueChange(newValue)
                     },
                     label = title ?: "",
+                    modifier = Modifier,
+                    errorMessages = emptyList(),
                 ),
             )
         }
 //
 //        // 浮点数类型
         kmpType.containsAnyIgnoreCase("Float", "Double", "BigDecimal") -> {
-            _root_ide_package_.site.addzero.component.form.number.AddDecimalField(
-                args = _root_ide_package_.site.addzero.component.form.number.FilteredNumberFieldArgs(
-                    value = value.toString(),
-                    onValueChange = { newValue ->
+            site.addzero.component.form.number.AddDecimalField(
+                args = site.addzero.component.form.number.FilteredNumberFieldProps(
+                    value = textValue,
+                    onValueChange = { newValue: String ->
                         onValueChange(newValue)
                     },
                     label = title ?: "",
+                    modifier = Modifier,
+                    errorMessages = emptyList(),
                 ),
             )
         }

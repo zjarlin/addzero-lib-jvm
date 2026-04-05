@@ -37,7 +37,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun AddMessageToast(
     message: String?,
-    type: site.addzero.component.toast.MessageType = _root_ide_package_.site.addzero.component.toast.MessageType.INFO,
+    type: MessageType = MessageType.INFO,
     duration: Long = 3000,
     onDismiss: () -> Unit = {}
 ) {
@@ -57,25 +57,25 @@ fun AddMessageToast(
 
     // 🎨 设置消息类型对应的图标、颜色和渐变
     val (icon, primaryColor, secondaryColor) = when (type) {
-        _root_ide_package_.site.addzero.component.toast.MessageType.SUCCESS -> Triple(
+        MessageType.SUCCESS -> Triple(
             Icons.Default.CheckCircle,
             Color(0xFF4CAF50), // 绿色
             Color(0xFF81C784)  // 浅绿色
         )
 
-        _root_ide_package_.site.addzero.component.toast.MessageType.ERROR -> Triple(
+        MessageType.ERROR -> Triple(
             Icons.Default.Error,
             Color(0xFFF44336), // 红色
             Color(0xFFE57373)  // 浅红色
         )
 
-        _root_ide_package_.site.addzero.component.toast.MessageType.WARNING -> Triple(
+        MessageType.WARNING -> Triple(
             Icons.Default.Warning,
             Color(0xFFFF9800), // 橙色
             Color(0xFFFFB74D)  // 浅橙色
         )
 
-        _root_ide_package_.site.addzero.component.toast.MessageType.INFO -> Triple(
+        MessageType.INFO -> Triple(
             Icons.Default.Info,
             Color(0xFF2196F3), // 蓝色
             Color(0xFF64B5F6)  // 浅蓝色
@@ -96,7 +96,7 @@ fun AddMessageToast(
             contentAlignment = Alignment.TopCenter
         ) {
             message?.let {
-                _root_ide_package_.site.addzero.component.toast.BeautifulMessageCard(
+                BeautifulMessageCard(
                     message = it,
                     icon = icon,
                     primaryColor = primaryColor,

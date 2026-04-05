@@ -6,19 +6,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
-import site.addzero.regex.RegexEnum
-import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
 import site.addzero.kcp.spreadpack.SpreadPack
+import site.addzero.regex.RegexEnum
 
-@GenerateSpreadPackOverloads
 @Composable
 fun AddPercentageField(
     @SpreadPack
-    args: FilteredNumberFieldArgs,
+    args: FilteredNumberFieldProps,
+    supportingText: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null,
     showPercentSymbol: Boolean = true,
 ) {
     val resolvedSupportingText = if (showPercentSymbol) {
-        args.supportingText ?: {
+        supportingText ?: {
             Text(
                 text = "%",
                 style = MaterialTheme.typography.bodySmall,
@@ -26,7 +26,7 @@ fun AddPercentageField(
             )
         }
     } else {
-        args.supportingText
+        supportingText
     }
 
     addFilteredTextFieldBase(
@@ -41,7 +41,7 @@ fun AddPercentageField(
         leadingIcon = args.leadingIcon ?: Icons.Default.Percent,
         disable = args.disable,
         supportingText = resolvedSupportingText,
-        trailingIcon = args.trailingIcon,
+        trailingIcon = trailingIcon,
         onErrMsgChange = args.onErrMsgChange,
         errorMessages = args.errorMessages,
         remoteValidationConfig = args.remoteValidationConfig,

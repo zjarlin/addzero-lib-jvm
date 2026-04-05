@@ -2,9 +2,14 @@
 
 package site.addzero.component.form.date
 
-import kotlinx.datetime.*
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * 日期格式化工具类
@@ -75,7 +80,7 @@ object DateFormatter {
                     val instant = Instant.fromEpochMilliseconds(value)
                     val localDate = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
                     "${localDate.year}-${
-                        localDate.monthNumber.toString().padStart(2, '0')
+                        (localDate.month.ordinal + 1).toString().padStart(2, '0')
                     }-${localDate.day.toString().padStart(2, '0')}"
                 } catch (e: Exception) {
                     ""

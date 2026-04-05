@@ -2,15 +2,15 @@ package site.addzero.component.form.number
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
-import site.addzero.regex.RegexEnum
-import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
 import site.addzero.kcp.spreadpack.SpreadPack
+import site.addzero.regex.RegexEnum
 
-@GenerateSpreadPackOverloads
 @Composable
 fun AddMoneyField(
     @SpreadPack
-    args: FilteredNumberFieldArgs,
+    args: FilteredNumberFieldProps,
+    supportingText: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null,
     currency: String = "",
 ) {
     addFilteredTextFieldBase(
@@ -24,8 +24,8 @@ fun AddMoneyField(
         onValidate = args.onValidate,
         leadingIcon = args.leadingIcon ?: getCurrencyIcon(currency),
         disable = args.disable,
-        supportingText = args.supportingText,
-        trailingIcon = args.trailingIcon,
+        supportingText = supportingText,
+        trailingIcon = trailingIcon,
         onErrMsgChange = args.onErrMsgChange,
         errorMessages = args.errorMessages,
         remoteValidationConfig = args.remoteValidationConfig,

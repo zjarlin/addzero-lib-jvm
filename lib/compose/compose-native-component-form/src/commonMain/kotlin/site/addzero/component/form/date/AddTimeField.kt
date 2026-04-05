@@ -10,12 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import site.addzero.regex.RegexEnum
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import site.addzero.component.form.text.AddTextField
 import kotlin.time.ExperimentalTime
+import kotlin.time.Clock
 
 /**
  * 时间输入字段组件
@@ -154,7 +154,6 @@ fun AddTimeField(
                     "${newValue.hour.toString().padStart(2, '0')}:${newValue.minute.toString().padStart(2, '0')}"
                 }
                 // 直接调用外部回调，不需要解析
-                onValueChange(newValue)
                 onValueChange(newValue)
                 showTimePicker = false
             },

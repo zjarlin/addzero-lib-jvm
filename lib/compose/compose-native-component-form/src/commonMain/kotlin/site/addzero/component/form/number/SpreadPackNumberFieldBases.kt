@@ -6,25 +6,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import site.addzero.component.form.text.AddTextField
 import site.addzero.component.form.text.RemoteValidationConfig
+import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
 import site.addzero.regex.RegexEnum
 
-data class FilteredNumberFieldArgs(
-    val value: String,
-    val onValueChange: (String) -> Unit,
-    val label: String = "",
-    val placeholder: String = "",
-    val isRequired: Boolean = true,
-    val modifier: Modifier = Modifier,
-    val maxLength: Int? = null,
-    val onValidate: ((Boolean) -> Unit)? = null,
-    val leadingIcon: ImageVector? = null,
-    val disable: Boolean = false,
-    val supportingText: (@Composable () -> Unit)? = null,
-    val trailingIcon: (@Composable () -> Unit)? = null,
-    val onErrMsgChange: ((String, String) -> Unit)? = null,
-    val errorMessages: List<String> = emptyList(),
-    val remoteValidationConfig: RemoteValidationConfig? = null,
+@SpreadPackCarrierOf(
+    value = "site.addzero.component.form.number.addFilteredTextFieldBase",
+    exclude = ["regexEnum", "keyboardType", "filterInput", "supportingText", "trailingIcon"],
 )
+class FilteredNumberFieldProps
 
 @Composable
 internal fun addFilteredTextFieldBase(

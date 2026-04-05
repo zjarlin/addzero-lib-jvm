@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.getValueArgument
+import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.name.CallableId
@@ -773,7 +774,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                         invalidTarget(
                             owner,
                             "annotated spread-pack carrier ${carrier.irClass.name.asString()} field ${field.name.asString()} " +
-                                "type $fieldType does not match source field type ${field.type}",
+                                "type ${render(fieldType)} does not match source field type ${render(field.type)}",
                         )
                     }
                     IrCarrierDeclaredField(
@@ -1313,9 +1314,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         if (left == right) {
             return true
         }
+        if (left.render() == right.render()) {
+            return true
+        }
         val leftSimpleType = left as? IrSimpleType ?: return false
         val rightSimpleType = right as? IrSimpleType ?: return false
-        if (leftSimpleType.classifier != rightSimpleType.classifier) {
+        if (!sameIrClassifier(leftSimpleType, rightSimpleType)) {
             return false
         }
         if (leftSimpleType.nullability != rightSimpleType.nullability) {
@@ -1338,6 +1342,18 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 else -> false
             }
         }
+    }
+
+    private fun sameIrClassifier(
+        left: IrSimpleType,
+        right: IrSimpleType,
+    ): Boolean {
+        if (left.classifier == right.classifier) {
+            return true
+        }
+        val leftClassId = erasureClassId(left)
+        val rightClassId = erasureClassId(right)
+        return leftClassId != null && leftClassId == rightClassId
     }
 
     private fun erasureClassId(

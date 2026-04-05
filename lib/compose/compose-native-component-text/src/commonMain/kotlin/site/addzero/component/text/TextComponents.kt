@@ -1,39 +1,23 @@
 package site.addzero.component.text
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
-import site.addzero.kcp.spreadpack.SpreadPack
-import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
 
-@Suppress("UnusedPrivateMember")
-private fun materialTextArgsSource(
-    text: String,
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
-    textAlign: TextAlign? = null,
-) {
-}
-
-@SpreadPackCarrierOf(
-    value = "site.addzero.component.text.materialTextArgsSource",
+private data class MaterialTextProps(
+    val text: String,
+    val modifier: Modifier = Modifier,
+    val color: Color = Color.Unspecified,
+    val textAlign: TextAlign? = null,
 )
-class MaterialTextProps
 
 private fun Color.orDefault(defaultColor: Color): Color {
     return if (this == Color.Unspecified) {
@@ -49,12 +33,12 @@ private fun materialTextProps(
     color: Color,
     textAlign: TextAlign?,
 ): MaterialTextProps {
-    val props = MaterialTextProps()
-    props.text = text
-    props.modifier = modifier
-    props.color = color
-    props.textAlign = textAlign
-    return props
+    return MaterialTextProps(
+        text = text,
+        modifier = modifier,
+        color = color,
+        textAlign = textAlign,
+    )
 }
 
 @Composable
@@ -92,9 +76,7 @@ fun H1(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun H1Packed(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -123,9 +105,7 @@ fun H2(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun H2Packed(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -154,9 +134,7 @@ fun H3(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun H3Packed(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -185,9 +163,7 @@ fun H4(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun H4Packed(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -216,9 +192,7 @@ fun BodyLarge(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun BodyLargePacked(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -247,9 +221,7 @@ fun BodyMedium(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun BodyMediumPacked(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -278,9 +250,7 @@ fun BodySmall(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun BodySmallPacked(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -309,9 +279,7 @@ fun Caption(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun CaptionPacked(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     renderTypographyText(
@@ -340,9 +308,7 @@ fun BlueText(
 }
 
 @Composable
-@GenerateSpreadPackOverloads
 private fun BlueTextPacked(
-    @SpreadPack
     props: MaterialTextProps,
 ) {
     Text(

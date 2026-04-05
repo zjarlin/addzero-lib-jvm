@@ -76,7 +76,7 @@ fun <T> AddTreeWithCommand(
 ) {
 
     // 🎯 创建和配置 TreeViewModel
-    val viewModel = _root_ide_package_.site.addzero.component.tree.rememberTreeViewModel<T>()
+    val viewModel = site.addzero.component.tree.rememberTreeViewModel<T>()
 
     // 🔧 配置 ViewModel
     LaunchedEffect(items, getId, getLabel, getChildren, autoEnableMultiSelect, multiSelectClickToToggle) {

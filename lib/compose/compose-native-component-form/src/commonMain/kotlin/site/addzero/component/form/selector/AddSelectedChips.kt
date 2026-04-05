@@ -49,7 +49,7 @@ fun <T> AddSelectedChips(
     showRemoveIcon: Boolean = true,
     removeIcon: ImageVector = Icons.Default.Close,
     maxItems: Int? = null,
-    chipColors: SelectableChipColors = _root_ide_package_.site.addzero.component.form.selector.filterChipColors,
+    chipColors: SelectableChipColors = filterChipColors,
     contentPadding: PaddingValues = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
     itemSpacing: Dp = 6.dp
 ) {
@@ -62,7 +62,12 @@ fun <T> AddSelectedChips(
         selectedItems
     }
 
-    val hasMoreItems = maxItems != null && selectedItems.size > maxItems
+    val moreItemCount = if (maxItems != null && selectedItems.size > maxItems) {
+        selectedItems.size - maxItems
+    } else {
+        0
+    }
+    val hasMoreItems = moreItemCount > 0
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
@@ -110,7 +115,7 @@ fun <T> AddSelectedChips(
                     onClick = { },
                     label = {
                         Text(
-                            text = "...+${selectedItems.size - maxItems!!}",
+                            text = "...+$moreItemCount",
                             style = MaterialTheme.typography.bodySmall
                         )
                     },
@@ -124,4 +129,3 @@ fun <T> AddSelectedChips(
         }
     }
 }
-

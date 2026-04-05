@@ -15,7 +15,9 @@ fun AddTooltipBox(
     content: @Composable () -> Unit,
 ) {
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(), tooltip = {
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            TooltipAnchorPosition.Above
+        ), tooltip = {
             PlainTooltip {
                 Text(text)
             }

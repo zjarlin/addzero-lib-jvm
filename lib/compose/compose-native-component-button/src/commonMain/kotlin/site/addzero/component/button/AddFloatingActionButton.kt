@@ -32,7 +32,7 @@ fun AddFloatingActionButton(
         )
     }
 
-    _root_ide_package_.site.addzero.component.high_level.AddTooltipBox(text) {
+    AddTooltipBox(text) {
 
         FloatingActionButton(
             onClick = onClick,

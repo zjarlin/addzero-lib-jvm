@@ -56,27 +56,25 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-05T09:40:06.520110
-// Loaded: 19, Excluded: 0, Total: 19
-include(":example:example-kcp-i18n")
+// Generated at: 2026-04-05T11:23:27.073907
+// Loaded: 17, Excluded: 0, Total: 17
 include(":lib:compose:app-sidebar")
+include(":lib:compose:compose-apple-corner")
+include(":lib:compose:compose-native-component-button")
+include(":lib:compose:compose-native-component-form")
+include(":lib:compose:compose-native-component-high-level")
+include(":lib:compose:compose-native-component-searchbar")
+include(":lib:compose:compose-native-component-tree")
 include(":lib:compose:compose-workbench-design")
 include(":lib:compose:shadcn-compose-component")
-include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")
-include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
-include(":lib:kcp:kcp-i18n")
-include(":lib:kcp:kcp-i18n-gradle-plugin")
-include(":lib:kcp:kcp-i18n-runtime")
-include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
-include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
-include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
-include(":lib:kcp:singleton-adapter-kcp")
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
-include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
 include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
-include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
-include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
-include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
+include(":lib:tool-kmp:tool-enum")
+include(":lib:tool-kmp:tool-expect")
+include(":lib:tool-kmp:tool-json")
+include(":lib:tool-kmp:tool-regex")
+include(":lib:tool-kmp:tool-str")
+include(":lib:tool-kmp:tool-tree")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
@@ -104,9 +102,11 @@ include(":lib:compose:compose-cupertino-workbench")
 include(":lib:compose:compose-native-component-high-level")
 include(":lib:compose:compose-native-component-autocomplet")
 include(":lib:compose:compose-native-component-button")
+include(":lib:compose:compose-native-component-form")
 include(":lib:compose:compose-native-component-searchbar")
 include(":lib:compose:compose-native-component-sheet")
 include(":lib:compose:compose-native-component-text")
+include(":lib:compose:compose-native-component-toast")
 include(":lib:compose:compose-native-component-tree")
 include(":lib:compose:compose-native-component-knowledgegraph")
 include(":lib:compose:scaffold-spi")

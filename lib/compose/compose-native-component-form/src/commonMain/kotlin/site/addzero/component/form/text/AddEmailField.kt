@@ -65,8 +65,8 @@ fun AddEmailField(
     // 修复：根据 value 初始化 selectedSuffix
     var selectedSuffix by remember(value) {
         val suffix = value.substringAfter("@", "")
-        val match = _root_ide_package_.site.addzero.component.form.text.commonEmailSuffixes.find { it.removePrefix("@") == suffix }
-        mutableStateOf(match ?: _root_ide_package_.site.addzero.component.form.text.commonEmailSuffixes[0])
+        val match = commonEmailSuffixes.find { it.removePrefix("@") == suffix }
+        mutableStateOf(match ?: commonEmailSuffixes[0])
     }
     var expanded by remember { mutableStateOf(false) }
     var checkEmail by remember { mutableStateOf(false) }
@@ -92,7 +92,7 @@ fun AddEmailField(
 //                value = selectedSuffix,
 //                onValueChange = {},
 //                disable = disable,
-//                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, !disable),
+//                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, !disable),
 //            )
 
 
@@ -101,7 +101,10 @@ fun AddEmailField(
                 onValueChange = {},
                 readOnly = true,
                 enabled = !disable,
-                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, !disable),
+                modifier = Modifier.menuAnchor(
+                    ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    !disable,
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledBorderColor = MaterialTheme.colorScheme.outline,
@@ -114,7 +117,7 @@ fun AddEmailField(
             )
             ExposedDropdownMenu(
                 expanded = expanded, onDismissRequest = { expanded = false }) {
-                _root_ide_package_.site.addzero.component.form.text.commonEmailSuffixes.forEach { suffix ->
+                commonEmailSuffixes.forEach { suffix ->
                     DropdownMenuItem(text = { Text(suffix) }, onClick = {
                         selectedSuffix = suffix
                         expanded = false
@@ -146,7 +149,7 @@ fun AddEmailField(
 
 
     // 邮箱前缀输入框
-    _root_ide_package_.site.addzero.component.form.text.AddTextField(
+    AddTextField(
         remoteValidationConfig = remoteValidationConfig,
         value = localValue, onValueChange = {
             if (!disable) {
@@ -188,7 +191,7 @@ fun AddEmailField(
                             modifier = Modifier.padding(start = 8.dp).width(120.dp)
                         )
                     }
-                    _root_ide_package_.site.addzero.component.button.AddIconButton(
+                    AddIconButton(
                         text = if (checkEmail) "已验证" else if (showYanzhengmaInput) "重新发送" else "校验邮箱",
                         imageVector = if (checkEmail) Icons.Filled.Check else checkEmailIcon
                     ) {

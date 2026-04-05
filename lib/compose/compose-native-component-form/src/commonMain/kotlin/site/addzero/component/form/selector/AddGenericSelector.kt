@@ -61,10 +61,10 @@ fun <T> AddGenericMultiSelector(
     getIcon: @Composable (T) -> ImageVector? = { null },
     getNodeType: (T) -> String = { "item" },
     commands: Set<site.addzero.component.tree_command.TreeCommand> = setOf(
-        _root_ide_package_.site.addzero.component.tree_command.TreeCommand.SEARCH,
-        _root_ide_package_.site.addzero.component.tree_command.TreeCommand.MULTI_SELECT,
-        _root_ide_package_.site.addzero.component.tree_command.TreeCommand.EXPAND_ALL,
-        _root_ide_package_.site.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL
+        site.addzero.component.tree_command.TreeCommand.SEARCH,
+        site.addzero.component.tree_command.TreeCommand.MULTI_SELECT,
+        site.addzero.component.tree_command.TreeCommand.EXPAND_ALL,
+        site.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL
     )
 ) {
     // 🔧 状态管理
@@ -116,7 +116,7 @@ fun <T> AddGenericMultiSelector(
                                 .fillMaxWidth(0.7f)
                                 .padding(start = 4.dp)
                         ) {
-                            _root_ide_package_.site.addzero.component.form.selector.AddSelectedChips(
+                            AddSelectedChips(
                                 selectedItems = value,
                                 onRemoveItem = { itemToRemove ->
                                     val newSelection = value.filter {
@@ -159,7 +159,10 @@ fun <T> AddGenericMultiSelector(
                 },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(
+                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                        enabled = enabled,
+                    )
                     .fillMaxWidth()
             )
 
@@ -228,7 +231,7 @@ fun <T> AddGenericMultiSelector(
 
                     treeData.isNotEmpty() -> {
                         // 🌳 通用树形/列表选择器
-                        _root_ide_package_.site.addzero.component.form.selector.GenericTreeSelector(
+                        GenericTreeSelector(
                             treeData = treeData,
                             selectedItems = value,
                             onSelectionChange = { newSelection ->
@@ -362,11 +365,11 @@ private fun <T> GenericTreeSelector(
                 }
             }
 
-            Divider(modifier = Modifier.padding(bottom = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
         }
 
         // 🌳 树形组件
-        _root_ide_package_.site.addzero.component.tree_command.AddTreeWithCommand(
+        AddTreeWithCommand(
             items = treeData,
             getId = getId,
             getLabel = getLabel,
@@ -398,4 +401,3 @@ private fun <T> GenericTreeSelector(
         )
     }
 }
-

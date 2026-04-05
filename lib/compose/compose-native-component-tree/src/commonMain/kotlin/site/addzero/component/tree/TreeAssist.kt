@@ -31,9 +31,9 @@ fun <T> getDefaultNodeType(
 
     // 特殊ID处理
     if (id == "dept_1") {
-        return _root_ide_package_.site.addzero.component.tree.NodeType.COMPANY
+        return site.addzero.component.tree.NodeType.COMPANY
     }
 
     // 使用NodeType提供的猜测功能
-    return _root_ide_package_.site.addzero.component.tree.NodeType.Companion.guess(label, hasChildren)
+    return site.addzero.component.tree.NodeType.guess(label, hasChildren)
 }

@@ -79,7 +79,7 @@ fun AddTabs(
         ) {
             Column {
                 // 使用SubcomposeLayout确保指示器精确对齐标签
-                _root_ide_package_.site.addzero.component.high_level.TabRowWithIndicator(
+                TabRowWithIndicator(
                     count = tabs.size,
                     selectedIndex = indicatorOffset,
                     indicatorColor = indicatorColor,
@@ -234,7 +234,7 @@ fun CustomTabRow(
 
     Column(modifier = modifier) {
         // 使用SubcomposeLayout确保指示器精确对齐标签
-        _root_ide_package_.site.addzero.component.high_level.TabRowWithIndicator(
+        TabRowWithIndicator(
             count = tabs.size,
             selectedIndex = indicatorOffset,
             indicatorColor = MaterialTheme.colorScheme.primary,

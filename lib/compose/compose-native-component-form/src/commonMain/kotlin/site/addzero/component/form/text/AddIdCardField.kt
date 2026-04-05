@@ -3,15 +3,13 @@ package site.addzero.component.form.text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.runtime.Composable
-import site.addzero.regex.RegexEnum
-import site.addzero.kcp.spreadpack.GenerateSpreadPackOverloads
 import site.addzero.kcp.spreadpack.SpreadPack
+import site.addzero.regex.RegexEnum
 
-@GenerateSpreadPackOverloads
 @Composable
 fun AddIdCardField(
     @SpreadPack
-    args: RegexValidatedTextFieldArgs,
+    args: RegexValidatedTextFieldProps,
 ) {
     addRegexValidatedTextFieldBase(
         value = args.value,

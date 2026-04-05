@@ -13,38 +13,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import site.addzero.component.button.AddIconButton
+import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
 import site.addzero.regex.RegexEnum
 
-data class RegexValidatedTextFieldArgs(
-    val value: String,
-    val onValueChange: (String) -> Unit,
-    val label: String = "",
-    val isRequired: Boolean = false,
-    val enabled: Boolean = true,
-    val placeholder: String = "",
-    val supportingText: String? = null,
-    val maxLength: Int? = null,
-    val onValidate: ((Boolean) -> Unit)? = null,
-    val modifier: Modifier = Modifier,
-    val onErrMsgChange: ((String, String) -> Unit)? = null,
-    val errorMessages: List<String> = emptyList(),
-    val remoteValidationConfig: RemoteValidationConfig? = null,
+@SpreadPackCarrierOf(
+    value = "site.addzero.component.form.text.addRegexValidatedTextFieldBase",
+    exclude = ["regexEnum", "leadingIcon"],
 )
+class RegexValidatedTextFieldProps
 
-data class PasswordFieldArgs(
-    val value: String,
-    val onValueChange: (String) -> Unit,
-    val label: String = "密码",
-    val enabled: Boolean = true,
-    val validators: List<Pair<(String) -> Boolean, String>> = emptyList(),
-    val regexValidator: RegexEnum = RegexEnum.PASSWORD,
-    val otherIcon: (@Composable () -> Unit)? = null,
-    val onErrMsgChange: ((String, String) -> Unit)? = null,
-    val modifier: Modifier = Modifier,
-    val errorMessages: List<String> = emptyList(),
-    val remoteValidationConfig: RemoteValidationConfig? = null,
-    val isRequired: Boolean = true,
+@SpreadPackCarrierOf(
+    value = "site.addzero.component.form.text.addPasswordFieldBase",
+    exclude = ["passwordVisible", "onPasswordVisibilityToggle", "otherIcon"],
 )
+class PasswordFieldProps
 
 @Composable
 internal fun addRegexValidatedTextFieldBase(

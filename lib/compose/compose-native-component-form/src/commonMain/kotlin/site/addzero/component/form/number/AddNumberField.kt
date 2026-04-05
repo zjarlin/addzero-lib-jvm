@@ -38,7 +38,7 @@ fun AddNumberField(
 
     // 验证输入
     LaunchedEffect(value) {
-        val isValid = _root_ide_package_.site.addzero.component.form.number.validateNumber(
+        val isValid = validateNumber(
             value = value,
             isRequired = isRequired,
             decimalPlaces = decimalPlaces,

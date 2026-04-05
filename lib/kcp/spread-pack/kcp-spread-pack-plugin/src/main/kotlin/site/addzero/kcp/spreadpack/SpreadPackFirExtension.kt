@@ -1589,7 +1589,7 @@ class SpreadPackFirExtension(
             key = SpreadPackGeneratedDeclarationKey,
             firResolvePhase = FirResolvePhase.BODY_RESOLVE,
         ) {
-            source = original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+            source = original.source
             annotations.clear()
             annotations += original.annotations.filterNot { annotation ->
                 annotation.matchesAnnotationClassId(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotationClassId)
@@ -1641,8 +1641,7 @@ class SpreadPackFirExtension(
                 }
                 expansion.fields.forEach { field ->
                     updatedParameters += buildValueParameter {
-                        source = field.parameter.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
-                            ?: original.source?.fakeElement(KtFakeSourceElementKind.PluginGenerated)
+                        source = field.parameter.source ?: original.source
                         moduleData = original.moduleData
                         origin = SpreadPackGeneratedDeclarationKey.origin
                         resolvePhase = FirResolvePhase.BODY_RESOLVE

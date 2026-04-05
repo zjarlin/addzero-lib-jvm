@@ -42,7 +42,7 @@ fun <T> AddGenericSingleSelector(
     getIcon: @Composable (T) -> ImageVector? = { null },
     getNodeType: (T) -> String = { "item" }
 ) {
-    _root_ide_package_.site.addzero.component.form.selector.AddGenericMultiSelector(
+    AddGenericMultiSelector(
         value = value?.let { listOf(it) } ?: emptyList(),
         onValueChange = { items -> onValueChange(items.firstOrNull()) },
         dataProvider = dataProvider,

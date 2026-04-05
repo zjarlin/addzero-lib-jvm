@@ -46,25 +46,25 @@ fun CommandToolbar(
         ) {
             commands.forEach { command ->
                 val (icon, tint) = when (command) {
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.SEARCH -> Icons.Default.Search to MaterialTheme.colorScheme.primary
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.MULTI_SELECT -> {
+                    site.addzero.component.tree_command.TreeCommand.SEARCH -> Icons.Default.Search to MaterialTheme.colorScheme.primary
+                    site.addzero.component.tree_command.TreeCommand.MULTI_SELECT -> {
                         if (multiSelectMode)
                             Icons.Default.CheckBox to MaterialTheme.colorScheme.primary
                         else
                             Icons.Default.CheckBoxOutlineBlank to MaterialTheme.colorScheme.onSurface
                     }
 
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.EXPAND_ALL -> Icons.Default.UnfoldMore to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL -> Icons.Default.UnfoldLess to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.REFRESH -> Icons.Default.Refresh to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.FILTER -> Icons.Default.FilterList to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.SORT -> Icons.AutoMirrored.Filled.Sort to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.ADD_NODE -> Icons.Default.Add to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.EDIT_NODE -> Icons.Default.Edit to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.DELETE_NODE -> Icons.Default.Delete to MaterialTheme.colorScheme.error
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.DRAG_DROP -> Icons.Default.DragIndicator to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.EXPORT -> Icons.Default.FileDownload to MaterialTheme.colorScheme.onSurface
-                    _root_ide_package_.site.addzero.component.tree_command.TreeCommand.IMPORT -> Icons.Default.FileUpload to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.EXPAND_ALL -> Icons.Default.UnfoldMore to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.COLLAPSE_ALL -> Icons.Default.UnfoldLess to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.REFRESH -> Icons.Default.Refresh to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.FILTER -> Icons.Default.FilterList to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.SORT -> Icons.AutoMirrored.Filled.Sort to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.ADD_NODE -> Icons.Default.Add to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.EDIT_NODE -> Icons.Default.Edit to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.DELETE_NODE -> Icons.Default.Delete to MaterialTheme.colorScheme.error
+                    site.addzero.component.tree_command.TreeCommand.DRAG_DROP -> Icons.Default.DragIndicator to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.EXPORT -> Icons.Default.FileDownload to MaterialTheme.colorScheme.onSurface
+                    site.addzero.component.tree_command.TreeCommand.IMPORT -> Icons.Default.FileUpload to MaterialTheme.colorScheme.onSurface
                 }
 
                 val isActive = command == site.addzero.component.tree_command.TreeCommand.SEARCH ||

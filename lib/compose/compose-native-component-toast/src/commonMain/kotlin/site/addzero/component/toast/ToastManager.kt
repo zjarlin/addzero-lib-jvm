@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
  */
 object ToastManager {
     // 私有的消息流
-    private val _messageFlow = MutableSharedFlow<site.addzero.component.toast.ToastMessage>(extraBufferCapacity = 10)
+    private val _messageFlow = MutableSharedFlow<ToastMessage>(extraBufferCapacity = 10)
 
     // 公开的只读消息流
     val messageFlow = _messageFlow.asSharedFlow()
@@ -20,21 +20,21 @@ object ToastManager {
      * 显示成功消息
      */
     suspend fun success(message: String) {
-        _messageFlow.emit(_root_ide_package_.site.addzero.component.toast.ToastMessage(message, _root_ide_package_.site.addzero.component.toast.MessageType.SUCCESS))
+        _messageFlow.emit(ToastMessage(message, MessageType.SUCCESS))
     }
 
     /**
      * 显示错误消息
      */
     suspend fun error(message: String) {
-        _messageFlow.emit(_root_ide_package_.site.addzero.component.toast.ToastMessage(message, _root_ide_package_.site.addzero.component.toast.MessageType.ERROR))
+        _messageFlow.emit(ToastMessage(message, MessageType.ERROR))
     }
 
     /**
      * 显示警告消息
      */
     suspend fun warning(message: String) {
-        _messageFlow.emit(_root_ide_package_.site.addzero.component.toast.ToastMessage(message, _root_ide_package_.site.addzero.component.toast.MessageType.WARNING))
+        _messageFlow.emit(ToastMessage(message, MessageType.WARNING))
     }
 
     /**

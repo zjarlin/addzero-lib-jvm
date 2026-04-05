@@ -17,7 +17,7 @@ import site.addzero.util.data_structure.tree.list2Tree
 data class TreeNode<T>(
     val id: Any,
     val name: String,
-    val nodeType: String = _root_ide_package_.site.addzero.component.tree.NodeType.DEFAULT.toString(),
+    val nodeType: String = site.addzero.component.tree.NodeType.DEFAULT.toString(),
     val data: T,
     val parentId: Any? = null,
     var children: List<TreeNode<T>> = emptyList()
@@ -42,7 +42,7 @@ fun <T> AddFlatTree(
     getParentId: (T) -> Any?,
     isRoot: (T) -> Boolean = { getParentId(it) == null },
     getName: (T) -> String,
-    getNodeType: (T) -> String = { _root_ide_package_.site.addzero.component.tree.NodeType.DEFAULT.toString() },
+    getNodeType: (T) -> String = { site.addzero.component.tree.NodeType.DEFAULT.toString() },
     modifier: Modifier = Modifier,
     initiallyExpandedIds: Set<Any> = emptySet(),
     onNodeClick: (T) -> Unit = {},
@@ -78,7 +78,7 @@ fun <T> AddFlatTree(
 //    )
 
     // 使用AddTree组件渲染树结构（使用新的 TreeViewModel API）
-    val viewModel = _root_ide_package_.site.addzero.component.tree.rememberTreeViewModel<TreeNode<T>>()
+    val viewModel = site.addzero.component.tree.rememberTreeViewModel<TreeNode<T>>()
 
     // 配置 ViewModel
     LaunchedEffect(treeData) {
@@ -95,7 +95,7 @@ fun <T> AddFlatTree(
         viewModel.setItems(treeData, initiallyExpandedIds)
     }
 
-    _root_ide_package_.site.addzero.component.tree.AddTree(
+    site.addzero.component.tree.AddTree(
         viewModel = viewModel,
         modifier = modifier
     )

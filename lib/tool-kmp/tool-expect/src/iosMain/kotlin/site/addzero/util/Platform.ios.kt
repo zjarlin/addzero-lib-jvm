@@ -7,3 +7,9 @@ actual fun isMobile(): Boolean {
 }
 
 actual fun getPlatform(): Platform = Platform.IOS
+
+actual object DirectoryLauncher {
+    actual fun openDirectory(path: String): Boolean {
+        return false
+    }
+}
