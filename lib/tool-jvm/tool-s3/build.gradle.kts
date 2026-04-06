@@ -12,4 +12,4 @@ dependencies {
   implementation(libs.findLibrary("com-github-ben-manes-caffeine-caffeine").get())
   implementation(libs.findLibrary("site-addzero-tool-common-jvm").get())
 }
-version= LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+//version= LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
