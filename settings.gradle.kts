@@ -62,7 +62,7 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T15:11:29.225184
+// Generated at: 2026-04-06T15:18:49.975090
 // Loaded: 56, Excluded: 0, Total: 56
 include(":lib:compose:app-sidebar")
 include(":lib:compose:app-sidebar-cupertino-adapter")

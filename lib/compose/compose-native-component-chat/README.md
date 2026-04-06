@@ -45,3 +45,9 @@ AddChatPanel(
 
 - 当前模块只负责 Compose UI，不内置网络请求实现
 - 适合 `commonMain` 复用，具体模型调用和 MCP/ACP 运行时请由宿主注入
+
+## 桌面预览
+
+- 运行命令：`./gradlew :lib:compose:compose-native-component-chat:previewChat`
+- 入口位置：`src/jvmTest/kotlin/site/addzero/component/chat/preview/ChatPreviewMain.kt`
+- 可选自动退出：`./gradlew :lib:compose:compose-native-component-chat:previewChat -Dchat.preview.autoExitMillis=1200`
