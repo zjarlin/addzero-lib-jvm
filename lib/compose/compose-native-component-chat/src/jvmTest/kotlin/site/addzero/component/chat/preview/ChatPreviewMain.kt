@@ -18,11 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,9 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import site.addzero.component.button.AddButton
 import site.addzero.component.chat.AddChatConnectionConfig
 import site.addzero.component.chat.AddChatMessageItem
@@ -42,12 +36,14 @@ import site.addzero.component.chat.AddChatMessageRole
 import site.addzero.component.chat.AddChatOverlay
 import site.addzero.component.chat.AddChatOverlayState
 import site.addzero.component.chat.AddChatPanel
-import site.addzero.component.chat.AddChatPanelActions
+import site.addzero.component.chat.AddChatPanelBinding
+import site.addzero.component.chat.AddChatPanelSpi
 import site.addzero.component.chat.AddChatPanelState
 import site.addzero.component.chat.AddChatQuickPrompt
 import site.addzero.component.chat.AddChatSessionItem
 import site.addzero.component.chat.AddChatTransport
 import site.addzero.component.chat.AddChatVendor
+import site.addzero.component.chat.rememberAddChatPanelBinding
 
 /**
  * 聊天组件桌面预览入口。
@@ -81,140 +77,9 @@ fun main() = application {
 
 @Composable
 private fun ChatPreviewApp() {
-    val scope = rememberCoroutineScope()
     val overlayState = remember { AddChatOverlayState() }
-    var switchJob by remember { mutableStateOf<Job?>(null) }
-    var sendJob by remember { mutableStateOf<Job?>(null) }
-    var previewState by remember { mutableStateOf(buildChatPreviewHostState()) }
-
-    val actions = AddChatPanelActions(
-        onCreateSession = {
-            previewState = previewState.createSession()
-        },
-        onDeleteSession = { sessionId ->
-            previewState = previewState.deleteSession(sessionId)
-        },
-        onSelectSession = { sessionId ->
-            if (previewState.selectedSessionId == sessionId) {
-                return@AddChatPanelActions
-            }
-            switchJob?.cancel()
-            previewState = previewState.copy(
-                selectedSessionId = sessionId,
-                isLoadingMessages = true,
-                statusText = "正在切换会话，本地预览不会发起真实网络请求。",
-            )
-            switchJob = scope.launch {
-                delay(260)
-                previewState = previewState.copy(
-                    isLoadingMessages = false,
-                    statusText = "当前为本地模拟聊天，可直接验证列表、消息区和配置表单交互。",
-                )
-            }
-        },
-        onInputChange = { value ->
-            previewState = previewState.copy(input = value)
-        },
-        onSend = {
-            val sessionId = previewState.selectedSessionId ?: return@AddChatPanelActions
-            val input = previewState.input.trim()
-            if (input.isBlank() || previewState.isSending) {
-                return@AddChatPanelActions
-            }
-            val userMessageIndex = previewState.nextMessageIndex
-            val userMessage = AddChatMessageItem(
-                id = "msg-$userMessageIndex",
-                role = AddChatMessageRole.User,
-                content = input,
-                timestampLabel = "刚刚",
-                statusLabel = "已写入本地预览",
-            )
-            val vendor = previewState.connection.vendor
-            val model = previewState.connection.model
-            previewState = previewState
-                .appendMessages(sessionId, listOf(userMessage))
-                .copy(
-                    input = "",
-                    isSending = true,
-                    nextMessageIndex = userMessageIndex + 1,
-                    statusText = "正在模拟发送到 ${vendor.displayName}${model.ifBlank { "" }.let { if (it.isBlank()) "" else " / $it" }}。",
-                )
-            sendJob?.cancel()
-            sendJob = scope.launch {
-                delay(680)
-                val replyStartIndex = previewState.nextMessageIndex
-                val replyMessages = buildPreviewReplyMessages(
-                    startIndex = replyStartIndex,
-                    input = input,
-                    vendor = vendor,
-                    model = model,
-                )
-                previewState = previewState
-                    .appendMessages(sessionId, replyMessages)
-                    .copy(
-                        isSending = false,
-                        nextMessageIndex = replyStartIndex + replyMessages.size,
-                        statusText = "本轮响应已完成，当前仍是纯本地模拟。",
-                    )
-            }
-        },
-        onRetryMessage = { message ->
-            val sessionId = previewState.selectedSessionId ?: return@AddChatPanelActions
-            if (previewState.isSending) {
-                return@AddChatPanelActions
-            }
-            val replyIndex = previewState.nextMessageIndex
-            previewState = previewState.copy(
-                isSending = true,
-                statusText = "正在模拟重试消息 ${message.id}。",
-            )
-            sendJob?.cancel()
-            sendJob = scope.launch {
-                delay(520)
-                val retryMessage = AddChatMessageItem(
-                    id = "msg-$replyIndex",
-                    role = AddChatMessageRole.Assistant,
-                    content = buildRetryReply(message),
-                    timestampLabel = "刚刚",
-                    statusLabel = "重试成功",
-                )
-                previewState = previewState
-                    .appendMessages(sessionId, listOf(retryMessage))
-                    .copy(
-                        isSending = false,
-                        nextMessageIndex = replyIndex + 1,
-                        statusText = "已完成一次本地重试演练。",
-                    )
-            }
-        },
-        onUsePrompt = { prompt ->
-            val ensuredState = if (previewState.selectedSessionId == null) {
-                previewState.createSession()
-            } else {
-                previewState
-            }
-            previewState = ensuredState.copy(
-                input = prompt.content,
-                statusText = "已填入快捷提示“${prompt.title}”，按 Enter 即可继续验证发送流程。",
-            )
-        },
-        onConnectionChange = { config ->
-            previewState = previewState.copy(
-                connection = config,
-                statusText = "连接配置已更新，仅用于预览表单与状态展示。",
-            )
-        },
-        onToggleConnectionEditor = { visible ->
-            previewState = previewState.copy(
-                showConnectionEditor = visible,
-                statusText = if (visible) {
-                    "连接配置面板已展开。"
-                } else {
-                    "连接配置面板已收起。"
-                },
-            )
-        },
-    )
+    val spi = remember { PreviewChatPanelSpi() }
+    val binding = rememberAddChatPanelBinding(spi = spi)
 
     Box(
         modifier = Modifier
@@ -235,14 +100,13 @@ private fun ChatPreviewApp() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             ChatPreviewHeader(
-                sessionCount = previewState.conversations.size,
-                selectedVendor = previewState.connection.vendor,
-                selectedModel = previewState.connection.model,
+                sessionCount = binding.state.sessions.size,
+                selectedVendor = binding.state.connection.vendor,
+                selectedModel = binding.state.connection.model,
                 onOpenOverlay = { overlayState.show() },
                 onReset = {
-                    switchJob?.cancel()
-                    sendJob?.cancel()
-                    previewState = buildChatPreviewHostState()
+                    spi.reset()
+                    binding.controller.load()
                 },
             )
             Surface(
@@ -252,8 +116,8 @@ private fun ChatPreviewApp() {
                 tonalElevation = 1.dp,
             ) {
                 AddChatPanel(
-                    state = previewState.toPanelState(),
-                    actions = actions,
+                    state = binding.state,
+                    actions = binding.actions,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -266,8 +130,8 @@ private fun ChatPreviewApp() {
             subtitle = "用同一份状态同时验证内嵌面板与浮层模式。",
         ) {
             AddChatPanel(
-                state = previewState.toPanelState(),
-                actions = actions,
+                state = binding.state,
+                actions = binding.actions,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -370,6 +234,168 @@ private fun PreviewMetricChip(
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
+    }
+}
+
+private class PreviewChatPanelSpi : AddChatPanelSpi {
+    private var hostState = buildChatPreviewHostState()
+
+    fun reset() {
+        hostState = buildChatPreviewHostState()
+    }
+
+    override suspend fun loadState(): AddChatPanelState {
+        delay(120)
+        return hostState.toPanelState()
+    }
+
+    override suspend fun createSession(
+        currentState: AddChatPanelState,
+    ): AddChatPanelState {
+        hostState = hostState.createSession()
+        return hostState.toPanelState()
+    }
+
+    override suspend fun deleteSession(
+        currentState: AddChatPanelState,
+        sessionId: String?,
+    ): AddChatPanelState {
+        hostState = hostState.deleteSession(sessionId)
+        return hostState.toPanelState()
+    }
+
+    override suspend fun selectSession(
+        currentState: AddChatPanelState,
+        sessionId: String,
+    ): AddChatPanelState {
+        if (hostState.selectedSessionId == sessionId) {
+            return hostState.toPanelState()
+        }
+        delay(260)
+        hostState = hostState.selectSession(sessionId)
+        return hostState.toPanelState()
+    }
+
+    override fun updateInput(
+        currentState: AddChatPanelState,
+        input: String,
+    ): AddChatPanelState {
+        hostState = hostState.copy(input = input)
+        return hostState.toPanelState()
+    }
+
+    override fun usePrompt(
+        currentState: AddChatPanelState,
+        prompt: AddChatQuickPrompt,
+    ): AddChatPanelState {
+        val ensuredState = if (hostState.selectedSessionId == null) {
+            hostState.createSession()
+        } else {
+            hostState
+        }
+        hostState = ensuredState.copy(
+            input = prompt.content,
+            statusText = "已填入快捷提示“${prompt.title}”，按 Enter 即可继续验证发送流程。",
+        )
+        return hostState.toPanelState()
+    }
+
+    override suspend fun updateConnection(
+        currentState: AddChatPanelState,
+        connection: AddChatConnectionConfig,
+    ): AddChatPanelState {
+        hostState = hostState.copy(
+            connection = connection,
+            statusText = "连接配置已更新，仅用于预览表单与状态展示。",
+        )
+        return hostState.toPanelState()
+    }
+
+    override fun toggleConnectionEditor(
+        currentState: AddChatPanelState,
+        visible: Boolean,
+    ): AddChatPanelState {
+        hostState = hostState.copy(
+            showConnectionEditor = visible,
+            statusText = if (visible) {
+                "连接配置面板已展开。"
+            } else {
+                "连接配置面板已收起。"
+            },
+        )
+        return hostState.toPanelState()
+    }
+
+    override suspend fun send(
+        currentState: AddChatPanelState,
+    ): AddChatPanelState {
+        val sessionId = hostState.selectedSessionId ?: return hostState.toPanelState()
+        val input = currentState.input.trim()
+        if (input.isBlank()) {
+            return hostState.toPanelState()
+        }
+        val userMessageIndex = hostState.nextMessageIndex
+        val userMessage = AddChatMessageItem(
+            id = "msg-$userMessageIndex",
+            role = AddChatMessageRole.User,
+            content = input,
+            timestampLabel = "刚刚",
+            statusLabel = "已写入本地预览",
+        )
+        val vendor = currentState.connection.vendor
+        val model = currentState.connection.model
+        hostState = hostState
+            .copy(
+                input = currentState.input,
+                connection = currentState.connection,
+            )
+            .appendMessages(sessionId, listOf(userMessage))
+            .copy(
+                input = "",
+                nextMessageIndex = userMessageIndex + 1,
+                statusText = "正在模拟发送到 ${vendor.displayName}${model.ifBlank { "" }.let { if (it.isBlank()) "" else " / $it" }}。",
+            )
+        delay(680)
+        val replyStartIndex = hostState.nextMessageIndex
+        val replyMessages = buildPreviewReplyMessages(
+            startIndex = replyStartIndex,
+            input = input,
+            vendor = vendor,
+            model = model,
+        )
+        hostState = hostState
+            .appendMessages(sessionId, replyMessages)
+            .copy(
+                nextMessageIndex = replyStartIndex + replyMessages.size,
+                statusText = "本轮响应已完成，当前仍是纯本地模拟。",
+            )
+        return hostState.toPanelState()
+    }
+
+    override suspend fun retryMessage(
+        currentState: AddChatPanelState,
+        message: AddChatMessageItem,
+    ): AddChatPanelState {
+        val sessionId = hostState.selectedSessionId ?: return hostState.toPanelState()
+        val replyIndex = hostState.nextMessageIndex
+        hostState = hostState.copy(
+            statusText = "正在模拟重试消息 ${message.id}。",
+        )
+        delay(520)
+        val retryMessage = AddChatMessageItem(
+            id = "msg-$replyIndex",
+            role = AddChatMessageRole.Assistant,
+            content = buildRetryReply(message),
+            timestampLabel = "刚刚",
+            statusLabel = "重试成功",
+        )
+        hostState = hostState
+            .appendMessages(sessionId, listOf(retryMessage))
+            .copy(
+                nextMessageIndex = replyIndex + 1,
+                statusText = "已完成一次本地重试演练。",
+            )
+        return hostState.toPanelState()
     }
 }
 
@@ -526,6 +552,15 @@ private fun ChatPreviewHostState.toPanelState(): AddChatPanelState {
         } else {
             "你可以修改连接配置、输入消息，或用快捷提示生成第一轮对话。"
         },
+    )
+}
+
+private fun ChatPreviewHostState.selectSession(
+    sessionId: String,
+): ChatPreviewHostState {
+    return copy(
+        selectedSessionId = sessionId,
+        statusText = "当前为本地模拟聊天，可直接验证列表、消息区和配置表单交互。",
     )
 }
 

@@ -81,7 +81,31 @@ import site.addzero.component.text.H1
 import site.addzero.component.text.H3
 
 /**
- * 通用聊天面板。
+ * 基于 SPI 自动装配的聊天面板。
+ */
+@Composable
+fun AddChatPanel(
+    spi: AddChatPanelSpi,
+    modifier: Modifier = Modifier,
+    slots: AddChatPanelSlots = AddChatPanelSlots(),
+    autoLoad: Boolean = true,
+    reloadKey: Any? = spi,
+) {
+    val binding = rememberAddChatPanelBinding(
+        spi = spi,
+        autoLoad = autoLoad,
+        reloadKey = reloadKey,
+    )
+    AddChatPanel(
+        state = binding.state,
+        actions = binding.actions,
+        modifier = modifier,
+        slots = slots,
+    )
+}
+
+/**
+ * 低层通用聊天面板。
  */
 @Composable
 fun AddChatPanel(
