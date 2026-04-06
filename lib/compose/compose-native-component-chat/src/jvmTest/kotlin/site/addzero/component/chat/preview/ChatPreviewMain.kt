@@ -36,7 +36,6 @@ import site.addzero.component.chat.AddChatMessageRole
 import site.addzero.component.chat.AddChatOverlay
 import site.addzero.component.chat.AddChatOverlayState
 import site.addzero.component.chat.AddChatPanel
-import site.addzero.component.chat.AddChatPanelBinding
 import site.addzero.component.chat.AddChatPanelSpi
 import site.addzero.component.chat.AddChatPanelState
 import site.addzero.component.chat.AddChatQuickPrompt

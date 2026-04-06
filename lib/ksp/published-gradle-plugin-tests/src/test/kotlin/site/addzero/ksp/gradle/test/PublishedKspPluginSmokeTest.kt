@@ -58,10 +58,10 @@ class PublishedKspPluginSmokeTest {
     }
 
     @Test
-    fun `jvm options modbus rtu plugin injects runtime companion`() {
+    fun `kmp options modbus rtu plugin injects runtime companion`() {
         val output = runBuild(
             projectName = "modbus-rtu-consumer",
-            buildScript = jvmBuildScript(
+            buildScript = kmpBuildScript(
                 pluginClass = "site.addzero.ksp.modbusrtu.gradle.ModbusRtuGradlePlugin",
                 serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.modbus-rtu.serializedArgs",
                 extraBody = """
@@ -83,8 +83,8 @@ class PublishedKspPluginSmokeTest {
 
         assertContains(
             output,
-            "CONF[ksp]=site.addzero:modbus-ksp-rtu",
-            "CONF[implementation]=site.addzero:modbus-runtime",
+            "CONF[kspJvm]=site.addzero:modbus-ksp-rtu",
+            "CONF[commonMainImplementation]=site.addzero:modbus-runtime",
             "addzero.modbus.codegen.mode=server,contract",
             "addzero.modbus.transports=rtu,tcp",
             "addzero.modbus.contractPackages=site.addzero.device.contract",

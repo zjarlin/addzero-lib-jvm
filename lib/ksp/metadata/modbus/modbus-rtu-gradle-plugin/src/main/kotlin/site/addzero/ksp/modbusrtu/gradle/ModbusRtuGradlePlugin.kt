@@ -128,7 +128,7 @@ class ModbusRtuGradlePlugin : AbstractPublishedKspConsumerPlugin() {
         listOf(
             PublishedCompanionDependency(
                 scope = PublishedDependencyScope.IMPLEMENTATION,
-                artifactKind = PublishedKspArtifactKind.JVM,
+                artifactKind = PublishedKspArtifactKind.KMP,
                 localProjectPath = ":lib:ksp:metadata:modbus:modbus-runtime",
                 artifactId = "modbus-runtime",
             ),

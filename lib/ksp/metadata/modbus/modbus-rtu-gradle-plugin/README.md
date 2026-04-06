@@ -15,6 +15,8 @@
 - 应用 `com.google.devtools.ksp`
 - 注入 `site.addzero:modbus-ksp-rtu`
 - 自动补 `site.addzero:modbus-runtime`
+  - KMP 消费者会落到 `commonMainImplementation`
+  - JVM 消费者会落到 `implementation`
 - 把 typed DSL 转成底层 `ksp.arg(...)`
 
 ## 用法
