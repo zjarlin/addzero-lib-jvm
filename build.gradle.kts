@@ -26,7 +26,7 @@ subprojects {
   //  val versionStr = providers.gradleProperty("version").orNull ?: now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
 //  val groupId = providers.gradleProperty("group").orNull ?: rootProject.group.toString()
 //  group = groupId
-  version = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+  version = LocalDateTime.now().plusDays(2).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
 //    version = "2026.02.02"
   println("项目版本为$version")
   if (path.startsWith(":checkouts:")) {

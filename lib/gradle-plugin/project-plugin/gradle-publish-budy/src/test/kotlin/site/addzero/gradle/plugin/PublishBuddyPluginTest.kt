@@ -45,6 +45,61 @@ class PublishBuddyPluginTest {
         )
     }
 
+    @Test
+    fun `test-only project dependencies do not create publish cycles`() {
+        val javaHome = System.getProperty("java.home")
+        val testProjectDir = Files.createTempDirectory("publish-buddy-test-scope")
+        writeFile(testProjectDir, "settings.gradle.kts", settingsFile())
+        writeFile(testProjectDir, "build.gradle.kts", rootBuildFile())
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "app/build.gradle.kts",
+            """
+                plugins {
+                    `java-library`
+                    id("site.addzero.gradle.plugin.publish-buddy")
+                }
+
+                dependencies {
+                    implementation(projects.dep)
+                }
+            """.trimIndent(),
+        )
+        writeFile(
+            testProjectDir,
+            "dep/build.gradle.kts",
+            """
+                plugins {
+                    `java-library`
+                    id("site.addzero.gradle.plugin.publish-buddy")
+                }
+
+                dependencies {
+                    testImplementation(projects.app)
+                }
+            """.trimIndent(),
+        )
+        writeFile(testProjectDir, "leaf/build.gradle.kts", leafBuildFile())
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                ":app:publishToMavenCentral",
+                "--dry-run",
+            )
+            .withPluginClasspath()
+            .forwardOutput()
+            .build()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+        assertTrue(result.output.contains(":dep:publishToMavenCentral SKIPPED"), result.output)
+        assertTrue(!result.output.contains("Circular dependency"), result.output)
+    }
+
     private fun assertInOrder(output: String, expectedSnippets: List<String>) {
         var lastIndex = -1
         expectedSnippets.forEach { snippet ->

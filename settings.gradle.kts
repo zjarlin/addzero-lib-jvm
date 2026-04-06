@@ -62,20 +62,39 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T15:53:59.729467
-// Loaded: 8, Excluded: 0, Total: 8
+// Generated at: 2026-04-06T16:34:53.663179
+// Loaded: 24, Excluded: 1, Total: 25
+// Excluded (build infrastructure): :checkouts:build-logic
 include(":lib:compose:compose-native-component-autocomplet")
 include(":lib:compose:compose-native-component-button")
 include(":lib:compose:compose-native-component-chat")
 include(":lib:compose:compose-native-component-high-level")
+include(":lib:compose:compose-native-component-hook")
+include(":lib:compose:compose-native-component-select")
 include(":lib:compose:compose-native-component-text")
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
 include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
+include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
+include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
+include(":lib:ksp:metadata:modbus:modbus-ksp-core")
+include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync")
+include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
+include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
+include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-jvm:tool-serial")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
-//include(":lib:kcp:spread-pack:kcp-spread-pack-plugin") // excluded by Gradle Buddy
+if (file("lib/kcp/spread-pack/kcp-spread-pack-plugin").isDirectory) {
+  include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
+}
 include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
 if (file("lib/kcp/spread-pack/kcp-spread-pack-ide-plugin").isDirectory) {
 //  include(":lib:kcp:spread-pack:kcp-spread-pack-ide-plugin") // excluded by Gradle Buddy
@@ -115,9 +134,9 @@ include(":lib:compose:compose-native-component-chat")
 //include(":lib:compose:compose-native-component-ext") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-form") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-glass") // excluded by Gradle Buddy
-//include(":lib:compose:compose-native-component-hook") // excluded by Gradle Buddy
+include(":lib:compose:compose-native-component-hook")
 //include(":lib:compose:compose-native-component-searchbar") // excluded by Gradle Buddy
-//include(":lib:compose:compose-native-component-select") // excluded by Gradle Buddy
+include(":lib:compose:compose-native-component-select")
 //include(":lib:compose:compose-native-component-sheet") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-table-core") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-table") // excluded by Gradle Buddy
@@ -135,41 +154,44 @@ include(":lib:compose:compose-native-component-text")
 //include(":lib:compose:shadcn-compose-component") // excluded by Gradle Buddy
 
 if (file("lib/gradle-plugin/project-plugin/gradle-ksp-consumer-base").isDirectory) {
-//  include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base") // excluded by Gradle Buddy
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+}
+if (file("lib/gradle-plugin/project-plugin/gradle-publish-budy").isDirectory) {
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 }
 if (file("lib/tool-jvm/tool-modbus").isDirectory) {
-//  include(":lib:tool-jvm:tool-modbus") // excluded by Gradle Buddy
+include(":lib:tool-jvm:tool-modbus")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-core").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-core") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-core")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-kotlin-gateway").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-c-contract").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-keil-sync").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-markdown").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-markdown") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-rtu").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-rtu") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-tcp").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-tcp") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
 }
 if (file("lib/ksp/metadata/modbus/modbus-runtime").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-runtime") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-runtime")
 }
 if (file("lib/ksp/metadata/modbus/modbus-rtu-gradle-plugin").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
 }
 if (file("lib/ksp/metadata/modbus/modbus-tcp-gradle-plugin").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke").isDirectory) {
-//  include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
 }

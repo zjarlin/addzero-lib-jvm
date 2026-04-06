@@ -1,3 +1,4 @@
+import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.gradle.jvm.tasks.Jar
 
 plugins {
@@ -20,3 +21,5 @@ tasks.test {
     dependsOn(pluginJar)
     systemProperty("spreadPack.pluginJar", pluginJar.get().asFile.absolutePath)
 }
+
+

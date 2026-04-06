@@ -88,16 +88,23 @@ private val recursiveProjectDepsCache = mutableMapOf<String, Lazy<Set<Project>>>
 private val publishTaskPathsCache = mutableMapOf<String, Lazy<List<String>>>()
 
 /**
- * 通过 Gradle model 提取 ProjectDependency，兼容：
+ * 通过 Gradle model 提取真正会暴露到发布变体里的 ProjectDependency，兼容：
  * - project(":path")
  * - typesafe project accessors（projects.foo.bar）
  * - convention plugin 在 configuration 上注入的 project 依赖
+ *
+ * 这里故意只看 consumable configurations，避免把 testImplementation、
+ * testFixturesImplementation 之类不会进入发布产物元数据的依赖也算进来，
+ * 从而错误制造 publish task 环。
  */
 fun Project.directProjectDependencies(): Set<Project> =
     directProjectDepsCache.getOrPut(publishBuddyCacheKey()) {
         configurations
             .asSequence()
-            .filter { configuration -> configuration.dependencies.isNotEmpty() }
+            .filter { configuration ->
+                configuration.isCanBeConsumed &&
+                    configuration.dependencies.isNotEmpty()
+            }
             .flatMap { configuration ->
                 configuration.dependencies
                     .withType(ProjectDependency::class.java)

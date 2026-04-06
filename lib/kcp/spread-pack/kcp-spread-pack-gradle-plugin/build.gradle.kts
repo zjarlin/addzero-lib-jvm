@@ -1,5 +1,7 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.api.tasks.WriteProperties
+import org.gradle.internal.classpath.Instrumented.systemProperty
+import org.gradle.kotlin.dsl.`java-gradle-plugin`
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
@@ -82,3 +84,7 @@ tasks.test {
     systemProperty("spreadPack.compilerPluginBuildDir", compilerPluginBuildDir.get().asFile.absolutePath)
     systemProperty("spreadPack.annotationsBuildDir", annotationsBuildDir.get().asFile.absolutePath)
 }
+
+//version="2026.10330.12238"
+
+

@@ -1,3 +1,5 @@
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
     alias(libs.plugins.com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin)
@@ -37,6 +39,11 @@ ksp {
 
 tasks.named<Test>("test") {
     dependsOn("kspKotlin")
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        },
+    )
     systemProperty("modbus.smoke.projectDir", projectDir.absolutePath)
     systemProperty("modbus.smoke.externalProjectDir", "/Users/zjarlin/IdeaProjects/t")
     systemProperty("modbus.smoke.externalBridgeImplPath", "Core/Src/modbus/rtu/device/device_bridge_impl.c")
