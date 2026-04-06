@@ -14,6 +14,5 @@ kotlin {
         browser()
     }
 }
-//version="2026.10330.12238"
 
 

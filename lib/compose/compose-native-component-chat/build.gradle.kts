@@ -1,7 +1,7 @@
 import site.addzero.gradle.tool.registerJvmTestDesktopPreviewTask
 
 plugins {
-    id("site.addzero.buildlogic.kmp.cmp-jvmtest-entry")
+    id("site.addzero.buildlogic.kmp.cmp-lib")
 }
 
 kotlin {

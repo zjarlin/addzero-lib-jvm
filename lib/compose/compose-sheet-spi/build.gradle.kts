@@ -1,7 +1,7 @@
 import site.addzero.gradle.tool.registerJvmTestJavaExecTask
 
 plugins {
-  id("site.addzero.buildlogic.kmp.cmp-jvmtest-entry")
+  id("site.addzero.buildlogic.kmp.cmp-lib")
 }
 
 val libs = versionCatalogs.named("libs")

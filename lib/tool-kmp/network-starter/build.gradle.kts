@@ -1,3 +1,6 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 plugins {
   id("site.addzero.buildlogic.kmp.kmp-ktor-client")
   id("site.addzero.buildlogic.kmp.kmp-koin-core")
@@ -21,9 +24,10 @@ kotlin {
 
 
       implementation(libs.findLibrary("de-jensklingenberg-ktorfit-ktorfit-lib").get())
-      implementation(project(":lib:tool-kmp:tool-coll"))
+      implementation(libs.findLibrary("site-addzero-tool-coll").get())
       implementation(libs.findLibrary("site-addzero-tool-json").get())
       implementation(libs.findLibrary("io-ktor-ktor-client-websockets").get())
     }
   }
 }
+

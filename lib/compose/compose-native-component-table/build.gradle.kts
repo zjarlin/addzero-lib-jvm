@@ -1,7 +1,7 @@
 import site.addzero.gradle.tool.registerJvmTestDesktopPreviewTask
 
 plugins {
-  id("site.addzero.buildlogic.kmp.cmp-jvmtest-entry")
+  id("site.addzero.buildlogic.kmp.cmp-lib")
   id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 //    id("kmp-koin")
 //    id("kmp-ksp-plugin")

@@ -85,6 +85,5 @@ tasks.test {
     systemProperty("spreadPack.annotationsBuildDir", annotationsBuildDir.get().asFile.absolutePath)
 }
 
-//version="2026.10330.12238"
 
 

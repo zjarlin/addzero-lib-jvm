@@ -1,6 +1,7 @@
 package site.addzero.gradle.plugin
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.provider.Provider
 import site.addzero.gradle.PublishConventionExtension
@@ -85,7 +86,19 @@ fun Project.hasProjectDependencies(): Boolean = directProjectDependencies().isNo
 
 private val directProjectDepsCache = mutableMapOf<String, Set<Project>>()
 private val recursiveProjectDepsCache = mutableMapOf<String, Lazy<Set<Project>>>()
-private val publishTaskPathsCache = mutableMapOf<String, Lazy<List<String>>>()
+
+fun Configuration.selfAndParents(): Set<Configuration> {
+    val visited = linkedSetOf<Configuration>()
+    val queue = ArrayDeque<Configuration>()
+    queue.addLast(this)
+
+    while (queue.isNotEmpty()) {
+        val current = queue.removeFirst()
+        if (!visited.add(current)) continue
+        current.extendsFrom.forEach(queue::addLast)
+    }
+    return visited
+}
 
 /**
  * 通过 Gradle model 提取真正会暴露到发布变体里的 ProjectDependency，兼容：
@@ -101,10 +114,9 @@ fun Project.directProjectDependencies(): Set<Project> =
     directProjectDepsCache.getOrPut(publishBuddyCacheKey()) {
         configurations
             .asSequence()
-            .filter { configuration ->
-                configuration.isCanBeConsumed &&
-                    configuration.dependencies.isNotEmpty()
-            }
+            .filter(Configuration::isCanBeConsumed)
+            .flatMap { configuration -> configuration.selfAndParents().asSequence() }
+            .filter { configuration -> configuration.dependencies.isNotEmpty() }
             .flatMap { configuration ->
                 configuration.dependencies
                     .withType(ProjectDependency::class.java)
@@ -137,21 +149,13 @@ fun Project.recursiveProjectDependencies(): Set<Project> {
         .value
 }
 
-fun Project.publishTaskPathsForProjectDependencies(): List<String> {
-    return publishTaskPathsCache
-        .getOrPut(publishBuddyCacheKey()) {
-            lazy(LazyThreadSafetyMode.NONE) {
-                if (!hasProjectDependencies()) {
-                    emptyList()
-                } else {
-                    recursiveProjectDependencies()
-                        .mapNotNull { dep -> dep.tasks.findByName("publishToMavenCentral")?.path }
-                        .distinct()
-                }
-            }
-        }
-        .value
-}
+fun Project.publishTaskDependenciesForProjectDependencies(): List<Any> =
+    if (!hasProjectDependencies()) {
+        emptyList()
+    } else {
+        recursiveProjectDependencies()
+            .map { dep -> dep.tasks.matching { it.name == "publishToMavenCentral" } }
+    }
 
 fun Project.configureAggregatePublishTasksByParentDir(enabledProvider: Provider<Boolean>) {
     if (this != rootProject) return
@@ -217,11 +221,7 @@ fun Project.configureAggregatePublishTasksByParentDir(enabledProvider: Provider<
 // 仅对 publishToMavenCentral task 添加依赖推断，同时兼容任务稍后才被注册的场景。
 tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
     dependsOn(provider {
-        if (!project.hasProjectDependencies()) {
-            emptyList()
-        } else {
-            project.publishTaskPathsForProjectDependencies()
-        }
+        project.publishTaskDependenciesForProjectDependencies()
     })
 }
 
