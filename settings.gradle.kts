@@ -62,7 +62,7 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T11:23:38.814948
+// Generated at: 2026-04-06T13:36:17.850229
 // Loaded: 9, Excluded: 0, Total: 9
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:ksp:metadata:entity2form:entity2form-processor")

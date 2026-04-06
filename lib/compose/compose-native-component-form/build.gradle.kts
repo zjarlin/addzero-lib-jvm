@@ -1,7 +1,7 @@
 plugins {
     id("site.addzero.buildlogic.kmp.cmp-lib")
     id("site.addzero.buildlogic.kmp.kmp-datetime")
-    id("site.addzero.kcp.spread-pack") apply false
+    id("site.addzero.kcp.spread-pack") version "+"
 }
 
 extra["site.addzero.kcp.spread-pack.annotations-added"] = true
