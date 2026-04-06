@@ -62,20 +62,23 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-05T22:22:22.053820
-// Loaded: 53, Excluded: 0, Total: 53
+// Generated at: 2026-04-06T08:36:13.265316
+// Loaded: 57, Excluded: 0, Total: 57
 include(":lib:compose:app-sidebar")
 include(":lib:compose:app-sidebar-cupertino-adapter")
 include(":lib:compose:compose-apple-corner")
 include(":lib:compose:compose-cupertino-workbench")
+include(":lib:compose:compose-native-component-autocomplet")
 include(":lib:compose:compose-native-component-button")
 include(":lib:compose:compose-native-component-high-level")
 include(":lib:compose:compose-native-component-searchbar")
+include(":lib:compose:compose-native-component-text")
 include(":lib:compose:compose-native-component-tree")
 include(":lib:compose:compose-workbench-design")
 include(":lib:compose:scaffold-spi")
 include(":lib:compose:shadcn-compose-component")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
 include(":lib:ksp:metadata:controller2feign-processor")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
 include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
@@ -112,6 +115,7 @@ include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
 include(":lib:tool-jvm:network-call:tool-api-video-parse")
 include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
 include(":lib:tool-jvm:network-call:tool-api-weather")
+include(":lib:tool-jvm:tool-context")
 include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-jvm:tool-serial")
 include(":lib:tool-kmp:network-starter")
@@ -119,7 +123,7 @@ include(":lib:tool-kmp:tool-coll")
 include(":lib:tool-kmp:tool-tree")
 // <<< Gradle Module Sleep: End Of Block <<<
 
-//include(":lib:kcp:spread-pack:kcp-spread-pack-annotations") // excluded by Gradle Buddy
+include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
 //include(":lib:kcp:spread-pack:kcp-spread-pack-plugin") // excluded by Gradle Buddy
 //include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin") // excluded by Gradle Buddy
 if (file("lib/kcp/spread-pack/kcp-spread-pack-ide-plugin").isDirectory) {
@@ -153,7 +157,7 @@ include(":lib:compose:compose-cupertino-workbench")
 //include(":lib:compose:compose-model-component") // excluded by Gradle Buddy
 include(":lib:compose:compose-native-component-high-level")
 //include(":lib:compose:compose-native-component-assist") // excluded by Gradle Buddy
-//include(":lib:compose:compose-native-component-autocomplet") // excluded by Gradle Buddy
+include(":lib:compose:compose-native-component-autocomplet")
 include(":lib:compose:compose-native-component-button")
 //include(":lib:compose:compose-native-component-card") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-chat") // excluded by Gradle Buddy
@@ -167,7 +171,7 @@ include(":lib:compose:compose-native-component-searchbar")
 //include(":lib:compose:compose-native-component-table-core") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-table") // excluded by Gradle Buddy
 //include(":lib:compose:compose-native-component-table-pro") // excluded by Gradle Buddy
-//include(":lib:compose:compose-native-component-text") // excluded by Gradle Buddy
+include(":lib:compose:compose-native-component-text")
 //include(":lib:compose:compose-native-component-toast") // excluded by Gradle Buddy
 include(":lib:compose:compose-native-component-tree")
 //include(":lib:compose:compose-native-component-knowledgegraph") // excluded by Gradle Buddy
