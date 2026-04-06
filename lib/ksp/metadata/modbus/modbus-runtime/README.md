@@ -1,67 +1,45 @@
 # modbus-runtime
 
-Modbus 运行时骨架模块。
+Modbus 协议契约与 JVM 执行器运行时。
 
 - Maven 坐标：`site.addzero:modbus-runtime`
 - 本地路径：`lib/ksp/metadata/modbus/modbus-runtime`
-- 作用：
-  - 提供 RTU / TCP 端点配置
-  - 提供执行器接口与默认实现
-  - 提供编解码辅助函数
-  - 提供 Modbus 注解与协议模型
-  - 提供可直接装入 Koin 的运行时模块
 
-## 运行时包含什么
+## 模块分层
 
-- `driver/modbus/rtu`
-  - `ModbusRtuEndpointConfig`
-  - `DefaultModbusRtuEndpointConfig`
-  - `ModbusRtuExecutor`
-  - `ModbusRtuConfigRegistry`
-  - `ModbusRuntimeKoinModule`
-- `driver/modbus/tcp`
-  - `ModbusTcpEndpointConfig`
-  - `ModbusTcpExecutor`
-  - `ModbusTcpConfigRegistry`
-  - `ModbusTcpRuntimeKoinModule`
-- `protocol/modbus`
-  - `ModbusCodecSupport`
+- `commonMain`
   - `annotation/ModbusAnnotations`
   - `model/ModbusFunctionCode`
   - `model/ModbusCodec`
   - `model/ModbusCommandResult`
+  - `ModbusCodecSupport`
+  - RTU/TCP 端点配置与纯抽象接口
+- `jvmMain`
+  - RTU/TCP 真实执行器
+  - `tool-modbus` / `tool-serial` 适配
+  - Koin runtime module
 
-## 怎么在 Koin 里装
+这意味着前端 KMP 模块现在可以直接依赖 `site.addzero:modbus-runtime` 来复用：
+
+- `@ModbusField`
+- `@ModbusOperation`
+- `ModbusCodec`
+- `ModbusFunctionCode`
+- `ModbusCommandResult`
+- 以及纯配置模型
+
+不再需要把这类 DTO 留在 JVM-only source set。
+
+## 前端共享模型示例
 
 ```kotlin
-install(Koin) {
-    withConfiguration<YourKoinApplication>()
-}
-```
-
-或者在 `@KoinApplication` 根入口里直接挂：
-
-```kotlin
-@KoinApplication(
-    modules = [
-        ModbusRuntimeKoinModule::class,
-        ModbusTcpRuntimeKoinModule::class,
-    ],
+data class Device24PowerLights(
+    @ModbusField(codec = ModbusCodec.BOOL_COIL, registerOffset = 0)
+    val light1: Boolean,
 )
-class YourKoinApplication
 ```
 
-## 当前状态
-
-- `driver/modbus/rtu` 已经接入真实 JVM RTU 执行器：
-  - `j2mod`
-  - `jSerialComm`
-- `ModbusRtuEndpointConfig` 现在是接口；
-  应用根入口通常只需要向 Koin 提供一份全局默认实现，例如 `DefaultModbusRtuEndpointConfig`。
-- `driver/modbus/tcp` 已提供 JVM TCP 执行器。
-- `ModbusTcpConfigRegistry` 建议由应用根入口按明确 provider 显式提供，不再依赖 DSL `getAll()` 聚合。
-
-## 典型用法
+## JVM 运行时装配示例
 
 ```kotlin
 @Module
@@ -74,24 +52,10 @@ class DeviceGatewayKoinModule {
         timeoutMs = 1000,
         retries = 2,
     )
-
-    @Single
-    fun tcpConfigRegistry(
-        deviceProvider: DeviceGeneratedTcpConfigProvider,
-    ): ModbusTcpConfigRegistry = ModbusTcpConfigRegistry(listOf(deviceProvider))
 }
 ```
 
-然后在生成出来的 gateway 里，会读取这份默认端点配置，必要时叠加请求级覆盖项，并调用执行器真正完成：
+如果需要 Koin 扫描模块，继续使用：
 
-- `read_input_registers`
-- `read_holding_registers`
-- `write_single_coil`
-- `write_multiple_registers`
-
-## 当前 MVP 默认串口参数
-
-- `unit_id = 1`
-- `115200 8N1`
-- `timeout = 1000ms`
-- `retries = 2`
+- `ModbusRuntimeKoinModule`
+- `ModbusTcpRuntimeKoinModule`

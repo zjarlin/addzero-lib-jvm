@@ -8,80 +8,6 @@ import org.koin.core.annotation.Single
 import site.addzero.modbus.tcp.client.ModbusTcpClient
 import site.addzero.modbus.tcp.client.ModbusTcpClientConfig
 
-data class ModbusTcpEndpointConfig(
-    val serviceId: String,
-    val host: String,
-    val port: Int,
-    val unitId: Int,
-    val timeoutMs: Long,
-    val retries: Int,
-)
-
-interface ModbusTcpConfigProvider {
-    val serviceId: String
-    fun defaultConfig(): ModbusTcpEndpointConfig
-}
-
-class ModbusTcpConfigRegistry(
-    providers: List<ModbusTcpConfigProvider>,
-) {
-    private val configs =
-        providers.associate { provider -> provider.serviceId to provider.defaultConfig() }
-
-    fun require(serviceId: String): ModbusTcpEndpointConfig =
-        configs[serviceId] ?: error("未找到 Modbus TCP 配置：$serviceId")
-}
-
-interface ModbusTcpExecutor {
-    suspend fun readCoils(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        quantity: Int,
-    ): List<Int>
-
-    suspend fun readDiscreteInputs(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        quantity: Int,
-    ): List<Int>
-
-    suspend fun readHoldingRegisters(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        quantity: Int,
-    ): List<Int>
-
-    suspend fun readInputRegisters(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        quantity: Int,
-    ): List<Int>
-
-    suspend fun writeSingleCoil(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        value: Boolean,
-    )
-
-    suspend fun writeMultipleCoils(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        values: List<Boolean>,
-    )
-
-    suspend fun writeSingleRegister(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        value: Int,
-    )
-
-    suspend fun writeMultipleRegisters(
-        config: ModbusTcpEndpointConfig,
-        address: Int,
-        values: List<Int>,
-    )
-}
-
 @Single
 class J2modModbusTcpExecutor internal constructor(
     private val clientFactory: (ModbusTcpEndpointConfig) -> ToolModbusTcpClient = ::defaultToolModbusTcpClient,
@@ -151,8 +77,7 @@ class J2modModbusTcpExecutor internal constructor(
 /**
  * Modbus TCP 运行时的 Koin 模块。
  *
- * 这里只扫描执行器实现；配置注册表由上层应用按具体 provider 显式组装，
- * 避免继续依赖隐式多绑定或手写 DSL `getAll()`。
+ * 这里只扫描执行器实现；配置注册表由上层应用按具体 provider 显式组装。
  */
 @Module
 @ComponentScan("site.addzero.device.driver.modbus.tcp")

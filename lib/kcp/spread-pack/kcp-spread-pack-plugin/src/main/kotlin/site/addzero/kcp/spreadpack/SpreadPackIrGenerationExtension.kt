@@ -774,7 +774,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                         invalidTarget(
                             owner,
                             "annotated spread-pack carrier ${carrier.irClass.name.asString()} field ${field.name.asString()} " +
-                                "type ${render(fieldType)} does not match source field type ${render(field.type)}",
+                                "type ${fieldType.render()} does not match source field type ${field.type.render()}",
                         )
                     }
                     IrCarrierDeclaredField(

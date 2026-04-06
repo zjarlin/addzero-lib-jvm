@@ -11,7 +11,7 @@ object ModbusCodecSupport {
                 val lo = registers.getOrElse(registerOffset + 1) { 0 }
                 (hi shl 16) or (lo and 0xFFFF)
             }
-            else -> error("当前编解码器不支持整型解码：$codec")
+            else -> error("Current codec does not support Int decode: $codec")
         }
 
     fun decodeBoolean(codec: ModbusCodec, registers: List<Int>, registerOffset: Int, bitOffset: Int): Boolean =
@@ -21,7 +21,7 @@ object ModbusCodecSupport {
                 val value = registers.getOrElse(registerOffset) { 0 }
                 ((value shr bitOffset) and 0x1) == 1
             }
-            else -> error("当前编解码器不支持布尔解码：$codec")
+            else -> error("Current codec does not support Boolean decode: $codec")
         }
 
     fun decodeString(
@@ -30,7 +30,7 @@ object ModbusCodecSupport {
         registerOffset: Int,
         registerWidth: Int,
     ): String {
-        require(registerWidth > 0) { "字符串寄存器宽度必须大于 0" }
+        require(registerWidth > 0) { "String register width must be > 0" }
         val bytes = ByteArray(registerWidth * 2)
         repeat(registerWidth) { index ->
             val value = registers.getOrElse(registerOffset + index) { 0 }
@@ -42,13 +42,12 @@ object ModbusCodecSupport {
         return when (codec) {
             ModbusCodec.STRING_ASCII -> {
                 require(payload.all { byte -> byte.toInt() and 0x80 == 0 }) {
-                    "ASCII 字符串寄存器中存在非 ASCII 字节"
+                    "ASCII register payload contains non-ASCII bytes"
                 }
-                payload.toString(Charsets.US_ASCII)
+                payload.decodeToString()
             }
-
-            ModbusCodec.STRING_UTF8 -> payload.toString(Charsets.UTF_8)
-            else -> error("当前编解码器不支持字符串解码：$codec")
+            ModbusCodec.STRING_UTF8 -> payload.decodeToString()
+            else -> error("Current codec does not support String decode: $codec")
         }
     }
 
@@ -57,16 +56,16 @@ object ModbusCodecSupport {
         value: String,
         registerWidth: Int,
     ): List<Int> {
-        require(registerWidth > 0) { "字符串寄存器宽度必须大于 0" }
+        require(registerWidth > 0) { "String register width must be > 0" }
         val bytes =
             when (codec) {
                 ModbusCodec.STRING_ASCII -> encodeAscii(value)
-                ModbusCodec.STRING_UTF8 -> value.toByteArray(Charsets.UTF_8)
-                else -> error("当前编解码器不支持字符串编码：$codec")
+                ModbusCodec.STRING_UTF8 -> value.encodeToByteArray()
+                else -> error("Current codec does not support String encode: $codec")
             }
         val byteCapacity = registerWidth * 2
         require(bytes.size < byteCapacity) {
-            "字符串编码后长度 ${bytes.size} 超出寄存器容量 ${byteCapacity - 1}，codec=$codec，value=$value"
+            "Encoded string length ${bytes.size} exceeds register capacity ${byteCapacity - 1}, codec=$codec, value=$value"
         }
         val padded = ByteArray(byteCapacity)
         bytes.copyInto(padded, endIndex = bytes.size)
@@ -80,7 +79,7 @@ object ModbusCodecSupport {
     fun encodeValue(codec: ModbusCodec, value: String): List<Int> =
         when (codec) {
             ModbusCodec.AUTO ->
-                error("AUTO 编解码器必须在代码生成阶段完成推导，运行时不应直接参与编码")
+                error("AUTO must be resolved during code generation, not at runtime")
             ModbusCodec.BOOL_COIL -> listOf(if (value.toBooleanStrictOrNull() == true) 1 else 0)
             ModbusCodec.U16 -> listOf(value.toInt())
             ModbusCodec.U32_BE -> {
@@ -93,13 +92,13 @@ object ModbusCodecSupport {
                         ?: value.toInt(),
                 )
             ModbusCodec.STRING_ASCII,
-            ModbusCodec.STRING_UTF8 -> error("字符串编码请使用 encodeString(codec, value, registerWidth)")
+            ModbusCodec.STRING_UTF8 -> error("Use encodeString(codec, value, registerWidth) for string codecs")
         }
 
     private fun encodeAscii(value: String): ByteArray {
         require(value.all { char -> char.code in 0x00..0x7F }) {
-            "ASCII 编码不支持非 ASCII 字符：$value"
+            "ASCII codec does not support non-ASCII characters: $value"
         }
-        return value.toByteArray(Charsets.US_ASCII)
+        return value.encodeToByteArray()
     }
 }
