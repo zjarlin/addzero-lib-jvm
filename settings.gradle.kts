@@ -62,7 +62,7 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T13:55:15.871116
+// Generated at: 2026-04-06T13:57:18.810216
 // Loaded: 3, Excluded: 0, Total: 3
 include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 include(":lib:tool-jvm:tool-serial")

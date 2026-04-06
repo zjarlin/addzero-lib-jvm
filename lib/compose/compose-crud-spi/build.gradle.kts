@@ -12,9 +12,5 @@ kotlin {
       api(project(":lib:tool-kmp:tool-model"))
     }
 
-    commonTest.dependencies {
-      implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-test").get())
-      implementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())
-    }
   }
 }
