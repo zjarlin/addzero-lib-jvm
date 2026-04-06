@@ -62,17 +62,11 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T13:36:17.850229
-// Loaded: 9, Excluded: 0, Total: 9
-include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
-include(":lib:ksp:metadata:entity2form:entity2form-processor")
-include(":lib:ksp:metadata:entity2iso-processor")
-include(":lib:ksp:metadata:entity2mcp-processor")
-include(":lib:ksp:metadata:jimmer-entity-external-gradle-plugin")
-include(":lib:ksp:metadata:jimmer-entity-external-processor")
-include(":lib:ksp:metadata:jimmer-entity-spi")
-include(":lib:lsi:lsi-core")
-include(":lib:tool-kmp:tool-coll")
+// Generated at: 2026-04-06T13:55:15.871116
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
+include(":lib:tool-jvm:tool-serial")
+include(":lib:tool-jvm:tool-stm32-bootloader")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 //include(":lib:kcp:spread-pack:kcp-spread-pack-annotations") // excluded by Gradle Buddy
