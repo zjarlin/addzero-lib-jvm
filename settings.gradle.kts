@@ -62,8 +62,9 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T17:37:24.085135
-// Loaded: 16, Excluded: 0, Total: 16
+// Generated at: 2026-04-06T17:47:09.065106
+// Loaded: 16, Excluded: 1, Total: 17
+// Excluded (build infrastructure): :checkouts:build-logic
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
