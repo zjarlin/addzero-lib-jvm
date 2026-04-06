@@ -1,3 +1,8 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+import org.gradle.kotlin.dsl.`java-gradle-plugin`
+import org.gradle.kotlin.dsl.`kotlin-dsl`
 import site.addzero.gradle.tool.configureJdk
 
 plugins {
@@ -32,3 +37,4 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+version = LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))

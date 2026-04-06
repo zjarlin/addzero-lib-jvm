@@ -62,31 +62,32 @@ dependencyResolutionManagement {
 }
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T17:14:38.380708
-// Loaded: 23, Excluded: 0, Total: 23
-include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
-include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
-include(":lib:tool-jvm:network-call:browser:ws-automation")
-include(":lib:tool-jvm:network-call:chat:api-models-chat")
-include(":lib:tool-jvm:network-call:music:api-music-spi")
-include(":lib:tool-jvm:network-call:music:api-netease")
-include(":lib:tool-jvm:network-call:music:api-netease-semantic-impl")
-include(":lib:tool-jvm:network-call:music:tool-api-music-search")
-include(":lib:tool-jvm:network-call:music:tool-api-suno")
-include(":lib:tool-jvm:network-call:music:tool-music-design")
-include(":lib:tool-jvm:network-call:tool-api-maven")
-include(":lib:tool-jvm:network-call:tool-api-ocr")
-include(":lib:tool-jvm:network-call:tool-api-payment")
-include(":lib:tool-jvm:network-call:tool-api-soft-download")
-include(":lib:tool-jvm:network-call:tool-api-temp-mail")
-include(":lib:tool-jvm:network-call:tool-api-translate")
-include(":lib:tool-jvm:network-call:tool-api-tyc")
-include(":lib:tool-jvm:network-call:tool-api-tyc-hw")
-include(":lib:tool-jvm:network-call:tool-api-video-parse")
-include(":lib:tool-jvm:network-call:tool-api-video-search-and-download")
-include(":lib:tool-jvm:network-call:tool-api-weather")
+// Generated at: 2026-04-06T17:32:09.993600
+// Loaded: 24, Excluded: 0, Total: 24
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
+include(":lib:ksp:jdbc2metadata:jdbc2controller-gradle-plugin")
+include(":lib:ksp:jdbc2metadata:jdbc2entity-gradle-plugin")
+include(":lib:ksp:jdbc2metadata:jdbc2enum-gradle-plugin")
+include(":lib:ksp:logger-gradle-plugin")
+include(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin")
+include(":lib:ksp:metadata:controller2api-gradle-plugin")
+include(":lib:ksp:metadata:controller2feign-gradle-plugin")
+include(":lib:ksp:metadata:controller2iso2dataprovider-gradle-plugin")
+include(":lib:ksp:metadata:enum-gradle-plugin")
+include(":lib:ksp:metadata:gen-reified:gen-reified-gradle-plugin")
+include(":lib:ksp:metadata:ioc:ioc-gradle-plugin")
+include(":lib:ksp:metadata:jimmer-entity-external-gradle-plugin")
+include(":lib:ksp:metadata:ksp-dsl-builder:ksp-dsl-builder-gradle-plugin")
+include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
+include(":lib:ksp:metadata:multireceiver-gradle-plugin")
+include(":lib:ksp:metadata:singleton-adapter-gradle-plugin")
+include(":lib:ksp:metadata:spring2ktor-server-gradle-plugin")
+include(":lib:ksp:published-gradle-plugin-tests")
+include(":lib:ksp:route:route-gradle-plugin")
 include(":lib:tool-kmp:network-starter")
-include(":lib:tool-kmp:tool-coll")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 //include(":lib:kcp:spread-pack:kcp-spread-pack-annotations") // excluded by Gradle Buddy
@@ -152,10 +153,10 @@ if (file("lib/compose/compose-workbench-immersive-desktop").isDirectory) {
 //include(":lib:compose:shadcn-compose-component") // excluded by Gradle Buddy
 
 if (file("lib/gradle-plugin/project-plugin/gradle-ksp-consumer-base").isDirectory) {
-//include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base") // excluded by Gradle Buddy
+include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 }
 if (file("lib/gradle-plugin/project-plugin/gradle-publish-budy").isDirectory) {
-//include(":lib:gradle-plugin:project-plugin:gradle-publish-budy") // excluded by Gradle Buddy
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 }
 if (file("lib/tool-jvm/tool-modbus").isDirectory) {
 //include(":lib:tool-jvm:tool-modbus") // excluded by Gradle Buddy
@@ -185,10 +186,10 @@ if (file("lib/ksp/metadata/modbus/modbus-runtime").isDirectory) {
 //include(":lib:ksp:metadata:modbus:modbus-runtime") // excluded by Gradle Buddy
 }
 if (file("lib/ksp/metadata/modbus/modbus-rtu-gradle-plugin").isDirectory) {
-//include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
 }
 if (file("lib/ksp/metadata/modbus/modbus-tcp-gradle-plugin").isDirectory) {
-//include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin") // excluded by Gradle Buddy
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 }
 if (file("lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke").isDirectory) {
 //include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke") // excluded by Gradle Buddy
