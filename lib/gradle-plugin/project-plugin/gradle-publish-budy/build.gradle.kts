@@ -24,5 +24,11 @@ dependencies {
     gradleApi()
     implementation(catalogLibs.findLibrary("com-vanniktech-gradle-maven-publish-plugin").get())
     implementation(catalogLibs.findLibrary("site-addzero-gradle-script-core").get())
+    testImplementation(gradleTestKit())
+    testImplementation(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter").get())
+    testRuntimeOnly(catalogLibs.findLibrary("org-junit-platform-junit-platform-launcher").get())
+}
 
+tasks.test {
+    useJUnitPlatform()
 }

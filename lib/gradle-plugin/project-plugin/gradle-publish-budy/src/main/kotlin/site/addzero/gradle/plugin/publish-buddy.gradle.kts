@@ -1,6 +1,7 @@
 package site.addzero.gradle.plugin
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.provider.Provider
 import site.addzero.gradle.PublishConventionExtension
 import site.addzero.util.createExtension
@@ -72,66 +73,44 @@ fun String.toPascalFromPath() =
         .filter { it.isNotBlank() }
         .joinToString("") { segment -> segment.replaceFirstChar { c -> c.uppercase() } }
 
-private val hasProjectDepsCache = mutableMapOf<String, Boolean>()
+private fun Project.publishBuddyCacheKey(): String = "${rootProject.projectDir.absolutePath}|$path"
 
 /**
- * 通过文本扫描 build.gradle.kts 判断是否含有 project(":...") 依赖，
- * 避免遍历 configurations 带来的高开销。
+ * 只处理同一个 Gradle build 内部的 project 依赖。
+ *
+ * 外部 Maven 依赖会正常出现在 POM / Gradle metadata 里，
+ * 但不应该由 publish-buddy 代发到 Maven Central。
  */
-fun Project.hasProjectDependencies(): Boolean =
-    hasProjectDepsCache.getOrPut(path) {
-        val kts = file("build.gradle.kts")
-        if (!kts.exists()) return@getOrPut false
-        val regex = Regex("""project\s*\(\s*["':]""")
-        var inBlockComment = false
-        kts.useLines { lines -> lines.any { line ->
-            val trimmed = line.trim()
-            if (inBlockComment) {
-                if ("*/" in trimmed) inBlockComment = false
-                return@any false
-            }
-            if (trimmed.startsWith("/*")) {
-                inBlockComment = "*/" !in trimmed
-                return@any false
-            }
-            !trimmed.startsWith("//") && regex.containsMatchIn(trimmed)
-        }}
-    }
+fun Project.hasProjectDependencies(): Boolean = directProjectDependencies().isNotEmpty()
 
 private val directProjectDepsCache = mutableMapOf<String, Set<Project>>()
 private val recursiveProjectDepsCache = mutableMapOf<String, Lazy<Set<Project>>>()
 private val publishTaskPathsCache = mutableMapOf<String, Lazy<List<String>>>()
 
 /**
- * 通过文本扫描 build.gradle.kts 提取 project(":...") 依赖路径，
- * 完全避免遍历 configurations（KMP 项目 configuration 数量极多，遍历开销大）。
+ * 通过 Gradle model 提取 ProjectDependency，兼容：
+ * - project(":path")
+ * - typesafe project accessors（projects.foo.bar）
+ * - convention plugin 在 configuration 上注入的 project 依赖
  */
 fun Project.directProjectDependencies(): Set<Project> =
-    directProjectDepsCache.getOrPut(path) {
-        val kts = file("build.gradle.kts")
-        if (!kts.exists()) return@getOrPut emptySet()
-        val projectRefRegex = Regex("""project\s*\(\s*["'](:[^"']+)["']\s*\)""")
-        var inBlockComment = false
-        kts.useLines { lines ->
-            lines.flatMap { line ->
-                val trimmed = line.trim()
-                if (inBlockComment) {
-                    if ("*/" in trimmed) inBlockComment = false
-                    return@flatMap emptySequence<String>()
-                }
-                if (trimmed.startsWith("/*")) {
-                    inBlockComment = "*/" !in trimmed
-                    return@flatMap emptySequence<String>()
-                }
-                if (trimmed.startsWith("//")) return@flatMap emptySequence<String>()
-                projectRefRegex.findAll(trimmed).map { it.groupValues[1] }
-            }.toList()
-        }.mapNotNull { depPath -> rootProject.findProject(depPath) }.toSet()
+    directProjectDepsCache.getOrPut(publishBuddyCacheKey()) {
+        configurations
+            .asSequence()
+            .filter { configuration -> configuration.dependencies.isNotEmpty() }
+            .flatMap { configuration ->
+                configuration.dependencies
+                    .withType(ProjectDependency::class.java)
+                    .asSequence()
+            }
+            .mapNotNull { dependency -> rootProject.findProject(dependency.path) }
+            .filterNot { dependencyProject -> dependencyProject == this }
+            .toCollection(linkedSetOf<Project>())
     }
 
 fun Project.recursiveProjectDependencies(): Set<Project> {
     return recursiveProjectDepsCache
-        .getOrPut(path) {
+        .getOrPut(publishBuddyCacheKey()) {
             lazy(LazyThreadSafetyMode.NONE) {
                 val visited = linkedSetOf<Project>()
                 val queue = ArrayDeque<Project>()
@@ -153,7 +132,7 @@ fun Project.recursiveProjectDependencies(): Set<Project> {
 
 fun Project.publishTaskPathsForProjectDependencies(): List<String> {
     return publishTaskPathsCache
-        .getOrPut(path) {
+        .getOrPut(publishBuddyCacheKey()) {
             lazy(LazyThreadSafetyMode.NONE) {
                 if (!hasProjectDependencies()) {
                     emptyList()
@@ -228,17 +207,15 @@ fun Project.configureAggregatePublishTasksByParentDir(enabledProvider: Provider<
     }
 }
 
-// 仅对 publishToMavenCentral task 添加依赖推断（避免 configureEach 遍历所有 task）
-runCatching {
-    tasks.named("publishToMavenCentral") {
-        dependsOn(provider {
-            if (!project.hasProjectDependencies()) {
-                emptyList()
-            } else {
-                project.publishTaskPathsForProjectDependencies()
-            }
-        })
-    }
+// 仅对 publishToMavenCentral task 添加依赖推断，同时兼容任务稍后才被注册的场景。
+tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
+    dependsOn(provider {
+        if (!project.hasProjectDependencies()) {
+            emptyList()
+        } else {
+            project.publishTaskPathsForProjectDependencies()
+        }
+    })
 }
 
 if (project == rootProject) {
