@@ -62,26 +62,66 @@ class ControllerApiProcessorTest {
     }
 
     @Test
-    fun `rendered api aggregator can be written into configured output dir`() {
-        val tempDir = Files.createTempDirectory("controller2api-provider-test")
-        val outputFile = tempDir.resolve("Apis.kt")
-        outputFile.writeText(
-            renderApiAggregatorCode(
-                packageName = "demo.generated.api",
-                aggregatorObjectName = "Apis",
-                aggregatorStyle = ApiAggregatorStyle.KOIN,
-                generatedApis = listOf(GeneratedApiDescriptor("UserApi", "userApi")),
-            )
+    fun `render koin api aggregator module binds generated apis`() {
+        val code = renderApiAggregatorModuleCode(
+            packageName = "demo.generated.api",
+            aggregatorObjectName = "Apis",
+            generatedApis = listOf(
+                GeneratedApiDescriptor("UserApi", "userApi"),
+                GeneratedApiDescriptor("SystemRoutesApi", "systemRoutesApi"),
+            ),
         )
 
-        val writtenCode = outputFile.readText()
-        assertContains(writtenCode, "object Apis")
-        assertContains(writtenCode, "private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()")
-        assertContains(writtenCode, "get() = ktorfit().createUserApi()")
+        assertContains(code, "package demo.generated.api")
+        assertContains(code, "import org.koin.core.annotation.Module")
+        assertContains(code, "import org.koin.core.annotation.Single")
+        assertContains(code, "class ApisModule")
+        assertContains(code, "fun userApi(): UserApi")
+        assertContains(code, "return Apis.userApi")
+        assertContains(code, "fun systemRoutesApi(): SystemRoutesApi")
+        assertContains(code, "return Apis.systemRoutesApi")
     }
 
     @Test
-    fun `render singleton api aggregator keeps configure contract`() {
+    fun `rendered api aggregator files can be written into configured output dir`() {
+        val tempDir = Files.createTempDirectory("controller2api-provider-test")
+        val generatedFiles = buildApiAggregatorFiles(
+            packageName = "demo.generated.api",
+            aggregatorObjectName = "Apis",
+            aggregatorStyle = ApiAggregatorStyle.KOIN,
+            generatedApis = listOf(GeneratedApiDescriptor("UserApi", "userApi")),
+        )
+
+        generatedFiles.forEach { generatedFile ->
+            tempDir.resolve(generatedFile.fileName).writeText(generatedFile.content)
+        }
+
+        val aggregatorCode = tempDir.resolve("Apis.kt").readText()
+        val moduleCode = tempDir.resolve("ApisModule.kt").readText()
+
+        assertContains(aggregatorCode, "object Apis")
+        assertContains(aggregatorCode, "private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()")
+        assertContains(aggregatorCode, "get() = ktorfit().createUserApi()")
+        assertContains(moduleCode, "class ApisModule")
+        assertContains(moduleCode, "fun userApi(): UserApi")
+        assertContains(moduleCode, "return Apis.userApi")
+    }
+
+    @Test
+    fun `singleton api aggregator does not emit module file`() {
+        val generatedFiles = buildApiAggregatorFiles(
+            packageName = "demo.generated.api",
+            aggregatorObjectName = "Apis",
+            aggregatorStyle = ApiAggregatorStyle.SINGLETON,
+            generatedApis = listOf(GeneratedApiDescriptor("UserApi", "userApi")),
+        )
+
+        assertEquals(1, generatedFiles.size)
+        assertEquals("Apis.kt", generatedFiles.single().fileName)
+    }
+
+    @Test
+    fun `rendered api aggregator keeps singleton contract`() {
         val code = renderApiAggregatorCode(
             packageName = "demo.generated.api",
             aggregatorObjectName = "Apis",
@@ -93,6 +133,23 @@ class ControllerApiProcessorTest {
         assertContains(code, "private var currentKtorfit: Ktorfit? = null")
         assertContains(code, "get() = ktorfit().createUserApi()")
         assertContains(code, "Apis 尚未配置 Ktorfit")
+    }
+
+    @Test
+    fun `rendered api aggregator file can be written for singleton style`() {
+        val tempDir = Files.createTempDirectory("controller2api-singleton-provider-test")
+        val outputFile = tempDir.resolve("Apis.kt")
+        outputFile.writeText(
+            renderApiAggregatorCode(
+                packageName = "demo.generated.api",
+                aggregatorObjectName = "Apis",
+                aggregatorStyle = ApiAggregatorStyle.SINGLETON,
+                generatedApis = listOf(GeneratedApiDescriptor("UserApi", "userApi")),
+            )
+        )
+
+        val writtenCode = outputFile.readText()
+        assertContains(writtenCode, "fun configure(ktorfit: Ktorfit)")
     }
 
     @Test

@@ -630,6 +630,21 @@ class ControllerApiProcessor(
             .map(::toGeneratedApiDescriptor)
             .distinctBy { it.apiClassName }
             .sortedBy { it.propertyName }
+        val outputDirFile = File(Settings.apiClientOutputDir)
+        val generatedFiles = buildApiAggregatorFiles(
+            packageName = Settings.apiClientPackageName,
+            aggregatorObjectName = Settings.apiClientAggregatorObjectName,
+            aggregatorStyle = aggregatorStyle,
+            generatedApis = generatedApis,
+        )
+
+        if (!outputDirFile.exists()) {
+            outputDirFile.mkdirs()
+        }
+        cleanupApiAggregatorFiles(
+            outputDirFile = outputDirFile,
+            aggregatorObjectName = Settings.apiClientAggregatorObjectName,
+        )
 
         if (generatedApis.isEmpty()) {
             logger.info("没有生成任何 Ktorfit 接口，跳过 ${Settings.apiClientAggregatorObjectName} 生成")
@@ -637,26 +652,34 @@ class ControllerApiProcessor(
         }
 
         try {
-            val outputDirFile = File(Settings.apiClientOutputDir)
-            if (!outputDirFile.exists()) {
-                outputDirFile.mkdirs()
+            generatedFiles.forEach { generatedFile ->
+                val outputFile = File(outputDirFile, generatedFile.fileName)
+                outputFile.writeText(generatedFile.content)
+                logger.info("Generated ${generatedFile.fileName}: ${outputFile.absolutePath}")
             }
-            val outputFile = File(outputDirFile, "${Settings.apiClientAggregatorObjectName}.kt")
-            outputFile.writeText(
-                renderApiAggregatorCode(
-                    packageName = Settings.apiClientPackageName,
-                    aggregatorObjectName = Settings.apiClientAggregatorObjectName,
-                    aggregatorStyle = aggregatorStyle,
-                    generatedApis = generatedApis,
-                )
-            )
-            logger.info("Generated ${Settings.apiClientAggregatorObjectName}: ${outputFile.absolutePath}")
         } catch (e: Exception) {
             logger.error("Failed to generate ${Settings.apiClientAggregatorObjectName} via file IO: ${e.message}")
             fallbackApiAggregatorToCodeGenerator(
-                generatedApis = generatedApis,
-                aggregatorStyle = aggregatorStyle,
+                generatedFiles = generatedFiles,
             )
+        }
+    }
+
+    /**
+     * 清理聚合对象与 Koin 绑定文件，避免生成配置切换后遗留旧文件。
+     */
+    private fun cleanupApiAggregatorFiles(
+        outputDirFile: File,
+        aggregatorObjectName: String,
+    ) {
+        listOf(
+            "$aggregatorObjectName.kt",
+            "${aggregatorObjectName}Module.kt",
+        ).forEach { fileName ->
+            val targetFile = File(outputDirFile, fileName)
+            if (targetFile.exists()) {
+                targetFile.delete()
+            }
         }
     }
 
@@ -664,28 +687,22 @@ class ControllerApiProcessor(
      * 回退方案：将 API 聚合对象生成到 build 目录。
      */
     private fun fallbackApiAggregatorToCodeGenerator(
-        generatedApis: List<GeneratedApiDescriptor>,
-        aggregatorStyle: ApiAggregatorStyle,
+        generatedFiles: List<GeneratedSourceFile>,
     ) {
         try {
-            codeGenerator.createNewFile(
-                dependencies = Dependencies(false),
-                packageName = Settings.apiClientPackageName,
-                fileName = Settings.apiClientAggregatorObjectName,
-            ).use { outputStream ->
-                outputStream.write(
-                    renderApiAggregatorCode(
-                        packageName = Settings.apiClientPackageName,
-                        aggregatorObjectName = Settings.apiClientAggregatorObjectName,
-                        aggregatorStyle = aggregatorStyle,
-                        generatedApis = generatedApis,
-                    ).toByteArray()
+            generatedFiles.forEach { generatedFile ->
+                codeGenerator.createNewFile(
+                    dependencies = Dependencies(false),
+                    packageName = Settings.apiClientPackageName,
+                    fileName = generatedFile.fileName.removeSuffix(".kt"),
+                ).use { outputStream ->
+                    outputStream.write(generatedFile.content.toByteArray())
+                }
+                logger.info(
+                    "Fallback: Generated ${generatedFile.fileName} to build directory: " +
+                        "${Settings.apiClientPackageName}.${generatedFile.fileName.removeSuffix(".kt")}"
                 )
             }
-            logger.info(
-                "Fallback: Generated ${Settings.apiClientAggregatorObjectName} to build directory: " +
-                    "${Settings.apiClientPackageName}.${Settings.apiClientAggregatorObjectName}"
-            )
         } catch (e: Exception) {
             logger.error("Fallback ${Settings.apiClientAggregatorObjectName} generation also failed: ${e.message}")
         }
@@ -1001,6 +1018,11 @@ internal data class GeneratedApiDescriptor(
     val propertyName: String
 )
 
+internal data class GeneratedSourceFile(
+    val fileName: String,
+    val content: String,
+)
+
 internal enum class ApiAggregatorStyle {
     KOIN,
     SINGLETON,
@@ -1073,6 +1095,70 @@ internal fun renderApiAggregatorCode(
         |$serviceProperties
         |}
     """.trimMargin()
+}
+
+internal fun renderApiAggregatorModuleCode(
+    packageName: String,
+    aggregatorObjectName: String,
+    generatedApis: List<GeneratedApiDescriptor>,
+): String {
+    val moduleClassName = "${aggregatorObjectName}Module"
+    val providers = generatedApis.joinToString("\n\n") { api ->
+        """
+        |    @Single
+        |    fun ${api.propertyName}(): ${api.apiClassName} {
+        |        return $aggregatorObjectName.${api.propertyName}
+        |    }
+        """.trimMargin()
+    }
+
+    return """
+        |package $packageName
+        |
+        |import org.koin.core.annotation.Module
+        |import org.koin.core.annotation.Single
+        |import $packageName.*
+        |
+        |/**
+        | * 为 controller2api 生成的接口补充 Koin 注入绑定。
+        | */
+        |@Module
+        |class $moduleClassName {
+        |$providers
+        |}
+    """.trimMargin()
+}
+
+internal fun buildApiAggregatorFiles(
+    packageName: String,
+    aggregatorObjectName: String,
+    aggregatorStyle: ApiAggregatorStyle,
+    generatedApis: List<GeneratedApiDescriptor>,
+): List<GeneratedSourceFile> {
+    val files = mutableListOf(
+        GeneratedSourceFile(
+            fileName = "$aggregatorObjectName.kt",
+            content = renderApiAggregatorCode(
+                packageName = packageName,
+                aggregatorObjectName = aggregatorObjectName,
+                aggregatorStyle = aggregatorStyle,
+                generatedApis = generatedApis,
+            ),
+        )
+    )
+
+    if (aggregatorStyle == ApiAggregatorStyle.KOIN) {
+        files += GeneratedSourceFile(
+            fileName = "${aggregatorObjectName}Module.kt",
+            content = renderApiAggregatorModuleCode(
+                packageName = packageName,
+                aggregatorObjectName = aggregatorObjectName,
+                generatedApis = generatedApis,
+            ),
+        )
+    }
+
+    return files
 }
 
 internal fun parseApiAggregatorStyle(raw: String?): ApiAggregatorStyle {
