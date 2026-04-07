@@ -72,3 +72,18 @@ include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
 include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
 include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
+
+// KSP threshold-rule migration: keep retained consumer plugins and the plugin smoke/audit
+// test module visible to the same-repo build without waking unrelated legacy processor trees.
+include(":lib:ksp:published-gradle-plugin-tests")
+include(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin")
+include(":lib:ksp:metadata:gen-reified:gen-reified-gradle-plugin")
+include(":lib:ksp:metadata:ioc:ioc-gradle-plugin")
+include(":lib:ksp:metadata:jimmer-entity-external-gradle-plugin")
+include(":lib:ksp:metadata:ksp-dsl-builder:ksp-dsl-builder-gradle-plugin")
+include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
+include(":lib:ksp:metadata:multireceiver-gradle-plugin")
+include(":lib:ksp:metadata:singleton-adapter-gradle-plugin")
+include(":lib:ksp:metadata:spring2ktor-server-gradle-plugin")

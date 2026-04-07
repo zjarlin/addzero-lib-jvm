@@ -2,12 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   id("site.addzero.buildlogic.jvm.jvm-ksp-plugin")
+  id("site.addzero.ksp.multireceiver")
   application
 }
 
 dependencies {
-  implementation(project(":lib:kcp:multireceiver:kcp-multireceiver-annotations"))
-  ksp(project(":lib:ksp:metadata:multireceiver-processor"))
   testImplementation(kotlin("test"))
 }
 

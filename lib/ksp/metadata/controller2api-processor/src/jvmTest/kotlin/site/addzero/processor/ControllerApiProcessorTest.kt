@@ -54,11 +54,11 @@ class ControllerApiProcessorTest {
         )
 
         assertContains(code, "package demo.generated.api")
-        assertContains(code, "import org.koin.mp.KoinPlatform")
         assertContains(code, "object Apis")
-        assertContains(code, "private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()")
-        assertContains(code, "get() = ktorfit().createUserApi()")
-        assertContains(code, "get() = ktorfit().createSystemRoutesApi()")
+        assertContains(code, "fun userApi(ktorfit: Ktorfit): UserApi")
+        assertContains(code, "return ktorfit.createUserApi()")
+        assertContains(code, "fun systemRoutesApi(ktorfit: Ktorfit): SystemRoutesApi")
+        assertContains(code, "return ktorfit.createSystemRoutesApi()")
     }
 
     @Test
@@ -78,10 +78,10 @@ class ControllerApiProcessorTest {
         assertContains(code, "import org.koin.core.annotation.Single")
         assertContains(code, "@Configuration")
         assertContains(code, "class ApisModule")
-        assertContains(code, "fun userApi(): UserApi")
-        assertContains(code, "return Apis.userApi")
-        assertContains(code, "fun systemRoutesApi(): SystemRoutesApi")
-        assertContains(code, "return Apis.systemRoutesApi")
+        assertContains(code, "fun userApi(ktorfit: Ktorfit): UserApi")
+        assertContains(code, "return Apis.userApi(ktorfit)")
+        assertContains(code, "fun systemRoutesApi(ktorfit: Ktorfit): SystemRoutesApi")
+        assertContains(code, "return Apis.systemRoutesApi(ktorfit)")
     }
 
     @Test
@@ -102,11 +102,11 @@ class ControllerApiProcessorTest {
         val moduleCode = tempDir.resolve("ApisModule.kt").readText()
 
         assertContains(aggregatorCode, "object Apis")
-        assertContains(aggregatorCode, "private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()")
-        assertContains(aggregatorCode, "get() = ktorfit().createUserApi()")
+        assertContains(aggregatorCode, "fun userApi(ktorfit: Ktorfit): UserApi")
+        assertContains(aggregatorCode, "return ktorfit.createUserApi()")
         assertContains(moduleCode, "class ApisModule")
-        assertContains(moduleCode, "fun userApi(): UserApi")
-        assertContains(moduleCode, "return Apis.userApi")
+        assertContains(moduleCode, "fun userApi(ktorfit: Ktorfit): UserApi")
+        assertContains(moduleCode, "return Apis.userApi(ktorfit)")
     }
 
     @Test

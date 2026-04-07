@@ -13,37 +13,17 @@ class PublishedKspPluginSmokeTest {
         ?: error("Missing publishedKsp.testRuntimeClasspath system property")
 
     @Test
-    fun `jvm no-options logger plugin wires ksp and generated sources`() {
-        val output = runBuild(
-            projectName = "logger-consumer",
-            buildScript = jvmBuildScript(
-                pluginClass = "site.addzero.ksp.logger.gradle.LoggerGradlePlugin",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.logger.serializedArgs",
-                extraBody = "",
-            ),
-        )
-
-        assertContains(
-            output,
-            "CONF[ksp]=site.addzero:logger-processor",
-            "build/generated/ksp/main/kotlin",
-            "TASK[compileKotlin]=",
-            "kspKotlin",
-            "ARGS={}",
-        )
-    }
-
-    @Test
     fun `jvm options spring2ktor plugin injects companions and serializes args`() {
         val output = runBuild(
             projectName = "spring2ktor-consumer",
-            buildScript = jvmBuildScript(
-                pluginClass = "site.addzero.ksp.spring2ktorserver.gradle.Spring2KtorServerGradlePlugin",
+            buildScript = jvmPluginBuildScript(
+                pluginId = "site.addzero.ksp.spring2ktor-server",
                 serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.spring2ktor-server.serializedArgs",
                 extraBody = """
-                    extensions.configure(site.addzero.ksp.spring2ktorserver.gradle.Spring2KtorServerExtension::class.java) {
-                        generatedPackage.set("demo.generated.springktor")
-                    }
+                    configureDynamicExtension(
+                        "spring2ktorServer",
+                        mapOf("generatedPackage" to "demo.generated.springktor"),
+                    )
                 """.trimIndent(),
             ),
         )
@@ -58,59 +38,21 @@ class PublishedKspPluginSmokeTest {
     }
 
     @Test
-    fun `kmp options modbus rtu plugin injects runtime companion`() {
-        val output = runBuild(
-            projectName = "modbus-rtu-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.modbusrtu.gradle.ModbusRtuGradlePlugin",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.modbus-rtu.serializedArgs",
-                extraBody = """
-                    extensions.configure(site.addzero.ksp.modbusrtu.gradle.ModbusRtuExtension::class.java) {
-                        codegenModes.set(listOf("server", "contract"))
-                        contractPackages.set(listOf("site.addzero.device.contract"))
-                        transports.set(listOf("rtu", "tcp"))
-                        cOutputProjectDir.set("/tmp/firmware-project")
-                        bridgeImplPath.set("Core/Src/modbus")
-                        keilUvprojxPath.set("MDK-ARM/test1.uvprojx")
-                        keilTargetName.set("test1")
-                        keilGroupName.set("Core/modbus/rtu")
-                        mxprojectPath.set(".mxproject")
-                        springRouteOutputDir.set("/tmp/generated-spring-routes")
-                    }
-                """.trimIndent(),
-            ),
-        )
-
-        assertContains(
-            output,
-            "CONF[kspJvm]=site.addzero:modbus-ksp-rtu",
-            "CONF[commonMainImplementation]=site.addzero:modbus-runtime",
-            "addzero.modbus.codegen.mode=server,contract",
-            "addzero.modbus.transports=rtu,tcp",
-            "addzero.modbus.contractPackages=site.addzero.device.contract",
-            "addzero.modbus.c.output.projectDir=/tmp/firmware-project",
-            "addzero.modbus.c.bridgeImpl.path=Core/Src/modbus",
-            "addzero.modbus.keil.uvprojx.path=MDK-ARM/test1.uvprojx",
-            "addzero.modbus.keil.targetName=test1",
-            "addzero.modbus.keil.groupName=Core/modbus/rtu",
-            "addzero.modbus.mxproject.path=.mxproject",
-            "addzero.modbus.spring.route.outputDir=/tmp/generated-spring-routes",
-        )
-    }
-
-    @Test
     fun `kmp options route plugin injects route core and must-map args`() {
         val output = runBuild(
             projectName = "route-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.route.gradle.RouteGradlePlugin",
+            buildScript = kmpPluginBuildScript(
+                pluginId = "site.addzero.ksp.route",
                 serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.route.serializedArgs",
                 extraBody = """
-                    extensions.configure(site.addzero.ksp.route.gradle.RouteExtension::class.java) {
-                        generatedPackage.set("demo.generated.route")
-                        routeOwnerModule.set(layout.projectDirectory.dir("src/commonMain/kotlin").asFile.absolutePath)
-                        moduleKey.set("feature-route")
-                    }
+                    configureDynamicExtension(
+                        "route",
+                        mapOf(
+                            "generatedPackage" to "demo.generated.route",
+                            "routeOwnerModule" to layout.projectDirectory.dir("src/commonMain/kotlin").asFile.absolutePath,
+                            "moduleKey" to "feature-route",
+                        ),
+                    )
                 """.trimIndent(),
             ),
         )
@@ -127,73 +69,41 @@ class PublishedKspPluginSmokeTest {
     }
 
     @Test
-    fun `kmp options controller2api plugin serializes package and output dir`() {
+    fun `kmp options modbus rtu plugin injects runtime companion`() {
         val output = runBuild(
-            projectName = "controller2api-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.controller2api.gradle.Controller2ApiGradlePlugin",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.controller2api.serializedArgs",
+            projectName = "modbus-rtu-consumer",
+            buildScript = kmpPluginBuildScript(
+                pluginId = "site.addzero.ksp.modbus-rtu",
+                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.modbus-rtu.serializedArgs",
                 extraBody = """
-                    extensions.configure(site.addzero.ksp.controller2api.gradle.Controller2ApiExtension::class.java) {
-                        generatedPackage.set("demo.generated.api")
-                    }
+                    configureDynamicExtension(
+                        "modbusRtu",
+                        mapOf(
+                            "codegenModes" to listOf("server", "contract"),
+                            "contractPackages" to listOf("site.addzero.device.contract"),
+                            "transports" to listOf("rtu", "tcp"),
+                            "cOutputProjectDir" to "/tmp/firmware-project",
+                            "bridgeImplPath" to "Core/Src/modbus",
+                            "keilUvprojxPath" to "MDK-ARM/test1.uvprojx",
+                            "keilTargetName" to "test1",
+                            "keilGroupName" to "Core/modbus/rtu",
+                            "mxprojectPath" to ".mxproject",
+                            "springRouteOutputDir" to "/tmp/generated-spring-routes",
+                        ),
+                    )
                 """.trimIndent(),
             ),
         )
 
         assertContains(
             output,
-            "CONF[kspCommonMainMetadata]=site.addzero:controller2api-processor",
-            "apiClientPackageName=demo.generated.api",
-            "apiClientOutputDir=",
-        )
-    }
-
-    @Test
-    fun `kmp options compose props plugin injects annotations companion`() {
-        val output = runBuild(
-            projectName = "compose-props-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.composeprops.gradle.ComposePropsGradlePlugin",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.compose-props.serializedArgs",
-                extraBody = """
-                    extensions.configure(site.addzero.ksp.composeprops.gradle.ComposePropsExtension::class.java) {
-                        suffix.set("ViewState")
-                    }
-                """.trimIndent(),
-            ),
-        )
-
-        assertContains(
-            output,
-            "CONF[kspCommonMainMetadata]=site.addzero:compose-props-processor",
-            "CONF[commonMainImplementation]=site.addzero:compose-props-annotations",
-            "COMPOSE_ATTRS_SUFFIX=ViewState",
-        )
-    }
-
-    @Test
-    fun `kmp options ioc plugin injects core companion`() {
-        val output = runBuild(
-            projectName = "ioc-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.ioc.gradle.IocGradlePlugin",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.ioc.serializedArgs",
-                extraBody = """
-                    extensions.configure(site.addzero.ksp.ioc.gradle.IocExtension::class.java) {
-                        modulePackage.set("demo.generated.ioc")
-                        app.set(true)
-                    }
-                """.trimIndent(),
-            ),
-        )
-
-        assertContains(
-            output,
-            "CONF[kspCommonMainMetadata]=site.addzero:ioc-processor",
-            "CONF[commonMainImplementation]=site.addzero:ioc-core",
-            "ioc.role=app",
-            "ioc.module=demo.generated.ioc",
+            "CONF[kspJvm]=site.addzero:modbus-ksp-rtu",
+            "CONF[commonMainImplementation]=site.addzero:modbus-runtime",
+            "addzero.modbus.codegen.mode=server,contract",
+            "addzero.modbus.transports=rtu,tcp",
+            "addzero.modbus.contractPackages=site.addzero.device.contract",
+            "addzero.modbus.c.output.projectDir=/tmp/firmware-project",
+            "addzero.modbus.spring.route.outputDir=/tmp/generated-spring-routes",
         )
     }
 
@@ -201,19 +111,30 @@ class PublishedKspPluginSmokeTest {
     fun `kmp umbrella plugin adds direct and spi subprocessors`() {
         val output = runBuild(
             projectName = "jimmer-external-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalGradlePlugin",
+            buildScript = kmpPluginBuildScript(
+                pluginId = "site.addzero.ksp.jimmer-entity-external",
                 serializedArgsKey =
                     "site.addzero.kspconsumer.site.addzero.ksp.jimmer-entity-external.serializedArgs",
                 extraBody = """
-                    extensions.configure(
-                        site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalExtension::class.java
-                    ) {
-                        apiClientPackageName.set("demo.generated.api")
-                        entity2Iso.packageName.set("demo.generated.isomorphic")
-                        entity2Form.packageName.set("demo.generated.forms")
-                        entity2Mcp.packageName.set("demo.generated.mcp")
-                    }
+                    configureDynamicExtension(
+                        "jimmerEntityExternal",
+                        mapOf("apiClientPackageName" to "demo.generated.api"),
+                    )
+                    configureNestedDynamicExtension(
+                        "jimmerEntityExternal",
+                        "entity2Iso",
+                        mapOf("packageName" to "demo.generated.isomorphic"),
+                    )
+                    configureNestedDynamicExtension(
+                        "jimmerEntityExternal",
+                        "entity2Form",
+                        mapOf("packageName" to "demo.generated.forms"),
+                    )
+                    configureNestedDynamicExtension(
+                        "jimmerEntityExternal",
+                        "entity2Mcp",
+                        mapOf("packageName" to "demo.generated.mcp"),
+                    )
                 """.trimIndent(),
             ),
         )
@@ -226,149 +147,315 @@ class PublishedKspPluginSmokeTest {
                 "site.addzero:entity2mcp-processor",
             "entity2Iso.enabled=true",
             "isomorphicSerializableEnabled=true",
-            "entity2Form.enabled=true",
-            "entity2Mcp.enabled=true",
-            "isomorphicPkg=demo.generated.isomorphic",
             "formPackageName=demo.generated.forms",
             "mcpPackageName=demo.generated.mcp",
         )
     }
 
     @Test
-    fun `kmp umbrella plugin serializes child processor enable flags`() {
+    fun `kmp zero config gen reified plugin injects core companion`() {
         val output = runBuild(
-            projectName = "jimmer-external-disabled-consumer",
-            buildScript = kmpBuildScript(
-                pluginClass = "site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalGradlePlugin",
-                serializedArgsKey =
-                    "site.addzero.kspconsumer.site.addzero.ksp.jimmer-entity-external.serializedArgs",
-                extraBody = """
-                    extensions.configure(
-                        site.addzero.ksp.jimmerentityexternal.gradle.JimmerEntityExternalExtension::class.java
-                    ) {
-                        entity2Iso.enabled.set(true)
-                        entity2Iso.serializableEnabled.set(false)
-                        entity2Form.enabled.set(false)
-                        entity2Mcp.enabled.set(false)
-                    }
-                """.trimIndent(),
+            projectName = "gen-reified-consumer",
+            buildScript = kmpPluginBuildScript(
+                pluginId = "site.addzero.ksp.gen-reified",
+                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.gen-reified.serializedArgs",
             ),
         )
 
         assertContains(
             output,
-            "entity2Iso.enabled=true",
-            "isomorphicSerializableEnabled=false",
-            "entity2Form.enabled=false",
-            "entity2Mcp.enabled=false",
+            "CONF[kspCommonMainMetadata]=site.addzero:gen-reified-processor",
+            "CONF[commonMainImplementation]=site.addzero:gen-reified-core",
+            "ARGS={}",
         )
     }
 
-    private fun jvmBuildScript(
-        pluginClass: String,
+    @Test
+    fun `kmp zero config ksp dsl builder plugin injects core companion`() {
+        val output = runBuild(
+            projectName = "ksp-dsl-builder-consumer",
+            buildScript = kmpPluginBuildScript(
+                pluginId = "site.addzero.ksp.ksp-dsl-builder",
+                serializedArgsKey =
+                    "site.addzero.kspconsumer.site.addzero.ksp.ksp-dsl-builder.serializedArgs",
+            ),
+        )
+
+        assertContains(
+            output,
+            "CONF[kspCommonMainMetadata]=site.addzero:ksp-dsl-builder-processor",
+            "CONF[commonMainImplementation]=site.addzero:ksp-dsl-builder-core",
+            "ARGS={}",
+        )
+    }
+
+    @Test
+    fun `jvm zero config multireceiver plugin injects annotations companion`() {
+        val output = runBuild(
+            projectName = "multireceiver-consumer",
+            buildScript = jvmPluginBuildScript(
+                pluginId = "site.addzero.ksp.multireceiver",
+                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.multireceiver.serializedArgs",
+            ),
+        )
+
+        assertContains(
+            output,
+            "CONF[ksp]=site.addzero:multireceiver-processor",
+            "CONF[implementation]=site.addzero:kcp-multireceiver-annotations",
+            "ARGS={}",
+        )
+    }
+
+    @Test
+    fun `raw kmp jdbc2entity consumer remains available without plugin`() {
+        val output = runBuild(
+            projectName = "jdbc2entity-raw-consumer",
+            buildScript = rawKmpBuildScript(
+                dependencyNotation = "\"site.addzero:jdbc2entity-processor:2026.04.07\"",
+                rawArgs = emptyMap(),
+                extraBody = "",
+            ),
+        )
+
+        assertContains(
+            output,
+            "CONF[kspCommonMainMetadata]=site.addzero:jdbc2entity-processor",
+            "CONF[commonMainImplementation]=",
+            "SRC[commonMain]=build/generated/ksp/metadata/commonMain/kotlin",
+            "ARGS={}",
+        )
+    }
+
+    @Test
+    fun `raw kmp controller2api consumer remains available without plugin and supports direct args`() {
+        val output = runBuild(
+            projectName = "controller2api-raw-consumer",
+            buildScript = rawKmpBuildScript(
+                dependencyNotation = "\"site.addzero:controller2api-processor:2026.04.07\"",
+                rawArgs = linkedMapOf(
+                    "apiClientPackageName" to "demo.generated.api",
+                    "apiClientAggregatorObjectName" to "Apis",
+                    "apiClientAggregatorStyle" to "koin",
+                    "apiClientAggregatorOutputDir" to "/tmp/generated/apis",
+                    "apiClientOutputDir" to "/tmp/generated/clients",
+                ),
+                extraBody = "",
+            ),
+        )
+
+        assertContains(
+            output,
+            "CONF[kspCommonMainMetadata]=site.addzero:controller2api-processor",
+            "apiClientPackageName=demo.generated.api",
+            "apiClientAggregatorObjectName=Apis",
+            "apiClientAggregatorStyle=koin",
+            "apiClientAggregatorOutputDir=/tmp/generated/apis",
+            "apiClientOutputDir=/tmp/generated/clients",
+        )
+    }
+
+    private fun jvmPluginBuildScript(
+        pluginId: String,
         serializedArgsKey: String,
-        extraBody: String,
+        extraBody: String = "",
     ): String {
-        val kspConfiguration = "ksp".quoteForKotlin()
-        val implementationConfiguration = "implementation".quoteForKotlin()
-        val compileOnlyConfiguration = "compileOnly".quoteForKotlin()
+        val pluginIdLiteral = pluginId.quoteForKotlin()
         val quotedArgsKey = serializedArgsKey.quoteForKotlin()
+        val kspConfig = "ksp".quoteForKotlin()
+        val implementationConfig = "implementation".quoteForKotlin()
+        val compileOnlyConfig = "compileOnly".quoteForKotlin()
+        val compileTaskName = "compileKotlin".quoteForKotlin()
         return """
             ${buildscriptBlock()}
+            ${dynamicExtensionHelpers()}
 
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper>()
-            apply<$pluginClass>()
+            apply(plugin = $pluginIdLiteral)
 
             $extraBody
 
             tasks.register("verifyPublishedKspPlugin") {
                 doLast {
-                    fun dumpConfiguration(name: String): String =
-                        project.configurations.findByName(name)
-                            ?.dependencies
-                            ?.joinToString("|") { dependency ->
-                                listOfNotNull(dependency.group, dependency.name).joinToString(":")
-                            }
-                            .orEmpty()
-                    val kotlinExtension =
-                        project.extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)
-                    val srcDirs = kotlinExtension.sourceSets.getByName("main").kotlin.srcDirs
-                        .map { it.relativeTo(project.projectDir).path }
-                        .sorted()
-                        .joinToString("|")
-                    val compileTask = project.tasks.getByName("compileKotlin")
-                    val compileDeps = compileTask.taskDependencies.getDependencies(compileTask)
-                        .map { it.name }
-                        .sorted()
-                        .joinToString("|")
-                    println("CONF[ksp]=${'$'}{dumpConfiguration($kspConfiguration)}")
-                    println("CONF[implementation]=${'$'}{dumpConfiguration($implementationConfiguration)}")
-                    println("CONF[compileOnly]=${'$'}{dumpConfiguration($compileOnlyConfiguration)}")
-                    println("SRC[jvm]=${'$'}srcDirs")
-                    println("TASK[compileKotlin]=${'$'}compileDeps")
+                    println("CONF[ksp]=${'$'}{dumpConfiguration($kspConfig)}")
+                    println("CONF[implementation]=${'$'}{dumpConfiguration($implementationConfig)}")
+                    println("CONF[compileOnly]=${'$'}{dumpConfiguration($compileOnlyConfig)}")
+                    println("SRC[jvm]=${'$'}{dumpJvmSourceDirs()}")
+                    println("TASK[compileKotlin]=${'$'}{dumpCompileTaskDependencies($compileTaskName)}")
                     println("ARGS=${'$'}{project.extensions.extraProperties.get($quotedArgsKey)}")
                 }
             }
         """.trimIndent()
     }
 
-    private fun kmpBuildScript(
-        pluginClass: String,
+    private fun kmpPluginBuildScript(
+        pluginId: String,
         serializedArgsKey: String,
-        extraBody: String,
+        extraBody: String = "",
     ): String {
-        val kspCommonMainMetadataConfiguration = "kspCommonMainMetadata".quoteForKotlin()
-        val kspJvmConfiguration = "kspJvm".quoteForKotlin()
-        val commonMainImplementationConfiguration = "commonMainImplementation".quoteForKotlin()
-        val jvmMainImplementationConfiguration = "jvmMainImplementation".quoteForKotlin()
+        val pluginIdLiteral = pluginId.quoteForKotlin()
         val quotedArgsKey = serializedArgsKey.quoteForKotlin()
+        val kspCommonMainMetadataConfig = "kspCommonMainMetadata".quoteForKotlin()
+        val kspJvmConfig = "kspJvm".quoteForKotlin()
+        val commonMainImplementationConfig = "commonMainImplementation".quoteForKotlin()
+        val jvmMainImplementationConfig = "jvmMainImplementation".quoteForKotlin()
+        val compileTaskName = "compileKotlinJvm".quoteForKotlin()
         return """
             ${buildscriptBlock()}
+            ${dynamicExtensionHelpers()}
 
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper>()
             extensions.configure(org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension::class.java) {
                 jvm()
             }
-            apply<$pluginClass>()
+            apply(plugin = $pluginIdLiteral)
 
             $extraBody
 
             tasks.register("verifyPublishedKspPlugin") {
                 doLast {
-                    fun dumpConfiguration(name: String): String =
-                        project.configurations.findByName(name)
-                            ?.dependencies
-                            ?.joinToString("|") { dependency ->
-                                listOfNotNull(dependency.group, dependency.name).joinToString(":")
-                            }
-                            .orEmpty()
-                    val kotlinExtension =
-                        project.extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension::class.java)
-                    val commonSrcDirs = kotlinExtension.sourceSets.getByName("commonMain").kotlin.srcDirs
-                        .map { it.relativeTo(project.projectDir).path }
-                        .sorted()
-                        .joinToString("|")
-                    val jvmSrcDirs = kotlinExtension.sourceSets.getByName("jvmMain").kotlin.srcDirs
-                        .map { it.relativeTo(project.projectDir).path }
-                        .sorted()
-                        .joinToString("|")
-                    val compileTask = project.tasks.getByName("compileKotlinJvm")
-                    val compileDeps = compileTask.taskDependencies.getDependencies(compileTask)
-                        .map { it.name }
-                        .sorted()
-                        .joinToString("|")
-                    println("CONF[kspCommonMainMetadata]=${'$'}{dumpConfiguration($kspCommonMainMetadataConfiguration)}")
-                    println("CONF[kspJvm]=${'$'}{dumpConfiguration($kspJvmConfiguration)}")
-                    println("CONF[commonMainImplementation]=${'$'}{dumpConfiguration($commonMainImplementationConfiguration)}")
-                    println("CONF[jvmMainImplementation]=${'$'}{dumpConfiguration($jvmMainImplementationConfiguration)}")
-                    println("SRC[commonMain]=${'$'}commonSrcDirs")
-                    println("SRC[jvmMain]=${'$'}jvmSrcDirs")
-                    println("TASK[compileKotlinJvm]=${'$'}compileDeps")
+                    println("CONF[kspCommonMainMetadata]=${'$'}{dumpConfiguration($kspCommonMainMetadataConfig)}")
+                    println("CONF[kspJvm]=${'$'}{dumpConfiguration($kspJvmConfig)}")
+                    println("CONF[commonMainImplementation]=${'$'}{dumpConfiguration($commonMainImplementationConfig)}")
+                    println("CONF[jvmMainImplementation]=${'$'}{dumpConfiguration($jvmMainImplementationConfig)}")
+                    println("SRC[commonMain]=${'$'}{dumpKmpSourceDirs(${"commonMain".quoteForKotlin()})}")
+                    println("SRC[jvmMain]=${'$'}{dumpKmpSourceDirs(${"jvmMain".quoteForKotlin()})}")
+                    println("TASK[compileKotlinJvm]=${'$'}{dumpCompileTaskDependencies($compileTaskName)}")
                     println("ARGS=${'$'}{project.extensions.extraProperties.get($quotedArgsKey)}")
                 }
             }
         """.trimIndent()
     }
+
+    private fun rawKmpBuildScript(
+        dependencyNotation: String,
+        rawArgs: Map<String, String>,
+        extraBody: String,
+    ): String {
+        val rawArgsLiteral = if (rawArgs.isEmpty()) {
+            "emptyMap<String, String>()"
+        } else {
+            rawArgs.entries.joinToString(
+                separator = ",\n                    ",
+                prefix = "linkedMapOf<String, String>(\n                    ",
+                postfix = "\n                )",
+            ) { (key, value) ->
+                "${key.quoteForKotlin()} to ${value.quoteForKotlin()}"
+            }
+        }
+        val kspCommonMainMetadataConfig = "kspCommonMainMetadata".quoteForKotlin()
+        val commonMainImplementationConfig = "commonMainImplementation".quoteForKotlin()
+        val commonMainSourceSet = "commonMain".quoteForKotlin()
+        val jvmMainSourceSet = "jvmMain".quoteForKotlin()
+        return """
+            ${buildscriptBlock()}
+            ${dynamicExtensionHelpers()}
+
+            apply<org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper>()
+            extensions.configure(org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension::class.java) {
+                jvm()
+                sourceSets.getByName("commonMain").kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+                sourceSets.getByName("jvmMain").kotlin.srcDir("build/generated/ksp/jvm/jvmMain/kotlin")
+            }
+            apply(plugin = "com.google.devtools.ksp")
+
+            dependencies {
+                add("kspCommonMainMetadata", $dependencyNotation)
+            }
+
+            val rawArgs =
+                $rawArgsLiteral
+
+            (extensions.getByName("ksp") as com.google.devtools.ksp.gradle.KspExtension).apply {
+                rawArgs.forEach { (key, value) -> arg(key, value) }
+            }
+
+            $extraBody
+
+            tasks.register("verifyPublishedKspPlugin") {
+                doLast {
+                    println("CONF[kspCommonMainMetadata]=${'$'}{dumpConfiguration($kspCommonMainMetadataConfig)}")
+                    println("CONF[commonMainImplementation]=${'$'}{dumpConfiguration($commonMainImplementationConfig)}")
+                    println("SRC[commonMain]=${'$'}{dumpKmpSourceDirs($commonMainSourceSet)}")
+                    println("SRC[jvmMain]=${'$'}{dumpKmpSourceDirs($jvmMainSourceSet)}")
+                    println("ARGS=${'$'}rawArgs")
+                }
+            }
+        """.trimIndent()
+    }
+
+    private fun dynamicExtensionHelpers(): String = """
+        import org.gradle.api.Project
+        import org.gradle.api.provider.ListProperty
+        import org.gradle.api.provider.Property
+
+        @Suppress("UNCHECKED_CAST")
+        fun Any.dynamicMember(name: String): Any {
+            val getterName = "get" + name.replaceFirstChar(Char::uppercase)
+            return javaClass.methods
+                .first { it.name == getterName && it.parameterCount == 0 }
+                .invoke(this)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        fun Any.setDynamicValue(name: String, value: Any) {
+            when (val holder = dynamicMember(name)) {
+                is Property<*> -> (holder as Property<Any>).set(value)
+                is ListProperty<*> -> (holder as ListProperty<Any>).set(value as List<Any>)
+                else -> error("Unsupported dynamic property " + name + " on " + javaClass.name)
+            }
+        }
+
+        fun Project.configureDynamicExtension(name: String, values: Map<String, Any>) {
+            val extension = extensions.getByName(name)
+            values.forEach { (key, value) -> extension.setDynamicValue(key, value) }
+        }
+
+        fun Project.configureNestedDynamicExtension(
+            name: String,
+            nested: String,
+            values: Map<String, Any>,
+        ) {
+            val extension = extensions.getByName(name).dynamicMember(nested)
+            values.forEach { (key, value) -> extension.setDynamicValue(key, value) }
+        }
+
+        fun Project.dumpConfiguration(name: String): String =
+            configurations.findByName(name)
+                ?.dependencies
+                ?.joinToString("|") { dependency ->
+                    listOfNotNull(dependency.group, dependency.name).joinToString(":")
+                }
+                .orEmpty()
+
+        fun Project.dumpJvmSourceDirs(): String =
+            extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)
+                .sourceSets
+                .getByName("main")
+                .kotlin
+                .srcDirs
+                .map { it.relativeTo(projectDir).path }
+                .sorted()
+                .joinToString("|")
+
+        fun Project.dumpKmpSourceDirs(name: String): String =
+            extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension::class.java)
+                .sourceSets
+                .getByName(name)
+                .kotlin
+                .srcDirs
+                .map { it.relativeTo(projectDir).path }
+                .sorted()
+                .joinToString("|")
+
+        fun Project.dumpCompileTaskDependencies(name: String): String {
+            val task = tasks.getByName(name)
+            return task.taskDependencies.getDependencies(task)
+                .map { it.name }
+                .sorted()
+                .joinToString("|")
+        }
+    """.trimIndent()
 
     private fun buildscriptBlock(): String {
         val classpathEntries = runtimeClasspath

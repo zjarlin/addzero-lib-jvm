@@ -14,15 +14,7 @@ dependencies {
 
     testImplementation(project(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base"))
     testImplementation(project(":lib:ksp:route:route-gradle-plugin"))
-    testImplementation(project(":lib:ksp:jdbc2metadata:jdbc2controller-gradle-plugin"))
-    testImplementation(project(":lib:ksp:jdbc2metadata:jdbc2entity-gradle-plugin"))
-    testImplementation(project(":lib:ksp:jdbc2metadata:jdbc2enum-gradle-plugin"))
-    testImplementation(project(":lib:ksp:logger-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin"))
-    testImplementation(project(":lib:ksp:metadata:controller2api-gradle-plugin"))
-    testImplementation(project(":lib:ksp:metadata:controller2feign-gradle-plugin"))
-    testImplementation(project(":lib:ksp:metadata:controller2iso2dataprovider-gradle-plugin"))
-    testImplementation(project(":lib:ksp:metadata:enum-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:gen-reified:gen-reified-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:ioc:ioc-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:jimmer-entity-external-gradle-plugin"))
@@ -45,4 +37,5 @@ tasks.test {
         "publishedKsp.testRuntimeClasspath",
         sourceSets.named("test").get().runtimeClasspath.asPath,
     )
+    systemProperty("publishedKsp.repoRoot", rootDir.absolutePath)
 }

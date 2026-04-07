@@ -1052,29 +1052,30 @@ internal fun renderApiAggregatorCode(
     aggregatorStyle: ApiAggregatorStyle,
     generatedApis: List<GeneratedApiDescriptor>
 ): String {
-    val serviceProperties = generatedApis.joinToString("\n\n") { api ->
-        """
-        |    /**
-        |     * ${api.apiClassName} 服务实例
-        |     */
-        |    val ${api.propertyName}: ${api.apiClassName}
-        |        get() = ktorfit().create${api.apiClassName}()
-        """.trimMargin()
-    }
-
-    val imports = buildString {
-        appendLine("import de.jensklingenberg.ktorfit.Ktorfit")
-        if (aggregatorStyle == ApiAggregatorStyle.KOIN) {
-            appendLine("import org.koin.mp.KoinPlatform")
+    val serviceMembers = when (aggregatorStyle) {
+        ApiAggregatorStyle.KOIN -> {
+            generatedApis.joinToString("\n\n") { api ->
+                """
+                |    /**
+                |     * 创建 ${api.apiClassName} 服务实例
+                |     */
+                |    fun ${api.propertyName}(ktorfit: Ktorfit): ${api.apiClassName} {
+                |        return ktorfit.create${api.apiClassName}()
+                |    }
+                """.trimMargin()
+            }
         }
-        appendLine("import $packageName.*")
-    }.trimEnd()
-
-    val wiringCode = when (aggregatorStyle) {
-        ApiAggregatorStyle.KOIN -> """
-            |    private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()
-        """.trimMargin()
-        ApiAggregatorStyle.SINGLETON -> """
+        ApiAggregatorStyle.SINGLETON -> {
+            val serviceProperties = generatedApis.joinToString("\n\n") { api ->
+                """
+                |    /**
+                |     * ${api.apiClassName} 服务实例
+                |     */
+                |    val ${api.propertyName}: ${api.apiClassName}
+                |        get() = ktorfit().create${api.apiClassName}()
+                """.trimMargin()
+            }
+            val wiringCode = """
             |    private var currentKtorfit: Ktorfit? = null
             |
             |    fun configure(ktorfit: Ktorfit) {
@@ -1085,13 +1086,18 @@ internal fun renderApiAggregatorCode(
             |        return currentKtorfit
             |            ?: error("$aggregatorObjectName 尚未配置 Ktorfit，请先调用 $aggregatorObjectName.configure(ktorfit)")
             |    }
-        """.trimMargin()
+            """.trimMargin()
+            listOf(wiringCode, serviceProperties)
+                .filter(String::isNotBlank)
+                .joinToString("\n\n")
+        }
     }
 
     return """
         |package $packageName
         |
-        |$imports
+        |import de.jensklingenberg.ktorfit.Ktorfit
+        |import $packageName.*
         |
         |/**
         | * 聚合后的 Ktorfit 服务提供者
@@ -1099,9 +1105,7 @@ internal fun renderApiAggregatorCode(
         | * 仅聚合 controller2api 生成的接口，不扫描手写接口。
         | */
         |object $aggregatorObjectName {
-        |$wiringCode
-        |
-        |$serviceProperties
+        |$serviceMembers
         |}
     """.trimMargin()
 }
@@ -1115,8 +1119,8 @@ internal fun renderApiAggregatorModuleCode(
     val providers = generatedApis.joinToString("\n\n") { api ->
         """
         |    @Single
-        |    fun ${api.propertyName}(): ${api.apiClassName} {
-        |        return $aggregatorObjectName.${api.propertyName}
+        |    fun ${api.propertyName}(ktorfit: Ktorfit): ${api.apiClassName} {
+        |        return $aggregatorObjectName.${api.propertyName}(ktorfit)
         |    }
         """.trimMargin()
     }
@@ -1124,6 +1128,7 @@ internal fun renderApiAggregatorModuleCode(
     return """
         |package $packageName
         |
+        |import de.jensklingenberg.ktorfit.Ktorfit
         |import org.koin.core.annotation.Configuration
         |import org.koin.core.annotation.Module
         |import org.koin.core.annotation.Single
