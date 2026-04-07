@@ -15,10 +15,12 @@ processorBuddy {
             "apiClientPackageName" to defaultApiClientPackageName,
             "apiClientAggregatorObjectName" to "Apis",
             "apiClientAggregatorStyle" to "koin",
+            "apiClientAggregatorOutputDir" to defaultSharedComposeDir
+                .resolve(defaultApiClientPackageName.replace(".", "/"))
+                .absolutePath.replace('\\', '/'),
             "apiClientOutputDir" to defaultSharedComposeDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
                 .absolutePath.replace('\\', '/'),
         )
     )
 }
-

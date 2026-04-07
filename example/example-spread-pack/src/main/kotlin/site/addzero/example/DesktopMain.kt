@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,7 +39,7 @@ import site.addzero.kcp.spreadpack.SpreadPackCarrierOf
         String::class,
         Modifier::class,
         Color::class,
-        androidx.compose.foundation.text.TextAutoSize::class,
+        TextAutoSize::class,
         TextUnit::class,
         FontStyle::class,
         FontWeight::class,

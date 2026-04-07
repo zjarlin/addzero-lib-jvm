@@ -22,6 +22,9 @@ plugins {
 //  id("site.addzero.gradle.plugin.modules-buddy") version "+"
 }
 
+@Suppress("unused")
+val gradleModuleSleepDisableMarker = "site.addzero.gradle.plugin.modules-buddy"
+
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
@@ -53,3 +56,19 @@ include(":lib:tool-kmp:network-starter")
 //include(":lib:kcp:transform-overload:kcp-transform-overload-annotations") // excluded by Gradle Buddy
 //include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin") // excluded by Gradle Buddy
 //include(":lib:kcp:transform-overload:kcp-transform-overload-plugin") // excluded by Gradle Buddy
+
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin")
+include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin")
+include(":lib:kcp:kcp-i18n")
+include(":lib:kcp:kcp-i18n-gradle-plugin")
+include(":lib:kcp:kcp-i18n-runtime")
+include(":lib:kcp:multireceiver:kcp-multireceiver-annotations")
+include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin")
+include(":lib:kcp:multireceiver:kcp-multireceiver-plugin")
+include(":lib:kcp:singleton-adapter-kcp")
+include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
+include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
+include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
+include(":lib:kcp:transform-overload:kcp-transform-overload-annotations")
+include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin")
+include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")

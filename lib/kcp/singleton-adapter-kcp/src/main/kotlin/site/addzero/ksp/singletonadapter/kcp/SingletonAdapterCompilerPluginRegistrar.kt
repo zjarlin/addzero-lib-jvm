@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 class SingletonAdapterCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
     override val supportsK2: Boolean = true
+    override val pluginId: String = "site.addzero.kcp.singleton-adapter"
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         // 总是注册扩展，但只在有注解时处理

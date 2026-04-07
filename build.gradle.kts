@@ -1,8 +1,3 @@
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
-
 //buildscript {
 //  configurations.classpath {
 //    // IntelliJ Marketplace publishing loads plugin uploader classes from the root buildscript
@@ -23,14 +18,12 @@ plugins {
 //    alias(libs.plugins.addzeroPublishBuddyNew)
   alias(libs.plugins.kotlinJvm) apply false
 }
-//afterEvaluate {
+group = providers.gradleProperty("group").orNull ?: "site.addzero"
+version = providers.gradleProperty("version").orNull ?: "2026.04.07"
+
 subprojects {
-  //  val versionStr = providers.gradleProperty("version").orNull ?: now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-//  val groupId = providers.gradleProperty("group").orNull ?: rootProject.group.toString()
-//  group = groupId
-  version = LocalDateTime.now().plusDays(0).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-//    version = "2026.02.02"
-  println("项目版本为$version")
+  group = rootProject.group
+  version = rootProject.version
   if (path.startsWith(":checkouts:")) {
     apply(plugin = "site.addzero.gradle.plugin.publish-buddy")
   }
@@ -54,4 +47,3 @@ subprojects {
 //    }
 //  }
 }
-//}

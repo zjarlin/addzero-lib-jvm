@@ -73,8 +73,10 @@ class ControllerApiProcessorTest {
         )
 
         assertContains(code, "package demo.generated.api")
+        assertContains(code, "import org.koin.core.annotation.Configuration")
         assertContains(code, "import org.koin.core.annotation.Module")
         assertContains(code, "import org.koin.core.annotation.Single")
+        assertContains(code, "@Configuration")
         assertContains(code, "class ApisModule")
         assertContains(code, "fun userApi(): UserApi")
         assertContains(code, "return Apis.userApi")

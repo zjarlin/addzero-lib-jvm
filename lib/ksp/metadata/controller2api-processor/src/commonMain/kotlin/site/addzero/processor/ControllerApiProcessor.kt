@@ -630,7 +630,7 @@ class ControllerApiProcessor(
             .map(::toGeneratedApiDescriptor)
             .distinctBy { it.apiClassName }
             .sortedBy { it.propertyName }
-        val outputDirFile = File(Settings.apiClientOutputDir)
+        val outputDirFile = File(resolveApiAggregatorOutputDir())
         val generatedFiles = buildApiAggregatorFiles(
             packageName = Settings.apiClientPackageName,
             aggregatorObjectName = Settings.apiClientAggregatorObjectName,
@@ -681,6 +681,15 @@ class ControllerApiProcessor(
                 targetFile.delete()
             }
         }
+    }
+
+    /**
+     * 聚合入口默认沿用接口输出目录；需要分流时由外部显式指定。
+     */
+    private fun resolveApiAggregatorOutputDir(): String {
+        return Settings.apiClientAggregatorOutputDir
+            .takeIf { it.isNotBlank() }
+            ?: Settings.apiClientOutputDir
     }
 
     /**
@@ -1115,14 +1124,16 @@ internal fun renderApiAggregatorModuleCode(
     return """
         |package $packageName
         |
+        |import org.koin.core.annotation.Configuration
         |import org.koin.core.annotation.Module
         |import org.koin.core.annotation.Single
         |import $packageName.*
         |
         |/**
-        | * 为 controller2api 生成的接口补充 Koin 注入绑定。
+        | * 为 controller2api 生成的接口补充可自注册的 Koin 注入入口。
         | */
         |@Module
+        |@Configuration
         |class $moduleClassName {
         |$providers
         |}
