@@ -25,23 +25,15 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-06T20:47:13.865233200
-// Loaded: 17, Excluded: 0, Total: 17
+// Generated at: 2026-04-07T08:39:44.598541
+// Loaded: 5, Excluded: 0, Total: 5
 include(":example:example-spread-pack")
-include(":lib:api:api-netease")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
-include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
-include(":lib:ksp:metadata:modbus:modbus-ksp-core")
-include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync")
-include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
-include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
-include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
-include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
-include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
+include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
 include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
-include(":lib:ksp:metadata:modbus:modbus-runtime")
-include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
-include(":lib:tool-jvm:tool-modbus")
-include(":lib:tool-jvm:tool-serial")
 include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
+
+include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
+include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
+include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
