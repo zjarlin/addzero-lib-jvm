@@ -2,6 +2,7 @@ import org.gradle.api.tasks.WriteProperties
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+    `kotlin-dsl`
     `java-gradle-plugin`
 }
 
@@ -14,16 +15,6 @@ dependencies {
     implementation(project(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base"))
     testImplementation(gradleTestKit())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
-}
-
-gradlePlugin {
-    plugins {
-        create("spring2ktorServer") {
-            id = "site.addzero.ksp.spring2ktor-server"
-            implementationClass =
-                "site.addzero.ksp.spring2ktorserver.gradle.Spring2KtorServerGradlePlugin"
-        }
-    }
 }
 
 val generatedCoordinatesDir = layout.buildDirectory.dir("generated/spring2ktor-server/resources")

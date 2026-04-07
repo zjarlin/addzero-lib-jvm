@@ -2,6 +2,7 @@ import org.gradle.api.tasks.WriteProperties
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+    `kotlin-dsl`
     `java-gradle-plugin`
 }
 
@@ -14,15 +15,6 @@ dependencies {
     implementation(project(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base"))
     testImplementation(gradleTestKit())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
-}
-
-gradlePlugin {
-    plugins {
-        create("genReified") {
-            id = "site.addzero.ksp.gen-reified"
-            implementationClass = "site.addzero.ksp.genreified.gradle.GenReifiedGradlePlugin"
-        }
-    }
 }
 
 val generatedCoordinatesDir = layout.buildDirectory.dir("generated/gen-reified/resources")

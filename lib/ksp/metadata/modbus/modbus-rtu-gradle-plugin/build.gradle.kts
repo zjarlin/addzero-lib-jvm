@@ -2,6 +2,7 @@ import org.gradle.api.tasks.WriteProperties
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+    `kotlin-dsl`
     `java-gradle-plugin`
 }
 
@@ -14,15 +15,6 @@ dependencies {
     implementation(project(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base"))
     testImplementation(gradleTestKit())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
-}
-
-gradlePlugin {
-    plugins {
-        create("modbusRtu") {
-            id = "site.addzero.ksp.modbus-rtu"
-            implementationClass = "site.addzero.ksp.modbusrtu.gradle.ModbusRtuGradlePlugin"
-        }
-    }
 }
 
 val generatedCoordinatesDir = layout.buildDirectory.dir("generated/modbus-rtu/resources")

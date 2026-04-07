@@ -2,6 +2,7 @@ import org.gradle.api.tasks.WriteProperties
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+    `kotlin-dsl`
     `java-gradle-plugin`
 }
 
@@ -14,15 +15,6 @@ dependencies {
     implementation(project(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base"))
     testImplementation(gradleTestKit())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
-}
-
-gradlePlugin {
-    plugins {
-        create("kspDslBuilder") {
-            id = "site.addzero.ksp.ksp-dsl-builder"
-            implementationClass = "site.addzero.ksp.kspdslbuilder.gradle.KspDslBuilderGradlePlugin"
-        }
-    }
 }
 
 val generatedCoordinatesDir = layout.buildDirectory.dir("generated/ksp-dsl-builder/resources")
