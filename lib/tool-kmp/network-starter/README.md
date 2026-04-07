@@ -1,13 +1,16 @@
 # network-starter
 
-Ktor `HttpClient` shared factory for KMP projects.
+Ktor `HttpClient` starter for KMP projects.
+
+The current usage is profile-bean-first: register one `HttpClientProfileSpi`, then let the starter expose shared `HttpClient` and `Ktorfit` beans through Koin.
 
 ## What It Provides
 
-- Public factory: `HttpClientFactory`
 - Public SPI: `site.addzero.core.network.spi.HttpClientProfileSpi`
 - Public SPI: `site.addzero.core.network.spi.HttpResponseEventHandlerSpi`
-- Runtime header, token, SSE, and WebSocket switches by client profile
+- Koin-provided `HttpClient`
+- Koin-provided `Ktorfit`
+- Helpers: `HttpClient.setToken(...)` and `HttpClient.enableSSE()`
 
 ## Add Dependency
 
@@ -19,51 +22,73 @@ dependencies {
 
 ## Basic Usage
 
-业务模块自己注册 API bean，不再额外包一层 endpoint registry。
+Register a single `HttpClientProfileSpi` bean. The starter uses it to build the shared client with a default base URL.
 
 ```kotlin
+@Single
+class DemoHttpClientProfileSpi : HttpClientProfileSpi {
+    override val baseUrl: String = "https://api.example.com/v1/"
+    override val enableCurlLogging: Boolean = false
+}
+
 @Module
 class DemoApiModule {
     @Factory
     fun provideDemoApi(
-        httpClientFactory: HttpClientFactory,
+        ktorfit: Ktorfit,
     ): DemoApi {
-        return buildDemoApi(
-            baseUrl = "https://api.example.com/v1/",
-            httpClient = httpClientFactory.get("demo-api"),
-        )
+        return ktorfit.createDemoApi()
     }
 }
 ```
 
-## Client Profile SPI
-
-Use `HttpClientProfileSpi` when one module wants to contribute default headers, feature flags, or client config for a reusable named client.
+If you prefer raw Ktor calls, inject `HttpClient` directly.
 
 ```kotlin
-@Single
-class DemoClientProfile : HttpClientProfileSpi {
-    override val profile: String = "demo-api"
-    override val headers: Map<String, String> = mapOf(
-        "X-Client" to "demo",
-    )
+@Factory
+fun provideDemoGateway(
+    httpClient: HttpClient,
+): DemoGateway {
+    return DemoGateway(httpClient)
 }
 ```
 
-## Runtime Configuration
+## `HttpClientProfileSpi`
 
-运行时开关直接作用在 client profile。
+`HttpClientProfileSpi` currently drives these parts of client construction:
+
+- `baseUrl`: required; applied through `defaultRequest { url(...) }`
+- `token`: optional; if null, the starter falls back to `TokenManager`
+- `enableCurlLogging`: optional; defaults to `true`
 
 ```kotlin
-httpClientFactory.putHeader("demo-api", "X-App-Id", "demo")
-httpClientFactory.setBearerToken("demo-api", "token-value")
-httpClientFactory.setSseEnabled("demo-api", true)
-httpClientFactory.setWebSocketEnabled("demo-api", false)
+@Single
+class DemoHttpClientProfileSpi : HttpClientProfileSpi {
+    override val baseUrl: String = "https://api.example.com/v1/"
+    override val token: String? = "Bearer demo-token"
+}
 ```
 
-## Response Event SPI
+`headers` and `default` are still present on the SPI interface, but the current common implementation does not consume them yet. Do not rely on those two properties until the starter wires them explicitly.
 
-Use `HttpResponseEventHandlerSpi` when you need to react to non-200 responses globally.
+## Per-Use Client Tweaks
+
+`setToken(...)` and `enableSSE()` return derived clients from the injected base client.
+
+```kotlin
+class DemoStreamingGateway(
+    private val httpClient: HttpClient,
+) {
+    private val authedClient = httpClient.setToken("Bearer demo-token")
+    private val sseClient = authedClient.enableSSE()
+}
+```
+
+`enableSSE()` installs the Ktor SSE plugin. Request-specific headers still need to be added by the caller when the upstream API requires them.
+
+## `HttpResponseEventHandlerSpi`
+
+`HttpResponseEventHandlerSpi` is the extension point for global response handling:
 
 ```kotlin
 @Single
@@ -74,8 +99,9 @@ class DemoResponseHandler : HttpResponseEventHandlerSpi {
 }
 ```
 
+At the moment, `toHttpClient()` does not install response-event dispatch automatically, so registering this SPI alone does not yet make handlers run. Keep it as a reserved extension point until the starter wires dispatch back in.
+
 ## Notes
 
-- Platform code only selects the engine. Client construction happens inside the starter.
-- If a client profile's SSE or WebSocket switch changes, that cached `HttpClient` is recreated automatically.
-- Base URL ownership stays in the business module that provides the API bean.
+- Platform code only selects the engine. Client construction still happens inside the starter.
+- Legacy examples using `HttpClientFactory.get("profile")`, runtime profile header mutation, or profile-level SSE/WebSocket switches are outdated for the current SPI shape.

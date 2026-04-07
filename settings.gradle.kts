@@ -25,13 +25,17 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-07T09:17:46.036825
-// Loaded: 5, Excluded: 0, Total: 5
+// Generated at: 2026-04-07T11:35:02.269740
+// Loaded: 9, Excluded: 0, Total: 9
+include(":lib:compose:app-sidebar")
+include(":lib:compose:compose-native-component-autocomplet")
+include(":lib:compose:compose-workbench-design")
+include(":lib:compose:scaffold-spi")
+include(":lib:compose:shadcn-compose-component")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:ksp:metadata:controller2api-processor")
-include(":lib:ksp:route:route-core")
 include(":lib:ksp:route:route-gradle-plugin")
-include(":lib:ksp:route:route-processor")
+include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 //include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin") // excluded by Gradle Buddy
