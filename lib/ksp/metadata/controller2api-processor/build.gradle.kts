@@ -1,3 +1,5 @@
+import org.gradle.declarative.dsl.schema.FqName.Empty.packageName
+
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp")
     alias(libs.plugins.site.addzero.gradle.plugin.processor.buddy)
@@ -20,10 +22,3 @@ processorBuddy {
     )
 }
 
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
-        }
-    }
-}

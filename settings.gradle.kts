@@ -25,15 +25,27 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-07T08:39:44.598541
+// Generated at: 2026-04-07T09:17:46.036825
 // Loaded: 5, Excluded: 0, Total: 5
-include(":example:example-spread-pack")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
-include(":lib:gradle-plugin:project-plugin:gradle-publish-budy")
-include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
-include(":lib:tool-kmp:network-starter")
+include(":lib:ksp:metadata:controller2api-processor")
+include(":lib:ksp:route:route-core")
+include(":lib:ksp:route:route-gradle-plugin")
+include(":lib:ksp:route:route-processor")
 // <<< Gradle Module Sleep: End Of Block <<<
 
-include(":lib:kcp:spread-pack:kcp-spread-pack-annotations")
-include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin")
-include(":lib:kcp:spread-pack:kcp-spread-pack-plugin")
+//include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:kcp-i18n") // excluded by Gradle Buddy
+//include(":lib:kcp:kcp-i18n-gradle-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:kcp-i18n-runtime") // excluded by Gradle Buddy
+//include(":lib:kcp:multireceiver:kcp-multireceiver-annotations") // excluded by Gradle Buddy
+//include(":lib:kcp:multireceiver:kcp-multireceiver-gradle-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:multireceiver:kcp-multireceiver-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:singleton-adapter-kcp") // excluded by Gradle Buddy
+//include(":lib:kcp:spread-pack:kcp-spread-pack-annotations") // excluded by Gradle Buddy
+//include(":lib:kcp:spread-pack:kcp-spread-pack-gradle-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:spread-pack:kcp-spread-pack-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:transform-overload:kcp-transform-overload-annotations") // excluded by Gradle Buddy
+//include(":lib:kcp:transform-overload:kcp-transform-overload-gradle-plugin") // excluded by Gradle Buddy
+//include(":lib:kcp:transform-overload:kcp-transform-overload-plugin") // excluded by Gradle Buddy

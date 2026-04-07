@@ -1,17 +1,19 @@
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-buildscript {
-  configurations.classpath {
-    // IntelliJ Marketplace publishing loads plugin uploader classes from the root buildscript
-    // classloader, so we pin OkHttp/Okio here to avoid old 3.x transitive jars leaking in.
-    resolutionStrategy.force(
-      "com.squareup.okhttp3:okhttp:4.12.0",
-      "com.squareup.okio:okio:3.6.0",
-      "com.squareup.okio:okio-jvm:3.6.0",
-    )
-  }
-}
+
+//buildscript {
+//  configurations.classpath {
+//    // IntelliJ Marketplace publishing loads plugin uploader classes from the root buildscript
+//    // classloader, so we pin OkHttp/Okio here to avoid old 3.x transitive jars leaking in.
+//    resolutionStrategy.force(
+//      "com.squareup.okhttp3:okhttp:4.12.0",
+//      "com.squareup.okio:okio:3.6.0",
+//      "com.squareup.okio:okio-jvm:3.6.0",
+//    )
+//  }
+//}
 
 plugins {
 //    id("site.addzero.gradle.plugin.version-buddy") version "2025.11.32"
@@ -26,7 +28,7 @@ subprojects {
   //  val versionStr = providers.gradleProperty("version").orNull ?: now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
 //  val groupId = providers.gradleProperty("group").orNull ?: rootProject.group.toString()
 //  group = groupId
-  version = LocalDateTime.now().plusDays(2).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+  version = LocalDateTime.now().plusDays(0).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
 //    version = "2026.02.02"
   println("项目版本为$version")
   if (path.startsWith(":checkouts:")) {
