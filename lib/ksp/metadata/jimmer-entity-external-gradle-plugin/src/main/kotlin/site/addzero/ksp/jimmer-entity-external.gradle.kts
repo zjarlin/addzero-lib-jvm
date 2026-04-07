@@ -1,12 +1,15 @@
-package site.addzero.ksp.jimmerentityexternal.gradle
+package site.addzero.ksp
 
 import javax.inject.Inject
-import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import site.addzero.gradle.kspconsumer.AbstractPublishedKspConsumerPlugin
+import org.gradle.kotlin.dsl.create
 import site.addzero.gradle.kspconsumer.PublishedKspArtifactKind
+import site.addzero.gradle.kspconsumer.PublishedKspConsumerDefinition
 import site.addzero.gradle.kspconsumer.PublishedProcessorArtifact
+import site.addzero.gradle.kspconsumer.configurePublishedKspConsumer
+import site.addzero.gradle.kspconsumer.defaultPublishedKspSourceDirectory
+import site.addzero.gradle.kspconsumer.publishedKspPackageDirectory
 
 abstract class JimmerEntity2IsoExtension {
     abstract val enabled: Property<Boolean>
@@ -66,17 +69,23 @@ abstract class JimmerEntityExternalExtension @Inject constructor(
     }
 }
 
-class JimmerEntityExternalGradlePlugin : AbstractPublishedKspConsumerPlugin() {
-    override val pluginId: String = PLUGIN_ID
-    override val coordinatesResourcePath: String = COORDINATES_RESOURCE_PATH
-    override val processorArtifact: PublishedProcessorArtifact =
-        PublishedProcessorArtifact(
+val publishedKspResourceClassLoader = Thread.currentThread().contextClassLoader ?: javaClass.classLoader
+val jimmerEntityExternal = extensions.create<JimmerEntityExternalExtension>(
+    "jimmerEntityExternal",
+    objects,
+)
+
+configurePublishedKspConsumer(
+    definition = PublishedKspConsumerDefinition(
+        pluginId = "site.addzero.ksp.jimmer-entity-external",
+        coordinatesResourcePath = "site/addzero/ksp/jimmer-entity-external/gradle-plugin.properties",
+        resourceClassLoader = publishedKspResourceClassLoader,
+        processorArtifact = PublishedProcessorArtifact(
             artifactKind = PublishedKspArtifactKind.KMP,
             localProjectPath = ":lib:ksp:metadata:jimmer-entity-external-processor",
-            artifactId = PROCESSOR_ARTIFACT_ID,
-        )
-    override val additionalProcessorArtifacts: List<PublishedProcessorArtifact> =
-        listOf(
+            artifactId = "jimmer-entity-external-processor",
+        ),
+        additionalProcessorArtifacts = listOf(
             PublishedProcessorArtifact(
                 artifactKind = PublishedKspArtifactKind.KMP,
                 localProjectPath = ":lib:ksp:metadata:entity2iso-processor",
@@ -92,54 +101,35 @@ class JimmerEntityExternalGradlePlugin : AbstractPublishedKspConsumerPlugin() {
                 localProjectPath = ":lib:ksp:metadata:entity2mcp-processor",
                 artifactId = "entity2mcp-processor",
             ),
-        )
-
-    override fun createExtension(project: Project): Any {
-        return createTypedExtension(
-            project,
-            EXTENSION_NAME,
-            JimmerEntityExternalExtension::class.java,
-            project.objects,
-        )
-    }
-
-    override fun collectKspArgs(project: Project, extension: Any?): Map<String, String> {
-        val jimmer = extension as JimmerEntityExternalExtension
-        val sharedSourceDir = jimmer.sharedSourceDir.orNull
-            ?.takeIf(String::isNotBlank)
-            ?: defaultSourceDirectory(project)
-        val sharedComposeSourceDir = jimmer.sharedComposeSourceDir.orNull
-            ?.takeIf(String::isNotBlank)
-            ?: defaultSourceDirectory(project)
-        val backendServerSourceDir = jimmer.backendServerSourceDir.orNull
-            ?.takeIf(String::isNotBlank)
-            ?: defaultSourceDirectory(project)
-        val isoPackage = jimmer.entity2Iso.packageName.get()
-        return linkedMapOf(
-            "isomorphicPkg" to isoPackage,
-            "isomorphicGenDir" to packageDirectory(sharedSourceDir, isoPackage),
-            "sharedSourceDir" to sharedSourceDir,
-            "sharedComposeSourceDir" to sharedComposeSourceDir,
-            "backendServerSourceDir" to backendServerSourceDir,
-            "isomorphicPackageName" to isoPackage,
-            "isomorphicClassSuffix" to jimmer.entity2Iso.classSuffix.get(),
-            "isomorphicSerializableEnabled" to jimmer.entity2Iso.serializableEnabled.get().toString(),
-            "entity2Iso.enabled" to jimmer.entity2Iso.enabled.get().toString(),
-            "entity2Form.enabled" to jimmer.entity2Form.enabled.get().toString(),
-            "entity2Mcp.enabled" to jimmer.entity2Mcp.enabled.get().toString(),
-            "formPackageName" to jimmer.entity2Form.packageName.get(),
-            "enumOutputPackage" to jimmer.enumOutputPackage.get(),
-            "apiClientPackageName" to jimmer.apiClientPackageName.get(),
-            "iso2DataProviderPackage" to jimmer.iso2DataProviderPackage.get(),
-            "mcpPackageName" to jimmer.entity2Mcp.packageName.get(),
-        )
-    }
-
-    companion object {
-        const val PLUGIN_ID: String = "site.addzero.ksp.jimmer-entity-external"
-        const val EXTENSION_NAME: String = "jimmerEntityExternal"
-        const val PROCESSOR_ARTIFACT_ID: String = "jimmer-entity-external-processor"
-        const val COORDINATES_RESOURCE_PATH: String =
-            "site/addzero/ksp/jimmer-entity-external/gradle-plugin.properties"
-    }
+        ),
+    ),
+) {
+    val sharedSourceDir = jimmerEntityExternal.sharedSourceDir.orNull
+        ?.takeIf(String::isNotBlank)
+        ?: defaultPublishedKspSourceDirectory()
+    val sharedComposeSourceDir = jimmerEntityExternal.sharedComposeSourceDir.orNull
+        ?.takeIf(String::isNotBlank)
+        ?: defaultPublishedKspSourceDirectory()
+    val backendServerSourceDir = jimmerEntityExternal.backendServerSourceDir.orNull
+        ?.takeIf(String::isNotBlank)
+        ?: defaultPublishedKspSourceDirectory()
+    val isoPackage = jimmerEntityExternal.entity2Iso.packageName.get()
+    linkedMapOf(
+        "isomorphicPkg" to isoPackage,
+        "isomorphicGenDir" to publishedKspPackageDirectory(sharedSourceDir, isoPackage),
+        "sharedSourceDir" to sharedSourceDir,
+        "sharedComposeSourceDir" to sharedComposeSourceDir,
+        "backendServerSourceDir" to backendServerSourceDir,
+        "isomorphicPackageName" to isoPackage,
+        "isomorphicClassSuffix" to jimmerEntityExternal.entity2Iso.classSuffix.get(),
+        "isomorphicSerializableEnabled" to jimmerEntityExternal.entity2Iso.serializableEnabled.get().toString(),
+        "entity2Iso.enabled" to jimmerEntityExternal.entity2Iso.enabled.get().toString(),
+        "entity2Form.enabled" to jimmerEntityExternal.entity2Form.enabled.get().toString(),
+        "entity2Mcp.enabled" to jimmerEntityExternal.entity2Mcp.enabled.get().toString(),
+        "formPackageName" to jimmerEntityExternal.entity2Form.packageName.get(),
+        "enumOutputPackage" to jimmerEntityExternal.enumOutputPackage.get(),
+        "apiClientPackageName" to jimmerEntityExternal.apiClientPackageName.get(),
+        "iso2DataProviderPackage" to jimmerEntityExternal.iso2DataProviderPackage.get(),
+        "mcpPackageName" to jimmerEntityExternal.entity2Mcp.packageName.get(),
+    )
 }
