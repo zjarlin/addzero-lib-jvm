@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +36,7 @@ fun <T> WorkbenchTreeSidebar(
     items: List<T>,
     selectedId: Any?,
     onNodeClick: (T) -> Unit,
+    onNodeContextMenu: (T) -> Unit = {},
     modifier: Modifier = Modifier,
     searchEnabled: Boolean = true,
     searchPlaceholder: String = "搜索页面",
@@ -46,8 +48,10 @@ fun <T> WorkbenchTreeSidebar(
     getLabel: (T) -> String,
     getChildren: (T) -> List<T>,
     getIcon: @Composable (T) -> ImageVector? = { null },
+    nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
 ) {
     val currentOnNodeClick by rememberUpdatedState(onNodeClick)
+    val currentOnNodeContextMenu by rememberUpdatedState(onNodeContextMenu)
     val treeMetrics = remember(metrics.treeMetrics) {
         metrics.treeMetrics.copy(
             rowHorizontalPadding = 10.dp,
@@ -71,6 +75,9 @@ fun <T> WorkbenchTreeSidebar(
     SideEffect {
         treeViewModel.onNodeClick = { node ->
             currentOnNodeClick(node)
+        }
+        treeViewModel.onNodeContextMenu = { node ->
+            currentOnNodeContextMenu(node)
         }
     }
 
@@ -147,6 +154,7 @@ fun <T> WorkbenchTreeSidebar(
                             metrics = treeMetrics,
                             colors = treeColors,
                             selectableLabel = true,
+                            nodeTrailingContent = nodeTrailingContent,
                         )
                     }
                 }

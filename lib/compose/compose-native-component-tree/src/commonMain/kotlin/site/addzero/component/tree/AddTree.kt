@@ -34,6 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,6 +83,7 @@ fun <T> AddTree(
                     colors = resolvedColors,
                     nodeBadge = nodeBadge,
                     nodeTrailingContent = nodeTrailingContent,
+                    onContextMenu = { viewModel.openNodeContextMenu(node) },
                 )
             }
         }
@@ -96,6 +101,7 @@ private fun <T> TreeNodeRenderer(
     colors: AddTreeColors,
     nodeBadge: @Composable (T) -> Unit,
     nodeTrailingContent: @Composable RowScope.(T) -> Unit,
+    onContextMenu: () -> Unit,
 ) {
     val nodeId = viewModel.getId(node)
     val isExpanded = viewModel.isExpanded(nodeId)
@@ -119,6 +125,7 @@ private fun <T> TreeNodeRenderer(
             nodeTrailingContent = nodeTrailingContent,
             onToggleExpanded = { viewModel.toggleExpanded(nodeId) },
             onClick = { viewModel.clickNode(node) },
+            onContextMenu = onContextMenu,
         )
 
         if (hasChildren && isExpanded) {
@@ -133,6 +140,7 @@ private fun <T> TreeNodeRenderer(
                     colors = colors,
                     nodeBadge = nodeBadge,
                     nodeTrailingContent = nodeTrailingContent,
+                    onContextMenu = { viewModel.openNodeContextMenu(child) },
                 )
             }
         }
@@ -155,6 +163,7 @@ private fun <T> TreeNodeContent(
     nodeTrailingContent: @Composable RowScope.(T) -> Unit,
     onToggleExpanded: () -> Unit,
     onClick: () -> Unit,
+    onContextMenu: () -> Unit,
 ) {
     val nodeId = viewModel.getId(node)
     val interactionSource = remember(nodeId) { MutableInteractionSource() }
@@ -182,6 +191,23 @@ private fun <T> TreeNodeContent(
                     indication = null,
                 ) {
                     handleNodeClick()
+                }
+            }
+        }
+        .pointerInput(nodeId) {
+            awaitPointerEventScope {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val hasSecondaryDown = event.type == PointerEventType.Press &&
+                        event.buttons.isSecondaryPressed &&
+                        event.changes.any { change -> change.changedToDownIgnoreConsumed() }
+                    if (!hasSecondaryDown) {
+                        continue
+                    }
+                    event.changes.forEach { change ->
+                        change.consume()
+                    }
+                    onContextMenu()
                 }
             }
         }

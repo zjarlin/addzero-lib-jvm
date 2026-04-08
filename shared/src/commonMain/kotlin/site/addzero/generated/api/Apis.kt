@@ -1,8 +1,8 @@
-package site.addzero.kcloud.plugins.mcuconsole.api.external
+package site.addzero.kcloud.plugins.codegencontext.api.external
 
 import de.jensklingenberg.ktorfit.Ktorfit
 import org.koin.mp.KoinPlatform
-import site.addzero.kcloud.plugins.mcuconsole.api.external.*
+import site.addzero.kcloud.plugins.codegencontext.api.external.*
 
 /**
  * 聚合后的 Ktorfit 服务提供者
@@ -13,20 +13,14 @@ object Apis {
     private fun ktorfit(): Ktorfit = KoinPlatform.getKoin().get()
 
     /**
-     * DeviceInfoApi 服务实例
+     * CodegenContextApi 服务实例
      */
-    val deviceInfoApi: DeviceInfoApi
-        get() = ktorfit().createDeviceInfoApi()
+    val codegenContextApi: CodegenContextApi
+        get() = ktorfit().createCodegenContextApi()
 
     /**
-     * FlashApi 服务实例
+     * CodegenTemplateApi 服务实例
      */
-    val flashApi: FlashApi
-        get() = ktorfit().createFlashApi()
-
-    /**
-     * SerialPortApi 服务实例
-     */
-    val serialPortApi: SerialPortApi
-        get() = ktorfit().createSerialPortApi()
+    val codegenTemplateApi: CodegenTemplateApi
+        get() = ktorfit().createCodegenTemplateApi()
 }

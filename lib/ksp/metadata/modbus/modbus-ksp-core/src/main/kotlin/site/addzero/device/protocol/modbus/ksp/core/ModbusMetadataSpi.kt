@@ -43,10 +43,26 @@ object ModbusMetadataCollector {
                 contractPackages = contractPackages,
             )
         val providers = resolveProviders(context)
+        environment.logger.warn(
+            "MODBUS_DEBUG providers=" + providers.joinToString(",") { provider -> provider.providerId },
+            null,
+        )
         val collected = linkedMapOf<String, Pair<String, CollectedModbusService>>()
         providers.forEach { provider ->
             environment.logger.logging("Collecting Modbus metadata via provider: ${provider.providerId}")
-            provider.collect(context).forEach { service ->
+            val providerServices = provider.collect(context)
+            environment.logger.warn(
+                "MODBUS_DEBUG provider=${provider.providerId} services=" +
+                    providerServices.joinToString(";") { service ->
+                        service.model.interfaceQualifiedName +
+                            ":" +
+                            service.model.operations.joinToString(",") { operation ->
+                                "${operation.methodName}@${operation.address}"
+                            }
+                    },
+                null,
+            )
+            providerServices.forEach { service ->
                 val interfaceQualifiedName = service.model.interfaceQualifiedName
                 val existing = collected.putIfAbsent(interfaceQualifiedName, provider.providerId to service)
                 if (existing != null) {

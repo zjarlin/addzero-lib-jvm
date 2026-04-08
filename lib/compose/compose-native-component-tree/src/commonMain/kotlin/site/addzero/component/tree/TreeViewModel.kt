@@ -230,11 +230,11 @@ class TreeViewModel<T> {
     /**
      * 处理节点点击。
      *
-     * 叶子节点会触发业务点击回调，分组节点只更新选中态。
+     * 所有节点都会更新选中态并触发业务点击回调。
+     * 是否跳到首个叶子节点、是否同步展开等行为由调用方自行决定。
      */
     fun clickNode(node: T) {
         val nodeId = getId(node)
-        val hasChildren = getChildren(node).isNotEmpty()
 
         // 🎯 多选模式下的特殊处理
         if (multiSelectMode && multiSelectClickToToggle) {
@@ -243,15 +243,18 @@ class TreeViewModel<T> {
             return
         }
 
-        // 🎯 原来的单选行为：
-        // - 有子节点：选中但不触发业务回调（展开/收起由 UI 层处理）
-        // - 叶子节点：选中并触发业务回调（如导航）
         selectNode(nodeId)
+        onNodeClick(node)
+    }
 
-        if (!hasChildren) {
-            // 只有叶子节点才触发业务回调
-            onNodeClick(node)
-        }
+    /**
+     * 处理节点右键菜单。
+     *
+     * 右键只更新选中态并触发菜单回调，不改变展开状态。
+     */
+    fun openNodeContextMenu(node: T) {
+        selectNode(getId(node))
+        onNodeContextMenu(node)
     }
 
     /**
