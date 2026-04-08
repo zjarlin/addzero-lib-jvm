@@ -11,9 +11,6 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import org.koin.core.annotation.Configuration
-import org.koin.core.annotation.Module
-import org.koin.core.annotation.Single
 import org.koin.mp.KoinPlatform
 import site.addzero.core.network.json.json
 import site.addzero.core.network.spi.HttpClientProfileSpi
@@ -165,26 +162,10 @@ fun HttpClientProfileSpi.toHttpClient(): HttpClient {
   return config
 }
 
-@Module
-@Configuration
-class HttpClientModule {
+val apiClient: HttpClient
+  get() = KoinPlatform.getKoin().get()
 
-  @Single
-  fun httpClient(httpClientProfileSpi: HttpClientProfileSpi): HttpClient {
-    return httpClientProfileSpi.toHttpClient()
-  }
-
-  @Single
-  fun ktorfit(httpclient: HttpClient): Ktorfit {
-    val ktorfit = Ktorfit.Builder().httpClient(httpclient).build()
-    return ktorfit
-  }
-}
-
-val apiClient = KoinPlatform.getKoin().get<HttpClient>()
-val ktorfit = KoinPlatform.getKoin().get<Ktorfit>()
-
-
-
+val ktorfit: Ktorfit
+  get() = KoinPlatform.getKoin().get()
 
 
