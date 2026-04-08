@@ -32,6 +32,7 @@ val gradleModuleSleepDisableMarker = "site.addzero.gradle.plugin.modules-buddy"
 // Loaded: 9, Excluded: 0, Total: 9
 include(":lib:compose:app-sidebar")
 include(":lib:compose:compose-native-component-autocomplet")
+include(":lib:compose:compose-native-component-text")
 include(":lib:compose:compose-workbench-design")
 include(":lib:compose:scaffold-spi")
 include(":lib:compose:shadcn-compose-component")
@@ -76,6 +77,7 @@ include(":lib:kcp:transform-overload:kcp-transform-overload-plugin")
 // KSP threshold-rule migration: keep retained consumer plugins and the plugin smoke/audit
 // test module visible to the same-repo build without waking unrelated legacy processor trees.
 include(":lib:ksp:published-gradle-plugin-tests")
+include(":lib:ksp:route:route-processor")
 include(":lib:ksp:metadata:compose-props:compose-props-gradle-plugin")
 include(":lib:ksp:metadata:gen-reified:gen-reified-gradle-plugin")
 include(":lib:ksp:metadata:ioc:ioc-gradle-plugin")

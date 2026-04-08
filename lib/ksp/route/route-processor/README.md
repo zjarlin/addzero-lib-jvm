@@ -1,11 +1,11 @@
 # route-processor
 
-`route-processor` 用于收集 `@Route` 元数据，并在多模块场景下聚合生成两类文件：
+`route-processor` 用于收集 `@Route` 元数据，并在多模块场景下按 owner/contributor 模式聚合生成路由代码：
 
-- `RouteKeys.kt`：生成到 `sharedSourceDir`
-- `RouteTable.kt`：生成到 `routeOwnerModule`
+- contributor 模块：只写当前模块 snapshot，不直接产出最终 `RouteKeys.kt` / `RouteTable.kt`
+- owner 模块：读取全部 snapshot，统一生成最终 `RouteKeys.kt` 与 `RouteTable.kt`
 
-这里的设计目标是把“可共享的路由常量”与“真正持有 Composable 映射表的 owner 模块”拆开，避免跨模块直接把 `RouteTable` 落到公共源码目录。
+当前推荐把最终生成产物都落到 owner 模块源码目录，避免再把聚合结果写进共享模块，导致主应用与插件模块的职责边界不清。
 
 ## Route 元数据模型
 
@@ -48,59 +48,68 @@
 处理器采用两阶段工作流：
 
 1. `process()` 只做当前模块的 `@Route` 元数据收集
-2. `finish()` 把当前模块快照写入共享目录，再合并所有模块快照统一生成结果
+2. `finish()` 先写当前模块 snapshot；如果当前模块是 owner，再继续合并全部 snapshot 并生成最终结果
 
-跨模块快照保存在：
+跨模块 snapshot 保存在：
 
 ```text
-<sharedSourceDir>/.addzero/route-processor/<routeGenPkg as path>/snapshots
+<routeOwnerModule>/../build/addzero/route-processor/<routeGenPkg as path>/snapshots
 ```
 
-模块快照 key 不再依赖 `routeOwnerModule`，而是根据当前编译模块的 source roots 自动推导，这样多个业务模块即使共用同一个 `routeOwnerModule`，也不会互相覆盖快照。
+推荐显式传 `routeModuleKey` 作为 snapshot key。未传时，处理器会退回到基于 source roots 推导的模块 key。
 
 ## 输出规则
 
-### `RouteKeys.kt`
+- owner 模块会把 `RouteKeys.kt` 与 `RouteTable.kt` 都生成到 `routeOwnerModule`
+- contributor 模块不会生成最终路由文件，只会更新自己的 snapshot
+- `routeOwnerModule` 必须是绝对源码目录
 
-- 输出目录：`sharedSourceDir`
-- 用途：共享路由常量与 `allMeta`
-- `allMeta` 会保留结构化 `RoutePlacement` / `RouteScene` 数据
-
-### `RouteTable.kt`
-
-- 输出目录：`routeOwnerModule`
-- 用途：持有 `RouteKeys.xxx -> @Composable { ... }` 的实际映射
-- 要求：`routeOwnerModule` 必须是绝对源码目录
-
-如果 `routeOwnerModule` 为空，或不是绝对路径，处理器会跳过 `RouteTable` 生成，但仍然会继续生成 `RouteKeys.kt`。
+如果 `routeOwnerModule` 为空，或不是绝对路径，处理器会跳过最终聚合，只保留 snapshot 更新。
 
 ## 必填 KSP 参数
-
-### `sharedSourceDir`
-
-所有参与聚合的模块都必须传相同值。
-
-- 含义：共享源码目录绝对路径
-- 用于：保存快照、生成 `RouteKeys.kt`
 
 ### `routeGenPkg`
 
 所有参与聚合的模块都必须传相同值。
 
 - 含义：生成代码包名
-- 用于：`RouteKeys.kt` / `RouteTable.kt` 的包名与快照分组目录
+- 用于：`RouteKeys.kt` / `RouteTable.kt` 包名与 snapshot 分组目录
 
 ### `routeOwnerModule`
 
 所有参与同一套路由聚合的模块都应该传相同值。
 
-- 含义：`RouteTable.kt` 所属模块的源码目录绝对路径
-- 用于：生成 `RouteTable.kt`
+- 含义：owner 模块源码目录绝对路径
+- 用于：保存 snapshot 根目录，并在 owner 模块生成最终 `RouteKeys.kt` / `RouteTable.kt`
 - 不是：Gradle 的 `project.path`
+
+### `routeAggregationRole`
+
+所有参与聚合的模块都应该传此参数。
+
+- 可选值：`contributor`、`owner`
+- contributor：只写 snapshot
+- owner：写 snapshot 并生成最终路由文件
+
+### `routeModuleKey`
+
+建议所有参与聚合的模块都显式传此参数。
+
+- 含义：当前模块 snapshot 的稳定 key
+- 推荐值：Gradle `project.path`
+
+### `sharedSourceDir`
+
+这是兼容旧接入方式的遗留参数，新的 owner/contributor 模型不再依赖它。
+
+- 当前行为：如果传了旧 `sharedSourceDir`，owner 聚合完成后会尝试清理其中残留的旧 `RouteKeys.kt` / `RouteTable.kt`
+- 建议：新接入不要再传
 
 ## Gradle 配置示例
 
-推荐直接使用消费插件：
+推荐直接使用消费插件。
+
+### contributor 模块
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -108,16 +117,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 plugins {
     id("site.addzero.ksp.route")
 }
-
-val sharedSourceDir = project(":shared-route")
-    .extensions
-    .getByType<KotlinMultiplatformExtension>()
-    .sourceSets
-    .getByName("commonMain")
-    .kotlin
-    .srcDirs
-    .first()
-    .absolutePath
 
 val routeOwnerModuleDir = project(":app-desktop")
     .extensions
@@ -130,34 +129,47 @@ val routeOwnerModuleDir = project(":app-desktop")
     .absolutePath
 
 route {
-    sharedSourceDir.set(sharedSourceDir)
     generatedPackage.set("site.addzero.generated")
     routeOwnerModule.set(routeOwnerModuleDir)
-    moduleKey.set("feature-route")
+    aggregationRole.set("contributor")
+    moduleKey.set(project.path)
 }
 ```
 
-这个插件会自动：
-
-- 应用 `com.google.devtools.ksp`
-- 注入 `route-processor`
-- 注入 `route-core`
-- 根据 JVM / KMP 模块类型选择正确的 KSP configuration
-
-如果你需要最低层手动控制，也可以继续保留原始 `ksp(...)` 写法：
+### owner 模块
 
 ```kotlin
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+plugins {
+    id("site.addzero.ksp.route")
+}
 
-val sharedSourceDir = project(":shared-route")
-    .extensions
-    .getByType<KotlinMultiplatformExtension>()
+val ownerSourceDir = kotlin
     .sourceSets
     .getByName("commonMain")
     .kotlin
     .srcDirs
     .first()
     .absolutePath
+
+route {
+    generatedPackage.set("site.addzero.generated")
+    routeOwnerModule.set(ownerSourceDir)
+    aggregationRole.set("owner")
+    moduleKey.set(project.path)
+}
+```
+
+消费插件会自动：
+
+- 应用 `com.google.devtools.ksp`
+- 注入 `route-processor`
+- 注入 `route-core`
+- 根据 JVM / KMP 模块类型选择正确的 KSP configuration
+
+如果你需要最低层手动控制，也可以直接写 KSP 参数：
+
+```kotlin
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 val routeOwnerModuleDir = project(":app-desktop")
     .extensions
@@ -170,9 +182,10 @@ val routeOwnerModuleDir = project(":app-desktop")
     .absolutePath
 
 ksp {
-    arg("sharedSourceDir", sharedSourceDir)
     arg("routeGenPkg", "site.addzero.generated")
     arg("routeOwnerModule", routeOwnerModuleDir)
+    arg("routeAggregationRole", "contributor")
+    arg("routeModuleKey", project.path)
 }
 ```
 
@@ -183,14 +196,17 @@ ksp {
 假设有 `A`、`B`、`C` 三个模块都声明了 `@Route`：
 
 - `A`、`B`、`C` 都要启用这个 KSP processor
-- `A`、`B`、`C` 的 `sharedSourceDir` 必须一致
 - `A`、`B`、`C` 的 `routeGenPkg` 必须一致
-- `A`、`B`、`C` 的 `routeOwnerModule` 应该都指向同一个 owner 模块源码目录
+- `A`、`B`、`C` 的 `routeOwnerModule` 必须都指向同一个 owner 模块源码目录
+- 只有其中一个模块应该设置 `routeAggregationRole=owner`
+- 其余模块都设置 `routeAggregationRole=contributor`
+- owner 模块必须直接依赖所有 contributor 模块，否则生成出来的 `RouteTable.kt` 无法编译
 
 最终结果是：
 
-- `RouteKeys.kt` 统一写到共享目录
-- `RouteTable.kt` 统一写到 owner 模块目录
+- 所有 contributor 只更新自己的 snapshot
+- owner 统一生成 `RouteKeys.kt`
+- owner 统一生成 `RouteTable.kt`
 
 ## 冲突规则
 
@@ -212,9 +228,10 @@ ksp {
 
 ## 迁移说明
 
-旧行为会把 `RouteTable.kt` 也写到 `sharedSourceDir`。现在已经改为：
+旧行为会把聚合结果写到共享模块目录。现在已经改为：
 
-- `RouteKeys.kt` 保持在 `sharedSourceDir`
-- `RouteTable.kt` 改到 `routeOwnerModule`
+- 所有最终产物都写到 owner 模块目录
+- 共享目录不再承载最终 `RouteKeys.kt` / `RouteTable.kt`
+- 旧 `sharedSourceDir` 只用于清理历史残留
 
-处理器在生成新的 owner 版 `RouteTable.kt` 时，会尝试清理共享目录中的旧 `RouteTable.kt`，避免同包名重复类残留。
+处理器在 owner 聚合完成后，会尝试清理旧 `sharedSourceDir` 中残留的 `RouteKeys.kt` / `RouteTable.kt`，避免同包名重复类残留。

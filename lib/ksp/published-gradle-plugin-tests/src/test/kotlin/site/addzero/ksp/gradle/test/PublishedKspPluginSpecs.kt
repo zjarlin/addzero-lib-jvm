@@ -130,6 +130,7 @@ object PublishedKspPluginSpecs {
                 "sharedSourceDir" to "",
                 "generatedPackage" to "site.addzero.generated",
                 "routeOwnerModule" to "",
+                "aggregationRole" to "contributor",
                 "moduleKey" to "",
             ),
         ),

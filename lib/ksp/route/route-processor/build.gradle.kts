@@ -11,6 +11,7 @@ processorBuddy {
       "sharedSourceDir" to "",
       "routeGenPkg" to "site.addzero.generated",
       "routeOwnerModule" to "",
+      "routeAggregationRole" to "contributor",
     )
   )
 }

@@ -19,6 +19,8 @@ import site.addzero.util.str.toUnderLineCase
 
 internal const val ROUTE_TABLE_NAME = "RouteTable"
 internal const val ROUTE_KEYS_NAME = "RouteKeys"
+internal const val ROUTE_AGGREGATION_ROLE_CONTRIBUTOR = "contributor"
+internal const val ROUTE_AGGREGATION_ROLE_OWNER = "owner"
 
 internal data class RouteRecord(
     val parentName: String,
@@ -35,6 +37,30 @@ internal data class RouteRecord(
 ) {
     val uniqueId
         get() = qualifiedName.ifBlank { routePath }
+}
+
+internal enum class RouteAggregationRole(
+    val optionValue: String,
+    val shouldGenerateAggregates: Boolean,
+) {
+    CONTRIBUTOR(
+        optionValue = ROUTE_AGGREGATION_ROLE_CONTRIBUTOR,
+        shouldGenerateAggregates = false,
+    ),
+    OWNER(
+        optionValue = ROUTE_AGGREGATION_ROLE_OWNER,
+        shouldGenerateAggregates = true,
+    ),
+    ;
+
+    companion object {
+        fun fromOption(value: String): RouteAggregationRole {
+            return when (value.trim().lowercase()) {
+                ROUTE_AGGREGATION_ROLE_OWNER -> OWNER
+                else -> CONTRIBUTOR
+            }
+        }
+    }
 }
 
 /**
@@ -90,9 +116,10 @@ class RouteMetadataProcessor(
 
     override fun finish() {
         aggregateAndGenerateRoutes(
-            sharedSourceDir = Settings.sharedSourceDir,
+            deprecatedSharedSourceDir = Settings.sharedSourceDir,
             routeGenPkg = Settings.routeGenPkg,
             routeOwnerModuleDir = Settings.routeOwnerModule,
+            aggregationRole = RouteAggregationRole.fromOption(Settings.routeAggregationRole),
             moduleKeyHint = options["routeModuleKey"].orEmpty(),
             moduleSourceRoots = moduleSourceRoots.toList(),
             routeItems = sortRoutes(collectedRoutes),
@@ -297,9 +324,10 @@ internal fun sourcePathToModuleRoot(sourceFilePath: String): String? {
 }
 
 internal expect fun aggregateAndGenerateRoutes(
-    sharedSourceDir: String,
+    deprecatedSharedSourceDir: String,
     routeGenPkg: String,
     routeOwnerModuleDir: String,
+    aggregationRole: RouteAggregationRole,
     moduleKeyHint: String,
     moduleSourceRoots: List<String>,
     routeItems: List<RouteRecord>,

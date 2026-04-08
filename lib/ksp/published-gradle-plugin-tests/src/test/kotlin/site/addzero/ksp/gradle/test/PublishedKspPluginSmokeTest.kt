@@ -50,6 +50,7 @@ class PublishedKspPluginSmokeTest {
                         mapOf(
                             "generatedPackage" to "demo.generated.route",
                             "routeOwnerModule" to layout.projectDirectory.dir("src/commonMain/kotlin").asFile.absolutePath,
+                            "aggregationRole" to "owner",
                             "moduleKey" to "feature-route",
                         ),
                     )
@@ -62,6 +63,7 @@ class PublishedKspPluginSmokeTest {
             "CONF[kspCommonMainMetadata]=site.addzero:route-processor",
             "CONF[commonMainImplementation]=site.addzero:route-core",
             "routeGenPkg=demo.generated.route",
+            "routeAggregationRole=owner",
             "routeModuleKey=feature-route",
             "TASK[compileKotlinJvm]=",
             "kspKotlinJvm",

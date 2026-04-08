@@ -14,12 +14,14 @@ abstract class RouteExtension {
     abstract val sharedSourceDir: Property<String>
     abstract val generatedPackage: Property<String>
     abstract val routeOwnerModule: Property<String>
+    abstract val aggregationRole: Property<String>
     abstract val moduleKey: Property<String>
 
     init {
         sharedSourceDir.convention("")
         generatedPackage.convention("site.addzero.generated")
         routeOwnerModule.convention("")
+        aggregationRole.convention("contributor")
         moduleKey.convention("")
     }
 }
@@ -57,6 +59,7 @@ configurePublishedKspConsumer(
         put("sharedSourceDir", sharedSourceDir)
         put("routeGenPkg", routeExtension.generatedPackage.get())
         put("routeOwnerModule", routeOwnerModule)
+        put("routeAggregationRole", routeExtension.aggregationRole.get())
         routeExtension.moduleKey.orNull
             ?.takeIf(String::isNotBlank)
             ?.let { put("routeModuleKey", it) }

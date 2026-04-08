@@ -17,21 +17,20 @@ private const val FILE_LOCK_RETRY_DELAY_MS = 50L
 private val aggregateLocks = ConcurrentHashMap<String, Any>()
 
 internal actual fun aggregateAndGenerateRoutes(
-    sharedSourceDir: String,
+    deprecatedSharedSourceDir: String,
     routeGenPkg: String,
     routeOwnerModuleDir: String,
+    aggregationRole: RouteAggregationRole,
     moduleKeyHint: String,
     moduleSourceRoots: List<String>,
     routeItems: List<RouteRecord>,
     logger: KSPLogger,
 ) {
-    if (sharedSourceDir.isBlank()) {
-        logger.warn("sharedSourceDir 为空，跳过跨模块路由聚合")
-        return
-    }
+    val ownerSourceDir = normalizeRouteOwnerModuleDir(routeOwnerModuleDir, logger)
+        ?: return
 
     val aggregateRoot = resolveAggregateRoot(
-        sharedSourceDir = sharedSourceDir,
+        routeOwnerModuleDir = ownerSourceDir,
         routeGenPkg = routeGenPkg,
     )
     val snapshotDir = File(aggregateRoot, "snapshots")
@@ -39,25 +38,16 @@ internal actual fun aggregateAndGenerateRoutes(
     snapshotDir.mkdirs()
 
     withAggregateLock(lockFile, logger) {
-        val moduleKey = resolveModuleKey(
+        updateModuleSnapshot(
+            snapshotDir = snapshotDir,
             moduleKeyHint = moduleKeyHint,
             moduleSourceRoots = moduleSourceRoots,
             routeItems = routeItems,
+            logger = logger,
         )
-        if (moduleKey == null) {
-            if (routeItems.isNotEmpty() || moduleSourceRoots.isNotEmpty()) {
-                logger.warn("无法确定当前模块标识，跳过跨模块路由聚合")
-            }
-            return@withAggregateLock
-        }
 
-        val snapshotFile = File(snapshotDir, "$moduleKey.route-snapshot")
-        if (routeItems.isEmpty()) {
-            if (snapshotFile.exists()) {
-                snapshotFile.delete()
-            }
-        } else {
-            writeSnapshot(snapshotFile, routeItems)
+        if (!aggregationRole.shouldGenerateAggregates) {
+            return@withAggregateLock
         }
 
         val mergedRoutes = readMergedRoutes(snapshotDir)
@@ -66,15 +56,15 @@ internal actual fun aggregateAndGenerateRoutes(
 
         if (mergedRoutes.isEmpty()) {
             deleteAggregatedOutputs(
-                sharedSourceDir = sharedSourceDir,
+                ownerSourceDir = ownerSourceDir,
                 routeGenPkg = routeGenPkg,
-                routeOwnerModuleDir = routeOwnerModuleDir,
+                deprecatedSharedSourceDir = deprecatedSharedSourceDir,
             )
             return@withAggregateLock
         }
 
         genCodeWithPackage(
-            filePath = sharedSourceDir,
+            filePath = ownerSourceDir,
             pkg = routeGenPkg,
             filePrefix = "",
             fileName = ROUTE_KEYS_NAME,
@@ -83,21 +73,19 @@ internal actual fun aggregateAndGenerateRoutes(
             skipExistFile = false,
         )
 
-        val routeTableOutputDir = normalizeRouteOwnerModuleDir(routeOwnerModuleDir, logger)
-            ?: return@withAggregateLock
-        deleteLegacySharedRouteTable(
-            sharedSourceDir = sharedSourceDir,
-            routeGenPkg = routeGenPkg,
-            routeTableOutputDir = routeTableOutputDir,
-        )
         genCodeWithPackage(
-            filePath = routeTableOutputDir,
+            filePath = ownerSourceDir,
             pkg = routeGenPkg,
             filePrefix = "",
             fileName = ROUTE_TABLE_NAME,
             fileSuffix = ".kt",
             code = renderRouteTableCode(mergedRoutes),
             skipExistFile = false,
+        )
+        deleteLegacySharedOutputs(
+            deprecatedSharedSourceDir = deprecatedSharedSourceDir,
+            routeGenPkg = routeGenPkg,
+            ownerSourceDir = ownerSourceDir,
         )
     }
 }
@@ -246,19 +234,19 @@ internal fun validateMergedRoutes(
 }
 
 private fun resolveAggregateRoot(
-    sharedSourceDir: String,
+    routeOwnerModuleDir: String,
     routeGenPkg: String,
 ): File {
-    val sharedSourcePath = File(sharedSourceDir).absoluteFile
+    val ownerSourcePath = File(routeOwnerModuleDir).absoluteFile
         .invariantSeparatorsPath
-    val moduleRoot = sharedSourcePath.substringBefore("/src/")
-        .takeIf { it != sharedSourcePath && it.isNotBlank() }
-        ?: File(sharedSourceDir).absoluteFile
+    val moduleRoot = ownerSourcePath.substringBefore("/src/")
+        .takeIf { it != ownerSourcePath && it.isNotBlank() }
+        ?: File(routeOwnerModuleDir).absoluteFile
             .parentFile
             ?.parentFile
             ?.parentFile
             ?.absolutePath
-        ?: sharedSourceDir
+        ?: routeOwnerModuleDir
     return File(
         moduleRoot,
         "build/addzero/route-processor/${routeGenPkg.replace(".", "/")}"
@@ -429,44 +417,88 @@ private fun warnDuplicateRoutePaths(routeItems: List<RouteRecord>, logger: KSPLo
 }
 
 private fun deleteAggregatedOutputs(
-    sharedSourceDir: String,
+    ownerSourceDir: String,
     routeGenPkg: String,
-    routeOwnerModuleDir: String,
+    deprecatedSharedSourceDir: String,
 ) {
-    val routeKeysFile = generatedOutputFile(sharedSourceDir, routeGenPkg, ROUTE_KEYS_NAME)
-    val legacyRouteTableFile = generatedOutputFile(sharedSourceDir, routeGenPkg, ROUTE_TABLE_NAME)
-    val routeTableFile = routeOwnerModuleDir
-        .takeIf { it.isNotBlank() && File(it).isAbsolute }
-        ?.let { generatedOutputFile(it, routeGenPkg, ROUTE_TABLE_NAME) }
+    val routeKeysFile = generatedOutputFile(ownerSourceDir, routeGenPkg, ROUTE_KEYS_NAME)
+    val routeTableFile = generatedOutputFile(ownerSourceDir, routeGenPkg, ROUTE_TABLE_NAME)
 
     if (routeKeysFile.exists()) {
         routeKeysFile.delete()
     }
-    if (legacyRouteTableFile.exists()) {
-        legacyRouteTableFile.delete()
-    }
-    if (routeTableFile?.exists() == true) {
+    if (routeTableFile.exists()) {
         routeTableFile.delete()
     }
+    deleteLegacySharedOutputs(
+        deprecatedSharedSourceDir = deprecatedSharedSourceDir,
+        routeGenPkg = routeGenPkg,
+        ownerSourceDir = ownerSourceDir,
+    )
 }
 
 private fun RouteRecord.normalizedSceneName(): String {
     return sceneName.trim()
 }
 
-private fun deleteLegacySharedRouteTable(
-    sharedSourceDir: String,
+private fun deleteLegacySharedOutputs(
+    deprecatedSharedSourceDir: String,
     routeGenPkg: String,
-    routeTableOutputDir: String,
+    ownerSourceDir: String,
 ) {
-    if (routeTableOutputDir == sharedSourceDir) {
+    val normalizedLegacySourceDir = deprecatedSharedSourceDir.trim()
+    if (normalizedLegacySourceDir.isBlank()) {
+        return
+    }
+    if (!File(normalizedLegacySourceDir).isAbsolute) {
+        return
+    }
+    if (normalizedLegacySourceDir == ownerSourceDir) {
         return
     }
 
-    val legacyRouteTableFile = generatedOutputFile(sharedSourceDir, routeGenPkg, ROUTE_TABLE_NAME)
+    val legacyRouteKeysFile = generatedOutputFile(normalizedLegacySourceDir, routeGenPkg, ROUTE_KEYS_NAME)
+    if (legacyRouteKeysFile.exists()) {
+        legacyRouteKeysFile.delete()
+    }
+
+    val legacyRouteTableFile = generatedOutputFile(normalizedLegacySourceDir, routeGenPkg, ROUTE_TABLE_NAME)
     if (legacyRouteTableFile.exists()) {
         legacyRouteTableFile.delete()
     }
+}
+
+private fun updateModuleSnapshot(
+    snapshotDir: File,
+    moduleKeyHint: String,
+    moduleSourceRoots: List<String>,
+    routeItems: List<RouteRecord>,
+    logger: KSPLogger,
+) {
+    val hasModuleIdentityInput = routeItems.isNotEmpty() || moduleKeyHint.isNotBlank() || moduleSourceRoots.isNotEmpty()
+    if (!hasModuleIdentityInput) {
+        return
+    }
+
+    val moduleKey = resolveModuleKey(
+        moduleKeyHint = moduleKeyHint,
+        moduleSourceRoots = moduleSourceRoots,
+        routeItems = routeItems,
+    )
+    if (moduleKey == null) {
+        logger.warn("无法确定当前模块标识，已跳过当前模块快照更新")
+        return
+    }
+
+    val snapshotFile = File(snapshotDir, "$moduleKey.route-snapshot")
+    if (routeItems.isEmpty()) {
+        if (snapshotFile.exists()) {
+            snapshotFile.delete()
+        }
+        return
+    }
+
+    writeSnapshot(snapshotFile, routeItems)
 }
 
 private fun generatedOutputFile(baseDir: String, routeGenPkg: String, fileName: String): File {

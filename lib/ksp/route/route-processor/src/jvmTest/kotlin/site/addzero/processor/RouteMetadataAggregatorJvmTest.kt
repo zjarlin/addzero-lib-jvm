@@ -77,16 +77,16 @@ class RouteMetadataAggregatorJvmTest {
     @Test
     fun aggregateAndGenerateRoutesReadsV1AndV2SnapshotsTogether() {
         val tempRoot = Files.createTempDirectory("route-processor-test")
-        val sharedSourceDir = tempRoot.resolve("shared/src/commonMain/kotlin").createDirectories()
         val ownerSourceDir = tempRoot.resolve("owner/src/commonMain/kotlin").createDirectories()
         val snapshotDir = tempRoot
-            .resolve("shared/build/addzero/route-processor/site/addzero/generated/snapshots")
+            .resolve("owner/build/addzero/route-processor/site/addzero/generated/snapshots")
             .createDirectories()
         Settings.fromOptions(
             mapOf(
-                "sharedSourceDir" to sharedSourceDir.toString(),
+                "sharedSourceDir" to "",
                 "routeGenPkg" to "site.addzero.generated",
                 "routeOwnerModule" to ownerSourceDir.toString(),
+                "routeAggregationRole" to "owner",
             ),
         )
         snapshotDir.resolve("legacy-v1.route-snapshot").writeText(
@@ -129,9 +129,10 @@ class RouteMetadataAggregatorJvmTest {
         )
 
         aggregateAndGenerateRoutes(
-            sharedSourceDir = sharedSourceDir.toString(),
+            deprecatedSharedSourceDir = "",
             routeGenPkg = "site.addzero.generated",
             routeOwnerModuleDir = ownerSourceDir.toString(),
+            aggregationRole = RouteAggregationRole.OWNER,
             moduleKeyHint = "feature-fresh",
             moduleSourceRoots = listOf(tempRoot.resolve("feature/src/commonMain/kotlin").toString()),
             routeItems = listOf(
@@ -150,7 +151,7 @@ class RouteMetadataAggregatorJvmTest {
             logger = TestKspLogger(),
         )
 
-        val routeKeysCode = sharedSourceDir
+        val routeKeysCode = ownerSourceDir
             .resolve("site/addzero/generated/RouteKeys.kt")
             .readText()
 
@@ -166,17 +167,17 @@ class RouteMetadataAggregatorJvmTest {
     @Test
     fun aggregateAndGenerateRoutesUsesModuleKeyHintForEmptyModuleCleanup() {
         val tempRoot = Files.createTempDirectory("route-processor-cleanup")
-        val sharedSourceDir = tempRoot.resolve("shared/src/commonMain/kotlin").createDirectories()
         val ownerSourceDir = tempRoot.resolve("owner/src/commonMain/kotlin").createDirectories()
         val snapshotDir = tempRoot
-            .resolve("shared/build/addzero/route-processor/site/addzero/generated/snapshots")
+            .resolve("owner/build/addzero/route-processor/site/addzero/generated/snapshots")
             .createDirectories()
         val staleSnapshot = snapshotDir.resolve("apps_kcloud_plugins_system_ai-chat.route-snapshot")
         Settings.fromOptions(
             mapOf(
-                "sharedSourceDir" to sharedSourceDir.toString(),
+                "sharedSourceDir" to "",
                 "routeGenPkg" to "site.addzero.generated",
                 "routeOwnerModule" to ownerSourceDir.toString(),
+                "routeAggregationRole" to "owner",
             ),
         )
         staleSnapshot.writeText(
@@ -201,9 +202,10 @@ class RouteMetadataAggregatorJvmTest {
         )
 
         aggregateAndGenerateRoutes(
-            sharedSourceDir = sharedSourceDir.toString(),
+            deprecatedSharedSourceDir = "",
             routeGenPkg = "site.addzero.generated",
             routeOwnerModuleDir = ownerSourceDir.toString(),
+            aggregationRole = RouteAggregationRole.OWNER,
             moduleKeyHint = "apps:kcloud:plugins:system:ai-chat",
             moduleSourceRoots = emptyList(),
             routeItems = emptyList(),
@@ -211,6 +213,53 @@ class RouteMetadataAggregatorJvmTest {
         )
 
         kotlin.test.assertFalse(Files.exists(staleSnapshot))
+    }
+
+    @Test
+    fun contributorModeOnlyWritesSnapshotButOwnerGeneratesAggregates() {
+        val tempRoot = Files.createTempDirectory("route-processor-owner")
+        val ownerSourceDir = tempRoot.resolve("owner/src/commonMain/kotlin").createDirectories()
+        val snapshotDir = tempRoot
+            .resolve("owner/build/addzero/route-processor/site/addzero/generated/snapshots")
+            .createDirectories()
+        val logger = TestKspLogger()
+
+        aggregateAndGenerateRoutes(
+            deprecatedSharedSourceDir = "",
+            routeGenPkg = "site.addzero.generated",
+            routeOwnerModuleDir = ownerSourceDir.toString(),
+            aggregationRole = RouteAggregationRole.CONTRIBUTOR,
+            moduleKeyHint = "feature-alpha",
+            moduleSourceRoots = listOf(tempRoot.resolve("feature-alpha/src/commonMain/kotlin").toString()),
+            routeItems = listOf(
+                routeRecord(
+                    title = "Alpha",
+                    routePath = "alpha/screen",
+                    qualifiedName = "sample.AlphaScreen",
+                    simpleName = "AlphaScreen",
+                ),
+            ),
+            logger = logger,
+        )
+
+        kotlin.test.assertTrue(Files.exists(snapshotDir.resolve("feature-alpha.route-snapshot")))
+        kotlin.test.assertFalse(Files.exists(ownerSourceDir.resolve("site/addzero/generated/RouteKeys.kt")))
+
+        aggregateAndGenerateRoutes(
+            deprecatedSharedSourceDir = "",
+            routeGenPkg = "site.addzero.generated",
+            routeOwnerModuleDir = ownerSourceDir.toString(),
+            aggregationRole = RouteAggregationRole.OWNER,
+            moduleKeyHint = "owner-shell",
+            moduleSourceRoots = emptyList(),
+            routeItems = emptyList(),
+            logger = logger,
+        )
+
+        val routeKeysCode = ownerSourceDir
+            .resolve("site/addzero/generated/RouteKeys.kt")
+            .readText()
+        assertContains(routeKeysCode, "\"alpha/screen\"")
     }
 
     @Test

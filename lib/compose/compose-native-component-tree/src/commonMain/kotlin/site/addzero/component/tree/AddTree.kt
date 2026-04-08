@@ -3,6 +3,7 @@ package site.addzero.component.tree
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -158,27 +159,44 @@ private fun <T> TreeNodeContent(
     val nodeId = viewModel.getId(node)
     val interactionSource = remember(nodeId) { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val segmentClickInteractionSource = remember("${nodeId}_segment_click") { MutableInteractionSource() }
+    val handleNodeClick = {
+        if (hasChildren) {
+            onToggleExpanded()
+        }
+        onClick()
+    }
     val rowModifier = Modifier
         .fillMaxWidth()
         .padding(
             start = metrics.sideInset + metrics.levelIndent * level.toFloat(),
             end = metrics.sideInset,
         )
+        .hoverable(interactionSource = interactionSource)
         .let { current ->
-            if (compactMode) {
+            if (compactMode || selectableLabel) {
                 current
             } else {
                 current.clickable(
                     interactionSource = interactionSource,
                     indication = null,
                 ) {
-                    if (hasChildren) {
-                        onToggleExpanded()
-                    }
-                    onClick()
+                    handleNodeClick()
                 }
             }
         }
+
+    // 标签可选中时，只保留非文本区域的点击，避免吞掉 SelectionContainer 的选择手势。
+    val selectableSegmentModifier = if (compactMode || !selectableLabel) {
+        Modifier
+    } else {
+        Modifier.clickable(
+            interactionSource = segmentClickInteractionSource,
+            indication = null,
+        ) {
+            handleNodeClick()
+        }
+    }
 
     val rowContainerColor = when {
         isHovered -> colors.rowHoveredContainer
@@ -253,21 +271,27 @@ private fun <T> TreeNodeContent(
                 }
 
                 if (!compactMode) {
-                    Box(
-                        modifier = Modifier.width(metrics.toggleSlotWidth),
-                        contentAlignment = Alignment.Center,
+                    Row(
+                        modifier = selectableSegmentModifier,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(metrics.contentSpacing),
                     ) {
-                        if (hasChildren) {
-                            Icon(
-                                imageVector = if (isExpanded) {
-                                    Icons.Default.KeyboardArrowDown
-                                } else {
-                                    Icons.AutoMirrored.Filled.KeyboardArrowRight
-                                },
-                                contentDescription = if (isExpanded) "折叠" else "展开",
-                                modifier = Modifier.size(metrics.expandIconSize),
-                                tint = secondaryContentColor,
-                            )
+                        Box(
+                            modifier = Modifier.width(metrics.toggleSlotWidth),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (hasChildren) {
+                                Icon(
+                                    imageVector = if (isExpanded) {
+                                        Icons.Default.KeyboardArrowDown
+                                    } else {
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight
+                                    },
+                                    contentDescription = if (isExpanded) "折叠" else "展开",
+                                    modifier = Modifier.size(metrics.expandIconSize),
+                                    tint = secondaryContentColor,
+                                )
+                            }
                         }
                     }
                 }
@@ -296,7 +320,9 @@ private fun <T> TreeNodeContent(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            modifier = Modifier.size(metrics.iconSize),
+                            modifier = Modifier
+                                .size(metrics.iconSize)
+                                .then(selectableSegmentModifier),
                             tint = resolveNodeIconTint(
                                 node = node,
                                 viewModel = viewModel,
