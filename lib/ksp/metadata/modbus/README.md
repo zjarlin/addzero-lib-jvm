@@ -55,6 +55,69 @@ modbusTcp {
 
 只有在你明确需要直接控制 processor artifact 时，才退回到底层 `ksp(...)` 接法。
 
+## Metadata Inputs
+
+`modbus-ksp` 现在不再强绑 `KSClassDeclaration` 作为唯一输入。
+
+processor 会通过 `ServiceLoader<ModbusMetadataProvider>` 收集元数据提供者，V1 内置两个默认实现：
+
+- `interfaces`
+  - 从 Kotlin 注解接口抽取契约元数据。
+- `database`
+  - 通过 JDBC 查询 JSON 元数据，再归一化成同一套 `ModbusServiceModel`。
+
+如果你没有显式配置 `metadataProviders`，所有已发现的 provider 都会参与，但每个 provider 会自行判断是否启用：
+
+- `interfaces` 需要 `contractPackages`
+- `database` 需要 `databaseJdbcUrl` + `databaseQuery`
+
+接口抽取模式：
+
+```kotlin
+modbusRtu {
+    transports.set(listOf("rtu"))
+    metadataProviders.set(listOf("interfaces"))
+    codegenModes.set(listOf("server"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+}
+```
+
+数据库模式：
+
+```kotlin
+modbusRtu {
+    transports.set(listOf("rtu"))
+    metadataProviders.set(listOf("database"))
+    codegenModes.set(listOf("server"))
+
+    databaseDriverClass.set("org.sqlite.JDBC")
+    databaseJdbcUrl.set("jdbc:sqlite:/absolute/path/codegen-context.db")
+    databaseQuery.set(
+        """
+        select payload
+        from codegen_context_modbus_contract
+        where transport = '${'$'}{transport}'
+        """.trimIndent(),
+    )
+    databaseJsonColumn.set("payload")
+}
+```
+
+`databaseQuery` 支持两个占位符：
+
+- `${transport}`
+  - 例如 `rtu` / `tcp`
+- `${transportName}`
+  - 例如 `RTU` / `TCP`
+
+数据库 payload 支持三种 JSON 形态：
+
+- 单个 service 对象
+- service 数组
+- `{ "services": [...] }`
+
+这意味着后续 `codegen-context` 只要把数据库里的一行 JSON 组织成标准 payload，就能桥接到同一条 Modbus KSP 生成链路，不需要再伪造 Kotlin 接口源码。
+
 如果你要同时产出多种传输层目标，统一用 `transports`：
 
 ```kotlin
@@ -88,6 +151,11 @@ core 通过 `ServiceLoader<ModbusArtifactGenerator>` 聚合输出模块：
 - `C_SERVICE_CONTRACT`
 - `C_TRANSPORT_CONTRACT`
 - `MARKDOWN_PROTOCOL`
+
+元数据输入侧对应的是 `ServiceLoader<ModbusMetadataProvider>`：
+
+- `interfaces`
+- `database`
 
 这层设计的目的不是只服务 Modbus，而是把“语义契约 -> 多协议输出”的边界先定住。后面扩 MQTT 时，可以复用同一套 suite/facade/SPI 思路，再加 `mqtt-*` 输出模块，而不是把所有协议逻辑继续塞回同一个 renderer。
 

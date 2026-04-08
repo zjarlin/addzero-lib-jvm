@@ -16,10 +16,10 @@ import site.addzero.device.protocol.modbus.ksp.core.ModbusAddressPlanner
 import site.addzero.device.protocol.modbus.ksp.core.ModbusArtifactRenderer
 import site.addzero.device.protocol.modbus.ksp.core.ModbusCodegenMode
 import site.addzero.device.protocol.modbus.ksp.core.ModbusExternalCArtifactWriter
+import site.addzero.device.protocol.modbus.ksp.core.ModbusMetadataCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusModelValidator
 import site.addzero.device.protocol.modbus.ksp.core.ModbusProjectSyncRunner
 import site.addzero.device.protocol.modbus.ksp.core.ModbusServerRouteMode
-import site.addzero.device.protocol.modbus.ksp.core.ModbusSymbolCollector
 import site.addzero.device.protocol.modbus.ksp.core.ModbusTransportKind
 import site.addzero.device.protocol.modbus.ksp.core.resolveContractPackages
 import site.addzero.device.protocol.modbus.ksp.core.resolveEnabledTransports
@@ -43,7 +43,6 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
                 override fun process(resolver: com.google.devtools.ksp.processing.Resolver): List<KSAnnotated> = emptyList()
             }
         }
-        val collector = ModbusSymbolCollector(environment.logger)
         val modes = ModbusCodegenMode.from(environment)
         val externalCArtifactWriter = ModbusExternalCArtifactWriter.from(environment)
         val addressLockFile = ModbusAddressLockFile.from(environment)
@@ -58,7 +57,8 @@ class ModbusTcpProcessorProvider : SymbolProcessorProvider {
             private val collected = linkedMapOf<String, CollectedModbusService>()
 
             override fun process(resolver: com.google.devtools.ksp.processing.Resolver): List<KSAnnotated> {
-                collector.collect(
+                ModbusMetadataCollector.collect(
+                    environment = environment,
                     resolver = resolver,
                     transport = transport,
                     contractPackages = contractPackages,

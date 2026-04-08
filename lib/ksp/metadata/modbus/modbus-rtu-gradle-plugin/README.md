@@ -72,9 +72,25 @@ cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
   - 会映射成 `addzero.modbus.codegen.mode`
 - `contractPackages`
   - 会映射成 `addzero.modbus.contractPackages`
+- `metadataProviders`
+  - 会映射成 `addzero.modbus.metadata.providers`
+  - 默认留空，表示让所有已发现 provider 自行判断是否启用
 - `transports`
   - 会映射成 `addzero.modbus.transports`
   - 支持一次启用多个已实现 transport，例如 `listOf("rtu", "tcp")`
+- `databaseDriverClass`
+  - 会映射成 `addzero.modbus.database.driverClass`
+- `databaseJdbcUrl`
+  - 会映射成 `addzero.modbus.database.jdbcUrl`
+- `databaseUsername`
+  - 会映射成 `addzero.modbus.database.username`
+- `databasePassword`
+  - 会映射成 `addzero.modbus.database.password`
+- `databaseQuery`
+  - 会映射成 `addzero.modbus.database.query`
+  - 支持 `${transport}` / `${transportName}` 占位符
+- `databaseJsonColumn`
+  - 会映射成 `addzero.modbus.database.jsonColumn`
 - `cOutputProjectDir`
   - 会映射成 `addzero.modbus.c.output.projectDir`
   - 配置后会把生成的 C 文件镜像到固件工程
@@ -92,6 +108,31 @@ cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
 - `mxprojectPath`
   - 会映射成 `addzero.modbus.mxproject.path`
   - 配置后会同步 `.mxproject`
+
+元数据来源示例：
+
+```kotlin
+modbusRtu {
+    metadataProviders.set(listOf("interfaces"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+}
+```
+
+```kotlin
+modbusRtu {
+    metadataProviders.set(listOf("database"))
+    databaseDriverClass.set("org.sqlite.JDBC")
+    databaseJdbcUrl.set("jdbc:sqlite:/absolute/path/codegen-context.db")
+    databaseQuery.set("select payload from codegen_context_modbus_contract where transport = '${'$'}{transport}'")
+    databaseJsonColumn.set("payload")
+}
+```
+
+数据库 provider 读取的每一行都应该是 JSON 文本，支持：
+
+- 单个 service 对象
+- service 数组
+- `{ "services": [...] }`
 
 固件工程联调用法：
 

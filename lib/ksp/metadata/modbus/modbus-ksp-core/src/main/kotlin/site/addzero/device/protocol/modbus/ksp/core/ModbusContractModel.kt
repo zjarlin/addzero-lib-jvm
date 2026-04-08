@@ -318,7 +318,7 @@ data class ModbusServiceModel(
  */
 data class CollectedModbusService(
     val model: ModbusServiceModel,
-    val originatingFiles: List<KSFile>,
+    val originatingFiles: List<KSFile> = emptyList(),
 )
 
 /**

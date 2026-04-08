@@ -9,4 +9,5 @@ dependencies {
     testImplementation(project(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway"))
     testImplementation(project(":lib:ksp:metadata:modbus:modbus-ksp-c-contract"))
     testImplementation(project(":lib:ksp:metadata:modbus:modbus-ksp-markdown"))
+    testImplementation(libs.findLibrary("org-xerial-sqlite-jdbc-v3").get())
 }

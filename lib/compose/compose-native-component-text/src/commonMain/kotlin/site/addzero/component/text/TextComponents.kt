@@ -42,7 +42,7 @@ private fun materialTextProps(
 }
 
 @Composable
-private fun renderTypographyText(
+private fun TypographyText(
     props: MaterialTextProps,
     fontSize: TextUnit,
     fontWeight: FontWeight,
@@ -79,7 +79,7 @@ fun H1(
 private fun H1Packed(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
@@ -108,7 +108,7 @@ fun H2(
 private fun H2Packed(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
@@ -137,7 +137,7 @@ fun H3(
 private fun H3Packed(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 18.sp,
         fontWeight = FontWeight.SemiBold,
@@ -166,7 +166,7 @@ fun H4(
 private fun H4Packed(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium,
@@ -195,7 +195,7 @@ fun BodyLarge(
 private fun BodyLargePacked(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 16.sp,
         fontWeight = FontWeight.Normal,
@@ -224,7 +224,7 @@ fun BodyMedium(
 private fun BodyMediumPacked(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal,
@@ -253,7 +253,7 @@ fun BodySmall(
 private fun BodySmallPacked(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 12.sp,
         fontWeight = FontWeight.Normal,
@@ -282,7 +282,7 @@ fun Caption(
 private fun CaptionPacked(
     props: MaterialTextProps,
 ) {
-    renderTypographyText(
+    TypographyText(
         props = props,
         fontSize = 12.sp,
         fontWeight = FontWeight.Normal,

@@ -1,0 +1,2 @@
+site.addzero.device.protocol.modbus.ksp.core.ModbusInterfaceMetadataProvider
+site.addzero.device.protocol.modbus.ksp.core.ModbusDatabaseMetadataProvider

@@ -13,7 +13,14 @@ import site.addzero.gradle.kspconsumer.configurePublishedKspConsumer
 abstract class ModbusRtuExtension {
     abstract val codegenModes: ListProperty<String>
     abstract val contractPackages: ListProperty<String>
+    abstract val metadataProviders: ListProperty<String>
     abstract val transports: ListProperty<String>
+    abstract val databaseDriverClass: Property<String>
+    abstract val databaseJdbcUrl: Property<String>
+    abstract val databaseUsername: Property<String>
+    abstract val databasePassword: Property<String>
+    abstract val databaseQuery: Property<String>
+    abstract val databaseJsonColumn: Property<String>
     abstract val cOutputProjectDir: Property<String>
     abstract val bridgeImplPath: Property<String>
     abstract val markdownOutputPath: Property<String>
@@ -39,7 +46,14 @@ abstract class ModbusRtuExtension {
     init {
         codegenModes.convention(listOf("server"))
         contractPackages.convention(emptyList())
+        metadataProviders.convention(emptyList())
         transports.convention(listOf("rtu"))
+        databaseDriverClass.convention("")
+        databaseJdbcUrl.convention("")
+        databaseUsername.convention("")
+        databasePassword.convention("")
+        databaseQuery.convention("")
+        databaseJsonColumn.convention("")
         cOutputProjectDir.convention("")
         bridgeImplPath.convention("")
         markdownOutputPath.convention("")
@@ -93,6 +107,21 @@ configurePublishedKspConsumer(
         modbusRtuExtension.contractPackages.get()
             .takeIf { it.isNotEmpty() }
             ?.let { put("addzero.modbus.contractPackages", it.joinToString(",")) }
+        modbusRtuExtension.metadataProviders.get()
+            .takeIf { it.isNotEmpty() }
+            ?.let { put("addzero.modbus.metadata.providers", it.joinToString(",")) }
+        modbusRtuExtension.databaseDriverClass.orNull?.takeIf(String::isNotBlank)
+            ?.let { put("addzero.modbus.database.driverClass", it) }
+        modbusRtuExtension.databaseJdbcUrl.orNull?.takeIf(String::isNotBlank)
+            ?.let { put("addzero.modbus.database.jdbcUrl", it) }
+        modbusRtuExtension.databaseUsername.orNull?.takeIf(String::isNotBlank)
+            ?.let { put("addzero.modbus.database.username", it) }
+        modbusRtuExtension.databasePassword.orNull?.takeIf(String::isNotBlank)
+            ?.let { put("addzero.modbus.database.password", it) }
+        modbusRtuExtension.databaseQuery.orNull?.takeIf(String::isNotBlank)
+            ?.let { put("addzero.modbus.database.query", it) }
+        modbusRtuExtension.databaseJsonColumn.orNull?.takeIf(String::isNotBlank)
+            ?.let { put("addzero.modbus.database.jsonColumn", it) }
         modbusRtuExtension.cOutputProjectDir.orNull?.takeIf(String::isNotBlank)
             ?.let { put("addzero.modbus.c.output.projectDir", it) }
         modbusRtuExtension.bridgeImplPath.orNull?.takeIf(String::isNotBlank)
