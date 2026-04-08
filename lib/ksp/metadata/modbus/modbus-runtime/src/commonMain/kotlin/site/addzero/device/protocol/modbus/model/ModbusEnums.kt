@@ -16,8 +16,10 @@ enum class ModbusCodec {
     AUTO,
     BOOL_COIL,
     BIT_FLAG,
+    U8,
     U16,
     U32_BE,
+    BYTE_ARRAY,
     STRING_ASCII,
     STRING_UTF8,
 }

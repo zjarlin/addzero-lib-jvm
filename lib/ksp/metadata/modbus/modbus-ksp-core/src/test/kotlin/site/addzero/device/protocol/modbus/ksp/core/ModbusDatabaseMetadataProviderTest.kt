@@ -117,6 +117,91 @@ class ModbusDatabaseMetadataProviderTest {
             assertEquals(16, operation.returnType.properties.last().field?.registerWidth)
         }
     }
+
+    @Test
+    fun collectFromDatabaseSupportsBytesValueKind() {
+        val jdbcUrl = "jdbc:sqlite:file:modbus-ksp-core-bytes-test?mode=memory&cache=shared"
+        DriverManager.getConnection(jdbcUrl).use { connection ->
+            connection.createStatement().use { statement ->
+                statement.execute("create table metadata_store (payload text not null)")
+            }
+            connection.prepareStatement("insert into metadata_store(payload) values (?)").use { statement ->
+                statement.setString(
+                    1,
+                    """
+                    {
+                      "services": [
+                        {
+                          "interfacePackage": "site.addzero.device.contract",
+                          "interfaceSimpleName": "DeviceApi",
+                          "transport": "rtu",
+                          "operations": [
+                            {
+                              "methodName": "getFlashConfig",
+                              "functionCodeName": "READ_HOLDING_REGISTERS",
+                              "address": 200,
+                              "returnType": {
+                                "qualifiedName": "site.addzero.device.contract.FlashConfigRegisters",
+                                "simpleName": "FlashConfigRegisters",
+                                "kind": "DTO",
+                                "properties": [
+                                  {
+                                    "name": "magicWord",
+                                    "qualifiedType": "kotlin.Int",
+                                    "valueKind": "INT",
+                                    "field": {
+                                      "codecName": "U32_BE",
+                                      "registerOffset": 0,
+                                      "length": 1,
+                                      "registerWidth": 2
+                                    }
+                                  },
+                                  {
+                                    "name": "portConfig",
+                                    "qualifiedType": "kotlin.ByteArray",
+                                    "valueKind": "BYTES",
+                                    "field": {
+                                      "codecName": "BYTE_ARRAY",
+                                      "registerOffset": 2,
+                                      "length": 24,
+                                      "registerWidth": 12
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                    """.trimIndent(),
+                )
+                statement.executeUpdate()
+            }
+
+            val services =
+                provider.collectFromDatabase(
+                    options =
+                        ModbusDatabaseMetadataOptions(
+                            driverClass = "org.sqlite.JDBC",
+                            jdbcUrl = jdbcUrl,
+                            username = null,
+                            password = null,
+                            query = "select payload from metadata_store",
+                            jsonColumn = null,
+                        ),
+                    transport = ModbusTransportKind.RTU,
+                    contractPackages = listOf("site.addzero.device.contract"),
+                    logger = testLogger(),
+                )
+
+            assertEquals(1, services.size)
+            val bytesProperty = services.single().model.operations.single().returnType.properties.last()
+            assertEquals(ModbusValueKind.BYTES, bytesProperty.valueKind)
+            assertEquals("BYTE_ARRAY", bytesProperty.field?.codecName)
+            assertEquals(12, bytesProperty.field?.registerWidth)
+        }
+    }
 }
 
 private fun testLogger(): KSPLogger =

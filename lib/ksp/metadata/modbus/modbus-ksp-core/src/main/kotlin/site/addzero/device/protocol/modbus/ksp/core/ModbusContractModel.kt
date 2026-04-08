@@ -150,6 +150,7 @@ data class ModbusDocModel(
 enum class ModbusValueKind {
     BOOLEAN,
     INT,
+    BYTES,
     STRING,
 }
 
@@ -208,6 +209,7 @@ data class ModbusParameterModel(
     val registerOffset: Int,
     val bitOffset: Int,
     val registerWidth: Int,
+    val length: Int = 1,
     val doc: String,
 )
 

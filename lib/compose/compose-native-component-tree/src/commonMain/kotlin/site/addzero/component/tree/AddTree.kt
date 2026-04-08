@@ -83,7 +83,7 @@ fun <T> AddTree(
                     colors = resolvedColors,
                     nodeBadge = nodeBadge,
                     nodeTrailingContent = nodeTrailingContent,
-                    onContextMenu = { viewModel.openNodeContextMenu(node) },
+                    onContextMenu = { viewModel.openNodeContextMenu(item) },
                 )
             }
         }

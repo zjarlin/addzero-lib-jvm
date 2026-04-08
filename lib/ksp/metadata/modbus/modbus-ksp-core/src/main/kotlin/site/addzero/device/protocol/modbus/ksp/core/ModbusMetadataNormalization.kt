@@ -32,6 +32,7 @@ internal fun registerWidth(
     length: Int = 1,
 ): Int =
     when (codecName) {
+        "BYTE_ARRAY" -> (length + 1) / 2
         "U32_BE" -> 2 * length
         else -> length
     }
@@ -83,5 +84,6 @@ internal fun inferCodecName(
             }
 
         ModbusValueKind.INT -> "U16"
+        ModbusValueKind.BYTES -> "BYTE_ARRAY"
         ModbusValueKind.STRING -> "STRING_UTF8"
     }

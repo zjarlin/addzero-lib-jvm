@@ -237,7 +237,8 @@ class ModbusDatabaseMetadataProvider : ModbusMetadataProvider {
             codecName = codecName,
             registerOffset = registerOffset,
             bitOffset = bitOffset,
-            registerWidth = registerWidth ?: 1,
+            length = length,
+            registerWidth = registerWidth ?: registerWidth(codecName, length),
             doc = doc,
         )
 
@@ -360,6 +361,7 @@ internal data class DatabaseParameterPayload(
     val codecName: String = "AUTO",
     val registerOffset: Int = -1,
     val bitOffset: Int = -1,
+    val length: Int = 1,
     val registerWidth: Int? = null,
     val doc: String = "",
 )

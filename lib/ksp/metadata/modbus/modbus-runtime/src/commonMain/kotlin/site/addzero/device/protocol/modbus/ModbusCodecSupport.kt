@@ -5,6 +5,7 @@ import site.addzero.device.protocol.modbus.model.ModbusCodec
 object ModbusCodecSupport {
     fun decodeInt(codec: ModbusCodec, registers: List<Int>, registerOffset: Int): Int =
         when (codec) {
+            ModbusCodec.U8 -> registers.getOrElse(registerOffset) { 0 } and 0xFF
             ModbusCodec.U16 -> registers.getOrElse(registerOffset) { 0 }
             ModbusCodec.U32_BE -> {
                 val hi = registers.getOrElse(registerOffset) { 0 }
@@ -23,6 +24,24 @@ object ModbusCodecSupport {
             }
             else -> error("Current codec does not support Boolean decode: $codec")
         }
+
+    fun decodeByteArray(
+        codec: ModbusCodec,
+        registers: List<Int>,
+        registerOffset: Int,
+        byteLength: Int,
+    ): ByteArray {
+        require(byteLength > 0) { "ByteArray length must be > 0" }
+        require(codec == ModbusCodec.BYTE_ARRAY) { "Current codec does not support ByteArray decode: $codec" }
+        val registerWidth = (byteLength + 1) / 2
+        val bytes = ByteArray(registerWidth * 2)
+        repeat(registerWidth) { index ->
+            val value = registers.getOrElse(registerOffset + index) { 0 }
+            bytes[index * 2] = ((value shr 8) and 0xFF).toByte()
+            bytes[index * 2 + 1] = (value and 0xFF).toByte()
+        }
+        return bytes.copyOf(byteLength)
+    }
 
     fun decodeString(
         codec: ModbusCodec,
@@ -76,11 +95,38 @@ object ModbusCodecSupport {
         }
     }
 
+    fun encodeByteArray(
+        codec: ModbusCodec,
+        value: ByteArray,
+        byteLength: Int,
+    ): List<Int> {
+        require(byteLength > 0) { "ByteArray length must be > 0" }
+        require(codec == ModbusCodec.BYTE_ARRAY) { "Current codec does not support ByteArray encode: $codec" }
+        require(value.size == byteLength) {
+            "Encoded byte array length ${value.size} does not match expected length $byteLength"
+        }
+        val registerWidth = (byteLength + 1) / 2
+        val padded = ByteArray(registerWidth * 2)
+        value.copyInto(padded, endIndex = value.size)
+        return List(registerWidth) { index ->
+            val high = padded[index * 2].toInt() and 0xFF
+            val low = padded[index * 2 + 1].toInt() and 0xFF
+            (high shl 8) or low
+        }
+    }
+
     fun encodeValue(codec: ModbusCodec, value: String): List<Int> =
         when (codec) {
             ModbusCodec.AUTO ->
                 error("AUTO must be resolved during code generation, not at runtime")
             ModbusCodec.BOOL_COIL -> listOf(if (value.toBooleanStrictOrNull() == true) 1 else 0)
+            ModbusCodec.U8 -> {
+                val number = value.toInt()
+                require(number in 0..0xFF) {
+                    "U8 codec expects value in 0..255, actual=$number"
+                }
+                listOf(number)
+            }
             ModbusCodec.U16 -> listOf(value.toInt())
             ModbusCodec.U32_BE -> {
                 val number = value.toLong()
@@ -91,6 +137,7 @@ object ModbusCodecSupport {
                     value.toBooleanStrictOrNull()?.let { booleanValue -> if (booleanValue) 1 else 0 }
                         ?: value.toInt(),
                 )
+            ModbusCodec.BYTE_ARRAY -> error("Use encodeByteArray(codec, value, byteLength) for byte array codecs")
             ModbusCodec.STRING_ASCII,
             ModbusCodec.STRING_UTF8 -> error("Use encodeString(codec, value, registerWidth) for string codecs")
         }

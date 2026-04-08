@@ -331,6 +331,7 @@ class ModbusContractDefaultsResolverTest {
                 when (valueKind) {
                     ModbusValueKind.BOOLEAN -> "kotlin.Boolean"
                     ModbusValueKind.INT -> "kotlin.Int"
+                    ModbusValueKind.BYTES -> "kotlin.ByteArray"
                     ModbusValueKind.STRING -> "kotlin.String"
                 },
             valueKind = valueKind,
@@ -339,6 +340,7 @@ class ModbusContractDefaultsResolverTest {
             registerOffset = registerOffset,
             bitOffset = 0,
             registerWidth = registerWidth,
+            length = if (valueKind == ModbusValueKind.BYTES) registerWidth * 2 else 1,
             doc = "$name 参数",
         )
 
@@ -362,6 +364,7 @@ class ModbusContractDefaultsResolverTest {
                 when (valueKind) {
                     ModbusValueKind.BOOLEAN -> "kotlin.Boolean"
                     ModbusValueKind.INT -> "kotlin.Int"
+                    ModbusValueKind.BYTES -> "kotlin.ByteArray"
                     ModbusValueKind.STRING -> "kotlin.String"
                 },
             valueKind = valueKind,
@@ -370,7 +373,12 @@ class ModbusContractDefaultsResolverTest {
                     codecName = codecName,
                     registerOffset = registerOffset,
                     bitOffset = 0,
-                    length = if (valueKind == ModbusValueKind.STRING) registerWidth else 1,
+                    length =
+                        when (valueKind) {
+                            ModbusValueKind.BYTES -> registerWidth * 2
+                            ModbusValueKind.STRING -> registerWidth
+                            else -> 1
+                        },
                     registerWidth = registerWidth,
                 ),
             doc = "$name 字段",

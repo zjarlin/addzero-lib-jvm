@@ -311,6 +311,7 @@ class ModbusSymbolCollector(
             registerOffset = paramAnnotation.intArg("registerOffset"),
             bitOffset = paramAnnotation.intArg("bitOffset"),
             registerWidth = registerWidth(codecName, paramAnnotation.intArg("length")),
+            length = paramAnnotation.intArg("length"),
             doc = docFallback.ifBlank { "${name?.asString().orEmpty()} 参数。" },
         )
     }
@@ -319,6 +320,7 @@ class ModbusSymbolCollector(
         when (qualifiedType) {
             "kotlin.Boolean" -> ModbusValueKind.BOOLEAN
             "kotlin.Int" -> ModbusValueKind.INT
+            "kotlin.ByteArray" -> ModbusValueKind.BYTES
             "kotlin.String" -> ModbusValueKind.STRING
             else -> null
         }

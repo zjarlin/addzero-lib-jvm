@@ -42,6 +42,18 @@ include(":lib:ksp:route:route-gradle-plugin")
 include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
+// 为宿主配置树交互改造保留最小必要的 Compose 模块集合，便于本地组合编译验证。
+include(":lib:compose:app-sidebar")
+include(":lib:compose:app-sidebar-cupertino-adapter")
+include(":lib:compose:compose-apple-corner")
+include(":lib:compose:compose-cupertino-workbench")
+include(":lib:compose:compose-native-component-button")
+include(":lib:compose:compose-native-component-high-level")
+include(":lib:compose:compose-native-component-searchbar")
+include(":lib:compose:compose-native-component-tree")
+include(":lib:compose:compose-workbench-shell")
+include(":lib:tool-kmp:tool-tree")
+
 //include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin") // excluded by Gradle Buddy
 //include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin") // excluded by Gradle Buddy
 //include(":lib:kcp:kcp-i18n") // excluded by Gradle Buddy
@@ -87,6 +99,8 @@ include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-gradle-plugin
 include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
 include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-codegen-model")
+include(":lib:ksp:metadata:modbus:modbus-codegen-core")
 include(":lib:ksp:metadata:modbus:modbus-ksp-core")
 include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
 include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")

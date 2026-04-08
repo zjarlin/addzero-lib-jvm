@@ -431,10 +431,20 @@ object ModbusModelValidator {
                 }
             }
 
+            "U8",
             "U16",
             "U32_BE" -> {
                 if (valueKind != ModbusValueKind.INT) {
                     errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 $subjectName 使用 $codecName 时必须是 Int。"
+                }
+            }
+
+            "BYTE_ARRAY" -> {
+                if (valueKind != ModbusValueKind.BYTES) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 $subjectName 使用 BYTE_ARRAY 时必须是 ByteArray。"
+                }
+                if (bitOffset !in setOf(-1, 0)) {
+                    errors += "操作 ${service.interfaceQualifiedName}.${operation.methodName} 的 $subjectName 使用 BYTE_ARRAY 时 bitOffset 必须为 0。"
                 }
             }
 

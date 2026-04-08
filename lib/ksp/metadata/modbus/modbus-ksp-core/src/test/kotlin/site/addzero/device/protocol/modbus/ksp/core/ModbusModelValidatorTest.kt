@@ -124,4 +124,13 @@ class ModbusModelValidatorTest {
 
         assertTrue(errors.isEmpty(), errors.joinToString("\n"))
     }
+
+    @Test
+    fun validatorAcceptsRegisterAlignedByteArrayFields() {
+        val service = semanticByteArrayService()
+
+        val errors = ModbusModelValidator.validate(listOf(service))
+
+        assertTrue(errors.isEmpty(), errors.joinToString("\n"))
+    }
 }

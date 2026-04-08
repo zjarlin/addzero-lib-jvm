@@ -240,6 +240,32 @@ class ModbusArtifactRendererTest {
     }
 
     @Test
+    fun renderByteArrayArtifactsUseBinaryPackingOnBothSides() {
+        val service = semanticByteArrayService()
+        val gateway =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(ModbusTransportKind.RTU, listOf(service))
+                .single()
+                .content
+        val contractArtifacts = ModbusArtifactRenderer.renderContractArtifacts(service)
+        val generatedHeader =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "flash_config_generated" && artifact.extensionName == "h" }
+                .content
+        val generatedSource =
+            contractArtifacts
+                .first { artifact -> artifact.fileName == "flash_config_generated" && artifact.extensionName == "c" }
+                .content
+
+        assertTrue(gateway.contains("portConfig = ModbusCodecSupport.decodeByteArray(ModbusCodec.BYTE_ARRAY, registers, 2, 24)"))
+        assertTrue(gateway.contains("ModbusCodecSupport.encodeByteArray(ModbusCodec.BYTE_ARRAY, portConfig, 24)"))
+        assertTrue(generatedHeader.contains("uint8_t port_config[24];"))
+        assertTrue(generatedHeader.contains("uint8_t uart_params[16];"))
+        assertTrue(generatedSource.contains("flash_config_generated_encode_byte_array_registers(response.port_config, 24, out_registers, 2, 12);"))
+        assertTrue(generatedSource.contains("flash_config_generated_decode_byte_array_registers(input_registers, 2, 24, request.port_config, sizeof(request.port_config));"))
+    }
+
+    @Test
     fun codegenModeAcceptsGatewayAlias() {
         assertEquals(setOf(ModbusCodegenMode.SERVER), ModbusCodegenMode.parse("gateway"))
         assertEquals(setOf(ModbusCodegenMode.SERVER), ModbusCodegenMode.parse("client_gateway"))
@@ -833,5 +859,134 @@ internal fun scalarStringService(): ModbusServiceModel =
                         ),
                     doc = ModbusDocModel(summary = "读取设备显示名称。"),
                 )
+            ),
+    )
+
+internal fun semanticByteArrayService(): ModbusServiceModel =
+    ModbusServiceModel(
+        interfacePackage = "site.addzero.device.api.internal",
+        interfaceSimpleName = "FlashConfigApi",
+        interfaceQualifiedName = "site.addzero.device.api.internal.FlashConfigApi",
+        serviceId = "flash-config",
+        summary = "读取和写入 Flash 配置。",
+        basePath = "/api/modbus",
+        transport = ModbusTransportKind.RTU,
+        doc = ModbusDocModel(summary = "Flash 配置业务接口。"),
+        operations =
+            listOf(
+                ModbusOperationModel(
+                    methodName = "getFlashConfig",
+                    operationId = "get-flash-config",
+                    functionCodeName = "READ_HOLDING_REGISTERS",
+                    address = 200,
+                    quantity = 33,
+                    requestClassName = "FlashConfigApiRtuGetFlashConfigRequest",
+                    requestQualifiedName = "site.addzero.generated.FlashConfigApiRtuGetFlashConfigRequest",
+                    parameters = emptyList(),
+                    returnType =
+                        ModbusReturnTypeModel(
+                            qualifiedName = "site.addzero.device.api.internal.FlashConfig",
+                            simpleName = "FlashConfig",
+                            kind = ModbusReturnKind.DTO,
+                            docSummary = "Flash 配置。",
+                            properties =
+                                listOf(
+                                    ModbusPropertyModel(
+                                        name = "magicWord",
+                                        qualifiedType = "kotlin.Int",
+                                        valueKind = ModbusValueKind.INT,
+                                        field = ModbusFieldModel(codecName = "U32_BE", registerOffset = 0, bitOffset = 0, length = 1, registerWidth = 2),
+                                        doc = "魔术字。",
+                                    ),
+                                    ModbusPropertyModel(
+                                        name = "portConfig",
+                                        qualifiedType = "kotlin.ByteArray",
+                                        valueKind = ModbusValueKind.BYTES,
+                                        field = ModbusFieldModel(codecName = "BYTE_ARRAY", registerOffset = 2, bitOffset = 0, length = 24, registerWidth = 12),
+                                        doc = "24 路端口配置。",
+                                    ),
+                                    ModbusPropertyModel(
+                                        name = "uartParams",
+                                        qualifiedType = "kotlin.ByteArray",
+                                        valueKind = ModbusValueKind.BYTES,
+                                        field = ModbusFieldModel(codecName = "BYTE_ARRAY", registerOffset = 14, bitOffset = 0, length = 16, registerWidth = 8),
+                                        doc = "串口参数。",
+                                    ),
+                                    ModbusPropertyModel(
+                                        name = "slaveAddress",
+                                        qualifiedType = "kotlin.Int",
+                                        valueKind = ModbusValueKind.INT,
+                                        field = ModbusFieldModel(codecName = "U8", registerOffset = 22, bitOffset = 0, length = 1, registerWidth = 1),
+                                        doc = "Modbus 从机地址。",
+                                    ),
+                                ),
+                        ),
+                    doc = ModbusDocModel(summary = "读取 Flash 配置。"),
+                ),
+                ModbusOperationModel(
+                    methodName = "writeFlashConfig",
+                    operationId = "write-flash-config",
+                    functionCodeName = "WRITE_MULTIPLE_REGISTERS",
+                    address = 200,
+                    quantity = 33,
+                    requestClassName = "FlashConfigApiRtuWriteFlashConfigRequest",
+                    requestQualifiedName = "site.addzero.generated.FlashConfigApiRtuWriteFlashConfigRequest",
+                    parameters =
+                        listOf(
+                            ModbusParameterModel(
+                                name = "magicWord",
+                                qualifiedType = "kotlin.Int",
+                                valueKind = ModbusValueKind.INT,
+                                order = 0,
+                                codecName = "U32_BE",
+                                registerOffset = 0,
+                                bitOffset = 0,
+                                registerWidth = 2,
+                                doc = "魔术字。",
+                            ),
+                            ModbusParameterModel(
+                                name = "portConfig",
+                                qualifiedType = "kotlin.ByteArray",
+                                valueKind = ModbusValueKind.BYTES,
+                                order = 1,
+                                codecName = "BYTE_ARRAY",
+                                registerOffset = 2,
+                                bitOffset = 0,
+                                registerWidth = 12,
+                                length = 24,
+                                doc = "24 路端口配置。",
+                            ),
+                            ModbusParameterModel(
+                                name = "uartParams",
+                                qualifiedType = "kotlin.ByteArray",
+                                valueKind = ModbusValueKind.BYTES,
+                                order = 2,
+                                codecName = "BYTE_ARRAY",
+                                registerOffset = 14,
+                                bitOffset = 0,
+                                registerWidth = 8,
+                                length = 16,
+                                doc = "串口参数。",
+                            ),
+                            ModbusParameterModel(
+                                name = "slaveAddress",
+                                qualifiedType = "kotlin.Int",
+                                valueKind = ModbusValueKind.INT,
+                                order = 3,
+                                codecName = "U8",
+                                registerOffset = 22,
+                                bitOffset = 0,
+                                registerWidth = 1,
+                                doc = "Modbus 从机地址。",
+                            ),
+                        ),
+                    returnType =
+                        ModbusReturnTypeModel(
+                            qualifiedName = "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+                            simpleName = "ModbusCommandResult",
+                            kind = ModbusReturnKind.COMMAND_RESULT,
+                        ),
+                    doc = ModbusDocModel(summary = "写入 Flash 配置。"),
+                ),
             ),
     )

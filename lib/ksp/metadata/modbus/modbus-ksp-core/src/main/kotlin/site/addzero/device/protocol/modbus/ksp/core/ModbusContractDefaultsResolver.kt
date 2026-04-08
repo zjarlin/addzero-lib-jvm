@@ -189,6 +189,8 @@ internal object ModbusContractDefaultsResolver {
                     append(parameter.registerOffset)
                     append(':')
                     append(parameter.registerWidth)
+                    append(':')
+                    append(parameter.length)
                     append(';')
                 }
             append("]#return[")
@@ -206,6 +208,8 @@ internal object ModbusContractDefaultsResolver {
                 append(property.field?.registerOffset ?: -1)
                 append(':')
                 append(property.field?.registerWidth ?: 0)
+                append(':')
+                append(property.field?.length ?: 0)
                 append(';')
             }
             append(']')

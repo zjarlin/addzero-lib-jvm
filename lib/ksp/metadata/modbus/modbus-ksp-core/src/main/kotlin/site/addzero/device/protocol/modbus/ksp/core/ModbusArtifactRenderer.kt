@@ -1560,6 +1560,58 @@ object ModbusArtifactTemplates {
         buildString {
             appendLine("#include \"${service.cServiceName}/${service.cServiceName}_generated.h\"")
             appendLine("#include \"${service.cServiceName}/${service.cServiceName}_bridge.h\"")
+            if (service.usesByteArrayRegisters()) {
+                appendLine()
+                appendLine("static void ${service.cServiceName}_generated_encode_byte_array_registers(")
+                appendLine("    const uint8_t *input,")
+                appendLine("    size_t byte_length,")
+                appendLine("    uint16_t *out_registers,")
+                appendLine("    size_t register_offset,")
+                appendLine("    size_t register_width")
+                appendLine(") {")
+                appendLine("    if (out_registers == NULL) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    for (size_t register_index = 0; register_index < register_width; ++register_index) {")
+                appendLine("        out_registers[register_offset + register_index] = 0u;")
+                appendLine("    }")
+                appendLine("    if (input == NULL) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    for (size_t byte_index = 0; byte_index < byte_length; ++byte_index) {")
+                appendLine("        const size_t target_register = register_offset + (byte_index / 2u);")
+                appendLine("        const uint16_t value = (uint16_t)input[byte_index];")
+                appendLine("        if ((byte_index % 2u) == 0u) {")
+                appendLine("            out_registers[target_register] = (uint16_t)(value << 8);")
+                appendLine("        } else {")
+                appendLine("            out_registers[target_register] |= value;")
+                appendLine("        }")
+                appendLine("    }")
+                appendLine("}")
+                appendLine()
+                appendLine("static void ${service.cServiceName}_generated_decode_byte_array_registers(")
+                appendLine("    const uint16_t *input_registers,")
+                appendLine("    size_t register_offset,")
+                appendLine("    size_t byte_length,")
+                appendLine("    uint8_t *out_bytes,")
+                appendLine("    size_t out_capacity")
+                appendLine(") {")
+                appendLine("    if (out_bytes == NULL || out_capacity < byte_length) {")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    if (input_registers == NULL) {")
+                appendLine("        for (size_t index = 0; index < byte_length; ++index) {")
+                appendLine("            out_bytes[index] = 0u;")
+                appendLine("        }")
+                appendLine("        return;")
+                appendLine("    }")
+                appendLine("    for (size_t byte_index = 0; byte_index < byte_length; ++byte_index) {")
+                appendLine("        const uint16_t raw = input_registers[register_offset + (byte_index / 2u)];")
+                appendLine("        out_bytes[byte_index] =")
+                appendLine("            ((byte_index % 2u) == 0u) ? (uint8_t)((raw >> 8) & 0xFFu) : (uint8_t)(raw & 0xFFu);")
+                appendLine("    }")
+                appendLine("}")
+            }
             if (service.usesStringRegisters()) {
                 appendLine()
                 appendLine("static void ${service.cServiceName}_generated_encode_string_registers(")
@@ -2010,6 +2062,10 @@ object ModbusArtifactTemplates {
                                             }
                                         }
 
+                                        ModbusValueKind.BYTES -> {
+                                            add("${service.cServiceName}_generated_encode_byte_array_registers(response.${property.name.toSnakeCase()}, ${property.byteArrayLength()}, out_registers, ${field.registerOffset}, ${field.registerWidth});")
+                                        }
+
                                         ModbusValueKind.STRING -> {
                                             add("${service.cServiceName}_generated_encode_string_registers(response.${property.name.toSnakeCase()}, out_registers, ${field.registerOffset}, ${field.registerWidth});")
                                         }
@@ -2097,8 +2153,16 @@ object ModbusArtifactTemplates {
                             add("request.${parameter.name.toSnakeCase()} = (int)(((uint32_t)input_registers[${parameter.registerOffset}] << 16) | input_registers[${parameter.registerOffset + 1}]);")
                         }
 
+                        parameter.valueKind == ModbusValueKind.INT && parameter.codecName == "U8" -> {
+                            add("request.${parameter.name.toSnakeCase()} = (int32_t)(input_registers[${parameter.registerOffset}] & 0x00FFu);")
+                        }
+
                         parameter.valueKind == ModbusValueKind.STRING -> {
                             add("${service.cServiceName}_generated_decode_string_registers(input_registers, ${parameter.registerOffset}, ${parameter.registerWidth}, request.${parameter.name.toSnakeCase()}, sizeof(request.${parameter.name.toSnakeCase()}));")
+                        }
+
+                        parameter.valueKind == ModbusValueKind.BYTES -> {
+                            add("${service.cServiceName}_generated_decode_byte_array_registers(input_registers, ${parameter.registerOffset}, ${parameter.length}, request.${parameter.name.toSnakeCase()}, sizeof(request.${parameter.name.toSnakeCase()}));")
                         }
 
                         else -> {
@@ -2287,6 +2351,7 @@ object ModbusArtifactTemplates {
         when (valueKind) {
             ModbusValueKind.BOOLEAN -> "bool"
             ModbusValueKind.INT -> "int32_t"
+            ModbusValueKind.BYTES -> "uint8_t"
             ModbusValueKind.STRING -> "char"
         }
 
@@ -2294,6 +2359,7 @@ object ModbusArtifactTemplates {
         when (valueKind) {
             ModbusValueKind.BOOLEAN -> "bool"
             ModbusValueKind.INT -> "int32_t"
+            ModbusValueKind.BYTES -> "uint8_t"
             ModbusValueKind.STRING -> "char"
         }
 
@@ -2329,6 +2395,9 @@ object ModbusArtifactTemplates {
             ModbusValueKind.INT ->
                 "ModbusCodecSupport.decodeInt(ModbusCodec.${fieldModel.codecName}, registers, ${fieldModel.registerOffset})"
 
+            ModbusValueKind.BYTES ->
+                "ModbusCodecSupport.decodeByteArray(ModbusCodec.${fieldModel.codecName}, registers, ${fieldModel.registerOffset}, ${fieldModel.length})"
+
             ModbusValueKind.STRING ->
                 "ModbusCodecSupport.decodeString(ModbusCodec.${fieldModel.codecName}, registers, ${fieldModel.registerOffset}, ${fieldModel.registerWidth})"
         }
@@ -2338,6 +2407,7 @@ object ModbusArtifactTemplates {
         when (qualifiedType) {
             "kotlin.Boolean" -> "Boolean"
             "kotlin.Int" -> "Int"
+            "kotlin.ByteArray" -> "ByteArray"
             "kotlin.String" -> "String"
             else -> qualifiedType
         }
@@ -2379,6 +2449,7 @@ object ModbusArtifactTemplates {
         when (qualifiedType) {
             "kotlin.Boolean" -> "Boolean"
             "kotlin.Int" -> "Int"
+            "kotlin.ByteArray" -> "ByteArray"
             "kotlin.String" -> "String"
             else -> qualifiedType
         }
@@ -2395,30 +2466,35 @@ object ModbusArtifactTemplates {
 
     private fun ModbusParameterModel.renderRegisterPackExpression(): String =
         when (valueKind) {
+            ModbusValueKind.BYTES -> "ModbusCodecSupport.encodeByteArray(ModbusCodec.${codecName}, ${name}, ${length})"
             ModbusValueKind.STRING -> "ModbusCodecSupport.encodeString(ModbusCodec.${codecName}, ${name}, ${registerWidth})"
             else -> "ModbusCodecSupport.encodeValue(ModbusCodec.${codecName}, ${name}.toString())"
         }
 
     private fun ModbusParameterModel.cMemberDeclaration(): String =
         when (valueKind) {
+            ModbusValueKind.BYTES -> "uint8_t ${name.toSnakeCase()}[${byteArrayLength()}];"
             ModbusValueKind.STRING -> "char ${name.toSnakeCase()}[${stringCharCapacity()}];"
             else -> "${cType()} ${name.toSnakeCase()};"
         }
 
     private fun ModbusPropertyModel.cMemberDeclaration(): String =
         when (valueKind) {
+            ModbusValueKind.BYTES -> "uint8_t ${name.toSnakeCase()}[${byteArrayLength()}];"
             ModbusValueKind.STRING -> "char ${name.toSnakeCase()}[${stringCharCapacity()}];"
             else -> "${cType()} ${name.toSnakeCase()};"
         }
 
     private fun ModbusParameterModel.cFieldComment(): String =
         when (valueKind) {
+            ModbusValueKind.BYTES -> "${doc} codec=$codecName registers=$registerWidth byteLength=${byteArrayLength()}。"
             ModbusValueKind.STRING -> "${doc} codec=$codecName registers=$registerWidth charCapacity=${stringCharCapacity()}。"
             else -> doc
         }
 
     private fun ModbusPropertyModel.cFieldComment(): String =
         when (valueKind) {
+            ModbusValueKind.BYTES -> "${doc} codec=${field?.codecName.orEmpty()} registers=${field?.registerWidth ?: 0} byteLength=${byteArrayLength()}。"
             ModbusValueKind.STRING -> "${doc} codec=${field?.codecName.orEmpty()} registers=${field?.registerWidth ?: 0} charCapacity=${stringCharCapacity()}。"
             else -> doc
         }
@@ -2428,6 +2504,13 @@ object ModbusArtifactTemplates {
         bridgeCopyHelperName: String,
     ): List<String> =
         when (valueKind) {
+            ModbusValueKind.BYTES ->
+                listOf(
+                    "/* ${name.toSnakeCase()} 字节数组：codec=${field?.codecName.orEmpty()}，寄存器宽度=${field?.registerWidth ?: 0}，固定 ${byteArrayLength()} 字节。 */",
+                    "for (size_t index = 0; index < sizeof(${prefix}${name.toSnakeCase()}); ++index) {",
+                    "    ${prefix}${name.toSnakeCase()}[index] = 0u;",
+                    "}",
+                )
             ModbusValueKind.STRING ->
                 listOf(
                     "/* ${name.toSnakeCase()} 字符串：codec=${field?.codecName.orEmpty()}，寄存器宽度=${field?.registerWidth ?: 0}，最多 ${stringByteCapacity()} 个字节，缓冲区容量 ${stringCharCapacity()}（含 '\\0'）。 */",
@@ -2442,6 +2525,10 @@ object ModbusArtifactTemplates {
     private fun ModbusParameterModel.stringCharCapacity(): Int = (registerWidth * 2) + 1
 
     private fun ModbusPropertyModel.stringCharCapacity(): Int = ((field?.registerWidth ?: 0) * 2) + 1
+
+    private fun ModbusParameterModel.byteArrayLength(): Int = length
+
+    private fun ModbusPropertyModel.byteArrayLength(): Int = field?.length ?: 0
 
     private fun ModbusPropertyModel.stringByteCapacity(): Int = (field?.registerWidth ?: 0) * 2
 
@@ -2474,6 +2561,12 @@ object ModbusArtifactTemplates {
             operation.parameters.any { parameter -> parameter.valueKind == ModbusValueKind.STRING } ||
                 operation.returnType.kind == ModbusReturnKind.STRING ||
                 operation.returnType.properties.any { property -> property.valueKind == ModbusValueKind.STRING }
+        }
+
+    private fun ModbusServiceModel.usesByteArrayRegisters(): Boolean =
+        operations.any { operation ->
+            operation.parameters.any { parameter -> parameter.valueKind == ModbusValueKind.BYTES } ||
+                operation.returnType.properties.any { property -> property.valueKind == ModbusValueKind.BYTES }
         }
 
     private fun ModbusReturnTypeModel.stringCharCapacity(): Int = (registerWidth * 2) + 1
