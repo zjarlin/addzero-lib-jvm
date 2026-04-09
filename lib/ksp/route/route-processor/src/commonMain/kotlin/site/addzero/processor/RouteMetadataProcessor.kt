@@ -76,9 +76,13 @@ class RouteMetadataProcessor(
     private val collectedRoutes = linkedSetOf<RouteRecord>()
     private val moduleSourceRoots = linkedSetOf<String>()
 
-    override fun process(resolver: Resolver): List<KSAnnotated> {
+    init {
+        // Owner modules may aggregate snapshots without declaring local @Route symbols,
+        // so options must be loaded before KSP decides whether process() is invoked.
         Settings.fromOptions(options)
+    }
 
+    override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(Route::class.qualifiedName!!)
             .toList()
         if (symbols.isEmpty()) {
@@ -115,6 +119,7 @@ class RouteMetadataProcessor(
     }
 
     override fun finish() {
+        Settings.fromOptions(options)
         aggregateAndGenerateRoutes(
             deprecatedSharedSourceDir = Settings.sharedSourceDir,
             routeGenPkg = Settings.routeGenPkg,

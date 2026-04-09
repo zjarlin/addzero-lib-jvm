@@ -38,6 +38,7 @@ fun <T> WorkbenchTreeSidebar(
   onNodeClick: (T) -> Unit,
   onNodeContextMenu: (T) -> Unit = {},
   modifier: Modifier = Modifier,
+  selectableLabel: Boolean = false,
   searchEnabled: Boolean = true,
   searchPlaceholder: String = "搜索页面",
   metrics: WorkbenchMetrics = currentWorkbenchMetrics(),
@@ -155,7 +156,7 @@ fun <T> WorkbenchTreeSidebar(
               modifier = Modifier.fillMaxSize(),
               metrics = treeMetrics,
               colors = treeColors,
-              selectableLabel = true,
+              selectableLabel = selectableLabel,
               nodeTrailingContent = nodeTrailingContent,
             )
           }
