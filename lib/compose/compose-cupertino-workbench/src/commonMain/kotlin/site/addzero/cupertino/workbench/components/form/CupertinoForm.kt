@@ -21,6 +21,7 @@ import io.github.robinpcrd.cupertino.CupertinoSurface
 import io.github.robinpcrd.cupertino.CupertinoText
 import io.github.robinpcrd.cupertino.ExperimentalCupertinoApi
 import io.github.robinpcrd.cupertino.theme.CupertinoTheme
+import kotlin.text.isNotBlank
 
 enum class CupertinoFormSpan {
   HALF,
