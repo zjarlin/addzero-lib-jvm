@@ -263,6 +263,37 @@ class RouteMetadataAggregatorJvmTest {
     }
 
     @Test
+    fun ownerBuildGeneratedSourceDirStillUsesModuleBuildSnapshotRoot() {
+        val tempRoot = Files.createTempDirectory("route-processor-build-owner")
+        val ownerSourceDir = tempRoot
+            .resolve("owner/build/generated/source/route/commonMain/kotlin")
+            .createDirectories()
+        val expectedSnapshot = tempRoot
+            .resolve("owner/build/addzero/route-processor/site/addzero/generated/snapshots/owner-shell.route-snapshot")
+
+        aggregateAndGenerateRoutes(
+            deprecatedSharedSourceDir = "",
+            routeGenPkg = "site.addzero.generated",
+            routeOwnerModuleDir = ownerSourceDir.toString(),
+            aggregationRole = RouteAggregationRole.OWNER,
+            moduleKeyHint = "owner-shell",
+            moduleSourceRoots = emptyList(),
+            routeItems = listOf(
+                routeRecord(
+                    title = "Build Owner",
+                    routePath = "build/owner",
+                    qualifiedName = "sample.BuildOwnerScreen",
+                    simpleName = "BuildOwnerScreen",
+                ),
+            ),
+            logger = TestKspLogger(),
+        )
+
+        kotlin.test.assertTrue(Files.exists(expectedSnapshot))
+        kotlin.test.assertTrue(Files.exists(ownerSourceDir.resolve("site/addzero/generated/RouteKeys.kt")))
+    }
+
+    @Test
     fun validateMergedRoutesRejectsSceneMetadataMismatch() {
         val logger = TestKspLogger()
 

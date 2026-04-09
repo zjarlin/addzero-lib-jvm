@@ -85,6 +85,33 @@ class ControllerApiProcessorTest {
     }
 
     @Test
+    fun `render api client bridge binds generated apis with explicit ktorfit injection`() {
+        val code = renderApiClientBridgeCode(
+            bridgePackageName = "demo.external",
+            bridgeModuleClassName = "CodegenContextApiClients",
+            generatedApiPackageName = "demo.external.generated",
+            generatedApis = listOf(
+                GeneratedApiDescriptor("UserApi", "userApi"),
+                GeneratedApiDescriptor("SystemRoutesApi", "systemRoutesApi"),
+            ),
+        )
+
+        assertContains(code, "package demo.external")
+        assertContains(code, "import de.jensklingenberg.ktorfit.Ktorfit")
+        assertContains(code, "import org.koin.core.annotation.Configuration")
+        assertContains(code, "import org.koin.core.annotation.Module")
+        assertContains(code, "import org.koin.core.annotation.Single")
+        assertContains(code, "import demo.external.generated.UserApi")
+        assertContains(code, "@Module")
+        assertContains(code, "@Configuration")
+        assertContains(code, "public class CodegenContextApiClients")
+        assertContains(code, "public fun userApi(ktorfit: Ktorfit): UserApi")
+        assertContains(code, "return ktorfit.create()")
+        assertContains(code, "public fun systemRoutesApi(ktorfit: Ktorfit): SystemRoutesApi")
+        assertContains(code, "return ktorfit.create()")
+    }
+
+    @Test
     fun `rendered api aggregator files can be written into configured output dir`() {
         val tempDir = Files.createTempDirectory("controller2api-provider-test")
         val generatedFiles = buildApiAggregatorFiles(
@@ -152,6 +179,24 @@ class ControllerApiProcessorTest {
 
         val writtenCode = outputFile.readText()
         assertContains(writtenCode, "fun configure(ktorfit: Ktorfit)")
+    }
+
+    @Test
+    fun `rendered api client bridge file can be written into configured output dir`() {
+        val tempDir = Files.createTempDirectory("controller2api-client-bridge-test")
+        val outputFile = tempDir.resolve("CodegenContextApiClients.kt")
+        outputFile.writeText(
+            renderApiClientBridgeCode(
+                bridgePackageName = "demo.external",
+                bridgeModuleClassName = "CodegenContextApiClients",
+                generatedApiPackageName = "demo.external.generated",
+                generatedApis = listOf(GeneratedApiDescriptor("CodegenContextApi", "codegenContextApi")),
+            )
+        )
+
+        val writtenCode = outputFile.readText()
+        assertContains(writtenCode, "public class CodegenContextApiClients")
+        assertContains(writtenCode, "return ktorfit.create()")
     }
 
     @Test

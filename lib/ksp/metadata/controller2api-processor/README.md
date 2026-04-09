@@ -38,3 +38,14 @@ ksp {
 - `apiClientAggregatorStyle`
 - `apiClientAggregatorOutputDir`
 - `apiClientOutputDir`
+- `apiClientBridgePackageName`
+- `apiClientBridgeOutputDir`
+- `apiClientBridgeFileName`
+
+When the three `apiClientBridge*` options are provided together, the processor generates a single public bridge entry file that contains:
+
+- `@Module`
+- `@Configuration`
+- `@Single` provider methods with explicit `Ktorfit` parameters
+
+The bridge file replaces legacy `ApisModule.kt` style output for that module and is intended to be wired into the consumer source set explicitly.

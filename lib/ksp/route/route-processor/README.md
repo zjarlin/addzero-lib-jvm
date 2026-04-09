@@ -5,7 +5,7 @@
 - contributor 模块：只写当前模块 snapshot，不直接产出最终 `RouteKeys.kt` / `RouteTable.kt`
 - owner 模块：读取全部 snapshot，统一生成最终 `RouteKeys.kt` 与 `RouteTable.kt`
 
-当前推荐把最终生成产物都落到 owner 模块源码目录，避免再把聚合结果写进共享模块，导致主应用与插件模块的职责边界不清。
+当前推荐把最终生成产物都落到 owner 模块自己的编译源码根目录，既可以是 `src/**` 下的源码目录，也可以是 `build/generated/**` 下的生成源码目录；不要再把聚合结果写进共享模块，导致主应用与插件模块的职责边界不清。
 
 ## Route 元数据模型
 
@@ -53,7 +53,7 @@
 跨模块 snapshot 保存在：
 
 ```text
-<routeOwnerModule>/../build/addzero/route-processor/<routeGenPkg as path>/snapshots
+<owner-module-root>/build/addzero/route-processor/<routeGenPkg as path>/snapshots
 ```
 
 推荐显式传 `routeModuleKey` 作为 snapshot key。未传时，处理器会退回到基于 source roots 推导的模块 key。
@@ -62,7 +62,7 @@
 
 - owner 模块会把 `RouteKeys.kt` 与 `RouteTable.kt` 都生成到 `routeOwnerModule`
 - contributor 模块不会生成最终路由文件，只会更新自己的 snapshot
-- `routeOwnerModule` 必须是绝对源码目录
+- `routeOwnerModule` 必须是绝对编译源码根目录，可以是 `src/**` 或 `build/generated/**`
 
 如果 `routeOwnerModule` 为空，或不是绝对路径，处理器会跳过最终聚合，只保留 snapshot 更新。
 
@@ -79,7 +79,7 @@
 
 所有参与同一套路由聚合的模块都应该传相同值。
 
-- 含义：owner 模块源码目录绝对路径
+- 含义：owner 模块编译源码根目录绝对路径
 - 用于：保存 snapshot 根目录，并在 owner 模块生成最终 `RouteKeys.kt` / `RouteTable.kt`
 - 不是：Gradle 的 `project.path`
 

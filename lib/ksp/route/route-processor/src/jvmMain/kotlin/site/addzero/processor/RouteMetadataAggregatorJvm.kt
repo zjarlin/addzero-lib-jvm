@@ -239,8 +239,7 @@ private fun resolveAggregateRoot(
 ): File {
     val ownerSourcePath = File(routeOwnerModuleDir).absoluteFile
         .invariantSeparatorsPath
-    val moduleRoot = ownerSourcePath.substringBefore("/src/")
-        .takeIf { it != ownerSourcePath && it.isNotBlank() }
+    val moduleRoot = extractModuleRoot(ownerSourcePath)
         ?: File(routeOwnerModuleDir).absoluteFile
             .parentFile
             ?.parentFile
@@ -251,6 +250,16 @@ private fun resolveAggregateRoot(
         moduleRoot,
         "build/addzero/route-processor/${routeGenPkg.replace(".", "/")}"
     )
+}
+
+private fun extractModuleRoot(ownerSourcePath: String): String? {
+    return listOf("/src/", "/build/")
+        .mapNotNull { marker ->
+            ownerSourcePath.indexOf(marker)
+                .takeIf { it >= 0 }
+                ?.let { markerIndex -> ownerSourcePath.substring(0, markerIndex) }
+        }
+        .firstOrNull { candidate -> candidate.isNotBlank() }
 }
 
 private fun normalizeRouteOwnerModuleDir(
@@ -264,7 +273,7 @@ private fun normalizeRouteOwnerModuleDir(
     }
 
     if (!File(normalized).isAbsolute) {
-        logger.warn("routeOwnerModule 必须是绝对源码目录，当前值=$normalized，已跳过 RouteTable 生成")
+        logger.warn("routeOwnerModule 必须是绝对源码根目录或生成源码目录，当前值=$normalized，已跳过 RouteTable 生成")
         return null
     }
 

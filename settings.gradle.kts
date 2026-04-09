@@ -1,18 +1,14 @@
-//pluginManagement {
-//  repositories {
-//    mavenLocal()
-//    gradlePluginPortal()
-//    mavenCentral()
-//    google()
-//  }
-//  plugins {
-//    id("site.addzero.kcp.all-object-jvm-static") version "+"
-//    id("site.addzero.kcp.i18n") version "+"
-//    id("site.addzero.kcp.multireceiver") version "+"
-//    id("site.addzero.kcp.transform-overload") version "+"
-//    id("site.addzero.kcp.spread-pack") version "+"
-//  }
-//}
+pluginManagement {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+  }
+  if (file("checkouts/build-logic/settings.gradle.kts").isFile) {
+    includeBuild("checkouts/build-logic")
+  }
+}
 
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -38,6 +34,7 @@ include(":lib:compose:scaffold-spi")
 include(":lib:compose:shadcn-compose-component")
 include(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base")
 include(":lib:ksp:metadata:controller2api-processor")
+include(":lib:ksp:metadata:controller2api-smoke")
 include(":lib:ksp:route:route-gradle-plugin")
 include(":lib:tool-kmp:network-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
@@ -113,5 +110,7 @@ include(":lib:ksp:metadata:modbus:modbus-ksp-mqtt")
 include(":lib:ksp:metadata:multireceiver-gradle-plugin")
 include(":lib:ksp:metadata:singleton-adapter-gradle-plugin")
 include(":lib:ksp:metadata:spring2ktor-server-gradle-plugin")
+include(":lib:tool-jvm:database:tool-sql-executor")
+include(":lib:tool-jvm:tool-jvmstr")
 include(":lib:tool-jvm:tool-serial")
 include(":lib:tool-jvm:tool-modbus")

@@ -4,6 +4,9 @@ plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp")
     alias(libs.plugins.site.addzero.gradle.plugin.processor.buddy)
 }
+
+//version = "2026.04.10"
+
 val libs = versionCatalogs.named("libs")
 val defaultApiClientPackageName = "site.addzero.generated.api.generated"
 val defaultGeneratedSourceDir = rootDir.resolve("build/generated/source/controller2api/commonMain/kotlin")
@@ -13,14 +16,15 @@ processorBuddy {
     mustMap.set(
         mapOf(
             "apiClientPackageName" to defaultApiClientPackageName,
-            "apiClientAggregatorObjectName" to "Apis",
-            "apiClientAggregatorStyle" to "koin",
-            "apiClientAggregatorOutputDir" to defaultGeneratedSourceDir
-                .resolve(defaultApiClientPackageName.replace(".", "/"))
-                .absolutePath.replace('\\', '/'),
+            "apiClientAggregatorObjectName" to "",
+            "apiClientAggregatorStyle" to "",
+            "apiClientAggregatorOutputDir" to "",
             "apiClientOutputDir" to defaultGeneratedSourceDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
                 .absolutePath.replace('\\', '/'),
+            "apiClientBridgePackageName" to "",
+            "apiClientBridgeOutputDir" to "",
+            "apiClientBridgeFileName" to "",
         )
     )
 }

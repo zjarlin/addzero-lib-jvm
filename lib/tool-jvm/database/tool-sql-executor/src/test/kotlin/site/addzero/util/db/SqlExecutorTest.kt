@@ -1,5 +1,6 @@
 package site.addzero.util.db
 
+import org.h2.jdbcx.JdbcDataSource
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -262,6 +263,72 @@ class SqlExecutorTest {
 
             val rows = executor.queryForList("SELECT id, label FROM tx_demo")
             assertTrue(rows.isEmpty())
+        }
+    }
+
+    @Test
+    fun `test DataSource executor helpers`() {
+        val dataSource = JdbcDataSource().apply {
+            setURL("jdbc:h2:mem:test-datasource;DB_CLOSE_DELAY=-1")
+            user = "sa"
+            password = ""
+        }
+
+        SqlExecutor(dataSource).use { executor ->
+            executor.execute(
+                """
+                CREATE TABLE items (
+                    id BIGINT PRIMARY KEY,
+                    sort_index INT NOT NULL,
+                    updated_at BIGINT NOT NULL
+                )
+                """.trimIndent(),
+            )
+            executor.batchUpdate(
+                "INSERT INTO items (id, sort_index, updated_at) VALUES (?, ?, ?)",
+                listOf(
+                    listOf(1L, 99, 0L),
+                    listOf(2L, 99, 0L),
+                    listOf(3L, 99, 0L),
+                ),
+            )
+
+            assertEquals(3L, executor.queryCount("SELECT COUNT(1) FROM items"))
+            assertEquals(listOf(1L, 2L, 3L), executor.queryIds("SELECT id FROM items ORDER BY id"))
+            assertThrows<IllegalStateException> {
+                executor.withTransaction {
+                    executor.executeUpdate(
+                        "UPDATE items SET updated_at = ? WHERE id = ?",
+                        7L,
+                        1L,
+                    )
+                    error("rollback")
+                }
+            }
+            assertEquals(
+                0L,
+                executor.queryForList("SELECT updated_at FROM items WHERE id = 1")
+                    .first()["UPDATED_AT"]
+                    .let { it as Number }
+                    .toLong(),
+            )
+
+            val updatedAt = 123456789L
+            executor.batchUpdate(
+                "UPDATE items SET sort_index = ?, updated_at = ? WHERE id = ?",
+                listOf(
+                    listOf(0, updatedAt, 3L),
+                    listOf(1, updatedAt, 1L),
+                    listOf(2, updatedAt, 2L),
+                ),
+            )
+
+            val rows = executor.queryForList(
+                "SELECT id, sort_index, updated_at FROM items ORDER BY sort_index ASC",
+            )
+            assertEquals(listOf(3L, 1L, 2L), rows.map { (it["ID"] as Number).toLong() })
+            assertEquals(listOf(0, 1, 2), rows.map { (it["SORT_INDEX"] as Number).toInt() })
+            assertTrue(rows.all { (it["UPDATED_AT"] as Number).toLong() == updatedAt })
         }
     }
 }

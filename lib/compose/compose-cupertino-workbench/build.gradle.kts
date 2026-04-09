@@ -1,7 +1,3 @@
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
-
 plugins {
   id("site.addzero.buildlogic.kmp.cmp-lib")
 }
@@ -21,5 +17,3 @@ kotlin {
 
   }
 }
-
-version = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))

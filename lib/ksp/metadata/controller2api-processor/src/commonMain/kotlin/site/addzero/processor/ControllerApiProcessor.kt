@@ -625,15 +625,34 @@ class ControllerApiProcessor(
      * 生成聚合后的 API 对象。
      */
     private fun generateApiAggregator(metadataList: List<ControllerMetadata>) {
-        val aggregatorStyle = parseApiAggregatorStyle(Settings.apiClientAggregatorStyle)
         val generatedApis = metadataList
             .map(::toGeneratedApiDescriptor)
             .distinctBy { it.apiClassName }
             .sortedBy { it.propertyName }
+        val bridgeSpec = resolveApiClientBridgeSpec()
+        if (bridgeSpec == null && !isApiAggregatorExplicitlyEnabled()) {
+            logger.info("未显式配置 API 聚合器或源码级桥接，跳过聚合生成")
+            return
+        }
+        val aggregatorObjectName = resolveApiAggregatorObjectName()
+
+        if (bridgeSpec != null) {
+            cleanupApiAggregatorFiles(
+                outputDirFile = File(resolveApiAggregatorOutputDir()),
+                aggregatorObjectName = aggregatorObjectName,
+            )
+            generateApiClientBridge(
+                bridgeSpec = bridgeSpec,
+                generatedApis = generatedApis,
+            )
+            return
+        }
+
+        val aggregatorStyle = parseApiAggregatorStyle(Settings.apiClientAggregatorStyle)
         val outputDirFile = File(resolveApiAggregatorOutputDir())
         val generatedFiles = buildApiAggregatorFiles(
             packageName = Settings.apiClientPackageName,
-            aggregatorObjectName = Settings.apiClientAggregatorObjectName,
+            aggregatorObjectName = aggregatorObjectName,
             aggregatorStyle = aggregatorStyle,
             generatedApis = generatedApis,
         )
@@ -643,11 +662,11 @@ class ControllerApiProcessor(
         }
         cleanupApiAggregatorFiles(
             outputDirFile = outputDirFile,
-            aggregatorObjectName = Settings.apiClientAggregatorObjectName,
+            aggregatorObjectName = aggregatorObjectName,
         )
 
         if (generatedApis.isEmpty()) {
-            logger.info("没有生成任何 Ktorfit 接口，跳过 ${Settings.apiClientAggregatorObjectName} 生成")
+            logger.info("没有生成任何 Ktorfit 接口，跳过 $aggregatorObjectName 生成")
             return
         }
 
@@ -658,7 +677,7 @@ class ControllerApiProcessor(
                 logger.info("Generated ${generatedFile.fileName}: ${outputFile.absolutePath}")
             }
         } catch (e: Exception) {
-            logger.error("Failed to generate ${Settings.apiClientAggregatorObjectName} via file IO: ${e.message}")
+            logger.error("Failed to generate $aggregatorObjectName via file IO: ${e.message}")
             fallbackApiAggregatorToCodeGenerator(
                 generatedFiles = generatedFiles,
             )
@@ -692,6 +711,18 @@ class ControllerApiProcessor(
             ?: Settings.apiClientOutputDir
     }
 
+    private fun resolveApiAggregatorObjectName(): String {
+        return Settings.apiClientAggregatorObjectName
+            .takeIf { it.isNotBlank() }
+            ?: "Apis"
+    }
+
+    private fun isApiAggregatorExplicitlyEnabled(): Boolean {
+        return Settings.apiClientAggregatorObjectName.isNotBlank() ||
+            Settings.apiClientAggregatorStyle.isNotBlank() ||
+            Settings.apiClientAggregatorOutputDir.isNotBlank()
+    }
+
     /**
      * 回退方案：将 API 聚合对象生成到 build 目录。
      */
@@ -713,8 +744,56 @@ class ControllerApiProcessor(
                 )
             }
         } catch (e: Exception) {
-            logger.error("Fallback ${Settings.apiClientAggregatorObjectName} generation also failed: ${e.message}")
+            logger.error("Fallback ${resolveApiAggregatorObjectName()} generation also failed: ${e.message}")
         }
+    }
+
+    /**
+     * 生成源码级 API client 桥接文件。
+     */
+    private fun generateApiClientBridge(
+        bridgeSpec: ApiClientBridgeSpec,
+        generatedApis: List<GeneratedApiDescriptor>,
+    ) {
+        val outputDirFile = File(bridgeSpec.outputDir)
+        if (!outputDirFile.exists()) {
+            outputDirFile.mkdirs()
+        }
+
+        val outputFile = File(outputDirFile, bridgeSpec.fileName.ensureKtSuffix())
+        if (generatedApis.isEmpty()) {
+            if (outputFile.exists()) {
+                outputFile.delete()
+            }
+            logger.info("没有生成任何 Ktorfit 接口，删除源码级 API client 桥接: ${outputFile.absolutePath}")
+            return
+        }
+
+        val code = renderApiClientBridgeCode(
+            bridgePackageName = bridgeSpec.packageName,
+            bridgeModuleClassName = bridgeSpec.fileName.ensureKtSuffix().removeKtSuffix(),
+            generatedApiPackageName = Settings.apiClientPackageName,
+            generatedApis = generatedApis,
+        )
+        outputFile.writeText(code)
+        logger.info("Generated API client bridge: ${outputFile.absolutePath}")
+    }
+
+    /**
+     * 按配置解析源码级 API client 桥接输出。
+     */
+    private fun resolveApiClientBridgeSpec(): ApiClientBridgeSpec? {
+        val packageName = Settings.apiClientBridgePackageName.trim()
+        val outputDir = Settings.apiClientBridgeOutputDir.trim()
+        val fileName = Settings.apiClientBridgeFileName.trim()
+        if (packageName.isBlank() || outputDir.isBlank() || fileName.isBlank()) {
+            return null
+        }
+        return ApiClientBridgeSpec(
+            packageName = packageName,
+            outputDir = outputDir,
+            fileName = fileName,
+        )
     }
 
     private fun generateKtorfitCode(controllerInfo: ControllerInfo, apiClassName: String, packageName: String): String {
@@ -1032,6 +1111,12 @@ internal data class GeneratedSourceFile(
     val content: String,
 )
 
+internal data class ApiClientBridgeSpec(
+    val packageName: String,
+    val outputDir: String,
+    val fileName: String,
+)
+
 internal enum class ApiAggregatorStyle {
     KOIN,
     SINGLETON,
@@ -1177,12 +1262,63 @@ internal fun buildApiAggregatorFiles(
     return files
 }
 
+internal fun renderApiClientBridgeCode(
+    bridgePackageName: String,
+    bridgeModuleClassName: String,
+    generatedApiPackageName: String,
+    generatedApis: List<GeneratedApiDescriptor>,
+): String {
+    val generatedApiImports = generatedApis.joinToString("\n") { api ->
+        "import $generatedApiPackageName.${api.apiClassName}"
+    }
+    val providers = generatedApis.joinToString("\n\n") { api ->
+        """
+        |    @Single
+        |    public fun ${api.propertyName}(ktorfit: Ktorfit): ${api.apiClassName} {
+        |        @Suppress("DEPRECATION")
+        |        return ktorfit.create()
+        |    }
+        """.trimMargin()
+    }
+
+    return """
+        |package $bridgePackageName
+        |
+        |import de.jensklingenberg.ktorfit.Ktorfit
+        |import org.koin.core.annotation.Configuration
+        |import org.koin.core.annotation.Module
+        |import org.koin.core.annotation.Single
+        |$generatedApiImports
+        |
+        |/**
+        | * controller2api 生成的 Ktorfit API 客户端桥接入口。
+        | */
+        |@Module
+        |@Configuration
+        |public class $bridgeModuleClassName {
+        |$providers
+        |}
+    """.trimMargin()
+}
+
 internal fun parseApiAggregatorStyle(raw: String?): ApiAggregatorStyle {
     return when (raw?.trim()?.lowercase()) {
         null, "", "koin" -> ApiAggregatorStyle.KOIN
         "singleton" -> ApiAggregatorStyle.SINGLETON
         else -> ApiAggregatorStyle.KOIN
     }
+}
+
+private fun String.ensureKtSuffix(): String {
+    return if (endsWith(".kt")) {
+        this
+    } else {
+        "$this.kt"
+    }
+}
+
+private fun String.removeKtSuffix(): String {
+    return removeSuffix(".kt")
 }
 
 private fun KSFunctionDeclaration.signatureKey(): String {

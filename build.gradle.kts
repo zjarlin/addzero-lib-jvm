@@ -19,7 +19,7 @@ plugins {
   alias(libs.plugins.kotlinJvm) apply false
 }
 group = providers.gradleProperty("group").orNull ?: "site.addzero"
-version = providers.gradleProperty("version").orNull ?: "2026.04.07"
+version = providers.gradleProperty("version").orNull ?: "2026.04.12"
 
 subprojects {
   group = rootProject.group
