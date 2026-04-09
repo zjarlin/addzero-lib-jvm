@@ -11,6 +11,9 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.koin.mp.KoinPlatform
 import site.addzero.core.network.json.json
 import site.addzero.core.network.spi.HttpClientProfileSpi
@@ -51,6 +54,22 @@ private fun HttpClientConfig<*>.configLog() {
 private fun HttpClientConfig<*>.configJson() {
   install(ContentNegotiation) {
     json(json)
+  }
+}
+
+/**
+ * 把非 2xx HTTP 响应转换成更可读的错误文本。
+ */
+private fun HttpClientConfig<*>.configHttpErrors() {
+  HttpResponseValidator {
+    validateResponse { response ->
+      if (response.status.isSuccess()) {
+        return@validateResponse
+      }
+      val rawBody = runCatching { response.bodyAsText() }.getOrNull()
+      val reason = rawBody.extractHttpErrorMessage()
+      throw IllegalStateException(reason ?: "HTTP ${response.status.value} ${response.status.description}")
+    }
   }
 }
 
@@ -148,6 +167,7 @@ fun HttpClientProfileSpi.toHttpClient(): HttpClient {
     configHeadersWithJson()
     configLog()
     configJson()
+    configHttpErrors()
     install(KtorToCurl) {
       converter = object : CurlLogger {
         override fun log(curl: String) {
@@ -168,4 +188,22 @@ val apiClient: HttpClient
 val ktorfit: Ktorfit
   get() = KoinPlatform.getKoin().get()
 
+/**
+ * 从服务端错误响应正文中提取更直观的消息。
+ */
+private fun String?.extractHttpErrorMessage(): String? {
+  val text = this?.trim().orEmpty()
+  if (text.isBlank()) {
+    return null
+  }
+  return runCatching {
+    val payload = json.parseToJsonElement(text).jsonObject
+    payload["message"]?.jsonPrimitive?.contentOrNull
+      ?: payload["msg"]?.jsonPrimitive?.contentOrNull
+      ?: payload["error"]?.jsonPrimitive?.contentOrNull
+      ?: text
+  }.getOrElse {
+    text
+  }
+}
 

@@ -10,12 +10,29 @@ pluginManagement {
   }
 }
 
+val buildLogicCatalogFile = file("checkouts/build-logic/gradle/libs.versions.toml")
+val buildLogicSettingsFile = file("checkouts/build-logic/settings.gradle.kts")
+
+dependencyResolutionManagement {
+  if (buildLogicCatalogFile.isFile) {
+    versionCatalogs {
+      create("libs") {
+        from(files(buildLogicCatalogFile))
+      }
+    }
+  }
+}
+
 rootProject.name = rootDir.name
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 plugins {
   id("site.addzero.gradle.plugin.repo-buddy") version "+"
-  id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"
+  id("site.addzero.gradle.plugin.addzero-git-dependency") version "+" apply false
 //  id("site.addzero.gradle.plugin.modules-buddy") version "+"
+}
+
+if (!buildLogicSettingsFile.isFile) {
+  apply(plugin = "site.addzero.gradle.plugin.addzero-git-dependency")
 }
 
 @Suppress("unused")
@@ -50,6 +67,7 @@ include(":lib:compose:compose-native-component-searchbar")
 include(":lib:compose:compose-native-component-tree")
 include(":lib:compose:compose-workbench-shell")
 include(":lib:tool-kmp:tool-tree")
+include(":lib:tool-kmp:tool-str")
 
 //include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-gradle-plugin") // excluded by Gradle Buddy
 //include(":lib:kcp:all-object-jvm-static:kcp-all-object-jvm-static-plugin") // excluded by Gradle Buddy

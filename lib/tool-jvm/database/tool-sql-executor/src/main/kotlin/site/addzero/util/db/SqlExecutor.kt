@@ -142,6 +142,32 @@ class SqlExecutor private constructor(
     }
 
     /**
+     * 在指定连接上执行查询并返回结果列表。
+     */
+    @Throws(SQLException::class)
+    fun queryForList(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): List<Map<String, Any?>> {
+        return query(connection, sql, params) { resultSet ->
+            resultSet.toRowMap()
+        }
+    }
+
+    /**
+     * 在指定连接上执行查询并返回结果列表。
+     */
+    @Throws(SQLException::class)
+    fun queryForList(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ): List<Map<String, Any?>> {
+        return queryForList(connection, sql, params.toList())
+    }
+
+    /**
      * 执行参数化查询。
      */
     @Throws(SQLException::class)
@@ -151,15 +177,7 @@ class SqlExecutor private constructor(
         mapper: (ResultSet) -> T,
     ): List<T> {
         return withJdbcConnection { connection ->
-            prepareStatement(connection, sql, params).use { statement ->
-                statement.executeQuery().use { resultSet ->
-                    val result = mutableListOf<T>()
-                    while (resultSet.next()) {
-                        result += mapper(resultSet)
-                    }
-                    result
-                }
-            }
+            query(connection, sql, params, mapper)
         }
     }
 
@@ -173,6 +191,40 @@ class SqlExecutor private constructor(
         mapper: (ResultSet) -> T,
     ): List<T> {
         return query(sql, params.toList(), mapper)
+    }
+
+    /**
+     * 在指定连接上执行参数化查询。
+     */
+    @Throws(SQLException::class)
+    fun <T> query(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+        mapper: (ResultSet) -> T,
+    ): List<T> {
+        prepareStatement(connection, sql, params).use { statement ->
+            statement.executeQuery().use { resultSet ->
+                val result = mutableListOf<T>()
+                while (resultSet.next()) {
+                    result += mapper(resultSet)
+                }
+                return result
+            }
+        }
+    }
+
+    /**
+     * 在指定连接上执行参数化查询。
+     */
+    @Throws(SQLException::class)
+    fun <T> query(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+        mapper: (ResultSet) -> T,
+    ): List<T> {
+        return query(connection, sql, params.toList(), mapper)
     }
 
     /**
@@ -200,6 +252,32 @@ class SqlExecutor private constructor(
     }
 
     /**
+     * 在指定连接上查询首列 Long 列表。
+     */
+    @Throws(SQLException::class)
+    fun queryIds(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): MutableList<Long> {
+        return query(connection, sql, params) { resultSet ->
+            resultSet.getLong(1)
+        }.toMutableList()
+    }
+
+    /**
+     * 在指定连接上查询首列 Long 列表。
+     */
+    @Throws(SQLException::class)
+    fun queryIds(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ): MutableList<Long> {
+        return queryIds(connection, sql, params.toList())
+    }
+
+    /**
      * 查询首列数量值。
      */
     @Throws(SQLException::class)
@@ -224,6 +302,32 @@ class SqlExecutor private constructor(
     }
 
     /**
+     * 在指定连接上查询首列数量值。
+     */
+    @Throws(SQLException::class)
+    fun queryCount(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): Long {
+        return query(connection, sql, params) { resultSet ->
+            resultSet.getLong(1)
+        }.firstOrNull() ?: 0L
+    }
+
+    /**
+     * 在指定连接上查询首列数量值。
+     */
+    @Throws(SQLException::class)
+    fun queryCount(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ): Long {
+        return queryCount(connection, sql, params.toList())
+    }
+
+    /**
      * 执行更新SQL（INSERT, UPDATE, DELETE等）
      *
      * @param sql 要执行的SQL语句
@@ -235,9 +339,7 @@ class SqlExecutor private constructor(
         params: List<Any?> = emptyList(),
     ): Int {
         return withJdbcConnection { connection ->
-            prepareStatement(connection, sql, params).use { statement ->
-                statement.executeUpdate()
-            }
+            executeUpdate(connection, sql, params)
         }
     }
 
@@ -253,6 +355,78 @@ class SqlExecutor private constructor(
     }
 
     /**
+     * 在指定连接上执行更新 SQL。
+     */
+    @Throws(SQLException::class)
+    fun executeUpdate(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): Int {
+        prepareStatement(connection, sql, params).use { statement ->
+            return statement.executeUpdate()
+        }
+    }
+
+    /**
+     * 在指定连接上执行更新 SQL。
+     */
+    @Throws(SQLException::class)
+    fun executeUpdate(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ): Int {
+        return executeUpdate(connection, sql, params.toList())
+    }
+
+    /**
+     * 兼容旧命名，内部等价于 executeUpdate。
+     */
+    @Throws(SQLException::class)
+    fun update(
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): Int {
+        return executeUpdate(sql, params)
+    }
+
+    /**
+     * 兼容旧命名，内部等价于 executeUpdate。
+     */
+    @Throws(SQLException::class)
+    fun update(
+        sql: String,
+        vararg params: Any?,
+    ): Int {
+        return executeUpdate(sql, params.toList())
+    }
+
+    /**
+     * 兼容旧命名，内部等价于 executeUpdate。
+     */
+    @Throws(SQLException::class)
+    fun update(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): Int {
+        return executeUpdate(connection, sql, params)
+    }
+
+    /**
+     * 兼容旧命名，内部等价于 executeUpdate。
+     */
+    @Throws(SQLException::class)
+    fun update(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ): Int {
+        return executeUpdate(connection, sql, params.toList())
+    }
+
+    /**
      * 批量执行参数化更新。
      */
     @Throws(SQLException::class)
@@ -264,14 +438,29 @@ class SqlExecutor private constructor(
             return intArrayOf()
         }
         return withJdbcConnection { connection ->
-            connection.prepareStatement(sql).use { statement ->
-                batchParams.forEach { params ->
-                    statement.clearParameters()
-                    statement.bindParams(params)
-                    statement.addBatch()
-                }
-                statement.executeBatch()
+            batchUpdate(connection, sql, batchParams)
+        }
+    }
+
+    /**
+     * 在指定连接上批量执行参数化更新。
+     */
+    @Throws(SQLException::class)
+    fun batchUpdate(
+        connection: Connection,
+        sql: String,
+        batchParams: List<List<Any?>>,
+    ): IntArray {
+        if (batchParams.isEmpty()) {
+            return intArrayOf()
+        }
+        connection.prepareStatement(sql).use { statement ->
+            batchParams.forEach { params ->
+                statement.clearParameters()
+                statement.bindParams(params)
+                statement.addBatch()
             }
+            return statement.executeBatch()
         }
     }
 
@@ -286,9 +475,7 @@ class SqlExecutor private constructor(
         params: List<Any?> = emptyList(),
     ) {
         withJdbcConnection { connection ->
-            prepareStatement(connection, sql, params).use { statement ->
-                statement.execute()
-            }
+            execute(connection, sql, params)
         }
     }
 
@@ -301,6 +488,89 @@ class SqlExecutor private constructor(
         vararg params: Any?,
     ) {
         execute(sql, params.toList())
+    }
+
+    /**
+     * 在指定连接上执行任意 SQL 语句。
+     */
+    @Throws(SQLException::class)
+    fun execute(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ) {
+        prepareStatement(connection, sql, params).use { statement ->
+            statement.execute()
+        }
+    }
+
+    /**
+     * 在指定连接上执行任意 SQL 语句。
+     */
+    @Throws(SQLException::class)
+    fun execute(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ) {
+        execute(connection, sql, params.toList())
+    }
+
+    /**
+     * 执行插入并返回自增主键。
+     */
+    @Throws(SQLException::class)
+    fun insertAndReturnId(
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): Long {
+        return withJdbcConnection { connection ->
+            insertAndReturnId(connection, sql, params)
+        }
+    }
+
+    /**
+     * 执行插入并返回自增主键。
+     */
+    @Throws(SQLException::class)
+    fun insertAndReturnId(
+        sql: String,
+        vararg params: Any?,
+    ): Long {
+        return insertAndReturnId(sql, params.toList())
+    }
+
+    /**
+     * 在指定连接上执行插入并返回自增主键。
+     */
+    @Throws(SQLException::class)
+    fun insertAndReturnId(
+        connection: Connection,
+        sql: String,
+        params: List<Any?> = emptyList(),
+    ): Long {
+        connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS).use { statement ->
+            statement.bindParams(params)
+            statement.executeUpdate()
+            statement.generatedKeys.use { generatedKeys ->
+                if (generatedKeys.next()) {
+                    return generatedKeys.getLong(1)
+                }
+            }
+        }
+        error("Insert did not return generated id")
+    }
+
+    /**
+     * 在指定连接上执行插入并返回自增主键。
+     */
+    @Throws(SQLException::class)
+    fun insertAndReturnId(
+        connection: Connection,
+        sql: String,
+        vararg params: Any?,
+    ): Long {
+        return insertAndReturnId(connection, sql, params.toList())
     }
 
     /**
