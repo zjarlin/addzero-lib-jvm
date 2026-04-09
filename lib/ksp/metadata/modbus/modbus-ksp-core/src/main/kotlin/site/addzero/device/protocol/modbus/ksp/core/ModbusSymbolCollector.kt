@@ -351,12 +351,14 @@ class ModbusSymbolCollector(
     private fun KSClassDeclaration.matchesTransport(transport: ModbusTransportKind): Boolean {
         val hasRtu = hasAnnotation(ModbusAnnotationNames.generateRtuServer)
         val hasTcp = hasAnnotation(ModbusAnnotationNames.generateTcpServer)
-        if (!hasRtu && !hasTcp) {
+        val hasMqtt = hasAnnotation(ModbusAnnotationNames.generateMqttServer)
+        if (!hasRtu && !hasTcp && !hasMqtt) {
             return true
         }
         return when (transport) {
             ModbusTransportKind.RTU -> hasRtu
             ModbusTransportKind.TCP -> hasTcp
+            ModbusTransportKind.MQTT -> hasMqtt
         }
     }
 

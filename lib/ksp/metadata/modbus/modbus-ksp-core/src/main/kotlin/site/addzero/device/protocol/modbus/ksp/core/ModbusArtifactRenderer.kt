@@ -55,6 +55,13 @@ object ModbusArtifactTemplates {
                         appendLine("import site.addzero.device.driver.modbus.tcp.ModbusTcpEndpointConfig")
                         appendLine("import site.addzero.device.driver.modbus.tcp.ModbusTcpExecutor")
                     }
+
+                    ModbusTransportKind.MQTT -> {
+                        appendLine("import site.addzero.device.driver.modbus.mqtt.ModbusMqttConfigProvider")
+                        appendLine("import site.addzero.device.driver.modbus.mqtt.ModbusMqttConfigRegistry")
+                        appendLine("import site.addzero.device.driver.modbus.mqtt.ModbusMqttEndpointConfig")
+                        appendLine("import site.addzero.device.driver.modbus.mqtt.ModbusMqttExecutor")
+                    }
                 }
                 appendLine("import site.addzero.device.protocol.modbus.ModbusCodecSupport")
                 appendLine("import site.addzero.device.protocol.modbus.model.ModbusCodec")
@@ -179,7 +186,9 @@ object ModbusArtifactTemplates {
                         appendLine("import site.addzero.device.driver.modbus.rtu.ModbusSerialParity")
                     }
 
-                    ModbusTransportKind.TCP -> Unit
+                    ModbusTransportKind.TCP,
+                    ModbusTransportKind.MQTT,
+                    -> Unit
                 }
                 appendLine()
                 append(renderTransportRequestSupport(transport))
@@ -1093,6 +1102,9 @@ object ModbusArtifactTemplates {
 
                     ModbusTransportKind.TCP ->
                         "        ModbusTcpEndpointConfig(serviceId = serviceId, host = \"${escapeKotlinString(transportDefaults.tcp.host)}\", port = ${transportDefaults.tcp.port}, unitId = ${transportDefaults.tcp.unitId}, timeoutMs = ${transportDefaults.tcp.timeoutMs}, retries = ${transportDefaults.tcp.retries})"
+
+                    ModbusTransportKind.MQTT ->
+                        "        ModbusMqttEndpointConfig(serviceId = serviceId, brokerUrl = \"${escapeKotlinString(transportDefaults.mqtt.brokerUrl)}\", clientId = \"${escapeKotlinString(transportDefaults.mqtt.clientId)}\", requestTopic = \"${escapeKotlinString(transportDefaults.mqtt.requestTopic)}\", responseTopic = \"${escapeKotlinString(transportDefaults.mqtt.responseTopic)}\", qos = ${transportDefaults.mqtt.qos}, timeoutMs = ${transportDefaults.mqtt.timeoutMs}, retries = ${transportDefaults.mqtt.retries})"
                 }
             )
             appendLine("}")
@@ -1117,6 +1129,16 @@ object ModbusArtifactTemplates {
                 }
 
                 ModbusTransportKind.TCP -> {
+                    appendLine(
+                        "class ${service.gatewayClassName}(" +
+                            "private val configRegistry: ${service.transport.configRegistrySimpleName()}, " +
+                            "private val executor: ${service.transport.executorSimpleName()}" +
+                            ") : ${service.interfaceQualifiedName} {",
+                    )
+                    appendLine("    fun defaultConfig(): ${service.transport.endpointConfigSimpleName()} = configRegistry.require(\"${service.serviceId}\")")
+                }
+
+                ModbusTransportKind.MQTT -> {
                     appendLine(
                         "class ${service.gatewayClassName}(" +
                             "private val configRegistry: ${service.transport.configRegistrySimpleName()}, " +
@@ -1274,6 +1296,9 @@ object ModbusArtifactTemplates {
 
                 ModbusTransportKind.TCP ->
                     appendLine(" * 统一收口生成出来的默认配置提供器、配置注册表与网关。")
+
+                ModbusTransportKind.MQTT ->
+                    appendLine(" * 统一收口生成出来的默认 MQTT 配置提供器、配置注册表与网关。")
             }
             appendLine(" */")
             appendLine("@Module")
@@ -1296,6 +1321,45 @@ object ModbusArtifactTemplates {
                 }
 
                 ModbusTransportKind.TCP -> {
+                    services.forEach { service ->
+                        appendLine("    @Single")
+                        appendLine(
+                            "    fun ${service.configProviderClassName.asProviderMethodName()}(): ${service.configProviderClassName} = " +
+                                "${service.configProviderClassName}()",
+                        )
+                        appendLine()
+                    }
+                    appendLine("    @Single")
+                    appendLine("    fun ${transport.configRegistrySimpleName().asProviderMethodName()}(")
+                    services.forEachIndexed { index, service ->
+                        append("        ${service.configProviderClassName.asConstructorParameterName()}: ${service.configProviderClassName}")
+                        appendLine(if (index == services.lastIndex) "" else ",")
+                    }
+                    appendLine("    ): ${transport.configRegistrySimpleName()} =")
+                    appendLine(
+                        "        ${transport.configRegistrySimpleName()}(" +
+                            "listOf(" +
+                            services.joinToString(", ") { service -> service.configProviderClassName.asConstructorParameterName() } +
+                            ")" +
+                            ")",
+                    )
+                    appendLine()
+                    services.forEach { service ->
+                        appendLine("    @Single")
+                        appendLine("    fun ${service.gatewayClassName.asProviderMethodName()}(")
+                        appendLine("        configRegistry: ${transport.configRegistrySimpleName()},")
+                        appendLine("        executor: ${transport.executorSimpleName()},")
+                        appendLine("    ): ${service.gatewayClassName} = ${service.gatewayClassName}(configRegistry, executor)")
+                        appendLine()
+                        appendLine("    @Single")
+                        appendLine("    fun ${service.interfaceSimpleName.asProviderMethodName()}(")
+                        appendLine("        gateway: ${service.gatewayClassName},")
+                        appendLine("    ): ${service.interfaceQualifiedName} = gateway")
+                        appendLine()
+                    }
+                }
+
+                ModbusTransportKind.MQTT -> {
                     services.forEach { service ->
                         appendLine("    @Single")
                         appendLine(
@@ -2651,6 +2715,17 @@ object ModbusArtifactTemplates {
                     listOf("从站地址", "默认 `${transportDefaults.tcp.unitId}`；若现场网关改过 `Unit ID`，这里同步改成现场值。"),
                     listOf("超时", "建议先填 `${transportDefaults.tcp.timeoutMs} ms`。"),
                 )
+
+            ModbusTransportKind.MQTT ->
+                listOf(
+                    listOf("连接模式", "选择 `MQTT`。"),
+                    listOf("Broker", "默认 `${transportDefaults.mqtt.brokerUrl}`。"),
+                    listOf("Client ID", "默认 `${transportDefaults.mqtt.clientId}`。"),
+                    listOf("请求 Topic", "默认 `${transportDefaults.mqtt.requestTopic}`。"),
+                    listOf("响应 Topic", "默认 `${transportDefaults.mqtt.responseTopic}`。"),
+                    listOf("QoS", "默认 `${transportDefaults.mqtt.qos}`。"),
+                    listOf("超时", "建议先填 `${transportDefaults.mqtt.timeoutMs} ms`。"),
+                )
         }
 
     private fun ModbusOperationModel.renderSimulatorRequestRows(transport: ModbusTransportKind): List<List<String>> =
@@ -2974,36 +3049,52 @@ object ModbusArtifactTemplates {
                     listOf("Timeout Ms", "`${transportDefaults.tcp.timeoutMs}`"),
                     listOf("Retries", "`${transportDefaults.tcp.retries}`"),
                 )
+
+            ModbusTransportKind.MQTT ->
+                listOf(
+                    listOf("Broker URL", "`${transportDefaults.mqtt.brokerUrl}`"),
+                    listOf("Client ID", "`${transportDefaults.mqtt.clientId}`"),
+                    listOf("Request Topic", "`${transportDefaults.mqtt.requestTopic}`"),
+                    listOf("Response Topic", "`${transportDefaults.mqtt.responseTopic}`"),
+                    listOf("QoS", "`${transportDefaults.mqtt.qos}`"),
+                    listOf("Timeout Ms", "`${transportDefaults.mqtt.timeoutMs}`"),
+                    listOf("Retries", "`${transportDefaults.mqtt.retries}`"),
+                )
         }
 
     private fun ModbusTransportKind.configProviderSimpleName(): String =
         when (this) {
             ModbusTransportKind.RTU -> "ModbusRtuConfigProvider"
             ModbusTransportKind.TCP -> "ModbusTcpConfigProvider"
+            ModbusTransportKind.MQTT -> "ModbusMqttConfigProvider"
         }
 
     private fun ModbusTransportKind.endpointConfigSimpleName(): String =
         when (this) {
             ModbusTransportKind.RTU -> "ModbusRtuEndpointConfig"
             ModbusTransportKind.TCP -> "ModbusTcpEndpointConfig"
+            ModbusTransportKind.MQTT -> "ModbusMqttEndpointConfig"
         }
 
     private fun ModbusTransportKind.configRegistrySimpleName(): String =
         when (this) {
             ModbusTransportKind.RTU -> "ModbusRtuConfigRegistry"
             ModbusTransportKind.TCP -> "ModbusTcpConfigRegistry"
+            ModbusTransportKind.MQTT -> "ModbusMqttConfigRegistry"
         }
 
     private fun ModbusTransportKind.executorSimpleName(): String =
         when (this) {
             ModbusTransportKind.RTU -> "ModbusRtuExecutor"
             ModbusTransportKind.TCP -> "ModbusTcpExecutor"
+            ModbusTransportKind.MQTT -> "ModbusMqttExecutor"
         }
 
     private fun ModbusTransportKind.requestConfigInterfaceName(): String =
         when (this) {
             ModbusTransportKind.RTU -> "GeneratedModbusRtuRequestConfig"
             ModbusTransportKind.TCP -> "GeneratedModbusTcpRequestConfig"
+            ModbusTransportKind.MQTT -> "GeneratedModbusMqttRequestConfig"
         }
 
     private fun ModbusTransportKind.requestConfigFields(): String =
@@ -3025,6 +3116,17 @@ object ModbusArtifactTemplates {
     override val host: String? = null,
     override val port: Int? = null,
     override val unitId: Int? = null,
+    override val timeoutMs: Long? = null,
+    override val retries: Int? = null,
+                """.trimIndent()
+
+            ModbusTransportKind.MQTT ->
+                """
+    override val brokerUrl: String? = null,
+    override val clientId: String? = null,
+    override val requestTopic: String? = null,
+    override val responseTopic: String? = null,
+    override val qos: Int? = null,
     override val timeoutMs: Long? = null,
     override val retries: Int? = null,
                 """.trimIndent()
@@ -3106,6 +3208,30 @@ internal fun GeneratedModbusTcpRequestConfig.toEndpointConfig(defaultConfig: Mod
         host = host ?: defaultConfig.host,
         port = port ?: defaultConfig.port,
         unitId = unitId ?: defaultConfig.unitId,
+        timeoutMs = timeoutMs ?: defaultConfig.timeoutMs,
+        retries = retries ?: defaultConfig.retries,
+    )
+                """.trimIndent()
+
+            ModbusTransportKind.MQTT ->
+                """
+internal interface GeneratedModbusMqttRequestConfig {
+    val brokerUrl: String?
+    val clientId: String?
+    val requestTopic: String?
+    val responseTopic: String?
+    val qos: Int?
+    val timeoutMs: Long?
+    val retries: Int?
+}
+
+internal fun GeneratedModbusMqttRequestConfig.toEndpointConfig(defaultConfig: ModbusMqttEndpointConfig): ModbusMqttEndpointConfig =
+    defaultConfig.copy(
+        brokerUrl = brokerUrl ?: defaultConfig.brokerUrl,
+        clientId = clientId ?: defaultConfig.clientId,
+        requestTopic = requestTopic ?: defaultConfig.requestTopic,
+        responseTopic = responseTopic ?: defaultConfig.responseTopic,
+        qos = qos ?: defaultConfig.qos,
         timeoutMs = timeoutMs ?: defaultConfig.timeoutMs,
         retries = retries ?: defaultConfig.retries,
     )

@@ -5,8 +5,8 @@ plugins {
     alias(libs.plugins.site.addzero.gradle.plugin.processor.buddy)
 }
 val libs = versionCatalogs.named("libs")
-val defaultApiClientPackageName = "site.addzero.generated.api"
-val defaultSharedComposeDir = rootDir.resolve("shared/src/commonMain/kotlin")
+val defaultApiClientPackageName = "site.addzero.generated.api.generated"
+val defaultGeneratedSourceDir = rootDir.resolve("build/generated/source/controller2api/commonMain/kotlin")
 
 processorBuddy {
     packageName.set("site.addzero.controller2api.processor.context")
@@ -15,10 +15,10 @@ processorBuddy {
             "apiClientPackageName" to defaultApiClientPackageName,
             "apiClientAggregatorObjectName" to "Apis",
             "apiClientAggregatorStyle" to "koin",
-            "apiClientAggregatorOutputDir" to defaultSharedComposeDir
+            "apiClientAggregatorOutputDir" to defaultGeneratedSourceDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
                 .absolutePath.replace('\\', '/'),
-            "apiClientOutputDir" to defaultSharedComposeDir
+            "apiClientOutputDir" to defaultGeneratedSourceDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
                 .absolutePath.replace('\\', '/'),
         )

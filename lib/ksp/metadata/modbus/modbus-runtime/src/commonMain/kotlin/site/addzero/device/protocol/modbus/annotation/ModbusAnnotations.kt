@@ -11,6 +11,10 @@ annotation class GenerateModbusRtuServer
 @Retention(AnnotationRetention.BINARY)
 annotation class GenerateModbusTcpServer
 
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+annotation class GenerateModbusMqttServer
+
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
 annotation class ModbusOperation(

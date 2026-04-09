@@ -8,8 +8,10 @@
   - 项目级 RTU KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-rtu`。
 - `modbus-tcp-gradle-plugin`
   - 项目级 TCP KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-tcp`。
+- `modbus-mqtt-gradle-plugin`
+  - 项目级 MQTT KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-mqtt`。
 - `modbus-runtime`
-  - 注解、功能码枚举、RTU/TCP runtime 抽象。
+  - 注解、功能码枚举、RTU/TCP/MQTT runtime 抽象。
 - `modbus-ksp-core`
   - 语义 DTO -> Modbus 的共享 IR、默认值解析、校验、suite facade、SPI。
 - `modbus-ksp-kotlin-gateway`
@@ -22,6 +24,8 @@
   - RTU processor 入口，组合上面三个生成模块。
 - `modbus-ksp-tcp`
   - TCP processor 入口，组合上面三个生成模块。
+- `modbus-ksp-mqtt`
+  - MQTT processor 入口，组合上面三个生成模块。
 
 ## Recommended Consumption
 
@@ -48,6 +52,20 @@ plugins {
 
 modbusTcp {
     transports.set(listOf("tcp"))
+    codegenModes.set(listOf("server"))
+    contractPackages.set(listOf("site.addzero.device.contract"))
+}
+```
+
+MQTT 同理：
+
+```kotlin
+plugins {
+    id("site.addzero.ksp.modbus-mqtt")
+}
+
+modbusMqtt {
+    transports.set(listOf("mqtt"))
     codegenModes.set(listOf("server"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
@@ -132,8 +150,7 @@ modbusRtu {
 
 - `rtu`
 - `tcp`
-
-`mqtt` 还没有 provider，不能只靠配置字符串假装启用。
+- `mqtt`
 
 如果是跨仓库本地联调，并且消费仓库已经把 `../addzero-lib-jvm` 的相关模块 remap 成 project path，推荐做法是：
 

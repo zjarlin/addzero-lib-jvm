@@ -1,92 +1,29 @@
-package site.addzero.device.protocol.modbus.ksp.core
+package site.addzero.device.protocol.modbus.codegen.model
 
-import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import com.google.devtools.ksp.symbol.KSFile
-
-/**
- * Modbus 注解的限定名常量。
- */
-object ModbusAnnotationNames {
-    const val generateRtuServer = "site.addzero.device.protocol.modbus.annotation.GenerateModbusRtuServer"
-    const val generateTcpServer = "site.addzero.device.protocol.modbus.annotation.GenerateModbusTcpServer"
-    const val generateMqttServer = "site.addzero.device.protocol.modbus.annotation.GenerateModbusMqttServer"
-    const val operation = "site.addzero.device.protocol.modbus.annotation.ModbusOperation"
-    const val param = "site.addzero.device.protocol.modbus.annotation.ModbusParam"
-    const val field = "site.addzero.device.protocol.modbus.annotation.ModbusField"
-}
-
-/**
- * 生成模式。
- *
- * 支持通过 `addzero.modbus.codegen.mode` 传单值或多值：
- * - `server`
- * - `gateway`
- * - `contract`
- * - `server,contract`
- * - `gateway,contract`
- */
-enum class ModbusCodegenMode {
-    CONTRACT,
-    SERVER;
-
-    companion object {
-        fun from(environment: SymbolProcessorEnvironment): Set<ModbusCodegenMode> =
-            parse(environment.options["addzero.modbus.codegen.mode"])
-
-        fun parse(rawValue: String?): Set<ModbusCodegenMode> {
-            val tokens =
-                rawValue
-                    ?.split(',', ';', '\n')
-                    ?.map(String::trim)
-                    ?.filter(String::isNotBlank)
-                    .orEmpty()
-            if (tokens.isEmpty()) {
-                return linkedSetOf(SERVER)
-            }
-
-            val resolved = linkedSetOf<ModbusCodegenMode>()
-            tokens.forEach { token ->
-                when (token.lowercase()) {
-                    "server", "gateway", "client_gateway" -> resolved += SERVER
-                    "contract" -> resolved += CONTRACT
-                    else -> {
-                        error(
-                            "未知的 Modbus 代码生成模式：$rawValue；可选值为 server、gateway、client_gateway、contract，支持逗号分隔多选。",
-                        )
-                    }
-                }
-            }
-            return resolved
-        }
-    }
-}
+import kotlinx.serialization.Serializable
 
 /**
  * 传输类型。
  */
 enum class ModbusTransportKind(
-    val markerAnnotationName: String,
     val transportId: String,
     val displayName: String,
     val generatedPackage: String,
     val generatedFileName: String,
 ) {
     RTU(
-        markerAnnotationName = ModbusAnnotationNames.generateRtuServer,
         transportId = "rtu",
         displayName = "Modbus RTU",
         generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.rtu",
         generatedFileName = "GeneratedModbusRtu",
     ),
     TCP(
-        markerAnnotationName = ModbusAnnotationNames.generateTcpServer,
         transportId = "tcp",
         displayName = "Modbus TCP",
         generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.tcp",
         generatedFileName = "GeneratedModbusTcp",
     ),
     MQTT(
-        markerAnnotationName = ModbusAnnotationNames.generateMqttServer,
         transportId = "mqtt",
         displayName = "Modbus MQTT",
         generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.mqtt",
@@ -138,7 +75,7 @@ data class ModbusDocModel(
     val descriptionLines: List<String> = emptyList(),
     val parameterDocs: Map<String, String> = emptyMap(),
 ) {
-    val fullText =
+    val fullText: String =
         buildString {
             if (summary.isNotBlank()) {
                 append(summary)
@@ -251,9 +188,9 @@ data class ModbusOperationModel(
     val returnType: ModbusReturnTypeModel,
     val doc: ModbusDocModel,
 ) {
-    val isReadOperation = functionCodeName.startsWith("READ_")
+    val isReadOperation: Boolean = functionCodeName.startsWith("READ_")
 
-    val usesCoilBits =
+    val usesCoilBits: Boolean =
         functionCodeName in
             setOf(
                 "READ_COILS",
@@ -262,7 +199,7 @@ data class ModbusOperationModel(
                 "WRITE_MULTIPLE_COILS",
             )
 
-    val addressSpace =
+    val addressSpace: ModbusAddressSpace =
         when (functionCodeName) {
             "READ_COILS" -> ModbusAddressSpace.COIL_READ
             "READ_DISCRETE_INPUTS" -> ModbusAddressSpace.DISCRETE_INPUT
@@ -275,7 +212,7 @@ data class ModbusOperationModel(
             else -> error("未知的 Modbus 功能码：$functionCodeName")
         }
 
-    val registerSpan =
+    val registerSpan: Int =
         when (functionCodeName) {
             "WRITE_SINGLE_COIL",
             "WRITE_SINGLE_REGISTER" -> 1
@@ -317,19 +254,16 @@ data class ModbusServiceModel(
     val operations: List<ModbusOperationModel>,
     val workflows: List<ModbusWorkflowModel> = emptyList(),
 ) {
-    val gatewayClassName = "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}Gateway"
-    val configProviderClassName =
+    val gatewayClassName: String =
+        "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}Gateway"
+    val configProviderClassName: String =
         "${interfaceSimpleName}Generated${transport.transportId.replaceFirstChar(Char::uppercase)}ConfigProvider"
-    val cServiceName = serviceId.replace(Regex("[^A-Za-z0-9]+"), "_").trim('_').ifBlank { interfaceSimpleName.lowercase() }
+    val cServiceName: String =
+        serviceId
+            .replace(Regex("[^A-Za-z0-9]+"), "_")
+            .trim('_')
+            .ifBlank { interfaceSimpleName.lowercase() }
 }
-
-/**
- * 采集结果。
- */
-data class CollectedModbusService(
-    val model: ModbusServiceModel,
-    val originatingFiles: List<KSFile> = emptyList(),
-)
 
 /**
  * 渲染后的文件。
@@ -343,9 +277,6 @@ data class GeneratedArtifact(
 
 /**
  * 面向协议套件的生成上下文。
- *
- * 这里把“语义契约 -> 多产物协议暴露”的输入统一建模，
- * 方便后续在 Modbus / MQTT 间复用同一套 suite 级 SPI 设计。
  */
 data class ModbusProtocolSuiteModel(
     val protocolId: String = "modbus",
@@ -406,4 +337,108 @@ data class ModbusArtifactRenderContext(
     val suite: ModbusProtocolSuiteModel,
     val service: ModbusServiceModel? = null,
     val serverRouteMode: ModbusServerRouteMode = ModbusServerRouteMode.DIRECT_KTOR,
+)
+
+/**
+ * 数据库存储和跨进程传递使用的 metadata 载荷。
+ */
+@Serializable
+data class ModbusMetadataEnvelope(
+    val services: List<ModbusMetadataServicePayload>,
+)
+
+@Serializable
+data class ModbusMetadataServicePayload(
+    val interfacePackage: String,
+    val interfaceSimpleName: String,
+    val interfaceQualifiedName: String? = null,
+    val serviceId: String = "",
+    val summary: String = "",
+    val basePath: String = "/api/modbus",
+    val transport: String,
+    val doc: ModbusMetadataDocPayload = ModbusMetadataDocPayload(),
+    val operations: List<ModbusMetadataOperationPayload> = emptyList(),
+    val workflows: List<ModbusMetadataWorkflowPayload> = emptyList(),
+)
+
+@Serializable
+data class ModbusMetadataOperationPayload(
+    val methodName: String,
+    val operationId: String = "",
+    val functionCodeName: String = "",
+    val address: Int,
+    val quantity: Int = -1,
+    val requestClassName: String = "",
+    val requestQualifiedName: String = "",
+    val parameters: List<ModbusMetadataParameterPayload> = emptyList(),
+    val returnType: ModbusMetadataReturnTypePayload,
+    val doc: ModbusMetadataDocPayload = ModbusMetadataDocPayload(),
+)
+
+@Serializable
+data class ModbusMetadataWorkflowPayload(
+    val kind: String = "FLASH_FIRMWARE",
+    val methodName: String,
+    val workflowId: String = "",
+    val requestClassName: String = "",
+    val requestQualifiedName: String = "",
+    val bytesParameterName: String = "bytes",
+    val returnType: ModbusMetadataReturnTypePayload,
+    val doc: ModbusMetadataDocPayload = ModbusMetadataDocPayload(),
+    val startMethodName: String = "firmwareStart",
+    val chunkMethodName: String = "firmwareChunk",
+    val commitMethodName: String = "firmwareCommit",
+    val resetMethodName: String? = "resetDevice",
+)
+
+@Serializable
+data class ModbusMetadataReturnTypePayload(
+    val qualifiedName: String,
+    val simpleName: String,
+    val kind: String,
+    val docSummary: String = "",
+    val valueKind: String? = null,
+    val codecName: String = "AUTO",
+    val length: Int = 1,
+    val registerWidth: Int? = null,
+    val properties: List<ModbusMetadataPropertyPayload> = emptyList(),
+)
+
+@Serializable
+data class ModbusMetadataPropertyPayload(
+    val name: String,
+    val qualifiedType: String,
+    val valueKind: String,
+    val field: ModbusMetadataFieldPayload? = null,
+    val doc: String = "",
+)
+
+@Serializable
+data class ModbusMetadataFieldPayload(
+    val codecName: String = "AUTO",
+    val registerOffset: Int = -1,
+    val bitOffset: Int = -1,
+    val length: Int = 1,
+    val registerWidth: Int? = null,
+)
+
+@Serializable
+data class ModbusMetadataParameterPayload(
+    val name: String,
+    val qualifiedType: String,
+    val valueKind: String,
+    val order: Int = 0,
+    val codecName: String = "AUTO",
+    val registerOffset: Int = -1,
+    val bitOffset: Int = -1,
+    val length: Int = 1,
+    val registerWidth: Int? = null,
+    val doc: String = "",
+)
+
+@Serializable
+data class ModbusMetadataDocPayload(
+    val summary: String = "",
+    val descriptionLines: List<String> = emptyList(),
+    val parameterDocs: Map<String, String> = emptyMap(),
 )

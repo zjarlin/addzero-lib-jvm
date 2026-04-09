@@ -29,6 +29,13 @@ object ModbusKspOptions {
     const val TCP_UNIT_ID_OPTION = "addzero.modbus.tcp.default.unitId"
     const val TCP_TIMEOUT_MS_OPTION = "addzero.modbus.tcp.default.timeoutMs"
     const val TCP_RETRIES_OPTION = "addzero.modbus.tcp.default.retries"
+    const val MQTT_BROKER_URL_OPTION = "addzero.modbus.mqtt.default.brokerUrl"
+    const val MQTT_CLIENT_ID_OPTION = "addzero.modbus.mqtt.default.clientId"
+    const val MQTT_REQUEST_TOPIC_OPTION = "addzero.modbus.mqtt.default.requestTopic"
+    const val MQTT_RESPONSE_TOPIC_OPTION = "addzero.modbus.mqtt.default.responseTopic"
+    const val MQTT_QOS_OPTION = "addzero.modbus.mqtt.default.qos"
+    const val MQTT_TIMEOUT_MS_OPTION = "addzero.modbus.mqtt.default.timeoutMs"
+    const val MQTT_RETRIES_OPTION = "addzero.modbus.mqtt.default.retries"
 }
 
 data class ModbusDatabaseMetadataOptions(
@@ -140,6 +147,16 @@ fun SymbolProcessorEnvironment.resolveTransportDefaults(): ModbusTransportDefaul
                 unitId = options[ModbusKspOptions.TCP_UNIT_ID_OPTION].toIntOrDefault(1),
                 timeoutMs = options[ModbusKspOptions.TCP_TIMEOUT_MS_OPTION].toLongOrDefault(1_000),
                 retries = options[ModbusKspOptions.TCP_RETRIES_OPTION].toIntOrDefault(2),
+            ),
+        mqtt =
+            ModbusMqttTransportDefaults(
+                brokerUrl = options[ModbusKspOptions.MQTT_BROKER_URL_OPTION].orEmpty().ifBlank { "tcp://127.0.0.1:1883" },
+                clientId = options[ModbusKspOptions.MQTT_CLIENT_ID_OPTION].orEmpty().ifBlank { "modbus-mqtt-client" },
+                requestTopic = options[ModbusKspOptions.MQTT_REQUEST_TOPIC_OPTION].orEmpty().ifBlank { "modbus/request" },
+                responseTopic = options[ModbusKspOptions.MQTT_RESPONSE_TOPIC_OPTION].orEmpty().ifBlank { "modbus/response" },
+                qos = options[ModbusKspOptions.MQTT_QOS_OPTION].toIntOrDefault(1),
+                timeoutMs = options[ModbusKspOptions.MQTT_TIMEOUT_MS_OPTION].toLongOrDefault(1_000),
+                retries = options[ModbusKspOptions.MQTT_RETRIES_OPTION].toIntOrDefault(2),
             ),
     )
 

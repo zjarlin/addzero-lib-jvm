@@ -8,12 +8,12 @@ class ModbusTransportKindTest {
     @Test
     fun parseConfiguredSupportsCommaSeparatedTransportIds() {
         assertEquals(
-            linkedSetOf(ModbusTransportKind.RTU, ModbusTransportKind.TCP),
-            ModbusTransportKind.parseConfigured("rtu,tcp"),
+            linkedSetOf(ModbusTransportKind.RTU, ModbusTransportKind.TCP, ModbusTransportKind.MQTT),
+            ModbusTransportKind.parseConfigured("rtu,tcp,mqtt"),
         )
         assertEquals(
-            linkedSetOf(ModbusTransportKind.TCP, ModbusTransportKind.RTU),
-            ModbusTransportKind.parseConfigured("tcp, RTU"),
+            linkedSetOf(ModbusTransportKind.TCP, ModbusTransportKind.RTU, ModbusTransportKind.MQTT),
+            ModbusTransportKind.parseConfigured("tcp, RTU, mqtt"),
         )
     }
 
@@ -32,7 +32,7 @@ class ModbusTransportKindTest {
     @Test
     fun parseConfiguredRejectsUnknownTransport() {
         assertFailsWith<IllegalStateException> {
-            ModbusTransportKind.parseConfigured("rtu,mqtt")
+            ModbusTransportKind.parseConfigured("rtu,uart")
         }
     }
 }
