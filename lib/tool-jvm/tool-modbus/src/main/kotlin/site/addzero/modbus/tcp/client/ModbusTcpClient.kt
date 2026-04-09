@@ -4,7 +4,7 @@ import com.ghgande.j2mod.modbus.facade.ModbusTCPMaster
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister
 import com.ghgande.j2mod.modbus.util.BitVector
 import java.io.Closeable
-import site.addzero.modbus.ModbusToolException
+import site.addzero.modbus.toModbusToolException
 
 /**
  * Kotlin 风格的 Modbus TCP 客户端。
@@ -53,7 +53,7 @@ class ModbusTcpClient(
     @Synchronized
     fun readCoils(address: Int, count: Int): List<Boolean> {
         validateAddressAndCount(address, count)
-        return runModbus("读取线圈失败：address=$address count=$count") {
+        return runModbus("读取线圈失败：address=$address count=$count", functionCode = 0x01) {
             ensureConnected()
             val bits = master.readCoils(config.unitId, address, count)
             List(count) { index -> bits.getBit(index) }
@@ -72,7 +72,7 @@ class ModbusTcpClient(
     @Synchronized
     fun readDiscreteInputs(address: Int, count: Int): List<Boolean> {
         validateAddressAndCount(address, count)
-        return runModbus("读取离散输入失败：address=$address count=$count") {
+        return runModbus("读取离散输入失败：address=$address count=$count", functionCode = 0x02) {
             ensureConnected()
             val bits = master.readInputDiscretes(config.unitId, address, count)
             List(count) { index -> bits.getBit(index) }
@@ -91,7 +91,7 @@ class ModbusTcpClient(
     @Synchronized
     fun readHoldingRegisters(address: Int, count: Int): List<Int> {
         validateAddressAndCount(address, count)
-        return runModbus("读取保持寄存器失败：address=$address count=$count") {
+        return runModbus("读取保持寄存器失败：address=$address count=$count", functionCode = 0x03) {
             ensureConnected()
             master.readMultipleRegisters(config.unitId, address, count).map { register -> register.getValue() and 0xFFFF }
         }
@@ -109,7 +109,7 @@ class ModbusTcpClient(
     @Synchronized
     fun readInputRegisters(address: Int, count: Int): List<Int> {
         validateAddressAndCount(address, count)
-        return runModbus("读取输入寄存器失败：address=$address count=$count") {
+        return runModbus("读取输入寄存器失败：address=$address count=$count", functionCode = 0x04) {
             ensureConnected()
             master.readInputRegisters(config.unitId, address, count).map { register -> register.getValue() and 0xFFFF }
         }
@@ -127,7 +127,7 @@ class ModbusTcpClient(
     @Synchronized
     fun writeSingleCoil(address: Int, value: Boolean) {
         validateAddress(address)
-        runModbus("写入单个线圈失败：address=$address value=$value") {
+        runModbus("写入单个线圈失败：address=$address value=$value", functionCode = 0x05) {
             ensureConnected()
             master.writeCoil(config.unitId, address, value)
         }
@@ -139,7 +139,7 @@ class ModbusTcpClient(
     @Synchronized
     fun writeMultipleCoils(address: Int, values: List<Boolean>) {
         validateAddressAndCount(address, values.size)
-        runModbus("批量写入线圈失败：address=$address count=${values.size}") {
+        runModbus("批量写入线圈失败：address=$address count=${values.size}", functionCode = 0x0F) {
             ensureConnected()
             val coils = BitVector(values.size)
             values.forEachIndexed { index, value ->
@@ -155,7 +155,7 @@ class ModbusTcpClient(
     @Synchronized
     fun writeSingleRegister(address: Int, value: Int) {
         validateAddress(address)
-        runModbus("写入单个保持寄存器失败：address=$address value=$value") {
+        runModbus("写入单个保持寄存器失败：address=$address value=$value", functionCode = 0x06) {
             ensureConnected()
             master.writeSingleRegister(config.unitId, address, SimpleRegister(value and 0xFFFF))
         }
@@ -167,7 +167,7 @@ class ModbusTcpClient(
     @Synchronized
     fun writeMultipleRegisters(address: Int, values: List<Int>) {
         validateAddressAndCount(address, values.size)
-        runModbus("批量写入保持寄存器失败：address=$address count=${values.size}") {
+        runModbus("批量写入保持寄存器失败：address=$address count=${values.size}", functionCode = 0x10) {
             ensureConnected()
             master.writeMultipleRegisters(
                 config.unitId,
@@ -183,7 +183,7 @@ class ModbusTcpClient(
     @Synchronized
     fun maskWriteRegister(address: Int, andMask: Int, orMask: Int): Boolean {
         validateAddress(address)
-        return runModbus("Mask Write Register 失败：address=$address") {
+        return runModbus("Mask Write Register 失败：address=$address", functionCode = 0x16) {
             ensureConnected()
             master.maskWriteRegister(config.unitId, address, andMask and 0xFFFF, orMask and 0xFFFF)
         }
@@ -222,13 +222,17 @@ class ModbusTcpClient(
         }
     }
 
-    private fun <T> runModbus(message: String, block: () -> T): T =
+    private fun <T> runModbus(
+        message: String,
+        functionCode: Int? = null,
+        block: () -> T,
+    ): T =
         try {
             block()
         } catch (throwable: Throwable) {
             /**
              * 统一包成项目自己的异常，避免把 j2mod 的细碎异常类型直接暴露给业务层。
              */
-            throw ModbusToolException(message, throwable)
+            throw throwable.toModbusToolException(message, functionCode)
         }
 }

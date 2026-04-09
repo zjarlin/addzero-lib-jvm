@@ -8,6 +8,7 @@ import com.ghgande.j2mod.modbus.util.BitVector
 import com.ghgande.j2mod.modbus.util.SerialParameters
 import java.io.Closeable
 import site.addzero.modbus.ModbusToolException
+import site.addzero.modbus.toModbusToolException
 import site.addzero.modbus.rtu.server.createRtuSerialParameters
 import site.addzero.serial.SerialFlowControl
 import site.addzero.serial.SerialParity
@@ -74,7 +75,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun readCoils(address: Int, count: Int): List<Boolean> =
-        execute("读取 RTU 线圈失败：address=$address count=$count") { session ->
+        execute("读取 RTU 线圈失败：address=$address count=$count", functionCode = 0x01) { session ->
             validateAddressAndCount(address, count)
             session.readCoils(config.unitId, address, count)
         }
@@ -90,7 +91,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun readDiscreteInputs(address: Int, count: Int): List<Boolean> =
-        execute("读取 RTU 离散输入失败：address=$address count=$count") { session ->
+        execute("读取 RTU 离散输入失败：address=$address count=$count", functionCode = 0x02) { session ->
             validateAddressAndCount(address, count)
             session.readDiscreteInputs(config.unitId, address, count)
         }
@@ -106,7 +107,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun readHoldingRegisters(address: Int, count: Int): List<Int> =
-        execute("读取 RTU 保持寄存器失败：address=$address count=$count") { session ->
+        execute("读取 RTU 保持寄存器失败：address=$address count=$count", functionCode = 0x03) { session ->
             validateAddressAndCount(address, count)
             session.readHoldingRegisters(config.unitId, address, count)
         }
@@ -122,7 +123,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun readInputRegisters(address: Int, count: Int): List<Int> =
-        execute("读取 RTU 输入寄存器失败：address=$address count=$count") { session ->
+        execute("读取 RTU 输入寄存器失败：address=$address count=$count", functionCode = 0x04) { session ->
             validateAddressAndCount(address, count)
             session.readInputRegisters(config.unitId, address, count)
         }
@@ -138,7 +139,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun writeSingleCoil(address: Int, value: Boolean) {
-        execute("写入 RTU 单个线圈失败：address=$address value=$value") { session ->
+        execute("写入 RTU 单个线圈失败：address=$address value=$value", functionCode = 0x05) { session ->
             validateAddress(address)
             session.writeSingleCoil(config.unitId, address, value)
         }
@@ -149,7 +150,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun writeMultipleCoils(address: Int, values: List<Boolean>) {
-        execute("批量写入 RTU 线圈失败：address=$address count=${values.size}") { session ->
+        execute("批量写入 RTU 线圈失败：address=$address count=${values.size}", functionCode = 0x0F) { session ->
             validateAddressAndCount(address, values.size)
             session.writeMultipleCoils(config.unitId, address, values)
         }
@@ -160,7 +161,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun writeSingleRegister(address: Int, value: Int) {
-        execute("写入 RTU 单个保持寄存器失败：address=$address value=$value") { session ->
+        execute("写入 RTU 单个保持寄存器失败：address=$address value=$value", functionCode = 0x06) { session ->
             validateAddress(address)
             session.writeSingleRegister(config.unitId, address, value and 0xFFFF)
         }
@@ -171,7 +172,7 @@ class ModbusRtuClient private constructor(
      */
     @Synchronized
     fun writeMultipleRegisters(address: Int, values: List<Int>) {
-        execute("批量写入 RTU 保持寄存器失败：address=$address count=${values.size}") { session ->
+        execute("批量写入 RTU 保持寄存器失败：address=$address count=${values.size}", functionCode = 0x10) { session ->
             validateAddressAndCount(address, values.size)
             session.writeMultipleRegisters(config.unitId, address, values.map { value -> value and 0xFFFF })
         }
@@ -188,7 +189,11 @@ class ModbusRtuClient private constructor(
         sharedSession = null
     }
 
-    private fun <T> execute(message: String, block: (ModbusRtuSession) -> T): T {
+    private fun <T> execute(
+        message: String,
+        functionCode: Int? = null,
+        block: (ModbusRtuSession) -> T,
+    ): T {
         /**
          * `retries` 表示“失败后再试几次”，
          * 所以总尝试次数需要 +1。
@@ -232,7 +237,7 @@ class ModbusRtuClient private constructor(
                 }
             }
         }
-        throw ModbusToolException(message, lastError)
+        throw (lastError?.toModbusToolException(message, functionCode) ?: ModbusToolException(message))
     }
 
     private fun validateAddress(address: Int) {

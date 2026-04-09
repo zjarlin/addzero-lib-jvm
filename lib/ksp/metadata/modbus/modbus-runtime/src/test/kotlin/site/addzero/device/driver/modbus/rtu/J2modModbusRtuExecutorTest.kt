@@ -4,6 +4,8 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
+import site.addzero.modbus.ModbusProtocolException
 
 class J2modModbusRtuExecutorTest {
     @Test
@@ -67,6 +69,40 @@ class J2modModbusRtuExecutorTest {
 
         assertEquals(true, error.message?.contains("port=COM7"))
         assertEquals(false, error.message?.contains("service="))
+    }
+
+    @Test
+    fun `preserves structured modbus tool exceptions`() = runBlocking {
+        val protocolError =
+            ModbusProtocolException(
+                message = "illegal address",
+                functionCode = 0x06,
+                exceptionCode = 2,
+                exceptionName = "Illegal Data Address",
+            )
+        val executor = J2modModbusRtuExecutor {
+            FakeToolModbusRtuClient(
+                onWriteSingleRegister = { _, _ ->
+                    throw protocolError
+                },
+            )
+        }
+
+        val error = assertFailsWith<ModbusProtocolException> {
+            executor.writeSingleRegister(
+                DefaultModbusRtuEndpointConfig(
+                    portPath = "COM8",
+                    unitId = 1,
+                    baudRate = 9600,
+                    timeoutMs = 1000,
+                    retries = 0,
+                ),
+                address = 1,
+                value = 2,
+            )
+        }
+
+        assertSame(protocolError, error)
     }
 }
 

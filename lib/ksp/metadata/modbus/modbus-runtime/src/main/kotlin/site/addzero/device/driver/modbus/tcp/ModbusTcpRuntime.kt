@@ -5,6 +5,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import site.addzero.modbus.ModbusToolException
 import site.addzero.modbus.tcp.client.ModbusTcpClient
 import site.addzero.modbus.tcp.client.ModbusTcpClientConfig
 
@@ -64,6 +65,9 @@ class J2modModbusTcpExecutor internal constructor(
         try {
             block(client)
         } catch (throwable: Throwable) {
+            if (throwable is ModbusToolException) {
+                throw throwable
+            }
             throw IllegalStateException(
                 "Modbus TCP 通信失败：service=${config.serviceId} host=${config.host}:${config.port} unit=${config.unitId}",
                 throwable,

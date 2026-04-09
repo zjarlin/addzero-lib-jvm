@@ -359,7 +359,7 @@ private fun ResizableSidebarShell(
             )
         }
 
-        if (containerWidthPx > 0f) {
+        if (containerWidthPx > 0f && maxSidebarWidthPx > minSidebarWidthPx) {
             SidebarResizeHandle(
                 sidebarResizeConfig = sidebarResizeConfig,
                 modifier = Modifier.sidebarHandleOverlay(

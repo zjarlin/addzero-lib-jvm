@@ -4,6 +4,8 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
+import site.addzero.modbus.ModbusProtocolException
 
 class J2modModbusTcpExecutorTest {
     @Test
@@ -65,6 +67,41 @@ class J2modModbusTcpExecutorTest {
         }
 
         assertEquals(true, error.message?.contains("host=192.168.1.10:502"))
+    }
+
+    @Test
+    fun `preserves tcp structured modbus tool exceptions`() = runBlocking {
+        val protocolError =
+            ModbusProtocolException(
+                message = "device busy",
+                functionCode = 0x05,
+                exceptionCode = 6,
+                exceptionName = "Slave Device Busy",
+            )
+        val executor = J2modModbusTcpExecutor {
+            FakeToolModbusTcpClient(
+                onWriteSingleCoil = { _, _ ->
+                    throw protocolError
+                },
+            )
+        }
+
+        val error = assertFailsWith<ModbusProtocolException> {
+            executor.writeSingleCoil(
+                ModbusTcpEndpointConfig(
+                    serviceId = "tcp-svc",
+                    host = "192.168.1.10",
+                    port = 502,
+                    unitId = 1,
+                    timeoutMs = 1000,
+                    retries = 0,
+                ),
+                address = 2,
+                value = true,
+            )
+        }
+
+        assertSame(protocolError, error)
     }
 }
 

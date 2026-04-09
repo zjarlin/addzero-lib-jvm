@@ -66,6 +66,24 @@ class ModbusArtifactRendererTest {
     }
 
     @Test
+    fun renderServerArtifactsCatchProtocolExceptionForCommandResults() {
+        val content =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(
+                    ModbusTransportKind.RTU,
+                    listOf(sampleService(operations = listOf(sampleSetLedOperation()))),
+                ).single()
+                .content
+
+        assertTrue(content.contains("catch (exception: site.addzero.modbus.ModbusProtocolException)"))
+        assertTrue(content.contains("accepted = false"))
+        assertTrue(content.contains("summary = exception.message ?: \"操作失败：set-led\""))
+        assertTrue(content.contains("functionCode = exception.functionCode"))
+        assertTrue(content.contains("exceptionCode = exception.exceptionCode"))
+        assertTrue(content.contains("exceptionName = exception.exceptionName"))
+    }
+
+    @Test
     fun renderSpringRouteSourceArtifactsEmitTopLevelSpringHandlers() {
         val gatewayContent =
             ModbusArtifactRenderer

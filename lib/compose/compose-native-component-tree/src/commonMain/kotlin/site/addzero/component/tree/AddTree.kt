@@ -166,6 +166,7 @@ private fun <T> TreeNodeContent(
     onContextMenu: () -> Unit,
 ) {
     val nodeId = viewModel.getId(node)
+    val nodeCaption = viewModel.getCaptionCached(node)
     val interactionSource = remember(nodeId) { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val segmentClickInteractionSource = remember("${nodeId}_segment_click") { MutableInteractionSource() }
@@ -272,7 +273,13 @@ private fun <T> TreeNodeContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = metrics.rowMinHeight)
+                    .defaultMinSize(
+                        minHeight = if (compactMode || nodeCaption.isNullOrBlank()) {
+                            metrics.rowMinHeight
+                        } else {
+                            metrics.rowMinHeight + 12.dp
+                        },
+                    )
                     .padding(
                         horizontal = metrics.rowHorizontalPadding,
                         vertical = metrics.rowVerticalPadding,
@@ -370,25 +377,28 @@ private fun <T> TreeNodeContent(
                             SelectionContainer(
                                 modifier = Modifier.weight(1f),
                             ) {
-                                Text(
-                                    text = viewModel.getLabelCached(node),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
-                                    color = contentColor,
+                                TreeNodeTextBlock(
+                                    label = viewModel.getLabelCached(node),
+                                    caption = nodeCaption,
+                                    hasChildren = hasChildren,
+                                    isSelected = isSelected,
+                                    contentColor = contentColor,
+                                    secondaryContentColor = secondaryContentColor,
                                 )
                             }
                         } else {
-                            Text(
-                                text = viewModel.getLabelCached(node),
+                            Box(
                                 modifier = Modifier.weight(1f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
-                                color = contentColor,
-                            )
+                            ) {
+                                TreeNodeTextBlock(
+                                    label = viewModel.getLabelCached(node),
+                                    caption = nodeCaption,
+                                    hasChildren = hasChildren,
+                                    isSelected = isSelected,
+                                    contentColor = contentColor,
+                                    secondaryContentColor = secondaryContentColor,
+                                )
+                            }
                         }
                         nodeBadge(node)
                     }
@@ -401,6 +411,38 @@ private fun <T> TreeNodeContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TreeNodeTextBlock(
+    label: String,
+    caption: String?,
+    hasChildren: Boolean,
+    isSelected: Boolean,
+    contentColor: Color,
+    secondaryContentColor: Color,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = label,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = if (isSelected || hasChildren) FontWeight.SemiBold else FontWeight.Medium,
+            color = contentColor,
+        )
+        caption?.takeIf { value -> value.isNotBlank() }?.let { value ->
+            Text(
+                text = value,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall,
+                color = secondaryContentColor,
+            )
         }
     }
 }

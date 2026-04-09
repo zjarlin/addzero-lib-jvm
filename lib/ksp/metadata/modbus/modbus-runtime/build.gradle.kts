@@ -17,7 +17,7 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                implementation(project(":lib:tool-jvm:tool-modbus"))
+                api(project(":lib:tool-jvm:tool-modbus"))
                 implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-core").get())
             }
         }

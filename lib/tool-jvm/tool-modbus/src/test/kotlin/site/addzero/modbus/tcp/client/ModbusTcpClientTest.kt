@@ -6,7 +6,9 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import site.addzero.modbus.ModbusProtocolException
 import site.addzero.modbus.tcp.server.ModbusTcpServer
 import site.addzero.modbus.tcp.server.ModbusTcpServerConfig
 
@@ -94,6 +96,38 @@ class ModbusTcpClientTest {
         assertEquals(321, image.getHoldingRegister(10))
         assertEquals(654, image.getHoldingRegister(11))
         assertEquals(987, image.getHoldingRegister(12))
+    }
+
+    @Test
+    fun `读取不存在地址时应抛出结构化协议异常`() {
+        val port = freeTcpPort()
+        val startedServer =
+            ModbusTcpServer(
+                ModbusTcpServerConfig(
+                    host = "127.0.0.1",
+                    port = port,
+                    defaultUnitId = 1,
+                ),
+            )
+        startedServer.image().setHoldingRegister(0, 1)
+        startedServer.start()
+        server = startedServer
+
+        ModbusTcpClient(
+            ModbusTcpClientConfig(
+                host = "127.0.0.1",
+                port = port,
+                unitId = 1,
+            ),
+        ).use { client ->
+            val error = assertFailsWith<ModbusProtocolException> {
+                client.readHoldingRegister(100)
+            }
+
+            assertEquals(0x03, error.functionCode)
+            assertEquals(2, error.exceptionCode)
+            assertEquals("Illegal Data Address", error.exceptionName)
+        }
     }
 }
 

@@ -1,11 +1,13 @@
 package site.addzero.modbus.rtu.client
 
+import com.ghgande.j2mod.modbus.ModbusSlaveException
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import site.addzero.modbus.ModbusProtocolException
 import site.addzero.modbus.ModbusToolException
 import site.addzero.serial.SerialPortConfig
 
@@ -130,6 +132,45 @@ class ModbusRtuClientTest {
         assertFailsWith<ModbusToolException> {
             client.readCoil(0)
         }
+    }
+
+    @Test
+    fun `从站返回异常码时应抛出结构化协议异常`() {
+        val client =
+            ModbusRtuClient(
+                defaultClientConfig().copy(retries = 0, reconnectPerRequest = true),
+                ModbusRtuSessionFactory {
+                    object : ModbusRtuSession {
+                        override fun readCoils(unitId: Int, address: Int, count: Int): List<Boolean> = emptyList()
+
+                        override fun readDiscreteInputs(unitId: Int, address: Int, count: Int): List<Boolean> = emptyList()
+
+                        override fun readHoldingRegisters(unitId: Int, address: Int, count: Int): List<Int> {
+                            throw ModbusSlaveException(2)
+                        }
+
+                        override fun readInputRegisters(unitId: Int, address: Int, count: Int): List<Int> = emptyList()
+
+                        override fun writeSingleCoil(unitId: Int, address: Int, value: Boolean) = Unit
+
+                        override fun writeMultipleCoils(unitId: Int, address: Int, values: List<Boolean>) = Unit
+
+                        override fun writeSingleRegister(unitId: Int, address: Int, value: Int) = Unit
+
+                        override fun writeMultipleRegisters(unitId: Int, address: Int, values: List<Int>) = Unit
+
+                        override fun close() = Unit
+                    }
+                },
+            )
+
+        val error = assertFailsWith<ModbusProtocolException> {
+            client.readHoldingRegister(10)
+        }
+
+        assertEquals(0x03, error.functionCode)
+        assertEquals(2, error.exceptionCode)
+        assertEquals("Illegal Data Address", error.exceptionName)
     }
 
     private fun defaultClientConfig(): ModbusRtuClientConfig =

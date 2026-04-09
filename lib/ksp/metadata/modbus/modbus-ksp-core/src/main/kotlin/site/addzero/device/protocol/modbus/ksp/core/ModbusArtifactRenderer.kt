@@ -1168,33 +1168,47 @@ object ModbusArtifactTemplates {
                         "): ${operation.returnType.renderKotlinType()} {"
                 )
                 appendLine("        val resolvedConfig = resolveConfig(config)")
-                renderGatewayExecution(operation).forEach { line -> appendLine("        $line") }
-                when (operation.returnType.kind) {
-                    ModbusReturnKind.UNIT -> appendLine("        return Unit")
-                    ModbusReturnKind.COMMAND_RESULT ->
-                        appendLine(
-                            "        return ${operation.returnType.qualifiedName}(accepted = true, summary = \"操作已下发：${operation.operationId}\")"
-                        )
+                if (operation.returnType.kind == ModbusReturnKind.COMMAND_RESULT) {
+                    appendLine("        try {")
+                    renderGatewayExecution(operation).forEach { line -> appendLine("            $line") }
+                    appendLine(
+                        "            return ${operation.returnType.qualifiedName}(accepted = true, summary = \"操作已下发：${operation.operationId}\")"
+                    )
+                    appendLine("        } catch (exception: site.addzero.modbus.ModbusProtocolException) {")
+                    appendLine("            return ${operation.returnType.qualifiedName}(")
+                    appendLine("                accepted = false,")
+                    appendLine("                summary = exception.message ?: \"操作失败：${operation.operationId}\",")
+                    appendLine("                functionCode = exception.functionCode,")
+                    appendLine("                exceptionCode = exception.exceptionCode,")
+                    appendLine("                exceptionName = exception.exceptionName,")
+                    appendLine("            )")
+                    appendLine("        }")
+                } else {
+                    renderGatewayExecution(operation).forEach { line -> appendLine("        $line") }
+                    when (operation.returnType.kind) {
+                        ModbusReturnKind.UNIT -> appendLine("        return Unit")
+                        ModbusReturnKind.BOOLEAN ->
+                            appendLine("        return ${operation.renderBooleanDecodeExpression()}")
 
-                    ModbusReturnKind.BOOLEAN ->
-                        appendLine("        return ${operation.renderBooleanDecodeExpression()}")
+                        ModbusReturnKind.INT ->
+                            appendLine("        return ModbusCodecSupport.decodeInt(ModbusCodec.${operation.returnType.codecName}, registers, 0)")
 
-                    ModbusReturnKind.INT ->
-                        appendLine("        return ModbusCodecSupport.decodeInt(ModbusCodec.${operation.returnType.codecName}, registers, 0)")
+                        ModbusReturnKind.STRING ->
+                            appendLine(
+                                "        return ModbusCodecSupport.decodeString(" +
+                                    "ModbusCodec.${operation.returnType.codecName}, registers, 0, ${operation.returnType.registerWidth})",
+                            )
 
-                    ModbusReturnKind.STRING ->
-                        appendLine(
-                            "        return ModbusCodecSupport.decodeString(" +
-                                "ModbusCodec.${operation.returnType.codecName}, registers, 0, ${operation.returnType.registerWidth})",
-                        )
-
-                    ModbusReturnKind.DTO -> {
-                        appendLine("        return ${operation.returnType.qualifiedName}(")
-                        operation.returnType.properties.forEachIndexed { index, property ->
-                            append("            ${property.name} = ${property.renderDecodeExpression()}")
-                            appendLine(if (index == operation.returnType.properties.lastIndex) "" else ",")
+                        ModbusReturnKind.DTO -> {
+                            appendLine("        return ${operation.returnType.qualifiedName}(")
+                            operation.returnType.properties.forEachIndexed { index, property ->
+                                append("            ${property.name} = ${property.renderDecodeExpression()}")
+                                appendLine(if (index == operation.returnType.properties.lastIndex) "" else ",")
+                            }
+                            appendLine("        )")
                         }
-                        appendLine("        )")
+
+                        ModbusReturnKind.COMMAND_RESULT -> Unit
                     }
                 }
                 appendLine("    }")

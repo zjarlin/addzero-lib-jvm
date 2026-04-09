@@ -57,6 +57,7 @@ class TreeViewModel<T> {
     private val iconCache = mutableMapOf<Any, ImageVector?>()
     private val childrenCache = mutableMapOf<Any, List<T>>()
     private val labelCache = mutableMapOf<Any, String>()
+    private val captionCache = mutableMapOf<Any, String?>()
 
     // 📋 过滤后的数据 - 使用 TreeSearch 实现正确的树搜索
     val filteredItems by derivedStateOf {
@@ -68,7 +69,12 @@ class TreeViewModel<T> {
             TreeSearch.preserveParentNode(
                 trees = mutableItems,
                 getChildrenFun = { getChildren(it) },
-                getKeyFun = { getLabel(it) },
+                getKeyFun = { node ->
+                    listOfNotNull(
+                        getLabel(node),
+                        getCaption(node)?.takeIf { value -> value.isNotBlank() },
+                    ).joinToString(" ")
+                },
                 key = searchQuery
             )
             mutableItems
@@ -79,6 +85,7 @@ class TreeViewModel<T> {
     // ⚠️ 性能问题：这些函数每次访问都会重新计算，应该缓存结果
     var getId: (T) -> Any = { it.hashCode() }
     var getLabel: (T) -> String = { it.toString() }
+    var getCaption: (T) -> String? = { null }
     var getChildren: (T) -> List<T> = { emptyList() }
     var getNodeType: (T) -> String = { "" }
     var getIcon: @Composable (T) -> ImageVector? = { null }
@@ -92,12 +99,14 @@ class TreeViewModel<T> {
     fun configure(
         getId: (T) -> Any,
         getLabel: (T) -> String,
+        getCaption: (T) -> String? = { null },
         getChildren: (T) -> List<T>,
         getNodeType: (T) -> String = { "" },
         getIcon: @Composable (T) -> ImageVector? = { null }
     ) {
         this.getId = getId
         this.getLabel = getLabel
+        this.getCaption = getCaption
         this.getChildren = getChildren
         this.getNodeType = getNodeType
         this.getIcon = getIcon
@@ -194,6 +203,14 @@ class TreeViewModel<T> {
     }
 
     /**
+     * 🚀 性能优化的副标题获取方法 - 使用缓存
+     */
+    fun getCaptionCached(node: T): String? {
+        val nodeId = getId(node)
+        return captionCache.getOrPut(nodeId) { getCaption(node) }
+    }
+
+    /**
      * 🚀 性能优化的子节点获取方法 - 使用缓存
      */
     fun getChildrenCached(node: T): List<T> {
@@ -208,6 +225,7 @@ class TreeViewModel<T> {
         iconCache.clear()
         childrenCache.clear()
         labelCache.clear()
+        captionCache.clear()
     }
 
     /**
@@ -217,6 +235,7 @@ class TreeViewModel<T> {
         return "TreeViewModel 缓存统计: " +
                 "图标缓存=${iconCache.size}, " +
                 "标签缓存=${labelCache.size}, " +
+                "副标题缓存=${captionCache.size}, " +
                 "子节点缓存=${childrenCache.size}"
     }
 

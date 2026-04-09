@@ -3,6 +3,7 @@ package site.addzero.device.driver.modbus.rtu
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
+import site.addzero.modbus.ModbusToolException
 import site.addzero.modbus.rtu.client.ModbusRtuClient
 import site.addzero.modbus.rtu.client.ModbusRtuClientConfig
 import site.addzero.serial.SerialParity
@@ -71,6 +72,9 @@ class J2modModbusRtuExecutor internal constructor(
         try {
             block(client)
         } catch (throwable: Throwable) {
+            if (throwable is ModbusToolException) {
+                throw throwable
+            }
             throw IllegalStateException(
                 "Modbus RTU 通信失败：port=${config.portPath} unit=${config.unitId}",
                 throwable,

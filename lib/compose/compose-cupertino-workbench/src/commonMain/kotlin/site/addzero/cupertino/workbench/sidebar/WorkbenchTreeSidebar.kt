@@ -46,6 +46,7 @@ fun <T> WorkbenchTreeSidebar(
   footer: @Composable ColumnScope.() -> Unit = {},
   getId: (T) -> Any,
   getLabel: (T) -> String,
+  getCaption: (T) -> String? = { null },
   getChildren: (T) -> List<T>,
   getIcon: @Composable (T) -> ImageVector? = { null },
   nodeTrailingContent: @Composable RowScope.(T) -> Unit = {},
@@ -67,6 +68,7 @@ fun <T> WorkbenchTreeSidebar(
     treeViewModel.configure(
       getId = getId,
       getLabel = getLabel,
+      getCaption = getCaption,
       getChildren = getChildren,
       getIcon = getIcon,
     )
