@@ -6,3 +6,5 @@ val libs = versionCatalogs.named("libs")
 dependencies {
     implementation(libs.findLibrary("site-addzero-tool-str").get())
 }
+
+version="2026.04.11"

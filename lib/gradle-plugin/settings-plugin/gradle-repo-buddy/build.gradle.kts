@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.`java-gradle-plugin`
+import org.gradle.kotlin.dsl.`kotlin-dsl`
 import site.addzero.gradle.tool.configureJdk
 buildscript {
     repositories {
@@ -19,4 +21,5 @@ dependencies {
     implementation(gradleApi())
 }
 
+version="2026.04.11"
 

@@ -14,7 +14,7 @@ fun RepositoryHandler.applyGoogleRepository() {
 
 fun RepositoryHandler.applyCommonRepositories() {
   applyGoogleRepository()
-  mavenLocal()
+//  mavenLocal()
   mavenCentral()
 }
 
