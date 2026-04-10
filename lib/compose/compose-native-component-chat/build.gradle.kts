@@ -3,13 +3,14 @@ import site.addzero.gradle.tool.registerJvmTestDesktopPreviewTask
 plugins {
     id("site.addzero.buildlogic.kmp.cmp-lib")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":lib:compose:compose-native-component-button"))
-                implementation(project(":lib:compose:compose-native-component-text"))
+                implementation(libs.findLibrary("site-addzero-compose-native-component-button").get())
+                implementation(libs.findLibrary("site-addzero-compose-native-component-text").get())
             }
         }
     }

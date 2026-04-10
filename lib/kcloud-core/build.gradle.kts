@@ -8,29 +8,30 @@ plugins {
     id("site.addzero.buildlogic.kmp.kmp-core")
     id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
             // 协程
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+            implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-core").get())
             // 时间处理
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-datetime").get())
             // 日志
-            implementation("io.github.oshai:kotlin-logging:7.0.3")
+            implementation(libs.findLibrary("kotlin-logging").get())
             implementation(project(":lib:spec:system-spec"))
         }
 
         jvmMain.dependencies {
             implementation(project(":lib:kcloud-paths"))
             // SQLite JDBC驱动
-            implementation("org.xerial:sqlite-jdbc:3.45.1.0")
+            implementation(libs.findLibrary("org-xerial-sqlite-jdbc-v3").get())
             // HikariCP连接池
-            implementation("com.zaxxer:HikariCP:5.1.0")
+            implementation(libs.findLibrary("hikaricp").get())
             // SSHJ - SSH/SFTP 客户端
-            implementation("com.hierynomus:sshj:0.38.0")
+            implementation(libs.findLibrary("com-hierynomus-sshj").get())
             // JmDNS - mDNS 服务发现 (P2P)
-            implementation("org.jmdns:jmdns:3.5.9")
+            implementation(libs.findLibrary("jmdns").get())
         }
     }
 }

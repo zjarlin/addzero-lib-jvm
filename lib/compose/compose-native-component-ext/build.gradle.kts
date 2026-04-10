@@ -2,6 +2,7 @@ plugins {
     id("site.addzero.buildlogic.kmp.cmp-lib")
     id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 }
+val libs = versionCatalogs.named("libs")
 
 
 kotlin {
@@ -10,10 +11,10 @@ kotlin {
 //            implementation()
 
 
-        
-    implementation(project(":lib:compose:compose-native-component-autocomplet"))
 
-    implementation(project(":lib:compose:compose-native-component-text"))
+    implementation(libs.findLibrary("site-addzero-compose-native-component-autocomplet").get())
+
+    implementation(libs.findLibrary("site-addzero-compose-native-component-text").get())
 
     implementation(project(":lib:compose:compose-native-component-toast"))
 }

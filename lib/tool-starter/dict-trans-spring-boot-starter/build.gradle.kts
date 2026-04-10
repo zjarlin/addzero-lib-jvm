@@ -16,7 +16,7 @@ dependencies {
 
   // 添加Spring Boot核心依赖
 //  implementation(libs.org.springframework.boot.spring.boot.autoconfigure)
-  implementation("site.addzero:controller-autoconfigure:2026.01.11")
+  implementation(libs.findLibrary("site-addzero-controller-autoconfigure").get())
   // 添加Spring Boot配置处理器依赖
 //    compileOnly("org.springframework.boot:spring-boot-configuration-processor")
 //    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

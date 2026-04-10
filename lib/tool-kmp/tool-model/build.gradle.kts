@@ -1,11 +1,12 @@
 plugins {
      id("site.addzero.buildlogic.kmp.kmp-core")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":lib:tool-kmp:tool-enum"))
+            api(libs.findLibrary("tool-enum").get())
         }
     }
 }

@@ -33,14 +33,14 @@ processorBuddy {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":lib:ksp:metadata:jimmer-entity-spi"))
-            implementation(project(":lib:tool-kmp:tool-coll"))
+            implementation(libs.findLibrary("jimmer-entity-spi").get())
+            implementation(libs.findLibrary("site-addzero-tool-coll").get())
             implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-core").get())
             implementation(libs.findLibrary("androidx-room-compiler-processing").get())
 
-            implementation(project(":lib:ksp:metadata:entity2form:entity2form-processor"))
-            implementation(project(":lib:ksp:metadata:entity2iso-processor"))
-            implementation(project(":lib:ksp:metadata:entity2mcp-processor"))
+            implementation(libs.findLibrary("site-addzero-entity2form-processor").get())
+            implementation(libs.findLibrary("site-addzero-entity2iso-processor").get())
+            implementation(libs.findLibrary("site-addzero-entity2mcp-processor").get())
         }
 
         jvmTest.dependencies {

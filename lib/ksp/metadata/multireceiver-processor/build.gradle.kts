@@ -4,6 +4,6 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-  implementation(project(":lib:kcp:multireceiver:kcp-multireceiver-annotations"))
+  implementation(libs.findLibrary("kcp-multireceiver-annotations").get())
   implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
 }

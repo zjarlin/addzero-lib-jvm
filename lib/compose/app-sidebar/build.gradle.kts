@@ -3,11 +3,12 @@ plugins {
     id("site.addzero.buildlogic.kmp.kmp-koin")
     id("site.addzero.buildlogic.kmp.kmp-json")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":lib:compose:compose-workbench-design"))
+            implementation(libs.findLibrary("compose-workbench-design").get())
         }
     }
 }

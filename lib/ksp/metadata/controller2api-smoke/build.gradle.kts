@@ -14,7 +14,7 @@ kotlin {
         commonMain {
             kotlin.srcDir(controller2ApiGeneratedRoot)
             dependencies {
-                implementation(project(":lib:tool-kmp:network-starter"))
+                implementation(catalogLibs.findLibrary("site-addzero-network-starter").get())
             }
         }
         jvmMain.dependencies {

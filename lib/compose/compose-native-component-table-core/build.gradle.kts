@@ -6,5 +6,5 @@ plugins {
 }
 
 //dependencies {
-//    implementation(projects.lib.addzeroJimmerModelLowquery)
+//    implementation("site.addzero:addzero-jimmer-model-lowquery:2025.09.29")
 //}

@@ -8,7 +8,7 @@ val libs = versionCatalogs.named("libs")
 group = "site.addzero"
 
 dependencies {
-    implementation(project(":lib:kcp:transform-overload:kcp-transform-overload-annotations"))
+    implementation(libs.findLibrary("kcp-transform-overload-annotations").get())
     compileOnly(libs.findLibrary("org-jetbrains-kotlin-kotlin-compiler-embeddable").get())
     testImplementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-compiler-embeddable").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())

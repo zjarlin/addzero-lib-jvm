@@ -6,7 +6,7 @@ val libs = versionCatalogs.named("libs")
 
 kotlin {
   dependencies {
-    implementation("site.addzero:singleton-adapter-api:2026.01.20")
+    implementation(libs.findLibrary("singleton-adapter-api").get())
   }
 //  sourceSets.jvmMain.dependencies {
 //    implementation(libs.findLibrary("com-squareup-kotlinpoet-ksp").get())

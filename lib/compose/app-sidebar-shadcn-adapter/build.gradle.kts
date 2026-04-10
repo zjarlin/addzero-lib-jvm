@@ -1,12 +1,13 @@
 plugins {
     id("site.addzero.buildlogic.kmp.cmp-lib")
 }
+val libs = versionCatalogs.named("libs")
 
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":lib:compose:app-sidebar"))
-            api(project(":lib:compose:shadcn-compose-component"))
+            api(libs.findLibrary("app-sidebar").get())
+            api(libs.findLibrary("shadcn-compose-component").get())
         }
     }
 }

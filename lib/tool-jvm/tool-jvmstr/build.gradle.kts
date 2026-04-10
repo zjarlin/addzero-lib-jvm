@@ -1,6 +1,8 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention") 
 }
+val libs = versionCatalogs.named("libs")
+
 dependencies {
-    implementation(project(":lib:tool-kmp:tool-str"))
+    implementation(libs.findLibrary("site-addzero-tool-str").get())
 }

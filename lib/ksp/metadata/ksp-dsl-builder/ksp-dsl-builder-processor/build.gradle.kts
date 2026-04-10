@@ -12,7 +12,7 @@ kotlin {
     }
     jvmMain.dependencies {
 
-      implementation(project(":lib:lsi:lsi-ksp"))
+      implementation(libs.findLibrary("site-addzero-lsi-ksp").get())
       implementation(libs.findLibrary("cn-hutool-hutool-all").get())
     }
   }

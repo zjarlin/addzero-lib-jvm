@@ -1,9 +1,10 @@
 plugins {
   id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-  implementation("site.addzero:tool-api-music-search:2026.01.20")
-  implementation("site.addzero:tool-api-suno:2026.01.20")
+  implementation(libs.findLibrary("tool-api-music-search").get())
+  implementation(libs.findLibrary("tool-api-suno").get())
 }
 

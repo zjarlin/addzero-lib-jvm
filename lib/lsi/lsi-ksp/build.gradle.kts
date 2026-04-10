@@ -4,14 +4,14 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    api(project(":lib:lsi:lsi-core"))
-    implementation("site.addzero:tool-str:2026.02.23")
+    api(libs.findLibrary("site-addzero-lsi-core").get())
+    implementation(libs.findLibrary("site-addzero-tool-str").get())
     // KSP API dependencies
     implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
 
     // kotlinpoet: LsiClass → ClassName bridge
-    compileOnly("com.squareup:kotlinpoet:2.2.0")
-    compileOnly("com.squareup:kotlinpoet-ksp:2.2.0")
+    compileOnly(libs.findLibrary("com-squareup-kotlinpoet").get())
+    compileOnly(libs.findLibrary("com-squareup-kotlinpoet-ksp").get())
 
 //    // 测试依赖
 //    testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())

@@ -4,6 +4,7 @@ plugins {
 
     id("site.addzero.gradle.plugin.intellij-core")  version "2025.12.23"
 }
+val libs = versionCatalogs.named("libs")
 
 afterEvaluate {
     tasks.withType<JavaCompile>().configureEach {
@@ -18,9 +19,9 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":lib:lsi:lsi-core"))
-    implementation(project(":lib:lsi:lsi-intellij"))
-    implementation("site.addzero:tool-str:2026.02.23")
+    implementation(libs.findLibrary("site-addzero-lsi-core").get())
+    implementation(libs.findLibrary("site-addzero-lsi-intellij").get())
+    implementation(libs.findLibrary("site-addzero-tool-str").get())
 
     // K2 Analysis API 通过 Kotlin 插件捆绑提供
 //    intellijPlatform {

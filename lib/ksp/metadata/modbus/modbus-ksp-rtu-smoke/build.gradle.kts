@@ -9,7 +9,7 @@ plugins {
 val catalogLibs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(project(":lib:ksp:metadata:modbus:modbus-runtime"))
+    implementation(catalogLibs.findLibrary("modbus-runtime").get())
     implementation(catalogLibs.findLibrary("io-ktor-ktor-server-core").get())
     implementation(catalogLibs.findLibrary("io-insert-koin-koin-annotations").get())
     implementation(catalogLibs.findLibrary("io-insert-koin-koin-core").get())

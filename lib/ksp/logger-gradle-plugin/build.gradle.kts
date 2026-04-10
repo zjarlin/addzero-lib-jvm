@@ -11,7 +11,7 @@ group = "site.addzero"
 
 dependencies {
     implementation(gradleApi())
-    implementation(project(":lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base"))
+    implementation(libs.findLibrary("gradle-ksp-consumer-base").get())
     testImplementation(gradleTestKit())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())
 }

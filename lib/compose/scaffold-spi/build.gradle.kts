@@ -7,7 +7,7 @@ val libs = versionCatalogs.named("libs")
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            api(project(":lib:compose:app-sidebar"))
+            api(libs.findLibrary("app-sidebar").get())
             implementation(libs.findLibrary("io-insert-koin-koin-compose").get())
         }
     }

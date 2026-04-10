@@ -5,10 +5,10 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-core"))
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway"))
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-c-contract"))
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync"))
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-markdown"))
+    implementation(libs.findLibrary("modbus-ksp-core").get())
+    implementation(libs.findLibrary("modbus-ksp-kotlin-gateway").get())
+    implementation(libs.findLibrary("modbus-ksp-c-contract").get())
+    implementation(libs.findLibrary("modbus-ksp-keil-sync").get())
+    implementation(libs.findLibrary("modbus-ksp-markdown").get())
     implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
 }

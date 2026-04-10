@@ -9,7 +9,7 @@ val libs = versionCatalogs.named("libs")
 group = "site.addzero"
 
 dependencies {
-    implementation(project(":lib:kcp:spread-pack:kcp-spread-pack-annotations"))
+    implementation(libs.findLibrary("kcp-spread-pack-annotations").get())
     compileOnly(libs.findLibrary("org-jetbrains-kotlin-kotlin-compiler-embeddable").get())
     testImplementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-compiler-embeddable").get())
     testImplementation(libs.findLibrary("org-junit-jupiter-junit-jupiter").get())

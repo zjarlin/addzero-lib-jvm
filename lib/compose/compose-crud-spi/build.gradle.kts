@@ -8,7 +8,7 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-core").get())
-      api(project(":lib:compose:compose-native-component-table-core"))
+      api(libs.findLibrary("site-addzero-compose-native-component-table-core").get())
       api(project(":lib:tool-kmp:tool-model"))
     }
 

@@ -42,9 +42,9 @@ dependencies {
   implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-dm"))
   implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-kingbase"))
   implementation(project(":lib:tool-jvm:database:ddlgenerator-dialect-taos"))
-  implementation(project(":lib:tool-kmp:jdbc:tool-jdbc"))
-  implementation(project(":lib:tool-kmp:jdbc:tool-jdbc-model"))
-  implementation(project(":lib:tool-jvm:database:tool-database-model"))
+  implementation(libs.findLibrary("site-addzero-tool-jdbc").get())
+  implementation(libs.findLibrary("site-addzero-tool-jdbc-model").get())
+  implementation(libs.findLibrary("site-addzero-tool-database-model").get())
   implementation(libs.findLibrary("site-addzero-tool-yml").get())
   testImplementation(libs.findLibrary("com-h2database-h2").get())
 }

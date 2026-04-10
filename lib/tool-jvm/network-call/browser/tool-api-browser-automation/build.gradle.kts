@@ -1,7 +1,8 @@
 plugins {
   id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-  api("com.microsoft.playwright:playwright:1.45.0")
+  api(libs.findLibrary("playwright").get())
 }

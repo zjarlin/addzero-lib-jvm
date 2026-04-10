@@ -18,7 +18,7 @@ kotlin {
   sourceSets {
     commonMain.dependencies {
       // 跨平台存储（自动对应 Android SharedPreferences / iOS NSUserDefaults）
-      implementation("com.russhwolf:multiplatform-settings:1.1.1")
+      implementation(libs.findLibrary("multiplatform-settings").get())
       // 协程支持（suspend 方法）
 //      implementation("com.russhwolf:multiplatform-settings-coroutines:1.1.1")
       implementation(libs.findLibrary("de-jensklingenberg-ktorfit-ktorfit-lib").get())

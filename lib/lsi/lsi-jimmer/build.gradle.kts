@@ -4,9 +4,9 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-  api(project(":lib:lsi:lsi-core"))
-//  api(project(":lib:lsi:lsi-ksp"))
-  compileOnly("com.squareup:kotlinpoet:2.2.0")
+  api(libs.findLibrary("site-addzero-lsi-core").get())
+//  api("site.addzero:lsi-ksp:2026.02.26")
+  compileOnly(libs.findLibrary("com-squareup-kotlinpoet").get())
 //    compileOnly(libs.findLibrary("com-squareup-kotlinpoet-ksp").get())
 }
 

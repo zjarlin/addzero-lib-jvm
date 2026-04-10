@@ -24,7 +24,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
-            implementation(project(":lib:ksp:common:ksp-support-jdbc"))
+            implementation(libs.findLibrary("site-addzero-ksp-support-jdbc").get())
             implementation(libs.findLibrary("site-addzero-tool-str").get())
         }
     }

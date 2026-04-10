@@ -5,6 +5,6 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    api(project(":lib:ksp:metadata:modbus:modbus-codegen-model"))
+    api(libs.findLibrary("modbus-codegen-model").get())
     testImplementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())
 }

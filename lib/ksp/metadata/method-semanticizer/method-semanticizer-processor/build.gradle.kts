@@ -6,7 +6,7 @@ val libs = versionCatalogs.named("libs")
 kotlin{
   dependencies {
 //    implementation("site.addzero:method-semanticizer-api:2026.02.15")
-    implementation("site.addzero:method-semanticizer-spi:2026.02.15")
+    implementation(libs.findLibrary("method-semanticizer-spi").get())
     implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
     implementation(libs.findLibrary("com-squareup-kotlinpoet").get())
     implementation(libs.findLibrary("com-squareup-kotlinpoet-ksp").get())

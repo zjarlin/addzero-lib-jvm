@@ -5,7 +5,7 @@ val libs = versionCatalogs.named("libs")
 
 dependencies {
     api(project(":lib:tool-jvm:database:ddlgenerator-core"))
-    api(project(":lib:lsi:lsi-core"))
+    api(libs.findLibrary("site-addzero-lsi-core").get())
     implementation(libs.findLibrary("org-babyfish-jimmer-jimmer-core").get())
 }
 

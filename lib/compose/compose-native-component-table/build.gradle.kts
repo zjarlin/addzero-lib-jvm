@@ -6,17 +6,19 @@ plugins {
 //    id("kmp-koin")
 //    id("kmp-ksp-plugin")
 }
+val libs = versionCatalogs.named("libs")
+
 //dependencies {
 //    kspCommonMainMetadata(project(":lib:compose:compose-props-processor"))
 //}
 kotlin {
   sourceSets {
     commonMain.dependencies {
-      implementation(project(":lib:compose:compose-native-component-card"))
-//            implementation(project(":lib:compose:compose-native-component"))
-//            implementation(project(":lib:tool-kmp:tool-json"))
-      implementation("site.addzero:compose-props-annotations:2025.09.30")
-      api(project(":lib:compose:compose-native-component-table-core"))
+      implementation(libs.findLibrary("site-addzero-compose-native-component-card").get())
+//            implementation("site.addzero:compose-native-component:2025.09.30")
+//            implementation("site.addzero:tool-json:2026.02.04")
+      implementation(libs.findLibrary("site-addzero-compose-props-annotations").get())
+      api(libs.findLibrary("site-addzero-compose-native-component-table-core").get())
     }
   }
 }

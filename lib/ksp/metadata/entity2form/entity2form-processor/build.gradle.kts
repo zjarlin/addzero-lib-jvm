@@ -23,7 +23,7 @@ kotlin {
             implementation(libs.findLibrary("androidx-room-compiler-processing").get())
             implementation(libs.findLibrary("site-addzero-entity2form-core").get())
             implementation(libs.findLibrary("site-addzero-tool-str").get())
-            implementation(project(":lib:ksp:metadata:jimmer-entity-spi"))
+            implementation(libs.findLibrary("jimmer-entity-spi").get())
         }
     }
 }

@@ -5,7 +5,7 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-core"))
+    implementation(libs.findLibrary("modbus-ksp-core").get())
     implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
 
     testImplementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())

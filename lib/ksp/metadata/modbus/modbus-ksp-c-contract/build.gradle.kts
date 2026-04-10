@@ -1,7 +1,8 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(project(":lib:ksp:metadata:modbus:modbus-ksp-core"))
+    implementation(libs.findLibrary("modbus-ksp-core").get())
 }

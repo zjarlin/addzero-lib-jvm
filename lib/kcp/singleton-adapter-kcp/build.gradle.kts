@@ -1,7 +1,9 @@
 plugins {
   id("site.addzero.buildlogic.jvm.kotlin-convention")
 }
+val libs = versionCatalogs.named("libs")
+
 dependencies {
-  implementation("site.addzero:singleton-adapter-api:2026.01.20")
+  implementation(libs.findLibrary("singleton-adapter-api").get())
   implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable")
 }

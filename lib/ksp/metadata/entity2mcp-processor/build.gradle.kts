@@ -20,7 +20,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.findLibrary("androidx-room-compiler-processing").get())
-            implementation(project(":lib:ksp:metadata:jimmer-entity-spi"))
+            implementation(libs.findLibrary("jimmer-entity-spi").get())
         }
     }
 }

@@ -6,5 +6,5 @@ val libs = versionCatalogs.named("libs")
 dependencies {
     api(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
     api(libs.findLibrary("androidx-room-compiler-processing").get())
-    api(project(":lib:lsi:lsi-core"))
+    api(libs.findLibrary("site-addzero-lsi-core").get())
 }

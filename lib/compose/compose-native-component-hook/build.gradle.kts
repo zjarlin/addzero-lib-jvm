@@ -3,11 +3,13 @@ plugins {
     id("site.addzero.buildlogic.kmp.kmp-json-withtool")
 //    id("addzero-component")
 }
+val libs = versionCatalogs.named("libs")
+
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":lib:compose:compose-native-component-autocomplet"))
-            implementation(project(":lib:compose:compose-native-component-select"))
+            implementation(libs.findLibrary("site-addzero-compose-native-component-autocomplet").get())
+            implementation(libs.findLibrary("site-addzero-compose-native-component-select").get())
         }
     }
 }

@@ -22,7 +22,7 @@ kotlin {
       // KSP 依赖
       implementation(catalogLibs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
       implementation(catalogLibs.findLibrary("androidx-room-compiler-processing").get())
-      implementation(project(":lib:ksp:metadata:jimmer-entity-spi"))
+      implementation(catalogLibs.findLibrary("jimmer-entity-spi").get())
     }
 
     commonTest.dependencies {

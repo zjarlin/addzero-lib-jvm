@@ -9,7 +9,7 @@ val libs = versionCatalogs.named("libs")
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":lib:tool-kmp:network-starter"))
+            implementation(libs.findLibrary("site-addzero-network-starter").get())
 //            api(projects.lib.apiMusicSpi)
         }
         commonTest.dependencies {

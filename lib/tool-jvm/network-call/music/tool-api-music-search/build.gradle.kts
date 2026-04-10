@@ -8,16 +8,16 @@ dependencies {
   implementation(libs.findLibrary("com-alibaba-fastjson2-fastjson2-kotlin").get())
 
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-  implementation("org.unbescape:unbescape:1.1.6.RELEASE")
+  implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-coroutines-core").get())
+  implementation(libs.findLibrary("org-jetbrains-kotlinx-kotlinx-serialization-json").get())
+  implementation(libs.findLibrary("unbescape").get())
 
   // Ktor Client
-  implementation("io.ktor:ktor-client-core:2.3.7")
-  implementation("io.ktor:ktor-client-cio:2.3.7")
-  implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
-  implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
-  implementation("io.ktor:ktor-client-logging:2.3.7")
+  implementation(libs.findLibrary("io-ktor-ktor-client-core").get())
+  implementation(libs.findLibrary("io-ktor-ktor-client-cio").get())
+  implementation(libs.findLibrary("io-ktor-ktor-client-content-negotiation").get())
+  implementation(libs.findLibrary("io-ktor-ktor-serialization-kotlinx-json").get())
+  implementation(libs.findLibrary("io-ktor-ktor-client-logging").get())
 
   // Ktorfit (Retrofit风格的Ktor接口定义)
 //  implementation("de.jensklingenberg.ktorfit:ktorfit-lib:1.11.0")

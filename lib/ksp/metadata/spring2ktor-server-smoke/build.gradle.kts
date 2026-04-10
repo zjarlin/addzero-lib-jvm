@@ -14,7 +14,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":lib:ksp:metadata:spring2ktor-server-core"))
+    implementation(catalogLibs.findLibrary("spring2ktor-server-core").get())
     ksp(project(":lib:ksp:metadata:spring2ktor-server-processor"))
 
     implementation(catalogLibs.findLibrary("io-ktor-ktor-server-content-negotiation").get())

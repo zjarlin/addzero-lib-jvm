@@ -6,6 +6,7 @@ plugins {
     id("site.addzero.gradle.plugin.intellij-core")  version "2025.12.23"
 
 }
+val libs = versionCatalogs.named("libs")
 
 afterEvaluate {
     tasks.withType<JavaCompile>().configureEach {
@@ -20,7 +21,7 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":lib:lsi:lsi-core"))
-    implementation("site.addzero:tool-str:2026.02.23")
-    implementation(project(":lib:lsi:lsi-intellij"))
+    implementation(libs.findLibrary("site-addzero-lsi-core").get())
+    implementation(libs.findLibrary("site-addzero-tool-str").get())
+    implementation(libs.findLibrary("site-addzero-lsi-intellij").get())
 }
