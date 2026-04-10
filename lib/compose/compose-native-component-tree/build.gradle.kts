@@ -8,7 +8,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.findLibrary("compose-apple-corner").get())
+              implementation(libs.findLibrary("compose-apple-corner").get())
                 implementation(libs.findLibrary("site-addzero-compose-native-component-button").get())
                 implementation(libs.findLibrary("site-addzero-compose-native-component-searchbar").get())
                 implementation(libs.findLibrary("tool-tree").get())
