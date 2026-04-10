@@ -38,6 +38,7 @@ fun AddSearchBar(
     showRefreshButton: Boolean = true,
 ) {
     val fieldTextStyle = MaterialTheme.typography.bodyMedium
+    val effectiveFieldHeight = if (fieldHeight < 46.dp) 46.dp else fieldHeight
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -82,7 +83,7 @@ fun AddSearchBar(
             shape = fieldShape,
             modifier = Modifier
                 .weight(1f)
-                .height(fieldHeight)
+                .height(effectiveFieldHeight)
                 .onPreviewKeyEvent { keyEvent ->
                     if (keyEvent.type == KeyEventType.KeyUp &&
                         keyEvent.key == Key.Enter &&
