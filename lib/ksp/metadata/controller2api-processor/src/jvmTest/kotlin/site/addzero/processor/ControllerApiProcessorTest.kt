@@ -102,13 +102,15 @@ class ControllerApiProcessorTest {
         assertContains(code, "import org.koin.core.annotation.Module")
         assertContains(code, "import org.koin.core.annotation.Single")
         assertContains(code, "import demo.external.generated.UserApi")
+        assertContains(code, "import demo.external.generated.createUserApi")
+        assertContains(code, "import demo.external.generated.createSystemRoutesApi")
         assertContains(code, "@Module")
         assertContains(code, "@Configuration")
         assertContains(code, "public class CodegenContextApiClients")
         assertContains(code, "public fun userApi(ktorfit: Ktorfit): UserApi")
-        assertContains(code, "return ktorfit.create()")
+        assertContains(code, "return ktorfit.createUserApi()")
         assertContains(code, "public fun systemRoutesApi(ktorfit: Ktorfit): SystemRoutesApi")
-        assertContains(code, "return ktorfit.create()")
+        assertContains(code, "return ktorfit.createSystemRoutesApi()")
     }
 
     @Test
@@ -196,7 +198,8 @@ class ControllerApiProcessorTest {
 
         val writtenCode = outputFile.readText()
         assertContains(writtenCode, "public class CodegenContextApiClients")
-        assertContains(writtenCode, "return ktorfit.create()")
+        assertContains(writtenCode, "import demo.external.generated.createCodegenContextApi")
+        assertContains(writtenCode, "return ktorfit.createCodegenContextApi()")
     }
 
     @Test

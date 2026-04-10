@@ -7,4 +7,4 @@ dependencies {
     implementation(libs.findLibrary("site-addzero-tool-str").get())
 }
 
-version="2026.04.11"
+version="2026.04.12"

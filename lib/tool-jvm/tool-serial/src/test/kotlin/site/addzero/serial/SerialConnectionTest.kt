@@ -9,6 +9,23 @@ import kotlin.test.assertTrue
 
 class SerialConnectionTest {
     @Test
+    fun `read 会返回当前串口实际读到的文本内容`() {
+        val driver =
+            FakeSerialDriver(
+                readChunks = listOf(
+                    "TEMP=23.5".encodeToByteArray(),
+                ),
+            )
+        val connection = SerialConnection(driver, SerialPortConfig(portName = "FAKE"))
+
+        val bytes = connection.read(maxBytes = 64)
+        val text = bytes.decodeToString()
+
+        assertContentEquals("TEMP=23.5".encodeToByteArray(), bytes)
+        assertEquals("TEMP=23.5", text)
+    }
+
+    @Test
     fun `readExact 会把多个分片拼成完整报文`() {
         /**
          * fake 驱动每次只吐一小段数据，
@@ -122,6 +139,10 @@ private class FakeSerialDriver(
         queue.clear()
         return true
     }
+
+    override fun setDtr(enabled: Boolean) = Unit
+
+    override fun setRts(enabled: Boolean) = Unit
 
     override fun close() = Unit
 

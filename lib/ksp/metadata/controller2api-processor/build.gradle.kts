@@ -1,5 +1,3 @@
-import org.gradle.declarative.dsl.schema.FqName.Empty.packageName
-
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp")
     alias(libs.plugins.site.addzero.gradle.plugin.processor.buddy)
@@ -16,17 +14,16 @@ processorBuddy {
     mustMap.set(
         mapOf(
             "apiClientPackageName" to defaultApiClientPackageName,
-            "apiClientAggregatorObjectName" to "",
-            "apiClientAggregatorStyle" to "",
+            // 留空时沿用 apiClientOutputDir。
             "apiClientAggregatorOutputDir" to "",
+            // 留空时处理器默认生成同包聚合对象 `Apis`。
+            "apiClientAggregatorObjectName" to "",
+            "apiClientAggregatorStyle" to "koin",
             "apiClientOutputDir" to defaultGeneratedSourceDir
                 .resolve(defaultApiClientPackageName.replace(".", "/"))
                 .absolutePath.replace('\\', '/'),
-            "apiClientBridgePackageName" to "",
-            "apiClientBridgeOutputDir" to "",
-            "apiClientBridgeFileName" to "",
         )
     )
 }
 
-version="2026.04.10"
+version = "2026.04.13"

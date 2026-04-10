@@ -9,6 +9,9 @@ import java.io.File
 
 private const val REST_CONTROLLER_ANNOTATION = "org.springframework.web.bind.annotation.RestController"
 private const val FILE_REQUEST_MAPPING_ANNOTATION = "site.addzero.springktor.runtime.RequestMapping"
+private const val API_CLIENT_BRIDGE_PACKAGE_NAME_OPTION = "apiClientBridgePackageName"
+private const val API_CLIENT_BRIDGE_OUTPUT_DIR_OPTION = "apiClientBridgeOutputDir"
+private const val API_CLIENT_BRIDGE_FILE_NAME_OPTION = "apiClientBridgeFileName"
 
 private val springMvcMappingAnnotations = listOf(
     "org.springframework.web.bind.annotation.GetMapping",
@@ -783,9 +786,9 @@ class ControllerApiProcessor(
      * 按配置解析源码级 API client 桥接输出。
      */
     private fun resolveApiClientBridgeSpec(): ApiClientBridgeSpec? {
-        val packageName = Settings.apiClientBridgePackageName.trim()
-        val outputDir = Settings.apiClientBridgeOutputDir.trim()
-        val fileName = Settings.apiClientBridgeFileName.trim()
+        val packageName = options[API_CLIENT_BRIDGE_PACKAGE_NAME_OPTION].orEmpty().trim()
+        val outputDir = options[API_CLIENT_BRIDGE_OUTPUT_DIR_OPTION].orEmpty().trim()
+        val fileName = options[API_CLIENT_BRIDGE_FILE_NAME_OPTION].orEmpty().trim()
         if (packageName.isBlank() || outputDir.isBlank() || fileName.isBlank()) {
             return null
         }
@@ -1271,12 +1274,14 @@ internal fun renderApiClientBridgeCode(
     val generatedApiImports = generatedApis.joinToString("\n") { api ->
         "import $generatedApiPackageName.${api.apiClassName}"
     }
+    val generatedFactoryImports = generatedApis.joinToString("\n") { api ->
+        "import $generatedApiPackageName.create${api.apiClassName}"
+    }
     val providers = generatedApis.joinToString("\n\n") { api ->
         """
         |    @Single
         |    public fun ${api.propertyName}(ktorfit: Ktorfit): ${api.apiClassName} {
-        |        @Suppress("DEPRECATION")
-        |        return ktorfit.create()
+        |        return ktorfit.create${api.apiClassName}()
         |    }
         """.trimMargin()
     }
@@ -1289,6 +1294,7 @@ internal fun renderApiClientBridgeCode(
         |import org.koin.core.annotation.Module
         |import org.koin.core.annotation.Single
         |$generatedApiImports
+        |$generatedFactoryImports
         |
         |/**
         | * controller2api 生成的 Ktorfit API 客户端桥接入口。

@@ -7,7 +7,9 @@ plugins {
 val catalogLibs = versionCatalogs.named("libs")
 val controller2ApiGeneratedRoot = layout.buildDirectory.dir("generated/source/controller2api/commonMain/kotlin")
 val generatedApiPackage = "sample.api.external.generated"
-val generatedBridgePackage = "sample.api.bridge.generated"
+val generatedApiOutputDir = controller2ApiGeneratedRoot.map { root ->
+    root.dir(generatedApiPackage.replace(".", "/"))
+}
 
 kotlin {
     sourceSets {
@@ -31,14 +33,10 @@ ksp {
     arg("apiClientPackageName", generatedApiPackage)
     arg(
         "apiClientOutputDir",
-        controller2ApiGeneratedRoot.get().dir(generatedApiPackage.replace(".", "/")).asFile.absolutePath,
+        generatedApiOutputDir.get().asFile.absolutePath,
     )
-    arg("apiClientBridgePackageName", generatedBridgePackage)
-    arg(
-        "apiClientBridgeOutputDir",
-        controller2ApiGeneratedRoot.get().dir(generatedBridgePackage.replace(".", "/")).asFile.absolutePath,
-    )
-    arg("apiClientBridgeFileName", "Controller2ApiGeneratedClients")
+    // 留空时处理器默认生成同包聚合对象 `Apis`。
+    arg("apiClientAggregatorOutputDir", generatedApiOutputDir.get().asFile.absolutePath)
 }
 
 tasks.withType<Test>().configureEach {
