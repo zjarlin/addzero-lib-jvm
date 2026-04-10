@@ -1,10 +1,9 @@
+import org.gradle.api.tasks.Delete
+
 plugins {
     id("site.addzero.buildlogic.kmp.kmp-ksp-plugin")
-    id("site.addzero.buildlogic.kmp.kmp-ktorfit")
-    id("site.addzero.buildlogic.kmp.kmp-koin-core")
 }
 
-val catalogLibs = versionCatalogs.named("libs")
 val controller2ApiGeneratedRoot = layout.buildDirectory.dir("generated/source/controller2api/commonMain/kotlin")
 val generatedApiPackage = "sample.api.external.generated"
 val generatedApiOutputDir = controller2ApiGeneratedRoot.map { root ->
@@ -13,14 +12,8 @@ val generatedApiOutputDir = controller2ApiGeneratedRoot.map { root ->
 
 kotlin {
     sourceSets {
-        commonMain {
-            kotlin.srcDir(controller2ApiGeneratedRoot)
-            dependencies {
-                implementation(catalogLibs.findLibrary("site-addzero-network-starter").get())
-            }
-        }
         jvmMain.dependencies {
-            compileOnly(catalogLibs.findLibrary("org-springframework-spring-web").get())
+            compileOnly(versionCatalogs.named("libs").findLibrary("org-springframework-spring-web").get())
         }
     }
 }
@@ -42,4 +35,15 @@ ksp {
 tasks.withType<Test>().configureEach {
     dependsOn("kspKotlinJvm")
     systemProperty("controller2api.smoke.projectDir", projectDir.absolutePath)
+}
+
+val cleanController2ApiGeneratedRoot by tasks.registering(Delete::class) {
+    delete(controller2ApiGeneratedRoot)
+}
+
+tasks.matching { task ->
+    task.name == "kspKotlinJvm"
+}.configureEach {
+    dependsOn(cleanController2ApiGeneratedRoot)
+    outputs.dir(controller2ApiGeneratedRoot)
 }

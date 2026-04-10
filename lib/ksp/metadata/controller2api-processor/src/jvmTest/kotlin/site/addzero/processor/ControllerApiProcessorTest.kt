@@ -54,6 +54,9 @@ class ControllerApiProcessorTest {
         )
 
         assertContains(code, "package demo.generated.api")
+        assertContains(code, "import demo.generated.api.UserApi")
+        assertContains(code, "import demo.generated.api.createUserApi")
+        assertContains(code, "import demo.generated.api.createSystemRoutesApi")
         assertContains(code, "object Apis")
         assertContains(code, "fun userApi(ktorfit: Ktorfit): UserApi")
         assertContains(code, "return ktorfit.createUserApi()")
@@ -131,6 +134,7 @@ class ControllerApiProcessorTest {
         val moduleCode = tempDir.resolve("ApisModule.kt").readText()
 
         assertContains(aggregatorCode, "object Apis")
+        assertContains(aggregatorCode, "import demo.generated.api.createUserApi")
         assertContains(aggregatorCode, "fun userApi(ktorfit: Ktorfit): UserApi")
         assertContains(aggregatorCode, "return ktorfit.createUserApi()")
         assertContains(moduleCode, "class ApisModule")
@@ -180,6 +184,7 @@ class ControllerApiProcessorTest {
         )
 
         val writtenCode = outputFile.readText()
+        assertContains(writtenCode, "import demo.generated.api.createUserApi")
         assertContains(writtenCode, "fun configure(ktorfit: Ktorfit)")
     }
 

@@ -26,4 +26,4 @@ processorBuddy {
     )
 }
 
-version = "2026.04.13"
+version = "2026.04.14"

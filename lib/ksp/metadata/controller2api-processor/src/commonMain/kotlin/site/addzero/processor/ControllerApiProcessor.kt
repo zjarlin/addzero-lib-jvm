@@ -1140,6 +1140,12 @@ internal fun renderApiAggregatorCode(
     aggregatorStyle: ApiAggregatorStyle,
     generatedApis: List<GeneratedApiDescriptor>
 ): String {
+    val generatedApiImports = generatedApis.joinToString("\n") { api ->
+        "import $packageName.${api.apiClassName}"
+    }
+    val generatedFactoryImports = generatedApis.joinToString("\n") { api ->
+        "import $packageName.create${api.apiClassName}"
+    }
     val serviceMembers = when (aggregatorStyle) {
         ApiAggregatorStyle.KOIN -> {
             generatedApis.joinToString("\n\n") { api ->
@@ -1185,7 +1191,8 @@ internal fun renderApiAggregatorCode(
         |package $packageName
         |
         |import de.jensklingenberg.ktorfit.Ktorfit
-        |import $packageName.*
+        |$generatedApiImports
+        |$generatedFactoryImports
         |
         |/**
         | * 聚合后的 Ktorfit 服务提供者
