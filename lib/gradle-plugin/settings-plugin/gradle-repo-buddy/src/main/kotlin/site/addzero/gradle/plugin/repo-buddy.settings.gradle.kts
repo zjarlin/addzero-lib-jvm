@@ -3,30 +3,31 @@ package site.addzero.gradle.plugin
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 fun RepositoryHandler.applyGoogleRepository() {
-    google {
-        mavenContent {
-            includeGroupAndSubgroups("androidx")
-            includeGroupAndSubgroups("com.android")
-            includeGroupAndSubgroups("com.google")
-        }
+  google {
+    mavenContent {
+      includeGroupAndSubgroups("androidx")
+      includeGroupAndSubgroups("com.android")
+      includeGroupAndSubgroups("com.google")
     }
+  }
 }
 
 fun RepositoryHandler.applyCommonRepositories() {
-    applyGoogleRepository()
-    mavenCentral()
+  applyGoogleRepository()
+  mavenLocal()
+  mavenCentral()
 }
 
 fun RepositoryHandler.applyPluginRepositories() {
-    applyCommonRepositories()
-    gradlePluginPortal()
-    maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
+  applyCommonRepositories()
+  gradlePluginPortal()
+  maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
 pluginManagement.repositories {
-    applyPluginRepositories()
+  applyPluginRepositories()
 }
 
 dependencyResolutionManagement.repositories {
-    applyCommonRepositories()
+  applyCommonRepositories()
 }
