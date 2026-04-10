@@ -1,6 +1,9 @@
 package site.addzero.serial
 
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -24,6 +27,68 @@ class SerialConnectionTest {
         assertContentEquals("TEMP=23.5".encodeToByteArray(), bytes)
         assertEquals("TEMP=23.5", text)
     }
+
+    @Test
+    fun `轮询读取可以按日志行输出`() =
+        runTest {
+            val driver =
+                FakeSerialDriver(
+                    readChunks = listOf(
+                        "booting...\nwi".encodeToByteArray(),
+                        "fi connected\nready>\n".encodeToByteArray(),
+                    ),
+                )
+            val connection = SerialConnection(driver, SerialPortConfig(portName = "FAKE"))
+
+            val logs =
+                connection
+                    .pollLogLineFlow(
+                        SerialLogStreamConfig(
+                            pollIntervalMs = 10,
+                        ),
+                    )
+                    .take(3)
+                    .toList()
+
+            assertEquals(
+                listOf(
+                    "booting...",
+                    "wifi connected",
+                    "ready>",
+                ),
+                logs,
+            )
+        }
+
+    @Test
+    fun `串口日志可以编码成 SSE 数据帧`() =
+        runTest {
+            val driver =
+                FakeSerialDriver(
+                    readChunks = listOf(
+                        "line-1\nline-2\n".encodeToByteArray(),
+                    ),
+                )
+            val connection = SerialConnection(driver, SerialPortConfig(portName = "FAKE"))
+
+            val frames =
+                connection
+                    .pollSseLogFlow(
+                        SerialSseStreamConfig(
+                            logStream = SerialLogStreamConfig(pollIntervalMs = 10),
+                            event = "device-log",
+                        ),
+                    ).take(2)
+                    .toList()
+
+            assertEquals(
+                listOf(
+                    "event: device-log\ndata: line-1\n\n",
+                    "event: device-log\ndata: line-2\n\n",
+                ),
+                frames,
+            )
+        }
 
     @Test
     fun `readExact 会把多个分片拼成完整报文`() {
