@@ -9,9 +9,8 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-10T13:46:08.991112
-// Loaded: 10, Excluded: 1, Total: 11
-// Excluded (build infrastructure): :checkouts:build-logic
+// Generated at: 2026-04-10T14:25:34.141092
+// Loaded: 11, Excluded: 0, Total: 11
 include(":lib:compose:app-sidebar")
 include(":lib:compose:app-sidebar-cupertino-adapter")
 include(":lib:compose:compose-cupertino-workbench")
@@ -19,6 +18,7 @@ include(":lib:compose:compose-eventbus")
 include(":lib:compose:compose-native-component-toast")
 include(":lib:compose:compose-native-component-tree")
 include(":lib:gradle-plugin:settings-plugin:gradle-repo-buddy")
+include(":lib:ksp:metadata:controller2api-processor")
 include(":lib:tool-jvm:tool-jvmstr")
 include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-kmp:tool-tree")
