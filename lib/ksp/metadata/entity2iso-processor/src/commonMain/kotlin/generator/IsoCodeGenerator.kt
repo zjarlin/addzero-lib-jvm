@@ -121,11 +121,7 @@ object IsoCodeGenerator {
         }
 
         if (type.qualifiedName == "java.math.BigDecimal" || type.simpleName == "BigDecimal") {
-            return IsoTypeResult(
-                rendered = "BigDecimal",
-                imports = setOf("import java.math.BigDecimal"),
-                kind = JimmerTypeKind.BASIC,
-            )
+            return IsoTypeResult(rendered = "String", kind = JimmerTypeKind.BASIC)
         }
 
         mapToKotlinxDateTime(type.qualifiedName, type.simpleName)?.let { mapped ->
@@ -253,7 +249,6 @@ object IsoCodeGenerator {
                 "Byte" -> DefaultValueResult("0")
                 "Short" -> DefaultValueResult("0")
                 "Char" -> DefaultValueResult("' '")
-                "BigDecimal" -> DefaultValueResult("BigDecimal.ZERO")
                 else -> DefaultValueResult("TODO()")
             }
 

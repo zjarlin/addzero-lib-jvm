@@ -201,4 +201,41 @@ class IsoCodeGeneratorTest {
         assertContains(code, "@Contextual val lastSeenAt: Instant = kotlinx.datetime.Clock.System.now()")
         assertFalse(code.contains("import kotlin.time.Clock"))
     }
+
+    @Test
+    fun `generator maps BigDecimal to String for commonMain iso`() {
+        val code = IsoCodeGenerator.generateIsoCode(
+            entity = JimmerEntityMeta(
+                qualifiedName = "demo.domain.Tag",
+                packageName = "demo.domain",
+                simpleName = "Tag",
+                properties = listOf(
+                    JimmerPropertyMeta(
+                        name = "precision",
+                        type = JimmerTypeRef(
+                            qualifiedName = "java.math.BigDecimal",
+                            simpleName = "BigDecimal",
+                            kind = JimmerTypeKind.BASIC,
+                        ),
+                    ),
+                    JimmerPropertyMeta(
+                        name = "nullablePrecision",
+                        type = JimmerTypeRef(
+                            qualifiedName = "java.math.BigDecimal",
+                            simpleName = "BigDecimal",
+                            nullable = true,
+                            kind = JimmerTypeKind.BASIC,
+                        ),
+                    ),
+                ),
+            ),
+            packageName = "demo.generated.iso",
+            classSuffix = "Iso",
+        )
+
+        assertContains(code, "val precision: String = \"\"")
+        assertContains(code, "val nullablePrecision: String? = null")
+        assertFalse(code.contains("import java.math.BigDecimal"))
+        assertFalse(code.contains("BigDecimal.ZERO"))
+    }
 }

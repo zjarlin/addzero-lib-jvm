@@ -18,7 +18,7 @@ kotlin {
             implementation(libs.findLibrary("site-addzero-compose-props-annotations").get())
 //            implementation(projects.lib.compose.addzerosearch)
             api(project(":lib:compose:compose-crud-spi"))
-            api(libs.findLibrary("site-addzero-compose-native-component-table").get())
+            api(project(":lib:compose:compose-native-component-table"))
             implementation(libs.findLibrary("site-addzero-compose-native-component-button").get())
             implementation(libs.findLibrary("site-addzero-compose-native-component-searchbar").get())
             implementation(libs.findLibrary("site-addzero-compose-native-component-assist").get())

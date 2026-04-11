@@ -5,6 +5,10 @@ plugins {
 
 }
 
-//dependencies {
-//    implementation("site.addzero:addzero-jimmer-model-lowquery:2025.09.29")
-//}
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(kotlin("stdlib-common"))
+        }
+    }
+}

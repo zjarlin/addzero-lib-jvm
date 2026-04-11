@@ -18,7 +18,7 @@ kotlin {
 //            implementation("site.addzero:compose-native-component:2025.09.30")
 //            implementation("site.addzero:tool-json:2026.02.04")
       implementation(libs.findLibrary("site-addzero-compose-props-annotations").get())
-      api(libs.findLibrary("site-addzero-compose-native-component-table-core").get())
+      api(project(":lib:compose:compose-native-component-table-core"))
     }
   }
 }

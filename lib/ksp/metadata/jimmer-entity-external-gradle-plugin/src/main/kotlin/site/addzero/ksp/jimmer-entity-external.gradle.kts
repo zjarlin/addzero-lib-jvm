@@ -101,6 +101,11 @@ configurePublishedKspConsumer(
                 localProjectPath = ":lib:ksp:metadata:entity2mcp-processor",
                 artifactId = "entity2mcp-processor",
             ),
+            PublishedProcessorArtifact(
+                artifactKind = PublishedKspArtifactKind.KMP,
+                localProjectPath = ":lib:ksp:metadata:controller2iso2dataprovider-processor",
+                artifactId = "controller2iso2dataprovider-processor",
+            ),
         ),
     ),
 ) {

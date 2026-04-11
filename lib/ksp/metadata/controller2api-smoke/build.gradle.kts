@@ -19,7 +19,7 @@ kotlin {
 }
 
 dependencies {
-    add("kspJvm", project(":lib:ksp:metadata:controller2api-processor"))
+    add("kspJvm", versionCatalogs.named("libs").findLibrary("site-addzero-controller2api-processor").get())
 }
 
 ksp {
