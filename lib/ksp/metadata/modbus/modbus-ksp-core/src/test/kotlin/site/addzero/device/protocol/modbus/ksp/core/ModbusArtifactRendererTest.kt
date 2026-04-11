@@ -56,13 +56,29 @@ class ModbusArtifactRendererTest {
         assertTrue(content.contains("class SelfDevBoardApiGeneratedRtuGateway"))
         assertTrue(content.contains("private val configuredDefaultConfig: ModbusRtuEndpointConfig"))
         assertTrue(content.contains("fun defaultConfig(): ModbusRtuEndpointConfig = configuredDefaultConfig"))
+        assertTrue(content.contains("import org.koin.core.annotation.Configuration"))
         assertTrue(content.contains("@Module"))
+        assertTrue(content.contains("@Configuration"))
         assertTrue(content.contains("class GeneratedModbusRtuKoinModule"))
         assertTrue(content.contains("fun selfDevBoardApiGeneratedRtuGateway("))
         assertTrue(content.contains("fun selfDevBoardApi("))
         assertTrue(content.contains("): site.addzero.device.api.internal.SelfDevBoardApi = gateway"))
         assertFalse(content.contains("fun modbusRtuConfigRegistry("))
         assertTrue(content.contains("该 gateway 由 KSP 自动生成"))
+    }
+
+    @Test
+    fun renderMqttArtifactsExposeConfigurationAnnotatedKoinModule() {
+        val content =
+            ModbusArtifactRenderer
+                .renderServerArtifacts(ModbusTransportKind.MQTT, listOf(sampleService()))
+                .single()
+                .content
+
+        assertTrue(content.contains("import org.koin.core.annotation.Configuration"))
+        assertTrue(content.contains("@Module"))
+        assertTrue(content.contains("@Configuration"))
+        assertTrue(content.contains("class GeneratedModbusMqttKoinModule"))
     }
 
     @Test

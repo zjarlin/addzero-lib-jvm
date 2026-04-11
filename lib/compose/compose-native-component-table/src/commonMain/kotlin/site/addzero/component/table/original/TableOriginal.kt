@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import kotlin.reflect.KClass
 import site.addzero.component.table.original.entity.ColumnConfig
 import site.addzero.component.table.original.entity.TableLayoutConfig
 import site.addzero.component.table.original.render.RenderFixedActionColumn
@@ -45,6 +46,7 @@ fun <T, C> TableOriginal(
     topSlot: (@Composable () -> Unit)? = null,
     bottomSlot: (@Composable () -> Unit)? = null,
     emptyContentSlot: (@Composable () -> Unit)? = null,
+    getCellText: ((item: T, column: C) -> String)? = null,
     getCellContent: (@Composable (item: T, column: C) -> Unit)? = null,
     rowLeftSlot: (@Composable (item: T, index: Int) -> Unit)? = null,
     rowActionSlot: (@Composable (item: T) -> Unit)? = null,
@@ -52,8 +54,7 @@ fun <T, C> TableOriginal(
     columnRightSlot: @Composable ((C) -> Unit)? = null,
 ) {
     val actualGetRowId = getRowId ?: { item ->
-        val mapped = item?.bean2map()
-        mapped?.get("id") ?: item.hashCode()
+        readTableFieldValue(item, "id") ?: item.hashCode()
     }
     val actualGetColumnLabel = getColumnLabel ?: { column ->
         val columnKey = getColumnKey(column)
@@ -86,11 +87,12 @@ fun <T, C> TableOriginal(
             )
         }
     }
+    val actualGetCellText = getCellText ?: { item, column ->
+        readTableCellValue(item, getColumnKey(column)).orEmpty()
+    }
     val actualGetCellContent = getCellContent ?: { item, column ->
-        val mapped = item?.bean2map()
-        val valueText = (mapped?.get(getColumnKey(column)) ?: "").toString()
         Text(
-            text = valueText,
+            text = actualGetCellText(item, column),
             style = MaterialTheme.typography.bodyMedium,
         )
     }
@@ -104,10 +106,7 @@ fun <T, C> TableOriginal(
         data = data,
         columns = columns,
         getColumnKey = getColumnKey,
-        getCellText = { item, column ->
-            val mapped = item?.bean2map()
-            (mapped?.get(getColumnKey(column)) ?: "").toString()
-        },
+        getCellText = actualGetCellText,
         layoutConfig = layoutConfig,
         headerTextStyle = MaterialTheme.typography.titleSmall,
         cellTextStyle = MaterialTheme.typography.bodyMedium,
@@ -194,4 +193,30 @@ fun <T, C> TableOriginal(
 
         actualBottomSlot()
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun readTableCellValue(
+    item: Any?,
+    columnKey: String,
+): String? {
+    return readTableFieldValue(item, columnKey)?.toString()
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun readTableFieldValue(
+    item: Any?,
+    fieldKey: String,
+): Any? {
+    if (item == null) {
+        return null
+    }
+    if (item is Map<*, *>) {
+        return item[fieldKey]
+    }
+    val mapped =
+        runCatching {
+            item.bean2map(item::class as KClass<Any>)
+        }.getOrNull()
+    return mapped?.get(fieldKey)
 }

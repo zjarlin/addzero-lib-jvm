@@ -33,6 +33,7 @@ object ModbusArtifactTemplates {
                     appendLine("import io.ktor.server.routing.post")
                 }
                 appendLine("import kotlinx.serialization.Serializable")
+                appendLine("import org.koin.core.annotation.Configuration")
                 appendLine("import org.koin.core.annotation.Module")
                 appendLine("import org.koin.core.annotation.Single")
                 if (includeDirectKtorRoutes) {
@@ -1316,6 +1317,7 @@ object ModbusArtifactTemplates {
             }
             appendLine(" */")
             appendLine("@Module")
+            appendLine("@Configuration")
             appendLine("class ${transport.generatedKoinModuleClassName()} {")
             when (transport) {
                 ModbusTransportKind.RTU -> {
