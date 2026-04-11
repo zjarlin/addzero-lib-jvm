@@ -1,4 +1,5 @@
 pluginManagement {
+    val fallbackRepoVersion = "2026.04.12"
     val useIncludedBuild =
         System.getenv("ADDZERO_USE_INCLUDED_BUILD")
             ?.toBooleanStrictOrNull()
@@ -7,7 +8,7 @@ pluginManagement {
     fun readRepoVersion(): String {
         val gradlePropertiesFile = file("../../gradle.properties")
         if (!gradlePropertiesFile.isFile) {
-            return "2026.10330.12238"
+            return fallbackRepoVersion
         }
         return gradlePropertiesFile
             .readLines()
@@ -15,7 +16,7 @@ pluginManagement {
             ?.substringAfter("=")
             ?.trim()
             ?.takeIf(String::isNotBlank)
-            ?: "2026.10330.12238"
+            ?: fallbackRepoVersion
     }
 
     if (useIncludedBuild) {

@@ -5,10 +5,12 @@ val useIncludedBuild =
         ?.toBooleanStrictOrNull()
         ?: true
 
+val fallbackRepoVersion = "2026.04.12"
+
 fun readRepoVersion(): String {
     val gradlePropertiesFile = file("../../gradle.properties")
     if (!gradlePropertiesFile.isFile) {
-        return "2026.10330.12238"
+        return fallbackRepoVersion
     }
     return gradlePropertiesFile
         .readLines()
@@ -16,7 +18,7 @@ fun readRepoVersion(): String {
         ?.substringAfter("=")
         ?.trim()
         ?.takeIf(String::isNotBlank)
-        ?: "2026.10330.12238"
+        ?: fallbackRepoVersion
 }
 
 val addzeroVersion = readRepoVersion()
