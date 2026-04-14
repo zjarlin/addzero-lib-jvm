@@ -5,8 +5,8 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-  implementation(libs.findLibrary("modbus-ksp-core").get())
-  implementation(libs.findLibrary("modbus-ksp-kotlin-gateway").get())
+  implementation(projects.lib.ksp.metadata.modbus.modbusKspCore)
+  implementation(projects.lib.ksp.metadata.modbus.modbusKspKotlinGateway)
   implementation(libs.findLibrary("modbus-ksp-c-contract").get())
   implementation(libs.findLibrary("modbus-ksp-keil-sync").get())
   implementation(libs.findLibrary("modbus-ksp-markdown").get())

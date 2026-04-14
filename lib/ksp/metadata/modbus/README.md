@@ -169,6 +169,9 @@ core 通过 `ServiceLoader<ModbusArtifactGenerator>` 聚合输出模块：
 - `C_TRANSPORT_CONTRACT`
 - `MARKDOWN_PROTOCOL`
 
+其中 `KOTLIN_GATEWAY` 的实际消费链路已经切到 `modbus-ksp-kotlin-gateway` 模块自己持有的模板实现；
+`modbus-ksp-core` 继续保留 suite model、SPI facade 和通用上下文，后续可以再清理 core 中遗留的旧 gateway 模板代码。
+
 元数据输入侧对应的是 `ServiceLoader<ModbusMetadataProvider>`：
 
 - `interfaces`
