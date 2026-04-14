@@ -4,5 +4,5 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    implementation(libs.findLibrary("modbus-ksp-core").get())
+  implementation(libs.findLibrary("modbus-ksp-core").get())
 }
