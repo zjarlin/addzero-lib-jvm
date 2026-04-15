@@ -85,6 +85,7 @@ class ModbusSymbolCollector(
                     workflows = workflows,
                 ),
             originatingFiles = listOfNotNull(containingFile),
+            providesSourceContract = true,
         )
     }
 

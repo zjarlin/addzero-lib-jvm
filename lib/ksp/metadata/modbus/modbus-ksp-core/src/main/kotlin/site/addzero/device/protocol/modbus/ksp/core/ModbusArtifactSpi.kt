@@ -6,6 +6,7 @@ import java.util.ServiceLoader
  * 协议套件的单类产物生成 SPI。
  *
  * 每个输出模块只负责一类产物：
+ * - Kotlin contract
  * - Kotlin gateway
  * - C service/transport exposure
  * - Markdown protocol docs
@@ -22,6 +23,21 @@ interface ModbusArtifactGenerator {
  * processor 不再直接依赖具体模板模块，而是只依赖 core 中的 suite metadata + SPI。
  */
 object ModbusArtifactRenderer {
+    fun renderKotlinContractArtifacts(
+        services: List<ModbusServiceModel>,
+    ): List<GeneratedArtifact> {
+        if (services.isEmpty()) {
+            return emptyList()
+        }
+        return render(
+            context =
+                ModbusArtifactRenderContext(
+                    kind = ModbusArtifactKind.KOTLIN_CONTRACT,
+                    suite = ModbusProtocolSuiteModel(transport = services.first().transport, services = services),
+                ),
+        )
+    }
+
     fun renderGatewayArtifacts(
         transport: ModbusTransportKind,
         services: List<ModbusServiceModel>,
@@ -120,7 +136,7 @@ object ModbusArtifactRenderer {
                 .load(ModbusArtifactGenerator::class.java, ModbusArtifactRenderer::class.java.classLoader)
                 .toList()
         check(loaded.isNotEmpty()) {
-            "未通过 ServiceLoader 加载到任何 ModbusArtifactGenerator；请确认 kotlin/c/markdown generator 模块已加入 classpath。"
+            "未通过 ServiceLoader 加载到任何 ModbusArtifactGenerator；请确认 kotlin-contract/kotlin/c/markdown generator 模块已加入 classpath。"
         }
         val grouped = loaded.groupBy(ModbusArtifactGenerator::kind)
         val duplicates = grouped.filterValues { generators -> generators.size > 1 }

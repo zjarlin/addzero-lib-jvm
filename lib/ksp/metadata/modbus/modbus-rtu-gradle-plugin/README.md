@@ -77,7 +77,9 @@ cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
   - 默认留空，表示让所有已发现 provider 自行判断是否启用
 - `transports`
   - 会映射成 `addzero.modbus.transports`
-  - 支持一次启用多个已实现 transport，例如 `listOf("rtu", "tcp")`
+  - 这里只是当前 RTU processor 的启停开关
+  - 正常应留空或显式写成 `listOf("rtu")`
+  - 不能靠这里顺带生成 `tcp` / `mqtt`
 - `databaseDriverClass`
   - 会映射成 `addzero.modbus.database.driverClass`
 - `databaseJdbcUrl`
@@ -134,6 +136,13 @@ modbusRtu {
 - service 数组
 - `{ "services": [...] }`
 
+`codegenModes` 里如果包含 `contract`，行为要区分 provider：
+
+- `interfaces`
+  - 已经有源码契约，只生成 C / Markdown，不重复生成 Kotlin 接口。
+- `database`
+  - 会额外生成纯 Kotlin contract 接口和 DTO，输出到 `build/generated/ksp/main/kotlin/...`。
+
 固件工程联调用法：
 
 ```kotlin
@@ -142,7 +151,7 @@ modbusRtu {
     codegenModes.set(listOf("server", "contract"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 
-    cOutputProjectDir.set("/Users/zjarlin/IdeaProjects/t")
+    cOutputProjectDir.set("/Users/zjarlin/IdeaProjects/okmy_dics_lower")
     bridgeImplPath.set("Core/Src/modbus")
     keilUvprojxPath.set("MDK-ARM/test1.uvprojx")
     keilTargetName.set("test1")

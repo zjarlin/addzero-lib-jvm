@@ -45,6 +45,54 @@ class ModbusArtifactRendererTest {
     }
 
     @Test
+    fun renderKotlinContractArtifactsEmitsPureInterfacesAndDtos() {
+        val readService =
+            sampleService().copy(
+                interfacePackage = "site.addzero.device.contract",
+                interfaceQualifiedName = "site.addzero.device.contract.SelfDevBoardApi",
+                operations =
+                    sampleService().operations.map { operation ->
+                        operation.copy(
+                            returnType =
+                                operation.returnType.copy(
+                                    qualifiedName = "site.addzero.device.contract.SelfDevBoardInfo",
+                                ),
+                        )
+                    },
+            )
+        val writeService =
+            ModbusServiceModel(
+                interfacePackage = "site.addzero.device.contract",
+                interfaceSimpleName = "SelfDevBoardWriteApi",
+                interfaceQualifiedName = "site.addzero.device.contract.SelfDevBoardWriteApi",
+                serviceId = "self-dev-board-write",
+                summary = "控制板写接口。",
+                basePath = "/api/modbus",
+                transport = ModbusTransportKind.RTU,
+                doc = ModbusDocModel(summary = "控制板写接口。"),
+                operations = listOf(sampleSetLedOperation()),
+            )
+        val artifacts =
+            ModbusArtifactRenderer.renderKotlinContractArtifacts(
+                listOf(readService, writeService),
+            )
+
+        val readApi = artifacts.first { artifact -> artifact.fileName == "SelfDevBoardApi" && artifact.extensionName == "kt" }
+        val writeApi = artifacts.first { artifact -> artifact.fileName == "SelfDevBoardWriteApi" && artifact.extensionName == "kt" }
+        val dto = artifacts.first { artifact -> artifact.fileName == "SelfDevBoardInfo" && artifact.extensionName == "kt" }
+
+        assertTrue(readApi.content.contains("package site.addzero.device.contract"))
+        assertTrue(readApi.content.contains("interface SelfDevBoardApi"))
+        assertTrue(readApi.content.contains("suspend fun readInfo(): SelfDevBoardInfo"))
+        assertTrue(writeApi.content.contains("import site.addzero.device.protocol.modbus.model.ModbusCommandResult"))
+        assertTrue(writeApi.content.contains("suspend fun setLed("))
+        assertTrue(writeApi.content.contains("on: Boolean"))
+        assertTrue(writeApi.content.contains("): ModbusCommandResult"))
+        assertTrue(dto.content.contains("data class SelfDevBoardInfo("))
+        assertTrue(dto.content.contains("val protocolVersion: Int"))
+    }
+
+    @Test
     fun renderServerArtifactsContainsTypedRoute() {
         val content =
             ModbusArtifactRenderer

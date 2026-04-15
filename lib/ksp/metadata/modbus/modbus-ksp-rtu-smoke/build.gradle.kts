@@ -49,12 +49,16 @@ ksp {
     arg("addzero.modbus.mxproject.path", ".mxproject")
 }
 
-tasks.named("kspKotlin") {
+val smokeKspTasks = tasks.matching { task ->
+    task.name == "kspKotlin" || task.name == "kspKotlinJvm"
+}
+
+smokeKspTasks.configureEach {
     dependsOn(prepareSmokeExternalProject)
 }
 
 tasks.named<Test>("test") {
-    dependsOn("kspKotlin")
+    dependsOn(smokeKspTasks)
     javaLauncher.set(
         javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(17))

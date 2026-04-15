@@ -7,7 +7,7 @@ Modbus KSP 共享 IR、校验与渲染核心。
 - 作用：
   - 通过 SPI 收集 Modbus 元数据并归一化为内部 IR
   - 执行注解约束校验
-  - 渲染 Ktor / Koin / C 产物文本
+  - 渲染 Kotlin contract / Ktor / Koin / C 产物文本
 
 ## core 负责什么
 
@@ -24,6 +24,7 @@ Modbus KSP 共享 IR、校验与渲染核心。
   - 校验 operation id、寄存器重叠、类型与 codec 兼容性
 - `ModbusArtifactRenderer`
   - 输出：
+    - 纯 Kotlin contract 接口与 DTO
     - `GeneratedModbusRtu.kt`
     - `GeneratedModbusTcp.kt`
     - `modbus_rtu_dispatch.h`
@@ -40,6 +41,11 @@ Modbus KSP 共享 IR、校验与渲染核心。
 processor 现在不再要求“必须先存在一个 Kotlin 接口”。
 
 统一入口是 `ModbusServiceModel`，只要 provider 能产出这套模型，后面的校验和多产物渲染都复用同一条链路。
+
+需要注意：
+
+- `interfaces` provider 已经有源码契约，`contract` 模式不会重复生成同名 Kotlin 接口。
+- `database` 这类没有源码契约的 provider，在 `contract` 模式下会同时输出纯 Kotlin contract 接口与 DTO，供 gateway/server 编译直接依赖。
 
 默认 provider：
 

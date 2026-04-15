@@ -60,7 +60,7 @@ ksp {
 }
 ```
 
-### 在契约源码模块里生成 C 壳子
+### 在契约源码模块里生成协议产物
 
 ```kotlin
 dependencies {
@@ -76,6 +76,8 @@ ksp {
 
 生成位置：
 
+- 如果 metadata 来源本身没有 Kotlin 契约源码，例如 `database` provider：
+  - `build/generated/ksp/main/kotlin/<contractPackage>/*.kt`
 - `build/generated/ksp/main/resources/generated/modbus/rtu/*.h`
 - `build/generated/ksp/main/resources/generated/modbus/rtu/*.c`
 
@@ -130,6 +132,7 @@ ksp {
 生成位置：
 
 - `build/generated/ksp/main/kotlin/site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtu.kt`
+- 当使用 `database` 等无源码契约 provider 时，还会额外输出 `build/generated/ksp/main/kotlin/<contractPackage>/*.kt`
 - `build/generated/ksp/main/resources/generated/modbus/rtu/*.h`
 - `build/generated/ksp/main/resources/generated/modbus/rtu/*.c`
 - `build/generated/ksp/main/resources/generated/modbus/rtu/modbus_rtu_dispatch.h`
@@ -148,5 +151,7 @@ ksp {
 
 - 契约接口本身应该放在业务模块里，不要再单独造一个 `device-contract-api` 公共壳模块。
 - `interfaces` provider 只会扫描你通过 `addzero.modbus.contractPackages` 指定的包列表。
+- `interfaces` provider 因为已经有源码契约，`contract` 模式不会重复生成同名 Kotlin 接口。
+- 如果你还要同时生成 TCP / MQTT，不要只改 `addzero.modbus.transports`；要额外接入对应的 `modbus-ksp-tcp` / `modbus-ksp-mqtt` processor。
 - `databaseQuery` 支持 `${transport}` / `${transportName}` 占位符。
 - RTU 默认配置现在建议由业务自己通过 Koin 提供一份 `ModbusRtuEndpointConfig` 实现。

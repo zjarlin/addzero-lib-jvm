@@ -6,6 +6,7 @@ val libs = versionCatalogs.named("libs")
 
 dependencies {
   implementation(projects.lib.ksp.metadata.modbus.modbusKspCore)
+  implementation(projects.lib.ksp.metadata.modbus.modbusKspKotlinContract)
   implementation(projects.lib.ksp.metadata.modbus.modbusKspKotlinGateway)
   implementation(libs.findLibrary("modbus-ksp-c-contract").get())
   implementation(libs.findLibrary("modbus-ksp-keil-sync").get())

@@ -98,6 +98,18 @@ class ModbusRtuProcessorProvider : SymbolProcessorProvider {
                             externalCArtifactWriter = externalCArtifactWriter,
                         )
                     }
+                    val kotlinContractServices =
+                        services
+                            .zip(resolvedServices)
+                            .filterNot { (collectedService, _) -> collectedService.providesSourceContract }
+                            .map { (_, resolvedService) -> resolvedService }
+                    writeArtifacts(
+                        logger = environment.logger,
+                        codeGenerator = environment.codeGenerator,
+                        dependencies = dependenciesFor(services.flatMap(CollectedModbusService::originatingFiles), aggregating = true),
+                        artifacts = ModbusArtifactRenderer.renderKotlinContractArtifacts(kotlinContractServices),
+                        externalCArtifactWriter = null,
+                    )
                     externalContractSources += writeArtifacts(
                         logger = environment.logger,
                         codeGenerator = environment.codeGenerator,

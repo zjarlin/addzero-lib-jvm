@@ -115,6 +115,7 @@ class ModbusDatabaseMetadataProviderTest {
             assertEquals(20, operation.quantity)
             assertTrue(operation.requestQualifiedName.endsWith(".generated.DeviceApiRtuGetDeviceRuntimeInfoRequest"))
             assertEquals(16, operation.returnType.properties.last().field?.registerWidth)
+            assertTrue(services.single().providesSourceContract.not())
         }
     }
 

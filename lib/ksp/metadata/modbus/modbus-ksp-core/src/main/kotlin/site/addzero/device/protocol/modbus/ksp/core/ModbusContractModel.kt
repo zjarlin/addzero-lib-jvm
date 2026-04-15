@@ -329,6 +329,7 @@ data class ModbusServiceModel(
 data class CollectedModbusService(
     val model: ModbusServiceModel,
     val originatingFiles: List<KSFile> = emptyList(),
+    val providesSourceContract: Boolean = false,
 )
 
 /**
@@ -390,6 +391,7 @@ data class ModbusTransportDefaults(
 )
 
 enum class ModbusArtifactKind {
+    KOTLIN_CONTRACT,
     KOTLIN_GATEWAY,
     C_SERVICE_CONTRACT,
     C_TRANSPORT_CONTRACT,

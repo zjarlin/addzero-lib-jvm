@@ -6,6 +6,7 @@ val libs = versionCatalogs.named("libs")
 
 dependencies {
   implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
+  testImplementation(projects.lib.ksp.metadata.modbus.modbusKspKotlinContract)
   testImplementation(projects.lib.ksp.metadata.modbus.modbusKspKotlinGateway)
   testImplementation(libs.findLibrary("modbus-ksp-c-contract").get())
   testImplementation(libs.findLibrary("modbus-ksp-markdown").get())
