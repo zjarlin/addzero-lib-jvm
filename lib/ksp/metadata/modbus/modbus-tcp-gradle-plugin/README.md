@@ -1,25 +1,19 @@
 # modbus-tcp-gradle-plugin
 
-项目级 Modbus TCP KSP 消费插件。
+项目级 Modbus TCP KSP 消费插件，也是当前最推荐的 TCP 接入入口。
 
-- Plugin id: `site.addzero.ksp.modbus-tcp`
+- Plugin id：`site.addzero.ksp.modbus-tcp`
 - Maven 坐标：`site.addzero:modbus-tcp-gradle-plugin`
 - 本地路径：`lib/ksp/metadata/modbus/modbus-tcp-gradle-plugin`
 
-## 作用
+## 这个插件帮你做了什么
 
-这个模块是 `modbus-ksp-tcp` 的推荐消费入口。
-
-它负责：
-
-- 应用 `com.google.devtools.ksp`
-- 注入 `site.addzero:modbus-ksp-tcp`
+- 自动应用 `com.google.devtools.ksp`
+- 自动注入 `site.addzero:modbus-ksp-tcp`
 - 自动补 `site.addzero:modbus-runtime`
-  - KMP 消费者会落到 `commonMainImplementation`
-  - JVM 消费者会落到 `implementation`
-- 把 typed DSL 转成底层 `ksp.arg(...)`
+- 提供 `modbusTcp {}` typed DSL
 
-## 用法
+## 最小用法
 
 ```kotlin
 plugins {
@@ -27,82 +21,65 @@ plugins {
 }
 
 modbusTcp {
-    transports.set(listOf("tcp"))
-    codegenModes.set(listOf("server"))
+    codegenModes.set(listOf("server", "contract"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
 
-## 跨仓库本地联调
+## 常用 DSL
 
-如果消费仓库通过 settings remap 方式引入 `../addzero-lib-jvm` 的 project path，推荐保留正常的插件 DSL：
-
-```kotlin
-plugins {
-    id("site.addzero.ksp.modbus-tcp")
-}
-
-modbusTcp {
-    codegenModes.set(listOf("server"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-}
-```
-
-但要先把插件 artifact 发布到 `mavenLocal`：
-
-```bash
-cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
-./gradlew \
-  :lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base:publishToMavenLocal \
-  :lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin:publishToMavenLocal
-```
-
-这样仍然保持项目级 Gradle plugin 入口，同时避免把整仓 `addzero-lib-jvm` 塞进 `pluginManagement.includeBuild(...)`。
-
-当前 DSL：
+### 模式与输入
 
 - `codegenModes`
-  - 会映射成 `addzero.modbus.codegen.mode`
+  - 映射到 `addzero.modbus.codegen.mode`
 - `contractPackages`
-  - 会映射成 `addzero.modbus.contractPackages`
+  - 映射到 `addzero.modbus.contractPackages`
 - `metadataProviders`
-  - 会映射成 `addzero.modbus.metadata.providers`
-  - 默认留空，表示让所有已发现 provider 自行判断是否启用
+  - 映射到 `addzero.modbus.metadata.providers`
 - `transports`
-  - 会映射成 `addzero.modbus.transports`
-  - 这里只是当前 TCP processor 的启停开关
-  - 正常应留空或显式写成 `listOf("tcp")`
-  - 不能靠这里顺带生成 `rtu` / `mqtt`
-- `databaseDriverClass`
-  - 会映射成 `addzero.modbus.database.driverClass`
-- `databaseJdbcUrl`
-  - 会映射成 `addzero.modbus.database.jdbcUrl`
-- `databaseUsername`
-  - 会映射成 `addzero.modbus.database.username`
-- `databasePassword`
-  - 会映射成 `addzero.modbus.database.password`
-- `databaseQuery`
-  - 会映射成 `addzero.modbus.database.query`
-  - 支持 `${transport}` / `${transportName}` 占位符
-- `databaseJsonColumn`
-  - 会映射成 `addzero.modbus.database.jsonColumn`
-- `cOutputProjectDir`
-  - 会映射成 `addzero.modbus.c.output.projectDir`
-  - 配置后会把生成的 C 文件镜像到固件工程
-- `bridgeImplPath`
-  - 会映射成 `addzero.modbus.c.bridgeImpl.path`
-  - 控制可编辑 bridge 实现目录，默认 `Core/Src/modbus`
-- `keilUvprojxPath`
-  - 会映射成 `addzero.modbus.keil.uvprojx.path`
-- `keilTargetName`
-  - 会映射成 `addzero.modbus.keil.targetName`
-- `keilGroupName`
-  - 会映射成 `addzero.modbus.keil.groupName`
-  - 默认 `Core/modbus/tcp`
-- `mxprojectPath`
-  - 会映射成 `addzero.modbus.mxproject.path`
+  - 映射到 `addzero.modbus.transports`
+  - TCP 插件通常保持默认 `tcp`
 
-元数据来源示例：
+### database provider
+
+- `databaseDriverClass`
+- `databaseJdbcUrl`
+- `databaseUsername`
+- `databasePassword`
+- `databaseQuery`
+- `databaseJsonColumn`
+
+### 外部固件工程镜像
+
+- `cOutputProjectDir`
+- `bridgeImplPath`
+- `markdownOutputPath`
+- `keilUvprojxPath`
+- `keilTargetName`
+- `keilGroupName`
+- `mxprojectPath`
+
+### Spring 风格源码
+
+- `springRouteOutputDir`
+
+### RTU/TCP 默认传输参数
+
+- `rtuPortPath`
+- `rtuUnitId`
+- `rtuBaudRate`
+- `rtuDataBits`
+- `rtuStopBits`
+- `rtuParity`
+- `rtuTimeoutMs`
+- `rtuRetries`
+- `tcpHost`
+- `tcpPort`
+- `tcpUnitId`
+- `tcpTimeoutMs`
+- `tcpRetries`
+
+## interfaces provider 示例
 
 ```kotlin
 modbusTcp {
@@ -110,6 +87,8 @@ modbusTcp {
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
+
+## database provider 示例
 
 ```kotlin
 modbusTcp {
@@ -121,41 +100,23 @@ modbusTcp {
 }
 ```
 
-数据库 provider 读取的每一行都应该是 JSON 文本，支持：
+## 什么时候退回原始处理器
 
-- 单个 service 对象
-- service 数组
-- `{ "services": [...] }`
+如果你需要下面这些原始 KSP 选项，就直接用 [`modbus-ksp-tcp`](../modbus-ksp-tcp/README.md)：
 
-`codegenModes` 里如果包含 `contract`，行为要区分 provider：
+- `addzero.modbus.address.lock.path`
+- `addzero.modbus.apiClientPackageName`
+- `addzero.modbus.apiClientOutputDir`
 
-- `interfaces`
-  - 已经有源码契约，只生成 C / Markdown，不重复生成 Kotlin 接口。
-- `database`
-  - 会额外生成纯 Kotlin contract 接口和 DTO，输出到 `build/generated/ksp/main/kotlin/...`。
+## 跨仓库本地联调
 
-如果 TCP 场景也要落固件工程，目录约定和 RTU 一样，只是 transport 层目录切成 `tcp`：
+和 RTU 一样，消费仓库如果是另一个工程，建议先把插件发布到 `mavenLocal`，再继续用插件 DSL：
 
-- 请勿手动修改：
-  - `Core/Inc/generated/modbus/tcp/...`
-  - `Core/Src/generated/modbus/tcp/...`
-- 需要接业务逻辑：
-  - `Core/Src/modbus/tcp/<service>/<service>_bridge_impl.c`
+```bash
+cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
+./gradlew \
+  :lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base:publishToMavenLocal \
+  :lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin:publishToMavenLocal
+```
 
-项目文件同步范围：
-
-- 会改：
-  - `.uvprojx`
-  - `.mxproject`
-- 不会改：
-  - `.uvoptx`
-  - `.ioc`
-
-## 兼容说明
-
-底层处理器仍然是 `modbus-ksp-tcp`。
-
-也就是说：
-
-- 老工程继续手写 `ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-tcp"))` 还能工作
-- 新工程默认应该改成 `site.addzero.ksp.modbus-tcp`
+这样比业务仓库手写原始 `ksp(project(...))` 更稳，也更不容易把 companion runtime 依赖漏掉。

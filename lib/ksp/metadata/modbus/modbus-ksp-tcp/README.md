@@ -1,47 +1,57 @@
 # modbus-ksp-tcp
 
-Modbus TCP KSP 处理器模块。
+`modbus-ksp-tcp` 是 Modbus TCP 的原始 KSP 处理器入口。
 
 - Maven 坐标：`site.addzero:modbus-ksp-tcp`
 - 本地路径：`lib/ksp/metadata/modbus/modbus-ksp-tcp`
-- 作用：
-  - 解析带注解的设备接口
-  - 生成 TCP 侧 Ktor / Koin / C 产物
 
-## 怎么接
+## 什么时候直接用它
+
+默认还是优先用 [`modbus-tcp-gradle-plugin`](../modbus-tcp-gradle-plugin/README.md)。
+
+直接依赖 `modbus-ksp-tcp` 的典型理由有：
+
+- 你要手写底层 `ksp` 参数。
+- 你要用 typed DSL 还没暴露的原始选项。
+  - `addzero.modbus.address.lock.path`
+  - `addzero.modbus.apiClientPackageName`
+  - `addzero.modbus.apiClientOutputDir`
+- 你在做 processor 联调或渲染测试。
+
+## 最小用法
 
 ```kotlin
-plugins {
-    id("site.addzero.ksp.modbus-tcp")
+dependencies {
+    implementation(project(":lib:ksp:metadata:modbus:modbus-runtime"))
+    ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-tcp"))
 }
 
-modbusTcp {
-    codegenModes.set(listOf("server"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-    springRouteOutputDir.set(layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath)
+ksp {
+    arg("addzero.modbus.codegen.mode", "server,contract")
+    arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
 }
 ```
 
-这个插件会自动：
+契约接口应该使用：
 
-- 应用 `com.google.devtools.ksp`
-- 注入 `modbus-ksp-tcp`
-- 注入 `modbus-runtime`
+- `@GenerateModbusTcpServer`
+- `@ModbusOperation`
+- `@ModbusParam`
+- `@ModbusField`
 
-如果你需要手动控制底层依赖，仍然可以继续使用原始 `ksp(...)` 接法。
+## 模式说明
 
-### 选择元数据来源
+只有两个有效模式：
 
-现在 TCP processor 支持通过 `ServiceLoader` 接多个元数据 provider。
+- `server`
+  - 生成 `GeneratedModbusTcp.kt` 这类 Kotlin 网关/服务端源码。
+- `contract`
+  - 生成 C 合同、dispatch、bridge 示例、Markdown 协议文档。
+  - 对 `database` 这类没有源码契约的 provider，会补出 Kotlin contract 和 DTO。
 
-默认内置：
+## metadata 输入示例
 
-- `interfaces`
-  - 从 Kotlin 注解接口提取元数据
-- `database`
-  - 从 JDBC 查询返回的 JSON 提取元数据
-
-如果你走原始 `ksp { arg(...) }` 接法，可以这样显式指定：
+### interfaces provider
 
 ```kotlin
 ksp {
@@ -50,105 +60,70 @@ ksp {
 }
 ```
 
+### database provider
+
 ```kotlin
 ksp {
     arg("addzero.modbus.metadata.providers", "database")
     arg("addzero.modbus.database.driverClass", "org.sqlite.JDBC")
     arg("addzero.modbus.database.jdbcUrl", "jdbc:sqlite:/absolute/path/codegen-context.db")
-    arg("addzero.modbus.database.query", "select payload from codegen_context_modbus_contract where transport = '${'$'}{transport}'")
+    arg(
+        "addzero.modbus.database.query",
+        "select payload from codegen_context_modbus_contract where transport = '${'$'}{transport}'",
+    )
     arg("addzero.modbus.database.jsonColumn", "payload")
 }
 ```
 
-### 在契约源码模块里生成协议产物
+## 常用附加参数
+
+### Spring 风格源码
 
 ```kotlin
-dependencies {
-    implementation(project(":lib:ksp:metadata:modbus:modbus-runtime"))
-    ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-tcp"))
-}
-
 ksp {
-    arg("addzero.modbus.codegen.mode", "contract")
-    arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
+    arg(
+        "addzero.modbus.spring.route.outputDir",
+        layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath,
+    )
 }
 ```
 
-生成位置：
+### 镜像到外部固件工程
 
-- 如果 metadata 来源本身没有 Kotlin 契约源码，例如 `database` provider：
-  - `build/generated/ksp/main/kotlin/<contractPackage>/*.kt`
+```kotlin
+ksp {
+    arg("addzero.modbus.c.output.projectDir", "/absolute/path/to/firmware-project")
+    arg("addzero.modbus.c.bridgeImpl.path", "Core/Src/modbus")
+    arg("addzero.modbus.markdown.output.path", "Docs/generated/modbus")
+}
+```
+
+### 地址锁文件
+
+```kotlin
+ksp {
+    arg("addzero.modbus.address.lock.path", "/absolute/path/to/device.tcp.addresses.lock")
+}
+```
+
+### API client 源码输出
+
+```kotlin
+ksp {
+    arg("addzero.modbus.apiClientPackageName", "site.addzero.generated.client.modbus.tcp")
+    arg("addzero.modbus.apiClientOutputDir", layout.buildDirectory.dir("generated/modbus-client").get().asFile.absolutePath)
+}
+```
+
+## 常见输出
+
+- `build/generated/ksp/main/kotlin/.../GeneratedModbusTcp.kt`
 - `build/generated/ksp/main/resources/generated/modbus/tcp/*.h`
 - `build/generated/ksp/main/resources/generated/modbus/tcp/*.c`
-
-### 在 server 模块里生成 TCP 路由与网关
-
-```kotlin
-dependencies {
-    implementation(project(":lib:ksp:metadata:modbus:modbus-runtime"))
-    ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-tcp"))
-}
-
-ksp {
-    arg("addzero.modbus.codegen.mode", "server")
-    arg("addzero.modbus.contractPackages", "site.addzero.esp32_host_computer.api")
-}
-```
-
-生成位置：
-
-- `build/generated/ksp/main/kotlin/site/addzero/esp32_host_computer/generated/modbus/tcp/GeneratedModbusTcp.kt`
-
-### 生成 Spring2Ktor 风格的路由源码
-
-如果你希望把最终的 Ktor 路由注册交给 `spring2ktor-server`，可以额外指定 Spring 路由源码输出根目录：
-
-```kotlin
-modbusTcp {
-    codegenModes.set(listOf("server"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-    springRouteOutputDir.set(layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath)
-}
-```
-
-这时会额外输出：
-
-- `<springRouteOutputDir>/site/addzero/esp32_host_computer/generated/modbus/tcp/GeneratedModbusTcpSpringRoutesSource.kt`
-
-配置了 `springRouteOutputDir` 之后，`GeneratedModbusTcp.kt` 不再内嵌直接的 `Route.registerGeneratedModbusTcpRoutes()`。
-
-### 一次同时生成服务端与契约产物
-
-```kotlin
-ksp {
-    arg("addzero.modbus.codegen.mode", "server,contract")
-    arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
-}
-```
-
-生成位置：
-
-- `build/generated/ksp/main/kotlin/site/addzero/esp32_host_computer/generated/modbus/tcp/GeneratedModbusTcp.kt`
-- 当使用 `database` 等无源码契约 provider 时，还会额外输出 `build/generated/ksp/main/kotlin/<contractPackage>/*.kt`
-- `build/generated/ksp/main/resources/generated/modbus/tcp/*.h`
-- `build/generated/ksp/main/resources/generated/modbus/tcp/*.c`
-- `build/generated/ksp/main/resources/generated/modbus/tcp/modbus_tcp_dispatch.h`
-- `build/generated/ksp/main/resources/generated/modbus/tcp/modbus_tcp_dispatch.c`
 - `build/generated/ksp/main/resources/generated/modbus/protocols/*.md`
 
-## 生成内容
+如果 metadata 不是来自源码契约，还会额外生成纯 Kotlin contract。
 
-- `GeneratedModbusTcpKoinModule`
-- 每个契约接口对应一个 `GeneratedTcpGateway`
-- 每个契约接口同时生成一个 Koin 接口绑定，允许业务直接按原接口类型注入
-- 每个操作对应一个请求 DTO
-- 可选的 `GeneratedModbusTcpSpringRoutesSource.kt`
+## 一句提醒
 
-## 使用提醒
-
-- TCP 处理器和 RTU 处理器共享同一套注解与 IR。
-- 契约接口本身应该放在业务模块里，不要再单独造一个 `device-contract-api` 公共壳模块。
-- `interfaces` provider 只会扫描你通过 `addzero.modbus.contractPackages` 指定的包列表。
-- `interfaces` provider 因为已经有源码契约，`contract` 模式不会重复生成同名 Kotlin 接口。
-- 如果你还要同时生成 RTU / MQTT，不要只改 `addzero.modbus.transports`；要额外接入对应的 `modbus-ksp-rtu` / `modbus-ksp-mqtt` processor。
-- `databaseQuery` 支持 `${transport}` / `${transportName}` 占位符。
+`modbus-ksp-tcp` 是“原始处理器入口”，不是“业务层应该默认接的模块”。

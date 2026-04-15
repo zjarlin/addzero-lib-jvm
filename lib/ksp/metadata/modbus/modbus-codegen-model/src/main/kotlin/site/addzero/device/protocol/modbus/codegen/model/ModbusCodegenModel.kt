@@ -14,19 +14,19 @@ enum class ModbusTransportKind(
     RTU(
         transportId = "rtu",
         displayName = "Modbus RTU",
-        generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.rtu",
+        generatedPackage = "site.addzero.generated.modbus.rtu",
         generatedFileName = "GeneratedModbusRtu",
     ),
     TCP(
         transportId = "tcp",
         displayName = "Modbus TCP",
-        generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.tcp",
+        generatedPackage = "site.addzero.generated.modbus.tcp",
         generatedFileName = "GeneratedModbusTcp",
     ),
     MQTT(
         transportId = "mqtt",
         displayName = "Modbus MQTT",
-        generatedPackage = "site.addzero.esp32_host_computer.generated.modbus.mqtt",
+        generatedPackage = "site.addzero.generated.modbus.mqtt",
         generatedFileName = "GeneratedModbusMqtt",
     ),
     ;

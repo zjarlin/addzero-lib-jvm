@@ -1,41 +1,21 @@
 # modbus-rtu-gradle-plugin
 
-项目级 Modbus RTU KSP 消费插件。
+项目级 Modbus RTU KSP 消费插件，也是当前最推荐的 RTU 接入入口。
 
-- Plugin id: `site.addzero.ksp.modbus-rtu`
+- Plugin id：`site.addzero.ksp.modbus-rtu`
 - Maven 坐标：`site.addzero:modbus-rtu-gradle-plugin`
 - 本地路径：`lib/ksp/metadata/modbus/modbus-rtu-gradle-plugin`
 
-## 作用
+## 这个插件帮你做了什么
 
-这个模块是 `modbus-ksp-rtu` 的推荐消费入口。
-
-它负责：
-
-- 应用 `com.google.devtools.ksp`
-- 注入 `site.addzero:modbus-ksp-rtu`
+- 自动应用 `com.google.devtools.ksp`
+- 自动注入 `site.addzero:modbus-ksp-rtu`
 - 自动补 `site.addzero:modbus-runtime`
-  - KMP 消费者会落到 `commonMainImplementation`
-  - JVM 消费者会落到 `implementation`
-- 把 typed DSL 转成底层 `ksp.arg(...)`
+- 提供 `modbusRtu {}` typed DSL，把配置转成底层 `ksp.arg(...)`
 
-## 用法
+这就是为什么它比业务模块直接手写 `ksp(project(...))` 更适合作为默认入口。
 
-```kotlin
-plugins {
-    id("site.addzero.ksp.modbus-rtu")
-}
-
-modbusRtu {
-    transports.set(listOf("rtu"))
-    codegenModes.set(listOf("server"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-}
-```
-
-## 跨仓库本地联调
-
-如果消费仓库不是 `addzero-lib-jvm` 自己，而是像 `kmp-aio` 这种会把 `../addzero-lib-jvm` 的部分模块 remap 成本地 project path 的工程，推荐保留正常的插件 DSL：
+## 最小用法
 
 ```kotlin
 plugins {
@@ -43,75 +23,71 @@ plugins {
 }
 
 modbusRtu {
-    codegenModes.set(listOf("server"))
+    codegenModes.set(listOf("server", "contract"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
 
-但要先把插件 artifact 发布到 `mavenLocal`：
+## 常用 DSL
 
-```bash
-cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
-./gradlew \
-  :lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base:publishToMavenLocal \
-  :lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin:publishToMavenLocal
-```
-
-原因很直接：
-
-- 这仍然是项目级 Gradle plugin 接法，不是回退到手写 `ksp(...)`
-- 消费仓库继续用稳定的 `plugins {}` / typed DSL
-- 本地联调时，处理器和 runtime 仍然可以优先绑定到 remap 进来的 project path
-- 不需要把整个 `addzero-lib-jvm` 通过 `pluginManagement.includeBuild(...)` 塞进消费仓库
-
-在当前 `kmp-aio <-> addzero-lib-jvm` 组合里，整仓 `pluginManagement.includeBuild(...)` 会把构建带到 `modbus-ksp-core` 的缺失 project path 问题，所以不推荐那样接。
-
-当前 DSL：
+### 生成模式与输入来源
 
 - `codegenModes`
-  - 会映射成 `addzero.modbus.codegen.mode`
+  - 映射到 `addzero.modbus.codegen.mode`
+  - 常用值：`server`、`contract`
 - `contractPackages`
-  - 会映射成 `addzero.modbus.contractPackages`
+  - 映射到 `addzero.modbus.contractPackages`
 - `metadataProviders`
-  - 会映射成 `addzero.modbus.metadata.providers`
-  - 默认留空，表示让所有已发现 provider 自行判断是否启用
+  - 映射到 `addzero.modbus.metadata.providers`
+  - 常用值：`interfaces`、`database`
 - `transports`
-  - 会映射成 `addzero.modbus.transports`
-  - 这里只是当前 RTU processor 的启停开关
-  - 正常应留空或显式写成 `listOf("rtu")`
-  - 不能靠这里顺带生成 `tcp` / `mqtt`
-- `databaseDriverClass`
-  - 会映射成 `addzero.modbus.database.driverClass`
-- `databaseJdbcUrl`
-  - 会映射成 `addzero.modbus.database.jdbcUrl`
-- `databaseUsername`
-  - 会映射成 `addzero.modbus.database.username`
-- `databasePassword`
-  - 会映射成 `addzero.modbus.database.password`
-- `databaseQuery`
-  - 会映射成 `addzero.modbus.database.query`
-  - 支持 `${transport}` / `${transportName}` 占位符
-- `databaseJsonColumn`
-  - 会映射成 `addzero.modbus.database.jsonColumn`
-- `cOutputProjectDir`
-  - 会映射成 `addzero.modbus.c.output.projectDir`
-  - 配置后会把生成的 C 文件镜像到固件工程
-- `bridgeImplPath`
-  - 会映射成 `addzero.modbus.c.bridgeImpl.path`
-  - 控制可编辑 bridge 实现目录，默认 `Core/Src/modbus`
-- `keilUvprojxPath`
-  - 会映射成 `addzero.modbus.keil.uvprojx.path`
-  - 配置后会细粒度同步 `.uvprojx`
-- `keilTargetName`
-  - 会映射成 `addzero.modbus.keil.targetName`
-- `keilGroupName`
-  - 会映射成 `addzero.modbus.keil.groupName`
-  - 默认 `Core/modbus/rtu`
-- `mxprojectPath`
-  - 会映射成 `addzero.modbus.mxproject.path`
-  - 配置后会同步 `.mxproject`
+  - 映射到 `addzero.modbus.transports`
+  - 对 RTU 插件来说，正常保持默认 `rtu` 即可
 
-元数据来源示例：
+### 数据库 provider
+
+- `databaseDriverClass`
+- `databaseJdbcUrl`
+- `databaseUsername`
+- `databasePassword`
+- `databaseQuery`
+- `databaseJsonColumn`
+
+### 外部固件工程联动
+
+- `cOutputProjectDir`
+- `bridgeImplPath`
+- `markdownOutputPath`
+- `keilUvprojxPath`
+- `keilTargetName`
+- `keilGroupName`
+- `mxprojectPath`
+
+### Spring 风格源码
+
+- `springRouteOutputDir`
+
+### RTU/TCP 默认传输参数
+
+RTU 插件还会把这些默认值下发给生成代码：
+
+- `rtuPortPath`
+- `rtuUnitId`
+- `rtuBaudRate`
+- `rtuDataBits`
+- `rtuStopBits`
+- `rtuParity`
+- `rtuTimeoutMs`
+- `rtuRetries`
+- `tcpHost`
+- `tcpPort`
+- `tcpUnitId`
+- `tcpTimeoutMs`
+- `tcpRetries`
+
+其中 TCP 这组默认值存在的原因，是同一套模板里会用到 transport 默认参数模型，不代表 RTU 插件会顺带生成 TCP。
+
+## interfaces provider 示例
 
 ```kotlin
 modbusRtu {
@@ -119,6 +95,8 @@ modbusRtu {
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
+
+## database provider 示例
 
 ```kotlin
 modbusRtu {
@@ -130,64 +108,30 @@ modbusRtu {
 }
 ```
 
-数据库 provider 读取的每一行都应该是 JSON 文本，支持：
+## 什么时候不要用这个插件
 
-- 单个 service 对象
-- service 数组
-- `{ "services": [...] }`
+下面这些场景，请直接退回 [`modbus-ksp-rtu`](../modbus-ksp-rtu/README.md)：
 
-`codegenModes` 里如果包含 `contract`，行为要区分 provider：
+- 你需要 `addzero.modbus.address.lock.path`
+- 你需要 `addzero.modbus.apiClientPackageName`
+- 你需要 `addzero.modbus.apiClientOutputDir`
+- 你明确要完全掌控原始 `ksp` wiring
 
-- `interfaces`
-  - 已经有源码契约，只生成 C / Markdown，不重复生成 Kotlin 接口。
-- `database`
-  - 会额外生成纯 Kotlin contract 接口和 DTO，输出到 `build/generated/ksp/main/kotlin/...`。
+也就是说，这个插件是“推荐入口”，但不是“所有底层选项都暴露完了”的万能入口。
 
-固件工程联调用法：
+## 跨仓库本地联调
 
-```kotlin
-modbusRtu {
-    transports.set(listOf("rtu"))
-    codegenModes.set(listOf("server", "contract"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
+如果消费仓库是另一个仓库，并且通过 project remap 方式指到本地 `addzero-lib-jvm`，推荐做法仍然是保留插件 DSL，然后先把插件发布到 `mavenLocal`：
 
-    cOutputProjectDir.set("/Users/zjarlin/IdeaProjects/okmy_dics_lower")
-    bridgeImplPath.set("Core/Src/modbus")
-    keilUvprojxPath.set("MDK-ARM/test1.uvprojx")
-    keilTargetName.set("test1")
-    keilGroupName.set("Core/modbus/rtu")
-    mxprojectPath.set(".mxproject")
-}
+```bash
+cd /Users/zjarlin/IdeaProjects/addzero-lib-jvm
+./gradlew \
+  :lib:gradle-plugin:project-plugin:gradle-ksp-consumer-base:publishToMavenLocal \
+  :lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin:publishToMavenLocal
 ```
 
-生成后的目录约定：
+这样做的好处是：
 
-- 请勿手动修改：
-  - `Core/Inc/generated/modbus/rtu/...`
-  - `Core/Src/generated/modbus/rtu/...`
-- 需要接业务逻辑：
-  - `Core/Src/modbus/rtu/<service>/<service>_bridge_impl.c`
-
-项目文件同步范围：
-
-- 会改：
-  - `.uvprojx`
-  - `.mxproject`
-- 不会改：
-  - `.uvoptx`
-  - `.ioc`
-
-## 兼容说明
-
-底层处理器仍然是 `modbus-ksp-rtu`。
-
-也就是说：
-
-- 老工程继续手写 `ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-rtu"))` 还能工作
-- 新工程默认应该改成 `site.addzero.ksp.modbus-rtu`
-
-推荐理由：
-
-- 消费侧不再暴露 processor artifact 细节
-- companion runtime 依赖不需要手工补
-- 后续扩展参数时可以继续保持 typed DSL
+- 业务仓库继续保持稳定的 `plugins {}` / typed DSL。
+- `modbus-runtime` 这类 companion 依赖继续由插件统一注入。
+- 不必把整个 `addzero-lib-jvm` 通过 `pluginManagement.includeBuild(...)` 暴露给消费仓库。

@@ -24,7 +24,7 @@ class ModbusRtuSmokeGenerationTest {
     fun realAnnotatedContractGeneratesGatewayAndCBridgeArtifacts() {
         val gatewayKt =
             generatedKotlinDir.resolve(
-                "site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtu.kt",
+                "site/addzero/generated/modbus/rtu/GeneratedModbusRtu.kt",
             )
         val generatedHeader = generatedResourceDir.resolve("device_generated.h")
         val generatedSource = generatedResourceDir.resolve("device_generated.c")
@@ -44,7 +44,7 @@ class ModbusRtuSmokeGenerationTest {
         val flashBridgeSampleSource = generatedResourceDir.resolve("flash_bridge_sample.c")
         val generatedSpringRouteSource =
             springRouteOutputDir.resolve(
-                "site/addzero/esp32_host_computer/generated/modbus/rtu/GeneratedModbusRtuSpringRoutesSource.kt",
+                "site/addzero/generated/modbus/rtu/GeneratedModbusRtuSpringRoutesSource.kt",
             )
         val externalProtocolMarkdown = externalMarkdownDir.resolve("device.rtu.protocol.md")
         val externalBridgeSampleSource = externalMarkdownDir.resolve("device_bridge_sample.c")

@@ -9,7 +9,7 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-15T17:03:42.808267
+// Generated at: 2026-04-15T17:14:55.151483
 // Loaded: 17, Excluded: 0, Total: 17
 include(":lib:ksp:metadata:modbus:modbus-codegen-core")
 include(":lib:ksp:metadata:modbus:modbus-codegen-model")
