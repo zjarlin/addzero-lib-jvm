@@ -1,37 +1,35 @@
 # Modbus Metadata Suite
 
-`modbus` 现在不是单个 KSP renderer，而是一套可扩展的协议元数据 suite。
+`lib/ksp/metadata/modbus` 不是一个单独的 KSP 模块，而是一整套 Modbus 协议元数据与代码生成模块。
 
-## Module Split
+这套目录里现在有 16 个子模块，职责分成四层：
 
-- `modbus-rtu-gradle-plugin`
-  - 项目级 RTU KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-rtu`。
-- `modbus-tcp-gradle-plugin`
-  - 项目级 TCP KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-tcp`。
-- `modbus-mqtt-gradle-plugin`
-  - 项目级 MQTT KSP 消费插件，推荐入口 `site.addzero.ksp.modbus-mqtt`。
-- `modbus-runtime`
-  - 注解、功能码枚举、RTU/TCP/MQTT runtime 抽象。
-- `modbus-ksp-core`
-  - 语义 DTO -> Modbus 的共享 IR、默认值解析、校验、suite facade、SPI。
-- `modbus-ksp-kotlin-contract`
-  - 生成纯 Kotlin contract 接口与 DTO。
-- `modbus-ksp-kotlin-gateway`
-  - 生成 Kotlin 调用端 gateway。
-- `modbus-ksp-c-contract`
-  - 生成 C service contract / transport dispatch / adapter。
-- `modbus-ksp-markdown`
-  - 生成 markdown 协议文档。
-- `modbus-ksp-rtu`
-  - RTU processor 入口，组合 Kotlin contract / gateway / C / Markdown 四类生成模块。
-- `modbus-ksp-tcp`
-  - TCP processor 入口，组合 Kotlin contract / gateway / C / Markdown 四类生成模块。
-- `modbus-ksp-mqtt`
-  - MQTT processor 入口，组合 Kotlin contract / gateway / C / Markdown 四类生成模块。
+- 业务接入层
+  - 给业务工程直接接的入口，优先用 `modbus-rtu-gradle-plugin`、`modbus-tcp-gradle-plugin`，运行时配合 `modbus-runtime`。
+- 原始处理器层
+  - `modbus-ksp-rtu`、`modbus-ksp-tcp`、`modbus-ksp-mqtt`，用于你必须手写 `ksp { arg(...) }` 的场景。
+- SPI 扩展层
+  - `modbus-ksp-core`、`modbus-ksp-kotlin-contract`、`modbus-ksp-kotlin-gateway`、`modbus-ksp-c-contract`、`modbus-ksp-markdown`、`modbus-ksp-keil-sync`。
+  - 这一层主要给“组装处理器”或“扩展生成链路”的人用，不是普通业务模块直接依赖的入口。
+- 纯模型/纯工具层
+  - `modbus-codegen-model`、`modbus-codegen-core`，用于 JSON 元数据、默认值推导、无 KSP 的纯 Kotlin contract 生成。
 
-## Recommended Consumption
+## 先看怎么选
 
-默认走项目级 Gradle plugin，不再优先要求业务工程手写 processor 依赖：
+| 你的目标 | 推荐模块 |
+| --- | --- |
+| 给业务模块接 RTU 生成 | [`modbus-rtu-gradle-plugin`](./modbus-rtu-gradle-plugin/README.md) + [`modbus-runtime`](./modbus-runtime/README.md) |
+| 给业务模块接 TCP 生成 | [`modbus-tcp-gradle-plugin`](./modbus-tcp-gradle-plugin/README.md) + [`modbus-runtime`](./modbus-runtime/README.md) |
+| 给业务模块接 MQTT 生成 | 优先评估原始处理器 [`modbus-ksp-mqtt`](./modbus-ksp-mqtt/README.md)；仓库内也提供 [`modbus-mqtt-gradle-plugin`](./modbus-mqtt-gradle-plugin/README.md) 这个便利入口 |
+| 只想要注解、编码器、RTU/TCP/MQTT 运行时抽象 | [`modbus-runtime`](./modbus-runtime/README.md) |
+| 自己扩展 metadata provider | [`modbus-ksp-core`](./modbus-ksp-core/README.md) |
+| 自己扩展某类输出产物 | [`modbus-ksp-core`](./modbus-ksp-core/README.md) + 对应 artifact 模块 |
+| 只想在 Kotlin/JVM 里解析/生成标准 Modbus 元数据 JSON | [`modbus-codegen-model`](./modbus-codegen-model/README.md)、[`modbus-codegen-core`](./modbus-codegen-core/README.md) |
+| 验证整条 RTU 生成链路是否还正常 | [`modbus-ksp-rtu-smoke`](./modbus-ksp-rtu-smoke/README.md) |
+
+## 业务接入的默认路径
+
+### RTU
 
 ```kotlin
 plugins {
@@ -39,13 +37,12 @@ plugins {
 }
 
 modbusRtu {
-    transports.set(listOf("rtu"))
-    codegenModes.set(listOf("server"))
+    codegenModes.set(listOf("server", "contract"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
 
-TCP 同理：
+### TCP
 
 ```kotlin
 plugins {
@@ -53,13 +50,14 @@ plugins {
 }
 
 modbusTcp {
-    transports.set(listOf("tcp"))
-    codegenModes.set(listOf("server"))
+    codegenModes.set(listOf("server", "contract"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
 
-MQTT 同理：
+### MQTT
+
+如果你只是仓库内联调，或者已经确认要沿用现成的插件包装，可以直接用：
 
 ```kotlin
 plugins {
@@ -67,241 +65,105 @@ plugins {
 }
 
 modbusMqtt {
-    transports.set(listOf("mqtt"))
-    codegenModes.set(listOf("server"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-}
-```
-
-只有在你明确需要直接控制 processor artifact 时，才退回到底层 `ksp(...)` 接法。
-
-关于 `transports` 要特别注意：
-
-- 它只是“当前已注入 processor 是否启用”的开关。
-- `modbusRtu` 插件只能注入 `modbus-ksp-rtu`，不能靠 `transports.set(listOf("rtu", "tcp"))` 顺带生成 TCP。
-- 如果要同时生成 RTU / TCP / MQTT，需要同时接入对应 transport 的 plugin 或 raw KSP processor。
-
-## Metadata Inputs
-
-`modbus-ksp` 现在不再强绑 `KSClassDeclaration` 作为唯一输入。
-
-processor 会通过 `ServiceLoader<ModbusMetadataProvider>` 收集元数据提供者，V1 内置两个默认实现：
-
-- `interfaces`
-  - 从 Kotlin 注解接口抽取契约元数据。
-- `database`
-  - 通过 JDBC 查询 JSON 元数据，再归一化成同一套 `ModbusServiceModel`。
-
-如果你没有显式配置 `metadataProviders`，所有已发现的 provider 都会参与，但每个 provider 会自行判断是否启用：
-
-- `interfaces` 需要 `contractPackages`
-- `database` 需要 `databaseJdbcUrl` + `databaseQuery`
-
-`contract` 模式的输出行为也和 provider 来源有关：
-
-- `interfaces`
-  - 已经有手写/注解 Kotlin 契约源码，所以 `contract` 模式只会继续生成 C / Markdown，不会重复生成同名 Kotlin 接口。
-- `database`
-  - 没有源码契约时，`contract` 模式会额外输出纯 Kotlin contract 接口和 DTO，目录在 `build/generated/ksp/main/kotlin/...`。
-
-接口抽取模式：
-
-```kotlin
-modbusRtu {
-    transports.set(listOf("rtu"))
-    metadataProviders.set(listOf("interfaces"))
-    codegenModes.set(listOf("server"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-}
-```
-
-数据库模式：
-
-```kotlin
-modbusRtu {
-    transports.set(listOf("rtu"))
-    metadataProviders.set(listOf("database"))
-    codegenModes.set(listOf("server"))
-
-    databaseDriverClass.set("org.sqlite.JDBC")
-    databaseJdbcUrl.set("jdbc:sqlite:/absolute/path/codegen-context.db")
-    databaseQuery.set(
-        """
-        select payload
-        from codegen_context_modbus_contract
-        where transport = '${'$'}{transport}'
-        """.trimIndent(),
-    )
-    databaseJsonColumn.set("payload")
-}
-```
-
-`databaseQuery` 支持两个占位符：
-
-- `${transport}`
-  - 例如 `rtu` / `tcp`
-- `${transportName}`
-  - 例如 `RTU` / `TCP`
-
-数据库 payload 支持三种 JSON 形态：
-
-- 单个 service 对象
-- service 数组
-- `{ "services": [...] }`
-
-这意味着后续 `codegen-context` 只要把数据库里的一行 JSON 组织成标准 payload，就能桥接到同一条 Modbus KSP 生成链路，不需要再伪造 Kotlin 接口源码。
-
-如果你要同时产出多种传输层目标，不要只改一个 plugin 的 `transports`，而是要显式接多个 transport 的 processor。例如：
-
-```kotlin
-plugins {
-    id("site.addzero.ksp.modbus-rtu")
-    id("site.addzero.ksp.modbus-tcp")
-}
-
-modbusRtu {
-    transports.set(listOf("rtu"))
-    codegenModes.set(listOf("server", "contract"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
-}
-
-modbusTcp {
-    transports.set(listOf("tcp"))
     codegenModes.set(listOf("server", "contract"))
     contractPackages.set(listOf("site.addzero.device.contract"))
 }
 ```
 
-当前真正已实现的 transport processor 只有：
+但要说清楚一件事：
 
-- `rtu`
-- `tcp`
-- `mqtt`
+- 仓库级 KSP policy 当前明确保留的默认 published consumer plugin 是 `modbus-rtu` 和 `modbus-tcp`。
+- `modbus-mqtt-gradle-plugin` 这个模块虽然存在，也能在仓库里使用，但它不是当前 policy 文档里列出的“默认推荐对外发布入口”。
+- 所以新项目要大范围推广 MQTT 接法时，先确认发布策略；只在本仓库或受控消费仓库里用它没有问题。
 
-如果是跨仓库本地联调，并且消费仓库已经把 `../addzero-lib-jvm` 的相关模块 remap 成 project path，推荐做法是：
+## 这套生成链现在到底认哪些模式
 
-1. 在 `addzero-lib-jvm` 里先把 `gradle-ksp-consumer-base` 和 `modbus-*-gradle-plugin` 发布到 `mavenLocal`
-2. 消费仓库继续通过 `plugins { id("site.addzero.ksp.modbus-*") }` 使用 typed DSL
-3. 让处理器与 runtime 通过 remap 进来的本地 project path 优先解析
+只有两个模式：
 
-不推荐把整个 `addzero-lib-jvm` 塞进消费仓库的 `pluginManagement.includeBuild(...)`。当前这套 Modbus suite 在这种接法下会把配置阶段带到 `modbus-ksp-core` 的缺失 project path 问题。
+- `server`
+  - 生成 Kotlin 网关/服务端源码，例如 `GeneratedModbusRtu.kt`、`GeneratedModbusTcp.kt`、`GeneratedModbusMqtt.kt`。
+- `contract`
+  - 生成 C 头文件、C dispatch、bridge 示例、Markdown 协议文档。
+  - 如果 metadata 来源本身没有 Kotlin 契约源码，比如数据库 provider，还会额外生成纯 Kotlin contract 接口和 DTO。
 
-## SPI Contract
+注意：
 
-core 通过 `ServiceLoader<ModbusArtifactGenerator>` 聚合输出模块：
+- 现在没有单独的 `gateway` 模式。
+- 旧文档里把 `gateway` 当作主模式的地方，已经不符合当前代码。
 
-- `KOTLIN_CONTRACT`
-- `KOTLIN_GATEWAY`
-- `C_SERVICE_CONTRACT`
-- `C_TRANSPORT_CONTRACT`
-- `MARKDOWN_PROTOCOL`
+## 现在支持哪些 metadata 输入源
 
-其中 `KOTLIN_GATEWAY` 的实际消费链路已经切到 `modbus-ksp-kotlin-gateway` 模块自己持有的模板实现；
-`modbus-ksp-core` 继续保留 suite model、SPI facade 和通用上下文，后续可以再清理 core 中遗留的旧 gateway 模板代码。
-
-元数据输入侧对应的是 `ServiceLoader<ModbusMetadataProvider>`：
+所有 transport processor 都通过 `ServiceLoader<ModbusMetadataProvider>` 找输入源，默认内置两个 provider：
 
 - `interfaces`
+  - 从带 `@GenerateModbusRtuServer` / `@GenerateModbusTcpServer` / `@GenerateModbusMqttServer` 注解的 Kotlin 接口收集元数据。
+  - 需要 `contractPackages`。
 - `database`
+  - 通过 JDBC 执行查询，把 JSON payload 解析成统一的 `ModbusServiceModel`。
+  - 需要 `databaseJdbcUrl` 和 `databaseQuery`。
 
-如果应用层要自定义 metadata provider，需要把 provider 实现类和 `META-INF/services/...` 注册文件一起放进编译期 classpath。
-这里只是编译期 SPI，不是运行时临时塞一段 JSON 就能扩 provider。
+不显式配置 `metadataProviders` 时，processor 会把 classpath 里能发现的 provider 都加载出来，再由每个 provider 自己判断是否启用。
 
-这层设计的目的不是只服务 Modbus，而是把“语义契约 -> 多协议输出”的边界先定住。后面扩 MQTT 时，可以复用同一套 suite/facade/SPI 思路，再加 `mqtt-*` 输出模块，而不是把所有协议逻辑继续塞回同一个 renderer。
+## 原始 KSP 常用参数
 
-## Firmware Project Sync
+无论你接的是 RTU、TCP 还是 MQTT 原始处理器，下面这些参数名都通用：
 
-如果你要把生成的 C 代码直接落到固件工程，再顺手同步 Keil / CubeMX 工程文件，推荐用 typed DSL：
+- `addzero.modbus.codegen.mode`
+  - `server`、`contract`，逗号分隔。
+- `addzero.modbus.contractPackages`
+  - 扫描契约接口的包列表。
+- `addzero.modbus.metadata.providers`
+  - 例如 `interfaces`、`database`。
+- `addzero.modbus.database.*`
+  - JDBC 元数据输入。
+- `addzero.modbus.c.output.projectDir`
+  - 把生成的 C/Markdown 额外镜像到外部固件工程。
+- `addzero.modbus.c.bridgeImpl.path`
+  - 可编辑 `*_bridge_impl.c` 的落点，默认 `Core/Src/modbus`。
+- `addzero.modbus.markdown.output.path`
+  - 外部固件工程里 Markdown 文档目录，默认 `Docs/generated/modbus`。
+- `addzero.modbus.spring.route.outputDir`
+  - 额外输出 Spring 风格源码，给 `spring2ktor-server` 继续处理。
+- `addzero.modbus.address.lock.path`
+  - 地址锁文件，避免自动分配的协议地址在重构后漂移。
+- `addzero.modbus.apiClientPackageName`
+  - 额外生成 Ktorfit client 的目标包名。
+- `addzero.modbus.apiClientOutputDir`
+  - 额外生成 Ktorfit client 的目标输出目录。
 
-```kotlin
-modbusRtu {
-    transports.set(listOf("rtu"))
-    codegenModes.set(listOf("server", "contract"))
-    contractPackages.set(listOf("site.addzero.device.contract"))
+## 子模块索引
 
-    cOutputProjectDir.set("/Users/zjarlin/IdeaProjects/okmy_dics_lower")
-    bridgeImplPath.set("Core/Src/modbus")
-    keilUvprojxPath.set("MDK-ARM/test1.uvprojx")
-    keilTargetName.set("test1")
-    keilGroupName.set("Core/modbus/rtu")
-    mxprojectPath.set(".mxproject")
-}
-```
+| 模块 | 角色 | 普通业务工程要不要直接依赖 | 说明 |
+| --- | --- | --- | --- |
+| [`modbus-runtime`](./modbus-runtime/README.md) | 注解 + 运行时抽象 + RTU/TCP 执行器 | 要 | 所有业务接入都绕不过它 |
+| [`modbus-rtu-gradle-plugin`](./modbus-rtu-gradle-plugin/README.md) | RTU 推荐入口 | 要 | 新业务工程优先用它 |
+| [`modbus-tcp-gradle-plugin`](./modbus-tcp-gradle-plugin/README.md) | TCP 推荐入口 | 要 | 新业务工程优先用它 |
+| [`modbus-mqtt-gradle-plugin`](./modbus-mqtt-gradle-plugin/README.md) | MQTT 便利入口 | 视情况 | 仓库内可用，但不在当前默认保留 plugin 清单里 |
+| [`modbus-ksp-rtu`](./modbus-ksp-rtu/README.md) | RTU 原始处理器 | 一般不要 | 需要手写原始 `ksp` 参数时再用 |
+| [`modbus-ksp-tcp`](./modbus-ksp-tcp/README.md) | TCP 原始处理器 | 一般不要 | 同上 |
+| [`modbus-ksp-mqtt`](./modbus-ksp-mqtt/README.md) | MQTT 原始处理器 | 一般不要 | 同上 |
+| [`modbus-ksp-core`](./modbus-ksp-core/README.md) | metadata / artifact / project-sync SPI 核心 | 不要 | 扩展链路时才碰 |
+| [`modbus-ksp-kotlin-contract`](./modbus-ksp-kotlin-contract/README.md) | Kotlin contract 生成器 | 不要 | 通常由处理器传递引入 |
+| [`modbus-ksp-kotlin-gateway`](./modbus-ksp-kotlin-gateway/README.md) | Kotlin gateway 生成器 | 不要 | 通常由处理器传递引入 |
+| [`modbus-ksp-c-contract`](./modbus-ksp-c-contract/README.md) | C 合同与 dispatch 生成器 | 不要 | 通常由处理器传递引入 |
+| [`modbus-ksp-markdown`](./modbus-ksp-markdown/README.md) | Markdown 协议文档生成器 | 不要 | 通常由处理器传递引入 |
+| [`modbus-ksp-keil-sync`](./modbus-ksp-keil-sync/README.md) | Keil / CubeMX 工程同步 SPI | 不要 | 只有外部固件工程同步才用到 |
+| [`modbus-codegen-model`](./modbus-codegen-model/README.md) | 纯模型与序列化 schema | 视情况 | 适合外部工具复用 |
+| [`modbus-codegen-core`](./modbus-codegen-core/README.md) | 纯 Kotlin 解析/校验/contract 生成工具 | 视情况 | 适合非 KSP 流程复用 |
+| [`modbus-ksp-rtu-smoke`](./modbus-ksp-rtu-smoke/README.md) | 冒烟测试模块 | 不要 | 只给仓库自己验证整链路 |
 
-字段含义：
+## 一个容易踩坑的边界
 
-- `cOutputProjectDir`
-  - 固件工程根目录。
-- `bridgeImplPath`
-  - 可编辑 bridge 实现根目录。
-  - 例如 RTU 会生成到 `Core/Src/modbus/rtu/<service>/<service>_bridge_impl.c`。
-- `keilUvprojxPath`
-  - 要同步的 `.uvprojx`。
-- `keilTargetName`
-  - 要更新的 target 名称；留空则匹配第一个 target。
-- `keilGroupName`
-  - Keil group 前缀；RTU 默认 `Core/modbus/rtu`，TCP 默认 `Core/modbus/tcp`。
-- `mxprojectPath`
-  - 要同步的 `.mxproject`。
+`transports` 不是“一个处理器生成多个传输层”的万能开关，它只是“当前已接入的那个处理器是否启用”的开关。
 
-生成后的目录约定：
+例如：
 
-- 不可编辑 generated 头文件：
-  - `Core/Inc/generated/modbus/<transport>/...`
-- 不可编辑 generated 源文件：
-  - `Core/Src/generated/modbus/<transport>/...`
-- 可编辑 bridge 实现：
-  - `Core/Src/modbus/<transport>/<service>/<service>_bridge_impl.c`
+- `site.addzero.ksp.modbus-rtu` 只会把 `modbus-ksp-rtu` 注入 classpath。
+- 你就算写 `transports.set(listOf("rtu", "tcp"))`，它也不会顺带把 TCP 生成出来。
+- 真要同时生成 RTU 和 TCP，必须把两个 transport 的处理器都接进来。
 
-项目文件同步范围：
+## 建议的阅读顺序
 
-- 会改：
-  - `.uvprojx`
-  - `.mxproject`
-- 不会改：
-  - `.uvoptx`
-  - `.ioc`
-
-原因很直接：
-
-- `.uvoptx` 是开发者本机 UI/调试偏好，不该由 KSP 覆盖。
-- `.ioc` 是硬件配置源，不负责维护这批 generated C 文件清单。
-
-## Semantic Contract Direction
-
-本轮支持的主路径是：
-
-```kotlin
-@GenerateModbusRtuServer
-interface DeviceService {
-    @ModbusOperation(
-        operationId = "get-device-info",
-        address = 0,
-        quantity = 24,
-        functionCode = ModbusFunctionCode.READ_COILS
-    )
-    suspend fun getDeviceInfo(): DeviceInfo24
-}
-
-data class DeviceInfo24(
-    @ModbusField(codec = "BOOL_COIL", registerOffset = 0) val ch1: Boolean,
-    @ModbusField(codec = "BOOL_COIL", registerOffset = 1) val ch2: Boolean,
-    // ...
-    @ModbusField(codec = "BOOL_COIL", registerOffset = 23) val ch24: Boolean,
-)
-```
-
-然后：
-
-- Kotlin side 生成 `executor.readCoils(...)` 调用代码
-- C side 生成 `*_generated.h/.c`、`*_bridge.h`、`modbus_rtu_dispatch.*`
-- Markdown side 生成协议表格文档
-
-## Current Firmware Example
-
-`/Users/zjarlin/IdeaProjects/okmy_dics_lower` 当前已经接入最小示例：
-
-- `getDeviceInfo(): DeviceInfo24`
-- `READ_COILS address=0 quantity=24`
-- 业务实现读取 `CH1_OUT..CH24_OUT`
-- `freertos.c` 改为走 generated agile adapter
+1. 先看 [`modbus-runtime`](./modbus-runtime/README.md) 确认注解和运行时模型。
+2. 再看你要接入的 transport 插件 README。
+3. 只有当你需要原始参数或扩展 SPI 时，才继续看 `modbus-ksp-*` 和 `modbus-codegen-*` 这些内部模块。
