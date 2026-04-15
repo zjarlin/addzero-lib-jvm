@@ -45,7 +45,7 @@ class ModbusExternalCArtifactWriter private constructor(
 
         val targetDir = targetFile.parentFile
         if (!targetDir.exists() && !targetDir.mkdirs()) {
-            logger.error("无法创建 Modbus 外部输出目录：${targetDir.absolutePath}")
+            logger.warn("无法创建 Modbus 外部输出目录，已跳过当前外部镜像文件：${targetDir.absolutePath}", null)
             return null
         }
 
@@ -224,8 +224,9 @@ class ModbusExternalCArtifactWriter private constructor(
 
             val projectDir = File(rawDir).absoluteFile
             if (!projectDir.exists()) {
-                environment.logger.error(
-                    "配置了 Modbus 外部 C 输出目录，但路径不存在：${projectDir.absolutePath}",
+                environment.logger.warn(
+                    "配置了 Modbus 外部 C 输出目录，但路径不存在，已跳过外部 C 镜像输出：${projectDir.absolutePath}",
+                    null,
                 )
                 return null
             }

@@ -23,7 +23,10 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
         val uvprojxPath = requireNotNull(context.environment.options[UVPROJX_PATH_OPTION]).trim()
         val uvprojxFile = resolveConfiguredFile(context, uvprojxPath)
         if (!uvprojxFile.isFile) {
-            context.environment.logger.error("Keil uvprojx file does not exist: ${uvprojxFile.absolutePath}")
+            context.environment.logger.warn(
+                "Keil uvprojx file does not exist, skipped project sync: ${uvprojxFile.absolutePath}",
+                null,
+            )
             return
         }
 
@@ -49,8 +52,9 @@ class KeilUvprojxSyncTool : ModbusProjectSyncTool {
                 uvprojxFile.writeText(updated, Charsets.UTF_8)
             }
         } catch (exception: IllegalStateException) {
-            context.environment.logger.error(
+            context.environment.logger.warn(
                 "Keil uvprojx sync skipped because the file structure could not be matched: ${exception.message}",
+                null,
             )
         }
     }

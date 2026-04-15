@@ -1,0 +1,10 @@
+[PreviousUsedKeilFiles]
+SourceFiles=..\Core\Src\main.c
+HeaderPath=..\Core\Inc
+CDefines=USE_HAL_DRIVER;
+
+[PreviousGenFiles]
+HeaderFolderListSize=1
+HeaderPath#0=..\Core\Inc
+SourceFolderListSize=1
+SourcePath#0=..\Core\Src

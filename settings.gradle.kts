@@ -9,16 +9,23 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-04-14T14:39:20.388057
-// Loaded: 11, Excluded: 0, Total: 11
+// Generated at: 2026-04-15T08:52:13.255860
+// Loaded: 18, Excluded: 0, Total: 18
 include(":lib:ksp:metadata:modbus:modbus-codegen-core")
+include(":lib:ksp:metadata:modbus:modbus-codegen-model")
 include(":lib:ksp:metadata:modbus:modbus-ksp-c-contract")
 include(":lib:ksp:metadata:modbus:modbus-ksp-core")
+include(":lib:ksp:metadata:modbus:modbus-ksp-keil-sync")
 include(":lib:ksp:metadata:modbus:modbus-ksp-kotlin-gateway")
+include(":lib:ksp:metadata:modbus:modbus-ksp-markdown")
 include(":lib:ksp:metadata:modbus:modbus-ksp-mqtt")
 include(":lib:ksp:metadata:modbus:modbus-ksp-rtu")
+include(":lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke")
+include(":lib:ksp:metadata:modbus:modbus-ksp-tcp")
 include(":lib:ksp:metadata:modbus:modbus-mqtt-gradle-plugin")
+include(":lib:ksp:metadata:modbus:modbus-rtu-gradle-plugin")
 include(":lib:ksp:metadata:modbus:modbus-runtime")
+include(":lib:ksp:metadata:modbus:modbus-tcp-gradle-plugin")
 include(":lib:ksp:route:route-processor")
 include(":lib:tool-jvm:tool-modbus")
 include(":lib:tool-jvm:tool-serial")

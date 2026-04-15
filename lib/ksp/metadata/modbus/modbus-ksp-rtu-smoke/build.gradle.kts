@@ -1,4 +1,5 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.api.tasks.Sync
 
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
@@ -7,6 +8,14 @@ plugins {
 }
 
 val catalogLibs = versionCatalogs.named("libs")
+val smokeExternalProjectDir = layout.buildDirectory.dir("smoke/external-project")
+val smokeExternalProjectTemplateDir = layout.projectDirectory.dir("src/testFixtures/external-project-template")
+
+val prepareSmokeExternalProject by
+    tasks.registering(Sync::class) {
+        from(smokeExternalProjectTemplateDir)
+        into(smokeExternalProjectDir)
+    }
 
 dependencies {
     implementation(catalogLibs.findLibrary("modbus-runtime").get())
@@ -28,13 +37,20 @@ ksp {
         "addzero.modbus.spring.route.outputDir",
         layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath,
     )
-    arg("addzero.modbus.address.lock.path", "/Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke/src/main/modbus/device.rtu.addresses.lock")
-    arg("addzero.modbus.c.output.projectDir", "/Users/zjarlin/IdeaProjects/t")
+    arg(
+        "addzero.modbus.address.lock.path",
+        layout.projectDirectory.file("src/main/modbus/device.rtu.addresses.lock").asFile.absolutePath,
+    )
+    arg("addzero.modbus.c.output.projectDir", smokeExternalProjectDir.get().asFile.absolutePath)
     arg("addzero.modbus.c.bridgeImpl.path", "Core/Src/modbus")
     arg("addzero.modbus.keil.uvprojx.path", "MDK-ARM/test1.uvprojx")
     arg("addzero.modbus.keil.targetName", "test1")
     arg("addzero.modbus.keil.groupName", "Core/modbus/rtu")
     arg("addzero.modbus.mxproject.path", ".mxproject")
+}
+
+tasks.named("kspKotlin") {
+    dependsOn(prepareSmokeExternalProject)
 }
 
 tasks.named<Test>("test") {
@@ -45,11 +61,20 @@ tasks.named<Test>("test") {
         },
     )
     systemProperty("modbus.smoke.projectDir", projectDir.absolutePath)
-    systemProperty("modbus.smoke.externalProjectDir", "/Users/zjarlin/IdeaProjects/t")
+    systemProperty("modbus.smoke.externalProjectDir", smokeExternalProjectDir.get().asFile.absolutePath)
     systemProperty("modbus.smoke.externalBridgeImplPath", "Core/Src/modbus/rtu/device/device_bridge_impl.c")
-    systemProperty("modbus.smoke.keilUvprojxPath", "/Users/zjarlin/IdeaProjects/t/MDK-ARM/test1.uvprojx")
-    systemProperty("modbus.smoke.mxprojectPath", "/Users/zjarlin/IdeaProjects/t/.mxproject")
-    systemProperty("modbus.smoke.addressLockPath", "/Users/zjarlin/IdeaProjects/addzero-lib-jvm/lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke/src/main/modbus/device.rtu.addresses.lock")
+    systemProperty(
+        "modbus.smoke.keilUvprojxPath",
+        smokeExternalProjectDir.get().asFile.resolve("MDK-ARM/test1.uvprojx").absolutePath,
+    )
+    systemProperty(
+        "modbus.smoke.mxprojectPath",
+        smokeExternalProjectDir.get().asFile.resolve(".mxproject").absolutePath,
+    )
+    systemProperty(
+        "modbus.smoke.addressLockPath",
+        layout.projectDirectory.file("src/main/modbus/device.rtu.addresses.lock").asFile.absolutePath,
+    )
     systemProperty(
         "modbus.smoke.springRouteOutputDir",
         layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath,
