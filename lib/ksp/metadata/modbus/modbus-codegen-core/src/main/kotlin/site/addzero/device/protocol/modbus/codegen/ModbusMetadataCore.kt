@@ -916,8 +916,8 @@ object ModbusKotlinContractGenerator {
 
         request.services.forEach { service ->
             artifacts += renderService(request.fileHeader, service)
-            service.operations
-                .map(ModbusOperationModel::returnType)
+            (service.operations.map(ModbusOperationModel::returnType) +
+                service.workflows.map(ModbusWorkflowModel::returnType))
                 .filter { returnType -> returnType.kind == ModbusReturnKind.DTO }
                 .forEach { returnType ->
                     if (renderedDtoNames.add(returnType.qualifiedName)) {

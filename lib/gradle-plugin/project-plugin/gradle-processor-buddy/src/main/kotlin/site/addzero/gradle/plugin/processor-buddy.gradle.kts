@@ -5,6 +5,18 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import site.addzero.util.str.toLowCamelCase
 
 val extension = extensions.create<ProcessorBuddyExtension>("processorBuddy")
+extension.consumerKspBuildLogicOutputDir.convention(layout.buildDirectory.dir("generated/processor-buddy/consumer-ksp"))
+extension.consumerKspBuildLogicScriptName.convention(project.name.removeSuffix("-processor"))
+extension.consumerKspBuildLogicExtensionName.convention(project.name.removeSuffix("-processor").toLowCamelCase())
+extension.consumerKspBuildLogicProcessorProjectPath.convention(project.path)
+extension.consumerKspBuildLogicProcessorArtifactId.convention(project.name)
+extension.consumerKspBuildLogicProcessorArtifactKind.convention(
+  if (plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+    "KMP"
+  } else {
+    "JVM"
+  }
+)
 
 val generateTask = tasks.register<GenerateProcessorScriptTask>("generateProcessorScript") {
   description = "Generates processor configuration based on mustMap"
@@ -22,6 +34,15 @@ val generateTask = tasks.register<GenerateProcessorScriptTask>("generateProcesso
   settingContextEnabled.set(extension.settingContextEnabled)
   settingsObjectEnabled.set(extension.settingsObjectEnabled)
   readmeEnabled.set(extension.readmeEnabled)
+  consumerKspBuildLogicEnabled.set(extension.consumerKspBuildLogicEnabled)
+  consumerKspBuildLogicOutputDir.set(extension.consumerKspBuildLogicOutputDir)
+  consumerKspBuildLogicPackageName.set(extension.consumerKspBuildLogicPackageName)
+  consumerKspBuildLogicScriptName.set(extension.consumerKspBuildLogicScriptName)
+  consumerKspBuildLogicExtensionName.set(extension.consumerKspBuildLogicExtensionName)
+  consumerKspBuildLogicProcessorProjectPath.set(extension.consumerKspBuildLogicProcessorProjectPath)
+  consumerKspBuildLogicProcessorArtifactId.set(extension.consumerKspBuildLogicProcessorArtifactId)
+  consumerKspBuildLogicProcessorArtifactKind.set(extension.consumerKspBuildLogicProcessorArtifactKind)
+  consumerKspBuildLogicCompanionDependencies.set(extension.consumerKspBuildLogicCompanionDependencies)
 }
 
 afterEvaluate {
@@ -91,6 +112,33 @@ abstract class GenerateProcessorScriptTask : DefaultTask() {
   @get:Input
   abstract val readmeEnabled: Property<Boolean>
 
+  @get:Input
+  abstract val consumerKspBuildLogicEnabled: Property<Boolean>
+
+  @get:OutputDirectory
+  abstract val consumerKspBuildLogicOutputDir: DirectoryProperty
+
+  @get:Input
+  abstract val consumerKspBuildLogicPackageName: Property<String>
+
+  @get:Input
+  abstract val consumerKspBuildLogicScriptName: Property<String>
+
+  @get:Input
+  abstract val consumerKspBuildLogicExtensionName: Property<String>
+
+  @get:Input
+  abstract val consumerKspBuildLogicProcessorProjectPath: Property<String>
+
+  @get:Input
+  abstract val consumerKspBuildLogicProcessorArtifactId: Property<String>
+
+  @get:Input
+  abstract val consumerKspBuildLogicProcessorArtifactKind: Property<String>
+
+  @get:Input
+  abstract val consumerKspBuildLogicCompanionDependencies: ListProperty<String>
+
   @get:Internal
   abstract var readmeOutputFile: File
 
@@ -110,7 +158,8 @@ abstract class GenerateProcessorScriptTask : DefaultTask() {
     }
 
     val generatedFiles = generateSettingContextInterface()
-    logger.lifecycle("ProcessorBuddy: Generated ${generatedFiles.size} configuration files")
+    val generatedConsumerFiles = generateConsumerKspBuildLogic()
+    logger.lifecycle("ProcessorBuddy: Generated ${generatedFiles.size + generatedConsumerFiles.size} configuration files")
   }
 
   private fun generateReadme(): String {
@@ -358,6 +407,46 @@ val merged = $mergeFuncName(config1, config2)
       logger.lifecycle("Settings object generation is disabled")
     }
 
+    return generatedFiles
+  }
+
+  private fun generateConsumerKspBuildLogic(): List<File> {
+    if (!consumerKspBuildLogicEnabled.get() || mustMap.get().isEmpty()) {
+      logger.lifecycle("ProcessorBuddy: Consumer KSP build-logic generation is disabled")
+      return emptyList()
+    }
+
+    val spec =
+      ConsumerKspBuildLogicGenerator.buildSpec(
+        mustMap = mustMap.get(),
+        scriptPackageName = consumerKspBuildLogicPackageName.get(),
+        scriptName = consumerKspBuildLogicScriptName.get(),
+        extensionName = consumerKspBuildLogicExtensionName.get(),
+        processorProjectPath = consumerKspBuildLogicProcessorProjectPath.get(),
+        processorArtifactId = consumerKspBuildLogicProcessorArtifactId.get(),
+        processorArtifactKind = consumerKspBuildLogicProcessorArtifactKind.get(),
+        companionDependencies = consumerKspBuildLogicCompanionDependencies.get(),
+      )
+
+    val outputDir = consumerKspBuildLogicOutputDir.get().asFile
+    val generatedFiles = mutableListOf<File>()
+
+    val generatedPackageDir = File(outputDir, spec.generatedPackageName.replace(".", "/"))
+    if (generatedPackageDir.exists()) {
+      generatedPackageDir.deleteRecursively()
+    }
+    generatedPackageDir.mkdirs()
+    val extensionFile = File(generatedPackageDir, "${spec.extensionClassName}.kt")
+    extensionFile.writeText(ConsumerKspBuildLogicGenerator.generateExtensionFile(spec))
+    generatedFiles += extensionFile
+
+    val scriptPackageDir = File(outputDir, spec.scriptPackageName.replace(".", "/"))
+    scriptPackageDir.mkdirs()
+    val scriptFile = File(scriptPackageDir, "${spec.scriptName}.gradle.kts")
+    scriptFile.writeText(ConsumerKspBuildLogicGenerator.generateScriptFile(spec))
+    generatedFiles += scriptFile
+
+    logger.lifecycle("ProcessorBuddy: Generated consumer KSP build-logic to: ${outputDir.absolutePath}")
     return generatedFiles
   }
 

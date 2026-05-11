@@ -1,0 +1,72 @@
+{
+  "interfacePackage": "site.addzero.device.contract",
+  "interfaceSimpleName": "DeviceApi",
+  "interfaceQualifiedName": "site.addzero.device.contract.DeviceApi",
+  "transport": "rtu",
+  "doc": {
+    "summary": "设备服务接口。"
+  },
+  "operations": [
+    {
+      "methodName": "getDeviceInfo",
+      "address": 0,
+      "functionCodeName": "READ_COILS",
+      "doc": {
+        "summary": "读取 24 路输出通道状态。"
+      },
+      "returnType": {
+        "qualifiedName": "site.addzero.device.contract.DeviceInfo24",
+        "simpleName": "DeviceInfo24",
+        "kind": "DTO",
+        "docSummary": "24 路数字输出快照。",
+        "properties": [
+          { "name": "ch1", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 1。", "field": { "codecName": "BOOL_COIL", "registerOffset": 0 } },
+          { "name": "ch2", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 2。", "field": { "codecName": "BOOL_COIL", "registerOffset": 1 } },
+          { "name": "ch3", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 3。", "field": { "codecName": "BOOL_COIL", "registerOffset": 2 } },
+          { "name": "ch4", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 4。", "field": { "codecName": "BOOL_COIL", "registerOffset": 3 } },
+          { "name": "ch5", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 5。", "field": { "codecName": "BOOL_COIL", "registerOffset": 4 } },
+          { "name": "ch6", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 6。", "field": { "codecName": "BOOL_COIL", "registerOffset": 5 } },
+          { "name": "ch7", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 7。", "field": { "codecName": "BOOL_COIL", "registerOffset": 6 } },
+          { "name": "ch8", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 8。", "field": { "codecName": "BOOL_COIL", "registerOffset": 7 } },
+          { "name": "ch9", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 9。", "field": { "codecName": "BOOL_COIL", "registerOffset": 8 } },
+          { "name": "ch10", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 10。", "field": { "codecName": "BOOL_COIL", "registerOffset": 9 } },
+          { "name": "ch11", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 11。", "field": { "codecName": "BOOL_COIL", "registerOffset": 10 } },
+          { "name": "ch12", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 12。", "field": { "codecName": "BOOL_COIL", "registerOffset": 11 } },
+          { "name": "ch13", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 13。", "field": { "codecName": "BOOL_COIL", "registerOffset": 12 } },
+          { "name": "ch14", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 14。", "field": { "codecName": "BOOL_COIL", "registerOffset": 13 } },
+          { "name": "ch15", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 15。", "field": { "codecName": "BOOL_COIL", "registerOffset": 14 } },
+          { "name": "ch16", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 16。", "field": { "codecName": "BOOL_COIL", "registerOffset": 15 } },
+          { "name": "ch17", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 17。", "field": { "codecName": "BOOL_COIL", "registerOffset": 16 } },
+          { "name": "ch18", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 18。", "field": { "codecName": "BOOL_COIL", "registerOffset": 17 } },
+          { "name": "ch19", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 19。", "field": { "codecName": "BOOL_COIL", "registerOffset": 18 } },
+          { "name": "ch20", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 20。", "field": { "codecName": "BOOL_COIL", "registerOffset": 19 } },
+          { "name": "ch21", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 21。", "field": { "codecName": "BOOL_COIL", "registerOffset": 20 } },
+          { "name": "ch22", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 22。", "field": { "codecName": "BOOL_COIL", "registerOffset": 21 } },
+          { "name": "ch23", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 23。", "field": { "codecName": "BOOL_COIL", "registerOffset": 22 } },
+          { "name": "ch24", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "通道 24。", "field": { "codecName": "BOOL_COIL", "registerOffset": 23 } }
+        ]
+      }
+    },
+    {
+      "methodName": "getDeviceRuntimeInfo",
+      "address": 100,
+      "functionCodeName": "READ_INPUT_REGISTERS",
+      "doc": {
+        "summary": "读取设备运行信息。"
+      },
+      "returnType": {
+        "qualifiedName": "site.addzero.device.contract.DeviceRuntimeInfo",
+        "simpleName": "DeviceRuntimeInfo",
+        "kind": "DTO",
+        "docSummary": "设备运行信息。",
+        "properties": [
+          { "name": "protocolVersion", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "协议版本。", "field": { "codecName": "U16", "registerOffset": 0 } },
+          { "name": "channelCount", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "通道总数。", "field": { "codecName": "U16", "registerOffset": 1 } },
+          { "name": "unitId", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "从站地址。", "field": { "codecName": "U16", "registerOffset": 2 } },
+          { "name": "baudRateCode", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "波特率编码。", "field": { "codecName": "U16", "registerOffset": 3 } },
+          { "name": "deviceName", "qualifiedType": "kotlin.String", "valueKind": "STRING", "doc": "设备名称。", "field": { "codecName": "STRING_UTF8", "registerOffset": 4, "length": 16 } }
+        ]
+      }
+    }
+  ]
+}

@@ -20,8 +20,6 @@ dependencies {
     testImplementation(project(":lib:ksp:metadata:jimmer-entity-external-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:ksp-dsl-builder:ksp-dsl-builder-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-gradle-plugin"))
-    testImplementation(libs.findLibrary("site-addzero-modbus-rtu-gradle-plugin").get())
-    testImplementation(libs.findLibrary("site-addzero-modbus-tcp-gradle-plugin").get())
     testImplementation(project(":lib:ksp:metadata:multireceiver-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:singleton-adapter-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:spring2ktor-server-gradle-plugin"))

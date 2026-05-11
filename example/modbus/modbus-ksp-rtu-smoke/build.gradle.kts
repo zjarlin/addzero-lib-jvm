@@ -18,21 +18,30 @@ val prepareSmokeExternalProject by
     }
 
 dependencies {
-    implementation(catalogLibs.findLibrary("modbus-runtime").get())
     implementation(catalogLibs.findLibrary("io-ktor-ktor-server-core").get())
     implementation(catalogLibs.findLibrary("io-insert-koin-koin-annotations").get())
     implementation(catalogLibs.findLibrary("io-insert-koin-koin-core").get())
 
-    ksp(project(":lib:ksp:metadata:modbus:modbus-ksp-rtu"))
+    implementation(catalogLibs.findLibrary("modbus-runtime").get())
+    ksp(project(":lib:ksp:metadata:modbus:modbus-ksp"))
+    ksp(project(":example:modbus:modbus-ksp-rtu-smoke-provider"))
 
     testImplementation(catalogLibs.findLibrary("org-jetbrains-kotlin-kotlin-test").get())
     testImplementation(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter").get())
 }
 
+val smokeMetadataDbFile = layout.buildDirectory.file("modbus-smoke/metadata.sqlite")
+
 ksp {
     arg("addzero.modbus.transports", "rtu")
     arg("addzero.modbus.codegen.mode", "gateway,contract")
     arg("addzero.modbus.contractPackages", "site.addzero.device.contract")
+    arg("addzero.modbus.metadata.providers", "smoke-sqlite")
+    arg("addzero.modbus.database.driverClass", "org.sqlite.JDBC")
+    arg("addzero.modbus.database.jdbcUrl", "jdbc:sqlite:${smokeMetadataDbFile.get().asFile.absolutePath}")
+    arg("addzero.modbus.database.query", "select json_payload from modbus_metadata order by id")
+    arg("addzero.modbus.database.jsonColumn", "json_payload")
+    arg("addzero.modbus.smoke.sqlite.path", smokeMetadataDbFile.get().asFile.absolutePath)
     arg(
         "addzero.modbus.spring.route.outputDir",
         layout.buildDirectory.dir("generated/modbus-spring-routes").get().asFile.absolutePath,
@@ -41,12 +50,6 @@ ksp {
         "addzero.modbus.address.lock.path",
         layout.projectDirectory.file("src/main/modbus/device.rtu.addresses.lock").asFile.absolutePath,
     )
-    arg("addzero.modbus.c.output.projectDir", smokeExternalProjectDir.get().asFile.absolutePath)
-    arg("addzero.modbus.c.bridgeImpl.path", "Core/Src/modbus")
-    arg("addzero.modbus.keil.uvprojx.path", "MDK-ARM/test1.uvprojx")
-    arg("addzero.modbus.keil.targetName", "test1")
-    arg("addzero.modbus.keil.groupName", "Core/modbus/rtu")
-    arg("addzero.modbus.mxproject.path", ".mxproject")
 }
 
 val smokeKspTasks = tasks.matching { task ->

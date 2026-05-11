@@ -67,42 +67,6 @@ object PublishedKspPluginSpecs {
             resourcePath = "site/addzero/ksp/method-semanticizer/gradle-plugin.properties",
         ),
         PublishedKspPluginSpec(
-            pluginId = "site.addzero.ksp.modbus-rtu",
-            processorArtifactId = "modbus-ksp-rtu",
-            resourcePath = "site/addzero/ksp/modbus-rtu/gradle-plugin.properties",
-            extensionName = "modbusRtu",
-            defaultValues = mapOf(
-                "codegenModes" to listOf("server"),
-                "contractPackages" to emptyList<String>(),
-                "transports" to listOf("rtu"),
-                "cOutputProjectDir" to "",
-                "bridgeImplPath" to "",
-                "keilUvprojxPath" to "",
-                "keilTargetName" to "",
-                "keilGroupName" to "Core/modbus/rtu",
-                "mxprojectPath" to "",
-                "springRouteOutputDir" to "",
-            ),
-        ),
-        PublishedKspPluginSpec(
-            pluginId = "site.addzero.ksp.modbus-tcp",
-            processorArtifactId = "modbus-ksp-tcp",
-            resourcePath = "site/addzero/ksp/modbus-tcp/gradle-plugin.properties",
-            extensionName = "modbusTcp",
-            defaultValues = mapOf(
-                "codegenModes" to listOf("server"),
-                "contractPackages" to emptyList<String>(),
-                "transports" to listOf("tcp"),
-                "cOutputProjectDir" to "",
-                "bridgeImplPath" to "",
-                "keilUvprojxPath" to "",
-                "keilTargetName" to "",
-                "keilGroupName" to "Core/modbus/tcp",
-                "mxprojectPath" to "",
-                "springRouteOutputDir" to "",
-            ),
-        ),
-        PublishedKspPluginSpec(
             pluginId = "site.addzero.ksp.multireceiver",
             processorArtifactId = "multireceiver-processor",
             resourcePath = "site/addzero/ksp/multireceiver/gradle-plugin.properties",
@@ -144,6 +108,8 @@ object PublishedKspPluginSpecs {
         "site.addzero.ksp.controller2feign",
         "site.addzero.ksp.controller2iso2dataprovider",
         "site.addzero.ksp.enum",
+        "site.addzero.ksp.modbus-rtu",
+        "site.addzero.ksp.modbus-tcp",
     )
 
     val loggerDemo: Set<String> = setOf("site.addzero.ksp.logger")

@@ -57,12 +57,12 @@ val artifacts =
 
 `artifacts` 里拿到的是 `GeneratedArtifact`，你可以自己决定写到哪里。
 
-## 和 `modbus-ksp-core` 的区别
+## 和 `modbus-ksp` 的区别
 
 - `modbus-codegen-core`
   - 不关心 KSP、Gradle、ServiceLoader
   - 适合外部工具与纯 Kotlin 预处理
-- `modbus-ksp-core`
+- `modbus-ksp`
   - 关心 processor 生命周期、metadata provider、artifact generator、project sync SPI
   - 适合 KSP 处理器生态
 

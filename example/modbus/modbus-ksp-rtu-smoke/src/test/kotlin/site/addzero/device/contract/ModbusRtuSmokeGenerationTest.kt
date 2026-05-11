@@ -21,7 +21,7 @@ class ModbusRtuSmokeGenerationTest {
     private val externalMarkdownDir = externalProjectDir.resolve("Docs/generated/modbus/rtu")
 
     @Test
-    fun realAnnotatedContractGeneratesGatewayAndCBridgeArtifacts() {
+    fun sqliteMetadataProviderGeneratesGatewayAndCBridgeArtifacts() {
         val gatewayKt =
             generatedKotlinDir.resolve(
                 "site/addzero/generated/modbus/rtu/GeneratedModbusRtu.kt",

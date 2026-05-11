@@ -1,0 +1,5 @@
+site.addzero.device.protocol.modbus.ksp.contract.ModbusKotlinContractArtifactGenerator
+site.addzero.device.protocol.modbus.ksp.gateway.ModbusKotlinGatewayArtifactGenerator
+site.addzero.device.protocol.modbus.ksp.c.ModbusCServiceContractArtifactGenerator
+site.addzero.device.protocol.modbus.ksp.c.ModbusCTransportContractArtifactGenerator
+site.addzero.device.protocol.modbus.ksp.markdown.ModbusMarkdownArtifactGenerator

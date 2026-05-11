@@ -71,45 +71,6 @@ class PublishedKspPluginSmokeTest {
     }
 
     @Test
-    fun `kmp options modbus rtu plugin injects runtime companion`() {
-        val output = runBuild(
-            projectName = "modbus-rtu-consumer",
-            buildScript = kmpPluginBuildScript(
-                pluginId = "site.addzero.ksp.modbus-rtu",
-                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.modbus-rtu.serializedArgs",
-                extraBody = """
-                    configureDynamicExtension(
-                        "modbusRtu",
-                        mapOf(
-                            "codegenModes" to listOf("server", "contract"),
-                            "contractPackages" to listOf("site.addzero.device.contract"),
-                            "transports" to listOf("rtu", "tcp"),
-                            "cOutputProjectDir" to "/tmp/firmware-project",
-                            "bridgeImplPath" to "Core/Src/modbus",
-                            "keilUvprojxPath" to "MDK-ARM/test1.uvprojx",
-                            "keilTargetName" to "test1",
-                            "keilGroupName" to "Core/modbus/rtu",
-                            "mxprojectPath" to ".mxproject",
-                            "springRouteOutputDir" to "/tmp/generated-spring-routes",
-                        ),
-                    )
-                """.trimIndent(),
-            ),
-        )
-
-        assertContains(
-            output,
-            "CONF[kspJvm]=site.addzero:modbus-ksp-rtu",
-            "CONF[commonMainImplementation]=site.addzero:modbus-runtime",
-            "addzero.modbus.codegen.mode=server,contract",
-            "addzero.modbus.transports=rtu,tcp",
-            "addzero.modbus.contractPackages=site.addzero.device.contract",
-            "addzero.modbus.c.output.projectDir=/tmp/firmware-project",
-            "addzero.modbus.spring.route.outputDir=/tmp/generated-spring-routes",
-        )
-    }
-
-    @Test
     fun `kmp umbrella plugin adds direct and spi subprocessors`() {
         val output = runBuild(
             projectName = "jimmer-external-consumer",

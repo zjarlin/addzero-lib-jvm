@@ -1,44 +1,24 @@
 # modbus-ksp-rtu-smoke
 
-`modbus-ksp-rtu-smoke` 是仓库内部用来验证 RTU 整条生成链是否还正常的冒烟测试模块。
+`modbus-ksp-rtu-smoke` 是仓库内部的 RTU 冒烟验证模块，用来确认 `modbus-ksp` 在 raw KSP 方式下还能完整跑通。
 
-- 本地路径：`lib/ksp/metadata/modbus/modbus-ksp-rtu-smoke`
+这个样例不再依赖源码注解扫描，而是模拟真实消费方：
 
-## 它不是给谁用的
+- 业务模块自己额外提供一个挂在 `ksp(...)` 上的 `ModbusMetadataProvider` SPI 实现。
+- 该 provider 在处理期把 SQLite 元数据表喂给 `modbus-ksp`。
+- 业务模块还会额外提供 `ModbusConsumerCArtifactsProvider` SPI，决定外部 C 工程、Keil、CubeMX 的落盘和同步目标。
+- `modbus-ksp` 再基于这份外部 metadata 生成 Kotlin gateway / contract、C 合同和协议文档。
 
-这个模块不是：
+它会真实验证：
 
-- 发布给业务工程的 API 模块
-- 推荐消费入口
-- 通用样板工程
+- `ksp(project(":lib:ksp:metadata:modbus:modbus-ksp"))` 的接线是否有效。
+- `ksp(project(":example:modbus:modbus-ksp-rtu-smoke-provider"))` 这种消费方自带 SPI provider 的方式是否有效。
+- RTU transport 的 Kotlin gateway / contract 是否正常生成。
+- 外部 C 工程桥接、Keil、CubeMX 同步是否正常落盘。
+- 地址锁文件是否稳定。
 
-它的角色只有一个：
-
-- 帮仓库自己锁定 “真实注解契约 -> KSP -> Kotlin/C/Markdown -> 外部工程同步” 这一整条链路没有被改坏
-
-## 它覆盖了什么
-
-这个模块会真实运行 `modbus-ksp-rtu`，验证：
-
-- Kotlin gateway 生成
-- C contract / dispatch / bridge 生成
-- Markdown 文档生成
-- Spring 风格源码输出
-- 外部固件工程镜像输出
-- `.uvprojx` / `.mxproject` 同步
-- 地址锁文件写入
-
-## 怎么运行
+运行方式：
 
 ```bash
-./gradlew :lib:ksp:metadata:modbus:modbus-ksp-rtu-smoke:test
+./gradlew :example:modbus:modbus-ksp-rtu-smoke:test
 ```
-
-## 如果你要找可抄的样例
-
-这个模块不是最终业务模板，但它很适合拿来对照两个文件：
-
-- `src/main/kotlin/site/addzero/device/contract/DeviceApi.kt`
-- `src/main/kotlin/site/addzero/device/contract/FlashApi.kt`
-
-这两个文件展示了当前 RTU 生成链接受的真实输入长什么样。

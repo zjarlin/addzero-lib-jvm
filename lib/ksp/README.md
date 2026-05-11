@@ -18,14 +18,22 @@ These remain the official plugin-first entrypoints:
 | `site.addzero.ksp.jimmer-entity-external` | `jimmer-entity-external-processor` | SPI subprocessors `entity2iso`, `entity2form`, `entity2mcp` |
 | `site.addzero.ksp.ksp-dsl-builder` | `ksp-dsl-builder-processor` | `ksp-dsl-builder-core` |
 | `site.addzero.ksp.method-semanticizer` | `method-semanticizer-processor` | `method-semanticizer-api` |
-| `site.addzero.ksp.modbus-rtu` | `modbus-ksp-rtu` | `modbus-runtime` |
-| `site.addzero.ksp.modbus-tcp` | `modbus-ksp-tcp` | `modbus-runtime` |
 | `site.addzero.ksp.multireceiver` | `multireceiver-processor` | `kcp-multireceiver-annotations` |
 | `site.addzero.ksp.singleton-adapter` | `singleton-adapter-processor` | `singleton-adapter-api` |
 | `site.addzero.ksp.spring2ktor-server` | `spring2ktor-server-processor` | `spring2ktor-server-core` and `compileOnly("org.springframework:spring-web")` |
 | `site.addzero.ksp.route` | `route-processor` | `route-core` |
 
 All retained consumer plugins are implemented as precompiled script plugins under `.gradle.kts`, not `.kt implementationClass` entrypoints.
+
+## Local Composite Build Flow
+
+For retained consumer plugins, keep the consumer entrypoint as a precompiled script plugin and make sure the build logic stays easy to audit in-repo.
+
+- Use repo-visible generated build logic only when it truly reduces maintenance and still leaves one clear source of truth.
+- If the generated route starts turning a processor module into a second plugin authoring hub, prefer folding back to hand-written precompiled scripts.
+- Either way, downstream users should only apply the retained plugin and configure its typed extension.
+
+This keeps local build logic small without leaking internal processor/module structure to consumers.
 
 ## Raw-Only Processors
 
@@ -38,6 +46,7 @@ These processors no longer have sibling consumer plugins:
 - `controller2feign-processor`
 - `controller2iso2dataprovider-processor`
 - `enum-processor`
+- `modbus-ksp`
 
 See each processor README for the raw option keys that now replace the old typed plugin DSL.
 

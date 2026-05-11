@@ -1,0 +1,131 @@
+{
+  "interfacePackage": "site.addzero.device.contract",
+  "interfaceSimpleName": "FlashApi",
+  "interfaceQualifiedName": "site.addzero.device.contract.FlashApi",
+  "transport": "rtu",
+  "doc": {
+    "summary": "固件烧录与复位接口。"
+  },
+  "operations": [
+    {
+      "methodName": "resetDevice",
+      "address": 64,
+      "functionCodeName": "WRITE_SINGLE_COIL",
+      "doc": {
+        "summary": "触发设备复位。",
+        "parameterDocs": {
+          "trigger": "写入 true 时触发一次设备复位。"
+        }
+      },
+      "parameters": [
+        { "name": "trigger", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "order": 0, "codecName": "BOOL_COIL", "doc": "写入 true 时触发一次设备复位。" }
+      ],
+      "returnType": {
+        "qualifiedName": "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+        "simpleName": "ModbusCommandResult",
+        "kind": "COMMAND_RESULT"
+      }
+    },
+    {
+      "methodName": "firmwareStart",
+      "address": 512,
+      "functionCodeName": "WRITE_MULTIPLE_REGISTERS",
+      "doc": {
+        "summary": "初始化一次烧录会话。",
+        "parameterDocs": {
+          "totalBytes": "本次固件总字节数。",
+          "crc32": "本次固件镜像的 CRC32。"
+        }
+      },
+      "parameters": [
+        { "name": "totalBytes", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 0, "codecName": "U32_BE", "doc": "本次固件总字节数。" },
+        { "name": "crc32", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 1, "codecName": "U32_BE", "doc": "本次固件镜像的 CRC32。" }
+      ],
+      "returnType": {
+        "qualifiedName": "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+        "simpleName": "ModbusCommandResult",
+        "kind": "COMMAND_RESULT"
+      }
+    },
+    {
+      "methodName": "firmwareChunk",
+      "address": 520,
+      "functionCodeName": "WRITE_MULTIPLE_REGISTERS",
+      "doc": {
+        "summary": "写入一帧固件数据。",
+        "parameterDocs": {
+          "sequence": "分片序号，从 0 开始递增。",
+          "usedBytes": "当前分片实际有效字节数。",
+          "word0": "数据字 0。",
+          "word1": "数据字 1。",
+          "word2": "数据字 2。",
+          "word3": "数据字 3。"
+        }
+      },
+      "parameters": [
+        { "name": "sequence", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 0, "codecName": "U16", "doc": "分片序号，从 0 开始递增。" },
+        { "name": "usedBytes", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 1, "codecName": "U16", "doc": "当前分片实际有效字节数。" },
+        { "name": "word0", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 2, "codecName": "U32_BE", "doc": "数据字 0。" },
+        { "name": "word1", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 3, "codecName": "U32_BE", "doc": "数据字 1。" },
+        { "name": "word2", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 4, "codecName": "U32_BE", "doc": "数据字 2。" },
+        { "name": "word3", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 5, "codecName": "U32_BE", "doc": "数据字 3。" }
+      ],
+      "returnType": {
+        "qualifiedName": "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+        "simpleName": "ModbusCommandResult",
+        "kind": "COMMAND_RESULT"
+      }
+    },
+    {
+      "methodName": "firmwareCommit",
+      "address": 530,
+      "functionCodeName": "WRITE_SINGLE_REGISTER",
+      "doc": {
+        "summary": "提交烧录结果。",
+        "parameterDocs": {
+          "totalChunks": "本次烧录总分片数。"
+        }
+      },
+      "parameters": [
+        { "name": "totalChunks", "qualifiedType": "kotlin.Int", "valueKind": "INT", "order": 0, "codecName": "U16", "doc": "本次烧录总分片数。" }
+      ],
+      "returnType": {
+        "qualifiedName": "site.addzero.device.protocol.modbus.model.ModbusCommandResult",
+        "simpleName": "ModbusCommandResult",
+        "kind": "COMMAND_RESULT"
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "kind": "FLASH_FIRMWARE",
+      "methodName": "flashFirmware",
+      "workflowId": "flash-firmware",
+      "bytesParameterName": "bytes",
+      "doc": {
+        "summary": "执行完整固件烧录工作流。",
+        "parameterDocs": {
+          "bytes": "待烧录的完整固件字节数组。"
+        }
+      },
+      "returnType": {
+        "qualifiedName": "site.addzero.device.contract.FlashResult",
+        "simpleName": "FlashResult",
+        "kind": "DTO",
+        "docSummary": "固件烧录结果。",
+        "properties": [
+          { "name": "accepted", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "工作流是否已被完整执行。" },
+          { "name": "summary", "qualifiedType": "kotlin.String", "valueKind": "STRING", "doc": "工作流执行摘要。" },
+          { "name": "totalBytes", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "固件总字节数。" },
+          { "name": "totalChunks", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "实际发送的总分片数。" },
+          { "name": "crc32", "qualifiedType": "kotlin.Int", "valueKind": "INT", "doc": "上位机计算并下发的 CRC32；若协议未声明则为 null。" },
+          { "name": "resetIssued", "qualifiedType": "kotlin.Boolean", "valueKind": "BOOLEAN", "doc": "是否已经触发设备复位。" }
+        ]
+      },
+      "startMethodName": "firmwareStart",
+      "chunkMethodName": "firmwareChunk",
+      "commitMethodName": "firmwareCommit",
+      "resetMethodName": "resetDevice"
+    }
+  ]
+}
