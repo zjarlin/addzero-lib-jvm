@@ -11,7 +11,7 @@
 - `tool-api-ocr/`：OCR 方向接口
 - `tool-api-payment/`：支付相关接口封装
 - `tool-api-soft-download/`：软件下载或资源下载接口
-- `tool-api-temp-mail/`：临时邮箱接口
+- `tool-api-email/`：邮箱接码平台（`mail.tm` / Gmail / Outlook / 通用 IMAP）
 - `tool-api-translate/`：翻译接口
 - `tool-api-tyc/` 与 `tool-api-tyc-hw/`：企业信息相关接口
 - `tool-api-video-parse/`：视频解析相关

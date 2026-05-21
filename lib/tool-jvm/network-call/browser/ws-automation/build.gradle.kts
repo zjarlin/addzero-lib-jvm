@@ -6,7 +6,7 @@ val libs = versionCatalogs.named("libs")
 dependencies {
 //  implementation("com.microsoft.playwright:playwright:1.45.0")
   implementation(project(":lib:tool-jvm:network-call:browser:tool-api-browser-automation"))
-  implementation(libs.findLibrary("tool-api-temp-mail").get())
+  implementation(project(":lib:tool-jvm:network-call:tool-api-email"))
   implementation(libs.findLibrary("com-fasterxml-jackson-module-jackson-module-kotlin").get())
 
 }

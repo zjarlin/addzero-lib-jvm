@@ -1,0 +1,3 @@
+site.addzero.network.call.emailcode.tempmail.TempMailEmailCodeProvider
+site.addzero.network.call.emailcode.gmail.GmailEmailCodeProvider
+site.addzero.network.call.emailcode.outlook.OutlookEmailCodeProvider
