@@ -19,6 +19,9 @@ internal suspend fun loadPreferredChineseDeviceFontFamilyOrNull(
     if (!supportsQueryLocalFonts()) {
         return null
     }
+    if (!hasGrantedLocalFontsPermission()) {
+        return null
+    }
     val rawFontList =
         runCatching { queryLocalFonts().await<JsAny>() }
             .getOrNull()
@@ -182,6 +185,31 @@ private fun jsInt8ArrayToKotlinByteArray(
 
 @JsFun("() => typeof globalThis.queryLocalFonts === 'function'")
 private external fun supportsQueryLocalFonts(): Boolean
+
+private suspend fun hasGrantedLocalFontsPermission(): Boolean {
+    val permissionState =
+        runCatching { queryLocalFontsPermissionState().await<JsAny>() }
+            .getOrNull()
+            ?: return false
+    return isGrantedPermissionState(permissionState)
+}
+
+@JsFun(
+    """() => {
+        const permissions = globalThis.navigator && globalThis.navigator.permissions;
+        if (!permissions || typeof permissions.query !== 'function') {
+            return Promise.resolve('unavailable');
+        }
+        return permissions
+            .query({ name: 'local-fonts' })
+            .then((status) => status && status.state ? status.state : 'unavailable')
+            .catch(() => 'unavailable');
+    }""",
+)
+private external fun queryLocalFontsPermissionState(): Promise<JsAny>
+
+@JsFun("(state) => state === 'granted'")
+private external fun isGrantedPermissionState(state: JsAny): Boolean
 
 @JsFun("() => globalThis.queryLocalFonts()")
 private external fun queryLocalFonts(): Promise<JsAny>

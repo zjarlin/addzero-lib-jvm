@@ -2,9 +2,7 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    id("site.addzero.buildlogic.kmp.kmp-core")
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    id("site.addzero.buildlogic.kmp.cmp-lib")
     `maven-publish`
 }
 
