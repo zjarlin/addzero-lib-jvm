@@ -4,7 +4,6 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-  implementation(libs.findLibrary("tool-api-music-search").get())
-  implementation(libs.findLibrary("tool-api-suno").get())
+  implementation(project(":lib:tool-jvm:network-call:music:tool-api-music-search"))
+  implementation(project(":lib:tool-jvm:network-call:music:tool-api-suno"))
 }
-

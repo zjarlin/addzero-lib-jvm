@@ -8,7 +8,7 @@ dependencies {
   implementation(libs.findLibrary("com-squareup-okhttp3-okhttp").get())
 
   // Common models
-  implementation(libs.findLibrary("common-models").get())
+  implementation(project(":lib:tool-kmp:models:common:common-models"))
 
   // Test Implementation
   testImplementation(libs.findLibrary("com-squareup-okhttp3-mockwebserver").get())
