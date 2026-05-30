@@ -10,8 +10,8 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-05-30T15:21:07.577882
-// Loaded: 89, Excluded: 0, Total: 89
+// Generated at: 2026-05-30T16:44:13.890922
+// Loaded: 87, Excluded: 0, Total: 87
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi")
 include(":lib:ksp:metadata:method-semanticizer:method-semanticizer-spi-helper")
 include(":lib:tool-jvm:database:ddlgenerator")
@@ -80,7 +80,6 @@ include(":lib:tool-jvm:tool-handwriting")
 include(":lib:tool-jvm:tool-io")
 include(":lib:tool-jvm:tool-io-codegen")
 include(":lib:tool-jvm:tool-jsr")
-include(":lib:tool-jvm:tool-jvmstr")
 include(":lib:tool-jvm:tool-log")
 include(":lib:tool-jvm:tool-math")
 include(":lib:tool-jvm:tool-minio")
@@ -99,6 +98,5 @@ include(":lib:tool-jvm:tool-stm32-bootloader")
 include(":lib:tool-jvm:tool-template-jte")
 include(":lib:tool-jvm:tool-toml")
 include(":lib:tool-jvm:tool-yml")
-include(":lib:tool-kmp:koog")
 include(":lib:tool-kmp:models:common:common-models")
 // <<< Gradle Module Sleep: End Of Block <<<
