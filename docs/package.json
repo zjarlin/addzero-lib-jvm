@@ -13,7 +13,6 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@addzero/xiaoeyu": "file:../xiaoeyu",
     "@easyops-cn/docusaurus-search-local": "0.55.1",
     "@docusaurus/core": "3.9.2",
     "@docusaurus/preset-classic": "3.9.2",
@@ -21,7 +20,8 @@
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "xiaoeyu": "0.1.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",

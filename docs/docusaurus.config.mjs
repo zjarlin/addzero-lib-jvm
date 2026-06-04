@@ -1,7 +1,7 @@
 import {themes as prismThemes} from "prism-react-renderer";
 import {fileURLToPath} from "node:url";
 import path from "node:path";
-import {createDocusaurusConfig, loadConfig} from "@addzero/xiaoeyu";
+import {createDocusaurusConfig, loadConfig} from "xiaoeyu";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const {config: xiaoeyuConfig} = loadConfig("../xiaoeyu.config.json", currentDir);
