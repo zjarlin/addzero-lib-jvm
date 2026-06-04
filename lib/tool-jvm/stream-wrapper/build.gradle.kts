@@ -1,5 +1,5 @@
 plugins {
-    id("site.addzero.gradle.plugin.lombok-convention")
+    id("site.addzero.buildlogic.jvm.lombok-convention")
 }
 val libs = versionCatalogs.named("libs")
 
