@@ -10,8 +10,10 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-04T09:39:33.261677
-// Loaded: 2, Excluded: 0, Total: 2
+// Generated at: 2026-06-04T16:17:34.851396
+// Loaded: 4, Excluded: 0, Total: 4
+include(":lib:ksp:route:route-core")
+include(":lib:ksp:route:route-gradle-plugin")
+include(":lib:ksp:route:route-processor")
 include(":lib:tool-kmp:models:common:common-models")
-include(":lib:tool-kmp:tool-json")
 // <<< Gradle Module Sleep: End Of Block <<<
