@@ -10,7 +10,7 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-05T16:47:11.872211
+// Generated at: 2026-06-06T08:14:48.257816
 // Loaded: 14, Excluded: 0, Total: 14
 include(":lib:tool-jvm:yudao:yudao-common")
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-data-permission")
