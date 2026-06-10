@@ -10,35 +10,31 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-10T11:05:08.598939
-// Loaded: 14, Excluded: 0, Total: 14
+// Generated at: 2026-06-10T16:00:40.496775
+// Loaded: 10, Excluded: 0, Total: 10
+include(":lib:ksp:common:ksp-support-jdbc")
+include(":lib:ksp:jdbc2metadata:jdbc2controller-processor")
+include(":lib:ksp:jdbc2metadata:jdbc2entity-processor")
+include(":lib:ksp:jdbc2metadata:jdbc2enum-processor")
+include(":lib:tool-jvm:database:ddlgenerator-core")
+include(":lib:tool-jvm:database:ddlgenerator-jdbc-adaptor")
 include(":lib:tool-jvm:yudao:yudao-common")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-data-permission")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-tenant")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-excel")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-job")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mq")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mybatis")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-protection")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-redis")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-security")
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-websocket")
+include(":lib:tool-kmp:jdbc:tool-jdbc")
+include(":lib:tool-kmp:jdbc:tool-jdbc-model")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:tool-jvm:yudao:yudao-common")
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-security")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mybatis")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-redis")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mq")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-job")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-tenant")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-data-permission")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-excel")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-websocket")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-protection")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip")
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-security") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mybatis") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-redis") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mq") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-job") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-tenant") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-data-permission") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-excel") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-websocket") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-protection") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip") // excluded by Gradle Buddy
