@@ -53,4 +53,11 @@ class ConfigCenterEncodingTest {
     assertFalse(body.contains("valueType"))
     assertFalse(body.contains("updatedBy"))
   }
+
+  @Test
+  fun checkoutNamespaceInfersCommonNamespace() {
+    assertEquals("cmp-aio.common", ConfigCenter.inferCommonNamespace("cmp-aio.dev"))
+    assertEquals("cmp-aio.common", ConfigCenter.inferCommonNamespace("cmp-aio.prod"))
+    assertEquals(null, ConfigCenter.inferCommonNamespace("cmp-aio.common"))
+  }
 }

@@ -34,6 +34,7 @@ class ConfigCenter(
   private val token: String? = null,
   val username: String? = null,
   val namespace: String? = null,
+  val commonNamespace: String? = null,
 ) {
   private val baseUrl = baseUrl.trimEnd('/')
 
@@ -52,11 +53,16 @@ class ConfigCenter(
       token = response.token,
       username = response.username,
       namespace = namespace,
+      commonNamespace = commonNamespace,
     )
   }
 
-  fun checkoutNamespace(namespace: String): ConfigCenter {
+  fun checkoutNamespace(
+    namespace: String,
+    commonNamespace: String? = inferCommonNamespace(namespace),
+  ): ConfigCenter {
     require(namespace.isNotBlank()) { "namespace must not be blank" }
+    commonNamespace?.let { require(it.isNotBlank()) { "commonNamespace must not be blank" } }
     return ConfigCenter(
       baseUrl = baseUrl,
       httpClient = httpClient,
@@ -64,6 +70,7 @@ class ConfigCenter(
       token = requireToken(),
       username = username,
       namespace = namespace.trim(),
+      commonNamespace = commonNamespace?.trim(),
     )
   }
 
@@ -85,10 +92,18 @@ class ConfigCenter(
   }
 
   suspend fun getItem(key: String): ConfigItem? {
+    val normalizedKey = requireKey(key)
+    val item = getItemFromNamespace(requireNamespace(), normalizedKey)
+    if (item != null) return item
+    val fallbackNamespace = commonNamespace?.takeIf { it != requireNamespace() } ?: return null
+    return getItemFromNamespace(fallbackNamespace, normalizedKey)
+  }
+
+  private suspend fun getItemFromNamespace(namespace: String, key: String): ConfigItem? {
     val response = getEnvelope<JsonElement>(
       buildUrl("/api/v1/config/detail") {
-        parameters.append("namespace", requireNamespace())
-        parameters.append("key", requireKey(key))
+        parameters.append("namespace", namespace)
+        parameters.append("key", key)
       },
     )
     if (!response.success) {
@@ -232,6 +247,14 @@ class ConfigCenter(
 
     fun defaultJson(): Json {
       return sharedJson
+    }
+
+    fun inferCommonNamespace(namespace: String): String? {
+      val normalized = namespace.trim()
+      if (normalized.isEmpty() || normalized.endsWith(".common")) return null
+      val separator = normalized.lastIndexOf('.')
+      if (separator <= 0) return null
+      return normalized.substring(0, separator) + ".common"
     }
   }
 }
