@@ -10,22 +10,15 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-10T16:00:40.496775
-// Loaded: 10, Excluded: 0, Total: 10
-include(":lib:ksp:common:ksp-support-jdbc")
-include(":lib:ksp:jdbc2metadata:jdbc2controller-processor")
-include(":lib:ksp:jdbc2metadata:jdbc2entity-processor")
-include(":lib:ksp:jdbc2metadata:jdbc2enum-processor")
-include(":lib:tool-jvm:database:ddlgenerator-core")
-include(":lib:tool-jvm:database:ddlgenerator-jdbc-adaptor")
-include(":lib:tool-jvm:yudao:yudao-common")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web")
-include(":lib:tool-kmp:jdbc:tool-jdbc")
-include(":lib:tool-kmp:jdbc:tool-jdbc-model")
+// Generated at: 2026-06-11T14:31:54.338841
+// Loaded: 3, Excluded: 0, Total: 3
+include(":lib:tool-kmp:koog")
+include(":lib:tool-kmp:tool-config-center-client")
+include(":lib:tool-kmp:tool-json")
 // <<< Gradle Module Sleep: End Of Block <<<
 
-include(":lib:tool-jvm:yudao:yudao-common")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web")
+//include(":lib:tool-jvm:yudao:yudao-common") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-security") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-mybatis") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-redis") // excluded by Gradle Buddy
