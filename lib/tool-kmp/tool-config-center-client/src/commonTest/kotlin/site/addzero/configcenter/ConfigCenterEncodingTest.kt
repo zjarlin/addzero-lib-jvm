@@ -1,63 +1,67 @@
 package site.addzero.configcenter
 
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import site.addzero.core.network.json.json
 
-class ConfigCenterEncodingTest {
+class ConfigCenterIntegrationTest {
   @Serializable
-  data class RedisConfig(
-    val host: String,
-    val port: Int,
+  data class FeatureSwitch(
+    val enabled: Boolean,
+    val ratio: Int,
   )
 
   @Test
-  fun configItemUsesServerFieldNames() {
-    val item = Json.decodeFromString<ConfigItem>(
-      """
-      {
-        "namespace": "cmp-aio.dev",
-        "config_key": "redis",
-        "config_value": "{\"host\":\"127.0.0.1\",\"port\":6379}",
-        "value_type": "json",
-        "enabled": true,
-        "version": 1
-      }
-      """.trimIndent(),
-    )
+  fun setAndGetAgainstRemoteConfigCenter() = runTest {
+    val suffix = Random.nextInt(1_000_000, 9_999_999)
+    val instance = ConfigCenter(TEST_BASE_URL)
+      .login(TEST_USERNAME, TEST_PASSWORD)
+      .checkoutNamespace("cmp-aio.dev")
 
-    assertEquals("redis", item.key)
+    val textKey = "sdk.common.text.$suffix"
+    val numberKey = "sdk.common.number.$suffix"
+    val booleanKey = "sdk.common.boolean.$suffix"
+    val objectKey = "sdk.common.object.$suffix"
+
+    instance.set(textKey, "hello-$suffix", "commonTest remote text")
+    instance.set(numberKey, 42, "commonTest remote number")
+    instance.set(booleanKey, true, "commonTest remote boolean")
+    instance.set(objectKey, FeatureSwitch(enabled = true, ratio = 80), "commonTest remote object")
+
+    assertEquals("hello-$suffix", instance.get<String>(textKey))
+    assertEquals(42, instance.get<Int>(numberKey))
+    assertEquals(true, instance.get<Boolean>(booleanKey))
+    assertEquals(FeatureSwitch(enabled = true, ratio = 80), instance.get<FeatureSwitch>(objectKey))
   }
 
   @Test
-  fun upsertRequestUsesServerFieldNames() {
-    val body = json.encodeToString(
-      UpsertRequest.serializer(),
-      UpsertRequest(
-        namespace = "cmp-aio.dev",
-        key = "redis",
-        value = """{"host":"127.0.0.1","port":6379}""",
-        valueType = "json",
-        description = "Redis 配置",
-        enabled = true,
-        updatedBy = "zjarlin",
-      ),
-    )
+  fun devNamespaceFallsBackToCommonNamespace() = runTest {
+    val suffix = Random.nextInt(1_000_000, 9_999_999)
+    val common = ConfigCenter(TEST_BASE_URL)
+      .login(TEST_USERNAME, TEST_PASSWORD)
+      .checkoutNamespace("cmp-aio.common")
+    val dev = ConfigCenter(TEST_BASE_URL)
+      .login(TEST_USERNAME, TEST_PASSWORD)
+      .checkoutNamespace("cmp-aio.dev")
+    val key = "sdk.common.fallback.$suffix"
 
-    assertTrue(body.contains(""""value_type":"json""""))
-    assertTrue(body.contains(""""updated_by":"zjarlin""""))
-    assertFalse(body.contains("valueType"))
-    assertFalse(body.contains("updatedBy"))
-  }
+    common.set(key, "common-$suffix", "commonTest common fallback")
 
-  @Test
-  fun checkoutNamespaceInfersCommonNamespace() {
-    assertEquals("cmp-aio.common", ConfigCenter.inferCommonNamespace("cmp-aio.dev"))
-    assertEquals("cmp-aio.common", ConfigCenter.inferCommonNamespace("cmp-aio.prod"))
-    assertEquals(null, ConfigCenter.inferCommonNamespace("cmp-aio.common"))
+    assertEquals("cmp-aio.common", dev.commonNamespace)
+    assertEquals("common-$suffix", dev.get<String>(key))
+    assertEquals("cmp-aio.common", assertNotNull(dev.getItem(key)).namespace)
+
+    dev.set(key, "dev-$suffix", "commonTest dev override")
+
+    assertEquals("dev-$suffix", dev.get<String>(key))
+    assertEquals("cmp-aio.dev", assertNotNull(dev.getItem(key)).namespace)
+    assertEquals("common-$suffix", common.get<String>(key))
   }
 }
+
+private const val TEST_BASE_URL = "http://config.addzero.site"
+private const val TEST_USERNAME = "zjarlin"
+private const val TEST_PASSWORD = "zhou9955"
