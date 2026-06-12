@@ -1,15 +1,17 @@
 package site.addzero.core.network.json
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 private val defaultJsonSerializersModule = SerializersModule {
     contextual(Any::class, AnySerializer)
-    contextual(Instant::class, Instant.serializer())
+    contextual(kotlin.time.Instant::class, kotlin.time.Instant.serializer())
     contextual(LocalDate::class, LocalDate.serializer())
     contextual(LocalDateTime::class, LocalDateTime.serializer())
     contextual(LocalTime::class, LocalTime.serializer())
