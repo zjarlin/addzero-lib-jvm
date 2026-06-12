@@ -10,7 +10,7 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-12T16:25:06.413809
+// Generated at: 2026-06-12T16:27:18.792529
 // Loaded: 3, Excluded: 0, Total: 3
 include(":example:demo")
 include(":lib:tool-kmp:tool-json")
