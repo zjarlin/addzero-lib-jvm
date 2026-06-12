@@ -2,12 +2,16 @@ package site.addzero.configcenter
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
@@ -175,6 +179,18 @@ class ConfigCenter(
     return set(key, value, Boolean.serializer(), description)
   }
 
+  suspend fun delete(key: String): Boolean {
+    val response = post<DeleteResult, DeleteRequest>(
+      path = "/api/v1/config/delete",
+      body = DeleteRequest(
+        namespace = requireNamespace(),
+        key = requireKey(key),
+      ),
+      token = requireToken(),
+    )
+    return response.deleted > 0
+  }
+
   private suspend inline fun <reified Response, reified Request : Any> post(
     path: String,
     body: Request,
@@ -239,8 +255,17 @@ class ConfigCenter(
   companion object {
     fun defaultHttpClient(): HttpClient {
       return HttpClient {
+        install(HttpTimeout) {
+          requestTimeoutMillis = 30_000
+          connectTimeoutMillis = 10_000
+          socketTimeoutMillis = 30_000
+        }
         install(ContentNegotiation) {
           json(sharedJson)
+        }
+        defaultRequest {
+          header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+          header(HttpHeaders.UserAgent, DEFAULT_USER_AGENT)
         }
       }
     }
@@ -256,6 +281,9 @@ class ConfigCenter(
       if (separator <= 0) return null
       return normalized.substring(0, separator) + ".common"
     }
+
+    private const val DEFAULT_USER_AGENT =
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 ConfigCenterKmpClient"
   }
 }
 
@@ -296,4 +324,15 @@ internal data class UpsertRequest(
   val enabled: Boolean,
   @SerialName("updated_by")
   val updatedBy: String,
+)
+
+@Serializable
+private data class DeleteRequest(
+  val namespace: String,
+  val key: String,
+)
+
+@Serializable
+private data class DeleteResult(
+  val deleted: Long,
 )
