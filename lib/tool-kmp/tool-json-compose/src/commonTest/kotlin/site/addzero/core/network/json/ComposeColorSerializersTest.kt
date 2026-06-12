@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -29,6 +32,7 @@ import kotlinx.serialization.encodeToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 class ComposeColorSerializersTest {
     @Test
     fun contextualColorUsesComposeJsonSerializersModule() {
@@ -151,6 +155,59 @@ class ComposeColorSerializersTest {
         assertEquals(source.style.textAlign, decoded.style.textAlign)
         assertEquals(source.style.lineHeight, decoded.style.lineHeight)
     }
+
+    @Test
+    fun contextualMaterialShapesUsesComposeJsonSerializersModule() {
+        val source = ContextualMaterialShapesPayload(
+            shapes = Shapes(
+                extraSmall = RoundedCornerShape(2.dp),
+                small = RoundedCornerShape(4.dp),
+                medium = RoundedCornerShape(8.dp),
+                large = RoundedCornerShape(12.dp),
+                extraLarge = RoundedCornerShape(16.dp),
+                largeIncreased = RoundedCornerShape(20.dp),
+                extraLargeIncreased = RoundedCornerShape(24.dp),
+                extraExtraLarge = RoundedCornerShape(28.dp),
+            ),
+        )
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualMaterialShapesPayload>(encoded)
+
+        assertEquals(source.shapes, decoded.shapes)
+    }
+
+    @Test
+    fun contextualMaterialTypographyUsesComposeJsonSerializersModule() {
+        val source = ContextualMaterialTypographyPayload(
+            typography = Typography(
+                titleMedium = TextStyle(
+                    color = Color(0xFF0F172A),
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 24.sp,
+                ),
+                bodySmall = TextStyle(
+                    color = Color(0xFF475569),
+                    fontSize = 12.sp,
+                    letterSpacing = 0.04.em,
+                ),
+                labelLargeEmphasized = TextStyle(
+                    color = Color(0xFF2563EB),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+            ),
+        )
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualMaterialTypographyPayload>(encoded)
+
+        assertEquals(source.typography.titleMedium.fontSize, decoded.typography.titleMedium.fontSize)
+        assertEquals(source.typography.titleMedium.fontWeight, decoded.typography.titleMedium.fontWeight)
+        assertEquals(source.typography.bodySmall.letterSpacing, decoded.typography.bodySmall.letterSpacing)
+        assertEquals(source.typography.labelLargeEmphasized.fontWeight, decoded.typography.labelLargeEmphasized.fontWeight)
+    }
 }
 
 @Serializable
@@ -201,6 +258,18 @@ private data class ContextualBorderStrokePayload(
 private data class ContextualTextStylePayload(
     @Contextual
     val style: TextStyle,
+)
+
+@Serializable
+private data class ContextualMaterialShapesPayload(
+    @Contextual
+    val shapes: Shapes,
+)
+
+@Serializable
+private data class ContextualMaterialTypographyPayload(
+    @Contextual
+    val typography: Typography,
 )
 
 private fun assertColorSchemeEquals(expected: ColorScheme, actual: ColorScheme) {

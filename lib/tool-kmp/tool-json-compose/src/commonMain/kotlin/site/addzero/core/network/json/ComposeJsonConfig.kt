@@ -1,6 +1,8 @@
 package site.addzero.core.network.json
 
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
@@ -39,10 +41,16 @@ val composeScalarSerializersModule = SerializersModule {
     contextual(TextIndent::class, ComposeTextIndentSerializer)
 }
 
+val composeMaterialThemeSerializersModule = SerializersModule {
+    contextual(Shapes::class, MaterialShapesSerializer)
+    contextual(Typography::class, MaterialTypographySerializer)
+}
+
 val composeSerializersModule = SerializersModule {
     include(composeColorSerializersModule)
     include(composeShapeSerializersModule)
     include(composeScalarSerializersModule)
+    include(composeMaterialThemeSerializersModule)
 }
 
 fun Json.withComposeSerializers(): Json = Json(this) {
