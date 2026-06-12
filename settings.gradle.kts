@@ -10,8 +10,9 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-12T12:40:33.887605
-// Loaded: 48, Excluded: 0, Total: 48
+// Generated at: 2026-06-12T14:00:25.047350
+// Loaded: 49, Excluded: 0, Total: 49
+include(":example:demo")
 include(":example:demo:composeApp")
 include(":lib:compose:app-sidebar")
 include(":lib:compose:app-sidebar-cupertino-adapter")
