@@ -1,6 +1,8 @@
 package site.addzero.core.network.json
 
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
@@ -9,7 +11,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -63,6 +75,82 @@ class ComposeColorSerializersTest {
             assertEquals(shape, decoded.shape)
         }
     }
+
+    @Test
+    fun contextualDpUsesComposeJsonSerializersModule() {
+        val source = ContextualDpPayload(dp = 12.dp)
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualDpPayload>(encoded)
+
+        assertEquals(source.dp, decoded.dp)
+    }
+
+    @Test
+    fun contextualTextUnitUsesComposeJsonSerializersModule() {
+        val source = ContextualTextUnitPayload(fontSize = 14.sp, letterSpacing = 0.08.em)
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualTextUnitPayload>(encoded)
+
+        assertEquals(source.fontSize, decoded.fontSize)
+        assertEquals(source.letterSpacing, decoded.letterSpacing)
+    }
+
+    @Test
+    fun contextualPaddingValuesUsesComposeJsonSerializersModule() {
+        val source = ContextualPaddingValuesPayload(
+            padding = PaddingValues(start = 4.dp, top = 6.dp, end = 8.dp, bottom = 10.dp),
+        )
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualPaddingValuesPayload>(encoded)
+
+        assertEquals(4.dp, decoded.padding.calculateLeftPadding(LayoutDirection.Ltr))
+        assertEquals(8.dp, decoded.padding.calculateRightPadding(LayoutDirection.Ltr))
+        assertEquals(6.dp, decoded.padding.calculateTopPadding())
+        assertEquals(10.dp, decoded.padding.calculateBottomPadding())
+    }
+
+    @Test
+    fun contextualBorderStrokeUsesComposeJsonSerializersModule() {
+        val source = ContextualBorderStrokePayload(border = BorderStroke(1.dp, Color(0xFF334155)))
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualBorderStrokePayload>(encoded)
+
+        assertEquals(source.border, decoded.border)
+    }
+
+    @Test
+    fun contextualTextStyleUsesComposeJsonSerializersModule() {
+        val source = ContextualTextStylePayload(
+            style = TextStyle(
+                color = Color(0xFF111827),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontStyle = FontStyle.Italic,
+                letterSpacing = 0.02.em,
+                background = Color(0xFFE5E7EB),
+                textDecoration = TextDecoration.Underline,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp,
+            ),
+        )
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualTextStylePayload>(encoded)
+
+        assertEquals(source.style.color.toArgb(), decoded.style.color.toArgb())
+        assertEquals(source.style.fontSize, decoded.style.fontSize)
+        assertEquals(source.style.fontWeight, decoded.style.fontWeight)
+        assertEquals(source.style.fontStyle, decoded.style.fontStyle)
+        assertEquals(source.style.letterSpacing, decoded.style.letterSpacing)
+        assertEquals(source.style.background.toArgb(), decoded.style.background.toArgb())
+        assertEquals(source.style.textDecoration, decoded.style.textDecoration)
+        assertEquals(source.style.textAlign, decoded.style.textAlign)
+        assertEquals(source.style.lineHeight, decoded.style.lineHeight)
+    }
 }
 
 @Serializable
@@ -81,6 +169,38 @@ private data class ContextualColorSchemePayload(
 private data class ContextualShapePayload(
     @Contextual
     val shape: Shape,
+)
+
+@Serializable
+private data class ContextualDpPayload(
+    @Contextual
+    val dp: Dp,
+)
+
+@Serializable
+private data class ContextualTextUnitPayload(
+    @Contextual
+    val fontSize: TextUnit,
+    @Contextual
+    val letterSpacing: TextUnit,
+)
+
+@Serializable
+private data class ContextualPaddingValuesPayload(
+    @Contextual
+    val padding: PaddingValues,
+)
+
+@Serializable
+private data class ContextualBorderStrokePayload(
+    @Contextual
+    val border: BorderStroke,
+)
+
+@Serializable
+private data class ContextualTextStylePayload(
+    @Contextual
+    val style: TextStyle,
 )
 
 private fun assertColorSchemeEquals(expected: ColorScheme, actual: ColorScheme) {
