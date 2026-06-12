@@ -1,6 +1,7 @@
 package site.addzero.core.network.json
 
 import androidx.compose.material3.ColorScheme
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.Color
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -11,17 +12,28 @@ val composeColorSerializersModule = SerializersModule {
     contextual(ColorScheme::class, MaterialColorSchemeArgbIntSerializer)
 }
 
-fun Json.withComposeColorSerializers(): Json = Json(this) {
+val composeShapeSerializersModule = SerializersModule {
+    contextual(Shape::class, ComposeShapeSerializer)
+}
+
+val composeSerializersModule = SerializersModule {
+    include(composeColorSerializersModule)
+    include(composeShapeSerializersModule)
+}
+
+fun Json.withComposeSerializers(): Json = Json(this) {
     serializersModule = SerializersModule {
-        include(this@withComposeColorSerializers.serializersModule)
-        include(composeColorSerializersModule)
+        include(this@withComposeSerializers.serializersModule)
+        include(composeSerializersModule)
     }
 }
 
-val composeJson: Json = json.withComposeColorSerializers()
+fun Json.withComposeColorSerializers(): Json = withComposeSerializers()
 
-val prettyComposeJson: Json = prettyJson.withComposeColorSerializers()
+val composeJson: Json = json.withComposeSerializers()
 
-val strictComposeJson: Json = strictJson.withComposeColorSerializers()
+val prettyComposeJson: Json = prettyJson.withComposeSerializers()
 
-val omitNullComposeJson: Json = omitNullJson.withComposeColorSerializers()
+val strictComposeJson: Json = strictJson.withComposeSerializers()
+
+val omitNullComposeJson: Json = omitNullJson.withComposeSerializers()

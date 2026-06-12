@@ -1,9 +1,15 @@
 package site.addzero.core.network.json
 
+import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -37,6 +43,26 @@ class ComposeColorSerializersTest {
 
         assertColorSchemeEquals(source.scheme, decoded.scheme)
     }
+
+    @Test
+    fun contextualShapeUsesComposeJsonSerializersModule() {
+        val shapes = listOf(
+            RectangleShape,
+            CircleShape,
+            RoundedCornerShape(12.dp),
+            RoundedCornerShape(topStart = 4.dp, topEnd = 8.dp, bottomEnd = 12.dp, bottomStart = 16.dp),
+            AbsoluteRoundedCornerShape(topLeft = 3.dp, topRight = 6.dp, bottomRight = 9.dp, bottomLeft = 12.dp),
+        )
+
+        shapes.forEach { shape ->
+            val source = ContextualShapePayload(shape = shape)
+
+            val encoded = composeJson.encodeToString(source)
+            val decoded = composeJson.decodeFromString<ContextualShapePayload>(encoded)
+
+            assertEquals(shape, decoded.shape)
+        }
+    }
 }
 
 @Serializable
@@ -49,6 +75,12 @@ private data class ContextualColorPayload(
 private data class ContextualColorSchemePayload(
     @Contextual
     val scheme: ColorScheme,
+)
+
+@Serializable
+private data class ContextualShapePayload(
+    @Contextual
+    val shape: Shape,
 )
 
 private fun assertColorSchemeEquals(expected: ColorScheme, actual: ColorScheme) {

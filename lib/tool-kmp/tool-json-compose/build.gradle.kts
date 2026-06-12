@@ -9,6 +9,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":lib:tool-kmp:tool-json"))
+            api(libs.findLibrary("org-jetbrains-compose-foundation-foundation").get())
             api(libs.findLibrary("org-jetbrains-compose-ui-ui").get())
             api(libs.findLibrary("org-jetbrains-compose-material3-material3").get())
         }
