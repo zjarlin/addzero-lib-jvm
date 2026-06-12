@@ -10,11 +10,9 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-12T16:27:18.792529
-// Loaded: 3, Excluded: 0, Total: 3
+// Generated at: 2026-06-12T16:30:22.173359
+// Loaded: 1, Excluded: 0, Total: 1
 include(":example:demo")
-include(":lib:tool-kmp:tool-json")
-include(":lib:tool-kmp:tool-json-compose")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 //include(":lib:tool-jvm:yudao:yudao-common") // excluded by Gradle Buddy
