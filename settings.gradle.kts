@@ -10,9 +10,9 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-12T16:30:22.173359
+// Generated at: 2026-06-13T15:16:41.825985
 // Loaded: 1, Excluded: 0, Total: 1
-include(":example:demo")
+include(":lib:api:api-openai")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 include(":lib:api:api-openai")
