@@ -15,6 +15,8 @@ plugins {
 include(":example:demo")
 // <<< Gradle Module Sleep: End Of Block <<<
 
+include(":lib:api:api-openai")
+
 //include(":lib:tool-jvm:yudao:yudao-common") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-security") // excluded by Gradle Buddy
