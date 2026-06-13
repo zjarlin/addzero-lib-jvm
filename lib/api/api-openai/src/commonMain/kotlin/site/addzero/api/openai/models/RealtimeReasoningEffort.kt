@@ -1,0 +1,9 @@
+// Generated from openai/openai-openapi openapi.yaml. Do not edit by hand.
+package site.addzero.api.openai.models
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Constrains effort on reasoning for reasoning-capable Realtime models such as `gpt-realtime-2`.
+ */
+typealias RealtimeReasoningEffort = String

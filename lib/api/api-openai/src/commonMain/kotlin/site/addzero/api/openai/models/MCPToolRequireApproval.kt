@@ -1,0 +1,14 @@
+// Generated from openai/openai-openapi openapi.yaml. Do not edit by hand.
+package site.addzero.api.openai.models
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Specify which of the MCP server's tools require approval. Can be `always`, `never`, or a filter
+ * object associated with tools that require approval.
+ */
+@Serializable
+data class MCPToolRequireApproval(
+    val always: site.addzero.api.openai.models.MCPToolFilter? = null,
+    val never: site.addzero.api.openai.models.MCPToolFilter? = null
+)

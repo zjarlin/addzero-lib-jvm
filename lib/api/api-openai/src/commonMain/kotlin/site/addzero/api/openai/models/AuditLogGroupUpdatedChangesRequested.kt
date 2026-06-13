@@ -1,0 +1,17 @@
+// Generated from openai/openai-openapi openapi.yaml. Do not edit by hand.
+package site.addzero.api.openai.models
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/**
+ * The payload used to update the group.
+ */
+@Serializable
+data class AuditLogGroupUpdatedChangesRequested(
+    /**
+     * The updated group name.
+     */
+    @SerialName("group_name")
+    val groupName: String? = null
+)

@@ -20,5 +20,18 @@ dependencies {
 The interfaces are intentionally implementation-free. REST paths are fixed in
 `OpenAiApiPaths` and used directly by the Ktorfit annotations on each method.
 
-Request and response schemas are represented with generic JSON or binary body
-aliases so application modules can own domain-specific validation and mapping.
+Request and response schemas are generated as Kotlin serialization DTOs under
+`site.addzero.kcloud.api.openai.models`. Application modules implement the
+interfaces against concrete request and response types such as
+`CreateChatCompletionRequest`, `CreateChatCompletionResponse`, `CreateResponse`,
+and `Response`.
+
+`JsonElement` remains only as a field-level or named typealias fallback when the
+OpenAPI schema does not expose a fixed serializable object shape.
+
+## Regeneration
+
+```bash
+python3 lib/api/api-openai/scripts/generate-openai-api.py
+./gradlew :lib:api:api-openai:compileKotlinJvm --rerun-tasks
+```
