@@ -5,7 +5,6 @@ plugins {
 val catalogLibs = versionCatalogs.named("libs")
 
 dependencies {
-
     api(projects.lib.toolJvm.yudao.yudaoCommon)
     compileOnly(projects.lib.toolJvm.yudao.yudaoSpringBootStarterSecurity)
     compileOnly(projects.lib.toolJvm.yudao.yudaoSpringBootStarterBizTenant)
@@ -16,5 +15,5 @@ dependencies {
     compileOnly(catalogLibs.findLibrary("yudao-spring-rabbit").get())
     compileOnly(catalogLibs.findLibrary("yudao-rocketmq-spring-boot-starter").get())
 
-    annotationProcessor(catalogLibs.findLibrary("org-springframework-boot-spring-boot-configuration-processor-v2").get())
+    annotationProcessor(catalogLibs.findLibrary("yudao-spring-boot-configuration-processor").get())
 }

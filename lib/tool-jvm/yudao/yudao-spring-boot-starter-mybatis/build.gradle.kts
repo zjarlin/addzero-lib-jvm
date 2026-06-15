@@ -5,9 +5,8 @@ plugins {
 val catalogLibs = versionCatalogs.named("libs")
 
 dependencies {
-
     api(projects.lib.toolJvm.yudao.yudaoCommon)
-    compileOnly(projects.lib.toolJvm.yudao.yudaoSpringBootStarterWeb)
+    compileOnly(projects.lib.toolJvm.yudao.yudaoSpringBootStarterSecurity)
 
     api(catalogLibs.findLibrary("yudao-mysql-connector-j").get())
     compileOnly(catalogLibs.findLibrary("yudao-ojdbc8").get())
@@ -20,8 +19,10 @@ dependencies {
     api(catalogLibs.findLibrary("yudao-druid-spring-boot-starter").get())
     api(catalogLibs.findLibrary("yudao-mybatis").get())
     api(catalogLibs.findLibrary("yudao-mybatis-plus-boot-starter").get())
-    api(catalogLibs.findLibrary("yudao-mybatis-plus-jsqlparser-4-9").get())
-    api(catalogLibs.findLibrary("yudao-dynamic-datasource-spring-boot-starter").get())
+    api(catalogLibs.findLibrary("yudao-mybatis-plus-jsqlparser").get())
+    api(catalogLibs.findLibrary("yudao-dynamic-datasource-spring-boot-starter").get()) {
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-undertow")
+    }
     api(catalogLibs.findLibrary("yudao-mybatis-plus-join-boot-starter").get())
     api(catalogLibs.findLibrary("yudao-easy-trans-spring-boot-starter").get()) {
         exclude(group = "org.springframework", module = "spring-context")
@@ -29,5 +30,5 @@ dependencies {
     }
     api(catalogLibs.findLibrary("yudao-easy-trans-mybatis-plus-extend").get())
 
-    annotationProcessor(catalogLibs.findLibrary("org-springframework-boot-spring-boot-configuration-processor-v2").get())
+    annotationProcessor(catalogLibs.findLibrary("yudao-spring-boot-configuration-processor").get())
 }
