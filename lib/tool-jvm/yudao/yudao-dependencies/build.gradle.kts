@@ -9,6 +9,7 @@ val yudaoProjects = listOf(
     projects.lib.toolJvm.yudao.yudaoSpringBootStarterBizDataPermission,
     projects.lib.toolJvm.yudao.yudaoSpringBootStarterBizIp,
     projects.lib.toolJvm.yudao.yudaoSpringBootStarterBizTenant,
+    projects.lib.toolJvm.yudao.yudaoSpringBootStarterCaptcha,
     projects.lib.toolJvm.yudao.yudaoSpringBootStarterEnv,
     projects.lib.toolJvm.yudao.yudaoSpringBootStarterExcel,
     projects.lib.toolJvm.yudao.yudaoSpringBootStarterJob,

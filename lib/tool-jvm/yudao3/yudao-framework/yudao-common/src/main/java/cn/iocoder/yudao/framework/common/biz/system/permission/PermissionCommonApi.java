@@ -11,7 +11,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = RpcConstants.SYSTEM_NAME, primary = false) // TODO 芋艿：fallbackFactory =
+@FeignClient(name = RpcConstants.SYSTEM_NAME, contextId = "permissionCommonApi", primary = false) // TODO 芋艿：fallbackFactory =
 @Tag(name = "RPC 服务 - 权限")
 public interface PermissionCommonApi {
 

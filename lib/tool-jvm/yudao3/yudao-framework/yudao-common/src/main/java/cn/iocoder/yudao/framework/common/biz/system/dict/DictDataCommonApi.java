@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = RpcConstants.SYSTEM_NAME, primary = false) // TODO 芋艿：fallbackFactory =
+@FeignClient(name = RpcConstants.SYSTEM_NAME, contextId = "dictDataCommonApi", primary = false) // TODO 芋艿：fallbackFactory =
 @Tag(name = "RPC 服务 - 字典数据")
 public interface DictDataCommonApi {
 

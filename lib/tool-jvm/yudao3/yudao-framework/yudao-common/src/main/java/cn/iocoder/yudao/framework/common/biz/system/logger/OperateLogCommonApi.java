@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = RpcConstants.SYSTEM_NAME, primary = false) // TODO 芋艿：fallbackFactory =
+@FeignClient(name = RpcConstants.SYSTEM_NAME, contextId = "operateLogCommonApi", primary = false) // TODO 芋艿：fallbackFactory =
 @Tag(name = "RPC 服务 - 操作日志")
 public interface OperateLogCommonApi {
 

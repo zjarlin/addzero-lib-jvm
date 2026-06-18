@@ -16,8 +16,11 @@ subprojects {
 //    val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.ddHHmm"))
   val versionStr = now.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
   version = versionStr
+  if (path == ":lib:tool-jvm:yudao:yudao-spring-boot-starter-captcha") {
+    version = "2026.06.17"
+  }
   if (path.startsWith(":lib:tool-jvm:yudao3:")) {
-    version = "2026.06.16"
+    version = "2026.06.17"
   }
 //    version = "2026.02.02"
   println("项目版本为$version")

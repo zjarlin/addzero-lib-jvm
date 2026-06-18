@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
-@FeignClient(name = RpcConstants.SYSTEM_NAME) // TODO 芋艿：fallbackFactory =
+@FeignClient(name = RpcConstants.SYSTEM_NAME, contextId = "oauth2TokenCommonApi") // TODO 芋艿：fallbackFactory =
 @Tag(name = "RPC 服务 - OAuth2.0 令牌")
 public interface OAuth2TokenCommonApi {
 
