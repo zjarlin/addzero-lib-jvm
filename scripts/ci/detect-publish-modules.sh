@@ -117,27 +117,39 @@ else
   done < <("${diff_command[@]}")
 fi
 
-included_projects="$(
-  ./gradlew -q projects |
-    sed -n "s/.*[Pp]roject '\\([^']*\\)'.*/\\1/p" |
-    grep '^:' |
-    sort -u
-)"
-
 declare -a publishable_paths=()
+
+if (( ${#candidate_paths[@]} == 0 )); then
+  write_output "modules" ""
+  write_output "tasks" ""
+  exit 0
+fi
 
 declare -a publish_tasks=()
 
 set +u
-for candidate_path in "${candidate_paths[@]}"; do
-  if ! grep -Fxq "$candidate_path" <<< "$included_projects"; then
-    continue
-  fi
-
-  if ./gradlew -q "${candidate_path}:tasks" --group publishing | grep -q "publishToMavenCentral - Publishes to Maven Central"; then
+if [[ -n "$(trim "$MANUAL_MODULES")" ]]; then
+  for candidate_path in "${candidate_paths[@]}"; do
     append_unique publishable_paths "$candidate_path"
-  fi
-done
+  done
+else
+  included_projects="$(
+    ./gradlew -q projects |
+      sed -n "s/.*[Pp]roject '\\([^']*\\)'.*/\\1/p" |
+      grep '^:' |
+      sort -u
+  )"
+
+  for candidate_path in "${candidate_paths[@]}"; do
+    if ! grep -Fxq "$candidate_path" <<< "$included_projects"; then
+      continue
+    fi
+
+    if ./gradlew -q "${candidate_path}:tasks" --group publishing | grep -q "publishToMavenCentral - Publishes to Maven Central"; then
+      append_unique publishable_paths "$candidate_path"
+    fi
+  done
+fi
 
 for publishable_path in "${publishable_paths[@]}"; do
   publish_tasks+=("${publishable_path}:publishToMavenCentral")
