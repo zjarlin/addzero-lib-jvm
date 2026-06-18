@@ -9,6 +9,7 @@ plugins {
   alias(libs.plugins.site.addzero.gradle.plugin.publish.buddy)
 //    alias(libs.plugins.addzeroPublishBuddyNew)
   alias(libs.plugins.kotlinJvm) apply false
+    kotlin("plugin.spring") version "2.4.0"
 }
 //afterEvaluate {
 subprojects {
@@ -32,3 +33,9 @@ subprojects {
   }
 }
 //}
+dependencies {
+    implementation(kotlin("stdlib"))
+}
+repositories {
+    mavenCentral()
+}

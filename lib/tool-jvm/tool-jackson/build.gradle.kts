@@ -1,5 +1,6 @@
 plugins {
     id("site.addzero.buildlogic.jvm.kotlin-convention")
+  kotlin("plugin.spring")
 }
 
 val libs = versionCatalogs.named("libs")
@@ -15,4 +16,8 @@ dependencies {
     testImplementation(libs.findLibrary("cn-hutool-hutool-extra").get())
     testImplementation(libs.findLibrary("org-springframework-spring-context").get())
     testImplementation(libs.findLibrary("org-springframework-boot-spring-boot-starter-web").get())
+  implementation(kotlin("stdlib"))
+}
+repositories {
+  mavenCentral()
 }
