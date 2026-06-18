@@ -19,6 +19,9 @@ subprojects {
   if (path == ":lib:tool-jvm:yudao:yudao-spring-boot-starter-captcha") {
     version = "2026.06.17"
   }
+  if (path == ":lib:tool-jvm:tool-jackson" || path == ":lib:tool-jvm:tool-jackson-extra") {
+    version = "2026.06.19"
+  }
   if (path.startsWith(":lib:tool-jvm:yudao3:")) {
     version = "2026.06.17"
   }

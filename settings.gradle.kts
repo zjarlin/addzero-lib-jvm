@@ -22,6 +22,8 @@ include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-captcha")
 //include(":lib:api:api-openai") // excluded by Gradle Buddy
 
 //include(":lib:tool-jvm:yudao:yudao-dependencies") // excluded by Gradle Buddy
+include(":lib:tool-jvm:tool-jackson")
+include(":lib:tool-jvm:tool-jackson-extra")
 include(":lib:tool-jvm:yudao:yudao-common")
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-env") // excluded by Gradle Buddy
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-captcha")
