@@ -33,9 +33,6 @@ subprojects {
   }
 }
 //}
-dependencies {
-    implementation(kotlin("stdlib"))
-}
 repositories {
     mavenCentral()
 }
