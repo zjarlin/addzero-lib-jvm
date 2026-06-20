@@ -37,7 +37,7 @@ val managedLibraries = listOf(
     "yudao-dynamic-datasource-spring-boot-starter",
     "yudao-mybatis-plus-join-boot-starter",
     "yudao-easy-trans-anno",
-    "yudao-easy-trans-spring-boot-starter",
+    "yudao-easy-trans-service",
     "yudao-easy-trans-mybatis-plus-extend",
     "yudao-redisson-spring-boot-starter",
     "yudao-rocketmq-spring-boot-starter",

@@ -7,6 +7,8 @@ val catalogLibs = versionCatalogs.named("libs")
 dependencies {
     api(projects.lib.toolJvm.yudao3.yudaoFramework.yudaoCommon)
     api(catalogLibs.findLibrary("yudao-spring-boot-starter-web").get())
+    api(catalogLibs.findLibrary("yudao-spring-boot-jackson2").get())
+    api(catalogLibs.findLibrary("yudao-spring-boot-restclient").get())
     api(catalogLibs.findLibrary("yudao-spring-boot-starter-validation").get())
     api(catalogLibs.findLibrary("yudao-knife4j-openapi3-spring-boot-starter").get())
     api(catalogLibs.findLibrary("yudao-springdoc-openapi-ui").get())

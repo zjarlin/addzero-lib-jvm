@@ -24,10 +24,7 @@ dependencies {
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-undertow")
     }
     api(catalogLibs.findLibrary("yudao-mybatis-plus-join-boot-starter").get())
-    api(catalogLibs.findLibrary("yudao-easy-trans-spring-boot-starter").get()) {
-        exclude(group = "org.springframework", module = "spring-context")
-        exclude(group = "org.springframework.cloud", module = "spring-cloud-commons")
-    }
+    api(catalogLibs.findLibrary("yudao-easy-trans-service").get())
     api(catalogLibs.findLibrary("yudao-easy-trans-mybatis-plus-extend").get())
 
     annotationProcessor(catalogLibs.findLibrary("yudao-spring-boot-configuration-processor").get())

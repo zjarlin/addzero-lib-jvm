@@ -10,17 +10,31 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-18T22:02:29.867643
-// Loaded: 2, Excluded: 0, Total: 2
-include(":lib:tool-jvm:tool-jackson")
-include(":lib:tool-jvm:tool-jackson-extra")
+// Generated at: 2026-06-20T09:53:02.583122
+// Loaded: 1, Excluded: 0, Total: 1
 // <<< Gradle Module Sleep: End Of Block <<<
+
+include(":lib:tool-jvm:tool-spo")
+include(":lib:tool-kmp:tool-enum")
+include(":lib:tool-jvm:tool-cmd")
+include(":lib:tool-jvm:tool-const")
+include(":lib:tool-jvm:tool-date")
+include(":lib:tool-jvm:tool-docker")
+include(":lib:tool-jvm:tool-io")
+include(":lib:tool-jvm:tool-ip")
+include(":lib:tool-jvm:tool-math")
+include(":lib:tool-jvm:tool-obj")
+include(":lib:tool-jvm:tool-os")
+include(":lib:tool-jvm:tool-printer")
+include(":lib:tool-jvm:tool-reflection")
+include(":lib:tool-jvm:tool-s3")
+include(":lib:tool-jvm:tool-scheduler")
 
 //include(":lib:api:api-openai") // excluded by Gradle Buddy
 
 //include(":lib:tool-jvm:yudao:yudao-dependencies") // excluded by Gradle Buddy
-include(":lib:tool-jvm:tool-jackson")
-include(":lib:tool-jvm:tool-jackson-extra")
+//include(":lib:tool-jvm:tool-jackson") // excluded by Gradle Buddy
+//include(":lib:tool-jvm:tool-jackson-extra") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-common") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-env") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-captcha") // excluded by Gradle Buddy

@@ -7,6 +7,8 @@ val catalogLibs = versionCatalogs.named("libs")
 dependencies {
     api(projects.lib.toolJvm.yudao3.yudaoFramework.yudaoCommon)
     api(catalogLibs.findLibrary("yudao-spring-boot-starter-aop").get())
+    api(catalogLibs.findLibrary("yudao-aspectjweaver").get())
+    api(catalogLibs.findLibrary("yudao-spring-boot-micrometer-metrics").get())
     compileOnly(catalogLibs.findLibrary("yudao-spring-web").get())
     compileOnly(catalogLibs.findLibrary("yudao-jakarta-servlet-api").get())
 

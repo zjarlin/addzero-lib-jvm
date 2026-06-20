@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
@@ -44,7 +45,11 @@ object ComposeDpSerializer : KSerializer<Dp> {
         )
 
     override fun serialize(encoder: Encoder, value: Dp) {
-        encoder.encodeFloat(value.value)
+        when {
+            value.value.isNaN() -> encoder.encodeString("unspecified")
+            value.value == Float.POSITIVE_INFINITY -> encoder.encodeString("infinity")
+            else -> encoder.encodeFloat(value.value)
+        }
     }
 
     override fun deserialize(decoder: Decoder): Dp {
@@ -233,6 +238,7 @@ data class ComposeTextIndentSurrogate(
 data class ComposeTextStyleSurrogate(
     @Serializable(with = ComposeColorArgbIntSerializer::class)
     val color: Color = Color.Unspecified,
+    val fontFamily: ComposeFontFamily? = null,
     @Serializable(with = ComposeTextUnitSerializer::class)
     val fontSize: TextUnit = TextUnit.Unspecified,
     val fontWeight: Int? = null,
@@ -253,6 +259,7 @@ data class ComposeTextStyleSurrogate(
     fun toTextStyle(): TextStyle =
         TextStyle(
             color = color,
+            fontFamily = fontFamily?.toFontFamily(),
             fontSize = fontSize,
             fontWeight = fontWeight?.let(::FontWeight),
             fontStyle = fontStyle?.toFontStyle(),
@@ -271,6 +278,7 @@ data class ComposeTextStyleSurrogate(
         fun from(value: TextStyle): ComposeTextStyleSurrogate =
             ComposeTextStyleSurrogate(
                 color = value.color,
+                fontFamily = value.fontFamily?.let(ComposeFontFamily::from),
                 fontSize = value.fontSize,
                 fontWeight = value.fontWeight?.weight,
                 fontStyle = value.fontStyle?.let(ComposeFontStyle::from),
@@ -284,6 +292,45 @@ data class ComposeTextStyleSurrogate(
                 lineHeight = value.lineHeight,
                 textIndent = value.textIndent?.let(ComposeTextIndentSurrogate::from),
             )
+    }
+}
+
+@Serializable
+enum class ComposeFontFamily {
+    @SerialName("default")
+    Default,
+
+    @SerialName("sansSerif")
+    SansSerif,
+
+    @SerialName("serif")
+    Serif,
+
+    @SerialName("monospace")
+    Monospace,
+
+    @SerialName("cursive")
+    Cursive;
+
+    fun toFontFamily(): FontFamily =
+        when (this) {
+            Default -> FontFamily.Default
+            SansSerif -> FontFamily.SansSerif
+            Serif -> FontFamily.Serif
+            Monospace -> FontFamily.Monospace
+            Cursive -> FontFamily.Cursive
+        }
+
+    companion object {
+        fun from(value: FontFamily): ComposeFontFamily =
+            when (value) {
+                FontFamily.Default -> Default
+                FontFamily.SansSerif -> SansSerif
+                FontFamily.Serif -> Serif
+                FontFamily.Monospace -> Monospace
+                FontFamily.Cursive -> Cursive
+                else -> throw SerializationException("不支持的 FontFamily：$value。请使用内置字体族或业务字体 token。")
+            }
     }
 }
 
@@ -348,8 +395,8 @@ enum class ComposeFontSynthesis {
 /**
  * Compose [TextStyle] 的配置序列化器。
  *
- * 只覆盖可稳定落库的文本样式子集；[androidx.compose.ui.text.font.FontFamily]、阴影、
- * draw style、平台样式和任意 brush 不在通用 JSON 边界内，应通过业务 token 或代码侧主题解析。
+ * 只覆盖可稳定落库的文本样式子集；自定义 [FontFamily]、阴影、draw style、平台样式和任意
+ * brush 不在通用 JSON 边界内，应通过业务 token 或代码侧主题解析。
  */
 object ComposeTextStyleSerializer : KSerializer<TextStyle> {
     override val descriptor: SerialDescriptor = ComposeTextStyleSurrogate.serializer().descriptor

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -131,6 +132,7 @@ class ComposeColorSerializersTest {
         val source = ContextualTextStylePayload(
             style = TextStyle(
                 color = Color(0xFF111827),
+                fontFamily = FontFamily.Default,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 fontStyle = FontStyle.Italic,
@@ -146,6 +148,7 @@ class ComposeColorSerializersTest {
         val decoded = composeJson.decodeFromString<ContextualTextStylePayload>(encoded)
 
         assertEquals(source.style.color.toArgb(), decoded.style.color.toArgb())
+        assertEquals(source.style.fontFamily, decoded.style.fontFamily)
         assertEquals(source.style.fontSize, decoded.style.fontSize)
         assertEquals(source.style.fontWeight, decoded.style.fontWeight)
         assertEquals(source.style.fontStyle, decoded.style.fontStyle)
@@ -154,6 +157,28 @@ class ComposeColorSerializersTest {
         assertEquals(source.style.textDecoration, decoded.style.textDecoration)
         assertEquals(source.style.textAlign, decoded.style.textAlign)
         assertEquals(source.style.lineHeight, decoded.style.lineHeight)
+    }
+
+    @Test
+    fun bodyLargeTextStyleKeepsDefaultFontFamily() {
+        val source = ContextualTextStylePayload(
+            style = TextStyle(
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.Normal,
+                fontSize = 16.sp,
+                lineHeight = 24.sp,
+                letterSpacing = 0.5.sp,
+            ),
+        )
+
+        val encoded = composeJson.encodeToString(source)
+        val decoded = composeJson.decodeFromString<ContextualTextStylePayload>(encoded)
+
+        assertEquals(FontFamily.Default, decoded.style.fontFamily)
+        assertEquals(FontWeight.Normal, decoded.style.fontWeight)
+        assertEquals(16.sp, decoded.style.fontSize)
+        assertEquals(24.sp, decoded.style.lineHeight)
+        assertEquals(0.5.sp, decoded.style.letterSpacing)
     }
 
     @Test

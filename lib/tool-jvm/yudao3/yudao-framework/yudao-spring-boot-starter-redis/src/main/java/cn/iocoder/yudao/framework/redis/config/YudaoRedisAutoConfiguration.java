@@ -1,8 +1,5 @@
 package cn.iocoder.yudao.framework.redis.config;
 
-import cn.hutool.core.util.ReflectUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.redisson.spring.starter.RedissonAutoConfigurationV2;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -35,11 +32,7 @@ public class YudaoRedisAutoConfiguration {
     }
 
     public static RedisSerializer<?> buildRedisSerializer() {
-        RedisSerializer<Object> json = RedisSerializer.json();
-        // 解决 LocalDateTime 的序列化
-        ObjectMapper objectMapper = (ObjectMapper) ReflectUtil.getFieldValue(json, "mapper");
-        objectMapper.registerModules(new JavaTimeModule());
-        return json;
+        return RedisSerializer.json();
     }
 
 }
