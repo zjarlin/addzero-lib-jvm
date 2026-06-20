@@ -10,7 +10,7 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-20T13:48:12.261847
+// Generated at: 2026-06-20T14:04:25.142358
 // Loaded: 35, Excluded: 0, Total: 35
 include(":lib:tool-jvm:yudao3:yudao-dependencies")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-common")
