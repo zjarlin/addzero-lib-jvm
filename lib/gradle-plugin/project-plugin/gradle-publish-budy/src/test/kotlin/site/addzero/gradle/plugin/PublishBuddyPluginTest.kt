@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 class PublishBuddyPluginTest {
@@ -98,6 +99,80 @@ class PublishBuddyPluginTest {
         assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
         assertTrue(result.output.contains(":dep:publishToMavenCentral SKIPPED"), result.output)
         assertTrue(!result.output.contains("Circular dependency"), result.output)
+    }
+
+    @Test
+    fun `artifact id can be composed from root to leaf project names`() {
+        val javaHome = System.getProperty("java.home")
+        val testProjectDir = Files.createTempDirectory("publish-buddy-artifact-name")
+        writeFile(
+            testProjectDir,
+            "settings.gradle.kts",
+            """
+                rootProject.name = "system"
+
+                dependencyResolutionManagement {
+                    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+                    repositories {
+                        mavenCentral()
+                        gradlePluginPortal()
+                    }
+                }
+
+                include(":auth")
+            """.trimIndent(),
+        )
+        writeFile(
+            testProjectDir,
+            "build.gradle.kts",
+            """
+                import site.addzero.gradle.PublishConventionExtension
+
+                plugins {
+                    id("site.addzero.gradle.plugin.publish-buddy")
+                }
+
+                allprojects {
+                    group = "site.addzero.test"
+                    version = "1.0.0"
+                }
+
+                configure<PublishConventionExtension> {
+                    useLeafName.set(false)
+                }
+            """.trimIndent(),
+        )
+        writeFile(testProjectDir, "gradle.properties", gradleProperties(javaHome))
+        writeFile(
+            testProjectDir,
+            "auth/build.gradle.kts",
+            """
+                plugins {
+                    `java-library`
+                    id("site.addzero.gradle.plugin.publish-buddy")
+                }
+            """.trimIndent(),
+        )
+
+        val result = GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withEnvironment(mapOf("JAVA_HOME" to javaHome))
+            .withArguments(
+                "--stacktrace",
+                "--console=plain",
+                ":auth:generatePomFileForMavenPublication",
+            )
+            .withPluginClasspath()
+            .forwardOutput()
+            .build()
+
+        val pomContent = testProjectDir
+            .resolve("auth/build/publications/maven/pom-default.xml")
+            .readText()
+
+        assertTrue(result.output.contains("BUILD SUCCESSFUL"), result.output)
+        assertTrue(pomContent.contains("<groupId>site.addzero.test</groupId>"), pomContent)
+        assertTrue(pomContent.contains("<artifactId>system-auth</artifactId>"), pomContent)
     }
 
     private fun assertInOrder(output: String, expectedSnippets: List<String>) {

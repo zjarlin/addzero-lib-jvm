@@ -19,7 +19,7 @@ public class WebProperties {
     @NotNull(message = "APP API 不能为空")
     private Api appApi = new Api("/app-api", "**.controller.app.**");
     @NotNull(message = "Admin API 不能为空")
-    private Api adminApi = new Api("/admin-api", "**.controller.admin.**");
+    private Api adminApi = new Api("/admin-api", "**.controller.admin.**,**.controller");
 
     @NotNull(message = "Admin UI 不能为空")
     private Ui adminUi;
@@ -43,7 +43,7 @@ public class WebProperties {
         private String prefix;
 
         /**
-         * Controller 所在包的 Ant 路径规则
+         * Controller 所在包的 Ant 路径规则，多个规则使用英文逗号分隔。
          *
          * 主要目的是，给该 Controller 设置指定的 {@link #prefix}
          */

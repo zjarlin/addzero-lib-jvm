@@ -53,6 +53,13 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
+val inheritedPublishExtension =
+    if (project == rootProject) {
+        null
+    } else {
+        rootProject.extensions.findByType(PublishConventionExtension::class.java)
+    }
+
 // 创建扩展并设置默认值
 val publishExtension = createExtension<PublishConventionExtension>().apply {
     projectDescription.set(defaultDescription)
@@ -60,6 +67,7 @@ val publishExtension = createExtension<PublishConventionExtension>().apply {
     gitUrl.set(Defaults.GIT_URL)
     emailDomain.set(Defaults.EMAIL_DOMAIN)
     enableAggregatePublishTasksByParentDir.set(false)
+    useLeafName.convention(inheritedPublishExtension?.useLeafName ?: providers.provider { true })
     licenseName.set(Defaults.LICENSE_NAME)
     licenseUrl.set(Defaults.LICENSE_URL)
     licenseDistribution.set(Defaults.LICENSE_URL)
@@ -73,6 +81,27 @@ fun String.toPascalFromPath() =
     split(":")
         .filter { it.isNotBlank() }
         .joinToString("") { segment -> segment.replaceFirstChar { c -> c.uppercase() } }
+
+fun Project.rootToLeafArtifactId(): String {
+    val rootName = rootProject.name
+        .takeIf { it.isNotBlank() }
+        ?: rootProject.projectDir.name
+    val projectPathSegments = path
+        .split(":")
+        .filter { it.isNotBlank() }
+
+    return (listOf(rootName) + projectPathSegments)
+        .filter { it.isNotBlank() }
+        .joinToString("-")
+}
+
+fun Project.publishArtifactId(useLeafName: Boolean): String {
+    if (useLeafName) {
+        return name
+    }
+
+    return rootToLeafArtifactId()
+}
 
 private fun Project.publishBuddyCacheKey(): String = "${rootProject.projectDir.absolutePath}|$path"
 
@@ -240,6 +269,7 @@ afterEvaluate {
     val gitBaseUrl = gitUrl.toGitBaseUrl()
     val authorName = ext.authorName.get()
     val authorEmail = "${authorName}@${ext.emailDomain.get()}"
+    val artifactId = project.publishArtifactId(ext.useLeafName.get())
 
     mavenPublishing {
         publishToMavenCentral(automaticRelease = true)
@@ -249,10 +279,10 @@ afterEvaluate {
             project.hasProperty("signing.secretKeyRingFile")) {
             signAllPublications()
         }
-        coordinates(project.group.toString(), project.name, project.version.toString())
+        coordinates(project.group.toString(), artifactId, project.version.toString())
 
         pom {
-            name.set(project.name)
+            name.set(artifactId)
             description.set(ext.projectDescription.get())
             inceptionYear.set(LocalDate.now().year.toString())
             url.set(gitBaseUrl)

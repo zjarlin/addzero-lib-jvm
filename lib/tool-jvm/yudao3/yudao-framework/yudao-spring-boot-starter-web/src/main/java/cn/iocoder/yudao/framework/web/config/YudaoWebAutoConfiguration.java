@@ -31,6 +31,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -70,15 +71,24 @@ public class YudaoWebAutoConfiguration {
             }
 
             /**
-             * 设置 API 前缀，仅仅匹配 controller 包下的
+             * 设置 API 前缀，仅仅匹配 controller 包下的。
              */
             private void putPathPrefix(Map<String, Predicate<Class<?>>> pathPrefixes, WebProperties.Api api, AntPathMatcher matcher) {
                 if (api == null || StrUtil.isEmpty(api.getPrefix())) {
                     return;
                 }
+                List<String> controllerPatterns = StrUtil.split(api.getController(), ',')
+                        .stream()
+                        .map(StrUtil::trim)
+                        .filter(StrUtil::isNotBlank)
+                        .toList();
+                if (controllerPatterns.isEmpty()) {
+                    return;
+                }
                 pathPrefixes.put(api.getPrefix(), // api 前缀
                         clazz -> clazz.isAnnotationPresent(RestController.class)
-                                && matcher.match(api.getController(), clazz.getPackage().getName()));
+                                && clazz.getPackage() != null
+                                && controllerPatterns.stream().anyMatch(pattern -> matcher.match(pattern, clazz.getPackage().getName())));
             }
 
         };

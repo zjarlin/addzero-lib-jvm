@@ -10,6 +10,8 @@ interface PublishConventionExtension {
     val gitUrl: Property<String>
     val emailDomain: Property<String>
     val enableAggregatePublishTasksByParentDir: Property<Boolean>
+    // 是否只使用当前项目叶子名作为 artifactId
+    val useLeafName: Property<Boolean>
 
     // License 配置
     val licenseName: Property<String>
@@ -19,7 +21,6 @@ interface PublishConventionExtension {
 
 //    var predicateSubProject: Property<PjPredicate>
 }
-
 
 
 
