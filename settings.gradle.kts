@@ -10,8 +10,8 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-22T09:52:02.478596
-// Loaded: 19, Excluded: 0, Total: 19
+// Generated at: 2026-06-22T11:49:40.784959
+// Loaded: 21, Excluded: 0, Total: 21
 include(":lib:apt:dict-trans:apt-dict-trans-processor")
 include(":lib:compose:compose-native-component-autocomplet")
 include(":lib:gradle-plugin:auto-jvmname")
@@ -21,6 +21,7 @@ include(":lib:tool-jvm:database:mybatis-auto-wrapper-core")
 include(":lib:tool-jvm:network-call:browser:tool-api-browser-automation")
 include(":lib:tool-jvm:network-call:browser:ws-automation")
 include(":lib:tool-jvm:network-call:tool-api-email")
+include(":lib:tool-jvm:tool-bean")
 include(":lib:tool-jvm:tool-spctx")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-common")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-data-permission")
@@ -31,6 +32,7 @@ include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-web")
 include(":lib:tool-jvm:yudao:yudao-common")
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
 include(":lib:tool-starter:controller-autoconfigure")
+include(":lib:tool-starter:dict-trans-spring-boot-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
 //include(":lib:api:api-openai") // excluded by Gradle Buddy

@@ -1,6 +1,7 @@
 package site.addzero.aop.dicttrans.util
 
 import site.addzero.aop.dicttrans.inter.TransApi
+import site.addzero.aop.dicttrans.util_internal.DictReflectUtil
 import site.addzero.aop.dicttrans.util_internal.TransInternalUtil
 import site.addzero.util.ImprovedReflectUtil
 
@@ -59,13 +60,13 @@ fun <T> code2name(res: MutableList<T>): MutableList<T> {
             val translatedValues = split.joinToString(",") { value ->
               valueLabelMap[value] ?: value
             }
-            ImprovedReflectUtil.setFieldValue(
+            DictReflectUtil.setFieldValue(
               rootObject, fieldName, translatedValues
             )
           } else {
             val one = dictModels.firstOrNull { it.value == id }
             one?.let {
-              ImprovedReflectUtil.setFieldValue(rootObject, fieldName, it.label)
+              DictReflectUtil.setFieldValue(rootObject, fieldName, it.label)
             }
           }
         }
@@ -107,7 +108,7 @@ fun <T> code2name(res: MutableList<T>): MutableList<T> {
             val translatedValues = splitValues.joinToString(",") { value ->
               valueTextMap[value] ?: value
             }
-            ImprovedReflectUtil.setFieldValue(rootObject, attributeName, translatedValues)
+            DictReflectUtil.setFieldValue(rootObject, attributeName, translatedValues)
           } else {
             // 处理单个值
             jsonObjects.firstOrNull { it[codeColumn].toString() == stringValue }?.let { matchedItem ->
@@ -116,7 +117,7 @@ fun <T> code2name(res: MutableList<T>): MutableList<T> {
               } else {
                 attributeName
               }
-              ImprovedReflectUtil.setFieldValue(
+              DictReflectUtil.setFieldValue(
                 rootObject, fieldToSet, matchedItem[nameColumn].toString()
               )
             }
@@ -209,7 +210,7 @@ fun <T> name2code(res: MutableList<T>): MutableList<T> {
               collect1[x] ?: x
             }
 
-            ImprovedReflectUtil.setFieldValue(rootObject, attributeName, collect2)
+            DictReflectUtil.setFieldValue(rootObject, attributeName, collect2)
           } else {
             val one = jsonObjects.find { d ->
               val text = d[nameColumn].toString()
@@ -217,7 +218,7 @@ fun <T> name2code(res: MutableList<T>): MutableList<T> {
             }
 
             if (one != null) {
-              ImprovedReflectUtil.setFieldValue(rootObject, attributeName, one[codeColumn])
+              DictReflectUtil.setFieldValue(rootObject, attributeName, one[codeColumn])
             }
           }
         }

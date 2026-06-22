@@ -210,11 +210,11 @@ internal object TransInternalUtil {
                         dictModels.firstOrNull { it.value == value }?.label ?: ""
                     }.filter { it.isNotBlank() }
                         .joinToString(",")
-                    ImprovedReflectUtil.setFieldValue(rootObject, info.translatedAttributeNames, translated)
+                    DictReflectUtil.setFieldValue(rootObject, info.translatedAttributeNames, translated)
                 } else {
                     val match = dictModels.firstOrNull { it.value == rawValue } ?: return@forEach
                     info.translatedValue = match.label
-                    ImprovedReflectUtil.setFieldValue(rootObject, info.translatedAttributeNames, match.label)
+                    DictReflectUtil.setFieldValue(rootObject, info.translatedAttributeNames, match.label)
                 }
             }
         }
@@ -322,7 +322,7 @@ internal object TransInternalUtil {
 
                     //                            needSetInfo.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + needSetInfo.getTranslatedAttributeNames());
                     if (Objects.nonNull(rootObject)) {
-                        ImprovedReflectUtil.setFieldValue(rootObject, translatedName, collect1)
+                        DictReflectUtil.setFieldValue(rootObject, translatedName, collect1)
                     }
                     //                            return;
                 }
@@ -334,7 +334,7 @@ internal object TransInternalUtil {
                 val nameValue = one[nameColumn1].toString()
                 needSetInfo.translatedValue = nameValue
                 //                        needSetInfo.setRootObjectHashBsm(rootObject.getClass().getSimpleName() + needSetInfo.getTranslatedAttributeNames());
-                ImprovedReflectUtil.setFieldValue(rootObject, translatedName, nameValue)
+                DictReflectUtil.setFieldValue(rootObject, translatedName, nameValue)
             }
         }
     }

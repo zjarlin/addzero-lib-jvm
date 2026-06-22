@@ -19,7 +19,7 @@ class SpringUtil : ApplicationContextAware {
         /**
          * 获取Bean
          */
-        fun <T> getBean(clazz: Class<T>): T {
+        fun <T : Any> getBean(clazz: Class<T>): T {
             return applicationContext?.getBean(clazz) 
                 ?: throw IllegalStateException("ApplicationContext not initialized")
         }
@@ -35,7 +35,7 @@ class SpringUtil : ApplicationContextAware {
         /**
          * 根据名称和类型获取Bean
          */
-        fun <T> getBean(name: String, clazz: Class<T>): T {
+        fun <T : Any> getBean(name: String, clazz: Class<T>): T {
             return applicationContext?.getBean(name, clazz) 
                 ?: throw IllegalStateException("ApplicationContext not initialized")
         }
