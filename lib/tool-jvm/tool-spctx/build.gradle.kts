@@ -1,9 +1,8 @@
 plugins {
-
 //    id("site.addzero.buildlogic.spring.spring-lib-convention")
     id("site.addzero.buildlogic.jvm.kotlin-convention")
     id("site.addzero.buildlogic.jvm.jvm-ksp-plugin")
-    id("site.addzero.ksp.gen-reified")
+//    id("site.addzero.ksp.gen-reified")
 //    id("site.addzero.kcp.reified") version "2026.01.01"
 
 //    id("site.addzero.buildlogic.auto-jvmname")

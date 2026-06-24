@@ -9,6 +9,7 @@ val libs = versionCatalogs.named("libs")
 
 kotlin{
     dependencies {
-        implementation(libs.findLibrary("site-addzero-gen-reified-core").get())
+        implementation(project(":lib:ksp:metadata:gen-reified:gen-reified-core"))
+        implementation(libs.findLibrary("com-google-devtools-ksp-symbol-processing-api").get())
     }
 }

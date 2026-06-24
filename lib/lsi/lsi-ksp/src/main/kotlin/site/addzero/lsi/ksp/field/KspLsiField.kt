@@ -80,10 +80,10 @@ class KspLsiField(
         // 检查常见的数据库列名注解
         annotations.firstNotNullOfOrNull { annotation ->
             when (annotation.qualifiedName) {
-                "org.babyfish.jimmer.sql.Column" -> annotation.getAttribute("name") as? String
-                "com.baomidou.mybatisplus.annotation.TableField" -> annotation.getAttribute("value") as? String
-                "javax.persistence.Column" -> annotation.getAttribute("name") as? String
-                "jakarta.persistence.Column" -> annotation.getAttribute("name") as? String
+                "org.babyfish.jimmer.sql.Column" -> (annotation.getAttribute("name") as? String)?.takeIf { it.isNotBlank() }
+                "com.baomidou.mybatisplus.annotation.TableField" -> (annotation.getAttribute("value") as? String)?.takeIf { it.isNotBlank() }
+                "javax.persistence.Column" -> (annotation.getAttribute("name") as? String)?.takeIf { it.isNotBlank() }
+                "jakarta.persistence.Column" -> (annotation.getAttribute("name") as? String)?.takeIf { it.isNotBlank() }
                 else -> null
             }
         } ?: name?.toUnderlineLowerCase() // 兜底策略：将字段名转换为下划线命名格式

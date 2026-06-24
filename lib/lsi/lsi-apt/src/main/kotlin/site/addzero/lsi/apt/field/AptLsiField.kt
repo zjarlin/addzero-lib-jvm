@@ -22,7 +22,7 @@ class AptLsiField(
   }
 
   override val type: LsiType? by lazy {
-    val aptLsiType = _root_ide_package_.site.addzero.lsi.apt.type.AptLsiType(elements, field.asType())
+    val aptLsiType = site.addzero.lsi.apt.type.AptLsiType(elements, field.asType())
     aptLsiType
   }
 
@@ -74,7 +74,7 @@ class AptLsiField(
 
   override val declaringClass: LsiClass? by lazy {
     (field.enclosingElement as? TypeElement)?.let {
-      _root_ide_package_.site.addzero.lsi.apt.clazz.AptLsiClass(
+      site.addzero.lsi.apt.clazz.AptLsiClass(
         elements,
         it
       )
@@ -85,7 +85,7 @@ class AptLsiField(
     val typeMirror = field.asType()
     if (typeMirror is DeclaredType) {
       val element = typeMirror.asElement()
-      if (element is TypeElement) _root_ide_package_.site.addzero.lsi.apt.clazz.AptLsiClass(
+      if (element is TypeElement) site.addzero.lsi.apt.clazz.AptLsiClass(
         elements,
         element
       ) else null

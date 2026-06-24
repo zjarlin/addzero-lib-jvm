@@ -5,7 +5,7 @@ val libs = versionCatalogs.named("libs")
 
 dependencies {
   api(libs.findLibrary("site-addzero-lsi-core").get())
-//  api("site.addzero:lsi-ksp:2026.02.26")
+  implementation(project(":lib:lsi:lsi-ksp"))
   compileOnly(libs.findLibrary("com-squareup-kotlinpoet").get())
 //    compileOnly(libs.findLibrary("com-squareup-kotlinpoet-ksp").get())
 }

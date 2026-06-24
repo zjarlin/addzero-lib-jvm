@@ -18,6 +18,7 @@ class PublishedKspPluginAuditMatrixTest {
                 "site.addzero.ksp.gen-reified",
                 "site.addzero.ksp.ioc",
                 "site.addzero.ksp.jimmer-entity-external",
+                "site.addzero.ksp.jimmer-low-query",
                 "site.addzero.ksp.ksp-dsl-builder",
                 "site.addzero.ksp.method-semanticizer",
                 "site.addzero.ksp.modbus-rtu",

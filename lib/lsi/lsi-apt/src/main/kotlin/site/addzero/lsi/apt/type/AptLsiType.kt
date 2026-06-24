@@ -39,7 +39,7 @@ class AptLsiType(private val elements: Elements, private val typeMirror: TypeMir
     override val typeParameters: List<LsiType> by lazy {
         when (typeMirror) {
             is DeclaredType -> typeMirror.typeArguments.map {
-                _root_ide_package_.site.addzero.lsi.apt.type.AptLsiType(
+                site.addzero.lsi.apt.type.AptLsiType(
                     elements,
                     it
                 )
@@ -54,7 +54,7 @@ class AptLsiType(private val elements: Elements, private val typeMirror: TypeMir
 
     override val componentType: LsiType? by lazy {
         when (typeMirror) {
-            is ArrayType -> _root_ide_package_.site.addzero.lsi.apt.type.AptLsiType(
+            is ArrayType -> site.addzero.lsi.apt.type.AptLsiType(
                 elements,
                 typeMirror.componentType
             )
@@ -70,7 +70,7 @@ class AptLsiType(private val elements: Elements, private val typeMirror: TypeMir
         when (typeMirror) {
             is DeclaredType -> {
                 val element = typeMirror.asElement()
-                if (element is TypeElement) _root_ide_package_.site.addzero.lsi.apt.clazz.AptLsiClass(
+                if (element is TypeElement) site.addzero.lsi.apt.clazz.AptLsiClass(
                     elements,
                     element
                 ) else null

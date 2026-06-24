@@ -15,7 +15,6 @@ import site.addzero.lsi.clazz.guessTableName
 import site.addzero.lsi.field.LsiField
 
 object LsiAutoDdlSchemaAdapter {
-
     fun from(classes: List<LsiClass>): AutoDdlSchema {
         val entities = classes.filter { it.isPersistedEntity() }
         val tables = entities.map { entity ->
@@ -188,10 +187,14 @@ object LsiAutoDdlSchemaAdapter {
             primaryKey = isIdField(),
             autoIncrement = isAutoIncrement(),
             sequenceName = sequenceName(),
+            nativeTypeHint = nativeTypeHint(),
         )
     }
 
     private fun LsiField.toLogicalType(): AutoDdlLogicalType {
+        if (isJsonType()) {
+            return AutoDdlLogicalType.JSON
+        }
         val rawType = typeName?.substringAfterLast('.') ?: return AutoDdlLogicalType.UNKNOWN
         return when (rawType) {
             "String" -> if (isTextType()) AutoDdlLogicalType.TEXT else AutoDdlLogicalType.STRING
@@ -220,7 +223,7 @@ object LsiAutoDdlSchemaAdapter {
     private fun LsiField.shouldSkipField(): Boolean {
         return isStatic ||
             hasAnnotationSimple("Transient", "Formula", "ManyToManyView", "IdView") ||
-            (isCollectionType && !isOwningManyToMany())
+            (isCollectionType && !isOwningManyToMany() && !isSerializedScalar())
     }
 
     private fun LsiField.isOwningAssociation(): Boolean {
@@ -292,8 +295,25 @@ object LsiAutoDdlSchemaAdapter {
             return true
         }
         return hasAnnotationSimple("Lob") ||
+            annotationValue("Column", "sqlType")?.contains("TEXT", ignoreCase = true) == true ||
+            annotationValue("Column", "sqlType")?.contains("CLOB", ignoreCase = true) == true ||
             annotationValue("Column", "columnDefinition")?.contains("TEXT", ignoreCase = true) == true ||
             annotationValue("Column", "columnDefinition")?.contains("CLOB", ignoreCase = true) == true
+    }
+
+    private fun LsiField.isJsonType(): Boolean {
+        return isSerializedScalar() ||
+            annotationValue("Column", "sqlType")?.contains("JSON", ignoreCase = true) == true ||
+            annotationValue("Column", "columnDefinition")?.contains("JSON", ignoreCase = true) == true
+    }
+
+    private fun LsiField.isSerializedScalar(): Boolean {
+        return hasAnnotationSimple("Serialized")
+    }
+
+    private fun LsiField.nativeTypeHint(): String? {
+        return annotationValue("Column", "sqlType")?.takeIf { it.isNotBlank() }
+            ?: annotationValue("Column", "columnDefinition")?.takeIf { it.isNotBlank() }
     }
 
     private fun LsiField.isUniqueField(): Boolean {

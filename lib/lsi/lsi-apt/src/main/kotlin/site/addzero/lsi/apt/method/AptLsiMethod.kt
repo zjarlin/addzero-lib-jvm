@@ -26,7 +26,7 @@ class AptLsiMethod(
     }
 
     override val returnType: LsiType? by lazy {
-        _root_ide_package_.site.addzero.lsi.apt.type.AptLsiType(elements, method.returnType)
+        site.addzero.lsi.apt.type.AptLsiType(elements, method.returnType)
     }
 
     override val returnTypeName: String? by lazy {
@@ -53,12 +53,12 @@ class AptLsiMethod(
     }
 
     override val parameters: List<LsiParameter> by lazy {
-        method.parameters.map { _root_ide_package_.site.addzero.lsi.apt.method.AptLsiParameter(elements, it) }
+        method.parameters.map { site.addzero.lsi.apt.method.AptLsiParameter(elements, it) }
     }
 
     override val declaringClass: LsiClass? by lazy {
         (method.enclosingElement as? TypeElement)?.let {
-            _root_ide_package_.site.addzero.lsi.apt.clazz.AptLsiClass(
+            site.addzero.lsi.apt.clazz.AptLsiClass(
                 elements,
                 it
             )
@@ -73,7 +73,7 @@ class AptLsiParameter(private val elements: Elements, private val param: Variabl
     }
 
     override val type: LsiType? by lazy {
-        _root_ide_package_.site.addzero.lsi.apt.type.AptLsiType(elements, param.asType())
+        site.addzero.lsi.apt.type.AptLsiType(elements, param.asType())
     }
 
     override val typeName: String? by lazy {

@@ -1,97 +1,120 @@
-package site.addzero.jlstarter.common.util
+package site.addzero.common.util
 
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.net.SocketException
-import java.util.*
-
+import java.util.Locale
 
 object IPUtils {
 
-    private val iPAddress: String?
-        get() {
-            val os = System.getProperty("os.name").lowercase(Locale.getDefault())
-            return if (os.contains("nix") || os.contains("nux") || os.contains("mac")) {
-                unixMACAddress
-            } else if (os.contains("win")) {
-                windowsIPAddress
-            } else {
-                null
-            }
-        }
+    private const val LOCALHOST = "127.0.0.1"
 
-    private val unixMACAddress: String?
-        get() {
-            try {
-                val networkInterfaces = NetworkInterface.getNetworkInterfaces()
-                while (networkInterfaces.hasMoreElements()) {
-                    val networkInterface = networkInterfaces.nextElement()
-                    val mac = networkInterface.hardwareAddress
-                    if (mac != null) {
-                        val sb = StringBuilder()
-                        for (b in mac) {
-                            sb.append(String.format("%02X:", b))
-                        }
-                        if (sb.length > 0) {
-                            sb.deleteCharAt(sb.length - 1)
-                        }
-                        return sb.toString()
-                    }
-                }
-            } catch (e: SocketException) {
-                e.printStackTrace()
-            }
-            return null
-        }
+    private val virtualInterfacePrefixes = listOf(
+        "lo",
+        "utun",
+        "awdl",
+        "llw",
+        "bridge",
+        "docker",
+        "veth",
+        "vmnet",
+        "br-",
+        "tap",
+        "tun",
+        "gif",
+        "stf",
+    )
 
-    private val windowsIPAddress: String?
-        get() {
-            try {
-                val process = Runtime.getRuntime().exec("ipconfig")
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
-                var line: String
-                while ((reader.readLine().also { line = it }) != null) {
-                    if (line.contains("IPv4 Address")) {
-                        val index = line.indexOf(":")
-                        return line.substring(index + 1).trim { it <= ' ' }
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            return null
-        }
+    private val preferredInterfacePrefixes = listOf("en", "eth", "wlan", "wl")
+
+    @JvmStatic
     val localIp: String
-        get() {
-            var inetAddress: InetAddress? = null
-            var isFind = false // 返回标识
-            var networkInterfaceLists: Enumeration<NetworkInterface>? = null
-            try {
-                // 获取网络接口
-                networkInterfaceLists = NetworkInterface.getNetworkInterfaces() as Enumeration<NetworkInterface>
-            } catch (e: SocketException) {
-                e.printStackTrace()
-            }
-            while (networkInterfaceLists!!.hasMoreElements()) {
-                val networkInterface = networkInterfaceLists.nextElement() as NetworkInterface
-                val ips = networkInterface.inetAddresses
-                // 遍历所有ip，获取本地地址中不是回环地址的ipv4地址
-                while (ips.hasMoreElements()) {
-                    inetAddress = ips.nextElement() as InetAddress
-                    if (inetAddress is Inet4Address && inetAddress.isSiteLocalAddress() && !inetAddress.isLoopbackAddress()) {
-                        isFind = true
-                        break
-                    }
-                }
-                if (isFind) {
-                    break
-                }
-            }
-            return if (inetAddress == null) "" else inetAddress.hostAddress
+        get() = localIpOrNull() ?: LOCALHOST
+
+    @JvmStatic
+    fun localIpOrNull(): String? {
+        val networkInterfaces = networkInterfacesOrNull() ?: return null
+        return networkInterfaces.asSequence()
+            .filter { it.isUsableNetworkInterface() }
+            .flatMap { it.localIpv4Candidates() }
+            .maxByOrNull(LocalIpv4Candidate::score)
+            ?.address
+    }
+
+    private fun networkInterfacesOrNull(): java.util.Enumeration<NetworkInterface>? {
+        return try {
+            NetworkInterface.getNetworkInterfaces()
+        } catch (_: SocketException) {
+            null
         }
+    }
+
+    private fun NetworkInterface.isUsableNetworkInterface(): Boolean {
+        return try {
+            if (!isUp || isLoopback || isPointToPoint) {
+                return false
+            }
+            isRealNetworkInterfaceName(name)
+        } catch (_: SocketException) {
+            false
+        }
+    }
+
+    private fun NetworkInterface.localIpv4Candidates(): Sequence<LocalIpv4Candidate> {
+        return inetAddresses.asSequence()
+            .filterIsInstance<Inet4Address>()
+            .filter(::isUsableLocalIpv4)
+            .map { inetAddress ->
+                LocalIpv4Candidate(
+                    address = inetAddress.hostAddress,
+                    score = calculateIpv4Score(name, inetAddress),
+                )
+            }
+    }
+
+    internal fun isRealNetworkInterfaceName(interfaceName: String?): Boolean {
+        val normalizedInterfaceName = interfaceName.orEmpty().lowercase(Locale.ROOT)
+        return virtualInterfacePrefixes.none(normalizedInterfaceName::startsWith)
+    }
+
+    internal fun isUsableLocalIpv4(inetAddress: InetAddress): Boolean {
+        if (inetAddress !is Inet4Address) {
+            return false
+        }
+        if (inetAddress.isAnyLocalAddress || inetAddress.isLoopbackAddress
+            || inetAddress.isLinkLocalAddress || inetAddress.isMulticastAddress
+        ) {
+            return false
+        }
+        return !isBenchmarkIpv4(inetAddress.address)
+    }
+
+    internal fun calculateIpv4Score(interfaceName: String?, inet4Address: Inet4Address): Int {
+        var score = 0
+        if (inet4Address.isSiteLocalAddress) {
+            score += 100
+        }
+        if (isPreferredInterfaceName(interfaceName)) {
+            score += 10
+        }
+        return score
+    }
+
+    private fun isPreferredInterfaceName(interfaceName: String?): Boolean {
+        val normalizedInterfaceName = interfaceName.orEmpty().lowercase(Locale.ROOT)
+        return preferredInterfacePrefixes.any(normalizedInterfaceName::startsWith)
+    }
+
+    private fun isBenchmarkIpv4(addressBytes: ByteArray): Boolean {
+        val first = addressBytes[0].toInt() and 0xFF
+        val second = addressBytes[1].toInt() and 0xFF
+        return first == 198 && (second == 18 || second == 19)
+    }
+
+    private data class LocalIpv4Candidate(
+        val address: String,
+        val score: Int,
+    )
 
 }

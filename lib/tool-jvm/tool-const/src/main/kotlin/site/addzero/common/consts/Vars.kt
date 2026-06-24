@@ -1,6 +1,6 @@
 package site.addzero.common.consts
 
-import site.addzero.jlstarter.common.util.IPUtils.localIp
+import site.addzero.common.util.IPUtils.localIp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

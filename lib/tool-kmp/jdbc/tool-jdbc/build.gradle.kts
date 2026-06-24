@@ -4,6 +4,6 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 dependencies {
-    api(libs.findLibrary("site-addzero-tool-jdbc-model").get())
-    implementation(libs.findLibrary("site-addzero-tool-sql-executor").get())
+    api(project(":lib:tool-kmp:jdbc:tool-jdbc-model"))
+    implementation(project(":lib:tool-jvm:database:tool-sql-executor"))
 }

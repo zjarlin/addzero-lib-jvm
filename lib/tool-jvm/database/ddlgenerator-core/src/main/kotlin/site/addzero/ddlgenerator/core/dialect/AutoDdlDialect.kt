@@ -107,9 +107,13 @@ abstract class AbstractSqlDialect(
     }
 
     protected open fun renderCreateTable(table: AutoDdlTable): String {
+        val primaryKeyColumns = table.columns.filter { it.primaryKey }
         val body = buildList {
             addAll(table.columns.map { renderColumnDefinition(it) })
-            if (table.primaryKeyColumnNames.size > 1) {
+            if (
+                primaryKeyColumns.size > 1 ||
+                (primaryKeyColumns.size == 1 && !supportsInlinePrimaryKey(primaryKeyColumns.single()))
+            ) {
                 add("PRIMARY KEY (${table.primaryKeyColumnNames.joinToString(", ") { quoteIdentifier(it) }})")
             }
         }.joinToString(",\n")

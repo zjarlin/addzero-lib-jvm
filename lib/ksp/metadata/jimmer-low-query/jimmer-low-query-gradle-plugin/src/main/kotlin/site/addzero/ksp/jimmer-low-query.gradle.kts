@@ -1,0 +1,1 @@
+../../../../../../generated/main/kotlin/site/addzero/ksp/jimmer-low-query.gradle.kts

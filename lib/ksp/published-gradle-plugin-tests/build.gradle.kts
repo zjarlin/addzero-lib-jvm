@@ -18,6 +18,7 @@ dependencies {
     testImplementation(project(":lib:ksp:metadata:gen-reified:gen-reified-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:ioc:ioc-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:jimmer-entity-external-gradle-plugin"))
+    testImplementation(project(":lib:ksp:metadata:jimmer-low-query:jimmer-low-query-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:ksp-dsl-builder:ksp-dsl-builder-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:method-semanticizer:method-semanticizer-gradle-plugin"))
     testImplementation(project(":lib:ksp:metadata:multireceiver-gradle-plugin"))

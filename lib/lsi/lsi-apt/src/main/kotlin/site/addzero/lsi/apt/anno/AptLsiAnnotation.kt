@@ -35,6 +35,6 @@ class AptLsiAnnotation(private val annotationMirror: AnnotationMirror) : LsiAnno
 }
 
 fun AnnotationMirror.toLsiAnnotation(): LsiAnnotation =
-    _root_ide_package_.site.addzero.lsi.apt.anno.AptLsiAnnotation(this)
+    site.addzero.lsi.apt.anno.AptLsiAnnotation(this)
 
 fun List<AnnotationMirror>.toLsiAnnotations(): List<LsiAnnotation> = map { it.toLsiAnnotation() }

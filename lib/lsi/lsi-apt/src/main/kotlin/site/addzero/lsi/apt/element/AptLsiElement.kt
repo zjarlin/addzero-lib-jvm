@@ -6,7 +6,7 @@ import site.addzero.lsi.element.LsiElement
 import javax.lang.model.element.Element
 
 fun Element.toLsiElement(): LsiElement {
-    val aptLsiElement = _root_ide_package_.site.addzero.lsi.apt.element.AptLsiElement(this)
+    val aptLsiElement = site.addzero.lsi.apt.element.AptLsiElement(this)
     return aptLsiElement
 }
 

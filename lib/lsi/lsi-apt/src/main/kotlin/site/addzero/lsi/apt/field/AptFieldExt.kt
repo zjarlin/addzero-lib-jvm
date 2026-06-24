@@ -38,7 +38,7 @@ fun Collection<VariableElement>.toLsiFields(elements: Elements): List<LsiField> 
 }
 
 fun VariableElement.toLsiField(elements: Elements): LsiField {
-  val aptLsiField = _root_ide_package_.site.addzero.lsi.apt.field.AptLsiField(elements, this)
+  val aptLsiField = site.addzero.lsi.apt.field.AptLsiField(elements, this)
   return aptLsiField
 }
 

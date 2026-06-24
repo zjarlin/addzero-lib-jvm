@@ -70,6 +70,31 @@ class PublishedKspPluginSmokeTest {
         )
     }
 
+
+    @Test
+    fun `jvm options jimmer low query plugin injects annotations companion and serializes args`() {
+        val output = runBuild(
+            projectName = "jimmer-low-query-consumer",
+            buildScript = jvmPluginBuildScript(
+                pluginId = "site.addzero.ksp.jimmer-low-query",
+                serializedArgsKey = "site.addzero.kspconsumer.site.addzero.ksp.jimmer-low-query.serializedArgs",
+                extraBody = """
+                    configureDynamicExtension(
+                        "jimmerLowQuery",
+                        mapOf("generatedPackage" to "demo.generated.lowquery"),
+                    )
+                """.trimIndent(),
+            ),
+        )
+
+        assertContains(
+            output,
+            "CONF[ksp]=site.addzero:jimmer-low-query-processor",
+            "CONF[implementation]=site.addzero:jimmer-low-query-annotations",
+            "jimmerLowQuery.generatedPackage=demo.generated.lowquery",
+        )
+    }
+
     @Test
     fun `kmp umbrella plugin adds direct and spi subprocessors`() {
         val output = runBuild(

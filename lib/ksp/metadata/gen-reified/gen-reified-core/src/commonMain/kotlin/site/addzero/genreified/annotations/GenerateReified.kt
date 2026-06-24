@@ -1,4 +1,4 @@
-package site.addzero.genreified.annotations
+package site.addzero.kcp.annotations
 
 /**
  * 标记一个类或接口，为其生成 reified 类型参数的方法

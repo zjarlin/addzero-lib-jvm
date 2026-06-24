@@ -72,13 +72,6 @@ object RefUtil {
     }
 
 
-    /**
-     * 安全地获取对象的第一个泛型参数类型
-     *
-     * @return 泛型参数的Class对象，如果获取失败返回null
-     */
-    fun Any.getClassSafely(): Class<*>? = getGenericClass(this, 0)
-
 
     /**
      * 包含忽略秩序

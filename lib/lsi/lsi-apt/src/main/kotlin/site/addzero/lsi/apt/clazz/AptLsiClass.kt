@@ -45,7 +45,7 @@ class AptLsiClass(
         typeElement.enclosedElements
             .filterIsInstance<VariableElement>()
             .filter { it.kind == ElementKind.FIELD }
-            .map { _root_ide_package_.site.addzero.lsi.apt.field.AptLsiField(elements, it) }
+            .map { site.addzero.lsi.apt.field.AptLsiField(elements, it) }
     }
 
     override val annotations: List<LsiAnnotation> by lazy {
@@ -81,7 +81,7 @@ class AptLsiClass(
         val superclass = typeElement.superclass
         if (superclass is DeclaredType) {
             val element = superclass.asElement() as? TypeElement
-            element?.let { listOf(_root_ide_package_.site.addzero.lsi.apt.clazz.AptLsiClass(elements, it)) } ?: emptyList()
+            element?.let { listOf(site.addzero.lsi.apt.clazz.AptLsiClass(elements, it)) } ?: emptyList()
         } else {
             emptyList()
         }
@@ -90,7 +90,7 @@ class AptLsiClass(
     override val interfaces: List<LsiClass> by lazy {
         typeElement.interfaces.mapNotNull { interfaceType ->
             (interfaceType as? DeclaredType)?.asElement()?.let {
-                _root_ide_package_.site.addzero.lsi.apt.clazz.AptLsiClass(elements, it as TypeElement)
+                site.addzero.lsi.apt.clazz.AptLsiClass(elements, it as TypeElement)
             }
         }
     }
@@ -99,7 +99,7 @@ class AptLsiClass(
         typeElement.enclosedElements
             .filterIsInstance<ExecutableElement>()
             .filter { it.kind == ElementKind.METHOD }
-            .map { _root_ide_package_.site.addzero.lsi.apt.method.AptLsiMethod(elements, it) }
+            .map { site.addzero.lsi.apt.method.AptLsiMethod(elements, it) }
     }
 }
 

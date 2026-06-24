@@ -35,6 +35,15 @@ object PublishedKspPluginSpecs {
             ),
         ),
         PublishedKspPluginSpec(
+            pluginId = "site.addzero.ksp.jimmer-low-query",
+            processorArtifactId = "jimmer-low-query-processor",
+            resourcePath = "site/addzero/ksp/jimmer-low-query/gradle-plugin.properties",
+            extensionName = "jimmerLowQuery",
+            defaultValues = mapOf(
+                "generatedPackage" to "",
+            ),
+        ),
+        PublishedKspPluginSpec(
             pluginId = "site.addzero.ksp.jimmer-entity-external",
             processorArtifactId = "jimmer-entity-external-processor",
             resourcePath = "site/addzero/ksp/jimmer-entity-external/gradle-plugin.properties",
