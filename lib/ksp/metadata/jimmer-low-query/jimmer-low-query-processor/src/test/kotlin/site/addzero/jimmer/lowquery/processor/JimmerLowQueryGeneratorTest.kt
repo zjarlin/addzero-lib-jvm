@@ -29,6 +29,7 @@ class JimmerLowQueryGeneratorTest {
                     nullable = false,
                 ),
             ),
+            orders = emptyList(),
         )
 
         JimmerLowQueryGenerator(codeGenerator).generate(setOf(entity), generatedPackage = null)
@@ -43,10 +44,49 @@ class JimmerLowQueryGeneratorTest {
         assertContains(code, "@JvmName(\"createLowQueryForSystemConfigByEntity\")")
         assertContains(code, "public fun KSqlClient.createLowQuery(")
         assertContains(code, "entity: SystemConfig")
+        assertContains(code, "private fun KMutableRootQuery.ForEntity<SystemConfig>.applyLowQuery(")
         assertContains(code, "return createQuery(SystemConfig::class) {")
+        assertContains(code, "applyLowQuery(entity)")
         assertContains(code, "if (ImmutableObjects.isLoaded(entity, \"configKey\"))")
         assertContains(code, "where(table.configKey `eq?` entity.configKey)")
         assertContains(code, "select(table.fetchBy { allScalarFields() })")
+    }
+
+    @Test
+    fun `generator emits spring provider when spring component exists`() {
+        val codeGenerator = RecordingCodeGenerator()
+        val entity = LowQueryEntityMeta(
+            packageName = "demo.system",
+            simpleName = "SystemConfig",
+            qualifiedName = "demo.system.SystemConfig",
+            functionName = "query",
+            clientFunctionName = "createLowQuery",
+            visibility = LowQueryVisibility.PUBLIC,
+            clientVisibility = LowQueryVisibility.PUBLIC,
+            fetcher = LowQueryFetcher.ALL_SCALAR_FIELDS,
+            params = listOf(
+                LowQueryParamMeta(
+                    propertyName = "configKey",
+                    parameterName = "key",
+                    typeName = "String",
+                    operator = LowQueryOperator.EQ,
+                    nullable = false,
+                ),
+            ),
+            orders = emptyList(),
+        )
+
+        JimmerLowQueryGenerator(codeGenerator)
+            .generate(setOf(entity), generatedPackage = null, springComponentAvailable = true)
+
+        val code = codeGenerator.generated.values.single().toString(Charsets.UTF_8.name())
+        assertContains(code, "import org.springframework.stereotype.Component")
+        assertContains(code, "import site.addzero.jimmer.lowquery.runtime.JimmerLowQueryProvider")
+        assertContains(code, "@Component(\"demo.system.SystemConfig.SystemConfigJimmerLowQueryProvider\")")
+        assertContains(code, "public class SystemConfigJimmerLowQueryProvider : JimmerLowQueryProvider<SystemConfig>")
+        assertContains(code, "override val entityType: KClass<SystemConfig> = SystemConfig::class")
+        assertContains(code, "override val parameterNames: Map<String, String> = mapOf(\"configKey\" to \"key\")")
+        assertContains(code, "query.applyLowQuery(entity)")
     }
 
     @Test
@@ -70,6 +110,7 @@ class JimmerLowQueryGeneratorTest {
                     nullable = true,
                 ),
             ),
+            orders = emptyList(),
         )
 
         JimmerLowQueryGenerator(codeGenerator).generate(setOf(entity), generatedPackage = "demo.generated")
@@ -102,6 +143,7 @@ class JimmerLowQueryGeneratorTest {
                     nullable = false,
                 ),
             ),
+            orders = emptyList(),
         )
 
         JimmerLowQueryGenerator(codeGenerator).generate(setOf(entity), generatedPackage = null)
@@ -110,6 +152,51 @@ class JimmerLowQueryGeneratorTest {
         assertContains(code, "ids: Collection<Long>")
         assertContains(code, "where(table.id `valueIn?` ids)")
         assertContains(code, "return select(table)")
+    }
+
+    @Test
+    fun `generator emits order by expressions`() {
+        val codeGenerator = RecordingCodeGenerator()
+        val entity = LowQueryEntityMeta(
+            packageName = "demo.power",
+            simpleName = "PowerRuntimeStatus",
+            qualifiedName = "demo.power.PowerRuntimeStatus",
+            functionName = "query",
+            clientFunctionName = "createLowQuery",
+            visibility = LowQueryVisibility.PUBLIC,
+            clientVisibility = LowQueryVisibility.PUBLIC,
+            fetcher = LowQueryFetcher.TABLE,
+            params = listOf(
+                LowQueryParamMeta(
+                    propertyName = "code",
+                    parameterName = "code",
+                    typeName = "String?",
+                    operator = LowQueryOperator.EQ,
+                    nullable = true,
+                ),
+            ),
+            orders = listOf(
+                LowQueryOrderMeta(
+                    propertyName = "snapshotTime",
+                    direction = LowQueryOrderDirection.DESC,
+                    priority = 0,
+                ),
+                LowQueryOrderMeta(
+                    propertyName = "id",
+                    direction = LowQueryOrderDirection.DESC,
+                    priority = 1,
+                ),
+            ),
+        )
+
+        JimmerLowQueryGenerator(codeGenerator)
+            .generate(setOf(entity), generatedPackage = null, springComponentAvailable = true)
+
+        val code = codeGenerator.generated.values.single().toString(Charsets.UTF_8.name())
+        assertContains(code, "import demo.power.snapshotTime")
+        assertContains(code, "import demo.power.id")
+        assertContains(code, "orderBy(table.snapshotTime.desc(), table.id.desc())")
+        assertContains(code, "override val hasOrderBy: Boolean = true")
     }
 }
 

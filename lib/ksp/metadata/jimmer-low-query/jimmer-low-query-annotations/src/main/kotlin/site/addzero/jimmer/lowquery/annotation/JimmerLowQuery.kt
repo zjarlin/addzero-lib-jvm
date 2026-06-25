@@ -227,6 +227,30 @@ annotation class NotIn(
 )
 
 /**
+ * 字段升序排序，priority 越小越靠前。
+ */
+@Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
+annotation class OrderByAsc(
+    /**
+     * 排序优先级，数值越小越先排序。
+     */
+    val priority: Int = 0,
+)
+
+/**
+ * 字段降序排序，priority 越小越靠前。
+ */
+@Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
+annotation class OrderByDesc(
+    /**
+     * 排序优先级，数值越小越先排序。
+     */
+    val priority: Int = 0,
+)
+
+/**
  * 低代码查询 where 操作符。
  */
 enum class JimmerLowQueryOperator {

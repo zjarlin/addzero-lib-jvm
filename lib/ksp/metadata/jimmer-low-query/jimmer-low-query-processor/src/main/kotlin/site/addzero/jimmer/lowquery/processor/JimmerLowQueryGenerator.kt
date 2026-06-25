@@ -6,12 +6,16 @@ import com.google.devtools.ksp.processing.Dependencies
 internal class JimmerLowQueryGenerator(
     private val codeGenerator: CodeGenerator,
 ) {
-    fun generate(entities: Set<LowQueryEntityMeta>, generatedPackage: String?) {
+    fun generate(
+        entities: Set<LowQueryEntityMeta>,
+        generatedPackage: String?,
+        springComponentAvailable: Boolean = false,
+    ) {
         entities.groupBy { it.outputPackage(generatedPackage) }
             .forEach { (packageName, packageEntities) ->
                 val fileName = packageName.substringAfterLast('.').replaceFirstChar(Char::uppercase) + "JimmerLowQueries"
                 createFile(packageName, fileName).use { stream ->
-                    val code = buildFile(packageName, packageEntities.sortedBy { it.qualifiedName })
+                    val code = buildFile(packageName, packageEntities.sortedBy { it.qualifiedName }, springComponentAvailable)
                     stream.write(code.toByteArray())
                 }
             }
@@ -24,7 +28,11 @@ internal class JimmerLowQueryGenerator(
     private fun createFile(packageName: String, fileName: String) =
         codeGenerator.createNewFile(Dependencies.ALL_FILES, packageName, fileName, "kt")
 
-    private fun buildFile(packageName: String, entities: List<LowQueryEntityMeta>): String {
+    private fun buildFile(
+        packageName: String,
+        entities: List<LowQueryEntityMeta>,
+        springComponentAvailable: Boolean,
+    ): String {
         return buildString {
             appendLine("@file:Suppress(\"unused\")")
             appendLine()
@@ -33,6 +41,8 @@ internal class JimmerLowQueryGenerator(
             appendLine("import org.babyfish.jimmer.ImmutableObjects")
             appendLine("import org.babyfish.jimmer.sql.ast.LikeMode")
             appendLine("import org.babyfish.jimmer.sql.kt.KSqlClient")
+            appendLine("import org.babyfish.jimmer.sql.kt.ast.expression.asc")
+            appendLine("import org.babyfish.jimmer.sql.kt.ast.expression.desc")
             appendLine("import org.babyfish.jimmer.sql.kt.ast.expression.`eq?`")
             appendLine("import org.babyfish.jimmer.sql.kt.ast.expression.`ge?`")
             appendLine("import org.babyfish.jimmer.sql.kt.ast.expression.`gt?`")
@@ -46,9 +56,15 @@ internal class JimmerLowQueryGenerator(
             appendLine("import org.babyfish.jimmer.sql.kt.ast.query.KConfigurableRootQuery")
             appendLine("import org.babyfish.jimmer.sql.kt.ast.query.KMutableRootQuery")
             appendLine("import org.babyfish.jimmer.sql.kt.ast.table.KNonNullTable")
+            if (springComponentAvailable) {
+                appendLine("import org.springframework.stereotype.Component")
+                appendLine("import site.addzero.jimmer.lowquery.runtime.JimmerLowQueryProvider")
+                appendLine("import kotlin.reflect.KClass")
+            }
             entities.flatMap { entity ->
                 listOf(entity.qualifiedName, "${entity.packageName}.fetchBy") +
-                    entity.params.map { param -> "${entity.packageName}.${param.propertyName.escapeIdentifier()}" }
+                    entity.params.map { param -> "${entity.packageName}.${param.propertyName.escapeIdentifier()}" } +
+                    entity.orders.map { order -> "${entity.packageName}.${order.propertyName.escapeIdentifier()}" }
             }
                 .distinct()
                 .sorted()
@@ -58,7 +74,15 @@ internal class JimmerLowQueryGenerator(
                 append(entity.buildFunction())
                 appendLine()
                 appendLine()
+                append(entity.buildApplyFunction())
+                appendLine()
+                appendLine()
                 append(entity.buildClientFunction())
+                if (springComponentAvailable) {
+                    appendLine()
+                    appendLine()
+                    append(entity.buildSpringProvider())
+                }
                 if (index != entities.lastIndex) {
                     appendLine()
                     appendLine()
@@ -72,18 +96,28 @@ internal class JimmerLowQueryGenerator(
             "    ${param.renderParameter()}"
         }
         val whereLines = params.joinToString("\n") { it.buildWhereLine() }
+        val orderByLine = buildOrderByLine("    ")
+        val returnType = "KConfigurableRootQuery<KNonNullTable<$simpleName>, $simpleName>"
         return buildString {
-            appendLine("${visibility.code} fun KMutableRootQuery.ForEntity<$simpleName>.${functionName.escapeIdentifier()}(")
-            appendLine(parameterLines)
-            appendLine("): KConfigurableRootQuery<KNonNullTable<$simpleName>, $simpleName> {")
-            appendLine(whereLines)
+            if (params.isEmpty()) {
+                appendLine("${visibility.code} fun KMutableRootQuery.ForEntity<$simpleName>.${functionName.escapeIdentifier()}(): $returnType {")
+            } else {
+                appendLine("${visibility.code} fun KMutableRootQuery.ForEntity<$simpleName>.${functionName.escapeIdentifier()}(")
+                appendLine(parameterLines)
+                appendLine("): $returnType {")
+            }
+            if (whereLines.isNotEmpty()) {
+                appendLine(whereLines)
+            }
+            if (orderByLine != null) {
+                appendLine(orderByLine)
+            }
             appendLine("    return ${buildSelectExpression()}")
             append("}")
         }
     }
 
     private fun LowQueryEntityMeta.buildClientFunction(): String {
-        val whereLines = params.joinToString("\n") { param -> param.buildEntityWhereBlock() }
         val annotation = "@JvmName(\"${clientFunctionName}For${simpleName}ByEntity\")"
         return buildString {
             appendLine(annotation)
@@ -91,18 +125,75 @@ internal class JimmerLowQueryGenerator(
             appendLine("    entity: $simpleName")
             appendLine("): KConfigurableRootQuery<KNonNullTable<$simpleName>, $simpleName> {")
             appendLine("    return createQuery($simpleName::class) {")
-            appendLine(whereLines)
+            appendLine("        applyLowQuery(entity)")
             appendLine("        ${buildSelectExpression()}")
             appendLine("    }")
             append("}")
         }
     }
+
+    private fun LowQueryEntityMeta.buildApplyFunction(): String {
+        val whereLines = params.joinToString("\n") { param -> param.buildEntityWhereBlock() }
+        val orderByLine = buildOrderByLine("    ")
+        return buildString {
+            appendLine("private fun KMutableRootQuery.ForEntity<$simpleName>.applyLowQuery(")
+            appendLine("    entity: $simpleName")
+            appendLine(") {")
+            if (whereLines.isNotEmpty()) {
+                appendLine(whereLines)
+            }
+            if (orderByLine != null) {
+                appendLine(orderByLine)
+            }
+            append("}")
+        }
+    }
+
+    private fun LowQueryEntityMeta.buildSpringProvider(): String {
+        val providerName = "${simpleName}JimmerLowQueryProvider"
+        val beanName = "$qualifiedName.$providerName"
+        val parameterMap = params.joinToString(", ") { param ->
+            "\"${param.propertyName.escapeString()}\" to \"${param.parameterName.escapeString()}\""
+        }
+        return buildString {
+            appendLine("@Component(\"${beanName.escapeString()}\")")
+            appendLine("public class $providerName : JimmerLowQueryProvider<$simpleName> {")
+            appendLine("    override val entityType: KClass<$simpleName> = $simpleName::class")
+            appendLine()
+            appendLine("    override val parameterNames: Map<String, String> = mapOf($parameterMap)")
+            appendLine()
+            appendLine("    override val hasOrderBy: Boolean = ${orders.isNotEmpty()}")
+            appendLine()
+            appendLine("    override fun apply(")
+            appendLine("        query: KMutableRootQuery.ForEntity<$simpleName>,")
+            appendLine("        entity: $simpleName")
+            appendLine("    ) {")
+            appendLine("        query.applyLowQuery(entity)")
+            appendLine("    }")
+            append("}")
+        }
+    }
+
     private fun LowQueryEntityMeta.buildSelectExpression(): String {
         return when (fetcher) {
             LowQueryFetcher.ALL_SCALAR_FIELDS -> "select(table.fetchBy { allScalarFields() })"
             LowQueryFetcher.ALL_TABLE_FIELDS -> "select(table.fetchBy { allTableFields() })"
             LowQueryFetcher.TABLE -> "select(table)"
         }
+    }
+
+    private fun LowQueryEntityMeta.buildOrderByLine(indent: String): String? {
+        if (orders.isEmpty()) {
+            return null
+        }
+        val expressions = orders.joinToString(", ") { order ->
+            val functionName = when (order.direction) {
+                LowQueryOrderDirection.ASC -> "asc"
+                LowQueryOrderDirection.DESC -> "desc"
+            }
+            "table.${order.propertyName.escapeIdentifier()}.$functionName()"
+        }
+        return "${indent}orderBy($expressions)"
     }
 
     private fun LowQueryParamMeta.buildWhereLine(): String {

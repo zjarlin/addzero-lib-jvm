@@ -13,6 +13,8 @@ internal const val LOW_QUERY_ANNOTATION = "site.addzero.jimmer.lowquery.annotati
 internal const val LOW_QUERY_PARAM_ANNOTATION = "site.addzero.jimmer.lowquery.annotation.JimmerLowQueryParam"
 private const val JIMMER_ENTITY_ANNOTATION = "org.babyfish.jimmer.sql.Entity"
 private const val ANNOTATION_PACKAGE = "site.addzero.jimmer.lowquery.annotation"
+private const val ORDER_BY_ASC_ANNOTATION = "$ANNOTATION_PACKAGE.OrderByAsc"
+private const val ORDER_BY_DESC_ANNOTATION = "$ANNOTATION_PACKAGE.OrderByDesc"
 
 internal data class LowQueryCollectResult(
     val entities: Set<LowQueryEntityMeta>,
@@ -42,33 +44,8 @@ internal class JimmerLowQueryCollector(
                 }
                 entitySymbols += entity
             }
-        LOW_QUERY_FIELD_ANNOTATIONS.forEach { annotationName ->
-            resolver.getSymbolsWithAnnotation(annotationName)
-                .forEach { symbol ->
-                    if (!symbol.validate()) {
-                        deferred += symbol
-                        return@forEach
-                    }
-                    val property = symbol as? KSPropertyDeclaration
-                    if (property == null) {
-                        error("@Eq/@Like/@In 等低代码查询注解只能标记实体字段。", symbol)
-                        return@forEach
-                    }
-                    val entity = property.parentDeclaration as? KSClassDeclaration
-                    if (entity == null) {
-                        error("@Eq/@Like/@In 等低代码查询注解只能标记实体字段。", property)
-                        return@forEach
-                    }
-                    if (!entity.hasAnnotation(JIMMER_ENTITY_ANNOTATION)) {
-                        if (property.isGeneratedSource()) {
-                            return@forEach
-                        }
-                        error("@Eq/@Like/@In 等低代码查询注解只能标记 Jimmer 实体字段。", property)
-                        return@forEach
-                    }
-                    entitySymbols += entity
-                }
-            }
+        collectEntitiesFromPropertyAnnotations(LOW_QUERY_FIELD_ANNOTATIONS, deferred, entitySymbols)
+        collectEntitiesFromPropertyAnnotations(LOW_QUERY_ORDER_ANNOTATIONS, deferred, entitySymbols)
         val entities = entitySymbols
             .mapNotNull { entity -> collectEntity(entity) }
             .toSet()
@@ -77,6 +54,40 @@ internal class JimmerLowQueryCollector(
             deferred = deferred,
             hasErrors = hasErrors,
         )
+    }
+
+    private fun collectEntitiesFromPropertyAnnotations(
+        annotationNames: Set<String>,
+        deferred: MutableList<KSAnnotated>,
+        entitySymbols: MutableSet<KSClassDeclaration>,
+    ) {
+        annotationNames.forEach { annotationName ->
+            resolver.getSymbolsWithAnnotation(annotationName)
+                .forEach { symbol ->
+                    if (!symbol.validate()) {
+                        deferred += symbol
+                        return@forEach
+                    }
+                    val property = symbol as? KSPropertyDeclaration
+                    if (property == null) {
+                        error("低代码查询注解只能标记实体字段。", symbol)
+                        return@forEach
+                    }
+                    val entity = property.parentDeclaration as? KSClassDeclaration
+                    if (entity == null) {
+                        error("低代码查询注解只能标记实体字段。", property)
+                        return@forEach
+                    }
+                    if (!entity.hasAnnotation(JIMMER_ENTITY_ANNOTATION)) {
+                        if (property.isGeneratedSource()) {
+                            return@forEach
+                        }
+                        error("低代码查询注解只能标记 Jimmer 实体字段。", property)
+                        return@forEach
+                    }
+                    entitySymbols += entity
+                }
+        }
     }
 
     private fun collectEntity(entity: KSClassDeclaration): LowQueryEntityMeta? {
@@ -92,11 +103,14 @@ internal class JimmerLowQueryCollector(
             error("无法解析实体 $simpleName 的全限定名。", entity)
             return null
         }
-        val params = entity.getAllProperties()
+        val properties = entity.getAllProperties().toList()
+        val params = properties
             .mapNotNull { property -> collectParam(property) }
-            .toList()
-        if (params.isEmpty()) {
-            error("$qualifiedName 至少需要一个 @Eq/@Like/@In 或 @JimmerLowQueryParam 字段。", entity)
+        val orders = properties
+            .mapNotNull { property -> collectOrder(property) }
+            .sortedWith(compareBy<LowQueryOrderMeta> { it.priority }.thenBy { it.propertyName })
+        if (params.isEmpty() && orders.isEmpty()) {
+            error("$qualifiedName 至少需要一个 @Eq/@Like/@In、@JimmerLowQueryParam 或 @OrderByAsc/@OrderByDesc 字段。", entity)
             return null
         }
         return LowQueryEntityMeta(
@@ -112,13 +126,14 @@ internal class JimmerLowQueryCollector(
             fetcher = annotation?.enumValue("fetcher", LowQueryFetcher.ALL_SCALAR_FIELDS)
                 ?: LowQueryFetcher.ALL_SCALAR_FIELDS,
             params = params,
+            orders = orders,
         )
     }
 
     private fun collectParam(property: KSPropertyDeclaration): LowQueryParamMeta? {
         val fieldAnnotations = property.findLowQueryFieldAnnotations()
         if (fieldAnnotations.size > 1) {
-            error("字段 ${property.simpleName.asString()} 只能标记一个低代码查询注解。", property)
+            error("字段 ${property.simpleName.asString()} 只能标记一个低代码查询 where 注解。", property)
             return null
         }
         val annotation = fieldAnnotations.singleOrNull() ?: return null
@@ -138,9 +153,35 @@ internal class JimmerLowQueryCollector(
         )
     }
 
+    private fun collectOrder(property: KSPropertyDeclaration): LowQueryOrderMeta? {
+        val orderAnnotations = property.findLowQueryOrderAnnotations()
+        if (orderAnnotations.size > 1) {
+            error("字段 ${property.simpleName.asString()} 只能标记一个低代码查询排序注解。", property)
+            return null
+        }
+        val annotation = orderAnnotations.singleOrNull() ?: return null
+        val qualifiedName = annotation.annotationType.resolve().declaration.qualifiedName?.asString()
+        val direction = when (qualifiedName) {
+            ORDER_BY_ASC_ANNOTATION -> LowQueryOrderDirection.ASC
+            ORDER_BY_DESC_ANNOTATION -> LowQueryOrderDirection.DESC
+            else -> return null
+        }
+        return LowQueryOrderMeta(
+            propertyName = property.simpleName.asString(),
+            direction = direction,
+            priority = annotation.intValue("priority") ?: 0,
+        )
+    }
+
     private fun KSAnnotated.findLowQueryFieldAnnotations(): List<KSAnnotation> {
         return annotations.filter { annotation ->
             annotation.annotationType.resolve().declaration.qualifiedName?.asString() in LOW_QUERY_FIELD_ANNOTATIONS
+        }.toList()
+    }
+
+    private fun KSAnnotated.findLowQueryOrderAnnotations(): List<KSAnnotation> {
+        return annotations.filter { annotation ->
+            annotation.annotationType.resolve().declaration.qualifiedName?.asString() in LOW_QUERY_ORDER_ANNOTATIONS
         }.toList()
     }
 
@@ -165,6 +206,10 @@ internal class JimmerLowQueryCollector(
 
     private fun KSAnnotation.booleanValue(name: String): Boolean? {
         return arguments.firstOrNull { it.name?.asString() == name }?.value as? Boolean
+    }
+
+    private fun KSAnnotation.intValue(name: String): Int? {
+        return arguments.firstOrNull { it.name?.asString() == name }?.value as? Int
     }
 
     private inline fun <reified E : Enum<E>> KSAnnotation.enumValue(name: String, defaultValue: E): E {
@@ -238,5 +283,10 @@ internal class JimmerLowQueryCollector(
 
         private val LOW_QUERY_FIELD_ANNOTATIONS =
             LOW_QUERY_OPERATOR_BY_ANNOTATION.keys + LOW_QUERY_PARAM_ANNOTATION
+
+        private val LOW_QUERY_ORDER_ANNOTATIONS = setOf(
+            ORDER_BY_ASC_ANNOTATION,
+            ORDER_BY_DESC_ANNOTATION,
+        )
     }
 }

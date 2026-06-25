@@ -10,12 +10,9 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-06-24T10:27:09.203039
-// Loaded: 26, Excluded: 0, Total: 26
+// Generated at: 2026-06-25T13:10:50.512446
+// Loaded: 22, Excluded: 0, Total: 22
 include(":lib:apt:dict-trans:apt-dict-trans-processor")
-include(":lib:gradle-plugin:tool:gradle-script")
-include(":lib:gradle-plugin:tool:gradle-script-core")
-include(":lib:kotlin-script")
 include(":lib:tool-jvm:database:ddlgenerator-core")
 include(":lib:tool-jvm:database:ddlgenerator-lsi-adaptor")
 include(":lib:tool-jvm:database:mybatis-auto-wrapper")
@@ -29,14 +26,13 @@ include(":lib:tool-jvm:tool-reflection")
 include(":lib:tool-jvm:tool-spctx")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-common")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-data-permission")
-include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-ip")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-mybatis")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-rpc")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-security")
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-web")
 include(":lib:tool-jvm:yudao:yudao-common")
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip")
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
+include(":lib:tool-starter:controller-advice-spring-boot-starter")
 include(":lib:tool-starter:dict-trans-spring-boot-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
@@ -60,7 +56,7 @@ include(":lib:tool-jvm:yudao:yudao-common")
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-websocket") // excluded by Gradle Buddy
 include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-protection") // excluded by Gradle Buddy
-include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip")
+//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-rpc") // excluded by Gradle Buddy
 
 //include(":lib:tool-jvm:yudao3:yudao-dependencies") // excluded by Gradle Buddy
@@ -78,7 +74,7 @@ include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-data
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-websocket") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-monitor") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-protection") // excluded by Gradle Buddy
-include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-ip")
+//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-ip") // excluded by Gradle Buddy
 include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-rpc")
 // >>> Jimmer DDL Compiler local modules >>>
 fun includeIfMissing(path: String) {

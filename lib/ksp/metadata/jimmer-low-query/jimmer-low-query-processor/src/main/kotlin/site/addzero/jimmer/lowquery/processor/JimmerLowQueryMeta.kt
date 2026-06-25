@@ -28,12 +28,23 @@ internal enum class LowQueryVisibility(
     PRIVATE("private"),
 }
 
+internal enum class LowQueryOrderDirection {
+    ASC,
+    DESC,
+}
+
 internal data class LowQueryParamMeta(
     val propertyName: String,
     val parameterName: String,
     val typeName: String,
     val operator: LowQueryOperator,
     val nullable: Boolean,
+)
+
+internal data class LowQueryOrderMeta(
+    val propertyName: String,
+    val direction: LowQueryOrderDirection,
+    val priority: Int,
 )
 
 internal data class LowQueryEntityMeta(
@@ -46,4 +57,5 @@ internal data class LowQueryEntityMeta(
     val clientVisibility: LowQueryVisibility,
     val fetcher: LowQueryFetcher,
     val params: List<LowQueryParamMeta>,
+    val orders: List<LowQueryOrderMeta>,
 )
