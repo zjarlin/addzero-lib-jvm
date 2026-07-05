@@ -1,15 +1,19 @@
 package site.addzero.aop.dicttrans.anno
 
+import kotlin.reflect.KClass
+
 /**
  * @author addzero
  * @since 2022/11/10 14:05
  */
 @Target(
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.PROPERTY_GETTER,
     AnnotationTarget.FUNCTION,
     AnnotationTarget.FIELD,
 )
 @Retention(
-    AnnotationRetention.SOURCE
+    AnnotationRetention.RUNTIME
 )
 @Repeatable
 annotation class Dict(
@@ -20,5 +24,9 @@ annotation class Dict(
     val codeColumn: String = "",
     val nameColumn: String = "",
     val whereCondition: String = "",
+    val spelExp: String = "",
+    val spelValueType: KClass<*> = String::class,
     val serializationAlias: String = "",
+    val serializationChinese: String = "",
+    val ignoreVo: Boolean = false,
 )

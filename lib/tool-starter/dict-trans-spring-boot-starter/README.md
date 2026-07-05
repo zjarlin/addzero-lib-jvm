@@ -9,7 +9,8 @@
 - **任意表翻译**：指定表名、code 列、name 列，直接从任意数据库表翻译
 - **多值翻译**：字段值支持逗号分隔的多 code 翻译（如 `"1,2,3"` → `"启用,禁用,删除"`）
 - **嵌套对象递归翻译**：自动递归遍历嵌套对象和集合中的 `@Dict` 字段
-- **ByteBuddy 动态子类**：翻译后的字段通过 ByteBuddy 动态生成子类注入，不修改原始 VO 结构
+- **ByteBuddy 动态子类**：普通 VO 翻译后的字段通过 ByteBuddy 动态生成子类注入，不修改原始 VO 结构
+- **Jimmer immutable 实体支持**：Jimmer 实体不会被动态继承或原地修改，会输出已加载属性和翻译字段组成的 `Map`
 - **策略模式**：根据返回值类型（单个对象 / Collection / String）自动选择翻译策略
 - **Spring Boot AutoConfiguration**：引入依赖即自动生效
 
@@ -144,7 +145,27 @@ data class ReportVO(
 )
 ```
 
-### 示例 4：Controller 方法标注 @Dict
+### 示例 4：Jimmer 实体字段翻译
+
+Jimmer Kotlin 实体是 `interface`，实体属性运行时对应 immutable 属性和 getter 方法，不适合走普通 VO 的字段注入路径。
+在 Jimmer 实体属性上可以直接使用 `@Dict(...)`：
+
+```kotlin
+@Entity
+interface SysUser {
+    @Id
+    val id: Long
+
+    @Dict(dicCode = "user_status", serializationAlias = "statusName")
+    val status: String
+}
+```
+
+Controller 返回 Jimmer 实体或实体集合并在方法上标注 `@Dict` 时，starter 会读取已加载属性上的
+`@Dict`，输出原实体字段，并追加翻译字段，例如 `statusName` 或默认的 `status_dictText`。
+对于 `Page<R>`、`Result<List<R>>` 这类普通包装对象，只要内部 `R` 是已加载的 Jimmer 实体，也会递归翻译为带字典文本字段的 `Map`。
+
+### 示例 5：Controller 方法标注 @Dict
 
 在 Controller 方法上加 `@Dict` 注解即可触发 AOP 翻译：
 
@@ -167,7 +188,7 @@ class UserController {
 }
 ```
 
-### 示例 5：手动调用翻译工具函数
+### 示例 6：手动调用翻译工具函数
 
 不依赖 AOP 时，也可以在 Service 层手动翻译：
 
@@ -259,7 +280,7 @@ DictAopConfiguration (AutoConfiguration)
 
 ## 注意事项
 
-- `@Dict` 注解的 `Retention` 为 `SOURCE`，翻译后的字段由 ByteBuddy 在运行时动态生成
+- `@Dict` 注解需要保持 `RUNTIME`，普通 VO 翻译字段由 ByteBuddy 运行时动态生成，Jimmer 实体翻译结果输出为 `Map`
 - 集合超过 1000 条时会跳过翻译并打印警告日志
 - AOP 切面的切点表达式由 `ScanControllerProperties` 配置，确保 Controller 包路径正确
 - 翻译过程为原地修改（通过 ByteBuddy 子类注入新字段），原始 VO 类不会被修改

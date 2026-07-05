@@ -11,6 +11,8 @@ dependencies {
   implementation(project(":lib:tool-jvm:tool-bean"))
   implementation(libs.findLibrary("site-addzero-tool-bytebuddy").get())
   implementation(libs.findLibrary("site-addzero-tool-str").get())
+  implementation(libs.findLibrary("org-babyfish-jimmer-jimmer-core").get())
+  implementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-reflect").get())
 
   api(libs.findLibrary("site-addzero-dict-trans-core").get())
 

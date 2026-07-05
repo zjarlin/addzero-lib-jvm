@@ -25,6 +25,10 @@ internal object TransInternalUtil {
 
 
     fun process(rootObj: Any): List<TransInfo<Dict>> {
+        if (JimmerDictSupport.isJimmerObject(rootObj)) {
+            return emptyList()
+        }
+
         val result = mutableListOf<TransInfo<Dict>>()
         // 使用队列进行广度优先遍历，避免深层递归
         val queue = LinkedList<Any>()
@@ -38,6 +42,9 @@ internal object TransInternalUtil {
 
             // 避免重复处理相同对象和null对象
             if (currentObj == null || !processedObjects.add(currentObj)) {
+                continue
+            }
+            if (JimmerDictSupport.isJimmerObject(currentObj) || !RefUtil.isT(currentObj)) {
                 continue
             }
 
@@ -142,6 +149,10 @@ internal object TransInternalUtil {
     }
 
     fun getNeedAddFields(obj: Any): List<NeedAddInfo> {
+        if (JimmerDictSupport.isJimmerObject(obj)) {
+            return emptyList()
+        }
+
         val process = process(obj)
         // 只返回当前对象的字段需求，不包括嵌套对象的字段需求
         val needAddFields = process.filter { it.rootObject === obj }.map {
@@ -301,7 +312,7 @@ internal object TransInternalUtil {
                 val translatedName = needSetInfo.translatedAttributeNames
                 val anno = needSetInfo.anno
                 val tab1 = anno.tab
-                val codeColumn1 = anno.codeColumn
+                val codeColumn1 = anno.codeColumn.ifBlank { needSetInfo.attributeNameBeforeTranslation }
                 val nameColumn1 = anno.nameColumn
 
                 /** 翻译前的值  */
