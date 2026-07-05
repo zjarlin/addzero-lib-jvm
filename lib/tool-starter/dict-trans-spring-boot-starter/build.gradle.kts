@@ -14,7 +14,7 @@ dependencies {
   implementation(libs.findLibrary("org-babyfish-jimmer-jimmer-core").get())
   implementation(libs.findLibrary("org-jetbrains-kotlin-kotlin-reflect").get())
 
-  api(libs.findLibrary("site-addzero-dict-trans-core").get())
+  api(project(":lib:apt:dict-trans:dict-trans-core"))
 
   // 添加Spring Boot核心依赖
 //  implementation(libs.org.springframework.boot.spring.boot.autoconfigure)

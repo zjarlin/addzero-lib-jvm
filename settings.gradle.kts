@@ -66,6 +66,9 @@ fun includeIfMissing(path: String) {
   }
 }
 
+includeIfMissing(":lib:tool-jvm:tool-reflection")
+includeIfMissing(":lib:apt:dict-trans:dict-trans-core")
+
 listOf(
   ":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-processor",
   ":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-gradle-plugin",

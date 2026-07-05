@@ -14,7 +14,7 @@ public interface DictConvertor<T, D> {
     
     /**
      * 将原始实体转换为包含字典翻译的DTO
-     * 执行 code -> name 的字典翻译
+     * 执行 code 到 name 的字典翻译
      * 
      * @param entity 原始实体对象
      * @return 包含字典翻译文本的DTO对象
@@ -28,7 +28,7 @@ public interface DictConvertor<T, D> {
     
     /**
      * 将字典DTO转换回原始实体
-     * 执行 name -> code 的反向翻译
+     * 执行 name 到 code 的反向翻译
      * 
      * @param dto 包含字典翻译文本的DTO对象
      * @return 原始实体对象

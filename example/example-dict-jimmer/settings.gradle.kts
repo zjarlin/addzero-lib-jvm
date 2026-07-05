@@ -50,6 +50,10 @@ include(":lib:apt:dict-trans:apt-dict-trans-core")
 project(":lib:apt:dict-trans:apt-dict-trans-core").projectDir =
     file("../../lib/apt/dict-trans/apt-dict-trans-core")
 
+include(":lib:apt:dict-trans:dict-trans-core")
+project(":lib:apt:dict-trans:dict-trans-core").projectDir =
+    file("../../lib/apt/dict-trans/dict-trans-core")
+
 include(":lib:tool-jvm:tool-reflection")
 project(":lib:tool-jvm:tool-reflection").projectDir = file("../../lib/tool-jvm/tool-reflection")
 
