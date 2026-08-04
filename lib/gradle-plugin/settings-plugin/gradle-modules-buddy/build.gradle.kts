@@ -15,6 +15,8 @@ plugins {
     `java-gradle-plugin`
 }
 
+val catalogLibs = versionCatalogs.named("libs")
+
 repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -22,6 +24,10 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
+    testImplementation(catalogLibs.findLibrary("org-junit-jupiter-junit-jupiter").get())
+    testRuntimeOnly(catalogLibs.findLibrary("org-junit-platform-junit-platform-launcher").get())
 }
 
-
+tasks.test {
+    useJUnitPlatform()
+}

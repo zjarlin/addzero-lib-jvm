@@ -4,7 +4,7 @@ plugins {
 //  id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
   id("site.addzero.gradle.plugin.repo-buddy") version "+"
   id("site.addzero.gradle.plugin.addzero-git-dependency") version "+"
-//  id("site.addzero.gradle.plugin.modules-buddy") version "+"
+//  id("site.addzero.gradle.plugin.modules-buddy") version "2026.08.03"
 }
 
 
@@ -68,6 +68,7 @@ fun includeIfMissing(path: String) {
 
 includeIfMissing(":lib:tool-jvm:tool-reflection")
 includeIfMissing(":lib:apt:dict-trans:dict-trans-core")
+includeIfMissing(":lib:gradle-plugin:settings-plugin:gradle-modules-buddy")
 
 listOf(
   ":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-processor",

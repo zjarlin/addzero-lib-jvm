@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.findLibrary("org-jsoup-jsoup").get())
     // 临时添加hutool-http用于测试
     implementation(libs.findLibrary("cn-hutool-hutool-http").get())
+    testImplementation(libs.findLibrary("cn-idev-excel-fastexcel").get())
 
     // SQLite JDBC 驱动
     implementation(libs.findLibrary("org-xerial-sqlite-jdbc-v3").get())

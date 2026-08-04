@@ -3,6 +3,15 @@ package site.addzero.util.str
 import kotlin.text.isNullOrEmpty
 
 /**
+ * 去除首尾空白，空/全空白抛 IllegalArgumentException
+ */
+internal fun String?.requiredTrim(errorMessage: String): String {
+  val trimmed = this?.trim()
+  require(trimmed.isNotBlank()) { errorMessage }
+  return trimmed!!
+}
+
+/**
  * 判断所有字符串是否都为空白
  */
 fun isAllBlank(vararg strs: CharSequence?): Boolean {

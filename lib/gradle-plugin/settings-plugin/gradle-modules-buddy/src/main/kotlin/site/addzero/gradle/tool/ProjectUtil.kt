@@ -4,19 +4,31 @@ import org.apache.tools.ant.util.FileUtils.getRelativePath
 import org.gradle.api.initialization.Settings
 import java.io.File
 
-// 递归查找所有包含build.gradle.kts的项目目录
-fun findAllProjectDirs(rootDir: File): List<File> {
-  val result = mutableListOf<File>()
-  if (File(rootDir, "build.gradle.kts").exists()) {
-    result.add(rootDir)
-  }
-  rootDir.listFiles { file: File ->
-    file.isDirectory
-  }?.forEach { subDir ->
-    result.addAll(findAllProjectDirs(subDir))
-  }
-  return result
-}
+private val ignoredProjectDirectoryNames = setOf(
+  "build",
+  "node_modules",
+  "out",
+  "target",
+)
+
+/**
+ * 查找源码树中所有包含 `build.gradle.kts` 的项目目录。
+ *
+ * 构建产物、隐藏目录和前端依赖目录不会包含需要装配的源码模块，
+ * 必须在递归入口直接剪枝，避免配置缓存把自身文件记录为构建输入。
+ */
+fun findAllProjectDirs(rootDir: File): List<File> =
+  rootDir.walkTopDown()
+    .onEnter { directory ->
+      directory == rootDir || (
+        !directory.name.startsWith(".") &&
+          directory.name !in ignoredProjectDirectoryNames
+        )
+    }
+    .filter { directory ->
+      directory.isDirectory && directory.resolve("build.gradle.kts").isFile
+    }
+    .toList()
 
 fun getProjectContext(
   rootDir: File, predicate: (File) -> Boolean = { true },
@@ -46,7 +58,7 @@ private fun String.toGradleProjectPath(): String =
     .joinToString(separator = ":", prefix = ":")
 
 fun File.isInBlackList(rootDir: File, vararg blackModuleName: String): Boolean {
-  // Skip any hidden directories (segments that start with ".")
+  // 隐藏目录及其后代不参与模块装配。
   if (this.name.startsWith(".")) return true
 
   val relativePath = getRelativePath(rootDir, this)
