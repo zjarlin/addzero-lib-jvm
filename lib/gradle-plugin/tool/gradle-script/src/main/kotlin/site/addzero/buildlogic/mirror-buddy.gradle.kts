@@ -13,6 +13,7 @@ fun RepositoryHandler.enableMirror() {
 
 val urlMappings = mapOf(
     "https://repo.maven.apache.org/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public/",
+    "https://repo1.maven.org/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public/",
     "https://dl.google.com/dl/android/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public/",
     "https://plugins.gradle.org/m2" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins/"
 )

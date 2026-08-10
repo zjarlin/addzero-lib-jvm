@@ -10,12 +10,59 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-07-05T20:43:41.984190
-// Loaded: 5, Excluded: 0, Total: 5
-include(":example:example-dict-jimmer")
-include(":example:example-dict-jimmer:app")
+// Generated at: 2026-08-10T14:56:00.652509
+// Loaded: 52, Excluded: 0, Total: 52
 include(":lib:apt:dict-trans:apt-dict-trans-core")
+include(":lib:apt:dict-trans:apt-dict-trans-processor")
+include(":lib:apt:dict-trans:dict-trans-core")
+include(":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-ksp-smoke")
+include(":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-processor")
+include(":lib:lsi:lsi-apt")
+include(":lib:lsi:lsi-core")
+include(":lib:lsi:lsi-intellij")
+include(":lib:lsi:lsi-jimmer")
+include(":lib:lsi:lsi-k2")
+include(":lib:lsi:lsi-ksp")
+include(":lib:lsi:lsi-kt")
+include(":lib:lsi:lsi-psi")
+include(":lib:lsi:lsi-psiandkt")
+include(":lib:lsi:lsi-reflection")
+include(":lib:tool-jvm:database:ddlgenerator")
+include(":lib:tool-jvm:database:ddlgenerator-core")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-dm")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-h2")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-kingbase")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-mysql")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-oracle")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-postgresql")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlite")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-sqlserver")
+include(":lib:tool-jvm:database:ddlgenerator-dialect-taos")
+include(":lib:tool-jvm:database:ddlgenerator-jdbc-adaptor")
+include(":lib:tool-jvm:database:ddlgenerator-lsi-adaptor")
+include(":lib:tool-jvm:database:mybatis-auto-wrapper")
+include(":lib:tool-jvm:database:tool-database-model")
+include(":lib:tool-jvm:database:tool-mybatis")
+include(":lib:tool-jvm:database:tool-sql-executor")
+include(":lib:tool-jvm:network-call:tool-api-weather")
 include(":lib:tool-jvm:tool-bean")
+include(":lib:tool-jvm:tool-const")
+include(":lib:tool-jvm:tool-excel")
+include(":lib:tool-jvm:tool-ip")
+include(":lib:tool-jvm:tool-reflection")
+include(":lib:tool-jvm:tool-spctx")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-common")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-data-permission")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-mybatis")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-rpc")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-security")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-web")
+include(":lib:tool-jvm:yudao:yudao-common")
+include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
+include(":lib:tool-kmp:jdbc:tool-jdbc")
+include(":lib:tool-kmp:jdbc:tool-jdbc-model")
+include(":lib:tool-kmp:tool-str")
+include(":lib:tool-starter:controller-advice-spring-boot-starter")
 include(":lib:tool-starter:dict-trans-spring-boot-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
@@ -24,7 +71,7 @@ include(":lib:tool-starter:dict-trans-spring-boot-starter")
 //include(":lib:tool-jvm:yudao:yudao-dependencies") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:tool-jackson") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:tool-jackson-extra") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao:yudao-common") // excluded by Gradle Buddy
+include(":lib:tool-jvm:yudao:yudao-common")
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-env") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-captcha") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-web") // excluded by Gradle Buddy
@@ -37,28 +84,28 @@ include(":lib:tool-starter:dict-trans-spring-boot-starter")
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-data-permission") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-excel") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-websocket") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor") // excluded by Gradle Buddy
+include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-monitor")
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-protection") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-biz-ip") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao:yudao-spring-boot-starter-rpc") // excluded by Gradle Buddy
 
 //include(":lib:tool-jvm:yudao3:yudao-dependencies") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-common") // excluded by Gradle Buddy
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-common")
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-env") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-web") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-security") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-mybatis") // excluded by Gradle Buddy
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-web")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-security")
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-mybatis")
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-redis") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-mq") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-job") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-tenant") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-data-permission") // excluded by Gradle Buddy
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-data-permission")
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-excel") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-websocket") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-monitor") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-protection") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-biz-ip") // excluded by Gradle Buddy
-//include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-rpc") // excluded by Gradle Buddy
+include(":lib:tool-jvm:yudao3:yudao-framework:yudao-spring-boot-starter-rpc")
 // >>> Jimmer DDL Compiler local modules >>>
 fun includeIfMissing(path: String) {
   if (findProject(path) == null) {
