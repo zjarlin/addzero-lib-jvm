@@ -47,6 +47,7 @@ data class TestField(
     override val fieldTypeClass: LsiClass? = null,
     override val isNestedObject: Boolean = false,
     override val children: List<LsiField> = emptyList(),
+    override val isNullable: Boolean = false,
 ) : LsiField
 
 data class TestParameter(

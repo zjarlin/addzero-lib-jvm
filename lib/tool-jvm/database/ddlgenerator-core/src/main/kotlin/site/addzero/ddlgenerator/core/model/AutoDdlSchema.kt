@@ -56,6 +56,7 @@ data class AutoDdlIndex(
     val name: String,
     val columnNames: List<String>,
     val type: AutoDdlIndexType = AutoDdlIndexType.NORMAL,
+    val ignoreBlankValues: Boolean = false,
 )
 
 data class AutoDdlForeignKey(
@@ -97,7 +98,7 @@ data class AutoDdlTable(
     val comment: String? = null,
     val junction: AutoDdlJunction? = null,
 ) {
-    val primaryKeyColumnNames: List<String>
+    val primaryKeyColumnNames
         get() = columns.filter { it.primaryKey }.map { it.name }
 
     fun column(name: String): AutoDdlColumn? {

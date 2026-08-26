@@ -13,15 +13,15 @@ data class AutoDdlDiffOptions(
     val excludeTables: List<String> = emptyList(),
     val excludeColumns: List<String> = emptyList(),
 ) {
-    val includeForeignKeys: Boolean
+    val includeForeignKeys
         get() = ddlOptions.includeForeignKeys
 
-    val includeIndexes: Boolean
+    val includeIndexes
         get() = ddlOptions.includeIndexes
 
-    val includeComments: Boolean
+    val includeComments
         get() = ddlOptions.includeComments
 
-    val includeSequences: Boolean
+    val includeSequences
         get() = ddlOptions.includeSequences
 }

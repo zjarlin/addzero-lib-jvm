@@ -35,12 +35,23 @@ object SchemaDiffPlanner {
             val actualTable = actualTables[desiredTable.name.lowercase()]
             if (actualTable == null) {
                 operations += CreateTable(desiredTable)
+                if (options.includeIndexes) {
+                    desiredTable.indexes.forEach { index ->
+                        operations += CreateIndex(desiredTable.name, index)
+                    }
+                }
+                if (options.includeForeignKeys) {
+                    desiredTable.foreignKeys.forEach { foreignKey ->
+                        operations += AddForeignKey(desiredTable.name, foreignKey)
+                    }
+                }
                 if (options.includeComments) {
                     collectCommentsForTable(desiredTable).forEach { operations += AddComment(it) }
                 }
                 return@forEach
             }
             operations += diffColumns(desiredTable, actualTable, options)
+            operations += diffPrimaryKey(desiredTable, actualTable, options)
             if (options.includeIndexes) {
                 operations += diffIndexes(desiredTable, actualTable, options)
             }
@@ -88,6 +99,33 @@ object SchemaDiffPlanner {
         }
 
         return operations
+    }
+
+    private fun diffPrimaryKey(
+        desiredTable: site.addzero.ddlgenerator.core.model.AutoDdlTable,
+        actualTable: site.addzero.ddlgenerator.core.model.AutoDdlTable,
+        options: AutoDdlDiffOptions,
+    ): List<AutoDdlOperation> {
+        val desiredColumns = normalizeNames(desiredTable.primaryKeyColumnNames).toSet()
+        val actualColumns = normalizeNames(actualTable.primaryKeyColumnNames).toSet()
+        if (desiredColumns == actualColumns) {
+            return emptyList()
+        }
+        if (actualColumns.isEmpty()) {
+            return desiredTable.primaryKeyColumnNames
+                .takeIf(List<String>::isNotEmpty)
+                ?.let { columnNames -> listOf(AddPrimaryKey(desiredTable.name, columnNames)) }
+                .orEmpty()
+        }
+        if (!options.allowDestructiveChanges) {
+            return emptyList()
+        }
+        return buildList {
+            add(DropPrimaryKey(desiredTable.name))
+            if (desiredColumns.isNotEmpty()) {
+                add(AddPrimaryKey(desiredTable.name, desiredTable.primaryKeyColumnNames))
+            }
+        }
     }
 
     private fun diffIndexes(
@@ -204,15 +242,16 @@ object SchemaDiffPlanner {
     }
 
     private fun List<String>.matches(value: String): Boolean {
-        return any { pattern -> value.matchesWildcard(pattern) }
+        return any { pattern -> matchesWildcard(value, pattern) }
     }
 
-    private fun String.matchesWildcard(pattern: String): Boolean {
+    private fun matchesWildcard(value: String, pattern: String): Boolean {
         val regex = pattern
             .replace(".", "\\.")
             .replace("*", ".*")
-        return Regex("^$regex$", RegexOption.IGNORE_CASE).matches(this)
+        return Regex("^$regex$", RegexOption.IGNORE_CASE).matches(value)
     }
+
 
     private fun AutoDdlColumn.isDifferentFrom(other: AutoDdlColumn): Boolean {
         return logicalType != other.logicalType ||
@@ -259,12 +298,17 @@ object SchemaDiffPlanner {
         return when (operation) {
             is DropForeignKey -> 10
             is DropIndex -> 20
+            is DropPrimaryKey -> 25
             is DropColumn -> 30
             is DropTable -> 40
             is CreateSequence -> 50
             is CreateTable -> 60
             is AddColumn -> 70
             is AlterColumn -> 80
+            is DropColumnNotNull -> 85
+            is SetColumnNotNull -> 86
+            is RenameTable -> 87
+            is AddPrimaryKey -> 88
             is CreateIndex -> 90
             is AddForeignKey -> 100
             is AddComment -> 110
@@ -276,9 +320,14 @@ object SchemaDiffPlanner {
             is CreateSequence -> operation.sequence.name
             is CreateTable -> operation.table.name
             is DropTable -> operation.tableName
+            is RenameTable -> "${operation.oldTableName}.${operation.newTableName}"
             is AddColumn -> "${operation.tableName}.${operation.column.name}"
             is AlterColumn -> "${operation.tableName}.${operation.column.name}"
+            is DropColumnNotNull -> "${operation.tableName}.${operation.columnName}"
+            is SetColumnNotNull -> "${operation.tableName}.${operation.column.name}"
             is DropColumn -> "${operation.tableName}.${operation.columnName}"
+            is AddPrimaryKey -> "${operation.tableName}.${operation.columnNames.joinToString(",")}"
+            is DropPrimaryKey -> operation.tableName
             is CreateIndex -> "${operation.tableName}.${operation.index.name}"
             is DropIndex -> "${operation.tableName}.${operation.indexName}"
             is AddForeignKey -> "${operation.tableName}.${operation.foreignKey.name}"

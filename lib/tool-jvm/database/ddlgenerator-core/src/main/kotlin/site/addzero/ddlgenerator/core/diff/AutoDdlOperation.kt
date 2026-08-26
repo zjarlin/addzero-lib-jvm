@@ -19,12 +19,19 @@ data class CreateSequence(
 data class CreateTable(
     val table: AutoDdlTable,
 ) : AutoDdlOperation {
-    override val tableName: String = table.name
+    override val tableName = table.name
 }
 
 data class DropTable(
     override val tableName: String,
 ) : AutoDdlOperation
+
+data class RenameTable(
+    val oldTableName: String,
+    val newTableName: String,
+) : AutoDdlOperation {
+    override val tableName = newTableName
+}
 
 data class AddColumn(
     override val tableName: String,
@@ -37,9 +44,28 @@ data class AlterColumn(
     val previousColumn: AutoDdlColumn? = null,
 ) : AutoDdlOperation
 
+data class DropColumnNotNull(
+    override val tableName: String,
+    val columnName: String,
+) : AutoDdlOperation
+
+data class SetColumnNotNull(
+    override val tableName: String,
+    val column: AutoDdlColumn,
+) : AutoDdlOperation
+
 data class DropColumn(
     override val tableName: String,
     val columnName: String,
+) : AutoDdlOperation
+
+data class AddPrimaryKey(
+    override val tableName: String,
+    val columnNames: List<String>,
+) : AutoDdlOperation
+
+data class DropPrimaryKey(
+    override val tableName: String,
 ) : AutoDdlOperation
 
 data class CreateIndex(
@@ -65,5 +91,5 @@ data class DropForeignKey(
 data class AddComment(
     val comment: AutoDdlComment,
 ) : AutoDdlOperation {
-    override val tableName: String? = comment.tableName
+    override val tableName = comment.tableName
 }

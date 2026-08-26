@@ -3,20 +3,26 @@ package site.addzero.ddlgenerator.core.dialect
 import site.addzero.ddlgenerator.core.diff.AddColumn
 import site.addzero.ddlgenerator.core.diff.AddComment
 import site.addzero.ddlgenerator.core.diff.AddForeignKey
+import site.addzero.ddlgenerator.core.diff.AddPrimaryKey
 import site.addzero.ddlgenerator.core.diff.AlterColumn
 import site.addzero.ddlgenerator.core.diff.AutoDdlOperation
 import site.addzero.ddlgenerator.core.diff.CreateIndex
 import site.addzero.ddlgenerator.core.diff.CreateSequence
 import site.addzero.ddlgenerator.core.diff.CreateTable
 import site.addzero.ddlgenerator.core.diff.DropColumn
+import site.addzero.ddlgenerator.core.diff.DropColumnNotNull
 import site.addzero.ddlgenerator.core.diff.DropForeignKey
 import site.addzero.ddlgenerator.core.diff.DropIndex
+import site.addzero.ddlgenerator.core.diff.DropPrimaryKey
 import site.addzero.ddlgenerator.core.diff.DropTable
+import site.addzero.ddlgenerator.core.diff.RenameTable
+import site.addzero.ddlgenerator.core.diff.SetColumnNotNull
 import site.addzero.ddlgenerator.core.model.AutoDdlColumn
 import site.addzero.ddlgenerator.core.model.AutoDdlComment
 import site.addzero.ddlgenerator.core.model.AutoDdlCommentTargetType
 import site.addzero.ddlgenerator.core.model.AutoDdlIndexType
 import site.addzero.ddlgenerator.core.model.AutoDdlLogicalType
+import site.addzero.ddlgenerator.core.model.AutoDdlSchema
 import site.addzero.ddlgenerator.core.model.AutoDdlTable
 import site.addzero.util.db.DatabaseType
 import java.util.ServiceLoader
@@ -32,6 +38,14 @@ data class AutoDdlRenderContext(
 
 interface AutoDdlDialect {
     val databaseType: DatabaseType
+
+    fun normalizeSchema(schema: AutoDdlSchema): AutoDdlSchema {
+        return schema
+    }
+
+    fun normalizePreviousSchema(schema: AutoDdlSchema): AutoDdlSchema {
+        return schema
+    }
 
     fun supports(type: DatabaseType): Boolean {
         return databaseType == type
@@ -84,9 +98,14 @@ abstract class AbstractSqlDialect(
             is CreateSequence -> listOf(withTerminator(renderCreateSequence(operation), context))
             is CreateTable -> listOf(withTerminator(renderCreateTable(operation.table), context))
             is DropTable -> listOf(withTerminator(renderDropTable(operation.tableName), context))
-            is AddColumn -> listOf(withTerminator(renderAddColumn(operation.tableName, operation.column), context))
-            is AlterColumn -> renderAlterColumn(operation.tableName, operation.column).map { withTerminator(it, context) }
+            is RenameTable -> renderRenameTable(operation.oldTableName, operation.newTableName).map { withTerminator(it, context) }
+            is AddColumn -> renderAddColumn(operation.tableName, operation.column).map { withTerminator(it, context) }
+            is AlterColumn -> renderAlterColumn(operation.tableName, operation.column, operation.previousColumn).map { withTerminator(it, context) }
+            is DropColumnNotNull -> renderDropColumnNotNull(operation.tableName, operation.columnName).map { withTerminator(it, context) }
+            is SetColumnNotNull -> renderSetColumnNotNull(operation.tableName, operation.column).map { withTerminator(it, context) }
             is DropColumn -> listOf(withTerminator(renderDropColumn(operation.tableName, operation.columnName), context))
+            is AddPrimaryKey -> renderAddPrimaryKey(operation.tableName, operation.columnNames).map { withTerminator(it, context) }
+            is DropPrimaryKey -> renderDropPrimaryKey(operation.tableName).map { withTerminator(it, context) }
             is CreateIndex -> listOf(withTerminator(renderCreateIndex(operation.tableName, operation.index), context))
             is DropIndex -> listOf(withTerminator(renderDropIndex(operation.tableName, operation.indexName), context))
             is AddForeignKey -> renderAddForeignKey(operation.tableName, operation.foreignKey).map { withTerminator(it, context) }
@@ -128,16 +147,48 @@ abstract class AbstractSqlDialect(
         return "DROP TABLE IF EXISTS ${quoteIdentifier(tableName)}"
     }
 
-    protected open fun renderAddColumn(tableName: String, column: AutoDdlColumn): String {
-        return "ALTER TABLE ${quoteIdentifier(tableName)} ADD COLUMN ${renderColumnDefinition(column)}"
+    protected open fun renderRenameTable(
+        oldTableName: String,
+        newTableName: String,
+    ): List<String> {
+        return listOf("ALTER TABLE ${quoteIdentifier(oldTableName)} RENAME TO ${quoteIdentifier(newTableName)}")
+    }
+
+    protected open fun renderAddColumn(tableName: String, column: AutoDdlColumn): List<String> {
+        return listOf("ALTER TABLE ${quoteIdentifier(tableName)} ADD COLUMN ${renderColumnDefinition(column)}")
     }
 
     protected open fun renderAlterColumn(tableName: String, column: AutoDdlColumn): List<String> {
         return listOf("ALTER TABLE ${quoteIdentifier(tableName)} ALTER COLUMN ${renderColumnDefinition(column)}")
     }
 
+    protected open fun renderAlterColumn(
+        tableName: String,
+        column: AutoDdlColumn,
+        previousColumn: AutoDdlColumn?,
+    ): List<String> {
+        return renderAlterColumn(tableName, column)
+    }
+
+    protected open fun renderDropColumnNotNull(tableName: String, columnName: String): List<String> {
+        return emptyList()
+    }
+
+    protected open fun renderSetColumnNotNull(tableName: String, column: AutoDdlColumn): List<String> {
+        return emptyList()
+    }
+
     protected open fun renderDropColumn(tableName: String, columnName: String): String {
-        return "ALTER TABLE ${quoteIdentifier(tableName)} DROP COLUMN ${quoteIdentifier(columnName)}"
+        return "ALTER TABLE ${quoteIdentifier(tableName)} DROP COLUMN IF EXISTS ${quoteIdentifier(columnName)}"
+    }
+
+    protected open fun renderAddPrimaryKey(tableName: String, columnNames: List<String>): List<String> {
+        val columns = columnNames.joinToString(", ") { columnName -> quoteIdentifier(columnName) }
+        return listOf("ALTER TABLE ${quoteIdentifier(tableName)} ADD PRIMARY KEY ($columns)")
+    }
+
+    protected open fun renderDropPrimaryKey(tableName: String): List<String> {
+        return listOf("ALTER TABLE ${quoteIdentifier(tableName)} DROP PRIMARY KEY")
     }
 
     protected open fun renderCreateIndex(tableName: String, index: site.addzero.ddlgenerator.core.model.AutoDdlIndex): String {

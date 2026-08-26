@@ -7,11 +7,13 @@ import kotlin.test.assertIs
 import site.addzero.ddlgenerator.core.diff.AddColumn
 import site.addzero.ddlgenerator.core.diff.AddComment
 import site.addzero.ddlgenerator.core.diff.AddForeignKey
+import site.addzero.ddlgenerator.core.diff.AddPrimaryKey
 import site.addzero.ddlgenerator.core.diff.AlterColumn
 import site.addzero.ddlgenerator.core.diff.CreateIndex
 import site.addzero.ddlgenerator.core.diff.CreateSequence
 import site.addzero.ddlgenerator.core.diff.CreateTable
 import site.addzero.ddlgenerator.core.diff.DropColumn
+import site.addzero.ddlgenerator.core.diff.DropPrimaryKey
 import site.addzero.ddlgenerator.core.diff.DropTable
 import site.addzero.ddlgenerator.core.diff.SchemaDiffPlanner
 import site.addzero.ddlgenerator.core.model.AutoDdlColumn
@@ -160,5 +162,142 @@ class SchemaDiffPlannerTest {
             ),
             operations.map { it::class }
         )
+    }
+
+    @Test
+    fun `plans indexes foreign keys and comments for newly created table`() {
+        val desired = AutoDdlSchema(
+            tables = listOf(
+                AutoDdlTable(
+                    name = "invoice",
+                    comment = "发票表",
+                    columns = listOf(
+                        AutoDdlColumn("id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                        AutoDdlColumn("customer_id", AutoDdlLogicalType.INT64, nullable = false, comment = "客户"),
+                    ),
+                    indexes = listOf(
+                        AutoDdlIndex("uk_invoice_customer", listOf("customer_id"), AutoDdlIndexType.UNIQUE)
+                    ),
+                    foreignKeys = listOf(
+                        AutoDdlForeignKey("fk_invoice_customer", listOf("customer_id"), "customer", listOf("id"))
+                    )
+                )
+            )
+        )
+
+        val operations = SchemaDiffPlanner.plan(
+            desiredSchema = desired,
+            actualSchema = AutoDdlSchema(tables = emptyList()),
+            options = AutoDdlDiffOptions(ddlOptions = AutoDdlOptions()),
+        )
+
+        assertEquals(
+            listOf(
+                CreateTable::class,
+                CreateIndex::class,
+                AddForeignKey::class,
+                AddComment::class,
+                AddComment::class,
+            ),
+            operations.map { it::class }
+        )
+    }
+
+    @Test
+    fun `adds missing primary key after primary key column is restored`() {
+        val desired = AutoDdlSchema(
+            tables = listOf(
+                AutoDdlTable(
+                    name = "biz_mapping",
+                    columns = listOf(
+                        AutoDdlColumn("from_id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                        AutoDdlColumn("to_id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                        AutoDdlColumn("mapping_type", AutoDdlLogicalType.STRING, nullable = false, length = 255, primaryKey = true),
+                    ),
+                )
+            )
+        )
+        val actual = AutoDdlSchema(
+            tables = listOf(
+                AutoDdlTable(
+                    name = "biz_mapping",
+                    columns = listOf(
+                        AutoDdlColumn("from_id", AutoDdlLogicalType.INT64, nullable = false),
+                        AutoDdlColumn("to_id", AutoDdlLogicalType.INT64, nullable = false),
+                    ),
+                )
+            )
+        )
+
+        val operations = SchemaDiffPlanner.plan(desired, actual)
+
+        assertEquals(listOf(AddColumn::class, AddPrimaryKey::class), operations.map { it::class })
+        assertEquals(
+            listOf("from_id", "to_id", "mapping_type"),
+            (operations[1] as AddPrimaryKey).columnNames,
+        )
+    }
+
+    @Test
+    fun `replaces changed primary key only when destructive changes are enabled`() {
+        val desired = AutoDdlSchema(
+            tables = listOf(
+                AutoDdlTable(
+                    name = "biz_mapping",
+                    columns = listOf(
+                        AutoDdlColumn("from_id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                        AutoDdlColumn("to_id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                        AutoDdlColumn("mapping_type", AutoDdlLogicalType.STRING, nullable = false, length = 255, primaryKey = true),
+                    ),
+                )
+            )
+        )
+        val actual = desired.copy(
+            tables = listOf(
+                desired.tables.single().copy(
+                    columns = desired.tables.single().columns.map { column ->
+                        column.copy(primaryKey = column.name != "mapping_type")
+                    }
+                )
+            )
+        )
+
+        assertFalse(SchemaDiffPlanner.plan(desired, actual).any { it is DropPrimaryKey || it is AddPrimaryKey })
+
+        val operations = SchemaDiffPlanner.plan(
+            desired,
+            actual,
+            AutoDdlDiffOptions(allowDestructiveChanges = true),
+        )
+
+        assertEquals(listOf(DropPrimaryKey::class, AddPrimaryKey::class), operations.map { it::class })
+    }
+
+    @Test
+    fun `ignores composite primary key order when database metadata only marks key columns`() {
+        val desired = AutoDdlSchema(
+            tables = listOf(
+                AutoDdlTable(
+                    name = "device_category_mapping",
+                    columns = listOf(
+                        AutoDdlColumn("category_id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                        AutoDdlColumn("device_id", AutoDdlLogicalType.INT64, nullable = false, primaryKey = true),
+                    ),
+                )
+            )
+        )
+        val actual = desired.copy(
+            tables = listOf(
+                desired.tables.single().copy(columns = desired.tables.single().columns.reversed())
+            )
+        )
+
+        val operations = SchemaDiffPlanner.plan(
+            desired,
+            actual,
+            AutoDdlDiffOptions(allowDestructiveChanges = true),
+        )
+
+        assertFalse(operations.any { it is DropPrimaryKey || it is AddPrimaryKey })
     }
 }
