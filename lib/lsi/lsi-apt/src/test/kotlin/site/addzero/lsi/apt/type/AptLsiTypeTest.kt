@@ -71,12 +71,14 @@ class AptLsiTypeTest {
         assertEquals("String", processor.simpleName)
         assertEquals("java.lang.String", processor.qualifiedName)
         assertEquals("java.lang.String", processor.returnTypeName)
+        assertTrue(processor.presentableText.orEmpty().contains("javax.validation.constraints.Size"))
     }
 
     private class TypeCaptureProcessor : javax.annotation.processing.AbstractProcessor() {
         var simpleName: String? = null
         var qualifiedName: String? = null
         var returnTypeName: String? = null
+        var presentableText: String? = null
 
         override fun getSupportedAnnotationTypes(): Set<String> = setOf("*")
 
@@ -93,6 +95,7 @@ class AptLsiTypeTest {
             simpleName = lsiMethod.returnType?.simpleName
             qualifiedName = lsiMethod.returnType?.qualifiedName
             returnTypeName = lsiMethod.returnTypeName
+            presentableText = lsiMethod.returnType?.presentableText
             return false
         }
     }
