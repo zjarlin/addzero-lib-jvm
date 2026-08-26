@@ -30,7 +30,7 @@ class AptLsiMethod(
     }
 
     override val returnTypeName: String? by lazy {
-        method.returnType.toString()
+        returnType?.qualifiedName
     }
 
     override val comment: String? by lazy {
@@ -77,7 +77,7 @@ class AptLsiParameter(private val elements: Elements, private val param: Variabl
     }
 
     override val typeName: String? by lazy {
-        param.asType().toString()
+        type?.qualifiedName
     }
 
     override val annotations: List<LsiAnnotation> by lazy {

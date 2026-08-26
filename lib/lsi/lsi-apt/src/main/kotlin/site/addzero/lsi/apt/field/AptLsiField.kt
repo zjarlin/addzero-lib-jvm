@@ -27,8 +27,7 @@ class AptLsiField(
   }
 
   override val typeName: String? by lazy {
-    val toString = field.asType().toString()
-    toString
+    type?.qualifiedName
   }
 
   override val comment: String? by lazy {

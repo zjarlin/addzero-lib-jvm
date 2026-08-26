@@ -15,11 +15,13 @@ import javax.lang.model.util.Elements
 class AptLsiType(private val elements: Elements, private val typeMirror: TypeMirror) : LsiType {
 
     override val simpleName: String? by lazy {
-        typeMirror.toString().substringAfterLast('.')
+        declaredTypeElement?.simpleName?.toString()
+            ?: typeMirror.toString().substringAfterLast('.')
     }
 
     override val qualifiedName: String? by lazy {
-        typeMirror.toString()
+        declaredTypeElement?.qualifiedName?.toString()
+            ?: typeMirror.toString()
     }
 
     override val presentableText: String? by lazy {
@@ -67,17 +69,11 @@ class AptLsiType(private val elements: Elements, private val typeMirror: TypeMir
     }
 
     override val lsiClass: LsiClass? by lazy {
-        when (typeMirror) {
-            is DeclaredType -> {
-                val element = typeMirror.asElement()
-                if (element is TypeElement) site.addzero.lsi.apt.clazz.AptLsiClass(
-                    elements,
-                    element
-                ) else null
-            }
-            else -> null
-        }
+        declaredTypeElement?.let { site.addzero.lsi.apt.clazz.AptLsiClass(elements, it) }
     }
+
+    private val declaredTypeElement: TypeElement?
+        get() = (typeMirror as? DeclaredType)?.asElement() as? TypeElement
 }
 
 // Removed unused extension function - AptLsiType now requires Elements
