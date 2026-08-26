@@ -475,7 +475,13 @@ object LsiAutoDdlSchemaAdapter {
         enumLogicalType()?.let { logicalType ->
             return logicalType
         }
-        val rawType = typeName?.substringAfterLast('.') ?: return AutoDdlLogicalType.UNKNOWN
+        val declaredTypeName = type?.lsiClass?.qualifiedName
+            ?: type?.lsiClass?.simpleName
+            ?: type?.qualifiedName
+            ?: type?.simpleName
+            ?: typeName
+            ?: return AutoDdlLogicalType.UNKNOWN
+        val rawType = declaredTypeName.substringAfterLast('.')
         return when (rawType) {
             "String" -> if (isTextType()) AutoDdlLogicalType.TEXT else AutoDdlLogicalType.STRING
             "Char", "Character" -> AutoDdlLogicalType.CHAR

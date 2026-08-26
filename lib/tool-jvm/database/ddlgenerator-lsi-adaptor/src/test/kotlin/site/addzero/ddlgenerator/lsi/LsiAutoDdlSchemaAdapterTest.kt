@@ -207,6 +207,12 @@ class LsiAutoDdlSchemaAdapterTest {
 
     @Test
     fun `reads bean validation size max as explicit string length`() {
+        val stringType = TestClass(
+            simpleName = "String",
+            qualifiedName = "java.lang.String",
+        )
+        val annotatedTypeName =
+            "(@javax.validation.constraints.Size(max=128),@javax.validation.constraints.Pattern(regexp=.+) :: java.lang.String)"
         val document = TestClass(
             simpleName = "Document",
             qualifiedName = "demo.Document",
@@ -214,8 +220,13 @@ class LsiAutoDdlSchemaAdapterTest {
             fields = listOf(
                 TestField(
                     name = "title",
-                    type = TestType("String"),
-                    typeName = "String",
+                    type = TestType(
+                        simpleName = "String)",
+                        qualifiedName = annotatedTypeName,
+                        presentableText = annotatedTypeName,
+                        lsiClass = stringType,
+                    ),
+                    typeName = annotatedTypeName,
                     annotations = listOf(size(max = 128)),
                 )
             ),
