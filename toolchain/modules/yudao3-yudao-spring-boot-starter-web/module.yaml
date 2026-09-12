@@ -1,0 +1,61 @@
+product: jvm/lib
+description: "site.addzero:yudao-spring-boot-starter-web"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/yudao-java-starter.module-template.yaml
+
+dependencies:
+  - //toolchain/modules/yudao3-yudao-common:
+      exported: true
+  - $libs.yudao.spring.boot.starter.web:
+      exported: true
+  - $libs.yudao.spring.boot.jackson2:
+      exported: true
+  - $libs.yudao.spring.boot.restclient:
+      exported: true
+  - $libs.yudao.spring.boot.starter.validation:
+      exported: true
+  - $libs.yudao.knife4j.openapi3.spring.boot.starter:
+      exported: true
+  - $libs.yudao.springdoc.openapi.ui:
+      exported: true
+  - //toolchain/modules/yudao3-yudao-spring-boot-starter-rpc:
+      scope: compile-only
+  - $libs.yudao.spring.security.core:
+      scope: compile-only
+  - $libs.yudao.guava:
+      scope: compile-only
+  - $libs.yudao.jsoup
+
+test-dependencies:
+  - $libs.yudao.spring.boot.starter.test
+  - $libs.yudao.mockito.inline
+
+settings:
+  publishing:
+    enabled: false
+    group: site.addzero
+    artifactId: yudao-spring-boot-starter-web
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: yudao-spring-boot-starter-web
+      description: "site.addzero:yudao-spring-boot-starter-web"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  java:
+    annotationProcessing:
+      processors:
+        - $libs.yudao.spring.boot.configuration.processor

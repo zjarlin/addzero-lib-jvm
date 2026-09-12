@@ -6,7 +6,7 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 processorBuddy {
-  packageName.set("site.addzero.device.protocol.modbus.ksp.context")
+  packageName.set("site.addzero.device.protocol.modbus.ksp.context.generated")
   mustMap.set(
     mapOf(
       "addzero.modbus.transports" to """listOf("rtu")""",

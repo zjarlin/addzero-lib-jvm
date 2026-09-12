@@ -1,0 +1,6 @@
+modules:
+  - ./build-tools/*
+  - ./modules/*
+
+plugins:
+  - ./build-tools/processor-settings-build

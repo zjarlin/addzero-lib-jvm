@@ -1,0 +1,1 @@
+../../../../../../../../../lib/tool-kmp/koog/src/jvmTest/kotlin/site/addzero/koog/testsupport/KoogOpenAiConsumerTestConfigProvider.kt

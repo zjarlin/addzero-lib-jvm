@@ -8,7 +8,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
-import site.addzero.jdbc2entity.processor.context.Settings
+import site.addzero.jdbc2entity.processor.context.generated.Settings
 
 /**
  * JDBC 转 Jimmer 实体处理器

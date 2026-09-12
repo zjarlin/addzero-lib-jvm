@@ -26,7 +26,7 @@ val autoddlConfigMap = jdbcConfigMap + autoddlSwitch + mapOf(
 
 processorBuddy {
   mustMap.set(autoddlConfigMap)
-  packageName.set("site.addzero.ddlgenerator.runtime.config")
+  packageName.set("site.addzero.ddlgenerator.runtime.config.generated")
   readmeEnabled.set(false)
 }
 dependencies {

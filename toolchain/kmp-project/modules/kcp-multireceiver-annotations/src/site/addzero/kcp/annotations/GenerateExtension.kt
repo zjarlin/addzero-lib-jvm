@@ -1,0 +1,1 @@
+../../../../../../../../../lib/kcp/multireceiver/kcp-multireceiver-annotations/src/commonMain/kotlin/site/addzero/kcp/annotations/GenerateExtension.kt

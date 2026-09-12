@@ -1,0 +1,1 @@
+../../../../../../../../../../../lib/ksp/metadata/method-semanticizer/method-semanticizer-api/src/commonMain/kotlin/site/addzero/ksp/metadata/semantic/annotations/AutoSemantic.kt

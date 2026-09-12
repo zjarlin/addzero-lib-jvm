@@ -1,0 +1,84 @@
+product: jvm/lib
+description: "`modbus-ksp` 是 Modbus 的主 KSP 处理器，也是这个目录里唯一推荐给消费方直接依赖的处理器工件。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-json-withtool.module-template.yaml
+
+dependencies:
+  - //lib/ksp/metadata/modbus/modbus-codegen-core
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+
+test-dependencies:
+  - $libs.org.xerial.sqlite.jdbc.v3
+  - $libs.org.jetbrains.kotlin.kotlin.test
+  - $libs.org.junit.jupiter.junit.jupiter
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.device.protocol.modbus.ksp.context.generated
+    style: context
+    settingsClassName: Settings
+    contextClassName: SettingContext
+    properties:
+      "addzero.modbus.transports": "listOf(\"rtu\")"
+      "addzero.modbus.codegen.mode": "listOf(\"server\")"
+      "addzero.modbus.contractPackages": ","
+      "addzero.modbus.contractPackage": ""
+      "addzero.modbus.metadata.providers": ","
+      "addzero.modbus.database.driverClass": ""
+      "addzero.modbus.database.jdbcUrl": ""
+      "addzero.modbus.database.username": ""
+      "addzero.modbus.database.password": ""
+      "addzero.modbus.database.query": ""
+      "addzero.modbus.database.jsonColumn": ""
+      "addzero.modbus.apiClientPackageName": ""
+      "addzero.modbus.apiClientOutputDir": ""
+      "addzero.modbus.spring.route.outputDir": ""
+      "addzero.modbus.address.lock.path": ""
+      "addzero.modbus.rtu.default.portPath": "/dev/ttyUSB0"
+      "addzero.modbus.rtu.default.unitId": "1"
+      "addzero.modbus.rtu.default.baudRate": "9600"
+      "addzero.modbus.rtu.default.dataBits": "8"
+      "addzero.modbus.rtu.default.stopBits": "1"
+      "addzero.modbus.rtu.default.parity": "none"
+      "addzero.modbus.rtu.default.timeoutMs": "1000"
+      "addzero.modbus.rtu.default.retries": "2"
+      "addzero.modbus.tcp.default.host": "127.0.0.1"
+      "addzero.modbus.tcp.default.port": "502"
+      "addzero.modbus.tcp.default.unitId": "1"
+      "addzero.modbus.tcp.default.timeoutMs": "1000"
+      "addzero.modbus.tcp.default.retries": "2"
+      "addzero.modbus.mqtt.default.brokerUrl": "tcp://127.0.0.1:1883"
+      "addzero.modbus.mqtt.default.clientId": "modbus-mqtt-client"
+      "addzero.modbus.mqtt.default.requestTopic": "modbus/request"
+      "addzero.modbus.mqtt.default.responseTopic": "modbus/response"
+      "addzero.modbus.mqtt.default.qos": "1"
+      "addzero.modbus.mqtt.default.timeoutMs": "1000"
+      "addzero.modbus.mqtt.default.retries": "2"
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: modbus-ksp
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: modbus-ksp
+      description: "`modbus-ksp` 是 Modbus 的主 KSP 处理器，也是这个目录里唯一推荐给消费方直接依赖的处理器工件。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

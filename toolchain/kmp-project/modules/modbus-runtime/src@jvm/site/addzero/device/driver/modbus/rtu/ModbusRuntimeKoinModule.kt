@@ -1,0 +1,1 @@
+../../../../../../../../../../../lib/ksp/metadata/modbus/modbus-runtime/src/main/kotlin/site/addzero/device/driver/modbus/rtu/ModbusRuntimeKoinModule.kt

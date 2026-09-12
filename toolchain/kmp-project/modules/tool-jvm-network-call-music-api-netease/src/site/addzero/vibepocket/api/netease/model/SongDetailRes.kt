@@ -1,0 +1,1 @@
+../../../../../../../../../../../lib/tool-jvm/network-call/music/api-netease/src/commonMain/kotlin/site/addzero/vibepocket/api/netease/model/SongDetailRes.kt

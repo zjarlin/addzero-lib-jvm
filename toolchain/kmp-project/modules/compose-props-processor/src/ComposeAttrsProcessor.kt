@@ -1,0 +1,1 @@
+../../../../../lib/ksp/metadata/compose-props/compose-props-processor/src/commonMain/kotlin/ComposeAttrsProcessor.kt

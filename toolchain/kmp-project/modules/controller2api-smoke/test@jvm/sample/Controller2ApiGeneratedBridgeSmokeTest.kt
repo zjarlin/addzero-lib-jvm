@@ -1,0 +1,1 @@
+../../../../../../lib/ksp/metadata/controller2api-smoke/src/jvmTest/kotlin/sample/Controller2ApiGeneratedBridgeSmokeTest.kt

@@ -69,8 +69,8 @@ fun KnowledgeGraph(
         derivedStateOf {
             buildMap<String, Set<String>> {
                 graphData.edges.forEach { edge ->
-                    put(edge.source, getOrDefault(edge.source, emptySet()) + edge.target)
-                    put(edge.target, getOrDefault(edge.target, emptySet()) + edge.source)
+                    put(edge.source, this[edge.source].orEmpty() + edge.target)
+                    put(edge.target, this[edge.target].orEmpty() + edge.source)
                 }
             }
         }
@@ -123,7 +123,7 @@ fun KnowledgeGraph(
     LaunchedEffect(layout, nodeStates.size) {
         while (isAnimating && layout != null && nodeStates.isNotEmpty()) {
             layout.stepWithStates(nodeStates)
-            updateTrigger = System.currentTimeMillis()
+            updateTrigger++
             delay(16)
         }
     }
@@ -168,7 +168,7 @@ fun KnowledgeGraph(
                                         totalDragDistance += delta.getDistance()
                                         nodeStates[id]?.let { state ->
                                             state.position = state.position + delta
-                                            updateTrigger = System.currentTimeMillis()
+                                            updateTrigger++
                                         }
                                     }
                                 }

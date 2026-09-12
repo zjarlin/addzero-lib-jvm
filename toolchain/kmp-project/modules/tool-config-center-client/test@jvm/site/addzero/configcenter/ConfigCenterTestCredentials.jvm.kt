@@ -1,0 +1,1 @@
+../../../../../../../../lib/tool-kmp/tool-config-center-client/src/jvmTest/kotlin/site/addzero/configcenter/ConfigCenterTestCredentials.jvm.kt

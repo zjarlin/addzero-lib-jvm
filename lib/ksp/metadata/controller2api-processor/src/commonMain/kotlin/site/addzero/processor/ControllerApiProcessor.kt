@@ -1,6 +1,6 @@
 package site.addzero.processor
 
-import site.addzero.controller2api.processor.context.Settings
+import site.addzero.controller2api.processor.context.generated.Settings
 import site.addzero.processor.type.TypeMappingManager
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*

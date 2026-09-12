@@ -1,0 +1,20 @@
+layout: maven-like
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+settings:
+  kotlin:
+    version: 2.4.0
+    allWarningsAsErrors: false
+    freeCompilerArgs:
+      - -Xjsr305=strict
+      - -jvm-default=no-compatibility
+  jvm:
+    test:
+      junitPlatformVersion: 1.13.4

@@ -1,0 +1,48 @@
+product: jvm/lib
+description: "site.addzero:yudao-spring-boot-starter-excel"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/yudao-java-starter.module-template.yaml
+
+dependencies:
+  - //toolchain/modules/yudao3-yudao-common:
+      exported: true
+  - $libs.yudao.spring.boot.starter:
+      exported: true
+  - //toolchain/modules/yudao3-yudao-spring-boot-starter-rpc:
+      scope: compile-only
+  - //toolchain/modules/yudao3-yudao-spring-boot-starter-biz-ip:
+      scope: compile-only
+  - $libs.yudao.spring.web:
+      scope: compile-only
+  - $libs.yudao.jakarta.servlet.api:
+      scope: compile-only
+  - $libs.yudao.easyexcel:
+      exported: true
+  - $libs.yudao.guava:
+      exported: true
+
+settings:
+  publishing:
+    enabled: false
+    group: site.addzero
+    artifactId: yudao-spring-boot-starter-excel
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: yudao-spring-boot-starter-excel
+      description: "site.addzero:yudao-spring-boot-starter-excel"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

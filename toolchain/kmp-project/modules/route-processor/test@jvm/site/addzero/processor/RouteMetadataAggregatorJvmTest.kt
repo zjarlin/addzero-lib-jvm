@@ -1,0 +1,1 @@
+../../../../../../../../lib/ksp/route/route-processor/src/jvmTest/kotlin/site/addzero/processor/RouteMetadataAggregatorJvmTest.kt

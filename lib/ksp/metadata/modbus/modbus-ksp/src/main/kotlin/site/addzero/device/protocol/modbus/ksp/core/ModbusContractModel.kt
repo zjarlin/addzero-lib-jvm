@@ -2,7 +2,7 @@ package site.addzero.device.protocol.modbus.ksp.core
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.KSFile
-import site.addzero.device.protocol.modbus.ksp.context.Settings
+import site.addzero.device.protocol.modbus.ksp.context.generated.Settings
 
 /**
  * Modbus 注解的限定名常量。

@@ -1,7 +1,7 @@
 package site.addzero.generator
 
 import com.google.devtools.ksp.processing.KSPLogger
-import site.addzero.entity2form.processor.context.Settings
+import site.addzero.entity2form.processor.context.generated.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerGeneratedSourceWriter
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerTypeRef

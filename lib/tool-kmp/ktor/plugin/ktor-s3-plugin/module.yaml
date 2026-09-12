@@ -1,0 +1,38 @@
+product: jvm/lib
+description: "`ktor-s3-plugin` provides Koin wiring for `S3Client`, `S3Service`, and an `AppStarter` that enables S3 support"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-koin.module-template.yaml
+
+dependencies:
+  - //lib/tool-kmp/ktor/starter/starter-spi
+  - $libs.io.ktor.ktor.server.core
+  - $libs.io.insert.koin.koin.ktor
+  - $libs.software.amazon.awssdk.s3:
+      exported: true
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: ktor-s3-plugin
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: ktor-s3-plugin
+      description: "`ktor-s3-plugin` provides Koin wiring for `S3Client`, `S3Service`, and an `AppStarter` that enables S3 support"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

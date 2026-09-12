@@ -1,0 +1,45 @@
+product: jvm/lib
+description: "用 Spring 原生 Web 注解写接口，在编译期生成干净的 Ktor Server 路由注册代码。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-ksp-processor.module-template.yaml
+
+test-dependencies:
+  - $libs.org.springframework.spring.context
+  - $libs.org.springframework.spring.web
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.springktor.processor.context.generated
+    style: context
+    settingsClassName: Settings
+    contextClassName: SettingContext
+    properties:
+      "springKtor.generatedPackage": ""
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: spring2ktor-server-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: spring2ktor-server-processor
+      description: "用 Spring 原生 Web 注解写接口，在编译期生成干净的 Ktor Server 路由注册代码。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

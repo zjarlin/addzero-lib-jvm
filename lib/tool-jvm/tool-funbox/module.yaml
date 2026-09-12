@@ -1,0 +1,45 @@
+product: jvm/lib
+description: "site.addzero:tool-funbox"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.cn.hutool.hutool.all
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin:
+      scope: compile-only
+  - $libs.io.swagger.swagger.annotations
+  - $libs.org.springframework.spring.core:
+      scope: compile-only
+  - $libs.org.springframework.spring.web:
+      scope: compile-only
+  - //lib/tool-jvm/tool-reflection
+
+test-dependencies:
+  - $libs.org.springframework.spring.core
+  - $libs.org.springframework.spring.web
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-funbox
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-funbox
+      description: "site.addzero:tool-funbox"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

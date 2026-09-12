@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.Font
-import site.addzero.compose.zh.fonts.generated.resources.Res
-import site.addzero.compose.zh.fonts.generated.resources.noto_sans_cjk_sc_regular
+import site.addzero.compose_zh_fonts.generated.resources.Res
+import site.addzero.compose_zh_fonts.generated.resources.noto_sans_cjk_sc_regular
 
 @Composable
 actual fun rememberChineseUiFontFamilyOrNull(): FontFamily? {

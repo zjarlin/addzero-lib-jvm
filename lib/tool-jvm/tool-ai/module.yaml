@@ -1,0 +1,42 @@
+product: jvm/lib
+description: "site.addzero:tool-ai"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.cn.hutool.hutool.core
+  - $libs.cn.hutool.hutool.http
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin
+  - site.addzero:tool-str:2026.08.11
+  - $libs.site.addzero.tool.jvmstr
+  - //lib/tool-jvm/tool-reflection
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-ai
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-ai
+      description: "site.addzero:tool-ai"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    compilerPlugins:
+      - id: site.addzero.kcp.transform-overload
+        dependency: site.addzero:kcp-transform-overload-plugin:2026.08.11

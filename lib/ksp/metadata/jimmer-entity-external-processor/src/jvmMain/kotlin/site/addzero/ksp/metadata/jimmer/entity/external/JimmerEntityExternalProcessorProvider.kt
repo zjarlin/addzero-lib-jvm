@@ -16,7 +16,7 @@ import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorOptions
-import site.addzero.jimmer.entity.external.processor.context.Settings
+import site.addzero.jimmer.entity.external.processor.context.generated.Settings
 import site.addzero.lsi.processor.ProcessorSpi
 import site.addzero.tool.coll.topoSort
 import java.util.ServiceLoader

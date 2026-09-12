@@ -7,6 +7,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.client.request.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -14,6 +15,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.koin.core.annotation.Single
 import org.koin.mp.KoinPlatform
 import site.addzero.core.network.json.json
 import site.addzero.core.network.spi.HttpClientProfileSpi
@@ -23,6 +25,80 @@ import site.addzero.ktor2curl.KtorToCurl
 import kotlin.time.Duration.Companion.minutes
 
 internal expect val httpClientEngineFactory: HttpClientEngineFactory<*>
+
+const val DEFAULT_HTTP_CLIENT_PROFILE = "default"
+
+/**
+ * Creates and caches clients by logical profile while keeping request credentials mutable.
+ */
+@Single
+class HttpClientFactory {
+  private val bearerTokens = mutableMapOf<String, String>()
+  private val clients = mutableMapOf<String, HttpClient>()
+
+  fun get(profile: String = DEFAULT_HTTP_CLIENT_PROFILE): HttpClient {
+    val normalizedProfile = profile.normalizeHttpClientProfile()
+    return withHttpClientFactoryLock(this) {
+      clients.getOrPut(normalizedProfile) {
+        buildClient(normalizedProfile)
+      }
+    }
+  }
+
+  fun setBearerToken(
+    profile: String = DEFAULT_HTTP_CLIENT_PROFILE,
+    token: String?,
+  ) {
+    val normalizedProfile = profile.normalizeHttpClientProfile()
+    val normalizedToken = token?.trim()?.ifBlank { null }
+    withHttpClientFactoryLock(this) {
+      if (normalizedToken == null) {
+        bearerTokens.remove(normalizedProfile)
+      } else {
+        bearerTokens[normalizedProfile] = normalizedToken
+      }
+    }
+  }
+
+  fun clear(profile: String = DEFAULT_HTTP_CLIENT_PROFILE) {
+    val normalizedProfile = profile.normalizeHttpClientProfile()
+    val client = withHttpClientFactoryLock(this) {
+      bearerTokens.remove(normalizedProfile)
+      clients.remove(normalizedProfile)
+    }
+    client?.close()
+  }
+
+  private fun buildClient(profile: String): HttpClient {
+    return HttpClient(httpClientEngineFactory) {
+      configtimeout()
+      configLog()
+      configJson()
+      configHttpErrors()
+      configCurl()
+      defaultRequest {
+        snapshotBearerToken(profile)?.let { token ->
+          bearerAuth(token)
+        }
+      }
+    }
+  }
+
+  private fun snapshotBearerToken(profile: String): String? {
+    return withHttpClientFactoryLock(this) {
+      bearerTokens[profile]
+    }
+  }
+}
+
+internal expect fun <T> withHttpClientFactoryLock(
+  lock: Any,
+  block: () -> T,
+): T
+
+private fun String.normalizeHttpClientProfile(): String {
+  return trim().ifBlank { DEFAULT_HTTP_CLIENT_PROFILE }
+}
 
 /**
  * curl日志
@@ -134,7 +210,10 @@ private fun HttpClientConfig<*>.configResPonse() {
 private fun HttpClientConfig<*>.configToken(token: String?) {
   defaultRequest {
     headers {
-      token ?: KoinPlatform.getKoin().get<TokenManager>().getToken()?.let {
+      val resolvedToken = token ?: runCatching {
+        KoinPlatform.getKoin().get<TokenManager>().getToken()
+      }.getOrNull()
+      resolvedToken?.let {
         append(HttpHeaders.Authorization, it)
       }
     }
@@ -206,4 +285,3 @@ private fun String?.extractHttpErrorMessage(): String? {
     text
   }
 }
-

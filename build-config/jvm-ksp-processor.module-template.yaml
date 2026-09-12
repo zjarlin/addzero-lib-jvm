@@ -1,0 +1,10 @@
+dependencies:
+  - $libs.com.google.auto.service.annotations
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+
+settings:
+  kotlin:
+    ksp:
+      version: 2.3.9
+      processors:
+        - $libs.dev.zacsweers.autoservice.auto.service.ksp

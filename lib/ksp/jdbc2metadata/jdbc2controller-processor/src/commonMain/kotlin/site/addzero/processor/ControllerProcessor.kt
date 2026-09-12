@@ -7,7 +7,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import site.addzero.entity.JdbcTableMetadata
-import site.addzero.jdbc2controller.processor.context.Settings
+import site.addzero.jdbc2controller.processor.context.generated.Settings
 import site.addzero.util.JdbcMetadataExtractor
 import site.addzero.util.str.*
 import java.io.File

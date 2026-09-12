@@ -1,0 +1,58 @@
+product: jvm/lib
+description: "site.addzero:tool-sql-executor"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.org.owasp.encoder.encoder.esapi
+  - $libs.mysql.mysql.connector.java:
+      scope: compile-only
+  - $libs.org.postgresql.postgresql:
+      scope: compile-only
+  - $libs.com.oracle.database.jdbc.ojdbc8:
+      scope: compile-only
+  - $libs.com.microsoft.sqlserver.mssql.jdbc:
+      scope: compile-only
+  - $libs.com.h2database.h2:
+      scope: compile-only
+  - $libs.org.xerial.sqlite.jdbc.v3:
+      scope: compile-only
+  - $libs.com.dameng.dm.jdbc.driver18:
+      scope: compile-only
+  - $libs.cn.com.kingbase.kingbase8:
+      scope: compile-only
+  - $libs.com.oceanbase.oceanbase.client:
+      scope: compile-only
+  - $libs.com.ibm.db2.jcc:
+      scope: compile-only
+  - $libs.com.taosdata.jdbc.taos.jdbcdriver
+
+test-dependencies:
+  - $libs.com.h2database.h2
+  - $libs.org.xerial.sqlite.jdbc.v3
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-sql-executor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-sql-executor
+      description: "site.addzero:tool-sql-executor"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

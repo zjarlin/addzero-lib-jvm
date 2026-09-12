@@ -1,0 +1,35 @@
+product: jvm/lib
+description: "> S3 兼容对象存储工具库，统一封装 AWS S3 / MinIO / RustFS / Cloudflare R2 等存储后端的操作，支持分片上传、断点续传和进度追踪。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.software.amazon.awssdk.s3
+  - $libs.org.slf4j.slf4j.api
+  - $libs.com.github.ben.manes.caffeine.caffeine
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-s3
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-s3
+      description: "> S3 兼容对象存储工具库，统一封装 AWS S3 / MinIO / RustFS / Cloudflare R2 等存储后端的操作，支持分片上传、断点续传和进度追踪。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

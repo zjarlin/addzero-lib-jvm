@@ -5,7 +5,7 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
 import java.io.File
-import site.addzero.controller2iso2dataprovider.processor.context.Settings
+import site.addzero.controller2iso2dataprovider.processor.context.generated.Settings
 
 /**
  * Controller 转 Iso2DataProvider 处理器提供者

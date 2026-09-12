@@ -1,7 +1,7 @@
 package site.addzero.util
 
 import site.addzero.entity.JdbcTableMetadata
-import site.addzero.util.DatabaseMetadataUtil.getTableMetaData
+import site.addzero.util.DatabaseMetadataReader
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
@@ -109,29 +109,16 @@ object JdbcMetadataExtractor {
      * @param config JDBC配置
      * @throws java.lang.ClassNotFoundException 如果找不到JDBC驱动
      * @throws java.sql.SQLException 如果数据库连接或查询失败
-     */
+    */
     fun extractDatabaseMetadata(config: JdbcConfig): List<JdbcTableMetadata> {
-        var connection: Connection? = null
+        Class.forName(config.jdbcDriver)
 
-        val tables = try {
-            // 加载驱动
-            Class.forName(config.jdbcDriver)
-
-            // 建立连接
-            connection = createConnection(config)
-            println("数据库连接成功")
-
-            val tables = getTableMetaData(connection, config.jdbcSchema, config.includeTables, config.excludeTables)
-            println("成功从数据库读取了 ${tables.size} 个表的元数据")
-            tables
-        } finally {
-            try {
-                connection?.close()
-            } catch (e: SQLException) {
-                println("关闭数据库连接时发生错误: ${e.message}")
-            }
-        }
-
+        val tables = DatabaseMetadataReader(
+            url = config.jdbcUrl,
+            username = config.jdbcUsername,
+            password = config.jdbcPassword,
+        ).getTableMetaData(config.jdbcSchema, config.includeTables, config.excludeTables)
+        println("成功从数据库读取了 ${tables.size} 个表的元数据")
         return tables
     }
 

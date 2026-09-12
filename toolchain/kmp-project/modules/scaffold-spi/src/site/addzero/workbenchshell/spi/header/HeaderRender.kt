@@ -1,0 +1,1 @@
+../../../../../../../../../../lib/compose/scaffold-spi/src/commonMain/kotlin/site/addzero/workbenchshell/spi/header/HeaderRender.kt

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import site.addzero.network.call.browser.core.BrowserAutomationOptions
 
 @Tag("integration")
-//@Disabled("Real registration test — enable manually")
+@Disabled("Real registration test - enable manually")
 class WindsurfRegisterAutomationTest {
 
   /**

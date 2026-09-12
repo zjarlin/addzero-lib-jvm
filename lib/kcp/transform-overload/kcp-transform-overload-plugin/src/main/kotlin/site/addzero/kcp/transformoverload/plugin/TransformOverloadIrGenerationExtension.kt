@@ -19,7 +19,9 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
@@ -98,8 +100,8 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             println("[TransformOverload] Found ${functions.size} functions in ${classDecl.name}")
             if (classDecl.name.asString() == "UserRepository") {
                 functions.forEach { func ->
-                    val params = func.valueParameters.joinToString { "${it.name}: ${it.type}" }
-                    val paramTypes = func.valueParameters.map { param ->
+                    val params = func.regularParameters().joinToString { "${it.name}: ${it.type}" }
+                    val paramTypes = func.regularParameters().map { param ->
                         when (val type = param.type) {
                             is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
                                 when (val classifier = type.classifier) {
@@ -170,7 +172,7 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         // 额外检测：参数类型为 Input 或 Draft 的函数也可能是生成的重载
         for (func in functions) {
             if (func in candidates || func in originals) continue
-            val hasInputOrDraftParam = func.valueParameters.any { param ->
+            val hasInputOrDraftParam = func.regularParameters().any { param ->
                 val type = param.type
                 val typeName = when (type) {
                     is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
@@ -202,7 +204,7 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         for (orig in originals) {
             if (orig in allCandidates) continue
             // 检查参数类型是否包含 Input 或 Draft
-            val hasInputOrDraftParam = orig.valueParameters.any { param ->
+            val hasInputOrDraftParam = orig.regularParameters().any { param ->
                 val type = param.type
                 val classifierName = when (type) {
                     is org.jetbrains.kotlin.ir.types.IrSimpleType -> {
@@ -228,7 +230,7 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         val additionalCandidates = functions.filter { func ->
             val isNotAlreadyProcessed = func !in allCandidates
             if (!isNotAlreadyProcessed) return@filter false
-            val hasInputOrDraft = func.valueParameters.any { param ->
+            val hasInputOrDraft = func.regularParameters().any { param ->
                 val type = param.type
                 // 获取类型的分类器名称
                 val classifierName = when (type) {
@@ -251,7 +253,7 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             }
             hasInputOrDraft
         }
-        println("[TransformOverload] additionalCandidates names: ${additionalCandidates.map { "${it.name}(${it.valueParameters.map { p -> p.type.toString() }})" }}")
+        println("[TransformOverload] additionalCandidates names: ${additionalCandidates.map { "${it.name}(${it.regularParameters().map { p -> p.type.toString() }})" }}")
         allCandidates.addAll(additionalCandidates)
         println("[TransformOverload] allCandidates after adding additional: ${allCandidates.map { it.name }}")
 
@@ -316,11 +318,12 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun createRawConverterSpec(function: IrSimpleFunction): RawIrConverterSpec {
-        if (function.contextReceiverParametersCount > 0) {
+        if (function.contextParameters().isNotEmpty()) {
             invalidConverter(function, "context parameters are not supported")
         }
-        val hasExtensionReceiver = function.extensionReceiverParameter != null
-        val valueParameterCount = function.valueParameters.size
+        val extensionReceiver = function.extensionReceiver()
+        val hasExtensionReceiver = extensionReceiver != null
+        val valueParameterCount = function.regularParameters().size
         if (hasExtensionReceiver && valueParameterCount > 0) {
             invalidConverter(function, "extension converter cannot declare value parameters")
         }
@@ -338,9 +341,9 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         }
 
         val sourceType = if (hasExtensionReceiver) {
-            function.extensionReceiverParameter!!.type
+            extensionReceiver.type
         } else {
-            function.valueParameters.single().type
+            function.regularParameters().single().type
         }
         val parameterKind = if (hasExtensionReceiver) {
             ConverterParameterKind.EXTENSION_RECEIVER
@@ -394,23 +397,25 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             println("[TransformOverload]   -> name mismatch")
             return null
         }
-        if (original.valueParameters.size != generated.valueParameters.size) {
+        val originalParameters = original.regularParameters()
+        val generatedParameters = generated.regularParameters()
+        if (originalParameters.size != generatedParameters.size) {
             return null
         }
         if (original.typeParameters.size != generated.typeParameters.size) {
             return null
         }
-        if (original.extensionReceiverParameter != null || generated.extensionReceiverParameter != null) {
+        if (original.extensionReceiver() != null || generated.extensionReceiver() != null) {
             return null
         }
-        if (original.contextReceiverParametersCount > 0 || generated.contextReceiverParametersCount > 0) {
+        if (original.contextParameters().isNotEmpty() || generated.contextParameters().isNotEmpty()) {
             return null
         }
 
         val perParameterChoices = mutableListOf<List<IrParameterTransform?>>()
-        for (index in original.valueParameters.indices) {
-            val originalType = original.valueParameters[index].type
-            val generatedType = generated.valueParameters[index].type
+        for (index in originalParameters.indices) {
+            val originalType = originalParameters[index].type
+            val generatedType = generatedParameters[index].type
             if (sameIrType(originalType, generatedType)) {
                 perParameterChoices += listOf(null)
                 continue
@@ -518,9 +523,10 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
                 call.dispatchReceiver = irGet(receiver)
             }
             generated.typeParameters.forEachIndexed { index, typeParameter ->
-                call.putTypeArgument(index, typeParameter.defaultType)
+                call.typeArguments[index] = typeParameter.defaultType
             }
-            generated.valueParameters.forEachIndexed { index, parameter ->
+            val originalParameters = match.original.regularParameters()
+            generated.regularParameters().forEachIndexed { index, parameter ->
                 val transform = transformsByIndex[index]
                 val argument = if (transform == null) {
                     irGet(parameter)
@@ -530,10 +536,10 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
                         helperSymbols = helperSymbols,
                         transform = transform,
                         sourceExpression = irGet(parameter),
-                        targetType = match.original.valueParameters[index].type,
+                        targetType = originalParameters[index].type,
                     )
                 }
-                call.putValueArgument(index, argument)
+                call.arguments[originalParameters[index]] = argument
             }
         }
 
@@ -580,18 +586,18 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             targetType = targetType,
         )
         converter.function.typeParameters.forEachIndexed { index, typeParameter ->
-            call.putTypeArgument(index, typeArguments[typeParameter.symbol])
+            call.typeArguments[index] = typeArguments[typeParameter.symbol]
         }
         buildDispatchReceiver(converter)?.let { receiver ->
             call.dispatchReceiver = receiver
         }
         when (converter.parameterKind) {
             ConverterParameterKind.EXTENSION_RECEIVER -> {
-                call.extensionReceiver = sourceExpression
+                call.arguments[converter.function.extensionReceiver()!!] = sourceExpression
             }
 
             ConverterParameterKind.VALUE_PARAMETER -> {
-                call.putValueArgument(0, sourceExpression)
+                call.arguments[converter.function.regularParameters().single()] = sourceExpression
             }
         }
         return call
@@ -610,18 +616,12 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
             ?: error("Unable to resolve lifted target element type for ${transform.converter.callableIdText}")
         val helperSymbol = helperSymbols.symbolFor(transform.liftKind)
         val call = irCall(helperSymbol)
-        call.putTypeArgument(0, sourceElementType)
-        call.putTypeArgument(1, targetElementType)
-        call.putValueArgument(0, sourceExpression)
-        call.putValueArgument(
-            1,
-            buildDispatchReceiver(transform.converter) ?: irNull(pluginContext.irBuiltIns.anyNType),
-        )
-        call.putValueArgument(
-            2,
-            irString(ownerClassName(transform.converter)),
-        )
-        call.putValueArgument(3, irString(transform.converter.function.name.asString()))
+        call.typeArguments[0] = sourceElementType
+        call.typeArguments[1] = targetElementType
+        call.arguments[0] = sourceExpression
+        call.arguments[1] = buildDispatchReceiver(transform.converter) ?: irNull(pluginContext.irBuiltIns.anyNType)
+        call.arguments[2] = irString(ownerClassName(transform.converter))
+        call.arguments[3] = irString(transform.converter.function.name.asString())
         return call
     }
 
@@ -632,7 +632,7 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         }
         val constructor = parentClass.declarations
             .filterIsInstance<IrConstructor>()
-            .firstOrNull { declaration -> declaration.valueParameters.isEmpty() }
+            .firstOrNull { declaration -> declaration.regularParameters().isEmpty() }
             ?: error(
                 "TransformProvider container ${parentClass.name} must be an object or expose a zero-arg constructor",
             )
@@ -759,11 +759,20 @@ class TransformOverloadIrGenerationExtension : IrGenerationExtension {
         }
     }
 
+    private fun IrFunction.contextParameters() =
+        parameters.filter { parameter -> parameter.kind == IrParameterKind.Context }
+
+    private fun IrFunction.extensionReceiver() =
+        parameters.singleOrNull { parameter -> parameter.kind == IrParameterKind.ExtensionReceiver }
+
+    private fun IrFunction.regularParameters() =
+        parameters.filter { parameter -> parameter.kind == IrParameterKind.Regular }
+
     private fun isSupportedOriginalFunction(function: IrSimpleFunction): Boolean {
-        if (function.extensionReceiverParameter != null) {
+        if (function.extensionReceiver() != null) {
             return false
         }
-        if (function.contextReceiverParametersCount > 0) {
+        if (function.contextParameters().isNotEmpty()) {
             return false
         }
         if (function.hasAnnotation(TransformOverloadPluginKeys.overloadTransformAnnotation)) {

@@ -7,8 +7,8 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.expressions.IrAnnotation
+import org.jetbrains.kotlin.ir.expressions.impl.IrAnnotationImpl
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isFakeOverride
 import org.jetbrains.kotlin.name.ClassId
@@ -91,8 +91,8 @@ class AllObjectJvmStaticIrGenerationExtension : IrGenerationExtension {
         function: IrSimpleFunction,
         annotationType: org.jetbrains.kotlin.ir.types.IrType,
         constructor: org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol,
-    ): IrConstructorCall {
-        return IrConstructorCallImpl(
+    ): IrAnnotation {
+        return IrAnnotationImpl(
             function.startOffset,
             function.endOffset,
             annotationType,

@@ -1,0 +1,6 @@
+dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json
+
+settings:
+  kotlin:
+    serialization: enabled

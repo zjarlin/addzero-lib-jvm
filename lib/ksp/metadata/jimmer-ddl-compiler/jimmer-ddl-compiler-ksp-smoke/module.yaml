@@ -1,0 +1,46 @@
+product: jvm/lib
+description: "site.addzero:jimmer-ddl-compiler-ksp-smoke"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-ksp-processor.module-template.yaml
+
+dependencies:
+  - $libs.org.babyfish.jimmer.jimmer.core
+
+settings:
+  publishing:
+    enabled: false
+    group: site.addzero
+    artifactId: jimmer-ddl-compiler-ksp-smoke
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jimmer-ddl-compiler-ksp-smoke
+      description: "site.addzero:jimmer-ddl-compiler-ksp-smoke"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    ksp:
+      version: 2.3.9
+      processors:
+        - //lib/ksp/metadata/jimmer-ddl-compiler/jimmer-ddl-compiler-processor
+      processorOptions:
+        "jimmerDdl.databaseType": "h2"
+        "jimmerDdl.outputFormat": "flyway"
+        "jimmerDdl.outputDir": "build/generated/jimmer-ddl/main/resources/db/migration"
+        "jimmerDdl.version": "9001"
+        "jimmerDdl.description": "ksp_smoke"
+        "jimmerDdl.includeComments": "false"

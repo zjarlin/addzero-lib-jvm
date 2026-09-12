@@ -5,7 +5,7 @@ plugins {
 val libs = versionCatalogs.named("libs")
 
 processorBuddy {
-    packageName.set("site.addzero.springktor.processor.context")
+    packageName.set("site.addzero.springktor.processor.context.generated")
     mustMap.set(
         mapOf(
             "springKtor.generatedPackage" to "",

@@ -125,7 +125,7 @@ object CreditCardGenerator {
 
   private fun luhnCheckDigit(partial: String): Int {
     var sum = 0
-    var isEven = false
+    var isEven = true
     for (i in partial.length - 1 downTo 0) {
       var digit = partial[i] - '0'
       if (isEven) {

@@ -11,7 +11,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import site.addzero.enumprocessor.context.Settings
+import site.addzero.enumprocessor.context.generated.Settings
 
 /**
  * 枚举处理器

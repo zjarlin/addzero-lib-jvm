@@ -1,0 +1,41 @@
+product: jvm/lib
+description: "site.addzero:kcp-spread-pack-plugin"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - site.addzero:kcp-spread-pack-annotations:2026.08.11
+  - org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.21:
+      scope: compile-only
+
+test-dependencies:
+  - org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.21
+  - $libs.org.junit.jupiter.junit.jupiter
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: kcp-spread-pack-plugin
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: kcp-spread-pack-plugin
+      description: "site.addzero:kcp-spread-pack-plugin"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21

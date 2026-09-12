@@ -1,0 +1,43 @@
+product: jvm/lib
+description: "基于 Spring Boot AOP 的**字典翻译**自动翻译组件。在 Controller 方法返回值时，自动扫描对象上标注的 `@Dict` 注解，将字典编码（code）翻译为可读的文本（label/name），支持内置字典表和任意数据库表两种翻译数据源。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/spring-starter.module-template.yaml
+
+dependencies:
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin
+  - //lib/tool-jvm/tool-reflection
+  - //lib/tool-jvm/tool-bean
+  - //lib/tool-jvm/tool-bytebuddy
+  - site.addzero:tool-str:2026.08.11
+  - $libs.org.babyfish.jimmer.jimmer.core
+  - $libs.org.jetbrains.kotlin.kotlin.reflect
+  - //lib/apt/dict-trans/dict-trans-core:
+      exported: true
+  - //lib/tool-starter/controller-autoconfigure
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: dict-trans-spring-boot-starter
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: dict-trans-spring-boot-starter
+      description: "基于 Spring Boot AOP 的**字典翻译**自动翻译组件。在 Controller 方法返回值时，自动扫描对象上标注的 `@Dict` 注解，将字典编码（code）翻译为可读的文本（label/name），支持内置字典表和任意数据库表两种翻译数据源。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

@@ -44,6 +44,7 @@ internal class AutoWhereUtilTest {
         @Where(ignore = true, condition = "#dto.skipName == true")
         var name: String? = null
 
+        @TableField(exist = false)
         var skipName: Boolean = false
     }
 

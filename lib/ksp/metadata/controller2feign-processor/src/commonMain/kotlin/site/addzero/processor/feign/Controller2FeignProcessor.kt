@@ -4,7 +4,7 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
-import site.addzero.controller2feign.processor.context.Settings
+import site.addzero.controller2feign.processor.context.generated.Settings
 
 class Controller2FeignProcessor(
     private val codeGenerator: CodeGenerator,

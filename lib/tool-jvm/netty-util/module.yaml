@@ -1,0 +1,36 @@
+product: jvm/lib
+description: "site.addzero:netty-util"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.io.netty.netty.all
+  - $libs.org.slf4j.slf4j.api
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin
+  - $libs.cn.hutool.hutool.all
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: netty-util
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: netty-util
+      description: "site.addzero:netty-util"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

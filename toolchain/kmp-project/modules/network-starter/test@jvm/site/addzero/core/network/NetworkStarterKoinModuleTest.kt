@@ -1,0 +1,1 @@
+../../../../../../../../../lib/tool-kmp/network-starter/src/jvmTest/kotlin/site/addzero/core/network/NetworkStarterKoinModuleTest.kt

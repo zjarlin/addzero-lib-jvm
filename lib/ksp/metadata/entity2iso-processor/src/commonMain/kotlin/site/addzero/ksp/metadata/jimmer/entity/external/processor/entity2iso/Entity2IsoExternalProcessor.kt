@@ -1,7 +1,7 @@
 package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2iso
 
 import generator.IsoCodeGenerator
-import site.addzero.entity2iso.processor.context.Settings
+import site.addzero.entity2iso.processor.context.generated.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorOptions
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds

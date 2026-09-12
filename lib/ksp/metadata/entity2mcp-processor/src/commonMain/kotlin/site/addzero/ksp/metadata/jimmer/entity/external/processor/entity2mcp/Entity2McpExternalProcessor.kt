@@ -1,6 +1,6 @@
 package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2mcp
 
-import site.addzero.entity2mcp.processor.context.Settings
+import site.addzero.entity2mcp.processor.context.generated.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityMeta
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds

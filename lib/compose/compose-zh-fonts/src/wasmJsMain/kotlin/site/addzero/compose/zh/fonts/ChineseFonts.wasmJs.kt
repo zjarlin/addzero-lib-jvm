@@ -10,8 +10,8 @@ import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.preloadFont
-import site.addzero.compose.zh.fonts.generated.resources.Res
-import site.addzero.compose.zh.fonts.generated.resources.noto_sans_cjk_sc_regular
+import site.addzero.compose_zh_fonts.generated.resources.Res
+import site.addzero.compose_zh_fonts.generated.resources.noto_sans_cjk_sc_regular
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable

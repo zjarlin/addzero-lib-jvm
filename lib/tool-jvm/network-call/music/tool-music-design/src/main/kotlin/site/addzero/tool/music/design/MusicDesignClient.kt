@@ -2,6 +2,7 @@ package site.addzero.tool.music.design
 
 import site.addzero.network.call.music.MusicSearchUtil
 import site.addzero.network.call.suno.SunoClient
+import site.addzero.network.call.suno.model.SunoMusicRequest
 import site.addzero.network.call.suno.model.SunoTask
 
 /**
@@ -9,10 +10,6 @@ import site.addzero.network.call.suno.model.SunoTask
  * 整合歌词搜索和 suno 音乐生成功能
  */
 class MusicDesignClient(private val apiKey: String, private val baseUrl: String) {
-  init {
-//    MusicSearchUtil.baseUrl = "https://music.163.com/api"
-    MusicSearchUtil.config(baseUrl = "https://music.163.com/api")
-  }
   private val suno by lazy {
     SunoClient(apiKey, baseUrl)
   }
@@ -40,13 +37,13 @@ class MusicDesignClient(private val apiKey: String, private val baseUrl: String)
     val cleanLyrics = cleanLyricTimestamps(lyrics)
 
     // 生成音乐
-    return suno.generateMusicCustom(
+    return suno.generateMusic(SunoMusicRequest(
       prompt = cleanLyrics,
       title = songName,
       tags = tags,
-      model = model,
-      instrumental = false
-    )
+      mv = model,
+      makeInstrumental = false,
+    ))
   }
 
   /**
@@ -73,13 +70,13 @@ class MusicDesignClient(private val apiKey: String, private val baseUrl: String)
     val cleanLyrics = cleanLyricTimestamps(lyrics)
 
     // 生成音乐
-    return suno.generateMusicCustom(
+    return suno.generateMusic(SunoMusicRequest(
       prompt = cleanLyrics,
       title = result.song.name,
       tags = tags,
-      model = model,
-      instrumental = false
-    )
+      mv = model,
+      makeInstrumental = false,
+    ))
   }
 
   /**
@@ -118,13 +115,13 @@ class MusicDesignClient(private val apiKey: String, private val baseUrl: String)
     // 清理歌词（去除时间轴）
     val cleanLyrics = cleanLyricTimestamps(lyrics)
 
-    return suno.generateMusicCustom(
+    return suno.generateMusic(SunoMusicRequest(
       prompt = cleanLyrics,
       title = title,
       tags = tags,
-      model = model,
-      instrumental = false
-    )
+      mv = model,
+      makeInstrumental = false,
+    ))
   }
 
   /**

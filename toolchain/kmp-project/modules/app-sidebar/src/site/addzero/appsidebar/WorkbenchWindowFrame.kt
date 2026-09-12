@@ -1,0 +1,1 @@
+../../../../../../../../lib/compose/app-sidebar/src/commonMain/kotlin/site/addzero/appsidebar/WorkbenchWindowFrame.kt

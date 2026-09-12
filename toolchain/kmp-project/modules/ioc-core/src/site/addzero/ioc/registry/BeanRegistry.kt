@@ -1,0 +1,1 @@
+../../../../../../../../../lib/ksp/metadata/ioc/ioc-core/src/commonMain/kotlin/site/addzero/ioc/registry/BeanRegistry.kt

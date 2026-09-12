@@ -1,0 +1,1 @@
+../../../../../../../../lib/ksp/metadata/compose-props/compose-props-annotations/src/commonMain/kotlin/site/addzero/annotation/ComposeAssist.kt

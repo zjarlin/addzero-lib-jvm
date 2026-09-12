@@ -1,0 +1,77 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android, wasmJs]
+description: "Kotlin Multiplatform 配置中心客户端。底层使用 Ktor Client，公共 API 放在 `commonMain`，可供 JVM 服务、Compose Multiplatform 前端和 Wasm 前端复用。"
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.core
+  - $libs.io.ktor.ktor.client.core
+  - $libs.io.ktor.ktor.client.content.negotiation
+  - $libs.io.ktor.ktor.serialization.kotlinx.json
+  - $libs.io.ktor.ktor.client.logging
+  - //modules/tool-json
+
+dependencies@jvm:
+  - $libs.io.ktor.ktor.client.cio:
+      exported: true
+  - $libs.ch.qos.logback.logback.classic
+
+dependencies@wasmJs:
+  - $libs.io.ktor.ktor.client.js:
+      exported: true
+
+dependencies@native:
+  - $libs.io.ktor.ktor.client.darwin:
+      exported: true
+
+dependencies@android:
+  - $libs.io.ktor.ktor.client.okhttp
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-config-center-client
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-config-center-client
+      description: "Kotlin Multiplatform 配置中心客户端。底层使用 Ktor Client，公共 API 放在 `commonMain`，可供 JVM 服务、Compose Multiplatform 前端和 Wasm 前端复用。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+    serialization: enabled
+  jvm:
+    jdk:
+      version: 17
+    release: 17
+  android:
+    namespace: site.addzero.toolkmp.toolconfigcenterclient

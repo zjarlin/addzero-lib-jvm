@@ -1,0 +1,1 @@
+../../../../../../../../lib/tool-kmp/tool-config-center-client/src/wasmJsTest/kotlin/site/addzero/configcenter/ConfigCenterTestCredentials.wasmJs.kt

@@ -1,0 +1,1 @@
+../../../../../../../../../../lib/compose/compose-zh-fonts/src/wasmJsMain/kotlin/site/addzero/compose/zh/fonts/ChineseFonts.wasmJs.kt

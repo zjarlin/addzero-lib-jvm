@@ -1,0 +1,1 @@
+../../../../../../../../lib/tool-kmp/tool-config-center-client/src/commonMain/kotlin/site/addzero/configcenter/ConfigItem.kt

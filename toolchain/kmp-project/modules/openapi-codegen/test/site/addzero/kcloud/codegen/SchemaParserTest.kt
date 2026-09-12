@@ -1,0 +1,1 @@
+../../../../../../../../../lib/openapi-codegen/src/commonTest/kotlin/site/addzero/kcloud/codegen/SchemaParserTest.kt

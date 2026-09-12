@@ -8,7 +8,7 @@ version = "2026.06.26"
 val libs = versionCatalogs.named("libs")
 
 processorBuddy {
-    packageName.set("site.addzero.jimmer.lowquery.processor.context")
+    packageName.set("site.addzero.jimmer.lowquery.processor.context.generated")
     mustMap.set(
         mapOf(
             "jimmerLowQuery.generatedPackage" to "",

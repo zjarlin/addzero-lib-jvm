@@ -1,0 +1,1 @@
+../../../../../../../../../lib/ksp/metadata/ioc/ioc-core/src/commonTest/kotlin/site/addzero/ioc/registry/BeanDefinitionsTest.kt

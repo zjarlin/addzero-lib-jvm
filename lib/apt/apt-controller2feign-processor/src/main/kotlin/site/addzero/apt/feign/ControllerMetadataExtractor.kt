@@ -1,9 +1,9 @@
 package site.addzero.apt.feign
 
-import site.addzero.util.lsi.anno.LsiAnnotation
-import site.addzero.util.lsi.clazz.LsiClass
-import site.addzero.util.lsi.method.LsiMethod
-import site.addzero.util.lsi.method.LsiParameter
+import site.addzero.lsi.anno.LsiAnnotation
+import site.addzero.lsi.clazz.LsiClass
+import site.addzero.lsi.method.LsiMethod
+import site.addzero.lsi.method.LsiParameter
 
 object ControllerMetadataExtractor {
 
@@ -23,7 +23,7 @@ object ControllerMetadataExtractor {
     )
 
     fun extract(lsiClass: LsiClass): ControllerMeta {
-        val className = lsiClass.name ?: ""
+        val className = lsiClass.simpleName ?: ""
         val packageName = lsiClass.qualifiedName?.substringBeforeLast('.') ?: ""
         val basePath = lsiClass.annotations.extractPath("RequestMapping")
         

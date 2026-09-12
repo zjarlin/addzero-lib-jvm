@@ -1,0 +1,35 @@
+product: jvm/lib
+description: "site.addzero:jimmer-ext-dynamic-datasource"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/spring-starter.module-template.yaml
+
+dependencies:
+  - $libs.org.babyfish.jimmer.jimmer.spring.boot.starter
+  - $libs.org.aspectj.aspectjweaver
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: jimmer-ext-dynamic-datasource
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jimmer-ext-dynamic-datasource
+      description: "site.addzero:jimmer-ext-dynamic-datasource"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

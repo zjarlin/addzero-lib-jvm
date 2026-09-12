@@ -1,0 +1,57 @@
+product:
+  type: kmp/lib
+  platforms: [jvm]
+description: "site.addzero:ksp-dsl-builder-processor"
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - //modules/ksp-dsl-builder-core
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+
+dependencies@jvm:
+  - site.addzero:lsi-ksp:2026.08.11
+  - $libs.cn.hutool.hutool.all
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: ksp-dsl-builder-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: ksp-dsl-builder-processor
+      description: "site.addzero:ksp-dsl-builder-processor"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+  jvm:
+    jdk:
+      version: 17
+    release: 17

@@ -1,0 +1,36 @@
+product: jvm/lib
+description: "site.addzero:jimmer-ext-lowquery"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.org.babyfish.jimmer.jimmer.sql.kotlin
+  - $libs.cn.hutool.hutool.all
+  - $libs.site.addzero.jimmer.model.lowquery.v2025:
+      exported: true
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: jimmer-ext-lowquery
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jimmer-ext-lowquery
+      description: "site.addzero:jimmer-ext-lowquery"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

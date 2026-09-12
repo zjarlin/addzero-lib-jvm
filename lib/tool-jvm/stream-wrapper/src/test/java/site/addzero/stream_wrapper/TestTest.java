@@ -48,14 +48,14 @@ class TestTest {
                 .collect(Collectors.toList());
 
         assertEquals(8, collect.size());
-        assertEquals("李四0", collect.get(0).getName());
-        assertEquals("李四1", collect.get(1).getName());
-        assertEquals("李四2", collect.get(2).getName());
-        assertEquals("李四3", collect.get(3).getName());
-        assertEquals("张三0", collect.get(4).getName());
-        assertEquals("张三1", collect.get(5).getName());
-        assertEquals("张三2", collect.get(6).getName());
-        assertEquals("张三3", collect.get(7).getName());
+        assertEquals("张三0", collect.get(0).getName());
+        assertEquals("张三1", collect.get(1).getName());
+        assertEquals("张三2", collect.get(2).getName());
+        assertEquals("张三3", collect.get(3).getName());
+        assertEquals("李四0", collect.get(4).getName());
+        assertEquals("李四1", collect.get(5).getName());
+        assertEquals("李四2", collect.get(6).getName());
+        assertEquals("李四3", collect.get(7).getName());
     }
 
     @Test

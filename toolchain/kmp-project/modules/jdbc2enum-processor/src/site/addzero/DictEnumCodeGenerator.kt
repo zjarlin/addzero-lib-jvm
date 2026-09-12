@@ -1,0 +1,1 @@
+../../../../../../../lib/ksp/jdbc2metadata/jdbc2enum-processor/src/commonMain/kotlin/site/addzero/DictEnumCodeGenerator.kt

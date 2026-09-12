@@ -1,0 +1,1 @@
+../../../../../../../../../../lib/api/api-openai/src/commonMain/kotlin/site/addzero/api/openai/models/RealtimeTurnDetection2.kt

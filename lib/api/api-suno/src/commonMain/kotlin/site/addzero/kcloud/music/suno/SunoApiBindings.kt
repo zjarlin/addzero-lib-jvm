@@ -11,7 +11,7 @@ import site.addzero.kcloud.api.suno.SunoApiClient
 
 @Single
 class SunoHttpClientProfileSpi : HttpClientProfileSpi {
-    override val profile: String = SunoApiClient.HTTP_CLIENT_PROFILE
+    override val baseUrl: String = SunoApiClient.DEFAULT_BASE_URL
     override val headers: Map<String, String> = mapOf(
         HttpHeaders.Accept to ContentType.Application.Json.toString(),
     )

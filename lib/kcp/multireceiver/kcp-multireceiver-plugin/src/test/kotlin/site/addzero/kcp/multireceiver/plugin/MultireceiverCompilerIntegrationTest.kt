@@ -89,9 +89,10 @@ class MultireceiverCompilerIntegrationTest {
             file.writeText(content)
         }
 
-        val pluginJar = System.getProperty("multireceiver.pluginJar")
-            ?: error("Missing multireceiver.pluginJar system property")
         val classpath = System.getProperty("java.class.path")
+        val pluginJar = System.getProperty("multireceiver.pluginJar")
+            ?: classpath.pluginJar("kcp-multireceiver-plugin")
+            ?: error("Unable to locate the multireceiver compiler plugin JAR")
         val command = mutableListOf(
             javaExecutable(),
             "-cp",
@@ -128,6 +129,13 @@ class MultireceiverCompilerIntegrationTest {
     private fun javaExecutable(): String {
         val javaHome = System.getProperty("java.home")
         return Paths.get(javaHome, "bin", "java").toString()
+    }
+
+    private fun String.pluginJar(moduleName: String): String? {
+        val jars = split(File.pathSeparator).filter { path ->
+            File(path).name.startsWith(moduleName) && path.endsWith(".jar")
+        }
+        return jars.firstOrNull { path -> path.contains("_${moduleName}_jarJvm") } ?: jars.firstOrNull()
     }
 
     private fun topLevelTargetsSource(): String {

@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameter
 import org.jetbrains.kotlin.fir.declarations.findArgumentByName
 import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
 import org.jetbrains.kotlin.fir.declarations.getTargetType
-import org.jetbrains.kotlin.fir.declarations.getStringArgument
 import org.jetbrains.kotlin.fir.declarations.getStringArrayArgument
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyBackingField
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
@@ -672,8 +671,9 @@ class SpreadPackFirExtension(
         annotation: FirAnnotation,
     ): ClassId {
         val explicitName = annotation.stringArgumentOrNull("generatedClassName")
-        val classIdFromType = (parameter.returnTypeRef as? FirResolvedTypeRef)
-            ?.coneType
+        val resolvedConeType = (parameter.returnTypeRef as? FirResolvedTypeRef)?.coneType
+        val classIdFromType = resolvedConeType
+            ?.takeUnless { coneType -> coneType is ConeErrorType }
             ?.let { coneType -> coneType as? ConeClassLikeType }
             ?.lookupTag
             ?.classId
@@ -1415,11 +1415,6 @@ class SpreadPackFirExtension(
         argumentName: String,
     ): String? {
         val name = Name.identifier(argumentName)
-        val directValue = getStringArgument(name, session)
-            ?.takeIf { value -> value.isNotBlank() }
-        if (directValue != null) {
-            return directValue
-        }
         val rawArgument = when (argumentName) {
             "value" -> findValueArgumentExpression()
             else -> findArgumentByName(name, returnFirstWhenNotFound = false)

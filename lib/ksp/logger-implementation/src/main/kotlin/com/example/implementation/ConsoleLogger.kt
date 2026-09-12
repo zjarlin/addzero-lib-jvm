@@ -1,9 +1,9 @@
 package com.example.implementation
 
 import com.example.api.Logger
-import com.fueledbycaffeine.autoservice.AutoService
+import com.google.auto.service.AutoService
 
-@AutoService
+@AutoService(Logger::class)
 class ConsoleLogger : Logger {
     override val name: String = "ConsoleLogger"
 

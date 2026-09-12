@@ -8,7 +8,7 @@ import com.google.devtools.ksp.symbol.Nullability
 import com.google.devtools.ksp.validate
 import site.addzero.lsi.ksp.type.getCompleteTypeString
 import site.addzero.lsi.ksp.type.getSimplifiedTypeString
-import site.addzero.composeprops.processor.context.Settings
+import site.addzero.composeprops.processor.context.generated.Settings
 
 private const val propsXd = "var"
 

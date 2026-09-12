@@ -4,7 +4,7 @@ import site.addzero.entity.JdbcColumnMetadata
 import site.addzero.entity.JdbcTableMetadata
 import site.addzero.util.str.toBigCamelCase
 import site.addzero.util.str.toLowCamelCase
-import site.addzero.jdbc2entity.processor.context.Settings
+import site.addzero.jdbc2entity.processor.context.generated.Settings
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import java.io.File

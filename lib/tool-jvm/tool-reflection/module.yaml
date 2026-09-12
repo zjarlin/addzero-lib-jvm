@@ -1,0 +1,35 @@
+product: jvm/lib
+description: "site.addzero:tool-reflection"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.cn.hutool.hutool.core
+  - $libs.cn.hutool.hutool.extra
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-reflection
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-reflection
+      description: "site.addzero:tool-reflection"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

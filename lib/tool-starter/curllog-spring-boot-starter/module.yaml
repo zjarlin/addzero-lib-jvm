@@ -1,0 +1,39 @@
+product: jvm/lib
+description: "site.addzero:curllog-spring-boot-starter"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/spring-starter.module-template.yaml
+
+dependencies:
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin
+  - $libs.org.springframework.spring.webmvc
+  - $libs.javax.servlet.javax.servlet.api:
+      scope: compile-only
+  - //lib/tool-starter/controller-autoconfigure:
+      exported: true
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: curllog-spring-boot-starter
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: curllog-spring-boot-starter
+      description: "site.addzero:curllog-spring-boot-starter"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

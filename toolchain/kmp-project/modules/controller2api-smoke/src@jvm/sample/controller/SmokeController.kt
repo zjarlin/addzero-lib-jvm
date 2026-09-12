@@ -1,0 +1,1 @@
+../../../../../../../lib/ksp/metadata/controller2api-smoke/src/jvmMain/kotlin/sample/controller/SmokeController.kt

@@ -4,12 +4,14 @@ import com.mysql.cj.jdbc.MysqlDataSource
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.springframework.jdbc.core.JdbcTemplate
 import site.addzero.util.db.DatabaseType
 import site.addzero.util.db.SqlExecutor
 import site.addzero.util.db.cte.strategy.impl.*
 import site.addzero.util.db.wrapper.entity.WrapperContext
 
+@EnabledIfEnvironmentVariable(named = "ADDZERO_RUN_CTE_INTEGRATION_TESTS", matches = "true")
 class CteUtilTest {
 
     private lateinit var cteUtil: CteUtil
@@ -19,9 +21,9 @@ class CteUtilTest {
     @BeforeEach
     fun setUp() {
         // 创建数据源
-        val url = "jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8"
-        val username = "root"
-        val password = "zljkj~123"
+        val url = CteIntegrationTestConfig.url
+        val username = CteIntegrationTestConfig.username
+        val password = CteIntegrationTestConfig.password
 
         // 使用我们新创建的SqlExecutor执行一些初始化SQL
         sqlExecutor = SqlExecutor(url, username, password)

@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.DeprecatedForRemovalCompilerApi
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
-import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrAnnotation
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
@@ -198,9 +198,9 @@ class I18NIrGenerationExtension(
         val tFunctionSymbol = findRuntimeFunction(pluginContext)
         val builder = DeclarationIrBuilder(pluginContext, tFunctionSymbol)
         return builder.irCall(tFunctionSymbol).apply {
-            putValueArgument(0, builder.irString(resourceKey))
-            putValueArgument(1, builder.irString(fallbackText))
-            putValueArgument(2, builder.irString(resourceBasePath))
+            arguments[0] = builder.irString(resourceKey)
+            arguments[1] = builder.irString(fallbackText)
+            arguments[2] = builder.irString(resourceBasePath)
         }
     }
 
@@ -221,21 +221,21 @@ class I18NIrGenerationExtension(
     private fun collectAnnotationStrings(
         fileName: String,
         functionName: String?,
-        annotations: List<IrConstructorCall>,
+        annotations: List<IrAnnotation>,
     ) {
         annotations.forEach { annotation ->
             val annotationClass = annotation.symbol.owner.parent as? IrClass ?: return@forEach
             if (!annotationMatcher.shouldCollect(annotationClass)) {
                 return@forEach
             }
-            repeat(annotation.valueArgumentsCount) { argumentIndex ->
-                val argument = annotation.getValueArgument(argumentIndex) as? IrConst ?: return@repeat
-                if (argument.kind != IrConstKind.String) {
-                    return@repeat
+            annotation.arguments.forEach argumentLoop@ { argument ->
+                val constant = argument as? IrConst ?: return@argumentLoop
+                if (constant.kind != IrConstKind.String) {
+                    return@argumentLoop
                 }
-                val stringValue = argument.value as? String ?: return@repeat
+                val stringValue = constant.value as? String ?: return@argumentLoop
                 if (stringValue.isEmpty()) {
-                    return@repeat
+                    return@argumentLoop
                 }
                 val resourceKey = generateResourceKey(
                     fileName = fileName,

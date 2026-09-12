@@ -1,0 +1,19 @@
+product: jvm/app
+layout: maven-like
+description: "KSP logger processor sample application."
+
+dependencies:
+  - //lib/ksp/logger-api
+  - //lib/ksp/logger-implementation
+
+settings:
+  kotlin:
+    ksp:
+      version: 2.3.9
+      processors:
+        - //lib/ksp/logger-processor
+  jvm:
+    mainClass: MainKt
+    jdk:
+      version: 17
+    release: 17

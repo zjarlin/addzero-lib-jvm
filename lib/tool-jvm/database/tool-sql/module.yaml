@@ -1,0 +1,30 @@
+product: jvm/lib
+description: "- What it does: SQL string templates and builders for common patterns (e.g., data-density sort)."
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-sql
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-sql
+      description: "- What it does: SQL string templates and builders for common patterns (e.g., data-density sort)."
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

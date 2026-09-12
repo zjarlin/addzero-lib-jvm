@@ -1,0 +1,74 @@
+product:
+  type: kmp/lib
+  platforms: [jvm]
+description: "`jdbc2enum-processor` is raw-KSP only. The old sibling consumer plugin is removed."
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+  - //modules/ksp-support-jdbc
+  - $libs.site.addzero.tool.pinyin
+  - //modules/tool-str
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.jdbc2enum.processor.context.generated
+    style: context
+    settingsClassName: Settings
+    contextClassName: SettingContext
+    properties:
+      "enumOutputPackage": "site.addzero.generated.enums"
+      "dictTableName": "sys_dict"
+      "dictIdColumn": "id"
+      "dictCodeColumn": "dict_code"
+      "dictNameColumn": "dict_name"
+      "dictItemTableName": "sys_dict_item"
+      "dictItemForeignKeyColumn": "dict_id"
+      "dictItemCodeColumn": "item_value"
+      "dictItemNameColumn": "item_text"
+      "sharedSourceDir": ""
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: jdbc2enum-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jdbc2enum-processor
+      description: "`jdbc2enum-processor` is raw-KSP only. The old sibling consumer plugin is removed."
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+  jvm:
+    jdk:
+      version: 17
+    release: 17

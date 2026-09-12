@@ -1,0 +1,72 @@
+product: jvm/lib
+description: "AutoDDL 运行时集成层"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - //lib/tool-jvm/database/ddlgenerator-core:
+      exported: true
+  - //lib/tool-jvm/database/ddlgenerator-lsi-adaptor:
+      exported: true
+  - //lib/tool-jvm/database/ddlgenerator-jdbc-adaptor:
+      exported: true
+  - //lib/tool-jvm/database/ddlgenerator-dialect-mysql
+  - //lib/tool-jvm/database/ddlgenerator-dialect-postgresql
+  - //lib/tool-jvm/database/ddlgenerator-dialect-h2
+  - //lib/tool-jvm/database/ddlgenerator-dialect-sqlite
+  - //lib/tool-jvm/database/ddlgenerator-dialect-sqlserver
+  - //lib/tool-jvm/database/ddlgenerator-dialect-oracle
+  - //lib/tool-jvm/database/ddlgenerator-dialect-dm
+  - //lib/tool-jvm/database/ddlgenerator-dialect-kingbase
+  - //lib/tool-jvm/database/ddlgenerator-dialect-taos
+  - //lib/tool-kmp/jdbc/tool-jdbc
+  - site.addzero:tool-jdbc-model:2026.08.11
+  - //lib/tool-jvm/database/tool-database-model
+  - //lib/tool-jvm/tool-yml
+
+test-dependencies:
+  - $libs.com.h2database.h2
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.ddlgenerator.runtime.config.generated
+    style: context
+    settingsClassName: Settings
+    contextClassName: SettingContext
+    properties:
+      "jdbcUrl": ""
+      "jdbcUsername": ""
+      "jdbcPassword": ""
+      "autoddlForeignKeys": "true"
+      "autoddlKeys": "true"
+      "autoddlAllowDeleteColumn": "false"
+      "springResourcePath": ""
+      "autoddlExcludeTables": "flyway_schema_history,vector_store,*_mapping"
+      "autoddlExcludeColumns": ""
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: ddlgenerator
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: ddlgenerator
+      description: "AutoDDL 运行时集成层"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

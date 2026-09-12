@@ -1,0 +1,44 @@
+product: jvm/lib
+description: "site.addzero:tool-spring"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.org.springframework.spring.jdbc:
+      scope: compile-only
+  - $libs.org.springframework.spring.context:
+      scope: compile-only
+  - $libs.org.springframework.spring.web:
+      scope: compile-only
+  - $libs.org.springframework.spring.webmvc:
+      scope: compile-only
+  - $libs.cn.hutool.hutool.all
+  - $libs.com.fasterxml.jackson.module.jackson.module.kotlin
+  - $libs.javax.servlet.javax.servlet.api:
+      scope: compile-only
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-spring
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-spring
+      description: "site.addzero:tool-spring"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

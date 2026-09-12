@@ -1,8 +1,8 @@
 package site.addzero.ioc.test;
 
-import site.addzero.ioc.annotation.Component;
+import site.addzero.ioc.annotation.Bean;
 
-@Component
+@Bean
 public class TestComponent {
 
     public String testMethod() {

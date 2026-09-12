@@ -10,17 +10,17 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import site.addzero.ioc.annotation.Bean
 import site.addzero.ioc.container.ContainerGenerator
-import site.addzero.ioc.processor.context.Settings
+import site.addzero.ioc.processor.context.generated.Settings
 import site.addzero.ioc.strategy.BeanInfo
 import site.addzero.ioc.strategy.InitType
-import site.addzero.util.lsi.clazz.LsiClass
-import site.addzero.util.lsi.clazz.hasNoArgConstructor
-import site.addzero.util.lsi.method.hasNoRequiredParameters
-import site.addzero.util.lsi.method.isComposable
-import site.addzero.util.lsi.method.isSuspend
-import site.addzero.util.lsi.method.parentClass
-import site.addzero.util.lsi_impl.impl.ksp.toLsiClass
-import site.addzero.util.lsi_impl.impl.ksp.toLsiMethod
+import site.addzero.lsi.clazz.LsiClass
+import site.addzero.lsi.clazz.hasNoArgConstructor
+import site.addzero.lsi.ksp.clazz.toLsiClass
+import site.addzero.lsi.ksp.toLsiMethod
+import site.addzero.lsi.method.hasNoRequiredParameters
+import site.addzero.lsi.method.isComposable
+import site.addzero.lsi.method.isSuspend
+import site.addzero.lsi.method.parentClass
 
 class IocProcessorProvider : SymbolProcessorProvider {
     private data class BeanAnnotationData(
@@ -77,7 +77,9 @@ class IocProcessorProvider : SymbolProcessorProvider {
             val lsiClass = clazz.toLsiClass(resolver)
             val qualifiedName = lsiClass.qualifiedName ?: return
             if (annotation.enabled && !lsiClass.hasNoArgConstructor) return
-            val name = annotation.name.ifEmpty { lsiClass.name?.replaceFirstChar { it.lowercase() } ?: "" }
+            val name = annotation.name.ifEmpty {
+                lsiClass.simpleName?.replaceFirstChar { it.lowercase() }.orEmpty()
+            }
             beans += BeanInfo(
                 name = qualifiedName,
                 initType = InitType.CLASS_INSTANCE,
@@ -95,7 +97,9 @@ class IocProcessorProvider : SymbolProcessorProvider {
         private fun extractObjectInfo(obj: KSClassDeclaration, resolver: Resolver, annotation: BeanAnnotationData) {
             val lsiClass = obj.toLsiClass(resolver)
             val qualifiedName = lsiClass.qualifiedName ?: return
-            val name = annotation.name.ifEmpty { lsiClass.name?.replaceFirstChar { it.lowercase() } ?: "" }
+            val name = annotation.name.ifEmpty {
+                lsiClass.simpleName?.replaceFirstChar { it.lowercase() }.orEmpty()
+            }
             beans += BeanInfo(
                 name = qualifiedName,
                 initType = InitType.OBJECT_INSTANCE,

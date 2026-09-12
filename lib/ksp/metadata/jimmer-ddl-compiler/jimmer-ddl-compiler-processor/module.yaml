@@ -1,0 +1,67 @@
+product: jvm/lib
+description: "Jimmer DDL 编译期生成器，基于 LSI 同时支持 Kotlin KSP 与 Java APT 实体"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-ksp-processor.module-template.yaml
+
+dependencies:
+  - //lib/lsi/lsi-core
+  - //lib/lsi/lsi-ksp
+  - //lib/lsi/lsi-apt
+  - //lib/lsi/lsi-jimmer
+  - //lib/tool-jvm/database/ddlgenerator
+  - //lib/tool-jvm/database/ddlgenerator-core
+  - //lib/tool-jvm/database/tool-database-model
+  - $libs.javax.annotation.javax.annotation.api
+
+test-dependencies:
+  - $libs.org.junit.jupiter.junit.jupiter
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.jimmer.ddl.compiler.context.generated
+    style: context
+    settingsClassName: Settings
+    contextClassName: SettingContext
+    properties:
+      "jimmerDdl.enabled": "true"
+      "jimmerDdl.profiles": ""
+      "jimmerDdl.databaseType": "postgresql"
+      "jimmerDdl.outputFormat": "flyway"
+      "jimmerDdl.outputDir": "build/generated/jimmer-ddl/main/resources/db/migration"
+      "jimmerDdl.version": "1001"
+      "jimmerDdl.description": "jimmer_auto_ddl_generated"
+      "jimmerDdl.includePackages": ""
+      "jimmerDdl.excludePackages": ""
+      "jimmerDdl.includeForeignKeys": "true"
+      "jimmerDdl.includeIndexes": "true"
+      "jimmerDdl.includeComments": "true"
+      "jimmerDdl.includeSequences": "true"
+      "jimmerDdl.includeManyToManyTables": "true"
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: jimmer-ddl-compiler-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jimmer-ddl-compiler-processor
+      description: "Jimmer DDL 编译期生成器，基于 LSI 同时支持 Kotlin KSP 与 Java APT 实体"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

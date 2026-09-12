@@ -22,7 +22,7 @@ class JteTemplateEngineTest {
     @BeforeEach
     fun setUp() {
         tempDir.resolve("greeting.jte").writeText("@param String name\nHello, \${name}!")
-        tempDir.resolve("user.jte").writeText("@param java.util.Map<String, Object> model\nUser: \${model.get(\"name\")}, Age: \${model.get(\"age\")}")
+        tempDir.resolve("user.jte").writeText("@param String name\n@param Integer age\nUser: \${name}, Age: \${age}")
         engine = JteTemplateEngine.fromDirectory(tempDir)
     }
 

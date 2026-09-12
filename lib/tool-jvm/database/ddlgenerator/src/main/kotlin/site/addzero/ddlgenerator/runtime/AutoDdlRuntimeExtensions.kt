@@ -3,8 +3,8 @@ package site.addzero.ddlgenerator.runtime
 import site.addzero.ddlgenerator.core.model.AutoDdlSchema
 import site.addzero.ddlgenerator.core.options.AutoDdlDiffOptions
 import site.addzero.ddlgenerator.core.options.AutoDdlOptions
-import site.addzero.ddlgenerator.runtime.config.SettingContext
-import site.addzero.ddlgenerator.runtime.config.Settings
+import site.addzero.ddlgenerator.runtime.config.generated.SettingContext
+import site.addzero.ddlgenerator.runtime.config.generated.Settings
 import site.addzero.lsi.clazz.LsiClass
 import site.addzero.util.db.DatabaseType
 

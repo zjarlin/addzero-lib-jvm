@@ -1,0 +1,62 @@
+product:
+  type: kmp/lib
+  platforms: [jvm]
+description: "site.addzero:controller2api-smoke"
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies@jvm:
+  - $libs.org.springframework.spring.web:
+      scope: compile-only
+
+dependencies:
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+settings:
+  publishing:
+    enabled: false
+    group: site.addzero
+    artifactId: controller2api-smoke
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: controller2api-smoke
+      description: "site.addzero:controller2api-smoke"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+  jvm:
+    jdk:
+      version: 17
+    release: 17
+
+settings@jvm:
+  kotlin:
+    ksp:
+      processors:
+        - //modules/controller2api-processor

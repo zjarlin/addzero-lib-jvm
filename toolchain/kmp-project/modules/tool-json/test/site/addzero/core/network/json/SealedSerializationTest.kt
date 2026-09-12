@@ -1,0 +1,1 @@
+../../../../../../../../../../lib/tool-kmp/tool-json/src/commonTest/kotlin/site/addzero/core/network/json/SealedSerializationTest.kt

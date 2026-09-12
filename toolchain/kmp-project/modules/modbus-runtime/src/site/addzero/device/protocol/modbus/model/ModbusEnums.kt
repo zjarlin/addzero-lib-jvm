@@ -1,0 +1,1 @@
+../../../../../../../../../../../lib/ksp/metadata/modbus/modbus-runtime/src/commonMain/kotlin/site/addzero/device/protocol/modbus/model/ModbusEnums.kt

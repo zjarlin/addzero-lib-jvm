@@ -1,0 +1,78 @@
+product:
+  type: kmp/lib
+  platforms: [jvm]
+description: "Netease music API bindings built on top of `network-starter`."
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.de.jensklingenberg.ktorfit.ktorfit.lib
+  - bom: $libs.io.insert.koin.koin.bom
+  - $libs.io.insert.koin.koin.annotations
+  - $libs.io.insert.koin.koin.core
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json
+  - //modules/tool-json
+  - //modules/network-starter
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: api-netease
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: api-netease
+      description: "Netease music API bindings built on top of `network-starter`."
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+    serialization: enabled
+    compilerPlugins:
+      - id: ktorfitPlugin
+        dependency: $libs.de.jensklingenberg.ktorfit.ktorfit.compiler.plugin
+        options:
+          enabled: "true"
+          logging: "false"
+      - id: io.insert-koin.compiler.plugin
+        dependency: $libs.io.insert.koin.koin.compiler.plugin
+        options:
+          compileSafety: "false"
+          debugLogs: "false"
+          skipDefaultValues: "true"
+          unsafeDslChecks: "true"
+          userLogs: "true"
+    ksp:
+      version: 2.3.9
+      processors:
+        - $libs.de.jensklingenberg.ktorfit.ktorfit.ksp
+  jvm:
+    jdk:
+      version: 17
+    release: 17

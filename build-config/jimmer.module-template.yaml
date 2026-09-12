@@ -1,0 +1,9 @@
+dependencies:
+  - $libs.org.babyfish.jimmer.jimmer.sql.kotlin
+
+settings:
+  kotlin:
+    ksp:
+      version: 2.3.9
+      processors:
+        - $libs.org.babyfish.jimmer.jimmer.ksp

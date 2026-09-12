@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrThrow
@@ -118,22 +119,28 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
         generated: IrSimpleFunction,
         original: IrSimpleFunction,
     ): IrWrapperMatch? {
-        if (generated.name != original.name) {
-            return null
-        }
         if (generated.typeParameters.size != original.typeParameters.size) {
             return null
         }
 
-        if (original.valueParameters.size == 1) {
-            val generatedReceiver = generated.extensionReceiverParameter ?: return null
+        val originalParameters = original.regularParameters()
+        if (originalParameters.size == 1) {
+            if (!generated.hasExpectedName(
+                    original = original,
+                    generationKind = GenerationKind.EXTENSION,
+                    parameterNames = listOf(originalParameters.single().name.asString()),
+                )
+            ) {
+                return null
+            }
+            val generatedReceiver = generated.extensionReceiver() ?: return null
             if (generated.contextParameters().isNotEmpty()) {
                 return null
             }
-            if (generated.valueParameters.isNotEmpty()) {
+            if (generated.regularParameters().isNotEmpty()) {
                 return null
             }
-            if (!sameIrType(original.valueParameters.single().type, generatedReceiver.type)) {
+            if (!sameIrType(originalParameters.single().type, generatedReceiver.type)) {
                 return null
             }
             return IrWrapperMatch(
@@ -144,21 +151,32 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
             )
         }
 
-        val contextIndices = original.valueParameters.indices.filter { index ->
-            original.valueParameters[index].hasAnnotation(MultireceiverPluginKeys.receiverAnnotation)
+        val contextIndices = originalParameters.indices.filter { index ->
+            originalParameters[index].hasAnnotation(MultireceiverPluginKeys.receiverAnnotation)
         }
         if (contextIndices.isEmpty()) {
             return null
         }
-        if (generated.extensionReceiverParameter != null) {
+        if (!generated.hasExpectedName(
+                original = original,
+                generationKind = GenerationKind.CONTEXT,
+                parameterNames = contextIndices.map { index -> originalParameters[index].name.asString() },
+            )
+        ) {
+            return null
+        }
+        if (generated.extensionReceiver() != null) {
             return null
         }
 
-        val generatedParameters = generated.valueParameters
-        if (generatedParameters.size != original.valueParameters.size) {
+        val generatedParameters = generated.parametersInOriginalOrder(
+            contextParameterIndices = contextIndices,
+            originalParameterCount = originalParameters.size,
+        ) ?: return null
+        if (generatedParameters.size != originalParameters.size) {
             return null
         }
-        original.valueParameters.forEachIndexed { index, parameter ->
+        originalParameters.forEachIndexed { index, parameter ->
             if (!sameIrType(parameter.type, generatedParameters[index].type)) {
                 return null
             }
@@ -182,21 +200,25 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
                 call.dispatchReceiver = irGet(receiver)
             }
             generated.typeParameters.forEachIndexed { index, typeParameter ->
-                call.putTypeArgument(index, typeParameter.symbol.defaultType)
+                call.typeArguments[index] = typeParameter.symbol.defaultType
             }
 
             when (match.generationKind) {
                 GenerationKind.EXTENSION -> {
-                    val extensionReceiver = generated.extensionReceiverParameter
+                    val extensionReceiver = generated.extensionReceiver()
                         ?: error("Missing generated extension receiver for ${generated.name}")
-                    call.putValueArgument(match.receiverParameterIndex ?: 0, irGet(extensionReceiver))
+                    val originalParameter = match.original.regularParameters()[match.receiverParameterIndex ?: 0]
+                    call.arguments[originalParameter] = irGet(extensionReceiver)
                 }
 
                 GenerationKind.CONTEXT -> {
-                    val parametersInJvmOrder = generated.valueParameters
-                    match.original.valueParameters.forEachIndexed { originalIndex, _ ->
-                        val argument = irGet(parametersInJvmOrder[originalIndex])
-                        call.putValueArgument(originalIndex, argument)
+                    val originalParameters = match.original.regularParameters()
+                    val generatedParameters = generated.parametersInOriginalOrder(
+                        contextParameterIndices = match.contextParameterIndices,
+                        originalParameterCount = originalParameters.size,
+                    ) ?: error("Unable to restore generated parameter order for ${generated.name}")
+                    originalParameters.forEachIndexed { originalIndex, originalParameter ->
+                        call.arguments[originalParameter] = irGet(generatedParameters[originalIndex])
                     }
                 }
             }
@@ -212,6 +234,69 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
     private fun IrSimpleFunction.contextParameters() =
         parameters.filter { parameter -> parameter.kind == IrParameterKind.Context }
 
+    private fun IrSimpleFunction.extensionReceiver() =
+        parameters.singleOrNull { parameter -> parameter.kind == IrParameterKind.ExtensionReceiver }
+
+    private fun IrSimpleFunction.regularParameters() =
+        parameters.filter { parameter -> parameter.kind == IrParameterKind.Regular }
+
+    private fun IrSimpleFunction.parametersInOriginalOrder(
+        contextParameterIndices: List<Int>,
+        originalParameterCount: Int,
+    ): List<IrValueParameter>? {
+        val contextParameters = contextParameters()
+        val regularParameters = regularParameters()
+        if (contextParameters.isEmpty() && regularParameters.size == originalParameterCount) {
+            return regularParameters
+        }
+        if (contextParameters.size != contextParameterIndices.size ||
+            contextParameters.size + regularParameters.size != originalParameterCount
+        ) {
+            return null
+        }
+
+        val contextIndices = contextParameterIndices.toSet()
+        val contextIterator = contextParameters.iterator()
+        val regularIterator = regularParameters.iterator()
+        return List(originalParameterCount) { index ->
+            if (index in contextIndices) contextIterator.next() else regularIterator.next()
+        }
+    }
+
+    private fun IrSimpleFunction.hasExpectedName(
+        original: IrSimpleFunction,
+        generationKind: GenerationKind,
+        parameterNames: List<String>,
+    ): Boolean {
+        if (name == original.name) {
+            return true
+        }
+        val suffix = parameterNames.joinToString(separator = "") { parameterName ->
+            parameterName.toPascalCase()
+        }.ifBlank { "Value" }
+        val expectedName = when (generationKind) {
+            GenerationKind.EXTENSION -> "${original.name}ByAddzeroExtension$suffix"
+            GenerationKind.CONTEXT -> "${original.name}ByAddzeroContext$suffix"
+        }
+        return name.asString() == expectedName
+    }
+
+    private fun String.toPascalCase(): String {
+        val result = StringBuilder(length)
+        var uppercaseNext = true
+        forEach { character ->
+            if (!character.isLetterOrDigit()) {
+                uppercaseNext = true
+            } else if (uppercaseNext) {
+                result.append(character.uppercaseChar())
+                uppercaseNext = false
+            } else {
+                result.append(character)
+            }
+        }
+        return result.toString()
+    }
+
     private fun isSupportedOriginalFunction(
         function: IrSimpleFunction,
     ): Boolean {
@@ -221,7 +306,7 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
         if (!function.hasAnnotation(MultireceiverPluginKeys.generateExtensionAnnotation)) {
             return false
         }
-        if (function.extensionReceiverParameter != null) {
+        if (function.extensionReceiver() != null) {
             return false
         }
         if (function.contextParameters().isNotEmpty()) {
@@ -256,7 +341,7 @@ class MultireceiverIrGenerationExtension : IrGenerationExtension {
         }
         val throwExpression = body.statements.single() as? IrThrow ?: return false
         val constructorCall = throwExpression.value as? org.jetbrains.kotlin.ir.expressions.IrConstructorCall ?: return false
-        val message = constructorCall.getValueArgument(0) as? IrConst ?: return false
+        val message = constructorCall.arguments[0] as? IrConst ?: return false
         return message.value == MultireceiverPluginKeys.stubErrorMessage
     }
 

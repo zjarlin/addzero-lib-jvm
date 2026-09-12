@@ -1,0 +1,1 @@
+../../../../../../../../../../lib/ksp/metadata/method-semanticizer/method-semanticizer-spi/src/commonMain/kotlin/site/addzero/ksp/metadata/semantic/Spi.kt

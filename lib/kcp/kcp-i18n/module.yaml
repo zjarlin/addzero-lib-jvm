@@ -1,0 +1,33 @@
+product: jvm/lib
+description: "`kcp-i18n` 是运行时国际化方案。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.org.jetbrains.kotlin.kotlin.compiler.embeddable
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: kcp-i18n
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: kcp-i18n
+      description: "`kcp-i18n` 是运行时国际化方案。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

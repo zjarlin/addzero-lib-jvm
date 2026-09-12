@@ -1,6 +1,6 @@
 package site.addzero.apt.feign
 
-import site.addzero.util.lsi_impl.impl.apt.clazz.AptLsiClass
+import site.addzero.lsi.apt.clazz.AptLsiClass
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
@@ -71,10 +71,9 @@ class Controller2FeignProcessor : AbstractProcessor() {
             try {
                 log("Processing controller: ${controller.qualifiedName}")
 
-                val docComment = processingEnv.elementUtils.getDocComment(controller)
-                val lsiClass = AptLsiClass(controller, docComment)
+                val lsiClass = AptLsiClass(processingEnv.elementUtils, controller)
 
-                log("LsiClass created: name=${lsiClass.name}, qualifiedName=${lsiClass.qualifiedName}")
+                log("LsiClass created: name=${lsiClass.simpleName}, qualifiedName=${lsiClass.qualifiedName}")
                 log("LsiClass annotations: ${lsiClass.annotations.map { it.simpleName }}")
                 log("LsiClass methods count: ${lsiClass.methods.size}")
 

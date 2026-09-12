@@ -1,0 +1,59 @@
+product: jvm/lib
+description: "从数据库字典表自动生成 Java 枚举类的 APT（Annotation Processing Tool）处理器。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.org.postgresql.postgresql
+  - $libs.mysql.mysql.connector.java
+  - site.addzero:tool-str:2026.08.11
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.apt.config.generated
+    style: holder
+    settingsClassName: DictProcessorSettings
+    contextClassName: DictProcessorConfig
+    properties:
+      "dictAptEnabled": "false"
+      "jdbcDriver": "com.mysql.cj.jdbc.Driver"
+      "jdbcUrl": "jdbc:mysql://192.168.1.140:3306/iot_db?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&connectTimeout=30000&socketTimeout=30000&autoReconnect=true"
+      "jdbcUsername": "root"
+      "jdbcPassword": ""
+      "dictTableName": "sys_dict_type"
+      "dictIdColumn": "dict_type"
+      "dictCodeColumn": "dict_type"
+      "dictNameColumn": "dict_name"
+      "dictItemTableName": "sys_dict_data"
+      "dictItemForeignKeyColumn": "dict_type"
+      "dictItemCodeColumn": "dict_value"
+      "dictItemNameColumn": "dict_label"
+      "enumOutputPackage": "site.addzero.apt.test.enums"
+      "enumOutputDirectory": "src/test/java"
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: apt-dict-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: apt-dict-processor
+      description: "从数据库字典表自动生成 Java 枚举类的 APT（Annotation Processing Tool）处理器。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

@@ -1,0 +1,53 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, wasmJs]
+description: "site.addzero:compose-native-component-table-core"
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: compose-native-component-table-core
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: compose-native-component-table-core
+      description: "site.addzero:compose-native-component-table-core"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+    serialization: enabled
+  jvm:
+    jdk:
+      version: 17
+    release: 17

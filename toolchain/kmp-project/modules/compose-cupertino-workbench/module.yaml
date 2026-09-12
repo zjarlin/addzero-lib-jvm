@@ -1,0 +1,74 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, wasmJs]
+description: "- Module path: `lib/compose/compose-cupertino-workbench`"
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.org.jetbrains.compose.runtime.runtime
+  - $libs.org.jetbrains.compose.foundation.foundation
+  - $libs.org.jetbrains.compose.ui.ui
+  - $libs.org.jetbrains.compose.material3.material3
+  - $libs.org.jetbrains.compose.material.material.icons.extended
+  - $libs.org.jetbrains.compose.components.components.resources
+  - $libs.org.jetbrains.compose.ui.ui.tooling.preview
+  - $libs.org.jetbrains.androidx.lifecycle.lifecycle.viewmodel.compose
+  - $libs.org.jetbrains.androidx.lifecycle.lifecycle.runtime.compose
+  - $libs.io.insert.koin.koin.annotations
+  - //modules/app-sidebar-cupertino-adapter
+  - //modules/app-sidebar
+  - //modules/scaffold-spi
+  - $libs.io.github.robinpcrd.cupertino
+  - $libs.io.github.robinpcrd.cupertino.adaptive
+  - $libs.io.github.robinpcrd.cupertino.icons.extended
+  - //modules/compose-native-component-searchbar
+  - //modules/compose-native-component-tree
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+test-dependencies@jvm:
+  - $compose.desktop.currentOs
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: compose-cupertino-workbench
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: compose-cupertino-workbench
+      description: "- Module path: `lib/compose/compose-cupertino-workbench`"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+  compose:
+    enabled: true
+  jvm:
+    jdk:
+      version: 17
+    release: 17

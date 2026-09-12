@@ -50,7 +50,7 @@ aptBuddy {
         SettingContextConfig(
             contextClassName = "DictProcessorSettings",
             settingsClassName = "DictProcessorConfig",
-            packageName = "site.addzero.apt.config",
+            packageName = "site.addzero.apt.config.generated",
             outputDir = "src/main/java",
             enabled = true
         )

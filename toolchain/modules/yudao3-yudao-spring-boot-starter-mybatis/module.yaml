@@ -1,0 +1,70 @@
+product: jvm/lib
+description: "site.addzero:yudao-spring-boot-starter-mybatis"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/yudao-java-starter.module-template.yaml
+
+dependencies:
+  - //toolchain/modules/yudao3-yudao-common:
+      exported: true
+  - //toolchain/modules/yudao3-yudao-spring-boot-starter-security:
+      scope: compile-only
+  - $libs.yudao.mysql.connector.j:
+      exported: true
+  - $libs.yudao.ojdbc8:
+      scope: compile-only
+  - $libs.yudao.postgresql:
+      scope: compile-only
+  - $libs.yudao.mssql.jdbc:
+      scope: compile-only
+  - $libs.yudao.dm.jdbc.driver18:
+      scope: compile-only
+  - $libs.yudao.kingbase8:
+      scope: compile-only
+  - $libs.yudao.opengauss.jdbc:
+      scope: compile-only
+  - $libs.yudao.druid.spring.boot.starter:
+      exported: true
+  - $libs.yudao.mybatis:
+      exported: true
+  - $libs.yudao.mybatis.plus.boot.starter:
+      exported: true
+  - $libs.yudao.mybatis.plus.jsqlparser:
+      exported: true
+  - $libs.yudao.dynamic.datasource.spring.boot.starter:
+      exported: true
+  - $libs.yudao.mybatis.plus.join.boot.starter:
+      exported: true
+  - $libs.yudao.easy.trans.service:
+      exported: true
+  - $libs.yudao.easy.trans.mybatis.plus.extend:
+      exported: true
+
+settings:
+  publishing:
+    enabled: false
+    group: site.addzero
+    artifactId: yudao-spring-boot-starter-mybatis
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: yudao-spring-boot-starter-mybatis
+      description: "site.addzero:yudao-spring-boot-starter-mybatis"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  java:
+    annotationProcessing:
+      processors:
+        - $libs.yudao.spring.boot.configuration.processor

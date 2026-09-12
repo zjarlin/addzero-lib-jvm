@@ -5,37 +5,28 @@ import com.russhwolf.settings.Settings
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import org.koin.core.annotation.Module
-import org.koin.core.annotation.Single
 import org.koin.dsl.koinApplication
-import org.koin.plugin.module.dsl.withConfiguration
+import org.koin.dsl.module
 import site.addzero.core.network.spi.HttpClientProfileSpi
 import site.addzero.core.network.token.TokenManager
 
-@Module
-class NetworkStarterTestModule {
-  @Single
-  fun httpClientProfileSpi(): HttpClientProfileSpi {
-    return object : HttpClientProfileSpi {
-      override val baseUrl: String = "https://example.com"
-    }
-  }
-
-  @Single
-  fun settings(): Settings {
-    return PreferencesSettings.Factory().create("network-starter-test")
-  }
-}
-
-@org.koin.core.annotation.KoinApplication
-object NetworkStarterTestKoinApplication
-
 class NetworkStarterKoinModuleTest {
   @Test
-  fun configurationLoadsStarterBeansAndScannedTokenManager() {
+  fun explicitModuleLoadsStarterBeansAndTokenManager() {
     val app = koinApplication {
-      withConfiguration<NetworkStarterTestKoinApplication>()
-      modules(NetworkStarterTestModule().module())
+      modules(
+        module {
+          single<HttpClientProfileSpi> {
+            object : HttpClientProfileSpi {
+              override val baseUrl: String = "https://example.com"
+            }
+          }
+          single<Settings> {
+            PreferencesSettings.Factory().create("network-starter-test")
+          }
+        },
+        networkStarterModule(),
+      )
     }
 
     try {

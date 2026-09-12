@@ -1,0 +1,1 @@
+../../../../../../../../lib/ksp/metadata/ioc/ioc-processor/src/commonMain/kotlin/site/addzero/ioc/IocProcessorProvider.kt

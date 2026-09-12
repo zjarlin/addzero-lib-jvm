@@ -1,0 +1,45 @@
+product: jvm/lib
+description: "为 Jimmer 实体提供 `kotlinx.serialization` 运行时适配，避免为每个实体重复编写 `UserSerializer`、`DeptSerializer` 这类样板代码。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-json-withtool.module-template.yaml
+  - //build-config/jimmer.module-template.yaml
+
+dependencies:
+  - $libs.org.babyfish.jimmer.jimmer.sql.kotlin:
+      exported: true
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json:
+      exported: true
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: jimmer-ktx-serializer
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jimmer-ktx-serializer
+      description: "为 Jimmer 实体提供 `kotlinx.serialization` 运行时适配，避免为每个实体重复编写 `UserSerializer`、`DeptSerializer` 这类样板代码。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+
+test-settings:
+  kotlin:
+    ksp:
+      version: 2.3.9
+      processors:
+        - $libs.org.babyfish.jimmer.jimmer.ksp

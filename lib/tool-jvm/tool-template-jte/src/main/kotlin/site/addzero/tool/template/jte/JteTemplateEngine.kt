@@ -14,8 +14,11 @@ class JteTemplateEngine private constructor(
     fun <T> render(templateName: String, model: T): String =
         StringOutput().also { engine.render(templateName, model, it) }.toString()
 
+    @Suppress("UNCHECKED_CAST")
     fun renderWithMap(templateName: String, params: Map<String, Any?>): String =
-        StringOutput().also { engine.render(templateName, params, it) }.toString()
+        StringOutput().also { output ->
+            engine.render(templateName, params as Map<String, Any>, output)
+        }.toString()
 
     fun <T> renderOrNull(templateName: String, model: T): String? = runCatching {
         render(templateName, model)

@@ -1,7 +1,7 @@
 package site.addzero.device.protocol.modbus.ksp.core
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import site.addzero.device.protocol.modbus.ksp.context.Settings
+import site.addzero.device.protocol.modbus.ksp.context.generated.Settings
 
 data class ModbusDatabaseMetadataOptions(
     val driverClass: String?,

@@ -3,7 +3,7 @@ package site.addzero
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import java.sql.SQLException
-import site.addzero.jdbc2enum.processor.context.Settings
+import site.addzero.jdbc2enum.processor.context.generated.Settings
 
 /**
  * 字典枚举元数据处理器提供者

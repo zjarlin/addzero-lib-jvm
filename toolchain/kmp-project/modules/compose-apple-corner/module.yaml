@@ -1,0 +1,66 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, wasmJs]
+description: "Apple 风格圆角 `Modifier` 扩展，统一封装树、侧栏、卡片这类容器的 G2 / Apple rounded corner 表达。"
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.org.jetbrains.compose.runtime.runtime
+  - $libs.org.jetbrains.compose.foundation.foundation
+  - $libs.org.jetbrains.compose.ui.ui
+  - $libs.org.jetbrains.compose.material3.material3
+  - $libs.org.jetbrains.compose.material.material.icons.extended
+  - $libs.org.jetbrains.compose.components.components.resources
+  - $libs.org.jetbrains.compose.ui.ui.tooling.preview
+  - $libs.org.jetbrains.androidx.lifecycle.lifecycle.viewmodel.compose
+  - $libs.org.jetbrains.androidx.lifecycle.lifecycle.runtime.compose
+  - $libs.io.insert.koin.koin.annotations
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+test-dependencies@jvm:
+  - $compose.desktop.currentOs
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: compose-apple-corner
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: compose-apple-corner
+      description: "Apple 风格圆角 `Modifier` 扩展，统一封装树、侧栏、卡片这类容器的 G2 / Apple rounded corner 表达。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+  compose:
+    enabled: true
+  jvm:
+    jdk:
+      version: 17
+    release: 17

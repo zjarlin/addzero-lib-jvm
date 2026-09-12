@@ -1,0 +1,60 @@
+product: jvm/lib
+description: "site.addzero:yudao-spring-boot-starter-monitor"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/yudao-java-starter.module-template.yaml
+
+dependencies:
+  - //lib/tool-jvm/yudao/yudao-common:
+      exported: true
+  - $libs.yudao.spring.boot.starter.aop:
+      exported: true
+  - $libs.yudao.aspectjweaver:
+      exported: true
+  - $libs.yudao.spring.boot.micrometer.metrics:
+      exported: true
+  - $libs.yudao.spring.web:
+      scope: compile-only
+  - $libs.yudao.jakarta.servlet.api:
+      scope: compile-only
+  - $libs.yudao.opentracing.util:
+      scope: compile-only
+  - $libs.yudao.apm.toolkit.trace:
+      scope: compile-only
+  - $libs.yudao.apm.toolkit.logback.1.x:
+      scope: compile-only
+  - $libs.yudao.apm.toolkit.opentracing:
+      scope: compile-only
+  - $libs.yudao.micrometer.registry.prometheus:
+      scope: compile-only
+  - $libs.yudao.spring.boot.admin.starter.client:
+      scope: compile-only
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: yudao-spring-boot-starter-monitor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: yudao-spring-boot-starter-monitor
+      description: "site.addzero:yudao-spring-boot-starter-monitor"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  java:
+    annotationProcessing:
+      processors:
+        - $libs.yudao.spring.boot.configuration.processor

@@ -1,0 +1,1 @@
+../../../../../../../../../lib/compose/app-sidebar-shadcn-adapter/src/commonMain/kotlin/site/addzero/appsidebar/shadcn/ShadcnAppSidebarStyle.kt

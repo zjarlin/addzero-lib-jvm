@@ -1,0 +1,1 @@
+../../../../../../../../../lib/ksp/metadata/controller2feign-processor/src/commonMain/kotlin/site/addzero/processor/feign/Controller2FeignProcessor.kt

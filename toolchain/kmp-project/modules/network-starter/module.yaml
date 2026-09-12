@@ -1,0 +1,95 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, wasmJs, android]
+description: "Ktor `HttpClient` starter for KMP projects."
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+    publish: true
+  - id: huawei-maven-central
+    url: https://mirrors.huaweicloud.com/repository/maven
+
+dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.core
+  - $libs.io.ktor.ktor.client.core
+  - $libs.io.ktor.ktor.client.content.negotiation
+  - $libs.io.ktor.ktor.serialization.kotlinx.json
+  - $libs.io.ktor.ktor.client.logging
+  - bom: $libs.io.insert.koin.koin.bom
+  - $libs.io.insert.koin.koin.annotations
+  - $libs.io.insert.koin.koin.core
+  - $libs.com.russhwolf.multiplatform.settings
+  - $libs.de.jensklingenberg.ktorfit.ktorfit.lib
+  - //modules/tool-coll:
+      exported: true
+  - //modules/tool-json
+  - $libs.io.ktor.ktor.client.websockets
+
+dependencies@jvm:
+  - $libs.io.ktor.ktor.client.cio:
+      exported: true
+  - $libs.ch.qos.logback.logback.classic
+
+dependencies@wasmJs:
+  - $libs.io.ktor.ktor.client.js:
+      exported: true
+
+dependencies@native:
+  - $libs.io.ktor.ktor.client.darwin:
+      exported: true
+
+dependencies@android:
+  - $libs.io.ktor.ktor.client.cio:
+      exported: true
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.io.kotest.kotest.property
+  - $libs.io.kotest.kotest.assertions.core
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: network-starter
+    version: 2026.08.12
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: network-starter
+      description: "Ktor `HttpClient` starter for KMP projects."
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  kotlin:
+    version: 2.3.21
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+    serialization: enabled
+    compilerPlugins:
+      - id: io.insert-koin.compiler.plugin
+        dependency: $libs.io.insert.koin.koin.compiler.plugin
+        options:
+          compileSafety: "false"
+          debugLogs: "false"
+          skipDefaultValues: "true"
+          unsafeDslChecks: "true"
+          userLogs: "true"
+  jvm:
+    jdk:
+      version: 17
+    release: 17
+  android:
+    namespace: site.addzero.toolkmp.networkstarter

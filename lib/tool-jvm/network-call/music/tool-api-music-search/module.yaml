@@ -1,0 +1,42 @@
+product: jvm/lib
+description: "site.addzero:tool-api-music-search"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.com.squareup.okhttp3.okhttp
+  - $libs.com.alibaba.fastjson2.fastjson2.kotlin
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.core
+  - $libs.org.jetbrains.kotlinx.kotlinx.serialization.json
+  - $libs.unbescape
+  - $libs.io.ktor.ktor.client.core
+  - $libs.io.ktor.ktor.client.cio
+  - $libs.io.ktor.ktor.client.content.negotiation
+  - $libs.io.ktor.ktor.serialization.kotlinx.json
+  - $libs.io.ktor.ktor.client.logging
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-api-music-search
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-api-music-search
+      description: "site.addzero:tool-api-music-search"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

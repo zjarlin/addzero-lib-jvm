@@ -1,0 +1,40 @@
+product: jvm/lib
+description: "LSI系统的KSP实现模块"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - //lib/lsi/lsi-core:
+      exported: true
+  - site.addzero:tool-str:2026.08.11
+  - $libs.com.google.devtools.ksp.symbol.processing.api
+  - $libs.com.squareup.kotlinpoet:
+      scope: compile-only
+  - $libs.com.squareup.kotlinpoet.ksp:
+      scope: compile-only
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: lsi-ksp
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: lsi-ksp
+      description: "LSI系统的KSP实现模块"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

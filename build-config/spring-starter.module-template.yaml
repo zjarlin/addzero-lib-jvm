@@ -1,0 +1,17 @@
+apply:
+  - //build-config/spring-common.module-template.yaml
+
+dependencies:
+  - $libs.org.springframework.boot.spring.boot.starter.web: compile-only
+  - $libs.org.springframework.boot.spring.boot.autoconfigure: compile-only
+
+settings:
+  java:
+    annotationProcessing:
+      processors:
+        - $libs.org.springframework.boot.spring.boot.configuration.processor.v2
+  kotlin:
+    allOpen:
+      enabled: true
+      presets:
+        - spring

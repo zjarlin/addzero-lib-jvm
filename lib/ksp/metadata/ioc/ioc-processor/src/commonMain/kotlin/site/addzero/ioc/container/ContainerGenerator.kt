@@ -4,7 +4,7 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import site.addzero.ioc.strategy.BeanInfo
 import site.addzero.ioc.strategy.InitType
-import site.addzero.util.lsi.clazz.LsiClass
+import site.addzero.lsi.clazz.LsiClass
 
 /**
  * @param generatedPackage package name for generated files (module-specific, no conflicts)

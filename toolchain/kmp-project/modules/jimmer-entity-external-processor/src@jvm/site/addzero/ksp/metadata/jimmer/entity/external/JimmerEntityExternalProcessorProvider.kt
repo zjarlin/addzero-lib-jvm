@@ -1,0 +1,1 @@
+../../../../../../../../../../../../lib/ksp/metadata/jimmer-entity-external-processor/src/jvmMain/kotlin/site/addzero/ksp/metadata/jimmer/entity/external/JimmerEntityExternalProcessorProvider.kt

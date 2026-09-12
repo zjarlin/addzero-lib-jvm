@@ -10,8 +10,9 @@ plugins {
 
 
 // >>> Gradle Module Sleep: On-Demand Modules (DO NOT EDIT THIS BLOCK) >>>
-// Generated at: 2026-08-10T14:56:00.652509
-// Loaded: 52, Excluded: 0, Total: 52
+// Generated at: 2026-08-21T08:37:04.527034
+// Loaded: 47, Excluded: 0, Total: 47
+include(":lib:api:api-openai")
 include(":lib:apt:dict-trans:apt-dict-trans-core")
 include(":lib:apt:dict-trans:apt-dict-trans-processor")
 include(":lib:apt:dict-trans:dict-trans-core")
@@ -19,14 +20,8 @@ include(":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-ksp-smoke")
 include(":lib:ksp:metadata:jimmer-ddl-compiler:jimmer-ddl-compiler-processor")
 include(":lib:lsi:lsi-apt")
 include(":lib:lsi:lsi-core")
-include(":lib:lsi:lsi-intellij")
 include(":lib:lsi:lsi-jimmer")
-include(":lib:lsi:lsi-k2")
 include(":lib:lsi:lsi-ksp")
-include(":lib:lsi:lsi-kt")
-include(":lib:lsi:lsi-psi")
-include(":lib:lsi:lsi-psiandkt")
-include(":lib:lsi:lsi-reflection")
 include(":lib:tool-jvm:database:ddlgenerator")
 include(":lib:tool-jvm:database:ddlgenerator-core")
 include(":lib:tool-jvm:database:ddlgenerator-dialect-dm")
@@ -66,7 +61,7 @@ include(":lib:tool-starter:controller-advice-spring-boot-starter")
 include(":lib:tool-starter:dict-trans-spring-boot-starter")
 // <<< Gradle Module Sleep: End Of Block <<<
 
-//include(":lib:api:api-openai") // excluded by Gradle Buddy
+include(":lib:api:api-openai")
 
 //include(":lib:tool-jvm:yudao:yudao-dependencies") // excluded by Gradle Buddy
 //include(":lib:tool-jvm:tool-jackson") // excluded by Gradle Buddy

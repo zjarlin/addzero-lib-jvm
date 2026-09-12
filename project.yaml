@@ -1,0 +1,10 @@
+modules:
+  - ./build-tools/*
+  - ./lib/*
+  - ./lib/*/*
+  - ./lib/*/*/*
+  - ./lib/*/*/*/*
+  - ./toolchain/modules/*
+
+plugins:
+  - ./build-tools/processor-settings-build

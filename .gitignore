@@ -3,6 +3,7 @@
 .gradle/
 .autoddl
 **/target/
+**/jte-classes/
 
 .ai
 **/build/

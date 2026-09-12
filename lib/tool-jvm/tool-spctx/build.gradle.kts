@@ -10,6 +10,7 @@ plugins {
 val catalogLibs = versionCatalogs.named("libs")
 
 dependencies {
+    compileOnly(catalogLibs.findLibrary("site-addzero-gen-reified-core").get())
 //    compileOnly(catalogLibs.findLibrary("org-springframework-spring-jdbc").get())
     compileOnly(catalogLibs.findLibrary("org-springframework-spring-context").get())
 //    compileOnly(catalogLibs.findLibrary("org-springframework-spring-web").get())

@@ -5,8 +5,8 @@ import site.addzero.GenerationMode
 import site.addzero.dsl.generator.DslGenerator
 import site.addzero.dsl.generator.generateSimpleTypeParameters
 import site.addzero.dsl.model.*
-import site.addzero.getAnnoProperty
-import site.addzero.getParentClasses
+import site.addzero.lsi.ksp.anno.getAttributeWithType
+import site.addzero.lsi.ksp.clazz.getParentClasses
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
@@ -66,12 +66,13 @@ class DslProcessor(
             isNested = klass.parentDeclaration is KSClassDeclaration,
             isPrimary = klass.primaryConstructor != null,
             dslFunctionName = klass.simpleName.asString().replaceFirstChar { it.lowercase() },
-            genCollectionDslBuilder = annotation.getAnnoProperty<Boolean>("genCollectionDslBuilder"),
-            customDslName = annotation.getAnnoProperty<String>(),
-            removePrefix = annotation.getAnnoProperty<String>("removePrefix"),
-            removeSuffix = annotation.getAnnoProperty<String>("removeSuffix"),
+            genCollectionDslBuilder =
+                annotation.getAttributeWithType<Boolean>("genCollectionDslBuilder") ?: false,
+            customDslName = annotation.getAttributeWithType<String>() ?: "",
+            removePrefix = annotation.getAttributeWithType<String>("removePrefix") ?: "",
+            removeSuffix = annotation.getAttributeWithType<String>("removeSuffix") ?: "",
             constructor = constructor.toConstructorMeta(),
-            parentClasses = getParentClasses(klass).map { it.toParentClassMeta() },
+            parentClasses = klass.getParentClasses().map { it.toParentClassMeta() },
             typeParameters = klass.typeParameters.map { it.toTypeParameter() },
             simpleTypeParameters = emptyList(),
             properties = emptyList(),
@@ -241,4 +242,3 @@ private fun String.removeSuffixIfNotNull(suffix: String?): String {
         this
     }
 }
-

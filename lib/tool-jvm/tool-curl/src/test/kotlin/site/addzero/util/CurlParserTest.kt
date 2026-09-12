@@ -82,10 +82,8 @@ class CurlParserTest {
     // @Test
     fun testCurlExecutor() {
         val curlCommand = "curl https://httpbin.org/get"
-        val parsedCurl = CurlParser.parseCurl(curlCommand)
-        
         try {
-            val response = CurlExecutor.execute(parsedCurl)
+            val response = CurlExecutor.execute(curlCommand)
             assertEquals(200, response.code)
             response.close()
         } catch (e: IOException) {

@@ -10,7 +10,7 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFailsWith
-import site.addzero.route.processor.context.Settings
+import site.addzero.route.processor.context.generated.Settings
 
 class RouteMetadataAggregatorJvmTest {
     @Test

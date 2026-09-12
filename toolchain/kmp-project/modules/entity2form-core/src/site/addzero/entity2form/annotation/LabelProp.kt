@@ -1,0 +1,1 @@
+../../../../../../../../../lib/ksp/metadata/entity2form/entity2form-core/src/commonMain/kotlin/site/addzero/entity2form/annotation/LabelProp.kt

@@ -1,6 +1,6 @@
 package site.addzero.apt
 
-import site.addzero.apt.config.DictProcessorSettings
+import site.addzero.apt.config.generated.DictProcessorSettings
 import java.sql.SQLException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion

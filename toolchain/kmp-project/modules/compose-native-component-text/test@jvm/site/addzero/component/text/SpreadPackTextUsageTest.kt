@@ -1,0 +1,1 @@
+../../../../../../../../../lib/compose/compose-native-component-text/src/jvmTest/kotlin/site/addzero/component/text/SpreadPackTextUsageTest.kt

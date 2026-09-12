@@ -1,0 +1,20 @@
+dependencies:
+  - bom: $libs.io.insert.koin.koin.bom
+  - $libs.io.insert.koin.koin.annotations
+  - $libs.io.insert.koin.koin.core
+  - $libs.io.insert.koin.koin.logger.slf4j
+
+test-dependencies:
+  - $libs.io.insert.koin.koin.test
+
+settings:
+  kotlin:
+    compilerPlugins:
+      - id: io.insert-koin.compiler.plugin
+        dependency: $libs.io.insert.koin.koin.compiler.plugin
+        options:
+          compileSafety: "false"
+          debugLogs: "false"
+          skipDefaultValues: "true"
+          unsafeDslChecks: "true"
+          userLogs: "true"

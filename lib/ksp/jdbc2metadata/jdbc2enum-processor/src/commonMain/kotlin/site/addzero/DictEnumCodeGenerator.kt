@@ -3,7 +3,7 @@ package site.addzero
 import PinYin4JUtils
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
-import site.addzero.jdbc2enum.processor.context.Settings
+import site.addzero.jdbc2enum.processor.context.generated.Settings
 import site.addzero.util.str.isNotBlank
 import site.addzero.util.str.withPkg
 import java.io.File

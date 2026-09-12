@@ -1,0 +1,1 @@
+../../../../../../lib/ksp/metadata/entity2iso-processor/src/commonTest/kotlin/generator/IsoCodeGeneratorTest.kt

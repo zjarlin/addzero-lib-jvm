@@ -1,0 +1,4 @@
+dependencies:
+  - $libs.org.flywaydb.flyway.core
+  - $libs.org.flywaydb.flyway.database.mysql
+  - $libs.org.flywaydb.flyway.database.postgresql

@@ -1,0 +1,1 @@
+../../../../../../../../../../lib/api/api-music-spi/src/commonMain/kotlin/site/addzero/kcloud/api/music/MusicService.kt

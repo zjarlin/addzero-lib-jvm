@@ -6,8 +6,9 @@ import cn.hutool.core.util.ReflectUtil
 import com.baomidou.mybatisplus.core.toolkit.Wrappers
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction
 import com.baomidou.mybatisplus.extension.service.IService
-import site.addzero.mybatis.auto_wrapper.AutoWhereUtil
 import site.addzero.mybatis.auto_wrapper.Where
+import site.addzero.mybatis.auto_wrapper.lambdaQueryByAnnotation
+import site.addzero.mybatis.auto_wrapper.lambdaQueryByField
 import site.addzero.util.spring.getBean
 import java.io.Serializable
 import java.lang.reflect.Field
@@ -48,14 +49,14 @@ fun <T : Any> IService<T>.toEntityOps(): EntityOps<T> {
         override val entityClass: Class<T> = clazz
 
         override fun listBy(entity: T): List<T> {
-            val wrapper = if (byAnno) AutoWhereUtil.lambdaQueryByAnnotation(clazz, entity)
-            else AutoWhereUtil.lambdaQueryByField(clazz, entity, true)
+            val wrapper = if (byAnno) lambdaQueryByAnnotation(clazz, entity)
+            else lambdaQueryByField(clazz, entity, true)
             return service.list(wrapper) ?: emptyList()
         }
 
         override fun countBy(entity: T): Long {
-            val wrapper = if (byAnno) AutoWhereUtil.lambdaQueryByAnnotation(clazz, entity)
-            else AutoWhereUtil.lambdaQueryByField(clazz, entity, true)
+            val wrapper = if (byAnno) lambdaQueryByAnnotation(clazz, entity)
+            else lambdaQueryByField(clazz, entity, true)
             return service.count(wrapper)
         }
 
@@ -68,8 +69,8 @@ fun <T : Any> IService<T>.toEntityOps(): EntityOps<T> {
         override fun removeByIds(ids: Collection<Serializable>) = service.removeByIds(ids)
 
         override fun removeByCondition(entity: T): Boolean {
-            val wrapper = if (byAnno) AutoWhereUtil.lambdaQueryByAnnotation(clazz, entity)
-            else AutoWhereUtil.lambdaQueryByField(clazz, entity, true)
+            val wrapper = if (byAnno) lambdaQueryByAnnotation(clazz, entity)
+            else lambdaQueryByField(clazz, entity, true)
             return service.remove(wrapper)
         }
     }

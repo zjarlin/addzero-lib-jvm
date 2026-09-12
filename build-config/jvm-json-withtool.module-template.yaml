@@ -1,0 +1,5 @@
+apply:
+  - //build-config/jvm-json.module-template.yaml
+
+dependencies:
+  - $libs.site.addzero.tool.json

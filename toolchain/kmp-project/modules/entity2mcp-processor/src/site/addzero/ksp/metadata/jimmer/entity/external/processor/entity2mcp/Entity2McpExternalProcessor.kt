@@ -1,0 +1,1 @@
+../../../../../../../../../../../../../../lib/ksp/metadata/entity2mcp-processor/src/commonMain/kotlin/site/addzero/ksp/metadata/jimmer/entity/external/processor/entity2mcp/Entity2McpExternalProcessor.kt

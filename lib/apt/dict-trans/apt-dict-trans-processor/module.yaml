@@ -1,0 +1,50 @@
+product: jvm/lib
+description: "site.addzero:apt-dict-trans-processor"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - //lib/apt/dict-trans/apt-dict-trans-core:
+      exported: true
+  - $libs.com.squareup.javapoet
+  - $libs.javax.annotation.javax.annotation.api
+
+test-dependencies:
+  - $libs.org.springframework.spring.beans
+  - $libs.org.projectlombok.lombok
+  - $libs.org.springframework.spring.context
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: apt-dict-trans-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: apt-dict-trans-processor
+      description: "site.addzero:apt-dict-trans-processor"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  lombok:
+    enabled: true
+    version: 1.18.46
+
+test-settings:
+  java:
+    annotationProcessing:
+      processors:
+        - //lib/apt/dict-trans/apt-dict-trans-processor

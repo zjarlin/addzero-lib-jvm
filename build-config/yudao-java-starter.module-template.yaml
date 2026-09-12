@@ -1,0 +1,13 @@
+dependencies:
+  - bom: $libs.yudao.spring.boot.dependencies
+  - bom: $libs.yudao.spring.cloud.dependencies
+  - bom: $libs.yudao.spring.cloud.alibaba.dependencies
+
+settings:
+  jvm:
+    jdk:
+      version: 17
+    release: 17
+  lombok:
+    enabled: true
+    version: 1.18.46

@@ -1,0 +1,41 @@
+product: jvm/lib
+description: "JVM 串口工具模块，基于 `jSerialComm` 提供可复用的 Kotlin API，用于枚举串口、打开连接、同步读写和按分隔符收包。"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - $libs.jserialcomm:
+      exported: true
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.core:
+      exported: true
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlinx.kotlinx.coroutines.test
+  - $libs.org.jetbrains.kotlin.kotlin.test
+  - $libs.org.junit.jupiter.junit.jupiter
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-serial
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-serial
+      description: "JVM 串口工具模块，基于 `jSerialComm` 提供可复用的 Kotlin API，用于枚举串口、打开连接、同步读写和按分隔符收包。"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

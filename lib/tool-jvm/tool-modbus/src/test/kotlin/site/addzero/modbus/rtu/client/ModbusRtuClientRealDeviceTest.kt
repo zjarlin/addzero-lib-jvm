@@ -1,6 +1,7 @@
 package site.addzero.modbus.rtu.client
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import site.addzero.serial.SerialPortConfig
 import java.io.File
 
@@ -11,6 +12,7 @@ private const val REAL_COUNT = 24
 private const val REAL_BAUD_RATE = 9600
 private const val REAL_TIMEOUT_MS = 1500
 
+@EnabledIfEnvironmentVariable(named = "ADDZERO_RUN_MODBUS_INTEGRATION_TESTS", matches = "true")
 class ModbusRtuClientRealDeviceTest {
     @Test
     fun `真实设备读取 24 路线圈并打印结果`() {

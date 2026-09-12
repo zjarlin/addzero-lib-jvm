@@ -1,0 +1,13 @@
+product: jvm/amper-plugin
+
+pluginInfo:
+  id: processor-settings-build
+  settingsClass: site.addzero.toolchain.processorsettings.ProcessorSettingsBuildSettings
+
+settings:
+  kotlin:
+    version: 2.4.0
+  jvm:
+    jdk:
+      version: 21
+    release: 21

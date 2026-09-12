@@ -1,0 +1,9 @@
+dependencies:
+  - bom: $libs.org.springframework.boot.spring.boot.dependencies.v2
+
+test-dependencies:
+  - $libs.org.springframework.boot.spring.boot.starter.test.v2
+  - $libs.org.junit.jupiter.junit.jupiter.api
+  - $libs.com.h2database.h2
+  - $libs.org.springframework.boot.spring.boot.starter.web
+  - $libs.org.junit.jupiter.junit.jupiter.engine: runtime-only

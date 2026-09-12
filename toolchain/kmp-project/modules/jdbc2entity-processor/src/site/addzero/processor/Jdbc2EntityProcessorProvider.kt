@@ -1,0 +1,1 @@
+../../../../../../../../lib/ksp/jdbc2metadata/jdbc2entity-processor/src/commonMain/kotlin/site/addzero/processor/Jdbc2EntityProcessorProvider.kt

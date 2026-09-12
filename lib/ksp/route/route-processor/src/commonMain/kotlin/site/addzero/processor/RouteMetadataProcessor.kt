@@ -14,7 +14,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.validate
 import site.addzero.annotation.Route
-import site.addzero.route.processor.context.Settings
+import site.addzero.route.processor.context.generated.Settings
 import site.addzero.util.str.toUnderLineCase
 
 internal const val ROUTE_TABLE_NAME = "RouteTable"

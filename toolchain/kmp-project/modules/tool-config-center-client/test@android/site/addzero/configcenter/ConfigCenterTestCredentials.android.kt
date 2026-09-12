@@ -1,0 +1,1 @@
+../../../../../../../../lib/tool-kmp/tool-config-center-client/src/androidUnitTest/kotlin/site/addzero/configcenter/ConfigCenterTestCredentials.android.kt

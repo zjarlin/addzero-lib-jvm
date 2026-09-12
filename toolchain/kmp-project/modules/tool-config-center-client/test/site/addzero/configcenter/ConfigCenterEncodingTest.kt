@@ -1,0 +1,1 @@
+../../../../../../../../lib/tool-kmp/tool-config-center-client/src/commonTest/kotlin/site/addzero/configcenter/ConfigCenterEncodingTest.kt

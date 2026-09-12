@@ -17,7 +17,6 @@ interface KspBook {
     val id: Long
 
     @Key
-    @Column(length = 120)
     val title: String
 
     @Serialized

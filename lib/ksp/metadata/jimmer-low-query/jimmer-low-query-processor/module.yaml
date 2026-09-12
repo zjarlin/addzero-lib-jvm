@@ -1,0 +1,44 @@
+product: jvm/lib
+description: "site.addzero:jimmer-low-query-processor"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+  - //build-config/jvm-ksp-processor.module-template.yaml
+
+dependencies:
+  - //lib/ksp/metadata/jimmer-low-query/jimmer-low-query-annotations
+
+plugins:
+  processor-settings-build:
+    enabled: true
+    packageName: site.addzero.jimmer.lowquery.processor.context.generated
+    style: context
+    settingsClassName: Settings
+    contextClassName: SettingContext
+    properties:
+      "jimmerLowQuery.generatedPackage": ""
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: jimmer-low-query-processor
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: jimmer-low-query-processor
+      description: "site.addzero:jimmer-low-query-processor"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

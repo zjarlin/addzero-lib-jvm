@@ -6,7 +6,7 @@ plugins {
 val catalogLibs = versionCatalogs.named("libs")
 
 processorBuddy {
-    packageName.set("site.addzero.jimmer.ddl.compiler.context")
+    packageName.set("site.addzero.jimmer.ddl.compiler.context.generated")
     mustMap.set(
         mapOf(
             "jimmerDdl.enabled" to "true",

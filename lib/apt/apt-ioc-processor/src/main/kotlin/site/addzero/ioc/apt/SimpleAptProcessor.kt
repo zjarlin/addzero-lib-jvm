@@ -1,7 +1,6 @@
 package site.addzero.ioc.apt
 
 import site.addzero.ioc.annotation.Bean
-import site.addzero.ioc.annotation.Component
 import java.io.OutputStreamWriter
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -17,6 +16,7 @@ import javax.tools.StandardLocation
 private const val GENERATED_PACKAGE = "site.addzero.ioc.generated"
 private const val CONTAINER_NAME = "IocContainer"
 private const val REGISTRY_NAME = "AutoBeanRegistry"
+private const val LEGACY_COMPONENT_ANNOTATION = "site.addzero.ioc.annotation.Component"
 
 // 存储函数信息的数据类
 data class InitFunction(
@@ -60,8 +60,9 @@ class SimpleAptProcessor : AbstractProcessor() {
             processBeanAnnotations(beanElements)
 
             // 处理 @Component 注解
-            val componentElements = roundEnv.getElementsAnnotatedWith(elements.getTypeElement(Component::class.qualifiedName!!))
-            processComponentAnnotations(componentElements)
+            elements.getTypeElement(LEGACY_COMPONENT_ANNOTATION)?.let { componentAnnotation ->
+                processComponentAnnotations(roundEnv.getElementsAnnotatedWith(componentAnnotation))
+            }
 
             return true
         } catch (e: Exception) {

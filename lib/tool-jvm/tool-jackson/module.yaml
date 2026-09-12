@@ -1,0 +1,49 @@
+product: jvm/lib
+description: "site.addzero:tool-jackson"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - bom: $libs.org.springframework.boot.spring.boot.dependencies.v2
+  - $libs.com.fasterxml.jackson.module.jackson.module.kotlin:
+      exported: true
+  - $libs.yudao.jackson.datatype.jsr310
+  - $libs.cn.hutool.hutool.extra:
+      scope: compile-only
+  - $libs.org.springframework.boot.spring.boot.autoconfigure:
+      scope: compile-only
+  - $libs.org.springframework.spring.context:
+      scope: compile-only
+  - $libs.org.springframework.boot.spring.boot.starter.web:
+      scope: compile-only
+
+test-dependencies:
+  - $libs.cn.hutool.hutool.extra
+  - $libs.org.springframework.spring.context
+  - $libs.org.springframework.boot.spring.boot.starter.web
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: tool-jackson
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: tool-jackson
+      description: "site.addzero:tool-jackson"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt

@@ -1,0 +1,43 @@
+product: jvm/lib
+description: "site.addzero:kcp-multireceiver-plugin"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/jvm8.module-template.yaml
+
+dependencies:
+  - site.addzero:kcp-multireceiver-annotations:2026.08.11
+  - $libs.org.jetbrains.kotlin.kotlin.compiler.embeddable:
+      scope: compile-only
+
+test-dependencies:
+  - $libs.org.jetbrains.kotlin.kotlin.compiler.embeddable
+  - $libs.org.junit.jupiter.junit.jupiter
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: kcp-multireceiver-plugin
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: kcp-multireceiver-plugin
+      description: "site.addzero:kcp-multireceiver-plugin"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  jvm:
+    jdk:
+      version: 17
+    release: 17

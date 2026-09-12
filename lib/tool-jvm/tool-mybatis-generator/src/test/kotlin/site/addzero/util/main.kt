@@ -1,10 +1,12 @@
 package site.addzero.util
 
 import cn.hutool.core.io.FileUtil
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import site.addzero.lib_adaptor.MpGeneratorSettingsImpl
 
 class MpGeneratorTest {
+    @Disabled("Requires a configured database and writes generated sources")
     @Test
     fun `test generate mybatis plus code`() {
         val outputPath = getGenDir()

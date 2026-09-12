@@ -7,10 +7,12 @@ import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import java.nio.file.Files
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@EnabledIfEnvironmentVariable(named = "ADDZERO_RUN_MINIO_INTEGRATION_TESTS", matches = "true")
 class MinioUtilTest {
 
     private lateinit var config: MinioTestConfig
@@ -344,12 +346,16 @@ class MinioUtilTest {
         companion object {
             fun default(): MinioTestConfig {
                 return MinioTestConfig(
-                    endpoint = "http://local.host:9091",
-                    accessKey = "minioadmin",
-                    secretKey = "minioadmin",
-                    bucketName = "boxun"
+                    endpoint = requiredEnvironment("ADDZERO_MINIO_TEST_ENDPOINT"),
+                    accessKey = requiredEnvironment("ADDZERO_MINIO_TEST_ACCESS_KEY"),
+                    secretKey = requiredEnvironment("ADDZERO_MINIO_TEST_SECRET_KEY"),
+                    bucketName = requiredEnvironment("ADDZERO_MINIO_TEST_BUCKET")
                 )
             }
+
+            private fun requiredEnvironment(name: String): String =
+                System.getenv(name)?.takeIf(String::isNotBlank)
+                    ?: error("Missing environment variable $name")
         }
     }
 }

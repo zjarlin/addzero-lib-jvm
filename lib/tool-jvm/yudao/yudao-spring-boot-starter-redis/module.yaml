@@ -1,0 +1,44 @@
+product: jvm/lib
+description: "site.addzero:yudao-spring-boot-starter-redis"
+
+apply:
+  - //build-config/jvm-lib.module-template.yaml
+  - //build-config/yudao-java-starter.module-template.yaml
+
+dependencies:
+  - //lib/tool-jvm/yudao/yudao-common:
+      exported: true
+  - $libs.yudao.redisson.spring.boot.starter:
+      exported: true
+  - $libs.yudao.spring.boot.starter.cache:
+      exported: true
+  - $libs.yudao.jackson.datatype.jsr310:
+      exported: true
+
+settings:
+  publishing:
+    enabled: true
+    group: site.addzero
+    artifactId: yudao-spring-boot-starter-redis
+    version: 2026.08.11
+    publishSources: true
+    signArtifacts: false
+    mavenCentral:
+      enabled: false
+      publishingMode: auto
+    pom:
+      name: yudao-spring-boot-starter-redis
+      description: "site.addzero:yudao-spring-boot-starter-redis"
+      url: https://github.com/zjarlin/addzero-lib-jvm
+      scm: https://github.com/zjarlin/addzero-lib-jvm.git
+      developers:
+        - id: zjarlin
+          name: zjarlin
+          email: zjarlin@outlook.com
+      licenses:
+        - name: The Apache License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+  java:
+    annotationProcessing:
+      processors:
+        - $libs.yudao.spring.boot.configuration.processor

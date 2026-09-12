@@ -1,6 +1,6 @@
 package site.addzero.processor
 
-import site.addzero.context.Settings
+import site.addzero.jdbc2entity.processor.context.generated.Settings
 import site.addzero.util.str.containsAny
 import site.addzero.util.str.toLowCamelCase
 import site.addzero.util.str.withPkg

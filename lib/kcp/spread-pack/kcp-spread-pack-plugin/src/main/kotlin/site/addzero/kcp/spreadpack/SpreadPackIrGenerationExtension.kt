@@ -16,7 +16,9 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -31,7 +33,7 @@ import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrThrow
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrAnnotationImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -194,7 +196,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         if (generatedProperties.isEmpty()) {
             return
         }
-        val parametersByName = generatedPrimaryConstructor.valueParameters.associateBy { parameter ->
+        val parametersByName = generatedPrimaryConstructor.regularParameters().associateBy { parameter ->
             parameter.name.asString()
         }
         val existingStatements = (generatedPrimaryConstructor.body as? IrBlockBody)
@@ -232,7 +234,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         if (!processWholeClass && !function.hasAnnotation(SpreadPackPluginKeys.generateSpreadPackOverloadsAnnotation)) {
             return false
         }
-        return function.valueParameters.any { parameter ->
+        return function.regularParameters().any { parameter ->
             parameter.getSpreadPackAnnotation() != null || parameter.getSpreadPackOfAnnotation() != null
         }
     }
@@ -274,17 +276,17 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     ): IrSpreadPackMatch? {
         val originalName = original.name.asString()
         val generatedName = generated.name.asString()
-        if (original.extensionReceiverParameter != null || generated.extensionReceiverParameter != null) {
+        if (original.extensionReceiver() != null || generated.extensionReceiver() != null) {
             return null
         }
-        if (original.contextReceiverParametersCount > 0 || generated.contextReceiverParametersCount > 0) {
+        if (original.contextParameters().isNotEmpty() || generated.contextParameters().isNotEmpty()) {
             return null
         }
         if (original.typeParameters.size != generated.typeParameters.size) {
             return null
         }
 
-        val expansions = original.valueParameters.mapIndexedNotNull { index, parameter ->
+        val expansions = original.regularParameters().mapIndexedNotNull { index, parameter ->
             createExpansion(original, index, parameter, pluginContext)
         }
         if (expansions.isEmpty()) {
@@ -292,11 +294,11 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
 
         val expectedTypes = buildExpectedParameterTypes(original, expansions)
-        if (expectedTypes.size != generated.valueParameters.size) {
+        if (expectedTypes.size != generated.regularParameters().size) {
             return null
         }
         val signaturesMatch = expectedTypes
-            .zip(generated.valueParameters.map { parameter -> parameter.type })
+            .zip(generated.regularParameters().map { parameter -> parameter.type })
             .all { pair ->
                 sameIrType(pair.first, pair.second)
             }
@@ -563,7 +565,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 "argsof target ${function.fqNameWhenAvailable?.asString() ?: function.name.asString()} must not declare receivers or context parameters",
             )
         }
-        return function.valueParameters.flatMap { referencedParameter ->
+        return function.regularParameters().flatMap { referencedParameter ->
             flattenValueParameter(
                 owner = owner,
                 parameter = referencedParameter,
@@ -694,7 +696,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         if (carrier.generatedProperties.isNotEmpty()) {
             return
         }
-        carrier.primaryConstructor.valueParameters.forEach { constructorParameter ->
+        carrier.primaryConstructor.regularParameters().forEach { constructorParameter ->
             if (constructorParameter.name.asString() !in selectedCarrierNames && constructorParameter.defaultValue == null) {
                 invalidTarget(
                     owner,
@@ -754,10 +756,10 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                         owner,
                         "annotated spread-pack carrier ${carrier.irClass.name.asString()} is missing generated constructor",
                     )
-                val constructorParameterIndexByName = generatedConstructor.valueParameters
+                val constructorParameterIndexByName = generatedConstructor.regularParameters()
                     .mapIndexed { index, parameter -> parameter.name.asString() to index }
                     .toMap()
-                val generatedDefaultsByName = generatedConstructor.valueParameters
+                val generatedDefaultsByName = generatedConstructor.regularParameters()
                     .associateBy({ parameter -> parameter.name.asString() }, { parameter -> parameter.defaultValue })
                 val generatedPropertiesByName = carrier.generatedProperties.associateBy { property ->
                     property.name.asString()
@@ -796,7 +798,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                     constructor.isPrimary && constructor.isGeneratedBySpreadPackPlugin()
                 }
             val generatedDefaultsByName = generatedPrimaryConstructor
-                ?.valueParameters
+                ?.regularParameters()
                 ?.associateBy({ parameter -> parameter.name.asString() }, { parameter -> parameter.defaultValue })
                 .orEmpty()
             return carrier.generatedProperties.map { property ->
@@ -810,7 +812,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 )
             }
         }
-        return carrier.primaryConstructor.valueParameters.mapIndexed { index, parameter ->
+        return carrier.primaryConstructor.regularParameters().mapIndexed { index, parameter ->
             IrCarrierDeclaredField(
                 name = parameter.name,
                 type = parameter.type,
@@ -844,7 +846,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             return overloads.single()
         }
         val matches = overloads.filter { overload ->
-            overload.valueParameters.map { valueParameter ->
+            overload.regularParameters().map { valueParameter ->
                 erasureClassId(valueParameter.type)
                     ?: invalidTarget(
                         owner,
@@ -912,8 +914,8 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     private fun isSupportedReferencedFunction(
         function: IrSimpleFunction,
     ): Boolean {
-        return function.extensionReceiverParameter == null &&
-            function.contextReceiverParametersCount == 0
+        return function.extensionReceiver() == null &&
+            function.contextParameters().isEmpty()
     }
 
     private fun overloadKey(
@@ -922,7 +924,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         return buildString {
             append(function.fqNameWhenAvailable?.asString() ?: function.name.asString())
             append("|")
-            function.valueParameters.forEach { valueParameter ->
+            function.regularParameters().forEach { valueParameter ->
                 append(jvmErasure(valueParameter.type))
                 append(";")
             }
@@ -946,21 +948,22 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         match: IrSpreadPackMatch,
     ) {
         if (match.original.hasAnnotation(composableAnnotationFqName)) {
-            generated.valueParameters.forEach { parameter ->
+            generated.regularParameters().forEach { parameter ->
                 parameter.defaultValue = null
             }
             return
         }
         val expansionsByIndex = match.expansions.associateBy { expansion -> expansion.parameterIndex }
         var generatedParameterCursor = 0
-        match.original.valueParameters.forEachIndexed { index, _ ->
+        val generatedParameters = generated.regularParameters()
+        match.original.regularParameters().forEachIndexed { index, _ ->
             val expansion = expansionsByIndex[index]
             if (expansion == null) {
                 generatedParameterCursor += 1
                 return@forEachIndexed
             }
             expansion.fields.forEach { field ->
-                val generatedParameter = generated.valueParameters[generatedParameterCursor]
+                val generatedParameter = generatedParameters[generatedParameterCursor]
                 val validFieldDefaultValue = field.defaultValue?.takeUnless { defaultValue ->
                     defaultValue.hasInvalidDefaultValue()
                 }
@@ -1000,7 +1003,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
     ): List<IrType> {
         val expansionsByIndex = expansions.associateBy { expansion -> expansion.parameterIndex }
         return buildList {
-            original.valueParameters.forEachIndexed { index, parameter ->
+            original.regularParameters().forEachIndexed { index, parameter ->
                 val expansion = expansionsByIndex[index]
                 if (expansion == null) {
                     add(parameter.type)
@@ -1025,26 +1028,26 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                 call.dispatchReceiver = irGet(receiver)
             }
             generated.typeParameters.forEachIndexed { index, typeParameter ->
-                call.putTypeArgument(index, typeParameter.defaultType)
+                call.typeArguments[index] = typeParameter.defaultType
             }
-            match.original.valueParameters.forEachIndexed { index, originalParameter ->
+            val generatedParameters = generated.regularParameters()
+            match.original.regularParameters().forEachIndexed { index, originalParameter ->
                 val expansion = expansionsByIndex[index]
                 if (expansion == null) {
-                    call.putValueArgument(index, irGet(generated.valueParameters[generatedParameterCursor]))
+                    call.arguments[originalParameter] = irGet(generatedParameters[generatedParameterCursor])
                     generatedParameterCursor += 1
                     return@forEachIndexed
                 }
 
                 if (expansion.fields.all { field -> field.constructorIndex >= 0 }) {
                     val constructorCall = irCall(expansion.constructor.symbol)
+                    val constructorParameters = expansion.constructor.regularParameters()
                     expansion.fields.forEach { field ->
-                        constructorCall.putValueArgument(
-                            field.constructorIndex,
-                            irGet(generated.valueParameters[generatedParameterCursor]),
-                        )
+                        constructorCall.arguments[constructorParameters[field.constructorIndex]] =
+                            irGet(generatedParameters[generatedParameterCursor])
                         generatedParameterCursor += 1
                     }
-                    call.putValueArgument(index, constructorCall)
+                    call.arguments[originalParameter] = constructorCall
                     return@forEachIndexed
                 }
 
@@ -1067,11 +1070,12 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
                         )
                     +irCall(setter.symbol).apply {
                         dispatchReceiver = irGet(carrierTemp)
-                        putValueArgument(0, irGet(generated.valueParameters[generatedParameterCursor]))
+                        arguments[setter.regularParameters().single()] =
+                            irGet(generatedParameters[generatedParameterCursor])
                     }
                     generatedParameterCursor += 1
                 }
-                call.putValueArgument(index, irGet(carrierTemp))
+                call.arguments[originalParameter] = irGet(carrierTemp)
             }
         }
 
@@ -1117,7 +1121,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             return
         }
         val sourceFunctionFqName = original.fqNameWhenAvailable?.asString() ?: return
-        val annotation = IrConstructorCallImpl(
+        val annotation = IrAnnotationImpl(
             generated.startOffset,
             generated.endOffset,
             constructor.owner.returnType,
@@ -1125,18 +1129,24 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
             typeArgumentsCount = 0,
             constructorTypeArgumentsCount = 0,
         ).apply {
-            putValueArgument(
-                0,
-                IrConstImpl.string(
-                    generated.startOffset,
-                    generated.endOffset,
-                    pluginContext.irBuiltIns.stringType,
-                    sourceFunctionFqName,
-                ),
+            arguments[constructor.owner.regularParameters().single()] = IrConstImpl.string(
+                generated.startOffset,
+                generated.endOffset,
+                pluginContext.irBuiltIns.stringType,
+                sourceFunctionFqName,
             )
         }
         generated.annotations += annotation
     }
+
+    private fun IrFunction.contextParameters() =
+        parameters.filter { parameter -> parameter.kind == IrParameterKind.Context }
+
+    private fun IrFunction.extensionReceiver() =
+        parameters.singleOrNull { parameter -> parameter.kind == IrParameterKind.ExtensionReceiver }
+
+    private fun IrFunction.regularParameters() =
+        parameters.filter { parameter -> parameter.kind == IrParameterKind.Regular }
 
     private fun isSupportedOriginalFunction(
         function: IrSimpleFunction,
@@ -1144,10 +1154,10 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         if (function.fqNameWhenAvailable == null) {
             return false
         }
-        if (function.extensionReceiverParameter != null) {
+        if (function.extensionReceiver() != null) {
             return false
         }
-        if (function.contextReceiverParametersCount > 0) {
+        if (function.contextParameters().isNotEmpty()) {
             return false
         }
         val parent = function.parent as? IrFile
@@ -1289,7 +1299,7 @@ class SpreadPackIrGenerationExtension : IrGenerationExtension {
         }
         val throwExpression = body.statements.single() as? IrThrow ?: return false
         val constructorCall = throwExpression.value as? IrConstructorCall ?: return false
-        val message = constructorCall.getValueArgument(0) as? IrConst ?: return false
+        val message = constructorCall.arguments[0] as? IrConst ?: return false
         return message.value == SpreadPackPluginKeys.stubErrorMessage
     }
 

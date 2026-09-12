@@ -1,7 +1,7 @@
 package site.addzero.ksp.metadata.jimmer.entity.external.processor.entity2form
 
 import site.addzero.generator.FormCodeGenerator
-import site.addzero.entity2form.processor.context.Settings
+import site.addzero.entity2form.processor.context.generated.Settings
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessContext
 import site.addzero.ksp.metadata.jimmer.entity.spi.JimmerEntityProcessorIds
 import site.addzero.lsi.processor.ProcessorSpi

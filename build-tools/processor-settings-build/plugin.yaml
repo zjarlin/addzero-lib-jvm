@@ -1,0 +1,14 @@
+tasks:
+  generateProcessorSettings:
+    action: !site.addzero.toolchain.processorsettings.generateProcessorSettings
+      packageName: ${pluginSettings.packageName}
+      properties: ${pluginSettings.properties}
+      style: ${pluginSettings.style}
+      settingsClassName: ${pluginSettings.settingsClassName}
+      contextClassName: ${pluginSettings.contextClassName}
+      generatedSourceDirectory: ${taskOutputDir}
+
+generated:
+  sources:
+    - language: kotlin
+      directory: ${tasks.generateProcessorSettings.action.generatedSourceDirectory}

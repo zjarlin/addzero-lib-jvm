@@ -1,0 +1,1 @@
+../../../../../../../../../lib/ksp/common/ksp-easycode-jimmer/src/commonMain/kotlin/site/addzero/easycode/jimmer/Entity2IsoProcessorProvider.kt

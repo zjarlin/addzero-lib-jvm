@@ -1,0 +1,1 @@
+../../../../../../../../../lib/compose/compose-native-component-chat/src/commonTest/kotlin/site/addzero/component/chat/AddChatPanelControllerTest.kt

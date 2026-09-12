@@ -7,5 +7,6 @@ val libs = versionCatalogs.named("libs")
 dependencies {
 //    implementation(libs.findLibrary("org-babyfish-jimmer-jimmer-sql-kotlin").get())
        implementation(libs.findLibrary("org-babyfish-jimmer-jimmer-spring-boot-starter").get())
+       implementation(libs.findLibrary("org-aspectj-aspectjweaver").get())
 
 }

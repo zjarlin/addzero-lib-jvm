@@ -1,7 +1,7 @@
 package site.addzero.apt
 
-import site.addzero.apt.config.DictProcessorConfig
-import site.addzero.apt.config.DictProcessorSettings
+import site.addzero.apt.config.generated.DictProcessorConfig
+import site.addzero.apt.config.generated.DictProcessorSettings
 import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
